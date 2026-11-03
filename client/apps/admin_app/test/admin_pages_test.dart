@@ -10,7 +10,10 @@ import 'package:l10n/l10n.dart';
 
 class _FakeAdminApi implements AdminApi {
   @override
-  Future<HierarchyResponse> hierarchy({String search = '', String status = ''}) async {
+  Future<HierarchyResponse> hierarchy({
+    String search = '',
+    String status = '',
+  }) async {
     const admin = PlatformAccount(
       userId: 'admin-1',
       displayName: 'Admin A',
@@ -64,71 +67,83 @@ class _FakeAdminApi implements AdminApi {
 
   @override
   Future<List<Category>> categories() async => const [
-        Category(
-          id: 'cat-1',
-          slug: 'sample-exterior',
-          status: 'ACTIVE',
-          sortOrder: 1,
-          labelEn: 'Sample exterior',
-          labelAr: 'هيكل تجريبي',
-          itemCount: 1,
-        ),
-      ];
+    Category(
+      id: 'cat-1',
+      slug: 'sample-exterior',
+      status: 'ACTIVE',
+      sortOrder: 1,
+      labelEn: 'Sample exterior',
+      labelAr: 'هيكل تجريبي',
+      itemCount: 1,
+    ),
+  ];
 
   @override
-  Future<List<ItemSummary>> items({String search = '', String categoryId = '', String status = ''}) async => const [
-        ItemSummary(
-          id: 'item-1',
-          stableCode: 'SAMPLE-EXT-001',
-          categoryId: 'cat-1',
-          categoryLabelEn: 'Sample exterior',
-          categoryLabelAr: 'هيكل تجريبي',
-          status: 'DRAFT',
-          currentVersion: 1,
-          labelEn: 'Sample body panel check',
-          labelAr: 'فحص لوحة الهيكل التجريبي',
-          sampleData: true,
-          updatedAt: '2026-11-03T10:00:00',
-        ),
-      ];
+  Future<List<ItemSummary>> items({
+    String search = '',
+    String categoryId = '',
+    String status = '',
+  }) async => const [
+    ItemSummary(
+      id: 'item-1',
+      stableCode: 'SAMPLE-EXT-001',
+      categoryId: 'cat-1',
+      categoryLabelEn: 'Sample exterior',
+      categoryLabelAr: 'هيكل تجريبي',
+      status: 'DRAFT',
+      currentVersion: 1,
+      labelEn: 'Sample body panel check',
+      labelAr: 'فحص لوحة الهيكل التجريبي',
+      sampleData: true,
+      updatedAt: '2026-11-03T10:00:00',
+    ),
+  ];
 
   @override
   Future<ItemDetail> itemDetail(String id) async => const ItemDetail(
-        item: ItemSummary(
-          id: 'item-1',
-          stableCode: 'SAMPLE-EXT-001',
-          categoryId: 'cat-1',
-          categoryLabelEn: 'Sample exterior',
-          categoryLabelAr: 'هيكل تجريبي',
-          status: 'DRAFT',
-          currentVersion: 1,
-          labelEn: 'Sample body panel check',
-          labelAr: 'فحص لوحة الهيكل التجريبي',
-          sampleData: true,
-          updatedAt: '2026-11-03T10:00:00',
-        ),
-        versions: [
-          ItemVersion(
-            id: 'version-1',
-            versionNo: 1,
-            status: 'DRAFT',
-            resultOptions: ['NO_ISSUE_OBSERVED', 'DEFECT_FOUND'],
-            severityPolicy: '{}',
-            applicability: '{}',
-            reasonCodes: [],
-            noteRequirement: 'OPTIONAL',
-            evidenceRequirement: 'NONE',
-            minPhotos: 0,
-            equipmentIds: [],
-            guideImageId: null,
-            publishedAt: null,
-            translations: {
-              'en': Translation(locale: 'en', label: 'Sample body panel check', instruction: 'Inspect the panel.'),
-              'ar': Translation(locale: 'ar', label: 'فحص لوحة الهيكل التجريبي', instruction: 'افحص اللوحة.'),
-            },
+    item: ItemSummary(
+      id: 'item-1',
+      stableCode: 'SAMPLE-EXT-001',
+      categoryId: 'cat-1',
+      categoryLabelEn: 'Sample exterior',
+      categoryLabelAr: 'هيكل تجريبي',
+      status: 'DRAFT',
+      currentVersion: 1,
+      labelEn: 'Sample body panel check',
+      labelAr: 'فحص لوحة الهيكل التجريبي',
+      sampleData: true,
+      updatedAt: '2026-11-03T10:00:00',
+    ),
+    versions: [
+      ItemVersion(
+        id: 'version-1',
+        versionNo: 1,
+        status: 'DRAFT',
+        resultOptions: ['NO_ISSUE_OBSERVED', 'DEFECT_FOUND'],
+        severityPolicy: '{}',
+        applicability: '{}',
+        reasonCodes: [],
+        noteRequirement: 'OPTIONAL',
+        evidenceRequirement: 'NONE',
+        minPhotos: 0,
+        equipmentIds: [],
+        guideImageId: null,
+        publishedAt: null,
+        translations: {
+          'en': Translation(
+            locale: 'en',
+            label: 'Sample body panel check',
+            instruction: 'Inspect the panel.',
           ),
-        ],
-      );
+          'ar': Translation(
+            locale: 'ar',
+            label: 'فحص لوحة الهيكل التجريبي',
+            instruction: 'افحص اللوحة.',
+          ),
+        },
+      ),
+    ],
+  );
 
   @override
   Future<List<Reason>> reasons() async => const [];
@@ -141,16 +156,16 @@ class _FakeAdminApi implements AdminApi {
 
   @override
   Future<List<AuditEvent>> auditEvents() async => const [
-        AuditEvent(
-          id: 'audit-1',
-          action: 'MASTER_ITEM_PUBLISHED',
-          actorRole: 'PLATFORM_ADMIN',
-          entityType: 'MASTER_ITEM',
-          occurredAt: '2026-11-03T10:00:00',
-          reasonCode: null,
-          metadataJson: '{}',
-        ),
-      ];
+    AuditEvent(
+      id: 'audit-1',
+      action: 'MASTER_ITEM_PUBLISHED',
+      actorRole: 'PLATFORM_ADMIN',
+      entityType: 'MASTER_ITEM',
+      occurredAt: '2026-11-03T10:00:00',
+      reasonCode: null,
+      metadataJson: '{}',
+    ),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
@@ -197,12 +212,16 @@ void _phoneSize(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('Platform Admin hierarchy and master tabs render in English', (tester) async {
+  testWidgets('Platform Admin hierarchy and master tabs render in English', (
+    tester,
+  ) async {
     _phoneSize(tester);
-    await tester.pumpWidget(ProviderScope(
-      overrides: [adminApiProvider.overrideWithValue(_FakeAdminApi())],
-      child: const _AdminTestApp(locale: Locale('en')),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [adminApiProvider.overrideWithValue(_FakeAdminApi())],
+        child: const _AdminTestApp(locale: Locale('en')),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -233,12 +252,16 @@ void main() {
     expect(find.text('MASTER_ITEM_PUBLISHED'), findsOneWidget);
   });
 
-  testWidgets('Platform Admin hierarchy and master tabs render in Arabic RTL', (tester) async {
+  testWidgets('Platform Admin hierarchy and master tabs render in Arabic RTL', (
+    tester,
+  ) async {
     _phoneSize(tester);
-    await tester.pumpWidget(ProviderScope(
-      overrides: [adminApiProvider.overrideWithValue(_FakeAdminApi())],
-      child: const _AdminTestApp(locale: Locale('ar')),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [adminApiProvider.overrideWithValue(_FakeAdminApi())],
+        child: const _AdminTestApp(locale: Locale('ar')),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);

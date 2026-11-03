@@ -1,16 +1,19 @@
-# TrueReport — Phase 3 Platform Admin Foundation
+# TrueReport — Phase 5A Technician Online Inspection
 
-TrueReport is a B2B partner-workshop vehicle inspection platform. This repository currently contains the **Phase 2 foundation and Phase 3 Platform Admin hierarchy/master content**:
+TrueReport is a B2B partner-workshop vehicle inspection platform. This repository currently contains the **Phase 2 foundation, Phase 3 Platform Admin hierarchy/master content, Phase 4 Workshop Admin jobs/templates and Phase 5A technician online inspection/finalization**:
 
 - Java Spring Boot modular monolith with MySQL 8.4/Flyway, authentication, rotating refresh tokens, roles, workshop membership, tenant enforcement, RFC 9457 errors, OpenAPI, audit events and UUIDv7 `BINARY(16)`.
 - Platform Admin hierarchy: searchable/filterable workshop tree, account invite/create/disable/reactivate/transfer and audit history.
 - Master content library: categories, versioned inspection items, EN/AR (+ optional RU/ZH-Hans) translations, rules, reasons, equipment, dropdowns and guide images with alt text.
-- Flutter workspace with technician and admin apps, English/Arabic localization, RTL shell, design tokens, sign-in, role-based home shells and Platform Admin management screens.
+- Flutter workspace with technician and admin apps, English/Arabic localization, RTL shell, design tokens, sign-in, role-based home shells, Platform Admin management screens and Workshop Admin jobs/staff/templates screens.
+- Workshop jobs with create/schedule, filters, technician assignment/reassignment and cancellation.
+- Workshop templates with pinned master item versions, EN/AR preview, drafts, publish and version history.
+- Technician assigned/walk-in jobs, pinned inspection checklist, per-item assessment, review and immutable finalization (online only).
 - Neutral `/r/unavailable` server page.
 - Local Docker Compose for MySQL, MinIO (local only), Mailpit and the server.
 - CI for Flutter analyze/test, Java/Testcontainers/Modulith/ArchUnit, and secret scanning.
 
-**No Phase 4+ feature is implemented.** There is no workshop template builder, technician inspection/checklist, PDF, public report content, delivery provider, customer app/portal, manager/review queue, correction UI/API or payment feature.
+**No Phase 5B+ feature is implemented.** There is no offline queue, photo/evidence capture or upload, PDF, public report content, delivery provider, customer app/portal, manager/review queue, correction UI/API or payment feature.
 
 ---
 
@@ -24,7 +27,7 @@ TrueReport is a B2B partner-workshop vehicle inspection platform. This repositor
 | Docker Desktop / Docker Engine + Compose | For local infrastructure and Testcontainers |
 | Git | Any current version |
 
-The Phase 2/3 verification environment did **not** have Docker installed. Compose and the MySQL Testcontainers test could not be run locally; they are configured for CI.
+The Phase 2/3/4 verification environment did **not** have Docker installed. Compose and the MySQL Testcontainers test could not be run locally; they are configured for CI. The MySQL-only trigger migration is written but untested.
 
 ---
 
@@ -229,13 +232,16 @@ spikes/               Isolated Phase 1 spikes; never production code
 
 ---
 
-## 8. Known limitations of this Phase 2/3 verification
+## 8. Known limitations of this Phase 2/3/4/5A verification
 
 - Docker was unavailable locally; Compose and MySQL Testcontainers were not executed.
 - The Testcontainers MySQL test is present but skipped without Docker.
 - No real Android/iOS device or web browser UI run was performed; Flutter widget tests ran headlessly.
 - The TOTP implementation is unit-tested against RFC 6238 vectors but not with an external authenticator app.
 - No production object storage, delivery provider, PDF engine or public report implementation is included.
+- MySQL immutability triggers are written but not locally verified; H2 tests cover the common migration path only.
+- Phase 5A customer/vehicle fields are not encrypted yet and must not hold real customer data.
+- Phase 5A evidence requirements are warnings only; photo/evidence capture is Phase 5B.
 - The `master.md` v0.3 revision applies only approved decisions; D6/D7/D8/D11 and legal consent wording remain Pending.
 
-See `docs/phase-2/version-lock.md`, `docs/phase-2/master-v0.3-changes.md`, `docs/phase-3/` and the Phase 1 docs for the full rationale.
+See `docs/phase-2/version-lock.md`, `docs/phase-2/master-v0.3-changes.md`, `docs/phase-3/`, `docs/phase-4/`, `docs/phase-5/` and the Phase 1 docs for the full rationale.

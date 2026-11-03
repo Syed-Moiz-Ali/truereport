@@ -10,6 +10,7 @@ FROM eclipse-temurin:25.0.5_8-jre-noble
 RUN useradd --system --create-home --uid 10001 truereport
 WORKDIR /app
 COPY --from=build /workspace/target/truereport-server-0.2.0-SNAPSHOT.jar /app/truereport-server.jar
+RUN mkdir -p /app/.truereport-storage && chown -R truereport:truereport /app
 USER truereport
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/truereport-server.jar"]

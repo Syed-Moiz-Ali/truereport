@@ -16,6 +16,7 @@ import com.truereport.masterdata.api.ItemDetailDto;
 import com.truereport.masterdata.api.ItemSummaryDto;
 import com.truereport.masterdata.api.ItemVersionDto;
 import com.truereport.masterdata.api.ReasonDto;
+import com.truereport.masterdata.api.PublishedItemDto;
 import com.truereport.masterdata.api.RulesRequest;
 import com.truereport.masterdata.api.TranslationDto;
 import com.truereport.masterdata.api.TranslationRequest;
@@ -159,6 +160,54 @@ public class MasterContentService {
                         || contains(item.labelEn(), query)
                         || contains(item.labelAr(), query))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryDto> listActiveCategories() {
+        return categories.findAllByOrderBySortOrderAsc().stream()
+                .filter(category -> category.getStatus().equals("ACTIVE"))
+                .map(this::categoryDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublishedItemDto> listPublishedItems(String search, UUID categoryId) {
+        String query = search == null ? "" : search.trim().toLowerCase();
+        return items.findAllByOrderByStableCodeAsc().stream()
+                .filter(item -> item.getStatus().equals("PUBLISHED"))
+                .filter(item -> categoryId == null || item.getCategoryId().equals(categoryId))
+                .map(item -> {
+                    if (item.getCurrentPublishedVersionId() == null) {
+                        return null;
+                    }
+                    MasterItemVersion version = versions.findById(item.getCurrentPublishedVersionId())
+                            .orElse(null);
+                    if (version == null || !version.getStatus().equals("PUBLISHED")) {
+                        return null;
+                    }
+                    return publishedItem(item, version);
+                })
+                .filter(java.util.Objects::nonNull)
+                .filter(item -> query.isEmpty()
+                        || contains(item.stableCode(), query)
+                        || contains(item.labelEn(), query)
+                        || contains(item.labelAr(), query)
+                        || contains(item.categoryLabelEn(), query)
+                        || contains(item.categoryLabelAr(), query))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PublishedItemDto publishedItem(UUID versionId) {
+        MasterItemVersion version = versions.findById(versionId).orElseThrow(ApiException::notFound);
+        if (!version.getStatus().equals("PUBLISHED")) {
+            throw ApiException.notFound();
+        }
+        MasterInspectionItem item = requireItem(version.getItemId());
+        if (!item.getStatus().equals("PUBLISHED")) {
+            throw ApiException.notFound();
+        }
+        return publishedItem(item, version);
     }
 
     @Transactional(readOnly = true)
@@ -514,6 +563,20 @@ public class MasterContentService {
     private String text(String entityType, UUID entityId, String locale, String field) {
         return localized.findByEntityTypeAndEntityIdAndLocaleAndFieldKey(entityType, entityId, locale, field)
                 .map(LocalizedContent::getTextValue).orElse("");
+    }
+
+    private PublishedItemDto publishedItem(MasterInspectionItem item, MasterItemVersion version) {
+        MasterCategory category = categories.findById(item.getCategoryId()).orElse(null);
+        ItemVersionDto versionDto = versionDto(version);
+        TranslationDto en = versionDto.translations().getOrDefault("en",
+                new TranslationDto("en", "", ""));
+        TranslationDto ar = versionDto.translations().getOrDefault("ar",
+                new TranslationDto("ar", "", ""));
+        return new PublishedItemDto(item.getId(), version.getId(), item.getStableCode(),
+                item.getCategoryId(),
+                category == null ? "" : text(CATEGORY, category.getId(), "en", "label"),
+                category == null ? "" : text(CATEGORY, category.getId(), "ar", "label"),
+                en.label(), ar.label(), item.isSampleData(), versionDto);
     }
 
     private CategoryDto categoryDto(MasterCategory category) {

@@ -113,6 +113,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
             loading: () => const SizedBox.shrink(),
             error: (error, _) => const SizedBox.shrink(),
             data: (list) => DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _categoryId.isEmpty ? null : _categoryId,
               decoration: InputDecoration(labelText: l10n.category),
               items: [
@@ -170,6 +171,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
                         .map(
                           (item) => Card(
                             child: AppListTile(
+                              key: Key('master-item-${item.id}'),
                               leading: const Icon(Icons.fact_check_outlined),
                               title: item.labelEn,
                               subtitle:

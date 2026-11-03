@@ -58,4 +58,56 @@ class ApiEndpoints {
       '$_root/platform/master/guide-images/$id/content';
   String retireGuideImage(String id) =>
       '$_root/platform/master/guide-images/$id/retire';
+
+  String get workshopMasterCategories => '$_root/workshop/master/categories';
+  String get workshopMasterItems => '$_root/workshop/master/items';
+  String workshopMasterItem(String versionId) =>
+      '$_root/workshop/master/items/$versionId';
+
+  String get workshopStaff => '$_root/workshop/staff';
+  String get workshopJobs => '$_root/workshop/jobs';
+  String workshopJob(String id) => '$_root/workshop/jobs/$id';
+  String assignWorkshopJob(String id) => '$_root/workshop/jobs/$id/assign';
+  String cancelWorkshopJob(String id) => '$_root/workshop/jobs/$id/cancel';
+  String workshopJobAssignments(String id) =>
+      '$_root/workshop/jobs/$id/assignments';
+  String get technicianJobs => '$_root/technician/jobs';
+  String technicianJob(String id) => '$_root/technician/jobs/$id';
+  String get technicianTemplateVersions => '$_root/technician/templates/versions';
+  String technicianChecklist(String id) => '$_root/technician/jobs/$id/checklist';
+  String technicianStart(String id) => '$_root/technician/jobs/$id/start';
+  String technicianCustomer(String id) => '$_root/technician/jobs/$id/customer';
+  String technicianVehicle(String id) => '$_root/technician/jobs/$id/vehicle';
+  String technicianConsent(String id) => '$_root/technician/jobs/$id/consent';
+  String technicianEquipment(String id) => '$_root/technician/jobs/$id/equipment';
+  String technicianAssessment(String jobId, String itemId) =>
+      '$_root/technician/jobs/$jobId/items/$itemId/assessment';
+  String technicianReview(String id) => '$_root/technician/jobs/$id/review';
+  String technicianReady(String id) => '$_root/technician/jobs/$id/ready';
+  String technicianFinalize(String id) => '$_root/technician/jobs/$id/finalize';
+  String technicianEvidenceInit(String jobId, String itemId) =>
+      '$_root/technician/jobs/$jobId/items/$itemId/evidence/init';
+  String technicianEvidenceComplete(
+    String jobId,
+    String itemId,
+    String evidenceId,
+  ) => '$_root/technician/jobs/$jobId/items/$itemId/evidence/$evidenceId/complete';
+  String technicianEvidence(String jobId, String itemId) =>
+      '$_root/technician/jobs/$jobId/items/$itemId/evidence';
+  String technicianGuideImage(String jobId, String itemId) =>
+      '$_root/technician/jobs/$jobId/items/$itemId/guide-image';
+
+  String get workshopTemplates => '$_root/workshop/templates';
+  String get workshopTemplateVersions => '$_root/workshop/templates/versions';
+  String workshopTemplate(String id) => '$_root/workshop/templates/$id';
+  String workshopTemplateDraft(String id) =>
+      '$_root/workshop/templates/$id/draft';
+  String publishWorkshopTemplate(String id) =>
+      '$_root/workshop/templates/$id/publish';
+  String retireWorkshopTemplate(String id) =>
+      '$_root/workshop/templates/$id/retire';
+  String workshopTemplateVersion(String id, String versionId) =>
+      '$_root/workshop/templates/$id/versions/$versionId';
+  String workshopTemplatePreview(String id) =>
+      '$_root/workshop/templates/$id/preview';
 }

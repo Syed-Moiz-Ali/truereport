@@ -26,10 +26,7 @@ void _phoneSize(WidgetTester tester) {
 }
 
 class _TestApp extends ConsumerStatefulWidget {
-  const _TestApp({
-    required this.home,
-    this.initialLocale = const Locale('en'),
-  });
+  const _TestApp({required this.home, this.initialLocale = const Locale('en')});
 
   final Widget home;
   final Locale initialLocale;
@@ -64,9 +61,7 @@ void main() {
   testWidgets('English sign-in shell renders without overflow', (tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      const ProviderScope(
-        child: _TestApp(home: SignInPage()),
-      ),
+      const ProviderScope(child: _TestApp(home: SignInPage())),
     );
     await tester.pumpAndSettle();
 
@@ -75,21 +70,22 @@ void main() {
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
   });
 
-  testWidgets('Arabic sign-in shell renders RTL without overflow', (tester) async {
+  testWidgets('Arabic sign-in shell renders RTL without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
       const ProviderScope(
-        child: _TestApp(
-          home: SignInPage(),
-          initialLocale: Locale('ar'),
-        ),
+        child: _TestApp(home: SignInPage(), initialLocale: Locale('ar')),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
     expect(
-      Directionality.of(tester.element(find.byKey(const Key('sign-in-submit')))),
+      Directionality.of(
+        tester.element(find.byKey(const Key('sign-in-submit'))),
+      ),
       TextDirection.rtl,
     );
     expect(find.text('تسجيل الدخول'), findsWidgets);
@@ -98,9 +94,7 @@ void main() {
   testWidgets('Language toggle switches the shell to Arabic', (tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      const ProviderScope(
-        child: _TestApp(home: SignInPage()),
-      ),
+      const ProviderScope(child: _TestApp(home: SignInPage())),
     );
     await tester.pumpAndSettle();
 
@@ -109,13 +103,16 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(
-      Directionality.of(tester.element(find.byKey(const Key('sign-in-submit')))),
+      Directionality.of(
+        tester.element(find.byKey(const Key('sign-in-submit'))),
+      ),
       TextDirection.rtl,
     );
   });
 
-  testWidgets('Technician role home renders in Arabic without overflow',
-      (tester) async {
+  testWidgets('Technician role home renders in Arabic without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
       _wrap(

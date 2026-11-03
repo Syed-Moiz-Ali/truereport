@@ -20,13 +20,14 @@ class MySqlMigrationIT {
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4.13")
             .withDatabaseName("truereport")
             .withUsername("truereport")
-            .withPassword("truereport");
+            .withPassword("truereport")
+            .withCommand("--log-bin-trust-function-creators=1");
 
     @Test
     void migrationsRunOnMySql84AndAreIncremental() throws Exception {
         Flyway v1 = Flyway.configure()
                 .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
-                .locations("classpath:db/migration")
+                .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .target("1")
                 .load();
         v1.migrate();
@@ -36,13 +37,19 @@ class MySqlMigrationIT {
 
         Flyway latest = Flyway.configure()
                 .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
-                .locations("classpath:db/migration")
+                .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("4");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("9");
         assertThat(tableExists("audit_events")).isTrue();
         assertThat(tableExists("invitations")).isTrue();
         assertThat(tableExists("master_inspection_items")).isTrue();
+        assertThat(tableExists("workshop_templates")).isTrue();
+        assertThat(tableExists("inspection_jobs")).isTrue();
+        assertThat(tableExists("inspection_item_snapshots")).isTrue();
+        assertThat(tableExists("assessments")).isTrue();
+        assertThat(tableExists("inspection_final_snapshots")).isTrue();
+        assertThat(tableExists("evidence_assets")).isTrue();
     }
 
     private boolean tableExists(String table) throws Exception {

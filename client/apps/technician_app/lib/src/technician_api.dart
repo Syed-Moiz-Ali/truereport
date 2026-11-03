@@ -1,0 +1,368 @@
+import 'package:api_client/api_client.dart';
+import 'package:technician_app/src/models.dart';
+
+abstract class TechnicianApi {
+  Future<List<TechnicianJob>> jobs();
+
+  Future<TechnicianJob> job(String id);
+
+  Future<List<TemplateVersionOption>> templateVersions();
+
+  Future<TechnicianJob> createWalkIn({
+    required String templateVersionId,
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    required String scope,
+  });
+
+  Future<InspectionChecklist> start(String jobId);
+
+  Future<InspectionChecklist> checklist(String jobId);
+
+  Future<TechnicianJob> updateCustomer(
+    String jobId, {
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+  });
+
+  Future<TechnicianJob> updateVehicle(
+    String jobId, {
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    int? odometerValue,
+    String? odometerUnit,
+  });
+
+  Future<void> recordConsent(
+    String jobId, {
+    required String consentType,
+    required String status,
+    required String wordingVersion,
+    required String channel,
+    String? evidenceRef,
+  });
+
+  Future<List<String>> equipment(String jobId);
+
+  Future<InspectionItem> assess(
+    String jobId,
+    String itemId, {
+    required int baseVersion,
+    required int clientRevision,
+    required String resultCode,
+    String? severityCode,
+    String? note,
+    String? noteLanguage,
+    String? reasonCode,
+    String? reasonText,
+  });
+
+  Future<ReviewResult> review(String jobId);
+
+  Future<InspectionChecklist> ready(String jobId);
+
+  Future<FinalizeResult> finalize(String jobId, String idempotencyKey);
+
+  Future<EvidenceInitResult> initEvidence(
+    String jobId,
+    String itemId, {
+    required String evidenceId,
+    required String mime,
+    required int bytes,
+    required String sha256,
+    String? capturedAt,
+  });
+
+  Future<void> uploadEvidence(
+    String uploadUrl,
+    String uploadToken,
+    List<int> bytes,
+  );
+
+  Future<InspectionEvidence> completeEvidence(
+    String jobId,
+    String itemId,
+    String evidenceId,
+    String sha256,
+  );
+
+  Future<List<InspectionEvidence>> evidence(String jobId, String itemId);
+
+  Future<List<int>> guideImage(String jobId, String itemId);
+}
+
+class HttpTechnicianApi implements TechnicianApi {
+  HttpTechnicianApi(this._api, this._endpoints);
+
+  final ApiClient _api;
+  final ApiEndpoints _endpoints;
+
+  @override
+  Future<List<TechnicianJob>> jobs() async {
+    final data = await _api.getDynamic(_endpoints.technicianJobs);
+    return (data as List<dynamic>)
+        .map((item) => TechnicianJob.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<TechnicianJob> job(String id) async {
+    final data = await _api.getDynamic(_endpoints.technicianJob(id));
+    return TechnicianJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<TemplateVersionOption>> templateVersions() async {
+    final data = await _api.getDynamic(_endpoints.technicianTemplateVersions);
+    return (data as List<dynamic>)
+        .map(
+          (item) =>
+              TemplateVersionOption.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<TechnicianJob> createWalkIn({
+    required String templateVersionId,
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    required String scope,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianJobs,
+      body: {
+        'templateVersionId': templateVersionId,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerEmail': customerEmail,
+        'vehicleMake': vehicleMake,
+        'vehicleModel': vehicleModel,
+        'vehicleYear': vehicleYear,
+        'vehicleVin': vehicleVin,
+        'vehiclePlate': vehiclePlate,
+        'scope': scope,
+      },
+    );
+    return TechnicianJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<InspectionChecklist> start(String jobId) async {
+    final data = await _api.postDynamic(_endpoints.technicianStart(jobId));
+    return InspectionChecklist.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<InspectionChecklist> checklist(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.technicianChecklist(jobId));
+    return InspectionChecklist.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TechnicianJob> updateCustomer(
+    String jobId, {
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.technicianCustomer(jobId),
+      body: {
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerEmail': customerEmail,
+      },
+    );
+    return TechnicianJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TechnicianJob> updateVehicle(
+    String jobId, {
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    int? odometerValue,
+    String? odometerUnit,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.technicianVehicle(jobId),
+      body: {
+        'vehicleMake': vehicleMake,
+        'vehicleModel': vehicleModel,
+        'vehicleYear': vehicleYear,
+        'vehicleVin': vehicleVin,
+        'vehiclePlate': vehiclePlate,
+        'odometerValue': odometerValue,
+        'odometerUnit': odometerUnit,
+      },
+    );
+    return TechnicianJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> recordConsent(
+    String jobId, {
+    required String consentType,
+    required String status,
+    required String wordingVersion,
+    required String channel,
+    String? evidenceRef,
+  }) async {
+    await _api.postDynamic(
+      _endpoints.technicianConsent(jobId),
+      body: {
+        'consentType': consentType,
+        'status': status,
+        'wordingVersion': wordingVersion,
+        'channel': channel,
+        'evidenceRef': evidenceRef,
+      },
+    );
+  }
+
+  @override
+  Future<List<String>> equipment(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.technicianEquipment(jobId));
+    final ids =
+        (data as Map<String, dynamic>)['equipmentIds'] as List<dynamic>? ??
+        <dynamic>[];
+    return ids.map((value) => value.toString()).toList(growable: false);
+  }
+
+  @override
+  Future<InspectionItem> assess(
+    String jobId,
+    String itemId, {
+    required int baseVersion,
+    required int clientRevision,
+    required String resultCode,
+    String? severityCode,
+    String? note,
+    String? noteLanguage,
+    String? reasonCode,
+    String? reasonText,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.technicianAssessment(jobId, itemId),
+      body: {
+        'baseVersion': baseVersion,
+        'clientRevision': clientRevision,
+        'resultCode': resultCode,
+        'severityCode': severityCode,
+        'note': note,
+        'noteLanguage': noteLanguage,
+        'reasonCode': reasonCode,
+        'reasonText': reasonText,
+      },
+    );
+    return InspectionItem.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReviewResult> review(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.technicianReview(jobId));
+    return ReviewResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<InspectionChecklist> ready(String jobId) async {
+    final data = await _api.postDynamic(_endpoints.technicianReady(jobId));
+    return InspectionChecklist.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<FinalizeResult> finalize(String jobId, String idempotencyKey) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianFinalize(jobId),
+      headers: {'Idempotency-Key': idempotencyKey},
+    );
+    return FinalizeResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<EvidenceInitResult> initEvidence(
+    String jobId,
+    String itemId, {
+    required String evidenceId,
+    required String mime,
+    required int bytes,
+    required String sha256,
+    String? capturedAt,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianEvidenceInit(jobId, itemId),
+      body: {
+        'evidenceId': evidenceId,
+        'mime': mime,
+        'bytes': bytes,
+        'sha256': sha256,
+        'capturedAt': capturedAt,
+      },
+    );
+    return EvidenceInitResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> uploadEvidence(
+    String uploadUrl,
+    String uploadToken,
+    List<int> bytes,
+  ) async {
+    await _api.putBytes(
+      uploadUrl,
+      bytes: bytes,
+      contentType: 'application/octet-stream',
+    );
+  }
+
+  @override
+  Future<InspectionEvidence> completeEvidence(
+    String jobId,
+    String itemId,
+    String evidenceId,
+    String sha256,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianEvidenceComplete(jobId, itemId, evidenceId),
+      body: {'sha256': sha256},
+    );
+    return InspectionEvidence.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<InspectionEvidence>> evidence(String jobId, String itemId) async {
+    final data = await _api.getDynamic(
+      _endpoints.technicianEvidence(jobId, itemId),
+    );
+    return (data as List<dynamic>)
+        .map(
+          (item) => InspectionEvidence.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<int>> guideImage(String jobId, String itemId) {
+    return _api.getBytes(_endpoints.technicianGuideImage(jobId, itemId));
+  }
+}

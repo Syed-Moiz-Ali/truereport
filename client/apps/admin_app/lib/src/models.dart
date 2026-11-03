@@ -461,3 +461,352 @@ class AuditEvent {
 List<String> _strings(dynamic value) => (value as List<dynamic>? ?? <dynamic>[])
     .map((item) => item.toString())
     .toList(growable: false);
+
+class StaffMember {
+  const StaffMember({
+    required this.userId,
+    required this.displayName,
+    required this.emailMasked,
+    required this.role,
+    required this.status,
+  });
+
+  final String userId;
+  final String displayName;
+  final String emailMasked;
+  final String role;
+  final String status;
+
+  factory StaffMember.fromJson(Map<String, dynamic> json) => StaffMember(
+    userId: json['userId'] as String,
+    displayName: json['displayName'] as String? ?? '',
+    emailMasked: json['emailMasked'] as String? ?? '',
+    role: json['role'] as String? ?? '',
+    status: json['status'] as String? ?? '',
+  );
+}
+
+class WorkshopJob {
+  const WorkshopJob({
+    required this.id,
+    required this.reference,
+    required this.status,
+    required this.templateVersionId,
+    required this.templateName,
+    required this.templateVersionNo,
+    required this.assignedTechnicianId,
+    required this.assignedTechnicianName,
+    required this.scheduledAt,
+    required this.customerName,
+    required this.customerPhone,
+    required this.customerEmail,
+    required this.vehicleMake,
+    required this.vehicleModel,
+    required this.vehicleYear,
+    required this.vehicleVin,
+    required this.vehiclePlate,
+    required this.scope,
+  });
+
+  final String id;
+  final String reference;
+  final String status;
+  final String templateVersionId;
+  final String templateName;
+  final int? templateVersionNo;
+  final String? assignedTechnicianId;
+  final String? assignedTechnicianName;
+  final String scheduledAt;
+  final String customerName;
+  final String? customerPhone;
+  final String? customerEmail;
+  final String vehicleMake;
+  final String vehicleModel;
+  final int? vehicleYear;
+  final String? vehicleVin;
+  final String? vehiclePlate;
+  final String scope;
+
+  factory WorkshopJob.fromJson(Map<String, dynamic> json) => WorkshopJob(
+    id: json['id'] as String,
+    reference: json['reference'] as String? ?? '',
+    status: json['status'] as String? ?? 'DRAFT',
+    templateVersionId: json['templateVersionId'] as String? ?? '',
+    templateName: json['templateName'] as String? ?? '',
+    templateVersionNo: json['templateVersionNo'] as int?,
+    assignedTechnicianId: json['assignedTechnicianId'] as String?,
+    assignedTechnicianName: json['assignedTechnicianName'] as String?,
+    scheduledAt: json['scheduledAt'] as String? ?? '',
+    customerName: json['customerName'] as String? ?? '',
+    customerPhone: json['customerPhone'] as String?,
+    customerEmail: json['customerEmail'] as String?,
+    vehicleMake: json['vehicleMake'] as String? ?? '',
+    vehicleModel: json['vehicleModel'] as String? ?? '',
+    vehicleYear: json['vehicleYear'] as int?,
+    vehicleVin: json['vehicleVin'] as String?,
+    vehiclePlate: json['vehiclePlate'] as String?,
+    scope: json['scope'] as String? ?? '',
+  );
+}
+
+class TemplateSummary {
+  const TemplateSummary({
+    required this.id,
+    required this.name,
+    required this.serviceType,
+    required this.vehicleType,
+    required this.status,
+    required this.currentVersion,
+    required this.itemCount,
+  });
+
+  final String id;
+  final String name;
+  final String serviceType;
+  final String? vehicleType;
+  final String status;
+  final int? currentVersion;
+  final int itemCount;
+
+  factory TemplateSummary.fromJson(Map<String, dynamic> json) =>
+      TemplateSummary(
+        id: json['id'] as String,
+        name: json['name'] as String? ?? '',
+        serviceType: json['serviceType'] as String? ?? '',
+        vehicleType: json['vehicleType'] as String?,
+        status: json['status'] as String? ?? 'DRAFT',
+        currentVersion: json['currentVersion'] as int?,
+        itemCount: json['itemCount'] as int? ?? 0,
+      );
+}
+
+class TemplateVersionSummary {
+  const TemplateVersionSummary({
+    required this.id,
+    required this.versionNo,
+    required this.status,
+    required this.publishedAt,
+    required this.itemCount,
+  });
+
+  final String id;
+  final int versionNo;
+  final String status;
+  final String publishedAt;
+  final int itemCount;
+
+  factory TemplateVersionSummary.fromJson(Map<String, dynamic> json) =>
+      TemplateVersionSummary(
+        id: json['id'] as String,
+        versionNo: json['versionNo'] as int? ?? 0,
+        status: json['status'] as String? ?? 'DRAFT',
+        publishedAt: json['publishedAt'] as String? ?? '',
+        itemCount: json['itemCount'] as int? ?? 0,
+      );
+}
+
+class TemplateItemView {
+  const TemplateItemView({
+    required this.masterItemVersionId,
+    required this.sortOrder,
+    required this.stableCode,
+    required this.categoryLabelEn,
+    required this.categoryLabelAr,
+    required this.labelEn,
+    required this.labelAr,
+    required this.instructionEn,
+    required this.instructionAr,
+    required this.versionNo,
+    required this.resultOptions,
+    required this.severityPolicy,
+    required this.reasonCodes,
+    required this.noteRequirement,
+    required this.evidenceRequirement,
+    required this.minPhotos,
+    required this.equipmentIds,
+    required this.guideImageId,
+    required this.sampleData,
+  });
+
+  final String masterItemVersionId;
+  final int sortOrder;
+  final String stableCode;
+  final String categoryLabelEn;
+  final String categoryLabelAr;
+  final String labelEn;
+  final String labelAr;
+  final String instructionEn;
+  final String instructionAr;
+  final int versionNo;
+  final List<String> resultOptions;
+  final String severityPolicy;
+  final List<String> reasonCodes;
+  final String noteRequirement;
+  final String evidenceRequirement;
+  final int minPhotos;
+  final List<String> equipmentIds;
+  final String? guideImageId;
+  final bool sampleData;
+
+  factory TemplateItemView.fromJson(Map<String, dynamic> json) =>
+      TemplateItemView(
+        masterItemVersionId: json['masterItemVersionId'] as String,
+        sortOrder: json['sortOrder'] as int? ?? 0,
+        stableCode: json['stableCode'] as String? ?? '',
+        categoryLabelEn: json['categoryLabelEn'] as String? ?? '',
+        categoryLabelAr: json['categoryLabelAr'] as String? ?? '',
+        labelEn: json['labelEn'] as String? ?? '',
+        labelAr: json['labelAr'] as String? ?? '',
+        instructionEn: json['instructionEn'] as String? ?? '',
+        instructionAr: json['instructionAr'] as String? ?? '',
+        versionNo: json['versionNo'] as int? ?? 0,
+        resultOptions: _strings(json['resultOptions']),
+        severityPolicy: json['severityPolicy'] as String? ?? '{}',
+        reasonCodes: _strings(json['reasonCodes']),
+        noteRequirement: json['noteRequirement'] as String? ?? 'NONE',
+        evidenceRequirement: json['evidenceRequirement'] as String? ?? 'NONE',
+        minPhotos: json['minPhotos'] as int? ?? 0,
+        equipmentIds: _strings(json['equipmentIds']),
+        guideImageId: json['guideImageId'] as String?,
+        sampleData: json['sampleData'] as bool? ?? false,
+      );
+}
+
+class TemplateVersionView {
+  const TemplateVersionView({
+    required this.id,
+    required this.versionNo,
+    required this.status,
+    required this.publishedAt,
+    required this.items,
+  });
+
+  final String id;
+  final int versionNo;
+  final String status;
+  final String publishedAt;
+  final List<TemplateItemView> items;
+
+  factory TemplateVersionView.fromJson(Map<String, dynamic> json) =>
+      TemplateVersionView(
+        id: json['id'] as String,
+        versionNo: json['versionNo'] as int? ?? 0,
+        status: json['status'] as String? ?? '',
+        publishedAt: json['publishedAt'] as String? ?? '',
+        items: (json['items'] as List<dynamic>? ?? <dynamic>[])
+            .map(
+              (item) => TemplateItemView.fromJson(item as Map<String, dynamic>),
+            )
+            .toList(growable: false),
+      );
+}
+
+class TemplateDetail {
+  const TemplateDetail({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.serviceType,
+    required this.vehicleType,
+    required this.status,
+    required this.currentPublishedVersionId,
+    required this.versions,
+    required this.draft,
+  });
+
+  final String id;
+  final String name;
+  final String? description;
+  final String serviceType;
+  final String? vehicleType;
+  final String status;
+  final String? currentPublishedVersionId;
+  final List<TemplateVersionSummary> versions;
+  final TemplateVersionView? draft;
+
+  factory TemplateDetail.fromJson(Map<String, dynamic> json) => TemplateDetail(
+    id: json['id'] as String,
+    name: json['name'] as String? ?? '',
+    description: json['description'] as String?,
+    serviceType: json['serviceType'] as String? ?? '',
+    vehicleType: json['vehicleType'] as String?,
+    status: json['status'] as String? ?? 'DRAFT',
+    currentPublishedVersionId: json['currentPublishedVersionId'] as String?,
+    versions: (json['versions'] as List<dynamic>? ?? <dynamic>[])
+        .map(
+          (item) =>
+              TemplateVersionSummary.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false),
+    draft: json['draft'] == null
+        ? null
+        : TemplateVersionView.fromJson(json['draft'] as Map<String, dynamic>),
+  );
+}
+
+class TemplateVersionOption {
+  const TemplateVersionOption({
+    required this.versionId,
+    required this.templateId,
+    required this.templateName,
+    required this.versionNo,
+    required this.serviceType,
+    required this.vehicleType,
+  });
+
+  final String versionId;
+  final String templateId;
+  final String templateName;
+  final int versionNo;
+  final String serviceType;
+  final String? vehicleType;
+
+  factory TemplateVersionOption.fromJson(Map<String, dynamic> json) =>
+      TemplateVersionOption(
+        versionId: json['versionId'] as String,
+        templateId: json['templateId'] as String? ?? '',
+        templateName: json['templateName'] as String? ?? '',
+        versionNo: json['versionNo'] as int? ?? 0,
+        serviceType: json['serviceType'] as String? ?? '',
+        vehicleType: json['vehicleType'] as String?,
+      );
+}
+
+class PublishedItem {
+  const PublishedItem({
+    required this.itemId,
+    required this.versionId,
+    required this.stableCode,
+    required this.categoryId,
+    required this.categoryLabelEn,
+    required this.categoryLabelAr,
+    required this.labelEn,
+    required this.labelAr,
+    required this.sampleData,
+    required this.version,
+  });
+
+  final String itemId;
+  final String versionId;
+  final String stableCode;
+  final String categoryId;
+  final String categoryLabelEn;
+  final String categoryLabelAr;
+  final String labelEn;
+  final String labelAr;
+  final bool sampleData;
+  final ItemVersion version;
+
+  factory PublishedItem.fromJson(Map<String, dynamic> json) => PublishedItem(
+    itemId: json['itemId'] as String,
+    versionId: json['versionId'] as String,
+    stableCode: json['stableCode'] as String? ?? '',
+    categoryId: json['categoryId'] as String? ?? '',
+    categoryLabelEn: json['categoryLabelEn'] as String? ?? '',
+    categoryLabelAr: json['categoryLabelAr'] as String? ?? '',
+    labelEn: json['labelEn'] as String? ?? '',
+    labelAr: json['labelAr'] as String? ?? '',
+    sampleData: json['sampleData'] as bool? ?? false,
+    version: ItemVersion.fromJson(json['version'] as Map<String, dynamic>),
+  );
+}

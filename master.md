@@ -2,8 +2,8 @@
 
 ## Partner-Workshop Vehicle Inspection and Public Report Platform
 
-**Document version:** v0.3 (Phase 1 approved decisions applied; Phase 2 and Phase 3 delivered for review).
-**Project status:** Phase 1 approved. Phase 2 foundation and Phase 3 Platform Admin hierarchy/master content delivered for review. No Phase 4+ feature is to be built until Phase 3 is approved.
+**Document version:** v0.3 (Phase 1 approved decisions applied; Phase 2, Phase 3, Phase 4 and Phase 5A delivered for review).
+**Project status:** Phase 1 approved. Phase 2 foundation, Phase 3 Platform Admin hierarchy/master content, Phase 4 Workshop Admin/jobs/templates, and Phase 5A technician online inspection/finalization have been delivered for review. No Phase 5B+ feature is to be built until Phase 5A is approved.
 **Open decisions are tracked in §13A.12.** D6, D7, D8, D11 and the legal consent wording remain open.
 
 **Changelog**

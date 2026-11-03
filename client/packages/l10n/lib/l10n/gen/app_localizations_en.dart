@@ -348,4 +348,406 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionFailed => 'Action failed';
+
+  @override
+  String get workshopAdminTitle => 'Workshop Admin';
+
+  @override
+  String get jobsTab => 'Jobs';
+
+  @override
+  String get staffTab => 'Staff';
+
+  @override
+  String get templatesTab => 'Templates';
+
+  @override
+  String get newJob => 'New job';
+
+  @override
+  String get jobSearch => 'Search jobs';
+
+  @override
+  String get statusScheduled => 'Scheduled';
+
+  @override
+  String get statusAssigned => 'Assigned';
+
+  @override
+  String get statusInProgress => 'In progress';
+
+  @override
+  String get statusReadyToFinalize => 'Ready to finalize';
+
+  @override
+  String get statusFinalized => 'Finalized';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get assign => 'Assign';
+
+  @override
+  String get reassign => 'Reassign';
+
+  @override
+  String get cancelJob => 'Cancel job';
+
+  @override
+  String get jobCreated => 'Job created';
+
+  @override
+  String get jobAssigned => 'Job assigned';
+
+  @override
+  String get jobCancelled => 'Job cancelled';
+
+  @override
+  String get customerName => 'Customer name';
+
+  @override
+  String get customerPhone => 'Customer phone';
+
+  @override
+  String get customerEmail => 'Customer email';
+
+  @override
+  String get vehicleMake => 'Vehicle make';
+
+  @override
+  String get vehicleModel => 'Vehicle model';
+
+  @override
+  String get vehicleYear => 'Vehicle year';
+
+  @override
+  String get vehicleVin => 'VIN';
+
+  @override
+  String get vehiclePlate => 'Plate';
+
+  @override
+  String get scope => 'Inspection scope';
+
+  @override
+  String get scheduledAt => 'Scheduled at';
+
+  @override
+  String get template => 'Template';
+
+  @override
+  String get selectTemplate => 'Select a template';
+
+  @override
+  String get staffReadOnly => 'Staff accounts';
+
+  @override
+  String get staffReadOnlyBody =>
+      'Platform Admin creates workshop accounts. Workshop Admins can review staff and assign jobs.';
+
+  @override
+  String get templates => 'Templates';
+
+  @override
+  String get newTemplate => 'New template';
+
+  @override
+  String get templateName => 'Template name';
+
+  @override
+  String get templateDescription => 'Description';
+
+  @override
+  String get serviceType => 'Service type';
+
+  @override
+  String get vehicleType => 'Vehicle type';
+
+  @override
+  String get addItems => 'Add items';
+
+  @override
+  String get selectedItems => 'Selected items';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get previewEn => 'English preview';
+
+  @override
+  String get previewAr => 'Arabic preview';
+
+  @override
+  String get publishTemplate => 'Publish template';
+
+  @override
+  String get versionHistory => 'Version history';
+
+  @override
+  String get lockedByPlatform => 'Locked by platform';
+
+  @override
+  String get noItems => 'No items selected';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get moveUp => 'Move up';
+
+  @override
+  String get moveDown => 'Move down';
+
+  @override
+  String get templatePublished => 'Template published';
+
+  @override
+  String get jobAssignedTo => 'Assigned to';
+
+  @override
+  String get unassigned => 'Unassigned';
+
+  @override
+  String get noTechnicians => 'No active technicians';
+
+  @override
+  String get searchItems => 'Search approved items';
+
+  @override
+  String get allCategories => 'All categories';
+
+  @override
+  String get masterVersion => 'Master version';
+
+  @override
+  String get readOnlyVersion => 'Read-only version';
+
+  @override
+  String get itemsSelected => 'items selected';
+
+  @override
+  String get templateDetails => 'Template details';
+
+  @override
+  String get jobDetails => 'Job details';
+
+  @override
+  String get assignedJobs => 'Assigned jobs';
+
+  @override
+  String get noAssignedJobs =>
+      'No jobs assigned. Ask your Workshop Admin, or create a walk-in job.';
+
+  @override
+  String get walkInJob => 'Walk-in job';
+
+  @override
+  String get startInspection => 'Start inspection';
+
+  @override
+  String get resumeInspection => 'Resume inspection';
+
+  @override
+  String get customerInformation => 'Customer information';
+
+  @override
+  String get vehicleIdentification => 'Vehicle identification';
+
+  @override
+  String get consent => 'Consent';
+
+  @override
+  String get checklist => 'Checklist';
+
+  @override
+  String get reviewAndFinalize => 'Review and finalize';
+
+  @override
+  String get approveAndGenerateReport => 'Finalize inspection';
+
+  @override
+  String get finalizedReadOnly => 'Finalized — read only';
+
+  @override
+  String get evidenceNotAvailable =>
+      'Evidence capture is not available in this build.';
+
+  @override
+  String get result => 'Result';
+
+  @override
+  String get severity => 'Severity';
+
+  @override
+  String get note => 'Note';
+
+  @override
+  String get notChecked => 'Not checked';
+
+  @override
+  String get couldNotVerify => 'Could not verify';
+
+  @override
+  String get noIssueObserved => 'No issue observed';
+
+  @override
+  String get defectFound => 'Defect found';
+
+  @override
+  String get attentionRecommended => 'Attention recommended';
+
+  @override
+  String get notApplicable => 'Not applicable';
+
+  @override
+  String get minor => 'Minor';
+
+  @override
+  String get moderate => 'Moderate';
+
+  @override
+  String get major => 'Major';
+
+  @override
+  String get safetyCritical => 'Safety-critical';
+
+  @override
+  String get saveAnswer => 'Save answer';
+
+  @override
+  String get progress => 'Progress';
+
+  @override
+  String get completedItems => 'completed';
+
+  @override
+  String get missingItems => 'Missing items';
+
+  @override
+  String get itemSaved => 'Answer saved';
+
+  @override
+  String get inspectionStarted => 'Inspection started';
+
+  @override
+  String get readyToFinalize => 'Ready to finalize';
+
+  @override
+  String get finalizeConfirm => 'Finalize this inspection?';
+
+  @override
+  String get finalizeIrreversible =>
+      'Finalized findings cannot be edited by anyone.';
+
+  @override
+  String get finalizedSuccessfully => 'Inspection finalized';
+
+  @override
+  String get walkInCreated => 'Walk-in job created';
+
+  @override
+  String get customerSaved => 'Customer details saved';
+
+  @override
+  String get vehicleSaved => 'Vehicle details saved';
+
+  @override
+  String get consentRecorded => 'Consent recorded';
+
+  @override
+  String get assessmentRequired => 'Choose a result first';
+
+  @override
+  String get keyboardHelp =>
+      'Use your device keyboard settings to switch Arabic, Russian or Chinese input.';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get notStarted => 'Not started';
+
+  @override
+  String get evidencePending =>
+      'Evidence pending (not available in this build)';
+
+  @override
+  String get consentProcessing => 'Processing consent';
+
+  @override
+  String get consentPublicLink => 'Public-link consent';
+
+  @override
+  String get consentGranted => 'Granted';
+
+  @override
+  String get consentRefused => 'Refused';
+
+  @override
+  String get consentWithdrawn => 'Withdrawn';
+
+  @override
+  String get finalize => 'Finalize';
+
+  @override
+  String get markReady => 'Mark ready';
+
+  @override
+  String get inspectionScope => 'Inspection scope';
+
+  @override
+  String get odometer => 'Odometer';
+
+  @override
+  String get odometerUnit => 'Odometer unit';
+
+  @override
+  String get walkIn => 'Walk-in';
+
+  @override
+  String get technicianHomeTitle => 'Technician';
+
+  @override
+  String get syncQueue => 'Sync queue';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get savedOnPhone => 'Saved on this phone';
+
+  @override
+  String get receivedByServer => 'Received by server';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get photoSaved => 'Photo saved on this phone';
+
+  @override
+  String get photoRequired => 'Add at least one photo.';
+
+  @override
+  String get noPendingSync => 'Nothing waiting to sync.';
+
+  @override
+  String get syncComplete => 'Changes synced.';
+
+  @override
+  String get guideImageUnavailable => 'Guide image is unavailable offline.';
+
+  @override
+  String get attachments => 'Photos';
 }

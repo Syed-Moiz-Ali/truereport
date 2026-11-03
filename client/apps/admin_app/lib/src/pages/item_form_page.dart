@@ -266,6 +266,7 @@ class _ItemFormState extends ConsumerState<_ItemForm> {
             ),
             SizedBox(height: context.spacing.sm),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _categoryId.isEmpty ? null : _categoryId,
               decoration: InputDecoration(labelText: l10n.category),
               items: widget.categories
@@ -304,6 +305,7 @@ class _ItemFormState extends ConsumerState<_ItemForm> {
             ),
             SizedBox(height: context.spacing.lg),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _noteRequirement,
               decoration: InputDecoration(labelText: l10n.noteRequirement),
               items: const ['NONE', 'OPTIONAL', 'REQUIRED']
@@ -317,6 +319,7 @@ class _ItemFormState extends ConsumerState<_ItemForm> {
             ),
             SizedBox(height: context.spacing.sm),
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _evidenceRequirement,
               decoration: InputDecoration(labelText: l10n.evidenceRequirement),
               items: const ['NONE', 'OPTIONAL', 'REQUIRED', 'REQUIRED_MIN_N']
@@ -382,6 +385,7 @@ class _ItemFormState extends ConsumerState<_ItemForm> {
             ),
             SizedBox(height: context.spacing.lg),
             DropdownButtonFormField<String?>(
+              isExpanded: true,
               initialValue: _guideImageId,
               decoration: InputDecoration(labelText: l10n.guideImage),
               items: [

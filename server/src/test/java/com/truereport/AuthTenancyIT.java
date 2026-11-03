@@ -36,7 +36,7 @@ class AuthTenancyIT extends IntegrationTestBase {
         mockMvc.perform(get("/api/v1/workshop/staff")
                         .header("Authorization", "Bearer " + adminA.accessToken()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[?(@.emailMasked == 'a***@test.local')]").exists());
 
         mockMvc.perform(get("/api/v1/platform/workshops")

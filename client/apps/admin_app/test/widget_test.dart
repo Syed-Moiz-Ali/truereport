@@ -26,37 +26,38 @@ void _phoneSize(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('English admin sign-in shell renders without overflow',
-      (tester) async {
+  testWidgets('English admin sign-in shell renders without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      ProviderScope(
-        child: _wrap(const SignInPage(), const Locale('en')),
-      ),
+      ProviderScope(child: _wrap(const SignInPage(), const Locale('en'))),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
   });
 
-  testWidgets('Arabic admin sign-in shell renders RTL without overflow',
-      (tester) async {
+  testWidgets('Arabic admin sign-in shell renders RTL without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      ProviderScope(
-        child: _wrap(const SignInPage(), const Locale('ar')),
-      ),
+      ProviderScope(child: _wrap(const SignInPage(), const Locale('ar'))),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(
-      Directionality.of(tester.element(find.byKey(const Key('sign-in-submit')))),
+      Directionality.of(
+        tester.element(find.byKey(const Key('sign-in-submit'))),
+      ),
       TextDirection.rtl,
     );
   });
 
-  testWidgets('Platform Admin home renders in Arabic without overflow',
-      (tester) async {
+  testWidgets('Platform Admin home renders in Arabic without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
       _wrap(

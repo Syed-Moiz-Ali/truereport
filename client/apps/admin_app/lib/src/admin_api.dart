@@ -115,6 +115,84 @@ abstract class AdminApi {
   Future<List<int>> guideImageBytes(String id);
 
   Future<GuideImage> retireGuideImage(String id);
+
+  Future<List<StaffMember>> staff();
+
+  Future<List<WorkshopJob>> jobs({String search = '', String status = ''});
+
+  Future<WorkshopJob> createJob({
+    required String templateVersionId,
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    required String scope,
+    String? scheduledAt,
+  });
+
+  Future<WorkshopJob> assignJob(
+    String jobId,
+    String technicianId,
+    String? reason,
+  );
+
+  Future<WorkshopJob> cancelJob(String jobId, String reason);
+
+  Future<List<Category>> workshopCategories();
+
+  Future<List<PublishedItem>> publishedItems({
+    String search = '',
+    String categoryId = '',
+  });
+
+  Future<List<TemplateSummary>> templates();
+
+  Future<TemplateDetail> templateDetail(String id);
+
+  Future<TemplateDetail> createTemplate({
+    required String name,
+    String? description,
+    required String serviceType,
+    String? vehicleType,
+  });
+
+  Future<TemplateDetail> saveTemplateDraft({
+    required String id,
+    required String name,
+    String? description,
+    required String serviceType,
+    String? vehicleType,
+    required List<TemplateItemDraft> items,
+  });
+
+  Future<TemplateDetail> createTemplateDraft(String id);
+
+  Future<TemplateDetail> publishTemplate(String id);
+
+  Future<List<TemplateVersionOption>> templateVersionOptions();
+
+  Future<TemplateVersionView> templateVersion(String id, String versionId);
+
+  Future<TemplateDetail> retireTemplate(String id);
+}
+
+class TemplateItemDraft {
+  const TemplateItemDraft({
+    required this.masterItemVersionId,
+    required this.sortOrder,
+  });
+
+  final String masterItemVersionId;
+  final int sortOrder;
+
+  Map<String, dynamic> toJson() => {
+    'masterItemVersionId': masterItemVersionId,
+    'sortOrder': sortOrder,
+  };
 }
 
 class NewItem {
@@ -585,5 +663,205 @@ class HttpAdminApi implements AdminApi {
   Future<GuideImage> retireGuideImage(String id) async {
     final data = await _api.postDynamic(_endpoints.retireGuideImage(id));
     return GuideImage.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<StaffMember>> staff() async {
+    final data = await _api.getDynamic(_endpoints.workshopStaff);
+    return (data as List<dynamic>)
+        .map((item) => StaffMember.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<WorkshopJob>> jobs({
+    String search = '',
+    String status = '',
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopJobs,
+      query: {
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+        if (status.isNotEmpty) 'status': status,
+      },
+    );
+    return (data as List<dynamic>)
+        .map((item) => WorkshopJob.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<WorkshopJob> createJob({
+    required String templateVersionId,
+    required String customerName,
+    String? customerPhone,
+    String? customerEmail,
+    required String vehicleMake,
+    required String vehicleModel,
+    int? vehicleYear,
+    String? vehicleVin,
+    String? vehiclePlate,
+    required String scope,
+    String? scheduledAt,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobs,
+      body: {
+        'templateVersionId': templateVersionId,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'customerEmail': customerEmail,
+        'vehicleMake': vehicleMake,
+        'vehicleModel': vehicleModel,
+        'vehicleYear': vehicleYear,
+        'vehicleVin': vehicleVin,
+        'vehiclePlate': vehiclePlate,
+        'scope': scope,
+        'scheduledAt': scheduledAt,
+      },
+    );
+    return WorkshopJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<WorkshopJob> assignJob(
+    String jobId,
+    String technicianId,
+    String? reason,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.assignWorkshopJob(jobId),
+      body: {'technicianId': technicianId, 'reason': reason},
+    );
+    return WorkshopJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<WorkshopJob> cancelJob(String jobId, String reason) async {
+    final data = await _api.postDynamic(
+      _endpoints.cancelWorkshopJob(jobId),
+      body: {'reason': reason},
+    );
+    return WorkshopJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<Category>> workshopCategories() async {
+    final data = await _api.getDynamic(_endpoints.workshopMasterCategories);
+    return (data as List<dynamic>)
+        .map((item) => Category.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<PublishedItem>> publishedItems({
+    String search = '',
+    String categoryId = '',
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopMasterItems,
+      query: {
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+        if (categoryId.isNotEmpty) 'categoryId': categoryId,
+      },
+    );
+    return (data as List<dynamic>)
+        .map((item) => PublishedItem.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<TemplateSummary>> templates() async {
+    final data = await _api.getDynamic(_endpoints.workshopTemplates);
+    return (data as List<dynamic>)
+        .map((item) => TemplateSummary.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<TemplateDetail> templateDetail(String id) async {
+    final data = await _api.getDynamic(_endpoints.workshopTemplate(id));
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TemplateDetail> createTemplate({
+    required String name,
+    String? description,
+    required String serviceType,
+    String? vehicleType,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopTemplates,
+      body: {
+        'name': name,
+        'description': description,
+        'serviceType': serviceType,
+        'vehicleType': vehicleType,
+      },
+    );
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TemplateDetail> saveTemplateDraft({
+    required String id,
+    required String name,
+    String? description,
+    required String serviceType,
+    String? vehicleType,
+    required List<TemplateItemDraft> items,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.workshopTemplateDraft(id),
+      body: {
+        'name': name,
+        'description': description,
+        'serviceType': serviceType,
+        'vehicleType': vehicleType,
+        'items': items.map((item) => item.toJson()).toList(),
+      },
+    );
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TemplateDetail> createTemplateDraft(String id) async {
+    final data = await _api.postDynamic(_endpoints.workshopTemplateDraft(id));
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TemplateDetail> publishTemplate(String id) async {
+    final data = await _api.postDynamic(_endpoints.publishWorkshopTemplate(id));
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<TemplateVersionOption>> templateVersionOptions() async {
+    final data = await _api.getDynamic(_endpoints.workshopTemplateVersions);
+    return (data as List<dynamic>)
+        .map(
+          (item) =>
+              TemplateVersionOption.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<TemplateVersionView> templateVersion(
+    String id,
+    String versionId,
+  ) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopTemplateVersion(id, versionId),
+    );
+    return TemplateVersionView.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<TemplateDetail> retireTemplate(String id) async {
+    final data = await _api.postDynamic(_endpoints.retireWorkshopTemplate(id));
+    return TemplateDetail.fromJson(data as Map<String, dynamic>);
   }
 }

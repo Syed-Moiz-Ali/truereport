@@ -113,6 +113,17 @@
       <artifactId>bcprov-jdk18on</artifactId>
       <version>${bouncycastle.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.gotson.nightmonkeys</groupId>
+      <artifactId>imageio-heif</artifactId>
+      <version>1.0.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
     <dependency>
       <groupId>com.h2database</groupId>

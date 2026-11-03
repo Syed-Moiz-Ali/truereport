@@ -429,6 +429,7 @@ Future<void> _showInviteDialog(
               AppTextField(controller: name, label: l10n.displayName),
               SizedBox(height: context.spacing.sm),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: role,
                 decoration: InputDecoration(labelText: l10n.role),
                 items: [
@@ -532,6 +533,7 @@ Future<void> _showCreateDialog(
               ),
               SizedBox(height: context.spacing.sm),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: role,
                 decoration: InputDecoration(labelText: l10n.role),
                 items: [

@@ -90,6 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/r/**").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/api/v1/workshop/**").hasRole("WORKSHOP_ADMIN")
+                        .requestMatchers("/api/v1/technician/**").hasRole("TECHNICIAN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(converter))

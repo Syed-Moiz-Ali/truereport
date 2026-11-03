@@ -62,3 +62,59 @@ final equipmentProvider = FutureProvider.autoDispose<List<Equipment>>((ref) {
 final guideImagesProvider = FutureProvider.autoDispose<List<GuideImage>>((ref) {
   return ref.watch(adminApiProvider).guideImages();
 });
+
+final staffProvider = FutureProvider.autoDispose<List<StaffMember>>((ref) {
+  return ref.watch(adminApiProvider).staff();
+});
+
+final jobsProvider = FutureProvider.autoDispose
+    .family<List<WorkshopJob>, String>((ref, key) {
+      final parts = key.split('\u0001');
+      return ref
+          .watch(adminApiProvider)
+          .jobs(
+            search: parts.isEmpty ? '' : parts[0],
+            status: parts.length > 1 ? parts[1] : '',
+          );
+    });
+
+final workshopCategoriesProvider = FutureProvider.autoDispose<List<Category>>((
+  ref,
+) {
+  return ref.watch(adminApiProvider).workshopCategories();
+});
+
+final publishedItemsProvider = FutureProvider.autoDispose
+    .family<List<PublishedItem>, String>((ref, key) {
+      final parts = key.split('\u0001');
+      return ref
+          .watch(adminApiProvider)
+          .publishedItems(
+            search: parts.isEmpty ? '' : parts[0],
+            categoryId: parts.length > 1 ? parts[1] : '',
+          );
+    });
+
+final templatesProvider = FutureProvider.autoDispose<List<TemplateSummary>>((
+  ref,
+) {
+  return ref.watch(adminApiProvider).templates();
+});
+
+final templateDetailProvider = FutureProvider.autoDispose
+    .family<TemplateDetail, String>((ref, id) {
+      return ref.watch(adminApiProvider).templateDetail(id);
+    });
+
+final templateVersionOptionsProvider =
+    FutureProvider.autoDispose<List<TemplateVersionOption>>((ref) {
+      return ref.watch(adminApiProvider).templateVersionOptions();
+    });
+
+final templateVersionProvider = FutureProvider.autoDispose
+    .family<TemplateVersionView, String>((ref, key) {
+      final parts = key.split('\u0001');
+      return ref
+          .watch(adminApiProvider)
+          .templateVersion(parts[0], parts.length > 1 ? parts[1] : '');
+    });

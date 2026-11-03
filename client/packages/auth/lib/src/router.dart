@@ -1,10 +1,12 @@
 import 'package:auth/src/auth_controller.dart';
 import 'package:auth/src/role_home.dart';
 import 'package:auth/src/sign_in_page.dart';
+import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authControllerProvider);
@@ -42,10 +44,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             const RoleHomeShell(role: Role.platformAdmin),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      appBar: AppBar(title: const Text('TrueReport')),
-      body: Center(child: Text(state.error?.toString() ?? 'Route not found')),
-    ),
+    errorBuilder: (context, state) {
+      final l10n = AppLocalizations.of(context);
+      return AppScaffold(
+        appBar: AppBar(title: Text(l10n.appTitle)),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.all(context.spacing.lg),
+            child: ErrorState(
+              title: l10n.error,
+              body: state.error?.toString() ?? l10n.genericError,
+            ),
+          ),
+        ),
+      );
+    },
   );
 });
 

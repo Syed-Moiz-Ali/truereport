@@ -33,10 +33,16 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("4");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("9");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "master_inspection_items")).isTrue();
+        assertThat(tableExists(url, "workshop_templates")).isTrue();
+        assertThat(tableExists(url, "inspection_jobs")).isTrue();
+        assertThat(tableExists(url, "inspection_item_snapshots")).isTrue();
+        assertThat(tableExists(url, "assessments")).isTrue();
+        assertThat(tableExists(url, "inspection_final_snapshots")).isTrue();
+        assertThat(tableExists(url, "evidence_assets")).isTrue();
     }
 
     private boolean tableExists(String url, String table) throws Exception {

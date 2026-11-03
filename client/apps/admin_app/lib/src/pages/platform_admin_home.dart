@@ -48,14 +48,17 @@ class PlatformAdminHomePage extends ConsumerWidget {
                     isScrollable: true,
                     tabs: [
                       Tab(
+                        key: const Key('admin-tab-hierarchy'),
                         icon: const Icon(Icons.account_tree_outlined),
                         text: l10n.hierarchyTab,
                       ),
                       Tab(
+                        key: const Key('admin-tab-master'),
                         icon: const Icon(Icons.library_books_outlined),
                         text: l10n.masterContentTab,
                       ),
                       Tab(
+                        key: const Key('admin-tab-audit'),
                         icon: const Icon(Icons.receipt_long_outlined),
                         text: l10n.auditTab,
                       ),
@@ -84,23 +87,35 @@ class PlatformAdminHomePage extends ConsumerWidget {
                         NavigationRailDestination(
                           icon: const Icon(Icons.account_tree_outlined),
                           selectedIcon: const Icon(Icons.account_tree),
-                          label: Text(l10n.hierarchyTab),
+                          label: Text(
+                            l10n.hierarchyTab,
+                            key: const Key('admin-tab-hierarchy'),
+                          ),
                         ),
                         NavigationRailDestination(
                           icon: const Icon(Icons.library_books_outlined),
                           selectedIcon: const Icon(Icons.library_books),
-                          label: Text(l10n.masterContentTab),
+                          label: Text(
+                            l10n.masterContentTab,
+                            key: const Key('admin-tab-master'),
+                          ),
                         ),
                         NavigationRailDestination(
                           icon: const Icon(Icons.receipt_long_outlined),
                           selectedIcon: const Icon(Icons.receipt_long),
-                          label: Text(l10n.auditTab),
+                          label: Text(
+                            l10n.auditTab,
+                            key: const Key('admin-tab-audit'),
+                          ),
                         ),
                       ],
                     );
                   },
                 ),
-                VerticalDivider(width: 1, color: context.colors.outlineVariant),
+                VerticalDivider(
+                  width: context.spacing.xs,
+                  color: context.colors.outlineVariant,
+                ),
                 const Expanded(child: tabs),
               ],
             ),

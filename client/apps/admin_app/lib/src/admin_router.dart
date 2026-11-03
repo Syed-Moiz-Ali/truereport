@@ -1,4 +1,5 @@
 import 'package:admin_app/src/pages/platform_admin_home.dart';
+import 'package:admin_app/src/pages/workshop_admin_home.dart';
 import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
@@ -36,8 +37,7 @@ final adminRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/workshop',
-        builder: (context, state) =>
-            const RoleHomeShell(role: Role.workshopAdmin),
+        builder: (context, state) => const WorkshopAdminHomePage(),
       ),
       GoRoute(
         path: '/unauthorized',

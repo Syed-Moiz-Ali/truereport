@@ -224,10 +224,12 @@ class AppSelectableText extends StatelessWidget {
                   : scheme.surfaceContainerHighest.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(radius.md),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: spacing.xs,
+              runSpacing: spacing.xs,
               children: [
-                if (icon != null) ...[
+                if (icon != null)
                   Icon(
                     icon,
                     size: spacing.lg,
@@ -235,8 +237,6 @@ class AppSelectableText extends StatelessWidget {
                         ? scheme.onSecondaryContainer
                         : scheme.onSurfaceVariant,
                   ),
-                  SizedBox(width: spacing.xs),
-                ],
                 AnimatedDefaultTextStyle(
                   duration: duration,
                   curve: context.motion.enterCurve,
@@ -338,30 +338,51 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: context.texts.headlineSmall),
-                if (subtitle != null) ...[
-                  SizedBox(height: context.spacing.xs),
-                  Text(
-                    subtitle!,
-                    style: context.texts.bodyMedium?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
+    final heading = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: context.texts.headlineSmall),
+        if (subtitle != null) ...[
+          SizedBox(height: context.spacing.xs),
+          Text(
+            subtitle!,
+            style: context.texts.bodyMedium?.copyWith(
+              color: context.colors.onSurfaceVariant,
             ),
           ),
-          if (action != null) ...[SizedBox(width: context.spacing.md), action!],
         ],
+      ],
+    );
+    return Padding(
+      padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final stackAction =
+              action != null &&
+              (constraints.maxWidth < context.spacing.huge * 7 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.2);
+          if (action == null) {
+            return heading;
+          }
+          if (stackAction) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                heading,
+                SizedBox(height: context.spacing.sm),
+                action!,
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: heading),
+              SizedBox(width: context.spacing.md),
+              action!,
+            ],
+          );
+        },
       ),
     );
   }
@@ -572,7 +593,8 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
     final spacing = context.spacing;
     final radius = context.radii;
     return Semantics(
-      label: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      container: true,
+      liveRegion: true,
       child: FadeTransition(
         opacity: Tween<double>(begin: 0.35, end: 0.8).animate(
           CurvedAnimation(

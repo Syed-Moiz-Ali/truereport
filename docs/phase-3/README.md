@@ -1,6 +1,6 @@
 # Phase 3 — Platform Admin Hierarchy and Master Content
 
-**Status:** Delivered for review. Phase 4 has not started.
+**Status:** Phase 3 delivered. Phase 4 (Workshop Admin and templates) delivered for review; see `../phase-4/`.
 
 ## Scope delivered
 

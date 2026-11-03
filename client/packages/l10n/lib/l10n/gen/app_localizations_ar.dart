@@ -349,4 +349,403 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get actionFailed => 'فشل الإجراء';
+
+  @override
+  String get workshopAdminTitle => 'مدير الورشة';
+
+  @override
+  String get jobsTab => 'المهام';
+
+  @override
+  String get staffTab => 'الموظفون';
+
+  @override
+  String get templatesTab => 'القوالب';
+
+  @override
+  String get newJob => 'مهمة جديدة';
+
+  @override
+  String get jobSearch => 'بحث في المهام';
+
+  @override
+  String get statusScheduled => 'مجدولة';
+
+  @override
+  String get statusAssigned => 'مسندة';
+
+  @override
+  String get statusInProgress => 'قيد التنفيذ';
+
+  @override
+  String get statusReadyToFinalize => 'جاهزة للاعتماد';
+
+  @override
+  String get statusFinalized => 'معتمدة';
+
+  @override
+  String get statusCancelled => 'ملغاة';
+
+  @override
+  String get assign => 'إسناد';
+
+  @override
+  String get reassign => 'إعادة إسناد';
+
+  @override
+  String get cancelJob => 'إلغاء المهمة';
+
+  @override
+  String get jobCreated => 'تم إنشاء المهمة';
+
+  @override
+  String get jobAssigned => 'تم إسناد المهمة';
+
+  @override
+  String get jobCancelled => 'تم إلغاء المهمة';
+
+  @override
+  String get customerName => 'اسم العميل';
+
+  @override
+  String get customerPhone => 'هاتف العميل';
+
+  @override
+  String get customerEmail => 'بريد العميل';
+
+  @override
+  String get vehicleMake => 'ماركة المركبة';
+
+  @override
+  String get vehicleModel => 'طراز المركبة';
+
+  @override
+  String get vehicleYear => 'سنة الصنع';
+
+  @override
+  String get vehicleVin => 'رقم الهيكل';
+
+  @override
+  String get vehiclePlate => 'رقم اللوحة';
+
+  @override
+  String get scope => 'نطاق الفحص';
+
+  @override
+  String get scheduledAt => 'موعد الجدولة';
+
+  @override
+  String get template => 'القالب';
+
+  @override
+  String get selectTemplate => 'اختر قالباً';
+
+  @override
+  String get staffReadOnly => 'حسابات الموظفين';
+
+  @override
+  String get staffReadOnlyBody =>
+      'ينشئ مدير المنصة حسابات الورشة. يمكن لمدير الورشة مراجعة الموظفين وإسناد المهام.';
+
+  @override
+  String get templates => 'القوالب';
+
+  @override
+  String get newTemplate => 'قالب جديد';
+
+  @override
+  String get templateName => 'اسم القالب';
+
+  @override
+  String get templateDescription => 'الوصف';
+
+  @override
+  String get serviceType => 'نوع الخدمة';
+
+  @override
+  String get vehicleType => 'نوع المركبة';
+
+  @override
+  String get addItems => 'إضافة عناصر';
+
+  @override
+  String get selectedItems => 'العناصر المختارة';
+
+  @override
+  String get preview => 'معاينة';
+
+  @override
+  String get previewEn => 'معاينة إنجليزية';
+
+  @override
+  String get previewAr => 'معاينة عربية';
+
+  @override
+  String get publishTemplate => 'نشر القالب';
+
+  @override
+  String get versionHistory => 'سجل الإصدارات';
+
+  @override
+  String get lockedByPlatform => 'مقفل من المنصة';
+
+  @override
+  String get noItems => 'لم يتم اختيار عناصر';
+
+  @override
+  String get add => 'إضافة';
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get moveUp => 'تحريك لأعلى';
+
+  @override
+  String get moveDown => 'تحريك لأسفل';
+
+  @override
+  String get templatePublished => 'تم نشر القالب';
+
+  @override
+  String get jobAssignedTo => 'مسندة إلى';
+
+  @override
+  String get unassigned => 'غير مسندة';
+
+  @override
+  String get noTechnicians => 'لا يوجد فنيون نشطون';
+
+  @override
+  String get searchItems => 'بحث في العناصر المعتمدة';
+
+  @override
+  String get allCategories => 'كل الفئات';
+
+  @override
+  String get masterVersion => 'إصدار المحتوى';
+
+  @override
+  String get readOnlyVersion => 'إصدار للقراءة فقط';
+
+  @override
+  String get itemsSelected => 'عناصر مختارة';
+
+  @override
+  String get templateDetails => 'تفاصيل القالب';
+
+  @override
+  String get jobDetails => 'تفاصيل المهمة';
+
+  @override
+  String get assignedJobs => 'المهام المسندة';
+
+  @override
+  String get noAssignedJobs =>
+      'لا توجد مهام مسندة. اطلب من مدير الورشة أو أنشئ مهمة دخول مباشر.';
+
+  @override
+  String get walkInJob => 'مهمة دخول مباشر';
+
+  @override
+  String get startInspection => 'بدء الفحص';
+
+  @override
+  String get resumeInspection => 'متابعة الفحص';
+
+  @override
+  String get customerInformation => 'بيانات العميل';
+
+  @override
+  String get vehicleIdentification => 'تعريف المركبة';
+
+  @override
+  String get consent => 'الموافقة';
+
+  @override
+  String get checklist => 'قائمة الفحص';
+
+  @override
+  String get reviewAndFinalize => 'المراجعة والاعتماد';
+
+  @override
+  String get approveAndGenerateReport => 'اعتماد الفحص';
+
+  @override
+  String get finalizedReadOnly => 'معتمد — للقراءة فقط';
+
+  @override
+  String get evidenceNotAvailable => 'التقاط الأدلة غير متاح في هذا الإصدار.';
+
+  @override
+  String get result => 'النتيجة';
+
+  @override
+  String get severity => 'الخطورة';
+
+  @override
+  String get note => 'ملاحظة';
+
+  @override
+  String get notChecked => 'لم يتم الفحص';
+
+  @override
+  String get couldNotVerify => 'تعذر التحقق';
+
+  @override
+  String get noIssueObserved => 'لم تلاحظ مشكلة';
+
+  @override
+  String get defectFound => 'تم العثور على عيب';
+
+  @override
+  String get attentionRecommended => 'يوصى بالانتباه';
+
+  @override
+  String get notApplicable => 'غير قابل للتطبيق';
+
+  @override
+  String get minor => 'طفيف';
+
+  @override
+  String get moderate => 'متوسط';
+
+  @override
+  String get major => 'كبير';
+
+  @override
+  String get safetyCritical => 'حرج للسلامة';
+
+  @override
+  String get saveAnswer => 'حفظ الإجابة';
+
+  @override
+  String get progress => 'التقدم';
+
+  @override
+  String get completedItems => 'مكتمل';
+
+  @override
+  String get missingItems => 'العناصر الناقصة';
+
+  @override
+  String get itemSaved => 'تم حفظ الإجابة';
+
+  @override
+  String get inspectionStarted => 'بدأ الفحص';
+
+  @override
+  String get readyToFinalize => 'جاهز للاعتماد';
+
+  @override
+  String get finalizeConfirm => 'اعتماد هذا الفحص؟';
+
+  @override
+  String get finalizeIrreversible => 'لا يمكن لأي شخص تعديل النتائج المعتمدة.';
+
+  @override
+  String get finalizedSuccessfully => 'تم اعتماد الفحص';
+
+  @override
+  String get walkInCreated => 'تم إنشاء مهمة الدخول المباشر';
+
+  @override
+  String get customerSaved => 'تم حفظ بيانات العميل';
+
+  @override
+  String get vehicleSaved => 'تم حفظ بيانات المركبة';
+
+  @override
+  String get consentRecorded => 'تم تسجيل الموافقة';
+
+  @override
+  String get assessmentRequired => 'اختر نتيجة أولاً';
+
+  @override
+  String get keyboardHelp =>
+      'استخدم إعدادات لوحة المفاتيح في جهازك للتبديل إلى العربية أو الروسية أو الصينية.';
+
+  @override
+  String get start => 'بدء';
+
+  @override
+  String get next => 'التالي';
+
+  @override
+  String get previous => 'السابق';
+
+  @override
+  String get notStarted => 'لم يبدأ';
+
+  @override
+  String get evidencePending => 'الأدلة معلقة (غير متاحة في هذا الإصدار)';
+
+  @override
+  String get consentProcessing => 'الموافقة على المعالجة';
+
+  @override
+  String get consentPublicLink => 'الموافقة على الرابط العام';
+
+  @override
+  String get consentGranted => 'ممنوحة';
+
+  @override
+  String get consentRefused => 'مرفوضة';
+
+  @override
+  String get consentWithdrawn => 'مسحوبة';
+
+  @override
+  String get finalize => 'اعتماد';
+
+  @override
+  String get markReady => 'تحديد كجاهز';
+
+  @override
+  String get inspectionScope => 'نطاق الفحص';
+
+  @override
+  String get odometer => 'عداد المسافة';
+
+  @override
+  String get odometerUnit => 'وحدة العداد';
+
+  @override
+  String get walkIn => 'دخول مباشر';
+
+  @override
+  String get technicianHomeTitle => 'الفني';
+
+  @override
+  String get syncQueue => 'قائمة المزامنة';
+
+  @override
+  String get syncNow => 'مزامنة الآن';
+
+  @override
+  String get savedOnPhone => 'تم الحفظ على هذا الهاتف';
+
+  @override
+  String get receivedByServer => 'تم الاستلام من الخادم';
+
+  @override
+  String get addPhoto => 'إضافة صورة';
+
+  @override
+  String get photoSaved => 'تم حفظ الصورة على هذا الهاتف';
+
+  @override
+  String get photoRequired => 'أضف صورة واحدة على الأقل.';
+
+  @override
+  String get noPendingSync => 'لا يوجد ما ينتظر المزامنة.';
+
+  @override
+  String get syncComplete => 'تمت مزامنة التغييرات.';
+
+  @override
+  String get guideImageUnavailable => 'الصورة الإرشادية غير متاحة دون اتصال.';
+
+  @override
+  String get attachments => 'الصور';
 }

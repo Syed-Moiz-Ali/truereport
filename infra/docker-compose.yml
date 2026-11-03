@@ -7,6 +7,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
       - --default-time-zone=+00:00
+      - --log-bin-trust-function-creators=1
     environment:
       MYSQL_DATABASE: ${DB_NAME:-truereport}
       MYSQL_USER: ${DB_USER:-truereport}
@@ -25,6 +26,7 @@ services:
   # Local development only. MinIO OSS is archived and receives no security patches.
   # Never use this service in production. D6 production object storage is Pending.
   minio:
+    profiles: ["minio"]
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     command: server /data --console-address ":9001"
     environment:
@@ -60,7 +62,10 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+    volumes:
+      - server_storage:/app/.truereport-storage
 
 volumes:
   mysql_data:
   minio_data:
+  server_storage:

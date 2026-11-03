@@ -64,12 +64,16 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> postDynamic(String path, {Object? body}) async {
+  Future<dynamic> postDynamic(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) async {
     try {
       final response = await _dio.post<dynamic>(
         path,
         data: body,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _headers(headers)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -103,6 +107,29 @@ class ApiClient {
     }
   }
 
+  Future<void> putBytes(
+    String path, {
+    required List<int> bytes,
+    required String contentType,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      await _dio.put<void>(
+        path,
+        data: Stream.fromIterable([bytes]),
+        options: Options(
+          headers: {
+            ..._headers(headers),
+            'Content-Type': contentType,
+            'Content-Length': bytes.length.toString(),
+          },
+        ),
+      );
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    }
+  }
+
   Future<List<int>> getBytes(String path) async {
     try {
       final response = await _dio.get<List<int>>(
@@ -116,6 +143,10 @@ class ApiClient {
     } on DioException catch (error) {
       throw _toFailure(error);
     }
+  }
+
+  Map<String, String> _headers(Map<String, String>? extra) {
+    return {..._authHeaders(), ...?extra};
   }
 
   Map<String, String> _authHeaders() {

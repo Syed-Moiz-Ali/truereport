@@ -158,4 +158,4 @@ These are approved product rules; Phase 1 designs them as controls, not options:
 | Consent wording/lawful basis (C2) | **Pending (legal)** | Counsel | — |
 | PDF-download questions (PDF1–PDF5) | **Approved** | Product owner | 3 Nov 2026 |
 
-**Phase 2 foundation and Phase 3 Platform Admin work have been delivered for review. Phase 4+ features have not started.**
+**Phase 2 foundation, Phase 3 Platform Admin work, Phase 4 Workshop Admin/jobs/templates and Phase 5A technician online inspection/finalization have been delivered for review. Phase 5B+ features have not started.**

@@ -1,0 +1,89 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/l10n.dart';
+import 'package:technician_app/src/technician_providers.dart';
+import 'package:technician_app/src/ui_helpers.dart';
+
+class FinalizedPage extends ConsumerWidget {
+  const FinalizedPage({required this.jobId, super.key});
+
+  final String jobId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final checklist = ref.watch(inspectionChecklistProvider(jobId));
+    return AppScaffold(
+      appBar: AppBar(title: Text(l10n.finalizedReadOnly)),
+      body: checklist.when(
+        loading: () => Padding(
+          padding: EdgeInsetsDirectional.all(context.spacing.lg),
+          child: const LoadingSkeleton(lines: 7),
+        ),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.all(context.spacing.lg),
+            child: ErrorState(
+              title: l10n.error,
+              body: l10n.genericError,
+              onRetry: () => ref.invalidate(inspectionChecklistProvider(jobId)),
+              retryLabel: l10n.search,
+            ),
+          ),
+        ),
+        data: (value) => ListView(
+          padding: EdgeInsetsDirectional.all(context.spacing.lg),
+          children: [
+            SectionHeader(
+              title: value.job.reference,
+              subtitle: l10n.finalizedReadOnly,
+            ),
+            StatusChip(
+              label: l10n.finalizedReadOnly,
+              tone: StatusTone.success,
+              icon: Icons.lock_outline,
+            ),
+            SizedBox(height: context.spacing.md),
+            Text(
+              '${value.job.vehicleMake} ${value.job.vehicleModel} · ${value.job.customerName}',
+              style: context.texts.bodyMedium,
+            ),
+            SizedBox(height: context.spacing.lg),
+            ...value.items.map(
+              (item) => Padding(
+                padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.all(context.spacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.labelEn, style: context.texts.titleMedium),
+                        SizedBox(height: context.spacing.xs),
+                        Text(
+                          item.assessment == null
+                              ? l10n.notStarted
+                              : resultLabel(l10n, item.assessment!.resultCode),
+                          style: context.texts.bodyMedium,
+                        ),
+                        if (item.assessment?.note != null &&
+                            item.assessment!.note!.isNotEmpty) ...[
+                          SizedBox(height: context.spacing.xs),
+                          Text(
+                            item.assessment!.note!,
+                            style: context.texts.bodySmall,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -37,14 +37,18 @@ public class TestDataFactory {
 
         User adminA = user("admin.a@test.local", "Admin A", false);
         User techA = user("tech.a@test.local", "Technician A", false);
+        User techB = user("tech.b@test.local", "Technician B", false);
+        User techC = user("tech.c@test.local", "Technician C", false);
         User adminB = user("admin.b@test.local", "Admin B", false);
         User platform = user("platform@test.local", "Platform Admin", true);
 
         memberships.save(new WorkshopMembership(a.getId(), adminA.getId(), WorkshopRole.WORKSHOP_ADMIN, true));
         memberships.save(new WorkshopMembership(a.getId(), techA.getId(), WorkshopRole.TECHNICIAN, true));
+        memberships.save(new WorkshopMembership(a.getId(), techC.getId(), WorkshopRole.TECHNICIAN, true));
+        memberships.save(new WorkshopMembership(b.getId(), techB.getId(), WorkshopRole.TECHNICIAN, true));
         memberships.save(new WorkshopMembership(b.getId(), adminB.getId(), WorkshopRole.WORKSHOP_ADMIN, true));
 
-        return new Fixture(a, b, adminA, techA, adminB, platform);
+        return new Fixture(a, b, adminA, techA, techB, techC, adminB, platform);
     }
 
     private User user(String email, String displayName, boolean platformAdmin) {
@@ -58,6 +62,8 @@ public class TestDataFactory {
                           Workshop workshopB,
                           User adminA,
                           User techA,
+                          User techB,
+                          User techC,
                           User adminB,
                           User platform) {
     }
