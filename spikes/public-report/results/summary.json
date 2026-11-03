@@ -1,0 +1,52 @@
+[
+  {
+    "variant": "ssr",
+    "runs": 3,
+    "medianWallMs": 5403,
+    "medianTransferKB": 623,
+    "medianPerfTransferKB": 624,
+    "medianDecodedKB": 618,
+    "medianFcpMs": 488,
+    "medianLcpMs": 488,
+    "medianInnerText": 13536,
+    "medianCanvas": 0,
+    "medianTableRows": 131,
+    "axeViolationIds": []
+  },
+  {
+    "variant": "flutter",
+    "runs": 3,
+    "medianWallMs": 4272,
+    "medianTransferKB": 2841,
+    "medianPerfTransferKB": 131,
+    "medianDecodedKB": 7702,
+    "medianFcpMs": 3696,
+    "medianLcpMs": 0,
+    "medianInnerText": 0,
+    "medianCanvas": 0,
+    "medianTableRows": 0,
+    "axeViolationIds": [
+      "html-has-lang",
+      "meta-viewport"
+    ]
+  },
+  {
+    "variant": "flutter_semantics",
+    "runs": 3,
+    "medianWallMs": 4324,
+    "medianTransferKB": 2841,
+    "medianPerfTransferKB": 131,
+    "medianDecodedKB": 7702,
+    "medianFcpMs": 3536,
+    "medianLcpMs": 0,
+    "medianInnerText": 1216,
+    "medianCanvas": 0,
+    "medianTableRows": 0,
+    "axeViolationIds": [
+      "html-has-lang",
+      "meta-viewport",
+      "region",
+      "scrollable-region-focusable"
+    ]
+  }
+]

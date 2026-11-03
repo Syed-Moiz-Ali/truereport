@@ -1,0 +1,1 @@
+﻿{"name":"truereport-spike-public-report","private":true,"type":"module","scripts":{"measure":"node measure.mjs"},"dependencies":{"playwright":"1.56.1","@axe-core/playwright":"4.10.2"}}

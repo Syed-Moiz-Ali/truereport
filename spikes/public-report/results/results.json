@@ -1,0 +1,2226 @@
+[
+  {
+    "variant": "ssr",
+    "profile": "4g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 5402,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 490.7000000476837,
+      "loadEventEnd": 3665.7000000476837,
+      "transferSize": 4905,
+      "encodedBodySize": 4605
+    },
+    "resourceCount": 20,
+    "transferSize": 639106,
+    "encodedBodySize": 633106,
+    "decodedBodySize": 633106,
+    "byType": {
+      "img": {
+        "count": 20,
+        "transferSize": 639106,
+        "decodedBodySize": 633106
+      }
+    },
+    "perf": {
+      "fcp": 488,
+      "lcp": 488,
+      "cls": 0
+    },
+    "innerTextLength": 13536,
+    "textContentLength": 12482,
+    "canvasCount": 0,
+    "shadow": {
+      "host": false,
+      "canvases": 0,
+      "semantics": 0,
+      "text": 0
+    },
+    "semanticsNodes": 0,
+    "headings": 15,
+    "paragraphs": 7,
+    "tableRows": 131,
+    "meta": [
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1"
+      },
+      {
+        "name": "description",
+        "property": null,
+        "content": "A vehicle inspection report is available at this link."
+      },
+      {
+        "name": "robots",
+        "property": null,
+        "content": "noindex, nofollow"
+      },
+      {
+        "name": null,
+        "property": "og:title",
+        "content": "Vehicle inspection report"
+      },
+      {
+        "name": null,
+        "property": "og:description",
+        "content": "A vehicle inspection report is available at this link."
+      }
+    ],
+    "url": "http://127.0.0.1:8091/",
+    "serverBytes": 637711,
+    "responseCount": 21,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8091/",
+        "status": 200,
+        "bytes": 4605,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-01.jpg",
+        "status": 200,
+        "bytes": 35224,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-02.jpg",
+        "status": 200,
+        "bytes": 34687,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-03.jpg",
+        "status": 200,
+        "bytes": 33587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-04.jpg",
+        "status": 200,
+        "bytes": 31648,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-05.jpg",
+        "status": 200,
+        "bytes": 31086,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-06.jpg",
+        "status": 200,
+        "bytes": 29725,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-07.jpg",
+        "status": 200,
+        "bytes": 28459,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-08.jpg",
+        "status": 200,
+        "bytes": 29237,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-09.jpg",
+        "status": 200,
+        "bytes": 29328,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-10.jpg",
+        "status": 200,
+        "bytes": 30577,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-11.jpg",
+        "status": 200,
+        "bytes": 31074,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-12.jpg",
+        "status": 200,
+        "bytes": 32071,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-13.jpg",
+        "status": 200,
+        "bytes": 33178,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-14.jpg",
+        "status": 200,
+        "bytes": 33769,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-15.jpg",
+        "status": 200,
+        "bytes": 31970,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-16.jpg",
+        "status": 200,
+        "bytes": 32685,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-17.jpg",
+        "status": 200,
+        "bytes": 31134,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-18.jpg",
+        "status": 200,
+        "bytes": 32587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-19.jpg",
+        "status": 200,
+        "bytes": 32504,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-20.jpg",
+        "status": 200,
+        "bytes": 28576,
+        "type": "image/jpeg"
+      }
+    ],
+    "axeViolations": [],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 17757448,
+      "Nodes": 3233,
+      "LayoutCount": 15,
+      "RecalcStyleCount": 3
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\ssr-4g-1.png"
+  },
+  {
+    "variant": "ssr",
+    "profile": "4g",
+    "run": 2,
+    "ready": true,
+    "error": null,
+    "wallMs": 5403,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 487,
+      "loadEventEnd": 3689.2999999523163,
+      "transferSize": 4905,
+      "encodedBodySize": 4605
+    },
+    "resourceCount": 20,
+    "transferSize": 639106,
+    "encodedBodySize": 633106,
+    "decodedBodySize": 633106,
+    "byType": {
+      "img": {
+        "count": 20,
+        "transferSize": 639106,
+        "decodedBodySize": 633106
+      }
+    },
+    "perf": {
+      "fcp": 488,
+      "lcp": 488,
+      "cls": 0
+    },
+    "innerTextLength": 13536,
+    "textContentLength": 12482,
+    "canvasCount": 0,
+    "shadow": {
+      "host": false,
+      "canvases": 0,
+      "semantics": 0,
+      "text": 0
+    },
+    "semanticsNodes": 0,
+    "headings": 15,
+    "paragraphs": 7,
+    "tableRows": 131,
+    "meta": [
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1"
+      },
+      {
+        "name": "description",
+        "property": null,
+        "content": "A vehicle inspection report is available at this link."
+      },
+      {
+        "name": "robots",
+        "property": null,
+        "content": "noindex, nofollow"
+      },
+      {
+        "name": null,
+        "property": "og:title",
+        "content": "Vehicle inspection report"
+      },
+      {
+        "name": null,
+        "property": "og:description",
+        "content": "A vehicle inspection report is available at this link."
+      }
+    ],
+    "url": "http://127.0.0.1:8091/",
+    "serverBytes": 637711,
+    "responseCount": 21,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8091/",
+        "status": 200,
+        "bytes": 4605,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-01.jpg",
+        "status": 200,
+        "bytes": 35224,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-02.jpg",
+        "status": 200,
+        "bytes": 34687,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-03.jpg",
+        "status": 200,
+        "bytes": 33587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-04.jpg",
+        "status": 200,
+        "bytes": 31648,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-05.jpg",
+        "status": 200,
+        "bytes": 31086,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-06.jpg",
+        "status": 200,
+        "bytes": 29725,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-07.jpg",
+        "status": 200,
+        "bytes": 28459,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-08.jpg",
+        "status": 200,
+        "bytes": 29237,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-09.jpg",
+        "status": 200,
+        "bytes": 29328,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-10.jpg",
+        "status": 200,
+        "bytes": 30577,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-11.jpg",
+        "status": 200,
+        "bytes": 31074,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-12.jpg",
+        "status": 200,
+        "bytes": 32071,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-13.jpg",
+        "status": 200,
+        "bytes": 33178,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-14.jpg",
+        "status": 200,
+        "bytes": 33769,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-15.jpg",
+        "status": 200,
+        "bytes": 31970,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-16.jpg",
+        "status": 200,
+        "bytes": 32685,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-17.jpg",
+        "status": 200,
+        "bytes": 31134,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-18.jpg",
+        "status": 200,
+        "bytes": 32587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-19.jpg",
+        "status": 200,
+        "bytes": 32504,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-20.jpg",
+        "status": 200,
+        "bytes": 28576,
+        "type": "image/jpeg"
+      }
+    ],
+    "axeViolations": [],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 7903744,
+      "Nodes": 3233,
+      "LayoutCount": 16,
+      "RecalcStyleCount": 3
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\ssr-4g-2.png"
+  },
+  {
+    "variant": "ssr",
+    "profile": "4g",
+    "run": 3,
+    "ready": true,
+    "error": null,
+    "wallMs": 5644,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 443.2999999523163,
+      "loadEventEnd": 3937,
+      "transferSize": 4905,
+      "encodedBodySize": 4605
+    },
+    "resourceCount": 20,
+    "transferSize": 639106,
+    "encodedBodySize": 633106,
+    "decodedBodySize": 633106,
+    "byType": {
+      "img": {
+        "count": 20,
+        "transferSize": 639106,
+        "decodedBodySize": 633106
+      }
+    },
+    "perf": {
+      "fcp": 444,
+      "lcp": 444,
+      "cls": 0
+    },
+    "innerTextLength": 13536,
+    "textContentLength": 12482,
+    "canvasCount": 0,
+    "shadow": {
+      "host": false,
+      "canvases": 0,
+      "semantics": 0,
+      "text": 0
+    },
+    "semanticsNodes": 0,
+    "headings": 15,
+    "paragraphs": 7,
+    "tableRows": 131,
+    "meta": [
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1"
+      },
+      {
+        "name": "description",
+        "property": null,
+        "content": "A vehicle inspection report is available at this link."
+      },
+      {
+        "name": "robots",
+        "property": null,
+        "content": "noindex, nofollow"
+      },
+      {
+        "name": null,
+        "property": "og:title",
+        "content": "Vehicle inspection report"
+      },
+      {
+        "name": null,
+        "property": "og:description",
+        "content": "A vehicle inspection report is available at this link."
+      }
+    ],
+    "url": "http://127.0.0.1:8091/",
+    "serverBytes": 637711,
+    "responseCount": 21,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8091/",
+        "status": 200,
+        "bytes": 4605,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-01.jpg",
+        "status": 200,
+        "bytes": 35224,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-02.jpg",
+        "status": 200,
+        "bytes": 34687,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-03.jpg",
+        "status": 200,
+        "bytes": 33587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-04.jpg",
+        "status": 200,
+        "bytes": 31648,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-05.jpg",
+        "status": 200,
+        "bytes": 31086,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-06.jpg",
+        "status": 200,
+        "bytes": 29725,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-07.jpg",
+        "status": 200,
+        "bytes": 28459,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-08.jpg",
+        "status": 200,
+        "bytes": 29237,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-09.jpg",
+        "status": 200,
+        "bytes": 29328,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-10.jpg",
+        "status": 200,
+        "bytes": 30577,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-11.jpg",
+        "status": 200,
+        "bytes": 31074,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-12.jpg",
+        "status": 200,
+        "bytes": 32071,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-13.jpg",
+        "status": 200,
+        "bytes": 33178,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-14.jpg",
+        "status": 200,
+        "bytes": 33769,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-15.jpg",
+        "status": 200,
+        "bytes": 31970,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-16.jpg",
+        "status": 200,
+        "bytes": 32685,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-17.jpg",
+        "status": 200,
+        "bytes": 31134,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-18.jpg",
+        "status": 200,
+        "bytes": 32587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-19.jpg",
+        "status": 200,
+        "bytes": 32504,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-20.jpg",
+        "status": 200,
+        "bytes": 28576,
+        "type": "image/jpeg"
+      }
+    ],
+    "axeViolations": [],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 20605552,
+      "Nodes": 3233,
+      "LayoutCount": 18,
+      "RecalcStyleCount": 3
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\ssr-4g-3.png"
+  },
+  {
+    "variant": "ssr",
+    "profile": "3g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 10270,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 556.4000000953674,
+      "loadEventEnd": 8566.200000047684,
+      "transferSize": 4905,
+      "encodedBodySize": 4605
+    },
+    "resourceCount": 20,
+    "transferSize": 639106,
+    "encodedBodySize": 633106,
+    "decodedBodySize": 633106,
+    "byType": {
+      "img": {
+        "count": 20,
+        "transferSize": 639106,
+        "decodedBodySize": 633106
+      }
+    },
+    "perf": {
+      "fcp": 548,
+      "lcp": 548,
+      "cls": 0
+    },
+    "innerTextLength": 13536,
+    "textContentLength": 12482,
+    "canvasCount": 0,
+    "shadow": {
+      "host": false,
+      "canvases": 0,
+      "semantics": 0,
+      "text": 0
+    },
+    "semanticsNodes": 0,
+    "headings": 15,
+    "paragraphs": 7,
+    "tableRows": 131,
+    "meta": [
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1"
+      },
+      {
+        "name": "description",
+        "property": null,
+        "content": "A vehicle inspection report is available at this link."
+      },
+      {
+        "name": "robots",
+        "property": null,
+        "content": "noindex, nofollow"
+      },
+      {
+        "name": null,
+        "property": "og:title",
+        "content": "Vehicle inspection report"
+      },
+      {
+        "name": null,
+        "property": "og:description",
+        "content": "A vehicle inspection report is available at this link."
+      }
+    ],
+    "url": "http://127.0.0.1:8091/",
+    "serverBytes": 637711,
+    "responseCount": 21,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8091/",
+        "status": 200,
+        "bytes": 4605,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-01.jpg",
+        "status": 200,
+        "bytes": 35224,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-02.jpg",
+        "status": 200,
+        "bytes": 34687,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-03.jpg",
+        "status": 200,
+        "bytes": 33587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-04.jpg",
+        "status": 200,
+        "bytes": 31648,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-05.jpg",
+        "status": 200,
+        "bytes": 31086,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-06.jpg",
+        "status": 200,
+        "bytes": 29725,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-07.jpg",
+        "status": 200,
+        "bytes": 28459,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-08.jpg",
+        "status": 200,
+        "bytes": 29237,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-09.jpg",
+        "status": 200,
+        "bytes": 29328,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-10.jpg",
+        "status": 200,
+        "bytes": 30577,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-11.jpg",
+        "status": 200,
+        "bytes": 31074,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-12.jpg",
+        "status": 200,
+        "bytes": 32071,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-13.jpg",
+        "status": 200,
+        "bytes": 33178,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-14.jpg",
+        "status": 200,
+        "bytes": 33769,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-15.jpg",
+        "status": 200,
+        "bytes": 31970,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-16.jpg",
+        "status": 200,
+        "bytes": 32685,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-17.jpg",
+        "status": 200,
+        "bytes": 31134,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-18.jpg",
+        "status": 200,
+        "bytes": 32587,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-19.jpg",
+        "status": 200,
+        "bytes": 32504,
+        "type": "image/jpeg"
+      },
+      {
+        "url": "http://127.0.0.1:8091/assets/photos/photo-20.jpg",
+        "status": 200,
+        "bytes": 28576,
+        "type": "image/jpeg"
+      }
+    ],
+    "axeViolations": [],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 24913152,
+      "Nodes": 3241,
+      "LayoutCount": 22,
+      "RecalcStyleCount": 2
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\ssr-3g-1.png"
+  },
+  {
+    "variant": "flutter",
+    "profile": "4g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 4272,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 208.40000009536743,
+      "loadEventEnd": 396.7999999523163,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880674,
+    "decodedBodySize": 7886579,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069269
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 3592,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 0,
+    "textContentLength": 890,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 0,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8092/",
+    "serverBytes": 2908953,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8092/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/main.dart.js",
+        "status": 200,
+        "bytes": 571995,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 23061292,
+      "Nodes": 127,
+      "LayoutCount": 6,
+      "RecalcStyleCount": 7
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter-4g-1.png"
+  },
+  {
+    "variant": "flutter",
+    "profile": "4g",
+    "run": 2,
+    "ready": true,
+    "error": null,
+    "wallMs": 4376,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 200.69999980926514,
+      "loadEventEnd": 394.59999990463257,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880674,
+    "decodedBodySize": 7886579,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069269
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 3696,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 0,
+    "textContentLength": 890,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 0,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8092/",
+    "serverBytes": 2908953,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8092/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/main.dart.js",
+        "status": 200,
+        "bytes": 571995,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 23061500,
+      "Nodes": 127,
+      "LayoutCount": 6,
+      "RecalcStyleCount": 7
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter-4g-2.png"
+  },
+  {
+    "variant": "flutter",
+    "profile": "4g",
+    "run": 3,
+    "ready": true,
+    "error": null,
+    "wallMs": 4194,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 201.20000004768372,
+      "loadEventEnd": 381.7000000476837,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880674,
+    "decodedBodySize": 7886579,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069269
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 3544,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 0,
+    "textContentLength": 890,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 0,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8092/",
+    "serverBytes": 2908953,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8092/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/main.dart.js",
+        "status": 200,
+        "bytes": 571995,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 23063340,
+      "Nodes": 127,
+      "LayoutCount": 6,
+      "RecalcStyleCount": 7
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter-4g-3.png"
+  },
+  {
+    "variant": "flutter",
+    "profile": "3g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 5505,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 466.90000009536743,
+      "loadEventEnd": 922.1000001430511,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 8,
+    "transferSize": 67774,
+    "encodedBodySize": 7814262,
+    "decodedBodySize": 7820167,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069269
+      },
+      "fetch": {
+        "count": 5,
+        "transferSize": 63764,
+        "decodedBodySize": 5750898
+      }
+    },
+    "perf": {
+      "fcp": 4772,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 0,
+    "textContentLength": 890,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 0,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8092/",
+    "serverBytes": 2908953,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8092/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8092/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/main.dart.js",
+        "status": 200,
+        "bytes": 571995,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8092/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 25560800,
+      "Nodes": 140,
+      "LayoutCount": 6,
+      "RecalcStyleCount": 7
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter-3g-1.png"
+  },
+  {
+    "variant": "flutter_semantics",
+    "profile": "4g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 4672,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 211.40000009536743,
+      "loadEventEnd": 401.09999990463257,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880802,
+    "decodedBodySize": 7886707,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069397
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 4032,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 1216,
+    "textContentLength": 2100,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 16,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8093/",
+    "serverBytes": 2909051,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8093/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/main.dart.js",
+        "status": 200,
+        "bytes": 572093,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "All page content should be contained by landmarks"
+      },
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "Scrollable region must have keyboard access"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 21657224,
+      "Nodes": 196,
+      "LayoutCount": 13,
+      "RecalcStyleCount": 17
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter_semantics-4g-1.png"
+  },
+  {
+    "variant": "flutter_semantics",
+    "profile": "4g",
+    "run": 2,
+    "ready": true,
+    "error": null,
+    "wallMs": 4253,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 185,
+      "loadEventEnd": 362.7000000476837,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880802,
+    "decodedBodySize": 7886707,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069397
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 3536,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 1216,
+    "textContentLength": 2100,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 16,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8093/",
+    "serverBytes": 2909051,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8093/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/main.dart.js",
+        "status": 200,
+        "bytes": 572093,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "All page content should be contained by landmarks"
+      },
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "Scrollable region must have keyboard access"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 21655596,
+      "Nodes": 196,
+      "LayoutCount": 13,
+      "RecalcStyleCount": 17
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter_semantics-4g-2.png"
+  },
+  {
+    "variant": "flutter_semantics",
+    "profile": "4g",
+    "run": 3,
+    "ready": true,
+    "error": null,
+    "wallMs": 4324,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 199,
+      "loadEventEnd": 393.10000014305115,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 9,
+    "transferSize": 134486,
+    "encodedBodySize": 7880802,
+    "decodedBodySize": 7886707,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069397
+      },
+      "fetch": {
+        "count": 6,
+        "transferSize": 130476,
+        "decodedBodySize": 5817310
+      }
+    },
+    "perf": {
+      "fcp": 3608,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 1216,
+    "textContentLength": 2100,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 16,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8093/",
+    "serverBytes": 2909051,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8093/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/main.dart.js",
+        "status": 200,
+        "bytes": 572093,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "All page content should be contained by landmarks"
+      },
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "Scrollable region must have keyboard access"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 21624996,
+      "Nodes": 196,
+      "LayoutCount": 13,
+      "RecalcStyleCount": 17
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter_semantics-4g-3.png"
+  },
+  {
+    "variant": "flutter_semantics",
+    "profile": "3g",
+    "run": 1,
+    "ready": true,
+    "error": null,
+    "wallMs": 5555,
+    "title": "Vehicle inspection report",
+    "nav": {
+      "domContentLoaded": 456.40000009536743,
+      "loadEventEnd": 932,
+      "transferSize": 952,
+      "encodedBodySize": 652
+    },
+    "resourceCount": 8,
+    "transferSize": 67774,
+    "encodedBodySize": 7814390,
+    "decodedBodySize": 7820295,
+    "byType": {
+      "script": {
+        "count": 3,
+        "transferSize": 4010,
+        "decodedBodySize": 2069397
+      },
+      "fetch": {
+        "count": 5,
+        "transferSize": 63764,
+        "decodedBodySize": 5750898
+      }
+    },
+    "perf": {
+      "fcp": 4956,
+      "lcp": 0,
+      "cls": 0
+    },
+    "innerTextLength": 1216,
+    "textContentLength": 2100,
+    "canvasCount": 0,
+    "shadow": {
+      "host": true,
+      "canvases": 1,
+      "semantics": 0,
+      "text": 733
+    },
+    "semanticsNodes": 16,
+    "headings": 0,
+    "paragraphs": 0,
+    "tableRows": 0,
+    "meta": [
+      {
+        "name": "description",
+        "property": null,
+        "content": "A new Flutter project."
+      },
+      {
+        "name": "mobile-web-app-capable",
+        "property": null,
+        "content": "yes"
+      },
+      {
+        "name": "apple-mobile-web-app-status-bar-style",
+        "property": null,
+        "content": "black"
+      },
+      {
+        "name": "apple-mobile-web-app-title",
+        "property": null,
+        "content": "public_report_spike"
+      },
+      {
+        "name": "generator",
+        "property": null,
+        "content": "Flutter"
+      },
+      {
+        "name": "viewport",
+        "property": null,
+        "content": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
+    ],
+    "url": "http://127.0.0.1:8093/",
+    "serverBytes": 2909051,
+    "responseCount": 10,
+    "responses": [
+      {
+        "url": "http://127.0.0.1:8093/",
+        "status": 200,
+        "bytes": 652,
+        "type": "text/html; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/flutter_bootstrap.js",
+        "status": 200,
+        "bytes": 3710,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.wasm",
+        "status": 200,
+        "bytes": 2165792,
+        "type": "application/wasm"
+      },
+      {
+        "url": "http://127.0.0.1:8093/canvaskit/chromium/canvaskit.js",
+        "status": 200,
+        "bytes": 27591,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/main.dart.js",
+        "status": 200,
+        "bytes": 572093,
+        "type": "text/javascript; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/FontManifest.json",
+        "status": 200,
+        "bytes": 129,
+        "type": "application/json; charset=utf-8"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/fonts/MaterialIcons-Regular.otf",
+        "status": 200,
+        "bytes": 7736,
+        "type": "font/otf"
+      },
+      {
+        "url": "http://127.0.0.1:8093/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf",
+        "status": 200,
+        "bytes": 1472,
+        "type": "font/ttf"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/roboto/v32/KFOmCnqEu92Fr1Me4GZLCzYlKw.woff2",
+        "status": 200,
+        "bytes": 63464,
+        "type": "font/woff2"
+      },
+      {
+        "url": "https://fonts.gstatic.com/s/notosansarabic/v28/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvvnCBFQLaig.woff2",
+        "status": 200,
+        "bytes": 66412,
+        "type": "font/woff2"
+      }
+    ],
+    "axeViolations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "<html> element must have a lang attribute"
+      },
+      {
+        "id": "meta-viewport",
+        "impact": "critical",
+        "nodes": 1,
+        "help": "Zooming and scaling must not be disabled"
+      },
+      {
+        "id": "region",
+        "impact": "moderate",
+        "nodes": 1,
+        "help": "All page content should be contained by landmarks"
+      },
+      {
+        "id": "scrollable-region-focusable",
+        "impact": "serious",
+        "nodes": 1,
+        "help": "Scrollable region must have keyboard access"
+      }
+    ],
+    "cdpMetrics": {
+      "JSHeapUsedSize": 22640536,
+      "Nodes": 209,
+      "LayoutCount": 12,
+      "RecalcStyleCount": 15
+    },
+    "screenshot": "E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\results\\flutter_semantics-3g-1.png"
+  }
+]

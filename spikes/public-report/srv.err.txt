@@ -1,0 +1,12 @@
+static server error / Error: ENOENT: no such file or directory, open 'E:\syed_moiz_ali\bitlogix\truereport\spikes\public-report\ssr\index.html'
+    at Object.openSync (node:fs:560:18)
+    at Object.readFileSync (node:fs:444:35)
+    at Server.<anonymous> (file:///E:/syed_moiz_ali/bitlogix/truereport/spikes/public-report/static-server.mjs:48:22)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1186:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:123:17) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'E:\\syed_moiz_ali\\bitlogix\\truereport\\spikes\\public-report\\ssr\\index.html'
+}

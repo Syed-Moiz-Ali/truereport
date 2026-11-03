@@ -1,0 +1,8 @@
+TrueReport Phase 3.5 environment backup
+Saved: 2026-11-03T16:19:46.3385763+05:30
+USER JAVA_HOME: C:\Program Files\Java\jdk-17
+USER PATH: C:\Users\sanja\.local\bin;C:\Users\sanja\AppData\Local\Programs\OpenAI\Codex\bin;C:\Users\sanja\.cargo\bin;C:\Users\sanja\AppData\Local\agy\bin;C:\Users\sanja\AppData\Local\Microsoft\WindowsApps;C:\Users\sanja\Downloads\flutter_windows_3.35.7-stable\flutter\bin;C:\Users\sanja\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\sanja\AppData\Roaming\npm;C:\Program Files\nodejs;C:\Users\sanja\AppData\Local\Pub\Cache\bin;C:\Users\sanja\Downloads\jdk-25_windows-x64_bin\jdk-25.0.1\bin;C:\Users\sanja\Downloads\jdk-25_windows-x64_bin\jdk-25.0.1\bin;C:\Program Files\Java\jdk-25.0.1\bin;C:\Users\sanja\AppData\Local\Python\bin;C:\Users\sanja\.lmstudio\bin;C:\Users\sanja\AppData\Local\Microsoft\WinGet\Links;C:\Program Files\JetBrains\IntelliJ IDEA 2026.2.0.1\bin;C:\Users\sanja\AppData\Local\Programs\Microsoft VS Code\bin\copilot-shim;C:\Users\sanja\AppData\Local\Programs\Ollama
+OLD FLUTTER PATH: C:\Users\sanja\Downloads\flutter_windows_3.35.7-stable\flutter
+OLD FLUTTER SIZE: Files=17604; Bytes=3126821786
+TEMP JDK ARCHIVE: C:\Users\sanja\AppData\Local\Temp\opencode\jdk25.zip
+TEMP FLUTTER ARCHIVE: C:\Users\sanja\AppData\Local\Temp\opencode\flutter_windows_3.47.9-stable.zip

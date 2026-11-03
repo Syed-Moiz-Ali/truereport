@@ -1,0 +1,81 @@
+package com.truereport.identity.api;
+
+import com.truereport.identity.AuthService;
+import com.truereport.shared.security.CurrentUser;
+import com.truereport.shared.security.CurrentUserService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/auth")
+public class AuthController {
+
+    private final AuthService authService;
+    private final CurrentUserService currentUserService;
+
+    public AuthController(AuthService authService, CurrentUserService currentUserService) {
+        this.authService = authService;
+        this.currentUserService = currentUserService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request.email(), request.password()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.refresh(request.refreshToken()));
+    }
+
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<AuthResponse> verifyTwoFactor(@Valid @RequestBody TwoFactorVerifyRequest request) {
+        return ResponseEntity.ok(authService.verifyTwoFactor(request.challengeToken(), request.code()));
+    }
+
+    @PostMapping("/2fa/enroll")
+    @PreAuthorize("hasAnyRole('WORKSHOP_ADMIN','PLATFORM_ADMIN')")
+    public ResponseEntity<TotpEnrollmentResponse> enroll(JwtAuthenticationToken authentication) {
+        CurrentUser user = currentUserService.require(authentication);
+        return ResponseEntity.ok(authService.enrollTotp(user.userId()));
+    }
+
+    @PostMapping("/2fa/confirm")
+    @PreAuthorize("hasAnyRole('WORKSHOP_ADMIN','PLATFORM_ADMIN')")
+    public ResponseEntity<Void> confirm(JwtAuthenticationToken authentication,
+                                        @Valid @RequestBody TwoFactorConfirmRequest request) {
+        CurrentUser user = currentUserService.require(authentication);
+        authService.confirmTotp(user.userId(), request.code());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(JwtAuthenticationToken authentication) {
+        CurrentUser user = currentUserService.require(authentication);
+        authService.logout(user.userId(), user.sessionId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<Void> logoutAll(JwtAuthenticationToken authentication) {
+        CurrentUser user = currentUserService.require(authentication);
+        authService.logoutAll(user.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MeResponse> me(JwtAuthenticationToken authentication) {
+        CurrentUser user = currentUserService.require(authentication);
+        return ResponseEntity.ok(new MeResponse(
+                authService.me(user.userId()),
+                authService.memberships(user.userId())
+        ));
+    }
+}

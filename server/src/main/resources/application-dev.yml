@@ -1,0 +1,6 @@
+truereport:
+  dev:
+    seed-enabled: true
+logging:
+  level:
+    com.truereport: INFO

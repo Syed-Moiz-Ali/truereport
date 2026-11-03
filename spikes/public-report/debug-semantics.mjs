@@ -1,0 +1,12 @@
+import { startServer } from './static-server.mjs';
+import { chromium } from 'playwright';
+const s=await startServer('./flutter/build/web-semantics',8094);
+const b=await chromium.launch(); const p=await b.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+p.on('console',m=>console.log('CONSOLE',m.type(),m.text()));
+p.on('pageerror',e=>console.log('PAGEERROR',e.message));
+await p.goto('http://127.0.0.1:8094/',{waitUntil:'load',timeout:60000});
+await p.waitForTimeout(8000);
+console.log('ready',await p.evaluate(()=>document.body?.getAttribute('data-report-ready')));
+console.log('bodytext',(await p.evaluate(()=>document.body?.innerText||'')).slice(0,200));
+await p.screenshot({path:'results/semantics-debug.png'});
+await b.close(); s.close();
