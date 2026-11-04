@@ -50,3 +50,9 @@ The spike did not test real WhatsApp in-app browsers, real devices or screen rea
 
 Real in-app browser behavior, real screen readers, print quality, invalid/revoked states, the actual Java server, or a 20-page report equivalent.
 
+
+---
+
+## Phase 6 implementation note (4 November 2026)
+
+Implemented with Thymeleaf 3.1.5.RELEASE (Apache-2.0) and local CSS/fonts. Public HTML is rendered at `/r/{token}` from the immutable `ReportSnapshot`; no JavaScript, no external requests. See `docs/phase-6/00-decisions.md`.

@@ -168,6 +168,58 @@ class _FakeAdminApi implements AdminApi {
   ];
 
   @override
+  Future<ReportAdmin> report(String jobId) async => const ReportAdmin(
+    reportId: 'report-1',
+    jobId: 'job-1',
+    reportNumber: 'TR-0001',
+    version: 1,
+    generationStatus: 'READY',
+    generationError: null,
+    attempts: 1,
+    reportReady: true,
+    pdfReady: true,
+    pdfDownloadEnabled: false,
+    linkState: 'PENDING_CONSENT',
+    consentState: 'GRANTED',
+    publicUrl: null,
+    finalizedAt: '2026-11-04T10:30:00',
+    snapshotHash: 'abc123',
+  );
+
+  @override
+  Future<ReportAdmin> retryReport(String jobId) => report(jobId);
+
+  @override
+  Future<ReportLinkResult> activateReportLink(String jobId) async =>
+      const ReportLinkResult(
+        state: 'ACTIVE',
+        publicUrl: 'http://localhost:8080/r/test-token',
+        pdfDownloadEnabled: false,
+      );
+
+  @override
+  Future<ReportLinkResult> revokeReportLink(
+    String jobId,
+    String reasonCode,
+    String? note,
+  ) async => const ReportLinkResult(
+    state: 'REVOKED',
+    publicUrl: null,
+    pdfDownloadEnabled: false,
+  );
+
+  @override
+  Future<ReportLinkResult> setPdfDownload(String jobId, bool enabled) async =>
+      ReportLinkResult(
+        state: 'ACTIVE',
+        publicUrl: null,
+        pdfDownloadEnabled: enabled,
+      );
+
+  @override
+  Future<List<int>> reportPdf(String jobId) async => const [1, 2, 3];
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 

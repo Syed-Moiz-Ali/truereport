@@ -4,6 +4,8 @@
 **Date:** 3 November 2026  
 **Baseline:** `docs/phase-4/risk-register-update.md` and `docs/phase-1/14-risk-register-update.md`
 
+> **Phase 5B update (4 November 2026):** R71, R74, R81, R83 and R85 are closed; R84 and R88 are mitigated. See `docs/phase-5b/risk-register-update.md` for the current register.
+
 ---
 
 ## 1. New and updated risks

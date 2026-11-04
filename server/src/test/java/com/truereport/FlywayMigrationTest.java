@@ -18,7 +18,7 @@ class FlywayMigrationTest {
 
         Flyway baseline = Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/migration")
+                .locations("classpath:db/migration", "classpath:db/migration-h2")
                 .target("1")
                 .load();
         baseline.migrate();
@@ -29,11 +29,11 @@ class FlywayMigrationTest {
 
         Flyway latest = Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/migration")
+                .locations("classpath:db/migration", "classpath:db/migration-h2")
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("9");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("13");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "master_inspection_items")).isTrue();

@@ -100,3 +100,8 @@ final inspectionReviewProvider = FutureProvider.autoDispose
     .family<ReviewResult, String>((ref, id) {
       return ref.watch(technicianApiProvider).review(id);
     });
+
+final technicianReportProvider = FutureProvider.autoDispose
+    .family<TechnicianReportStatus, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).reportStatus(jobId);
+    });

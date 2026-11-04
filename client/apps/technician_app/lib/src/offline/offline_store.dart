@@ -348,7 +348,7 @@ class OfflineStore {
     await _ensure();
     final rows = await db.customSelect(
       'SELECT COUNT(*) AS total FROM sync_operations '
-      "WHERE state IN ('PENDING', 'FAILED', 'CONFLICT')",
+      "WHERE state IN ('PENDING', 'FAILED', 'SYNCING', 'CONFLICT')",
     ).get();
     return rows.first.data['total'] as int;
   }

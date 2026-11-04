@@ -50,3 +50,9 @@ Environment caveat: Windows, Java 17, Node Playwright; not the target Linux/Java
 
 Linux/Java 25 behavior, memory at concurrency, 30-page variant, native Arabic sign-off, font licences, PDF/A or tagged PDF.
 
+
+---
+
+## Phase 6 implementation note (4 November 2026)
+
+Implemented with Chromium supplied by the Playwright Java 1.64.0 image (Chrome for Testing 156.0.8078.4) and a dedicated print template. Final server image is ~1.88 GB; Chromium memory under concurrency is not yet measured. See `docs/phase-6/00-decisions.md`.

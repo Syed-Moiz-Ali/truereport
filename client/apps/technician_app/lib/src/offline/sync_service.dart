@@ -31,6 +31,7 @@ class SyncService {
         conflicts += 1;
         continue;
       }
+      await _store.setOperationState(operation.id, 'SYNCING');
       try {
         await _process(operation);
         synced += 1;

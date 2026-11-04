@@ -215,6 +215,9 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
           );
       await ref.read(syncServiceProvider).syncAll();
       ref.invalidate(pendingSyncCountProvider);
+      ref.invalidate(pendingOperationsProvider);
+      ref.invalidate(inspectionChecklistProvider(widget.jobId));
+      ref.invalidate(inspectionReviewProvider(widget.jobId));
       await _loadPhotos();
       if (mounted) {
         ScaffoldMessenger.of(context)

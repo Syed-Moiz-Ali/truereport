@@ -1567,6 +1567,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photos'**
   String get attachments;
+
+  /// No description provided for @report.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get report;
+
+  /// No description provided for @reportStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Report status'**
+  String get reportStatus;
+
+  /// No description provided for @generating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating'**
+  String get generating;
+
+  /// No description provided for @reportReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get reportReady;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get reportFailed;
+
+  /// No description provided for @retryReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry report'**
+  String get retryReport;
+
+  /// No description provided for @createLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Create public link'**
+  String get createLink;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLink;
+
+  /// No description provided for @deactivateLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate link'**
+  String get deactivateLink;
+
+  /// No description provided for @linkActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get linkActive;
+
+  /// No description provided for @linkRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked'**
+  String get linkRevoked;
+
+  /// No description provided for @linkPendingConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending consent'**
+  String get linkPendingConsent;
+
+  /// No description provided for @publicLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Public link'**
+  String get publicLink;
+
+  /// No description provided for @pdfDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF download'**
+  String get pdfDownload;
+
+  /// No description provided for @downloadPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Download PDF'**
+  String get downloadPdf;
+
+  /// No description provided for @consentNotGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Public-link consent is not recorded.'**
+  String get consentNotGranted;
+
+  /// No description provided for @reportUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Report is not ready.'**
+  String get reportUnavailable;
+
+  /// No description provided for @linkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get linkCopied;
+
+  /// No description provided for @deactivateReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for deactivation'**
+  String get deactivateReason;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// No description provided for @reportVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Report version'**
+  String get reportVersionLabel;
+
+  /// No description provided for @snapshotHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Snapshot hash'**
+  String get snapshotHash;
+
+  /// No description provided for @viewReport.
+  ///
+  /// In en, this message translates to:
+  /// **'View report'**
+  String get viewReport;
+
+  /// No description provided for @pdfBytesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF saved'**
+  String get pdfBytesSaved;
+
+  /// No description provided for @finalized.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalized'**
+  String get finalized;
+
+  /// No description provided for @coverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage'**
+  String get coverage;
+
+  /// No description provided for @vehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get vehicle;
+
+  /// No description provided for @keyFindings.
+  ///
+  /// In en, this message translates to:
+  /// **'Key findings'**
+  String get keyFindings;
+
+  /// No description provided for @findings.
+  ///
+  /// In en, this message translates to:
+  /// **'Findings'**
+  String get findings;
 }
 
 class _AppLocalizationsDelegate

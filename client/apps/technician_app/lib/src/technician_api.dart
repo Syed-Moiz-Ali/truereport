@@ -99,6 +99,8 @@ abstract class TechnicianApi {
   Future<List<InspectionEvidence>> evidence(String jobId, String itemId);
 
   Future<List<int>> guideImage(String jobId, String itemId);
+
+  Future<TechnicianReportStatus> reportStatus(String jobId);
 }
 
 class HttpTechnicianApi implements TechnicianApi {
@@ -364,5 +366,11 @@ class HttpTechnicianApi implements TechnicianApi {
   @override
   Future<List<int>> guideImage(String jobId, String itemId) {
     return _api.getBytes(_endpoints.technicianGuideImage(jobId, itemId));
+  }
+
+  @override
+  Future<TechnicianReportStatus> reportStatus(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.technicianReport(jobId));
+    return TechnicianReportStatus.fromJson(data as Map<String, dynamic>);
   }
 }

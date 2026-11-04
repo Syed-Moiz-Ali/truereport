@@ -71,6 +71,18 @@ class ApiEndpoints {
   String cancelWorkshopJob(String id) => '$_root/workshop/jobs/$id/cancel';
   String workshopJobAssignments(String id) =>
       '$_root/workshop/jobs/$id/assignments';
+  String workshopReport(String jobId) => '$_root/workshop/jobs/$jobId/report';
+  String workshopReportRetry(String jobId) =>
+      '$_root/workshop/jobs/$jobId/report/retry';
+  String workshopReportLink(String jobId) =>
+      '$_root/workshop/jobs/$jobId/report/link';
+  String workshopReportLinkRevoke(String jobId) =>
+      '$_root/workshop/jobs/$jobId/report/link/revoke';
+  String workshopReportPdfSetting(String jobId) =>
+      '$_root/workshop/jobs/$jobId/report/pdf-download';
+  String workshopReportPdf(String jobId) =>
+      '$_root/workshop/jobs/$jobId/report/pdf';
+  String technicianReport(String jobId) => '$_root/technician/jobs/$jobId/report';
   String get technicianJobs => '$_root/technician/jobs';
   String technicianJob(String id) => '$_root/technician/jobs/$id';
   String get technicianTemplateVersions => '$_root/technician/templates/versions';

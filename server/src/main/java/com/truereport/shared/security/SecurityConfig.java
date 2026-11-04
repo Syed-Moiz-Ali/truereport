@@ -85,7 +85,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/refresh",
                                 "/api/v1/auth/2fa/verify",
                                 "/api/v1/auth/invitations/accept",
-                                "/api/v1/auth/password/**").permitAll()
+                                "/api/v1/auth/password/**", "/api/v1/delivery/webhooks/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/r/**").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")

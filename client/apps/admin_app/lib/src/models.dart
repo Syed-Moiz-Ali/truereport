@@ -810,3 +810,79 @@ class PublishedItem {
     version: ItemVersion.fromJson(json['version'] as Map<String, dynamic>),
   );
 }
+
+class ReportAdmin {
+  const ReportAdmin({
+    required this.reportId,
+    required this.jobId,
+    required this.reportNumber,
+    required this.version,
+    required this.generationStatus,
+    required this.generationError,
+    required this.attempts,
+    required this.reportReady,
+    required this.pdfReady,
+    required this.pdfDownloadEnabled,
+    required this.linkState,
+    required this.consentState,
+    required this.publicUrl,
+    required this.finalizedAt,
+    required this.snapshotHash,
+    this.content,
+  });
+
+  final String reportId;
+  final String jobId;
+  final String reportNumber;
+  final int version;
+  final String generationStatus;
+  final String? generationError;
+  final int attempts;
+  final bool reportReady;
+  final bool pdfReady;
+  final bool pdfDownloadEnabled;
+  final String linkState;
+  final String consentState;
+  final String? publicUrl;
+  final String finalizedAt;
+  final String snapshotHash;
+  final Map<String, dynamic>? content;
+
+  factory ReportAdmin.fromJson(Map<String, dynamic> json) => ReportAdmin(
+    reportId: json['reportId'] as String? ?? '',
+    jobId: json['jobId'] as String? ?? '',
+    reportNumber: json['reportNumber'] as String? ?? '',
+    version: json['version'] as int? ?? 0,
+    generationStatus: json['generationStatus'] as String? ?? '',
+    generationError: json['generationError'] as String?,
+    attempts: json['attempts'] as int? ?? 0,
+    reportReady: json['reportReady'] as bool? ?? false,
+    pdfReady: json['pdfReady'] as bool? ?? false,
+    pdfDownloadEnabled: json['pdfDownloadEnabled'] as bool? ?? false,
+    linkState: json['linkState'] as String? ?? 'PENDING_CONSENT',
+    consentState: json['consentState'] as String? ?? '',
+    publicUrl: json['publicUrl'] as String?,
+    finalizedAt: json['finalizedAt'] as String? ?? '',
+    snapshotHash: json['snapshotHash'] as String? ?? '',
+    content: json['content'] as Map<String, dynamic>?,
+  );
+}
+
+class ReportLinkResult {
+  const ReportLinkResult({
+    required this.state,
+    required this.publicUrl,
+    required this.pdfDownloadEnabled,
+  });
+
+  final String state;
+  final String? publicUrl;
+  final bool pdfDownloadEnabled;
+
+  factory ReportLinkResult.fromJson(Map<String, dynamic> json) =>
+      ReportLinkResult(
+        state: json['state'] as String? ?? '',
+        publicUrl: json['publicUrl'] as String?,
+        pdfDownloadEnabled: json['pdfDownloadEnabled'] as bool? ?? false,
+      );
+}

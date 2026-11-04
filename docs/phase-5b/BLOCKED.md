@@ -1,11 +1,13 @@
-# Phase 5B Status
+# Phase 5B Step 0 Status - RESOLVED
 
-**Status:** BLOCKED at Step 0 — hard Docker/MySQL gate.
+**Status:** PASSED (historical filename retained).
 
-**Date:** 3 November 2026
+**Original block:** Docker was not installed, so the hard Step 0 gate stopped Phase 5B before implementation.
 
-`docker` was not found on this machine (`DOCKER_NOT_INSTALLED`). No Docker Compose, MySQL 8.4 migration, V6/V8 trigger, direct-SQL immutability or finalization-lock test was run.
+**Resolution:** Docker Desktop 4.98.0 was installed per-user, the engine is running, Compose started MySQL 8.4.13 / Mailpit / server, V1-V9 applied, and MySQL trigger/concurrency/evidence checks passed.
 
-Per the Phase 5B instructions, work stopped before Step 1. No Phase 5B implementation, decisions, migrations or UI changes were made.
+- Exact installation and command output: `docker-install-log.md`.
+- Current test results: `test-report.md`.
+- Remaining risks: `risk-register-update.md`.
 
-Open risks: R71, R74, R83. Restart Phase 5B only after Docker is installed and running.
+Phase 5B implementation proceeded after the gate passed. See `README.md` and `00-decisions.md`.

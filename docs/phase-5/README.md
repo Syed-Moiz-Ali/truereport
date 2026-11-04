@@ -1,6 +1,6 @@
 # Phase 5A — Technician Online Inspection and Finalization
 
-**Status:** Delivered for review. Phase 5B (offline, photo capture/upload, evidence) has not started.
+**Status:** Delivered for review. Phase 5B (offline, photo capture/upload, evidence) is implemented and documented in `docs/phase-5b/`.
 
 ## Scope delivered
 

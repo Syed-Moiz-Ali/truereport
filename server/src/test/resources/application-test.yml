@@ -12,7 +12,7 @@ spring:
         dialect: org.hibernate.dialect.H2Dialect
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/migration-h2
 
 truereport:
   jwt:
@@ -31,6 +31,21 @@ truereport:
   dev:
     seed-enabled: false
     seed-password:
+'  report:
+    worker-enabled: false
+    public-base-url: http://localhost:8080
+  delivery:
+    worker-enabled: false
+    fake-enabled: true
+    email-provider: fake
+    from-address: reports@test.local
+    webhook-secret: test-webhook-secret
+    allowed-phone-recipients: +971500009900
+    allowed-email-recipients: private.9900@example.test
+    max-attempts: 3
+    retry-base-seconds: 1
+    rate-limit-per-hour: 5
+    email-max-attachment-bytes: 10485760'
 
 logging:
   level:

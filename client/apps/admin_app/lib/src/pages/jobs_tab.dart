@@ -1,6 +1,7 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:admin_app/src/pages/job_form_page.dart';
+import 'package:admin_app/src/pages/report_page.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -218,6 +219,20 @@ class _JobsTabState extends ConsumerState<JobsTab> {
                 title: l10n.scheduledAt,
                 subtitle: job.scheduledAt,
               ),
+            if (job.status == 'FINALIZED') ...[
+              SizedBox(height: context.spacing.md),
+              AppButton(
+                label: l10n.report,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ReportPage(jobId: job.id),
+                  ),
+                ),
+                icon: Icons.description_outlined,
+                variant: AppButtonVariant.tonal,
+                expand: true,
+              ),
+            ],
             if (job.status != 'FINALIZED' && job.status != 'CANCELLED') ...[
               SizedBox(height: context.spacing.md),
               Wrap(

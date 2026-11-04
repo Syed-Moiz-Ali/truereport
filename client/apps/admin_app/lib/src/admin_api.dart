@@ -173,6 +173,22 @@ abstract class AdminApi {
 
   Future<TemplateDetail> publishTemplate(String id);
 
+  Future<ReportAdmin> report(String jobId);
+
+  Future<ReportAdmin> retryReport(String jobId);
+
+  Future<ReportLinkResult> activateReportLink(String jobId);
+
+  Future<ReportLinkResult> revokeReportLink(
+    String jobId,
+    String reasonCode,
+    String? note,
+  );
+
+  Future<ReportLinkResult> setPdfDownload(String jobId, bool enabled);
+
+  Future<List<int>> reportPdf(String jobId);
+
   Future<List<TemplateVersionOption>> templateVersionOptions();
 
   Future<TemplateVersionView> templateVersion(String id, String versionId);
@@ -835,6 +851,56 @@ class HttpAdminApi implements AdminApi {
   Future<TemplateDetail> publishTemplate(String id) async {
     final data = await _api.postDynamic(_endpoints.publishWorkshopTemplate(id));
     return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportAdmin> report(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.workshopReport(jobId));
+    return ReportAdmin.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportAdmin> retryReport(String jobId) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopReportRetry(jobId),
+    );
+    return ReportAdmin.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportLinkResult> activateReportLink(String jobId) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopReportLink(jobId),
+      body: const <String, dynamic>{},
+    );
+    return ReportLinkResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportLinkResult> revokeReportLink(
+    String jobId,
+    String reasonCode,
+    String? note,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopReportLinkRevoke(jobId),
+      body: {'reasonCode': reasonCode, 'note': note},
+    );
+    return ReportLinkResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportLinkResult> setPdfDownload(String jobId, bool enabled) async {
+    final data = await _api.putDynamic(
+      _endpoints.workshopReportPdfSetting(jobId),
+      body: {'enabled': enabled},
+    );
+    return ReportLinkResult.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<int>> reportPdf(String jobId) {
+    return _api.getBytes(_endpoints.workshopReportPdf(jobId));
   }
 
   @override

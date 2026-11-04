@@ -21,7 +21,8 @@ class SyncOperation {
   final String? lastError;
   final DateTime createdAt;
 
-  bool get isPending => state == 'PENDING' || state == 'FAILED';
+  bool get isPending =>
+      state == 'PENDING' || state == 'FAILED' || state == 'SYNCING';
   bool get isConflict => state == 'CONFLICT';
 
   SyncOperation copyWith({

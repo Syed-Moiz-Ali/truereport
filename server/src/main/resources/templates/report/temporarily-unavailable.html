@@ -1,0 +1,19 @@
+<!doctype html>
+<html th:lang="${lang}" th:dir="${dir}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title th:text="${labels.title}">Vehicle inspection report</title>
+  <link rel="stylesheet" th:href="@{/r/assets/report.css}">
+</head>
+<body>
+<main class="container">
+  <section class="card unavailable">
+    <h1 th:text="${labels.temporaryTitle}">Temporarily unavailable</h1>
+    <p th:text="${labels.temporaryBody}">Please try again later.</p>
+  </section>
+</main>
+</body>
+</html>

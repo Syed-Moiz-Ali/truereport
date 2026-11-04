@@ -17,6 +17,8 @@ dependencies:
   flutter_animate: 4.5.2
   dio: 5.11.1
   image_picker: 1.2.4
+  path_provider: 2.1.5
+  web: 1.1.1
   api_client:
     path: ../../packages/api_client
   auth:

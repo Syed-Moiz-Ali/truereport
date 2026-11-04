@@ -38,3 +38,9 @@ If a correction policy is approved later, it must:
 ## What was not proven
 
 No correction process, support workflow or legal position exists. This ADR deliberately does nothing beyond fencing the feature.
+
+---
+
+## Phase 6 implementation note (4 November 2026)
+
+`reports` and `report_versions` are implemented with v1 only. No correction endpoint, UI or hidden edit path exists. Report-version rows are immutable in the service and by MySQL V11 triggers.

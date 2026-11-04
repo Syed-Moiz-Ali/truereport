@@ -750,4 +750,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attachments => 'Photos';
+
+  @override
+  String get report => 'Report';
+
+  @override
+  String get reportStatus => 'Report status';
+
+  @override
+  String get generating => 'Generating';
+
+  @override
+  String get reportReady => 'Ready';
+
+  @override
+  String get reportFailed => 'Failed';
+
+  @override
+  String get retryReport => 'Retry report';
+
+  @override
+  String get createLink => 'Create public link';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get deactivateLink => 'Deactivate link';
+
+  @override
+  String get linkActive => 'Active';
+
+  @override
+  String get linkRevoked => 'Revoked';
+
+  @override
+  String get linkPendingConsent => 'Pending consent';
+
+  @override
+  String get publicLink => 'Public link';
+
+  @override
+  String get pdfDownload => 'PDF download';
+
+  @override
+  String get downloadPdf => 'Download PDF';
+
+  @override
+  String get consentNotGranted => 'Public-link consent is not recorded.';
+
+  @override
+  String get reportUnavailable => 'Report is not ready.';
+
+  @override
+  String get linkCopied => 'Link copied';
+
+  @override
+  String get deactivateReason => 'Reason for deactivation';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get reportVersionLabel => 'Report version';
+
+  @override
+  String get snapshotHash => 'Snapshot hash';
+
+  @override
+  String get viewReport => 'View report';
+
+  @override
+  String get pdfBytesSaved => 'PDF saved';
+
+  @override
+  String get finalized => 'Finalized';
+
+  @override
+  String get coverage => 'Coverage';
+
+  @override
+  String get vehicle => 'Vehicle';
+
+  @override
+  String get keyFindings => 'Key findings';
+
+  @override
+  String get findings => 'Findings';
 }

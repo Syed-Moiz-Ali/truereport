@@ -748,4 +748,91 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attachments => 'الصور';
+
+  @override
+  String get report => 'التقرير';
+
+  @override
+  String get reportStatus => 'حالة التقرير';
+
+  @override
+  String get generating => 'جارٍ الإنشاء';
+
+  @override
+  String get reportReady => 'جاهز';
+
+  @override
+  String get reportFailed => 'فشل';
+
+  @override
+  String get retryReport => 'إعادة إنشاء التقرير';
+
+  @override
+  String get createLink => 'إنشاء رابط عام';
+
+  @override
+  String get copyLink => 'نسخ الرابط';
+
+  @override
+  String get deactivateLink => 'تعطيل الرابط';
+
+  @override
+  String get linkActive => 'نشط';
+
+  @override
+  String get linkRevoked => 'ملغى';
+
+  @override
+  String get linkPendingConsent => 'بانتظار الموافقة';
+
+  @override
+  String get publicLink => 'الرابط العام';
+
+  @override
+  String get pdfDownload => 'تنزيل PDF';
+
+  @override
+  String get downloadPdf => 'تنزيل PDF';
+
+  @override
+  String get consentNotGranted => 'لم تُسجل الموافقة على الرابط العام.';
+
+  @override
+  String get reportUnavailable => 'التقرير غير جاهز.';
+
+  @override
+  String get linkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get deactivateReason => 'سبب التعطيل';
+
+  @override
+  String get deactivate => 'تعطيل';
+
+  @override
+  String get reportVersionLabel => 'إصدار التقرير';
+
+  @override
+  String get snapshotHash => 'بصمة اللقطة';
+
+  @override
+  String get viewReport => 'عرض التقرير';
+
+  @override
+  String get pdfBytesSaved => 'تم حفظ PDF';
+
+  @override
+  String get finalized => 'معتمد';
+
+  @override
+  String get coverage => 'التغطية';
+
+  @override
+  String get vehicle => 'المركبة';
+
+  @override
+  String get keyFindings => 'أهم الملاحظات';
+
+  @override
+  String get findings => 'الملاحظات';
 }

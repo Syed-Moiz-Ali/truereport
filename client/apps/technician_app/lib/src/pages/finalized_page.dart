@@ -44,6 +44,20 @@ class FinalizedPage extends ConsumerWidget {
               tone: StatusTone.success,
               icon: Icons.lock_outline,
             ),
+            SizedBox(height: context.spacing.sm),
+            ref.watch(technicianReportProvider(jobId)).when(
+              loading: () => const LoadingSkeleton(lines: 1),
+              error: (error, _) => StatusChip(
+                label: l10n.reportUnavailable,
+                tone: StatusTone.warning,
+                icon: Icons.description_outlined,
+              ),
+              data: (report) => StatusChip(
+                label: '${l10n.report}: ${report.generationStatus}',
+                tone: report.ready ? StatusTone.success : StatusTone.warning,
+                icon: Icons.description_outlined,
+              ),
+            ),
             SizedBox(height: context.spacing.md),
             Text(
               '${value.job.vehicleMake} ${value.job.vehicleModel} · ${value.job.customerName}',

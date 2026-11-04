@@ -1,5 +1,7 @@
 # Phase 5A Test Report
 
+> **Phase 5B update (4 November 2026):** The Step 0 Docker/MySQL gate is now passed. Docker Desktop, Compose, MySQL 8.4.13, V1-V9, MySQL triggers and MySQL concurrency were verified. See `docs/phase-5b/test-report.md` for current results. The Docker-blocked section below is retained as Phase 5A history.
+
 **Project:** TrueReport  
 **Date:** 3 November 2026  
 **Environment:** Windows 11, Flutter 3.47.9 / Dart 3.13.7, Java 25.0.5 (Temurin 25.0.5+8), Maven 3.9.16. Docker is **not installed**.

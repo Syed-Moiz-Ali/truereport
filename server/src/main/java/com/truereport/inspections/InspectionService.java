@@ -15,9 +15,12 @@ import com.truereport.inspections.api.InspectionItemDto;
 import com.truereport.inspections.api.ReviewDto;
 import com.truereport.inspections.api.ReviewIssueDto;
 import com.truereport.inspections.api.VehicleUpdateRequest;
+import com.truereport.identity.UserRepository;
 import com.truereport.jobs.InspectionJob;
 import com.truereport.jobs.InspectionJobRepository;
 import com.truereport.jobs.WorkshopJobService;
+import com.truereport.jobs.InspectionFinalizedEvent;
+import com.truereport.tenancy.WorkshopRepository;
 import com.truereport.jobs.api.JobDto;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
@@ -66,6 +69,9 @@ public class InspectionService {
     private final EvidenceService evidenceService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final WorkshopRepository workshops;
+    private final UserRepository users;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     public InspectionService(InspectionJobRepository jobs,
                              InspectionItemSnapshotRepository snapshots,
@@ -78,7 +84,10 @@ public class InspectionService {
                              WorkshopTemplateService templates,
                              EvidenceService evidenceService,
                              AuditService auditService,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             WorkshopRepository workshops,
+                             UserRepository users,
+                             org.springframework.context.ApplicationEventPublisher events) {
         this.jobs = jobs;
         this.snapshots = snapshots;
         this.assessments = assessments;
@@ -91,6 +100,9 @@ public class InspectionService {
         this.evidenceService = evidenceService;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.workshops = workshops;
+        this.users = users;
+        this.events = events;
     }
 
     @Transactional
@@ -377,6 +389,16 @@ public class InspectionService {
         root.put("odometerValue", job.getOdometerValue());
         root.put("odometerUnit", job.getOdometerUnit());
         root.put("scope", job.getScope());
+        root.put("vehicleType", job.getVehicleType());
+        root.put("templateVersionNo", templates.pinnedVersion(
+                job.getWorkshopId(), job.getTemplateVersionId()).versionNo());
+        root.put("workshopName", workshops.findById(job.getWorkshopId())
+                .map(workshop -> workshop.getName()).orElse(""));
+        root.put("workshopBranch", workshops.findById(job.getWorkshopId())
+                .map(workshop -> workshop.getBranchName() == null ? "" : workshop.getBranchName()).orElse(""));
+        root.put("technicianName", job.getAssignedTechnicianId() == null ? ""
+                : users.findById(job.getAssignedTechnicianId())
+                        .map(user -> user.getDisplayName()).orElse(""));
         List<Map<String, Object>> itemList = new ArrayList<>();
         Map<UUID, Assessment> byItem = new LinkedHashMap<>();
         for (Assessment assessment : assessments.findByJobId(job.getId())) {

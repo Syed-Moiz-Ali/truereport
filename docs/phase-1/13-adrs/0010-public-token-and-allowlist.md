@@ -1,6 +1,6 @@
 # ADR-0010: Public token and allowlist boundary
 
-- **Status:** Proposed
+- **Status:** Accepted for V1 implementation
 - **Date:** 3 November 2026
 - **Owner:** Backend/security lead
 
@@ -42,3 +42,9 @@ Anyone with the link can read the report. The token must be unguessable and must
 ## What was not proven
 
 No public route or token implementation exists. Real messaging-app preview behavior is untested.
+
+---
+
+## Phase 6 implementation note (4 November 2026)
+
+Status updated to **Accepted for V1 implementation**. Tokens are 32 `SecureRandom` bytes, only SHA-256 hashes are stored, and invalid/revoked/consent-missing links share the neutral page. PDF download is off by default and can be enabled per report by the owning Workshop Admin.

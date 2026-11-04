@@ -27,6 +27,13 @@ void main() {
     final checklist = _checklist();
     await store.saveJobs([checklist.job]);
     await store.saveChecklist(checklist);
+    await store.queueEvidence(
+      jobId: 'job-1',
+      itemId: 'item-1',
+      bytes: Uint8List.fromList([9, 8, 7]),
+      mimeType: 'image/jpeg',
+      sha256: 'hash',
+    );
     await store.close();
 
     final reopened = OfflineStore(
@@ -38,6 +45,9 @@ void main() {
     expect(jobs!.first.reference, 'TR-001');
     expect(cachedChecklist, isNotNull);
     expect(cachedChecklist!.items.single.stableCode, 'BRAKE-PAD');
+    final photos = await reopened.evidenceForItem('job-1', 'item-1');
+    expect(photos, hasLength(1));
+    expect(photos.single.bytes, [9, 8, 7]);
     store = reopened;
   });
 

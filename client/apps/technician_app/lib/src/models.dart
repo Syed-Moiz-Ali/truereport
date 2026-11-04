@@ -467,3 +467,28 @@ class EvidenceInitResult {
 List<String> _strings(dynamic value) => (value as List<dynamic>? ?? <dynamic>[])
     .map((item) => item.toString())
     .toList(growable: false);
+
+class TechnicianReportStatus {
+  const TechnicianReportStatus({
+    required this.reportNumber,
+    required this.version,
+    required this.generationStatus,
+    required this.ready,
+    required this.finalizedAt,
+  });
+
+  final String reportNumber;
+  final int version;
+  final String generationStatus;
+  final bool ready;
+  final String finalizedAt;
+
+  factory TechnicianReportStatus.fromJson(Map<String, dynamic> json) =>
+      TechnicianReportStatus(
+        reportNumber: json['reportNumber'] as String? ?? '',
+        version: json['version'] as int? ?? 0,
+        generationStatus: json['generationStatus'] as String? ?? '',
+        ready: json['ready'] as bool? ?? false,
+        finalizedAt: json['finalizedAt'] as String? ?? '',
+      );
+}
