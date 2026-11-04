@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "loadMs": 624,
+  "title": "Vehicle inspection report",
+  "robots": "noindex, nofollow, noarchive",
+  "viewport": "width=device-width, initial-scale=1",
+  "dir": "rtl",
+  "externalRequests": [],
+  "focusedElement": "A",
+  "lightScreenshot": "./samples/public-report-light-phone.png",
+  "htmlBytes": 5824,
+  "axeViolations": []
+}

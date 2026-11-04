@@ -145,6 +145,15 @@ class ReportIT extends IntegrationTestBase {
                 .andReturn();
         byte[] pdfBytes = pdf.getResponse().getContentAsByteArray();
         assertThat(pdfBytes).hasSizeGreaterThan(1000);
+        mockMvc.perform(get("/api/v1/workshop/jobs/" + jobId + "/report/pdf")
+                        .header("Authorization", "Bearer " + adminB.accessToken()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/workshop/jobs/" + jobId + "/report/pdf")
+                        .header("Authorization", "Bearer " + technician.accessToken()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/workshop/jobs/" + jobId + "/report/pdf")
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isForbidden());
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {
             String pdfText = new PDFTextStripper().getText(document).replaceAll("\\s+", " ");
             assertThat(pdfText).contains("Vehicle inspection report", "Brake system check")

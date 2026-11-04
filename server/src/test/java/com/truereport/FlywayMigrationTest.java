@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("13");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("17");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "master_inspection_items")).isTrue();

@@ -47,7 +47,9 @@ public class WorkshopDeliveryController {
     @PostMapping("/{deliveryId}/retry")
     public DeliveryDto retry(JwtAuthenticationToken authentication,
                              @PathVariable UUID jobId,
-                             @PathVariable UUID deliveryId) {
-        return service.retry(currentUserService.require(authentication), jobId, deliveryId);
+                             @PathVariable UUID deliveryId,
+                             @RequestHeader("Idempotency-Key") String idempotencyKey) {
+        return service.retry(currentUserService.require(authentication), jobId, deliveryId,
+                idempotencyKey);
     }
 }

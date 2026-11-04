@@ -189,6 +189,21 @@ abstract class AdminApi {
 
   Future<List<int>> reportPdf(String jobId);
 
+  Future<List<ReportDelivery>> deliveries(String jobId);
+
+  Future<ReportDelivery> sendDelivery(
+    String jobId, {
+    required String channel,
+    required String language,
+    required String idempotencyKey,
+  });
+
+  Future<ReportDelivery> retryDelivery(
+    String jobId,
+    String deliveryId, {
+    required String idempotencyKey,
+  });
+
   Future<List<TemplateVersionOption>> templateVersionOptions();
 
   Future<TemplateVersionView> templateVersion(String id, String versionId);
@@ -861,9 +876,7 @@ class HttpAdminApi implements AdminApi {
 
   @override
   Future<ReportAdmin> retryReport(String jobId) async {
-    final data = await _api.postDynamic(
-      _endpoints.workshopReportRetry(jobId),
-    );
+    final data = await _api.postDynamic(_endpoints.workshopReportRetry(jobId));
     return ReportAdmin.fromJson(data as Map<String, dynamic>);
   }
 
@@ -901,6 +914,42 @@ class HttpAdminApi implements AdminApi {
   @override
   Future<List<int>> reportPdf(String jobId) {
     return _api.getBytes(_endpoints.workshopReportPdf(jobId));
+  }
+
+  @override
+  Future<List<ReportDelivery>> deliveries(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.workshopJobDeliveries(jobId));
+    return (data as List<dynamic>)
+        .map((item) => ReportDelivery.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<ReportDelivery> sendDelivery(
+    String jobId, {
+    required String channel,
+    required String language,
+    required String idempotencyKey,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobDeliveries(jobId),
+      headers: {'Idempotency-Key': idempotencyKey},
+      body: {'channel': channel, 'language': language},
+    );
+    return ReportDelivery.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<ReportDelivery> retryDelivery(
+    String jobId,
+    String deliveryId, {
+    required String idempotencyKey,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobDeliveryRetry(jobId, deliveryId),
+      headers: {'Idempotency-Key': idempotencyKey},
+    );
+    return ReportDelivery.fromJson(data as Map<String, dynamic>);
   }
 
   @override

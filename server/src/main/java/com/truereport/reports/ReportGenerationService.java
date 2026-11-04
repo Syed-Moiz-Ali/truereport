@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.inspections.EvidenceAsset;
 import com.truereport.inspections.EvidenceAssetRepository;
 import com.truereport.shared.storage.ObjectStorage;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class ReportGenerationService {
     private final ReportPdfService pdfService;
     private final ObjectStorage storage;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
 
     public ReportGenerationService(ReportGenerationJobRepository jobs,
                                    ReportVersionRepository versions,
@@ -47,7 +49,8 @@ public class ReportGenerationService {
                                    ReportArtifactRepository artifacts,
                                    ReportPdfService pdfService,
                                    ObjectStorage storage,
-                                   ObjectMapper objectMapper) {
+                                   ObjectMapper objectMapper,
+                                   MeterRegistry meterRegistry) {
         this.jobs = jobs;
         this.versions = versions;
         this.reports = reports;
@@ -57,6 +60,7 @@ public class ReportGenerationService {
         this.pdfService = pdfService;
         this.storage = storage;
         this.objectMapper = objectMapper;
+        this.meterRegistry = meterRegistry;
     }
 
     @Transactional
@@ -94,9 +98,11 @@ public class ReportGenerationService {
             }
             job.markReady();
             jobs.save(job);
+            meterRegistry.counter("truereport.report.generation", "status", "ready").increment();
         } catch (Exception exception) {
             job.markFailed(exception.getMessage());
             jobs.save(job);
+            meterRegistry.counter("truereport.report.generation", "status", "failed").increment();
         }
     }
 

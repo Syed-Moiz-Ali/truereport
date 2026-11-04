@@ -36,8 +36,7 @@ class _ReportFakeApi implements AdminApi {
       'keyFindings': [
         {
           'labelEn': 'Full vehicle safety check',
-          'note':
-              'Visible wear on the component with a long note that wraps on a narrow telephone screen.',
+          'note': 'Visible wear on the component with a long note that wraps on a narrow telephone screen.',
         },
       ],
       'categories': [
@@ -87,6 +86,37 @@ class _ReportFakeApi implements AdminApi {
 
   @override
   Future<List<int>> reportPdf(String jobId) async => const [1, 2, 3];
+
+  @override
+  Future<List<ReportDelivery>> deliveries(String jobId) async => const [
+    ReportDelivery(
+      id: 'delivery-1',
+      channel: 'EMAIL',
+      recipientMasked: 'p***@example.test',
+      language: 'en',
+      status: 'SENT',
+      attempts: 1,
+      maxAttempts: 3,
+      pdfAttached: true,
+      linkState: 'ACTIVE',
+      lastErrorCode: null,
+      lastErrorMessage: null,
+      nextAttemptAt: '',
+      createdAt: '2026-11-04T10:35:00',
+      updatedAt: '2026-11-04T10:35:00',
+      attemptHistory: [
+        ReportDeliveryAttempt(
+          attemptNo: 1,
+          provider: 'fake',
+          status: 'SENT',
+          errorCode: null,
+          errorMessage: null,
+          sentAt: '2026-11-04T10:35:00',
+          deliveredAt: '',
+        ),
+      ],
+    ),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();

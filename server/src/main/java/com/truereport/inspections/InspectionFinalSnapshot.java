@@ -1,7 +1,9 @@
 package com.truereport.inspections;
 
+import com.truereport.shared.security.PiiStringConverter;
 import com.truereport.shared.uuid.UuidV7;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
@@ -25,6 +27,7 @@ public class InspectionFinalSnapshot {
     @Column(name = "job_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID jobId;
 
+    @Convert(converter = PiiStringConverter.class)
     @Column(name = "snapshot_json", columnDefinition = "TEXT", nullable = false)
     private String snapshotJson;
 

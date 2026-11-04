@@ -837,4 +837,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get findings => 'Findings';
+
+  @override
+  String get delivery => 'Delivery';
+
+  @override
+  String get deliveryHistory => 'Delivery history';
+
+  @override
+  String get sendReport => 'Send report';
+
+  @override
+  String get sendReportTitle => 'Send report';
+
+  @override
+  String get deliveryChannel => 'Channel';
+
+  @override
+  String get deliveryLanguage => 'Language';
+
+  @override
+  String get deliveryStatus => 'Delivery status';
+
+  @override
+  String get deliveryRecipient => 'Recipient';
+
+  @override
+  String get deliveryAttempts => 'Attempts';
+
+  @override
+  String get deliveryNextAttempt => 'Next attempt';
+
+  @override
+  String get deliveryError => 'Last error';
+
+  @override
+  String get retryDelivery => 'Retry delivery';
+
+  @override
+  String get deliveryQueued => 'Delivery queued';
+
+  @override
+  String get deliverySent => 'Delivery sent';
+
+  @override
+  String get noDeliveries => 'No delivery attempts yet.';
+
+  @override
+  String get channelWhatsapp => 'WhatsApp';
+
+  @override
+  String get channelSms => 'SMS';
+
+  @override
+  String get channelEmail => 'Email';
+
+  @override
+  String get deliveryConsentHint =>
+      'Channel consent must be recorded before sending.';
+
+  @override
+  String get deliveryPdfAttached => 'PDF attached';
+
+  @override
+  String get deliveryLink => 'Link';
 }

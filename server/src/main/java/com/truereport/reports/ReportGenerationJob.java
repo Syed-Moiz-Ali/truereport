@@ -40,7 +40,7 @@ public class ReportGenerationJob extends BaseEntity {
 
     public ReportGenerationJob(UUID reportVersionId) {
         this.reportVersionId = reportVersionId;
-        this.availableAt = LocalDateTime.now(ZoneOffset.UTC);
+        this.availableAt = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(1);
     }
 
     @PrePersist
@@ -70,7 +70,7 @@ public class ReportGenerationJob extends BaseEntity {
     public void retry() {
         status = "QUEUED";
         lastError = null;
-        availableAt = LocalDateTime.now(ZoneOffset.UTC);
+        availableAt = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(1);
     }
 
     private String redact(String error) {

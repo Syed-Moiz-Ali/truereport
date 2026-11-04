@@ -77,6 +77,9 @@ public class DeliveryRequestEntity extends BaseEntity {
     @Column(name = "last_error_message", length = 500)
     private String lastErrorMessage;
 
+    @Column(name = "retry_key_hash", columnDefinition = "BINARY(32)")
+    private byte[] retryKeyHash;
+
     protected DeliveryRequestEntity() {
     }
 
@@ -97,7 +100,7 @@ public class DeliveryRequestEntity extends BaseEntity {
         this.consentType = consentType;
         this.requestedBy = requestedBy;
         this.maxAttempts = maxAttempts;
-        this.nextAttemptAt = now();
+        this.nextAttemptAt = now().minusSeconds(1);
     }
 
     @PrePersist
@@ -144,12 +147,18 @@ public class DeliveryRequestEntity extends BaseEntity {
         }
     }
 
-    public void retryNow() {
+    public void retryNow(byte[] retryKeyHash, int attemptBudget) {
         this.status = "QUEUED";
-        this.attempts = 0;
-        this.nextAttemptAt = now();
+        this.maxAttempts = attempts + Math.max(1, attemptBudget);
+        this.nextAttemptAt = now().minusSeconds(1);
         this.lastErrorCode = null;
         this.lastErrorMessage = null;
+        this.retryKeyHash = retryKeyHash;
+    }
+
+    public boolean isRetryKey(byte[] hash) {
+        return retryKeyHash != null && hash != null && java.security.MessageDigest.isEqual(
+                retryKeyHash, hash);
     }
 
     public void markFailed() {

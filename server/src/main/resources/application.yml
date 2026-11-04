@@ -45,7 +45,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: never
@@ -69,10 +69,36 @@ truereport:
     challenge-ttl: PT5M
   encryption:
     key: ${APP_ENCRYPTION_KEY}
+  auth:
+    admin-totp:
+      required: ${ADMIN_TOTP_REQUIRED:false}
   storage:
+    provider: ${STORAGE_PROVIDER:local}
     local-root: ${STORAGE_LOCAL_ROOT:./.truereport-storage}
+    s3:
+      endpoint: ${S3_ENDPOINT:}
+      region: ${S3_REGION:auto}
+      bucket: ${S3_BUCKET:}
+      access-key: ${S3_ACCESS_KEY:}
+      secret-key: ${S3_SECRET_KEY:}
+      path-style: ${S3_PATH_STYLE:true}
+      create-bucket: ${S3_CREATE_BUCKET:false}
+      sse: ${S3_SSE:}
+      kms-key-id: ${S3_KMS_KEY_ID:}
   invitations:
     ttl: PT72H
+  security:
+    cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
+  pii:
+    keys: ${APP_PII_KEYS:}
+    active-key-id: ${APP_PII_ACTIVE_KEY_ID:v1}
+  retention:
+    enabled: ${RETENTION_ENABLED:false}
+    revoked-link-days: ${RETENTION_REVOKED_LINK_DAYS:0}
+    delivery-days: ${RETENTION_DELIVERY_DAYS:0}
+    soft-deleted-evidence-days: ${RETENTION_SOFT_DELETED_EVIDENCE_DAYS:0}
+    delete-soft-deleted-evidence: ${RETENTION_DELETE_SOFT_DELETED_EVIDENCE:false}
+    cron: ${RETENTION_CRON:0 30 2 * * *}
   delivery:
     real-recipients-enabled: ${DELIVERY_REAL_RECIPIENTS_ENABLED:false}
     allowed-phone-recipients: ${DELIVERY_ALLOWED_PHONE_RECIPIENTS:}

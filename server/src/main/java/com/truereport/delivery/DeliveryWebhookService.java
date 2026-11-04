@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.audit.AuditService;
 import com.truereport.delivery.api.DeliveryWebhookRequest;
 import com.truereport.shared.error.ApiException;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,14 @@ public class DeliveryWebhookService {
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final String secret;
+    private final MeterRegistry meterRegistry;
 
     public DeliveryWebhookService(DeliveryWebhookEventRepository events,
                                   DeliveryAttemptRepository attempts,
                                   DeliveryRequestRepository requests,
                                   AuditService auditService,
                                   ObjectMapper objectMapper,
+                                  MeterRegistry meterRegistry,
                                   @Value("${truereport.delivery.webhook-secret:change-me-local-only}")
                                   String secret) {
         this.events = events;
@@ -37,12 +40,14 @@ public class DeliveryWebhookService {
         this.requests = requests;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.meterRegistry = meterRegistry;
         this.secret = secret;
     }
 
     @Transactional
     public void handle(String provider, String payload, String signature) {
         if (!validSignature(payload, signature)) {
+            meterRegistry.counter("truereport.delivery.webhook", "status", "invalid").increment();
             throw new ApiException(HttpStatus.UNAUTHORIZED, "WEBHOOK_SIGNATURE_INVALID",
                     "error.webhook.signature", "Webhook signature is invalid");
         }
@@ -74,6 +79,7 @@ public class DeliveryWebhookService {
         requests.save(request);
         events.save(new DeliveryWebhookEvent(provider, body.eventId(),
                 hash(payload), request.getId(), body.status()));
+        meterRegistry.counter("truereport.delivery.webhook", "status", body.status()).increment();
         auditService.record(request.getWorkshopId(), null, "PROVIDER",
                 "DELIVERY_WEBHOOK_" + body.status(), "DELIVERY", request.getId(),
                 body.errorCode(), null);

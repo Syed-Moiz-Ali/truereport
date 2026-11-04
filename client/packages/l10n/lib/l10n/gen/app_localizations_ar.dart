@@ -835,4 +835,67 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get findings => 'الملاحظات';
+
+  @override
+  String get delivery => 'التسليم';
+
+  @override
+  String get deliveryHistory => 'سجل التسليم';
+
+  @override
+  String get sendReport => 'إرسال التقرير';
+
+  @override
+  String get sendReportTitle => 'إرسال التقرير';
+
+  @override
+  String get deliveryChannel => 'القناة';
+
+  @override
+  String get deliveryLanguage => 'اللغة';
+
+  @override
+  String get deliveryStatus => 'حالة التسليم';
+
+  @override
+  String get deliveryRecipient => 'المستلم';
+
+  @override
+  String get deliveryAttempts => 'المحاولات';
+
+  @override
+  String get deliveryNextAttempt => 'المحاولة التالية';
+
+  @override
+  String get deliveryError => 'آخر خطأ';
+
+  @override
+  String get retryDelivery => 'إعادة محاولة التسليم';
+
+  @override
+  String get deliveryQueued => 'تمت جدولة التسليم';
+
+  @override
+  String get deliverySent => 'تم إرسال التسليم';
+
+  @override
+  String get noDeliveries => 'لا توجد محاولات تسليم بعد.';
+
+  @override
+  String get channelWhatsapp => 'واتساب';
+
+  @override
+  String get channelSms => 'رسالة نصية';
+
+  @override
+  String get channelEmail => 'البريد الإلكتروني';
+
+  @override
+  String get deliveryConsentHint => 'يجب تسجيل موافقة القناة قبل الإرسال.';
+
+  @override
+  String get deliveryPdfAttached => 'تم إرفاق PDF';
+
+  @override
+  String get deliveryLink => 'الرابط';
 }

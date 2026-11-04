@@ -1,6 +1,7 @@
 package com.truereport.shared.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -86,7 +88,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/2fa/verify",
                                 "/api/v1/auth/invitations/accept",
                                 "/api/v1/auth/password/**", "/api/v1/delivery/webhooks/**").permitAll()
-                        .requestMatchers("/actuator/health/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/actuator/health/**", "/actuator/prometheus", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/r/**").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/api/v1/workshop/**").hasRole("WORKSHOP_ADMIN")
@@ -99,9 +101,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${truereport.security.cors-allowed-origins:http://localhost:*,http://127.0.0.1:*}")
+            String allowedOrigins) {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim).filter(value -> !value.isBlank()).toList();
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept-Language", "X-Request-Id", "Idempotency-Key", "If-Match"));
         configuration.setExposedHeaders(List.of("X-Request-Id", "ETag", "Location"));

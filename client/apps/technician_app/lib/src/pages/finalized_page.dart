@@ -45,22 +45,99 @@ class FinalizedPage extends ConsumerWidget {
               icon: Icons.lock_outline,
             ),
             SizedBox(height: context.spacing.sm),
-            ref.watch(technicianReportProvider(jobId)).when(
-              loading: () => const LoadingSkeleton(lines: 1),
-              error: (error, _) => StatusChip(
-                label: l10n.reportUnavailable,
-                tone: StatusTone.warning,
-                icon: Icons.description_outlined,
-              ),
-              data: (report) => StatusChip(
-                label: '${l10n.report}: ${report.generationStatus}',
-                tone: report.ready ? StatusTone.success : StatusTone.warning,
-                icon: Icons.description_outlined,
-              ),
-            ),
+            ref
+                .watch(technicianReportProvider(jobId))
+                .when(
+                  loading: () => const LoadingSkeleton(lines: 1),
+                  error: (error, _) => StatusChip(
+                    label: l10n.reportUnavailable,
+                    tone: StatusTone.warning,
+                    icon: Icons.description_outlined,
+                  ),
+                  data: (report) => StatusChip(
+                    label: '${l10n.report}: ${report.generationStatus}',
+                    tone: report.ready
+                        ? StatusTone.success
+                        : StatusTone.warning,
+                    icon: Icons.description_outlined,
+                  ),
+                ),
+            SizedBox(height: context.spacing.md),
+            SectionHeader(title: l10n.deliveryHistory),
+            ref
+                .watch(technicianDeliveriesProvider(jobId))
+                .when(
+                  loading: () => const LoadingSkeleton(lines: 2),
+                  error: (error, _) =>
+                      Text(l10n.genericError, style: context.texts.bodySmall),
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return Text(
+                        l10n.noDeliveries,
+                        style: context.texts.bodySmall,
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final item in items)
+                          Padding(
+                            padding: EdgeInsetsDirectional.only(
+                              bottom: context.spacing.sm,
+                            ),
+                            child: Card(
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.all(
+                                  context.spacing.md,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: context.spacing.xs,
+                                      runSpacing: context.spacing.xs,
+                                      children: [
+                                        StatusChip(
+                                          label: item.channel,
+                                          tone: StatusTone.info,
+                                        ),
+                                        StatusChip(
+                                          label: item.status,
+                                          tone: switch (item.status) {
+                                            'SENT' ||
+                                            'DELIVERED' => StatusTone.success,
+                                            'FAILED' ||
+                                            'DEAD_LETTER' => StatusTone.danger,
+                                            _ => StatusTone.warning,
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: context.spacing.xs),
+                                    Text(
+                                      '${l10n.deliveryRecipient}: ${item.recipientMasked}',
+                                      style: context.texts.bodySmall,
+                                    ),
+                                    Text(
+                                      '${l10n.deliveryAttempts}: ${item.attempts} / ${item.maxAttempts}',
+                                      style: context.texts.bodySmall,
+                                    ),
+                                    if (item.pdfAttached)
+                                      Text(
+                                        l10n.deliveryPdfAttached,
+                                        style: context.texts.bodySmall,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
             SizedBox(height: context.spacing.md),
             Text(
-              '${value.job.vehicleMake} ${value.job.vehicleModel} · ${value.job.customerName}',
+              '${value.job.vehicleMake} ${value.job.vehicleModel} - ${value.job.customerName}',
               style: context.texts.bodyMedium,
             ),
             SizedBox(height: context.spacing.lg),

@@ -42,3 +42,9 @@ Phase 0 found MinIO OSS archived/no longer maintained and therefore unsuitable f
 ## What was not proven
 
 Actual pricing, contract terms, KMS configuration, residency guarantees, performance, OCI feature parity, or operational effort.
+
+---
+
+## Phase 8 implementation note (4 November 2026)
+
+Status is **superseded for production storage by ADR-0020**. The owner selected self-hosted filesystem storage in Phase 8.1; no cloud provider is selected. The S3-compatible adapter remains in code as an unused optional alternative. A production-grade S3-compatible adapter now exists (`S3ObjectStorage`, AWS SDK for Java v2 2.57.8, Apache-2.0) with private-bucket behavior, pre-signed URLs, checksum verification and optional SSE-S3/SSE-KMS. It was tested against local **SeaweedFS 4.52** (Apache-2.0), not against a selected cloud provider. Local disk storage is development-only. Phase 8.1 supersedes production storage with self-hosted `FileSystemObjectStorage`; production startup rejects local mode and the S3 adapter is unused.

@@ -44,3 +44,14 @@ SMS/email OTP are not the primary second factor. WebAuthn may be added later, no
 ## What was not proven
 
 No authenticator-app interoperability test was run in Phase 2; the implementation is verified with RFC test vectors and unit tests. Recovery is not production-ready.
+
+---
+
+## Phase 8 implementation note (4 November 2026)
+
+Recovery codes are now implemented: ten random one-time codes, SHA-256 hashes only, generated at TOTP confirmation and via authenticated regeneration. Five failed password/TOTP attempts lock the account for 15 minutes. A documented recovery/lockout process is in `docs/phase-8/ops-runbook.md`. External authenticator interoperability and real-device recovery testing remain **NOT RUN**.
+---
+
+## Phase 8.1 owner decision (4 November 2026)
+
+Admin TOTP is now configurable and **off by default** (`ADMIN_TOTP_REQUIRED=false`). Password-only admin login is a conscious owner risk acceptance; the TOTP/recovery code remains available when the flag is enabled. See ADR-0021.

@@ -43,3 +43,8 @@ spikes/**/target/
 spikes/**/.dart_tool/
 spikes/**/build/
 .fvm/
+
+# Production local secrets
+infra/prod.env
+infra/nginx/tls/
+infra/backups*

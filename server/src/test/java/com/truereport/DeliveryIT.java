@@ -11,6 +11,7 @@ import com.truereport.masterdata.api.CategoryRequest;
 import com.truereport.masterdata.api.ItemCreateRequest;
 import com.truereport.masterdata.api.ItemDetailDto;
 import com.truereport.reports.ReportGenerationService;
+import com.truereport.reports.ReportGenerationJobRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,9 @@ class DeliveryIT extends IntegrationTestBase {
     ReportGenerationService reportGeneration;
 
     @Autowired
+    ReportGenerationJobRepository reportGenerationJobs;
+
+    @Autowired
     DeliveryService deliveryService;
 
     @Autowired
@@ -58,13 +62,13 @@ class DeliveryIT extends IntegrationTestBase {
     @Autowired
     DeliveryWebhookEventRepository webhookEvents;
 
-'    @BeforeEach
+    @BeforeEach
     void resetFakeProvider() {
         fakeProvider.clear();
     }
 
     @Test
-    void consentedWhatsAppIsIdempotentAndWebhookDelivered()' throws Exception {
+    void consentedWhatsAppIsIdempotentAndWebhookDelivered() throws Exception {
         Login admin = login("admin.a@test.local");
         Login technician = login("tech.a@test.local");
         String jobId = finalizedJob(admin, technician, "Delivery WhatsApp");
@@ -74,10 +78,11 @@ class DeliveryIT extends IntegrationTestBase {
         deliveryService.poll();
         JsonNode sent = delivery(admin, jobId).get(0);
         assertThat(sent.get("status").asText()).isEqualTo("SENT");
+        assertThat(sent.get("linkState").asText()).isEqualTo("ACTIVE");
         assertThat(sent.get("recipientMasked").asText()).doesNotContain(PHONE);
         assertThat(fakeProvider.messages()).hasSize(1);
         String message = fakeProvider.lastMessage().body();
-        assertThat(message).contains("Vehicle inspection report", "/r/", "Delivery WhatsApp")
+        assertThat(message).contains("Your vehicle inspection report is ready.", "/r/")
                 .doesNotContain("Private Customer", "+971500009900", "JTDBR32E720990011",
                         "PRIVATE-9900");
         String providerMessageId = fakeProvider.lastProviderMessageId();
@@ -166,22 +171,64 @@ class DeliveryIT extends IntegrationTestBase {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("CONSENT_REQUIRED"));
 
-        consent(technician, jobId, "WHATSAPP");
-        send(admin, jobId, "WHATSAPP", "retry-1");
+        String retryJobId = finalizedJob(admin, technician, "Delivery Retry Two", true);
+        send(admin, retryJobId, "WHATSAPP", "retry-1");
         fakeProvider.failNext(1);
         deliveryService.poll();
-        JsonNode retry = delivery(admin, jobId).get(0);
+        JsonNode retry = delivery(admin, retryJobId).get(0);
         assertThat(retry.get("status").asText()).isEqualTo("RETRY_PENDING");
         assertThat(retry.get("attempts").asInt()).isEqualTo(1);
         assertThat(deliveryRequests.findAll()).hasSize(1);
 
         Thread.sleep(1_200);
         deliveryService.poll();
-        JsonNode sent = delivery(admin, jobId).get(0);
+        JsonNode sent = delivery(admin, retryJobId).get(0);
         assertThat(sent.get("status").asText()).isEqualTo("SENT");
         assertThat(sent.get("attemptHistory").size()).isEqualTo(2);
-        assertThat(getJson(admin, "/api/v1/workshop/jobs/" + jobId).get("status").asText())
-                .isEqualTo("FINALIZED");
+        assertThat(getJson(admin, "/api/v1/workshop/jobs/" + retryJobId + "/report")
+                .get("generationStatus").asText()).isEqualTo("READY");
+    }
+
+    @Test
+    void manualRetryIsIdempotent() throws Exception {
+        Login admin = login("admin.a@test.local");
+        Login technician = login("tech.a@test.local");
+        String jobId = finalizedJob(admin, technician, "Delivery Manual Retry");
+
+        send(admin, jobId, "WHATSAPP", "manual-retry-send");
+        fakeProvider.failNext(1);
+        deliveryService.poll();
+        JsonNode failed = delivery(admin, jobId).get(0);
+        String deliveryId = failed.get("id").asText();
+        assertThat(failed.get("status").asText()).isEqualTo("RETRY_PENDING");
+
+        mockMvc.perform(post("/api/v1/workshop/jobs/" + jobId
+                        + "/deliveries/" + deliveryId + "/retry")
+                        .header("Authorization", "Bearer " + admin.accessToken()))
+                .andExpect(status().isBadRequest());
+
+        JsonNode retried = postDeliveryRetry(admin, jobId, deliveryId, "manual-retry-1");
+        assertThat(retried.get("id").asText()).isEqualTo(deliveryId);
+        assertThat(retried.get("status").asText()).isEqualTo("QUEUED");
+        JsonNode replay = postDeliveryRetry(admin, jobId, deliveryId, "manual-retry-1");
+        assertThat(replay.get("id").asText()).isEqualTo(deliveryId);
+        assertThat(replay.get("status").asText()).isEqualTo("QUEUED");
+
+        deliveryService.poll();
+        JsonNode sent = delivery(admin, jobId).get(0);
+        assertThat(sent.get("status").asText()).isEqualTo("SENT");
+        assertThat(sent.get("attempts").asInt()).isEqualTo(2);
+        assertThat(sent.get("attemptHistory").size()).isEqualTo(2);
+    }
+
+    private JsonNode postDeliveryRetry(Login login, String jobId, String deliveryId,
+                                       String idempotencyKey) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/workshop/jobs/" + jobId
+                        + "/deliveries/" + deliveryId + "/retry")
+                        .header("Authorization", "Bearer " + login.accessToken())
+                        .header("Idempotency-Key", idempotencyKey))
+                .andExpect(status().isOk()).andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString());
     }
 
     private String finalizedJob(Login admin, Login technician, String label) throws Exception {
@@ -209,6 +256,10 @@ class DeliveryIT extends IntegrationTestBase {
                         .header("Idempotency-Key", "delivery-final-" + jobId))
                 .andExpect(status().isOk());
         reportGeneration.poll();
+        JsonNode report = getJson(admin, "/api/v1/workshop/jobs/" + jobId + "/report");
+        assertThat(report.get("generationStatus").asText())
+                .as("report state: " + report)
+                .isEqualTo("READY");
         return jobId;
     }
 

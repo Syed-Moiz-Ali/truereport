@@ -22,6 +22,10 @@
 | [0015](0015-guide-images-and-local-storage.md) | Guide images separate from evidence; local dev storage | Accepted for Phase 3; D6 Pending |
 | [0016](0016-template-version-pinning.md) | Template version pinning and safety-rule locking | Accepted for Phase 4; MySQL triggers untested |
 | [0017](0017-online-inspection-finalization.md) | Online inspection execution and immutable finalization | Accepted for Phase 5A; MySQL triggers untested; 5B evidence reserved |
+| [0018](0018-delivery-link-generation.md) | New public link per delivery send | **Accepted for Phase 7** |
+| [0019](0019-pii-field-encryption.md) | Application-level PII encryption and key IDs | **Accepted for Phase 8** |
+| [0020](0020-self-hosted-filesystem-storage.md) | Self-hosted filesystem storage supersedes cloud storage for D6 | **Accepted by owner - Phase 8.1** |
+| [0021](0021-admin-totp-configurable.md) | Admin TOTP configurable and off by default | **Accepted by owner - Phase 8.1** |
 
 ## How to read an ADR
 

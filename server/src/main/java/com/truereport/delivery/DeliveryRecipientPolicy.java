@@ -31,6 +31,9 @@ public class DeliveryRecipientPolicy {
         if (recipient == null || recipient.isBlank()) {
             return false;
         }
+        if (realRecipientsEnabled) {
+            return true;
+        }
         if (channel.equals("EMAIL")) {
             return emailAllowlist.contains(recipient.trim().toLowerCase());
         }

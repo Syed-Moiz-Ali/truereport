@@ -1,8 +1,10 @@
 package com.truereport.jobs;
 
 import com.truereport.shared.persistence.BaseEntity;
+import com.truereport.shared.security.PiiStringConverter;
 import com.truereport.shared.uuid.UuidV7;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
@@ -46,13 +48,16 @@ public class InspectionJob extends BaseEntity {
     @Column(name = "cancel_reason", length = 255)
     private String cancelReason;
 
-    @Column(name = "customer_name", nullable = false, length = 200)
+    @Convert(converter = PiiStringConverter.class)
+    @Column(name = "customer_name", nullable = false, length = 512)
     private String customerName;
 
-    @Column(name = "customer_phone", length = 40)
+    @Convert(converter = PiiStringConverter.class)
+    @Column(name = "customer_phone", length = 512)
     private String customerPhone;
 
-    @Column(name = "customer_email", length = 320)
+    @Convert(converter = PiiStringConverter.class)
+    @Column(name = "customer_email", length = 512)
     private String customerEmail;
 
     @Column(name = "vehicle_make", nullable = false, length = 100)
@@ -64,10 +69,12 @@ public class InspectionJob extends BaseEntity {
     @Column(name = "vehicle_year")
     private Integer vehicleYear;
 
-    @Column(name = "vehicle_vin", length = 40)
+    @Convert(converter = PiiStringConverter.class)
+    @Column(name = "vehicle_vin", length = 512)
     private String vehicleVin;
 
-    @Column(name = "vehicle_plate", length = 40)
+    @Convert(converter = PiiStringConverter.class)
+    @Column(name = "vehicle_plate", length = 512)
     private String vehiclePlate;
 
     @Column(name = "scope", nullable = false, length = 500)

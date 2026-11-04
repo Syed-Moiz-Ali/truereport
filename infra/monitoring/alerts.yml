@@ -1,0 +1,31 @@
+groups:
+  - name: truereport
+    rules:
+      - alert: ReportGenerationFailures
+        expr: increase(truereport_report_generation_total{status="failed"}[10m]) > 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: Report generation is failing
+      - alert: DeliveryDeadLetters
+        expr: increase(truereport_delivery_dead_letter_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: Delivery dead-letter growth
+      - alert: WebhookVerificationFailures
+        expr: increase(truereport_delivery_webhook_total{status="invalid"}[10m]) > 3
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: Webhook signature failures are elevated
+      - alert: ServerDown
+        expr: up{job="truereport"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: TrueReport server scrape is down

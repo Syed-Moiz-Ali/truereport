@@ -28,6 +28,7 @@
     <h2.version>2.5.252</h2.version>
     <archunit.version>1.5.1</archunit.version>
     <pdfbox.version>3.0.5</pdfbox.version>
+    <awssdk.version>2.57.8</awssdk.version>
   </properties>
 
   <dependencyManagement>
@@ -134,6 +135,15 @@
       </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>${awssdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>

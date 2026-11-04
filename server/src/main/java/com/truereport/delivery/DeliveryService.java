@@ -23,6 +23,7 @@ import com.truereport.delivery.api.SendDeliveryRequest;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.storage.ObjectStorage;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -49,7 +50,6 @@ public class DeliveryService {
 
     private final DeliveryRequestRepository requests;
     private final DeliveryAttemptRepository attempts;
-    private final DeliveryWebhookEventRepository webhookEvents;
     private final DeliveryProviderRegistry providers;
     private final DeliveryRecipientPolicy recipientPolicy;
     private final InspectionJobRepository jobs;
@@ -63,6 +63,7 @@ public class DeliveryService {
     private final ObjectStorage storage;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
     private final int maxAttempts;
     private final int retryBaseSeconds;
     private final int rateLimitPerHour;
@@ -70,7 +71,6 @@ public class DeliveryService {
 
     public DeliveryService(DeliveryRequestRepository requests,
                            DeliveryAttemptRepository attempts,
-                           DeliveryWebhookEventRepository webhookEvents,
                            DeliveryProviderRegistry providers,
                            DeliveryRecipientPolicy recipientPolicy,
                            InspectionJobRepository jobs,
@@ -84,6 +84,7 @@ public class DeliveryService {
                            ObjectStorage storage,
                            AuditService auditService,
                            ObjectMapper objectMapper,
+                           MeterRegistry meterRegistry,
                            @Value("${truereport.delivery.max-attempts:3}") int maxAttempts,
                            @Value("${truereport.delivery.retry-base-seconds:30}") int retryBaseSeconds,
                            @Value("${truereport.delivery.rate-limit-per-hour:10}") int rateLimitPerHour,
@@ -91,7 +92,6 @@ public class DeliveryService {
                            long emailMaxAttachmentBytes) {
         this.requests = requests;
         this.attempts = attempts;
-        this.webhookEvents = webhookEvents;
         this.providers = providers;
         this.recipientPolicy = recipientPolicy;
         this.jobs = jobs;
@@ -105,6 +105,7 @@ public class DeliveryService {
         this.storage = storage;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.meterRegistry = meterRegistry;
         this.maxAttempts = maxAttempts;
         this.retryBaseSeconds = retryBaseSeconds;
         this.rateLimitPerHour = rateLimitPerHour;
@@ -224,18 +225,27 @@ public class DeliveryService {
     }
 
     @Transactional
-    public DeliveryDto retry(CurrentUser caller, UUID jobId, UUID requestId) {
+    public DeliveryDto retry(CurrentUser caller, UUID jobId, UUID requestId,
+                             String idempotencyKey) {
         requireAdmin(caller);
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "IDEMPOTENCY_KEY_REQUIRED",
+                    "error.idempotency.required", "Idempotency-Key is required");
+        }
         jobs.findByIdAndWorkshopId(jobId, caller.workshopId()).orElseThrow(ApiException::notFound);
         DeliveryRequestEntity request = requests.findById(requestId)
                 .filter(value -> value.getWorkshopId().equals(caller.workshopId())
                         && value.getJobId().equals(jobId))
                 .orElseThrow(ApiException::notFound);
+        byte[] retryHash = hash(idempotencyKey);
+        if (request.isRetryKey(retryHash)) {
+            return dto(request);
+        }
         if (!FAILURE_STATUSES.contains(request.getStatus())) {
             throw new ApiException(HttpStatus.CONFLICT, "DELIVERY_NOT_RETRYABLE",
                     "error.delivery.notRetryable", "Only failed or dead-letter deliveries can be retried");
         }
-        request.retryNow();
+        request.retryNow(retryHash, maxAttempts);
         requests.save(request);
         audit(caller, request, "DELIVERY_RETRIED", null);
         return dto(request);
@@ -331,23 +341,14 @@ public class DeliveryService {
                 request.getWorkshopId(), version,
                 new CurrentUser(request.getRequestedBy(), "", "WORKSHOP_ADMIN",
                         request.getWorkshopId(), null));
-        request = requestFromLink(request, created.id());
+        request.setPublicShareLinkId(created.id());
         return new CreatedLink(request, created.publicUrl(), created.id());
-    }
-
-    private DeliveryRequestEntity requestFromLink(DeliveryRequestEntity request, UUID linkId) {
-        request.getClass();
-        return request;
     }
 
     private byte[] reportPdf(UUID reportVersionId) {
         ReportArtifact artifact = artifacts.findByReportVersionIdAndKind(reportVersionId, "PDF")
                 .orElseThrow(() -> new IllegalStateException("REPORT_PDF_MISSING"));
         return storage.get(artifact.getStorageKey());
-    }
-
-    private UUID linkIdFor(DeliveryRequestEntity request) {
-        return request.getPublicShareLinkId();
     }
 
     private void fail(DeliveryRequestEntity request, DeliveryAttempt attempt,
@@ -363,6 +364,9 @@ public class DeliveryService {
         }
         request.markRetry(code, message, maxAttempts, retryBaseSeconds);
         requests.save(request);
+        if (request.getStatus().equals("DEAD_LETTER")) {
+            meterRegistry.counter("truereport.delivery.dead_letter").increment();
+        }
         audit(null, request, request.getStatus().equals("DEAD_LETTER")
                 ? "DELIVERY_DEAD_LETTER" : "DELIVERY_FAILED", code);
     }

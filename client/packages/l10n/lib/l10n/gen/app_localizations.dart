@@ -1741,6 +1741,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Findings'**
   String get findings;
+
+  /// No description provided for @delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get delivery;
+
+  /// No description provided for @deliveryHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery history'**
+  String get deliveryHistory;
+
+  /// No description provided for @sendReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get sendReport;
+
+  /// No description provided for @sendReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get sendReportTitle;
+
+  /// No description provided for @deliveryChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel'**
+  String get deliveryChannel;
+
+  /// No description provided for @deliveryLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get deliveryLanguage;
+
+  /// No description provided for @deliveryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery status'**
+  String get deliveryStatus;
+
+  /// No description provided for @deliveryRecipient.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipient'**
+  String get deliveryRecipient;
+
+  /// No description provided for @deliveryAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Attempts'**
+  String get deliveryAttempts;
+
+  /// No description provided for @deliveryNextAttempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Next attempt'**
+  String get deliveryNextAttempt;
+
+  /// No description provided for @deliveryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Last error'**
+  String get deliveryError;
+
+  /// No description provided for @retryDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry delivery'**
+  String get retryDelivery;
+
+  /// No description provided for @deliveryQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery queued'**
+  String get deliveryQueued;
+
+  /// No description provided for @deliverySent.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery sent'**
+  String get deliverySent;
+
+  /// No description provided for @noDeliveries.
+  ///
+  /// In en, this message translates to:
+  /// **'No delivery attempts yet.'**
+  String get noDeliveries;
+
+  /// No description provided for @channelWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get channelWhatsapp;
+
+  /// No description provided for @channelSms.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get channelSms;
+
+  /// No description provided for @channelEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get channelEmail;
+
+  /// No description provided for @deliveryConsentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel consent must be recorded before sending.'**
+  String get deliveryConsentHint;
+
+  /// No description provided for @deliveryPdfAttached.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF attached'**
+  String get deliveryPdfAttached;
+
+  /// No description provided for @deliveryLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get deliveryLink;
 }
 
 class _AppLocalizationsDelegate

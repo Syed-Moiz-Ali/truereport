@@ -82,16 +82,26 @@ class ApiEndpoints {
       '$_root/workshop/jobs/$jobId/report/pdf-download';
   String workshopReportPdf(String jobId) =>
       '$_root/workshop/jobs/$jobId/report/pdf';
-  String technicianReport(String jobId) => '$_root/technician/jobs/$jobId/report';
+  String workshopJobDeliveries(String jobId) =>
+      '$_root/workshop/jobs/$jobId/deliveries';
+  String workshopJobDeliveryRetry(String jobId, String deliveryId) =>
+      '$_root/workshop/jobs/$jobId/deliveries/$deliveryId/retry';
+  String technicianReport(String jobId) =>
+      '$_root/technician/jobs/$jobId/report';
+  String technicianJobDeliveries(String jobId) =>
+      '$_root/technician/jobs/$jobId/deliveries';
   String get technicianJobs => '$_root/technician/jobs';
   String technicianJob(String id) => '$_root/technician/jobs/$id';
-  String get technicianTemplateVersions => '$_root/technician/templates/versions';
-  String technicianChecklist(String id) => '$_root/technician/jobs/$id/checklist';
+  String get technicianTemplateVersions =>
+      '$_root/technician/templates/versions';
+  String technicianChecklist(String id) =>
+      '$_root/technician/jobs/$id/checklist';
   String technicianStart(String id) => '$_root/technician/jobs/$id/start';
   String technicianCustomer(String id) => '$_root/technician/jobs/$id/customer';
   String technicianVehicle(String id) => '$_root/technician/jobs/$id/vehicle';
   String technicianConsent(String id) => '$_root/technician/jobs/$id/consent';
-  String technicianEquipment(String id) => '$_root/technician/jobs/$id/equipment';
+  String technicianEquipment(String id) =>
+      '$_root/technician/jobs/$id/equipment';
   String technicianAssessment(String jobId, String itemId) =>
       '$_root/technician/jobs/$jobId/items/$itemId/assessment';
   String technicianReview(String id) => '$_root/technician/jobs/$id/review';
@@ -103,7 +113,8 @@ class ApiEndpoints {
     String jobId,
     String itemId,
     String evidenceId,
-  ) => '$_root/technician/jobs/$jobId/items/$itemId/evidence/$evidenceId/complete';
+  ) =>
+      '$_root/technician/jobs/$jobId/items/$itemId/evidence/$evidenceId/complete';
   String technicianEvidence(String jobId, String itemId) =>
       '$_root/technician/jobs/$jobId/items/$itemId/evidence';
   String technicianGuideImage(String jobId, String itemId) =>

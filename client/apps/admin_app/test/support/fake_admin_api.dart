@@ -384,5 +384,8 @@ class FakeAdminApi implements AdminApi {
   );
 
   @override
+  Future<List<ReportDelivery>> deliveries(String jobId) async => const [];
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

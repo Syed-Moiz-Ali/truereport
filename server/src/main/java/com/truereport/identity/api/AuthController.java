@@ -49,11 +49,17 @@ public class AuthController {
 
     @PostMapping("/2fa/confirm")
     @PreAuthorize("hasAnyRole('WORKSHOP_ADMIN','PLATFORM_ADMIN')")
-    public ResponseEntity<Void> confirm(JwtAuthenticationToken authentication,
-                                        @Valid @RequestBody TwoFactorConfirmRequest request) {
+    public ResponseEntity<RecoveryCodesResponse> confirm(JwtAuthenticationToken authentication,
+                                                         @Valid @RequestBody TwoFactorConfirmRequest request) {
         CurrentUser user = currentUserService.require(authentication);
-        authService.confirmTotp(user.userId(), request.code());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(authService.confirmTotp(user.userId(), request.code()));
+    }
+
+    @PostMapping("/2fa/recovery-codes")
+    @PreAuthorize("hasAnyRole('WORKSHOP_ADMIN','PLATFORM_ADMIN')")
+    public ResponseEntity<RecoveryCodesResponse> recoveryCodes(JwtAuthenticationToken authentication) {
+        CurrentUser user = currentUserService.require(authentication);
+        return ResponseEntity.ok(authService.regenerateRecoveryCodes(user.userId()));
     }
 
     @PostMapping("/logout")

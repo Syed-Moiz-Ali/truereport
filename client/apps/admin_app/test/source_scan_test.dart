@@ -120,6 +120,22 @@ void main() {
     },
   );
 
+  test('admin app has no TOTP challenge UI', () {
+    final root = _clientRoot();
+    final separator = Platform.pathSeparator;
+    final offenders = <String>[];
+    for (final file in _dartFiles(
+      Directory('${root.path}${separator}apps${separator}admin_app${separator}lib'),
+      includeTests: true,
+    )) {
+      final text = file.readAsStringSync().toLowerCase();
+      if (text.contains('totp') || text.contains('2fa')) {
+        offenders.add(file.path);
+      }
+    }
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
+  });
+
   test('ApiEndpoints centralises parameterised paths', () {
     const endpoints = ApiEndpoints(baseUrl: 'http://localhost:8080');
     expect(

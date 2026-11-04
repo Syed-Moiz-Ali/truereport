@@ -105,3 +105,8 @@ final technicianReportProvider = FutureProvider.autoDispose
     .family<TechnicianReportStatus, String>((ref, jobId) {
       return ref.watch(technicianApiProvider).reportStatus(jobId);
     });
+
+final technicianDeliveriesProvider = FutureProvider.autoDispose
+    .family<List<TechnicianDelivery>, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).deliveries(jobId);
+    });

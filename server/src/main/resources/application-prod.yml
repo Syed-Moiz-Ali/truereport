@@ -1,0 +1,54 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+server:
+  shutdown: graceful
+  max-http-request-header-size: 16KB
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  metrics:
+    tags:
+      application: truereport
+logging:
+  structured:
+    format:
+      console: ecs
+truereport:
+  storage:
+    provider: filesystem
+    root: ${STORAGE_ROOT:/app/.truereport-storage}
+    filesystem:
+      max-object-bytes: 52428800
+      max-total-bytes: 21474836480
+      min-free-bytes: 1073741824
+      persistent-volume: true
+      web-root: ${STORAGE_WEB_ROOT:}
+      backfill-checksums: true
+  delivery:
+    fake-enabled: false
+    email-provider: smtp
+    real-recipients-enabled: true
+  dev:
+    seed-enabled: false
+  retention:
+    enabled: true

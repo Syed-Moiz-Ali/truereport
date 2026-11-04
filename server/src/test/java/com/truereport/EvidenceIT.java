@@ -46,6 +46,7 @@ class EvidenceIT extends IntegrationTestBase {
     void evidenceBlocksFinalizationUntilRequiredVerifiedPhotosExist() throws Exception {
         Login admin = login("admin.a@test.local");
         Login technician = login("tech.a@test.local");
+        Login technicianB = login("tech.b@test.local");
         UUID categoryId = category("evidence");
         MasterItem item = item(categoryId, "SAMPLE-EVID-001", "Evidence check",
                 "REQUIRED", 2, "{}");
@@ -81,6 +82,19 @@ class EvidenceIT extends IntegrationTestBase {
         String token2 = initToken(technician, jobId, inspectionItemId, evidence2, jpeg.length, hash);
         upload(technician, evidence2, token2, jpeg).andExpect(status().isNoContent());
         complete(technician, jobId, inspectionItemId, evidence2, hash).andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+                        .header("Authorization", "Bearer " + technician.accessToken()))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+                        .header("Authorization", "Bearer " + admin.accessToken()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+                        .header("Authorization", "Bearer " + technicianB.accessToken()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/technician/evidence/" + UUID.randomUUID() + "/content")
+                        .header("Authorization", "Bearer " + technician.accessToken()))
+                .andExpect(status().isNotFound());
 
         JsonNode ready = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
         assertThat(ready.get("ready").asBoolean()).isTrue();
@@ -169,6 +183,7 @@ class EvidenceIT extends IntegrationTestBase {
     void guideImageIsAvailableSeparatelyFromEvidence() throws Exception {
         Login admin = login("admin.a@test.local");
         Login technician = login("tech.a@test.local");
+        Login platform = login("platform@test.local");
         byte[] guide = jpeg();
         GuideImageDto guideImage = masterContent.uploadGuideImage(platformActor(),
                 new MockMultipartFile("file", "guide.jpg", "image/jpeg", guide),
@@ -191,6 +206,16 @@ class EvidenceIT extends IntegrationTestBase {
         assertThat(result.getResponse().getContentAsByteArray()).isEqualTo(guide);
         assertThat(getJson(technician, "/api/v1/technician/jobs/" + jobId
                 + "/items/" + inspectionItemId + "/evidence").size()).isZero();
+
+        mockMvc.perform(get("/api/v1/platform/master/guide-images/" + guideImage.id() + "/content")
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/platform/master/guide-images/" + guideImage.id() + "/content")
+                        .header("Authorization", "Bearer " + admin.accessToken()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/platform/master/guide-images/" + guideImage.id() + "/content")
+                        .header("Authorization", "Bearer " + technician.accessToken()))
+                .andExpect(status().isForbidden());
     }
 
     private org.springframework.test.web.servlet.ResultActions init(Login login, String jobId,

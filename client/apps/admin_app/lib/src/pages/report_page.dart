@@ -76,9 +76,11 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 _row(context, l10n.finalized, report.finalizedAt),
                 _row(context, l10n.consent, report.consentState),
                 _row(context, l10n.publicLink, report.linkState),
-                _row(context, l10n.pdfDownload, report.pdfDownloadEnabled
-                    ? l10n.reportReady
-                    : l10n.disabled),
+                _row(
+                  context,
+                  l10n.pdfDownload,
+                  report.pdfDownloadEnabled ? l10n.reportReady : l10n.disabled,
+                ),
                 if (report.generationError != null)
                   _row(context, l10n.error, report.generationError!),
                 SizedBox(height: context.spacing.sm),
@@ -116,8 +118,11 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           ),
           SizedBox(height: context.spacing.sm),
           AppButton(
-            label: '${l10n.pdfDownload}: ${report.pdfDownloadEnabled ? l10n.reportReady : l10n.disabled}',
-            onPressed: _busy ? null : () => _togglePdf(report.pdfDownloadEnabled),
+            label:
+                '${l10n.pdfDownload}: ${report.pdfDownloadEnabled ? l10n.reportReady : l10n.disabled}',
+            onPressed: _busy
+                ? null
+                : () => _togglePdf(report.pdfDownloadEnabled),
             icon: report.pdfDownloadEnabled
                 ? Icons.toggle_on_outlined
                 : Icons.toggle_off_outlined,
@@ -146,10 +151,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 ),
                 SizedBox(height: context.spacing.sm),
                 if (report.consentState != 'GRANTED')
-                  Text(
-                    l10n.consentNotGranted,
-                    style: context.texts.bodySmall,
-                  ),
+                  Text(l10n.consentNotGranted, style: context.texts.bodySmall),
                 if (report.linkState == 'PENDING_CONSENT' &&
                     report.consentState == 'GRANTED')
                   AppButton(
@@ -189,9 +191,216 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             ),
           ),
         ),
+        SizedBox(height: context.spacing.lg),
+        _deliverySection(context, ready),
       ],
     );
   }
+
+  Widget _deliverySection(BuildContext context, bool ready) {
+    final l10n = AppLocalizations.of(context);
+    final deliveries = ref.watch(reportDeliveriesProvider(widget.jobId));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(title: l10n.deliveryHistory),
+        if (ready)
+          AppButton(
+            label: l10n.sendReport,
+            onPressed: _busy ? null : _send,
+            isLoading: _busy,
+            icon: Icons.send_outlined,
+            expand: true,
+          ),
+        Padding(
+          padding: EdgeInsetsDirectional.only(top: context.spacing.xs),
+          child: Text(
+            l10n.deliveryConsentHint,
+            style: context.texts.bodySmall?.copyWith(
+              color: context.colors.onSurfaceVariant,
+            ),
+          ),
+        ),
+        SizedBox(height: context.spacing.md),
+        deliveries.when(
+          loading: () => const LoadingSkeleton(lines: 2),
+          error: (error, _) =>
+              Text(l10n.genericError, style: context.texts.bodySmall),
+          data: (items) {
+            if (items.isEmpty) {
+              return Text(l10n.noDeliveries, style: context.texts.bodySmall);
+            }
+            return Column(
+              children: [
+                for (final item in items) ...[
+                  _deliveryCard(context, item),
+                  SizedBox(height: context.spacing.sm),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _deliveryCard(BuildContext context, ReportDelivery item) {
+    final l10n = AppLocalizations.of(context);
+    final language = item.language == 'ar' ? l10n.arabic : l10n.english;
+    return Card(
+      child: Padding(
+        padding: EdgeInsetsDirectional.all(context.spacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              spacing: context.spacing.xs,
+              runSpacing: context.spacing.xs,
+              children: [
+                StatusChip(
+                  label: item.channel,
+                  tone: StatusTone.info,
+                  icon: switch (item.channel) {
+                    'EMAIL' => Icons.mail_outline,
+                    'SMS' => Icons.sms_outlined,
+                    _ => Icons.chat_outlined,
+                  },
+                ),
+                StatusChip(
+                  label: item.status,
+                  tone: switch (item.status) {
+                    'SENT' || 'DELIVERED' => StatusTone.success,
+                    'FAILED' || 'DEAD_LETTER' => StatusTone.danger,
+                    _ => StatusTone.warning,
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: context.spacing.sm),
+            _row(context, l10n.deliveryRecipient, item.recipientMasked),
+            _row(context, l10n.deliveryLanguage, language),
+            _row(
+              context,
+              l10n.deliveryAttempts,
+              '${item.attempts} / ${item.maxAttempts}',
+            ),
+            if (item.pdfAttached)
+              _row(context, l10n.report, l10n.deliveryPdfAttached),
+            if (item.lastErrorMessage != null &&
+                item.lastErrorMessage!.isNotEmpty)
+              _row(context, l10n.deliveryError, item.lastErrorMessage!),
+            if (item.nextAttemptAt.isNotEmpty)
+              _row(context, l10n.deliveryNextAttempt, item.nextAttemptAt),
+            if (item.retryable) ...[
+              SizedBox(height: context.spacing.sm),
+              AppButton(
+                label: l10n.retryDelivery,
+                onPressed: _busy ? null : () => _retryDelivery(item),
+                icon: Icons.refresh,
+                variant: AppButtonVariant.tonal,
+                expand: true,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _send() async {
+    final l10n = AppLocalizations.of(context);
+    var channel = 'WHATSAPP';
+    var language = 'en';
+    final confirmed = await showAppBottomSheet<bool>(
+      context,
+      child: StatefulBuilder(
+        builder: (context, setSheetState) => SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SectionHeader(title: l10n.sendReportTitle),
+              Text(l10n.deliveryChannel, style: context.texts.bodySmall),
+              for (final option in [
+                ('WHATSAPP', l10n.channelWhatsapp),
+                ('SMS', l10n.channelSms),
+                ('EMAIL', l10n.channelEmail),
+              ])
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: context.spacing.xs,
+                  ),
+                  child: AppSelectableText(
+                    label: option.$2,
+                    selected: channel == option.$1,
+                    onTap: () => setSheetState(() => channel = option.$1),
+                  ),
+                ),
+              SizedBox(height: context.spacing.sm),
+              Text(l10n.deliveryLanguage, style: context.texts.bodySmall),
+              for (final option in [('en', l10n.english), ('ar', l10n.arabic)])
+                Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: context.spacing.xs,
+                  ),
+                  child: AppSelectableText(
+                    label: option.$2,
+                    selected: language == option.$1,
+                    onTap: () => setSheetState(() => language = option.$1),
+                  ),
+                ),
+              SizedBox(height: context.spacing.lg),
+              AppButton(
+                label: l10n.sendReport,
+                onPressed: () => Navigator.of(context).pop(true),
+                icon: Icons.send_outlined,
+                expand: true,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    await _run(() async {
+      await ref
+          .read(adminApiProvider)
+          .sendDelivery(
+            widget.jobId,
+            channel: channel,
+            language: language,
+            idempotencyKey: _newDeliveryKey('send'),
+          );
+      ref.invalidate(reportDeliveriesProvider(widget.jobId));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.deliveryQueued)));
+      }
+    });
+  }
+
+  Future<void> _retryDelivery(ReportDelivery item) async {
+    final l10n = AppLocalizations.of(context);
+    await _run(() async {
+      await ref
+          .read(adminApiProvider)
+          .retryDelivery(
+            widget.jobId,
+            item.id,
+            idempotencyKey: _newDeliveryKey('retry-${item.id}'),
+          );
+      ref.invalidate(reportDeliveriesProvider(widget.jobId));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.deliveryQueued)));
+      }
+    });
+  }
+
+  String _newDeliveryKey(String prefix) =>
+      'admin-$prefix-${DateTime.now().microsecondsSinceEpoch}';
 
   List<Widget> _content(BuildContext context, Map<String, dynamic> content) {
     final l10n = AppLocalizations.of(context);
@@ -285,9 +494,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: Text(label, style: context.texts.bodySmall)),
-          Expanded(
-            child: Text(value, style: context.texts.bodyMedium),
-          ),
+          Expanded(child: Text(value, style: context.texts.bodyMedium)),
         ],
       ),
     );
@@ -341,7 +548,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 'OTHER',
               ])
                 Padding(
-                  padding: EdgeInsetsDirectional.only(bottom: context.spacing.xs),
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: context.spacing.xs,
+                  ),
                   child: AppSelectableText(
                     label: code,
                     selected: reason == code,
@@ -391,8 +600,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
       final bytes = await ref.read(adminApiProvider).reportPdf(widget.jobId);
       final path = await saveReportPdf(bytes);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${l10n.pdfBytesSaved}: $path')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${l10n.pdfBytesSaved}: $path')));
       }
     });
   }

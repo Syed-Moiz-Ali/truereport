@@ -119,7 +119,14 @@ final templateVersionProvider = FutureProvider.autoDispose
           .templateVersion(parts[0], parts.length > 1 ? parts[1] : '');
     });
 
-final reportProvider = FutureProvider.autoDispose
-    .family<ReportAdmin, String>((ref, jobId) {
-      return ref.watch(adminApiProvider).report(jobId);
+final reportProvider = FutureProvider.autoDispose.family<ReportAdmin, String>((
+  ref,
+  jobId,
+) {
+  return ref.watch(adminApiProvider).report(jobId);
+});
+
+final reportDeliveriesProvider = FutureProvider.autoDispose
+    .family<List<ReportDelivery>, String>((ref, jobId) {
+      return ref.watch(adminApiProvider).deliveries(jobId);
     });

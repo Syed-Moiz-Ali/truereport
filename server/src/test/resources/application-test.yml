@@ -31,7 +31,7 @@ truereport:
   dev:
     seed-enabled: false
     seed-password:
-'  report:
+  report:
     worker-enabled: false
     public-base-url: http://localhost:8080
   delivery:
@@ -45,7 +45,7 @@ truereport:
     max-attempts: 3
     retry-base-seconds: 1
     rate-limit-per-hour: 5
-    email-max-attachment-bytes: 10485760'
+    email-max-attachment-bytes: 10485760
 
 logging:
   level:

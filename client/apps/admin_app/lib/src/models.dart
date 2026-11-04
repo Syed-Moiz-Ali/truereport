@@ -868,6 +868,101 @@ class ReportAdmin {
   );
 }
 
+class ReportDelivery {
+  const ReportDelivery({
+    required this.id,
+    required this.channel,
+    required this.recipientMasked,
+    required this.language,
+    required this.status,
+    required this.attempts,
+    required this.maxAttempts,
+    required this.pdfAttached,
+    required this.linkState,
+    required this.lastErrorCode,
+    required this.lastErrorMessage,
+    required this.nextAttemptAt,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.attemptHistory,
+  });
+
+  final String id;
+  final String channel;
+  final String recipientMasked;
+  final String language;
+  final String status;
+  final int attempts;
+  final int maxAttempts;
+  final bool pdfAttached;
+  final String linkState;
+  final String? lastErrorCode;
+  final String? lastErrorMessage;
+  final String nextAttemptAt;
+  final String createdAt;
+  final String updatedAt;
+  final List<ReportDeliveryAttempt> attemptHistory;
+
+  bool get retryable =>
+      status == 'FAILED' ||
+      status == 'RETRY_PENDING' ||
+      status == 'DEAD_LETTER';
+
+  factory ReportDelivery.fromJson(Map<String, dynamic> json) => ReportDelivery(
+    id: json['id'] as String? ?? '',
+    channel: json['channel'] as String? ?? '',
+    recipientMasked: json['recipientMasked'] as String? ?? '',
+    language: json['language'] as String? ?? '',
+    status: json['status'] as String? ?? '',
+    attempts: json['attempts'] as int? ?? 0,
+    maxAttempts: json['maxAttempts'] as int? ?? 0,
+    pdfAttached: json['pdfAttached'] as bool? ?? false,
+    linkState: json['linkState'] as String? ?? '',
+    lastErrorCode: json['lastErrorCode'] as String?,
+    lastErrorMessage: json['lastErrorMessage'] as String?,
+    nextAttemptAt: json['nextAttemptAt'] as String? ?? '',
+    createdAt: json['createdAt'] as String? ?? '',
+    updatedAt: json['updatedAt'] as String? ?? '',
+    attemptHistory: (json['attemptHistory'] as List<dynamic>? ?? <dynamic>[])
+        .map(
+          (item) =>
+              ReportDeliveryAttempt.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false),
+  );
+}
+
+class ReportDeliveryAttempt {
+  const ReportDeliveryAttempt({
+    required this.attemptNo,
+    required this.provider,
+    required this.status,
+    required this.errorCode,
+    required this.errorMessage,
+    required this.sentAt,
+    required this.deliveredAt,
+  });
+
+  final int attemptNo;
+  final String provider;
+  final String status;
+  final String? errorCode;
+  final String? errorMessage;
+  final String sentAt;
+  final String deliveredAt;
+
+  factory ReportDeliveryAttempt.fromJson(Map<String, dynamic> json) =>
+      ReportDeliveryAttempt(
+        attemptNo: json['attemptNo'] as int? ?? 0,
+        provider: json['provider'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        errorCode: json['errorCode'] as String?,
+        errorMessage: json['errorMessage'] as String?,
+        sentAt: json['sentAt'] as String? ?? '',
+        deliveredAt: json['deliveredAt'] as String? ?? '',
+      );
+}
+
 class ReportLinkResult {
   const ReportLinkResult({
     required this.state,

@@ -1,6 +1,7 @@
 package com.truereport.shared.storage;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.time.Duration;
  * D6 production storage is Pending; production must use an S3-compatible provider.
  */
 @Component
+@ConditionalOnProperty(name = "truereport.storage.provider", havingValue = "local", matchIfMissing = true)
 public class LocalObjectStorage implements ObjectStorage {
 
     private final Path root;

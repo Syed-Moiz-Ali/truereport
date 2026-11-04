@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +48,15 @@ public class User extends BaseEntity {
 
     @Column(name = "totp_last_step")
     private Long totpLastStep;
+
+    @Column(name = "failed_login_count", nullable = false)
+    private int failedLoginCount;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    @Column(name = "totp_failed_count", nullable = false)
+    private int totpFailedCount;
 
     protected User() {
     }
@@ -131,5 +141,44 @@ public class User extends BaseEntity {
 
     public void setTotpLastStep(Long totpLastStep) {
         this.totpLastStep = totpLastStep;
+    }
+
+    public boolean isLocked(LocalDateTime now) {
+        return lockedUntil != null && lockedUntil.isAfter(now);
+    }
+
+    public void recordLoginFailure(LocalDateTime now) {
+        failedLoginCount++;
+        if (failedLoginCount >= 5) {
+            lockedUntil = now.plusMinutes(15);
+        }
+    }
+
+    public void clearLoginFailures() {
+        failedLoginCount = 0;
+        lockedUntil = null;
+    }
+
+    public void recordTotpFailure(LocalDateTime now) {
+        totpFailedCount++;
+        if (totpFailedCount >= 5) {
+            lockedUntil = now.plusMinutes(15);
+        }
+    }
+
+    public void clearTotpFailures() {
+        totpFailedCount = 0;
+    }
+
+    public int getFailedLoginCount() {
+        return failedLoginCount;
+    }
+
+    public LocalDateTime getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public int getTotpFailedCount() {
+        return totpFailedCount;
     }
 }

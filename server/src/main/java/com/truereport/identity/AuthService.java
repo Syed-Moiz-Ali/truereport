@@ -3,6 +3,7 @@ package com.truereport.identity;
 import com.truereport.audit.AuditService;
 import com.truereport.identity.api.AuthResponse;
 import com.truereport.identity.api.MembershipDto;
+import com.truereport.identity.api.RecoveryCodesResponse;
 import com.truereport.identity.api.TotpEnrollmentResponse;
 import com.truereport.identity.api.UserDto;
 import com.truereport.shared.error.ApiException;
@@ -26,6 +27,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -35,6 +37,7 @@ public class AuthService {
 
     private final UserRepository users;
     private final RefreshTokenRepository refreshTokens;
+    private final TotpRecoveryCodeRepository recoveryCodes;
     private final WorkshopMembershipRepository memberships;
     private final WorkshopRepository workshops;
     private final PasswordEncoder passwordEncoder;
@@ -43,10 +46,12 @@ public class AuthService {
     private final TotpService totpService;
     private final SecretCipher secretCipher;
     private final AuditService auditService;
+    private final boolean adminTotpRequired;
     private final SecureRandom random = new SecureRandom();
 
     public AuthService(UserRepository users,
                        RefreshTokenRepository refreshTokens,
+                       TotpRecoveryCodeRepository recoveryCodes,
                        WorkshopMembershipRepository memberships,
                        WorkshopRepository workshops,
                        PasswordEncoder passwordEncoder,
@@ -54,9 +59,13 @@ public class AuthService {
                        JwtProperties jwtProperties,
                        TotpService totpService,
                        SecretCipher secretCipher,
-                       AuditService auditService) {
+                       AuditService auditService,
+                       @org.springframework.beans.factory.annotation.Value(
+                               "${truereport.auth.admin-totp.required:false}")
+                       boolean adminTotpRequired) {
         this.users = users;
         this.refreshTokens = refreshTokens;
+        this.recoveryCodes = recoveryCodes;
         this.memberships = memberships;
         this.workshops = workshops;
         this.passwordEncoder = passwordEncoder;
@@ -65,17 +74,27 @@ public class AuthService {
         this.totpService = totpService;
         this.secretCipher = secretCipher;
         this.auditService = auditService;
+        this.adminTotpRequired = adminTotpRequired;
     }
 
     @Transactional
     public AuthResponse login(String email, String password) {
         User user = users.findByEmailNormalized(User.normalizeEmail(email))
                 .orElseThrow(() -> ApiException.unauthorized("AUTH_INVALID_CREDENTIALS", "Invalid credentials"));
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        if (user.isLocked(now)) {
+            auditService.recordAuth(user.getId(), "LOGIN_LOCKED", "LOCKED");
+            throw ApiException.unauthorized("AUTH_INVALID_CREDENTIALS", "Invalid credentials");
+        }
         if (user.getStatus() != UserStatus.ACTIVE || !passwordEncoder.matches(password, user.getPasswordHash())) {
+            user.recordLoginFailure(now);
+            users.save(user);
             auditService.recordAuth(user.getId(), "LOGIN_FAILED", "INVALID_CREDENTIALS");
             throw ApiException.unauthorized("AUTH_INVALID_CREDENTIALS", "Invalid credentials");
         }
-        if (user.isTotpEnabled()) {
+        user.clearLoginFailures();
+        users.save(user);
+        if (adminTotpRequired && user.isTotpEnabled()) {
             auditService.recordAuth(user.getId(), "LOGIN_2FA_REQUIRED", null);
             return AuthResponse.challenge(jwtService.issueChallenge(user.getId()));
         }
@@ -90,7 +109,7 @@ public class AuthService {
         } catch (RuntimeException e) {
             throw ApiException.unauthorized("AUTH_2FA_INVALID", "Invalid or expired challenge");
         }
-        if (!"2fa".equals(jwt.getClaimAsString("purpose"))) {
+        if (!"2fa".equals(jwt.getClaimAsString("purpose")) || !adminTotpRequired) {
             throw ApiException.unauthorized("AUTH_2FA_INVALID", "Invalid challenge");
         }
         UUID userId = UUID.fromString(jwt.getClaimAsString("uid"));
@@ -99,16 +118,32 @@ public class AuthService {
         if (!user.isTotpEnabled() || user.getTotpSecretEnc() == null) {
             throw ApiException.unauthorized("AUTH_2FA_INVALID", "Two-factor authentication is not enabled");
         }
-        String secret = secretCipher.decrypt(user.getTotpSecretEnc());
-        long step = totpService.verify(secret, code, Instant.now(), user.getTotpLastStep());
-        if (step < 0) {
-            auditService.recordAuth(user.getId(), "TOTP_FAILED", "INVALID_CODE");
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        if (user.isLocked(now)) {
+            auditService.recordAuth(user.getId(), "TOTP_LOCKED", "LOCKED");
             throw ApiException.unauthorized("AUTH_2FA_INVALID", "Invalid authentication code");
         }
-        user.setTotpLastStep(step);
+        String secret = secretCipher.decrypt(user.getTotpSecretEnc());
+        long step = code.matches("\\d{6}")
+                ? totpService.verify(secret, code, Instant.now(), user.getTotpLastStep())
+                : -1;
+        if (step >= 0) {
+            user.setTotpLastStep(step);
+            user.clearTotpFailures();
+            users.save(user);
+            auditService.recordAuth(user.getId(), "TOTP_SUCCEEDED", null);
+            return completeLogin(user);
+        }
+        if (consumeRecoveryCode(user.getId(), code, now)) {
+            user.clearTotpFailures();
+            users.save(user);
+            auditService.recordAuth(user.getId(), "TOTP_RECOVERY_SUCCEEDED", null);
+            return completeLogin(user);
+        }
+        user.recordTotpFailure(now);
         users.save(user);
-        auditService.recordAuth(user.getId(), "TOTP_SUCCEEDED", null);
-        return completeLogin(user);
+        auditService.recordAuth(user.getId(), "TOTP_FAILED", "INVALID_CODE");
+        throw ApiException.unauthorized("AUTH_2FA_INVALID", "Invalid authentication code");
     }
 
     @Transactional
@@ -181,6 +216,7 @@ public class AuthService {
 
     @Transactional
     public TotpEnrollmentResponse enrollTotp(UUID userId) {
+        requireTotpEnabled();
         User user = users.findById(userId).orElseThrow(ApiException::notFound);
         if (!user.isPlatformAdmin() && !hasRole(userId, "WORKSHOP_ADMIN")) {
             throw ApiException.forbidden();
@@ -197,7 +233,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void confirmTotp(UUID userId, String code) {
+    public RecoveryCodesResponse confirmTotp(UUID userId, String code) {
+        requireTotpEnabled();
         User user = users.findById(userId).orElseThrow(ApiException::notFound);
         if (user.getTotpSecretEnc() == null) {
             throw ApiException.conflict("TOTP_NOT_ENROLLED", "Start enrollment first");
@@ -210,8 +247,63 @@ public class AuthService {
         }
         user.setTotpEnabled(true);
         user.setTotpLastStep(step);
+        user.clearLoginFailures();
+        user.clearTotpFailures();
         users.save(user);
+        RecoveryCodesResponse codes = regenerateRecoveryCodes(userId);
         auditService.recordAuth(userId, "TOTP_ENABLED", null);
+        return codes;
+    }
+
+    @Transactional
+    public RecoveryCodesResponse regenerateRecoveryCodes(UUID userId) {
+        requireTotpEnabled();
+        User user = users.findById(userId).orElseThrow(ApiException::notFound);
+        if (!user.isTotpEnabled()) {
+            throw ApiException.conflict("TOTP_NOT_ENABLED", "Enable two-factor authentication first");
+        }
+        recoveryCodes.deleteByUserId(userId);
+        List<String> plaintext = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        for (int i = 0; i < 10; i++) {
+            String code = recoveryCode();
+            plaintext.add(code);
+            recoveryCodes.save(new TotpRecoveryCode(userId, hash(code), now));
+        }
+        auditService.recordAuth(userId, "TOTP_RECOVERY_CODES_REGENERATED", null);
+        return new RecoveryCodesResponse(List.copyOf(plaintext));
+    }
+
+    private boolean consumeRecoveryCode(UUID userId, String code, LocalDateTime now) {
+        if (code == null || code.isBlank()) {
+            return false;
+        }
+        return recoveryCodes.findByUserIdAndCodeHashAndUsedAtIsNull(userId, hash(code.trim().toUpperCase()))
+                .map(found -> {
+                    found.markUsed(now);
+                    recoveryCodes.save(found);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    private String recoveryCode() {
+        String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        StringBuilder value = new StringBuilder(11);
+        for (int i = 0; i < 10; i++) {
+            if (i == 5) {
+                value.append('-');
+            }
+            value.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+        return value.toString();
+    }
+
+    private void requireTotpEnabled() {
+        if (!adminTotpRequired) {
+            throw ApiException.conflict("TOTP_DISABLED",
+                    "Admin TOTP is disabled by configuration");
+        }
     }
 
     private AuthResponse completeLogin(User user) {

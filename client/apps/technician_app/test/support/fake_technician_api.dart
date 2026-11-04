@@ -118,5 +118,8 @@ class FakeTechnicianApi implements TechnicianApi {
       );
 
   @override
+  Future<List<TechnicianDelivery>> deliveries(String jobId) async => const [];
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }

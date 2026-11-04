@@ -492,3 +492,46 @@ class TechnicianReportStatus {
         finalizedAt: json['finalizedAt'] as String? ?? '',
       );
 }
+
+class TechnicianDelivery {
+  const TechnicianDelivery({
+    required this.id,
+    required this.channel,
+    required this.recipientMasked,
+    required this.language,
+    required this.status,
+    required this.attempts,
+    required this.maxAttempts,
+    required this.pdfAttached,
+    required this.lastErrorMessage,
+    required this.nextAttemptAt,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String channel;
+  final String recipientMasked;
+  final String language;
+  final String status;
+  final int attempts;
+  final int maxAttempts;
+  final bool pdfAttached;
+  final String? lastErrorMessage;
+  final String nextAttemptAt;
+  final String createdAt;
+
+  factory TechnicianDelivery.fromJson(Map<String, dynamic> json) =>
+      TechnicianDelivery(
+        id: json['id'] as String? ?? '',
+        channel: json['channel'] as String? ?? '',
+        recipientMasked: json['recipientMasked'] as String? ?? '',
+        language: json['language'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        attempts: json['attempts'] as int? ?? 0,
+        maxAttempts: json['maxAttempts'] as int? ?? 0,
+        pdfAttached: json['pdfAttached'] as bool? ?? false,
+        lastErrorMessage: json['lastErrorMessage'] as String?,
+        nextAttemptAt: json['nextAttemptAt'] as String? ?? '',
+        createdAt: json['createdAt'] as String? ?? '',
+      );
+}

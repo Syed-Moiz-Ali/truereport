@@ -326,6 +326,7 @@ public class InspectionService {
         history(job, from, job.getStatus(), caller.userId(), null);
         audit(caller, job, "INSPECTION_FINALIZED",
                 Map.of("reference", job.getReference(), "snapshotHash", hex(snapshotHash)));
+        events.publishEvent(new InspectionFinalizedEvent(job, snapshotJson, snapshotHash));
         return finalizeResponse(job);
     }
 
