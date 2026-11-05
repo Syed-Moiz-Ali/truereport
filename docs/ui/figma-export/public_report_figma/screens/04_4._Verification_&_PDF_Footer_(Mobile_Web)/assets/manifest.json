@@ -1,0 +1,87 @@
+{
+  "schema": "dev-export-assets",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-05T06:43:59.489Z",
+  "screen": {
+    "id": "1:6255",
+    "name": "4. Verification & PDF Footer (Mobile Web)"
+  },
+  "assets": [
+    {
+      "ref": "svg-1_6261",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6261.svg",
+      "pngFileName": "assets/png/Icon-1_6261@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6261.svg",
+        "png": "assets/png/Icon-1_6261@2x.png"
+      },
+      "nodeId": "1:6261",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16.5,
+      "height": 15.75,
+      "byteLength": 895,
+      "pngByteLength": 1152,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6279",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6279.svg",
+      "pngFileName": "assets/png/Icon-1_6279@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6279.svg",
+        "png": "assets/png/Icon-1_6279@2x.png"
+      },
+      "nodeId": "1:6279",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16,
+      "height": 21,
+      "byteLength": 1012,
+      "pngByteLength": 639,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6285",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6285.svg",
+      "pngFileName": "assets/png/Icon-1_6285@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6285.svg",
+        "png": "assets/png/Icon-1_6285@2x.png"
+      },
+      "nodeId": "1:6285",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 12,
+      "height": 15,
+      "byteLength": 435,
+      "pngByteLength": 618,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6308",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6308.svg",
+      "pngFileName": "assets/png/Icon-1_6308@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6308.svg",
+        "png": "assets/png/Icon-1_6308@2x.png"
+      },
+      "nodeId": "1:6308",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 14.666666984558105,
+      "height": 14.666666984558105,
+      "byteLength": 583,
+      "pngByteLength": 417,
+      "pngScale": 2
+    }
+  ]
+}

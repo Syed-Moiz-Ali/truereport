@@ -1,0 +1,39 @@
+<svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Background+Shadow" filter="url(#filter0_d_1_2413)">
+<rect x="2" y="1" width="80" height="80" rx="16" fill="white" shape-rendering="crispEdges"/>
+<g id="SVG" clip-path="url(#clip0_1_2413)">
+<path id="Vector" d="M14.4 11H27.6C28.9255 11 30 12.0745 30 13.4V26.6C30 27.9255 28.9255 29 27.6 29H14.4C13.0745 29 12 27.9255 12 26.6V13.4C12 12.0745 13.0745 11 14.4 11V11" fill="#1A1B1F"/>
+<path id="Vector_2" d="M56.4 11H69.6C70.9255 11 72 12.0745 72 13.4V26.6C72 27.9255 70.9255 29 69.6 29H56.4C55.0745 29 54 27.9255 54 26.6V13.4C54 12.0745 55.0745 11 56.4 11V11" fill="#1A1B1F"/>
+<path id="Vector_3" d="M14.4 53H27.6C28.9255 53 30 54.0745 30 55.4V68.6C30 69.9255 28.9255 71 27.6 71H14.4C13.0745 71 12 69.9255 12 68.6V55.4C12 54.0745 13.0745 53 14.4 53V53" fill="#1A1B1F"/>
+<path id="Vector_4" d="M33.5996 17H39.5996V17V23V23H33.5996V23V17V17V17" fill="#1A1B1F"/>
+<path id="Vector_5" d="M43.2002 17H48.0002V17V23V23H43.2002V23V17V17V17" fill="#1A1B1F"/>
+<path id="Vector_6" d="M33.5996 26.6H47.9996V26.6V31.4V31.4H33.5996V31.4V26.6V26.6V26.6" fill="#1A1B1F"/>
+<path id="Vector_7" d="M18 32.6H24V32.6V47V47H18V47V32.6V32.6V32.6" fill="#1A1B1F"/>
+<path id="Vector_8" d="M27.5996 37.4H32.3996V37.4V47V47H27.5996V47V37.4V37.4V37.4" fill="#1A1B1F"/>
+<path id="Vector_9" d="M37.2 35H46.8C47.4627 35 48 35.5373 48 36.2V45.8C48 46.4627 47.4627 47 46.8 47H37.2C36.5373 47 36 46.4627 36 45.8V36.2C36 35.5373 36.5373 35 37.2 35V35" fill="#1A1B1F"/>
+<path id="Vector_10" d="M54 33.8H61.2V33.8V39.8V39.8H54V39.8V33.8V33.8V33.8" fill="#1A1B1F"/>
+<path id="Vector_11" d="M64.7998 35H71.9998V35V48.2V48.2H64.7998V48.2V35V35V35" fill="#1A1B1F"/>
+<path id="Vector_12" d="M34.7998 53H43.1998V53V60.2V60.2H34.7998V60.2V53V53V53" fill="#1A1B1F"/>
+<path id="Vector_13" d="M46.7998 54.2H53.9998V54.2V60.2V60.2H46.7998V60.2V54.2V54.2V54.2" fill="#1A1B1F"/>
+<path id="Vector_14" d="M58.8004 53H69.6004C70.9259 53 72.0004 54.0745 72.0004 55.4V68.6C72.0004 69.9255 70.9259 71 69.6004 71H58.8004C57.4749 71 56.4004 69.9255 56.4004 68.6V55.4C56.4004 54.0745 57.4749 53 58.8004 53V53" fill="#1A1B1F"/>
+<path id="Vector_15" d="M16.7998 15.8H25.1998V15.8V24.2V24.2H16.7998V24.2V15.8V15.8V15.8" fill="white"/>
+<path id="Vector_16" d="M58.7998 15.8H67.1998V15.8V24.2V24.2H58.7998V24.2V15.8V15.8V15.8" fill="white"/>
+<path id="Vector_17" d="M16.7998 57.8H25.1998V57.8V66.2V66.2H16.7998V66.2V57.8V57.8V57.8" fill="white"/>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_1_2413" x="0" y="0" width="84" height="84" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1"/>
+<feGaussianBlur stdDeviation="1"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_2413"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_2413" result="shape"/>
+</filter>
+<clipPath id="clip0_1_2413">
+<rect width="60" height="60" fill="white" transform="translate(12 11)"/>
+</clipPath>
+</defs>
+</svg>

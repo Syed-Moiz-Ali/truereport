@@ -1,0 +1,106 @@
+{
+  "schema": "dev-export-assets",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-05T06:39:32.838Z",
+  "screen": {
+    "id": "1:7073",
+    "name": "1. Login & Language Selection"
+  },
+  "assets": [
+    {
+      "ref": "svg-1_7094",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_7094.svg",
+      "pngFileName": "assets/png/Icon-1_7094@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_7094.svg",
+        "png": "assets/png/Icon-1_7094@2x.png"
+      },
+      "nodeId": "1:7094",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16.66666603088379,
+      "height": 13.333333015441895,
+      "byteLength": 803,
+      "pngByteLength": 711,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_7101",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_7101.svg",
+      "pngFileName": "assets/png/Icon-1_7101@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_7101.svg",
+        "png": "assets/png/Icon-1_7101@2x.png"
+      },
+      "nodeId": "1:7101",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 13.333333015441895,
+      "height": 17.5,
+      "byteLength": 1534,
+      "pngByteLength": 731,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_7107",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_7107.svg",
+      "pngFileName": "assets/png/Icon-1_7107@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_7107.svg",
+        "png": "assets/png/Icon-1_7107@2x.png"
+      },
+      "nodeId": "1:7107",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16.5,
+      "height": 11.25,
+      "byteLength": 1583,
+      "pngByteLength": 1062,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_7118",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_7118.svg",
+      "pngFileName": "assets/png/Icon-1_7118@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_7118.svg",
+        "png": "assets/png/Icon-1_7118@2x.png"
+      },
+      "nodeId": "1:7118",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 10.666666984558105,
+      "height": 10.666666984558105,
+      "byteLength": 264,
+      "pngByteLength": 257,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_7128",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_7128.svg",
+      "pngFileName": "assets/png/Icon-1_7128@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_7128.svg",
+        "png": "assets/png/Icon-1_7128@2x.png"
+      },
+      "nodeId": "1:7128",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 8,
+      "height": 10,
+      "byteLength": 734,
+      "pngByteLength": 647,
+      "pngScale": 2
+    }
+  ]
+}

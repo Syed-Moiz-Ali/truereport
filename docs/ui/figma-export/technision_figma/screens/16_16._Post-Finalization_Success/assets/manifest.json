@@ -1,0 +1,87 @@
+{
+  "schema": "dev-export-assets",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-05T06:40:12.771Z",
+  "screen": {
+    "id": "1:8931",
+    "name": "16. Post-Finalization Success"
+  },
+  "assets": [
+    {
+      "ref": "svg-1_8953",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_8953.svg",
+      "pngFileName": "assets/png/Icon-1_8953@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_8953.svg",
+        "png": "assets/png/Icon-1_8953@2x.png"
+      },
+      "nodeId": "1:8953",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16.66666603088379,
+      "height": 16.66666603088379,
+      "byteLength": 686,
+      "pngByteLength": 400,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_8965",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_8965.svg",
+      "pngFileName": "assets/png/Icon-1_8965@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_8965.svg",
+        "png": "assets/png/Icon-1_8965@2x.png"
+      },
+      "nodeId": "1:8965",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 18.33333396911621,
+      "height": 13.333333015441895,
+      "byteLength": 1596,
+      "pngByteLength": 1027,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_8995",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_8995.svg",
+      "pngFileName": "assets/png/Icon-1_8995@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_8995.svg",
+        "png": "assets/png/Icon-1_8995@2x.png"
+      },
+      "nodeId": "1:8995",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 54.25,
+      "height": 54.25,
+      "byteLength": 991,
+      "pngByteLength": 2107,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_9005",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_9005.svg",
+      "pngFileName": "assets/png/Icon-1_9005@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_9005.svg",
+        "png": "assets/png/Icon-1_9005@2x.png"
+      },
+      "nodeId": "1:9005",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 13.333333015441895,
+      "height": 13.333333015441895,
+      "byteLength": 280,
+      "pngByteLength": 263,
+      "pngScale": 2
+    }
+  ]
+}

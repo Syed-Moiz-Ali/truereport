@@ -1,0 +1,289 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>7. Main Inspection Hub — Asset Catalog</title>
+<style>
+:root{
+font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+color-scheme:light dark;
+--bg:#f8fafc;--surface:#ffffff;--surface-2:#f1f5f9;--text:#111827;--muted:#64748b;
+--border:#e2e8f0;--accent:#6366f1;--accent-soft:#eef2ff;--accent-text:#4338ca;
+background:var(--bg);color:var(--text)
+}
+@media (prefers-color-scheme:dark){
+:root{--bg:#0b1020;--surface:#111827;--surface-2:#172033;--text:#f8fafc;--muted:#a8b1c2;--border:#263248;--accent:#818cf8;--accent-soft:#20264a;--accent-text:#c7d2fe}
+}
+*{box-sizing:border-box}
+body{margin:0}
+header{position:sticky;top:0;z-index:5;padding:26px 32px 20px;background:var(--bg);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-size:24px;letter-spacing:-.03em;margin:5px 0 6px}
+header p{margin:0;color:var(--muted);font-size:13px}
+main{padding:24px 32px 48px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.asset-card{overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 30px rgba(16,24,40,.05)}
+.thumb{height:170px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-bottom:1px solid var(--border);padding:26px}
+.thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.thumb.empty{color:var(--muted);font-size:12px}
+.asset-body{padding:15px 16px 17px}
+.asset-top{display:flex;align-items:center;gap:7px}
+.index,.role{font-size:10px;font-weight:700;border-radius:999px;padding:4px 7px}
+.index{background:var(--surface-2);color:var(--muted)}
+.role{background:var(--accent-soft);color:var(--accent-text);text-transform:uppercase;letter-spacing:.05em}
+h3{font-size:13px;margin:10px 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-body p{font-size:11px;color:var(--muted);margin:0 0 13px}
+.links{display:flex;gap:7px;flex-wrap:wrap}
+.links a{text-decoration:none;font-size:11px;font-weight:650;padding:7px 9px;border:1px solid var(--border);border-radius:9px;color:var(--text);background:var(--surface)}
+.links a:hover{border-color:var(--accent);color:var(--accent-text);background:var(--accent-soft)}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Dev Export · Asset Catalog</div>
+  <h1>7. Main Inspection Hub</h1>
+  <p>20 exported assets · SVG + PNG inspection views where available</p>
+</header>
+<main>
+      <article class="asset-card">
+        <div class="thumb"><img src="images/rendered_png/AB6AXuB6_Pkv61jikWQ0s0IyLmWBs8UlV0z3xFmD3rVquFuXbT51TM8fZc4gbcvtwfCxcE9mMeECTG_MK7LApabA9-_p_e478eNX-1_7757@2x.png" alt="AB6AXuB6_Pkv61jikWQ0s0IyLmWBs8UlV0z3xFmD3rVquFuXbT51TM8fZc4gbcvtwfCxcE9mMeECTG_MK7LApabA9-_p_e478eNXOedi86CJfK-pQE2vfLJVrK2rKm3wjTw9m2iWzUOzI0OnTzY2RHXF8Nn0FxIX90KV09EA50VLnU7ninBPJgA4dA1B7tMcah9ulQFJ9g5OdDUAROiwLH0W-39cKFLQirqIrdEgrNXXGePj"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">01</span>
+            <span class="role">image</span>
+          </div>
+          <h3>AB6AXuB6_Pkv61jikWQ0s0IyLmWBs8UlV0z3xFmD3rVquFuXbT51TM8fZc4gbcvtwfCxcE9mMeECTG_MK7LApabA9-_p_e478eNXOedi86CJfK-pQE2vfLJVrK2rKm3wjTw9m2iWzUOzI0OnTzY2RHXF8Nn0FxIX90KV09EA50VLnU7ninBPJgA4dA1B7tMcah9ulQFJ9g5OdDUAROiwLH0W-39cKFLQirqIrdEgrNXXGePj</h3>
+          <p>raster · </p>
+          <div class="links"><a href="images/original/image-1-acb2a73648.jpg" target="_blank">Open original</a><a href="images/rendered_png/AB6AXuB6_Pkv61jikWQ0s0IyLmWBs8UlV0z3xFmD3rVquFuXbT51TM8fZc4gbcvtwfCxcE9mMeECTG_MK7LApabA9-_p_e478eNX-1_7757@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7765@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">02</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 5.550000190734863×9</p>
+          <div class="links"><a href="svg/Icon-1_7765.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7765@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Vector-1_7777@2x.png" alt="Vector"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">03</span>
+            <span class="role">vector</span>
+          </div>
+          <h3>Vector</h3>
+          <p>svg · 145.20001220703125×145.20001220703125</p>
+          <div class="links"><a href="svg/Vector-1_7777.svg" target="_blank">Open SVG</a><a href="png/Vector-1_7777@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Vector-1_7778@2x.png" alt="Vector"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">04</span>
+            <span class="role">vector</span>
+          </div>
+          <h3>Vector</h3>
+          <p>svg · 141.77349853515625×72.60653686523438</p>
+          <div class="links"><a href="svg/Vector-1_7778.svg" target="_blank">Open SVG</a><a href="png/Vector-1_7778@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="composed/png/SVG_Progress_Ring_(45%_filled)-1_7776@2x.png" alt="SVG Progress Ring (45% filled)"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">05</span>
+            <span class="role">graphic</span>
+          </div>
+          <h3>SVG Progress Ring (45% filled)</h3>
+          <p>composed-svg · 176×176</p>
+          <div class="links"><a href="composed/svg/SVG_Progress_Ring_(45%_filled)-1_7776.svg" target="_blank">Open SVG</a><a href="composed/png/SVG_Progress_Ring_(45%_filled)-1_7776@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7790@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">06</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 13.333333015441895×13.333333015441895</p>
+          <div class="links"><a href="svg/Icon-1_7790.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7790@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7795@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">07</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 13.333333015441895×13.333333015441895</p>
+          <div class="links"><a href="svg/Icon-1_7795.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7795@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7804@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">08</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 16.5×14.666666984558105</p>
+          <div class="links"><a href="svg/Icon-1_7804.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7804@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7807@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">09</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 12.225000381469727×9.018750190734863</p>
+          <div class="links"><a href="svg/Icon-1_7807.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7807@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="composed/png/Container-1_7801@2x.png" alt="Container"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">10</span>
+            <span class="role">graphic</span>
+          </div>
+          <h3>Container</h3>
+          <p>composed-svg · 127×40</p>
+          <div class="links"><a href="composed/svg/Container-1_7801.svg" target="_blank">Open SVG</a><a href="composed/png/Container-1_7801@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7819@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">11</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 16.72916603088379×18.33333396911621</p>
+          <div class="links"><a href="svg/Icon-1_7819.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7819@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7834@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">12</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 14.666666984558105×18.33333396911621</p>
+          <div class="links"><a href="svg/Icon-1_7834.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7834@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7848@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">13</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 14.666666984558105×17.41666603088379</p>
+          <div class="links"><a href="svg/Icon-1_7848.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7848@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7861@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">14</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 9.166666984558105×11.666666984558105</p>
+          <div class="links"><a href="svg/Icon-1_7861.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7861@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7868@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">15</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 18.33333396911621×17.5</p>
+          <div class="links"><a href="svg/Icon-1_7868.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7868@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7873@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">16</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 12×12</p>
+          <div class="links"><a href="svg/Icon-1_7873.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7873@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7878@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">17</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 18.33333396911621×20.16666603088379</p>
+          <div class="links"><a href="svg/Icon-1_7878.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7878@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7883@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">18</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 16.5×14.666666984558105</p>
+          <div class="links"><a href="svg/Icon-1_7883.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7883@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7888@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">19</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 14.666666984558105×14.666666984558105</p>
+          <div class="links"><a href="svg/Icon-1_7888.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7888@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article>
+      <article class="asset-card">
+        <div class="thumb"><img src="png/Icon-1_7893@2x.png" alt="Icon"></div>
+        <div class="asset-body">
+          <div class="asset-top">
+            <span class="index">20</span>
+            <span class="role">icon</span>
+          </div>
+          <h3>Icon</h3>
+          <p>svg · 18.195833206176758×15.583333015441895</p>
+          <div class="links"><a href="svg/Icon-1_7893.svg" target="_blank">Open SVG</a><a href="png/Icon-1_7893@2x.png" target="_blank">Open PNG</a></div>
+        </div>
+      </article></main>
+</body>
+</html>

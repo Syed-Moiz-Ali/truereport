@@ -1,0 +1,148 @@
+{
+  "schema": "dev-export-assets",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-05T06:43:55.891Z",
+  "screen": {
+    "id": "1:5938",
+    "name": "1. Customer Summary Hero (Mobile Web)"
+  },
+  "assets": [
+    {
+      "ref": "svg-1_5944",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_5944.svg",
+      "pngFileName": "assets/png/Icon-1_5944@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_5944.svg",
+        "png": "assets/png/Icon-1_5944@2x.png"
+      },
+      "nodeId": "1:5944",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16.5,
+      "height": 15.75,
+      "byteLength": 895,
+      "pngByteLength": 1152,
+      "pngScale": 2
+    },
+    {
+      "ref": "raster-1-0c99e38fa3",
+      "kind": "raster",
+      "semanticRole": "image",
+      "fileName": "assets/images/original/image-1-0c99e38fa3.jpg",
+      "originalFileName": "assets/images/original/image-1-0c99e38fa3.jpg",
+      "pngFileName": "assets/images/rendered_png/AB6AXuDFJcNd-TCPFDtY16eQ0LhHvkG_qS0_toT-MwqOQgMi9tRfXVKdanO6lPHA_rbMQ8dQ8h05VUGejhYAmNZ8zeS6QTF5uZbQ-1_5969@2x.png",
+      "formats": {
+        "original": "assets/images/original/image-1-0c99e38fa3.jpg",
+        "png": "assets/images/rendered_png/AB6AXuDFJcNd-TCPFDtY16eQ0LhHvkG_qS0_toT-MwqOQgMi9tRfXVKdanO6lPHA_rbMQ8dQ8h05VUGejhYAmNZ8zeS6QTF5uZbQ-1_5969@2x.png"
+      },
+      "nodeId": "1:5969",
+      "nodeName": "AB6AXuDFJcNd-TCPFDtY16eQ0LhHvkG_qS0_toT-MwqOQgMi9tRfXVKdanO6lPHA_rbMQ8dQ8h05VUGejhYAmNZ8zeS6QTF5uZbQqihCyirGoJLFDFpOtIq5GcxEN-OssXEF4Zjvh5o6TLuOqPuwrDGxtZFp7N3ToDgJFe01aHeE4BvOPNhYmAerh-6JFHY-1zUb9KwrsHncu-jxznBG9mI_M9oc286u6WoMqbuVDpFLexfg",
+      "imageHash": "0c99e38fa316a0c7cdf41519f8ea67d67fd1c6fb",
+      "mime": "image/jpeg",
+      "byteLength": 20849,
+      "pixelSize": {
+        "width": 512,
+        "height": 279
+      },
+      "pngByteLength": 108220,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_5981",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_5981.svg",
+      "pngFileName": "assets/png/Icon-1_5981@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_5981.svg",
+        "png": "assets/png/Icon-1_5981@2x.png"
+      },
+      "nodeId": "1:5981",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 15,
+      "height": 13.333333015441895,
+      "byteLength": 1682,
+      "pngByteLength": 651,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6010",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6010.svg",
+      "pngFileName": "assets/png/Icon-1_6010@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6010.svg",
+        "png": "assets/png/Icon-1_6010@2x.png"
+      },
+      "nodeId": "1:6010",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 13.333333015441895,
+      "height": 13.333333015441895,
+      "byteLength": 1377,
+      "pngByteLength": 852,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6020",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6020.svg",
+      "pngFileName": "assets/png/Icon-1_6020@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6020.svg",
+        "png": "assets/png/Icon-1_6020@2x.png"
+      },
+      "nodeId": "1:6020",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 16,
+      "height": 20,
+      "byteLength": 614,
+      "pngByteLength": 992,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6027",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6027.svg",
+      "pngFileName": "assets/png/Icon-1_6027@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6027.svg",
+        "png": "assets/png/Icon-1_6027@2x.png"
+      },
+      "nodeId": "1:6027",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 7.400000095367432,
+      "height": 12,
+      "byteLength": 227,
+      "pngByteLength": 341,
+      "pngScale": 2
+    },
+    {
+      "ref": "svg-1_6034",
+      "kind": "svg",
+      "semanticRole": "icon",
+      "fileName": "assets/svg/Icon-1_6034.svg",
+      "pngFileName": "assets/png/Icon-1_6034@2x.png",
+      "formats": {
+        "svg": "assets/svg/Icon-1_6034.svg",
+        "png": "assets/png/Icon-1_6034@2x.png"
+      },
+      "nodeId": "1:6034",
+      "nodeName": "Icon",
+      "nodeType": "VECTOR",
+      "width": 12,
+      "height": 12,
+      "byteLength": 248,
+      "pngByteLength": 250,
+      "pngScale": 2
+    }
+  ]
+}
