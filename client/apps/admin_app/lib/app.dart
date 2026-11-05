@@ -14,8 +14,11 @@ class AdminApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'TrueReport Admin',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.build(isArabic: locale.languageCode == 'ar'),
+      darkTheme: AppTheme.build(
+        brightness: Brightness.dark,
+        isArabic: locale.languageCode == 'ar',
+      ),
       themeMode: ThemeMode.system,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

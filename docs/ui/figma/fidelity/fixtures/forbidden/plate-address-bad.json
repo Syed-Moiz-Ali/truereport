@@ -1,0 +1,19 @@
+{
+  "batch": "lint",
+  "logicalWidth": 390,
+  "logicalHeight": 120,
+  "dpr": 2,
+  "renderer": "synthetic",
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "id": "forbidden-plate-address",
+  "name": "Plate and precise-location values must be denied",
+  "reference": "docs/ui/figma/fidelity/synthetic/synthetic-clean/reference.png",
+  "render": "docs/ui/figma/fidelity/synthetic/synthetic-clean/render.png",
+  "output": "docs/ui/figma/fidelity/lint/plate-address-bad",
+  "expectedStrings": [],
+  "actualStrings": ["DXB A 12345", "Dubai Marina"],
+  "thresholdSsim": 0.98,
+  "residualNotes": "Negative fixture: the plate and address patterns must match."
+}

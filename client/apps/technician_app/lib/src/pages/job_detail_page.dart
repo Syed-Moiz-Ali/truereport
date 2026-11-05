@@ -349,42 +349,48 @@ class _Body extends ConsumerWidget {
 
   Future<void> _consent(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    var type = 'PROCESSING';
-    var granted = true;
+    String? type;
+    bool? granted;
     final saved = await showAppBottomSheet<bool>(
       context,
       child: StatefulBuilder(
         builder: (context, setState) => _FormSheet(
           title: l10n.consent,
+          enabled: granted != null && type != null,
+          saveKey: const Key('consent-save'),
           children: [
             AppSelectableText(
+              key: const Key('consent-type-processing'),
               label: l10n.consentProcessing,
               selected: type == 'PROCESSING',
               onTap: () => setState(() => type = 'PROCESSING'),
             ),
             SizedBox(height: context.spacing.sm),
             AppSelectableText(
+              key: const Key('consent-type-public-link'),
               label: l10n.consentPublicLink,
               selected: type == 'PUBLIC_LINK',
               onTap: () => setState(() => type = 'PUBLIC_LINK'),
             ),
             SizedBox(height: context.spacing.md),
             AppSelectableText(
+              key: const Key('consent-granted'),
               label: l10n.consentGranted,
-              selected: granted,
+              selected: granted == true,
               onTap: () => setState(() => granted = true),
             ),
             SizedBox(height: context.spacing.sm),
             AppSelectableText(
+              key: const Key('consent-refused'),
               label: l10n.consentRefused,
-              selected: !granted,
+              selected: granted == false,
               onTap: () => setState(() => granted = false),
             ),
           ],
           onSave: () async {
             final body = <String, dynamic>{
-              'consentType': type,
-              'status': granted ? 'GRANTED' : 'REFUSED',
+              'consentType': type!,
+              'status': granted! ? 'GRANTED' : 'REFUSED',
               'wordingVersion': 'v1',
               'channel': 'IN_PERSON',
             };
@@ -393,8 +399,8 @@ class _Body extends ConsumerWidget {
                   .read(technicianApiProvider)
                   .recordConsent(
                     job.id,
-                    consentType: type,
-                    status: granted ? 'GRANTED' : 'REFUSED',
+                    consentType: type!,
+                    status: granted! ? 'GRANTED' : 'REFUSED',
                     wordingVersion: 'v1',
                     channel: 'IN_PERSON',
                   );
@@ -415,9 +421,7 @@ class _Body extends ConsumerWidget {
       ref.invalidate(pendingSyncCountProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            pending > 0 ? l10n.savedOnPhone : l10n.consentRecorded,
-          ),
+          content: Text(pending > 0 ? l10n.savedOnPhone : l10n.consentRecorded),
         ),
       );
     }
@@ -466,11 +470,15 @@ class _FormSheet extends StatelessWidget {
     required this.title,
     required this.children,
     required this.onSave,
+    this.enabled = true,
+    this.saveKey,
   });
 
   final String title;
   final List<Widget> children;
   final Future<void> Function() onSave;
+  final bool enabled;
+  final Key? saveKey;
 
   @override
   Widget build(BuildContext context) {
@@ -484,20 +492,24 @@ class _FormSheet extends StatelessWidget {
           ...children,
           SizedBox(height: context.spacing.lg),
           AppButton(
+            key: saveKey,
             label: l10n.save,
-            onPressed: () async {
-              try {
-                await onSave();
-                if (context.mounted) {
-                  Navigator.of(context).pop(true);
-                }
-              } on Object {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-                }
-              }
-            },
+            onPressed: enabled
+                ? () async {
+                    try {
+                      await onSave();
+                      if (context.mounted) {
+                        Navigator.of(context).pop(true);
+                      }
+                    } on Object {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.actionFailed)),
+                        );
+                      }
+                    }
+                  }
+                : null,
             icon: Icons.save_outlined,
             expand: true,
           ),

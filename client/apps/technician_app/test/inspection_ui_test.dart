@@ -13,6 +13,7 @@ import 'package:technician_app/src/pages/walk_in_job_page.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
 import 'support/fake_technician_api.dart';
+import 'support/test_offline_store.dart';
 
 class _TestApp extends StatelessWidget {
   const _TestApp({
@@ -62,9 +63,14 @@ Future<void> _pump(
   double textScale = 1,
 }) async {
   _setSize(tester, size);
+  final store = createTestOfflineStore();
+  addTearDown(store.close);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [technicianApiProvider.overrideWithValue(FakeTechnicianApi())],
+      overrides: [
+        technicianApiProvider.overrideWithValue(FakeTechnicianApi()),
+        offlineStoreProvider.overrideWithValue(store),
+      ],
       child: _TestApp(
         home: screen,
         locale: locale,

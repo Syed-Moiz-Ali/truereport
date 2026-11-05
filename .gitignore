@@ -18,6 +18,8 @@ client/build/
 client/apps/*/build/
 client/apps/*/.dart_tool/
 client/packages/*/.dart_tool/
+client/packages/*/build/
+client/packages/*/test/failures/
 client/apps/*/android/.gradle/
 client/apps/*/ios/Pods/
 client/apps/*/ios/.symlinks/

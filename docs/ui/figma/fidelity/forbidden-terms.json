@@ -1,0 +1,113 @@
+{
+  "version": 2,
+  "description": "Deny-list for rendered text in the F1 fidelity harness. It covers locked-rule violations (certification/verification/score/compliance/tamper-proof/ledger), public-report PII (full VIN, plate, email, phone, GPS, PSI) and the deferred certification/score vocabulary. Extend only with an owner decision recorded in docs/ui/figma/decisions.md.",
+  "caseInsensitive": true,
+  "terms": [
+    "certification",
+    "certified",
+    "certificate",
+    "certify",
+    "verified",
+    "verification",
+    "verified by",
+    "independently reviewed",
+    "official",
+    "official certificate",
+    "score",
+    "scored",
+    "condition score",
+    "pass rate",
+    "health score",
+    "compliance",
+    "compliant",
+    "tamper-proof",
+    "tamper proof",
+    "tamper-evident",
+    "tamper evident",
+    "ledger",
+    "blockchain",
+    "root ca",
+    "pki",
+    "approval",
+    "approved",
+    "sign-off",
+    "signoff",
+    "master inspector",
+    "manager approved",
+    "won't approve",
+    "warranty",
+    "guarantee",
+    "guaranteed",
+    "rta",
+    "iso 27001",
+    "iso 9001",
+    "iso 26262",
+    "iso/iec 17020",
+    "full vin",
+    "vin",
+    "plate",
+    "license plate",
+    "registration number",
+    "engine number",
+    "email",
+    "phone",
+    "mobile number",
+    "gps",
+    "latitude",
+    "longitude",
+    "precise location",
+    "psi",
+    "شهادة",
+    "معتمد",
+    "تم التحقق",
+    "درجة",
+    "امتثال",
+    "سجل",
+    "توقيع",
+    "موافقة",
+    "رقم اللوحة",
+    "رقم الهيكل",
+    "البريد الإلكتروني",
+    "الهاتف",
+    "الموقع",
+    "الضمان",
+    "بلوكشين"
+  ],
+  "patterns": [
+    {
+      "name": "full-vin-17-chars",
+      "pattern": "\\b[A-HJ-NPR-Z0-9]{17}\\b",
+      "note": "VIN alphabet excludes I, O and Q; this catches any full 17-character VIN-shaped token."
+    },
+    {
+      "name": "email-address",
+      "pattern": "[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}",
+      "note": "Any email address, including masked-looking local parts with a real domain."
+    },
+    {
+      "name": "phone-number",
+      "pattern": "\\+?\\d{1,3}[\\s-]?\\(?\\d{1,4}\\)?[\\s-]?\\d{3,4}[\\s-]?\\d{3,4}",
+      "note": "International/local phone-number shape. Review any false positive against a safe fixture."
+    },
+    {
+      "name": "gps-coordinate-pair",
+      "pattern": "-?\\d{1,3}\\.\\d{3,}\\s*,\\s*-?\\d{1,3}\\.\\d{3,}",
+      "note": "Decimal latitude/longitude pair."
+    },
+    {
+      "name": "psi-value",
+      "pattern": "\\b\\d{1,3}(?:\\.\\d+)?\\s?psi\\b",
+      "note": "Tyre pressure value; PSI/tread measurement data is out of scope for the public report."
+    },
+    {
+      "name": "uae-plate-value",
+      "pattern": "\\b(?:DXB|AD|SHJ)\\s?[A-Z]?\\s?\\d{2,5}\\b",
+      "note": "UAE plate-shaped value; plates are never public."
+    },
+    {
+      "name": "uae-area-address",
+      "pattern": "\\b(?:Dubai|Abu\\s+Dhabi|Sharjah)\\s+(?:Marina|JLT|Business\\s+Bay|Al\\s+Quoz|Deira|Bur\\s+Dubai|Downtown)\\b",
+      "note": "Common precise-location area label; precise location is never public."
+    }
+  ]
+}

@@ -301,9 +301,7 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              pending == 0 ? l10n.itemSaved : l10n.savedOnPhone,
-            ),
+            content: Text(pending == 0 ? l10n.itemSaved : l10n.savedOnPhone),
           ),
         );
         context.pop();
@@ -380,7 +378,7 @@ class _Form extends StatelessWidget {
           SizedBox(height: context.spacing.lg),
           SectionHeader(title: l10n.guideImage),
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(context.radii.lg),
             child: Image.memory(
               guideImage!,
               fit: BoxFit.cover,
@@ -401,7 +399,7 @@ class _Form extends StatelessWidget {
               children: photos
                   .map(
                     (photo) => ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(context.radii.md),
                       child: Image.memory(
                         photo.bytes,
                         width: 96,

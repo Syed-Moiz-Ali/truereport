@@ -1,3 +1,5 @@
+@import url("tokens.g.css");
+
 @font-face {
   font-family: "TR Sans";
   src: url("/r/assets/fonts/NotoSans-Regular.ttf") format("truetype");
@@ -15,62 +17,72 @@
   src: url("/r/assets/fonts/NotoSansSC-Regular.otf") format("opentype");
   font-display: swap;
 }
-
-:root {
-  color-scheme: light dark;
-  --primary: #0b3b4a;
-  --secondary: #0f6b6f;
-  --surface: #f7fafa;
-  --surface-low: #f1f5f5;
-  --surface-card: #ffffff;
-  --surface-high: #eaf0f0;
-  --on-surface: #17212b;
-  --on-variant: #4d6670;
-  --outline: #d5e3e6;
-  --success: #1f6b45;
-  --success-bg: #e6f3ec;
-  --warning: #8a5a00;
-  --warning-bg: #fff4d6;
-  --danger: #a3231f;
-  --danger-bg: #fbe9e7;
-  --critical: #7f1d1d;
-  --critical-bg: #f7dada;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-xxl: 32px;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --font-body: "TR Sans", "TR Arabic", "TR CJK", system-ui, sans-serif;
-  --font-arabic: "TR Arabic", "TR Sans", "TR CJK", sans-serif;
-  --font-cjk: "TR CJK", "TR Sans", sans-serif;
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/r/assets/fonts/PlusJakartaSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #8fd1d8;
-    --secondary: #82d0d4;
-    --surface: #0d1416;
-    --surface-low: #151e21;
-    --surface-card: #1b262a;
-    --surface-high: #223035;
-    --on-surface: #e4ecef;
-    --on-variant: #c3d4da;
-    --outline: #33464c;
-    --success: #b5e8c9;
-    --success-bg: #173d2b;
-    --warning: #ffdfa3;
-    --warning-bg: #463611;
-    --danger: #ffc4bd;
-    --danger-bg: #4a1f1c;
-    --critical: #ffd0d0;
-    --critical-bg: #551c1c;
-  }
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/r/assets/fonts/PlusJakartaSans-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
 }
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/r/assets/fonts/PlusJakartaSans-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/r/assets/fonts/PlusJakartaSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/r/assets/fonts/PlusJakartaSans-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Arabic";
+  src: url("/r/assets/fonts/NotoSansArabic-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Arabic";
+  src: url("/r/assets/fonts/NotoSansArabic-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Arabic";
+  src: url("/r/assets/fonts/NotoSansArabic-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans Arabic";
+  src: url("/r/assets/fonts/NotoSansArabic-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+
+
+
 
 * {
   box-sizing: border-box;

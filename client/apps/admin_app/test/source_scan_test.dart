@@ -22,6 +22,18 @@ Directory _clientRoot() {
   }
 }
 
+List<Directory> _featureDirectories(Directory root) {
+  final separator = Platform.pathSeparator;
+  return <Directory>[
+    Directory('${root.path}${separator}apps'),
+    Directory('${root.path}${separator}packages${separator}auth'),
+    Directory('${root.path}${separator}packages${separator}api_client'),
+    Directory('${root.path}${separator}packages${separator}core'),
+    Directory('${root.path}${separator}packages${separator}domain'),
+    Directory('${root.path}${separator}packages${separator}offline_sync'),
+  ];
+}
+
 Iterable<File> _dartFiles(Directory root, {bool includeTests = false}) sync* {
   final separator = Platform.pathSeparator;
   final pending = <Directory>[root];
@@ -120,12 +132,129 @@ void main() {
     },
   );
 
+  test(
+    'widgets outside design_system do not hardcode radii, shadows or gradients',
+    () {
+      final root = _clientRoot();
+      final radiusPattern = RegExp(
+        r'BorderRadius\.(?:circular|all\s*\(\s*Radius\.circular)'
+        r'\s*\(\s*(-?\d+(?:\.\d+)?)',
+      );
+      final shadowPattern = RegExp(r'\bBoxShadow\s*\(');
+      final gradientPattern = RegExp(r'\bLinearGradient\s*\(');
+      final offenders = <String>[];
+
+      for (final directory in _featureDirectories(root)) {
+        if (!directory.existsSync()) {
+          continue;
+        }
+        for (final file in _dartFiles(directory)) {
+          final lines = file.readAsLinesSync();
+          for (var index = 0; index < lines.length; index++) {
+            final line = lines[index];
+            final radiusMatch = radiusPattern.firstMatch(line);
+            if (radiusMatch != null) {
+              final value = double.parse(radiusMatch.group(1)!);
+              if (value.abs() > 1) {
+                offenders.add('${file.path}:${index + 1}');
+                continue;
+              }
+            }
+            if (shadowPattern.hasMatch(line) ||
+                gradientPattern.hasMatch(line)) {
+              offenders.add('${file.path}:${index + 1}');
+            }
+          }
+        }
+      }
+
+      expect(offenders, isEmpty, reason: offenders.join('\n'));
+    },
+  );
+
+  test('widgets outside design_system do not hardcode spacing tokens', () {
+    final root = _clientRoot();
+    const spacingValues = <double>[2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64];
+    final edgeInsetsPattern = RegExp(
+      r'EdgeInsets(?:Directional)?\.'
+      r'(?:all|symmetric|only|fromLTRB|fromSTEB)\s*\(([^)]*)\)',
+    );
+    final sizedBoxPattern = RegExp(
+      r'SizedBox\s*\(\s*(?:width|height)\s*:\s*(-?\d+(?:\.\d+)?)',
+    );
+    final numberPattern = RegExp(r'-?\d+(?:\.\d+)?');
+    final offenders = <String>[];
+
+    for (final directory in _featureDirectories(root)) {
+      if (!directory.existsSync()) {
+        continue;
+      }
+      for (final file in _dartFiles(directory)) {
+        final lines = file.readAsLinesSync();
+        for (var index = 0; index < lines.length; index++) {
+          final line = lines[index];
+          var flagged = false;
+
+          final edgeInsetsMatch = edgeInsetsPattern.firstMatch(line);
+          if (edgeInsetsMatch != null) {
+            for (final match in numberPattern.allMatches(
+              edgeInsetsMatch.group(1)!,
+            )) {
+              if (spacingValues.contains(double.parse(match.group(0)!))) {
+                flagged = true;
+                break;
+              }
+            }
+          }
+
+          if (!flagged) {
+            final sizedBoxMatch = sizedBoxPattern.firstMatch(line);
+            if (sizedBoxMatch != null &&
+                spacingValues.contains(double.parse(sizedBoxMatch.group(1)!))) {
+              flagged = true;
+            }
+          }
+
+          if (flagged) {
+            offenders.add('${file.path}:${index + 1}');
+          }
+        }
+      }
+    }
+
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
+  });
+
+  test('widgets outside design_system do not hardcode font families', () {
+    final root = _clientRoot();
+    final pattern = RegExp(r'fontFamily\s*:');
+    final offenders = <String>[];
+
+    for (final directory in _featureDirectories(root)) {
+      if (!directory.existsSync()) {
+        continue;
+      }
+      for (final file in _dartFiles(directory)) {
+        final lines = file.readAsLinesSync();
+        for (var index = 0; index < lines.length; index++) {
+          if (pattern.hasMatch(lines[index])) {
+            offenders.add('${file.path}:${index + 1}');
+          }
+        }
+      }
+    }
+
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
+  });
+
   test('admin app has no TOTP challenge UI', () {
     final root = _clientRoot();
     final separator = Platform.pathSeparator;
     final offenders = <String>[];
     for (final file in _dartFiles(
-      Directory('${root.path}${separator}apps${separator}admin_app${separator}lib'),
+      Directory(
+        '${root.path}${separator}apps${separator}admin_app${separator}lib',
+      ),
       includeTests: true,
     )) {
       final text = file.readAsStringSync().toLowerCase();

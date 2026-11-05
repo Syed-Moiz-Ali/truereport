@@ -1,0 +1,23 @@
+{
+  "batch": "synthetic",
+  "logicalWidth": 390,
+  "logicalHeight": 120,
+  "dpr": 2,
+  "renderer": "synthetic",
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "id": "forbidden-safe-string",
+  "name": "Forbidden-term proof — safe string",
+  "reference": "docs/ui/figma/fidelity/lint/safe/reference.png",
+  "render": "docs/ui/figma/fidelity/lint/safe/render.png",
+  "output": "docs/ui/figma/fidelity/lint/safe",
+  "expectedStrings": [
+    "No issue observed"
+  ],
+  "actualStrings": [
+    "No issue observed"
+  ],
+  "thresholdSsim": 0.98,
+  "residualNotes": "Images are identical and the strings contain no deny-listed term."
+}

@@ -1,0 +1,13 @@
+{
+  "sample": "delivery-status-card-en-light-1x",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "WhatsApp",
+    "Sent",
+    "Fleet Portal",
+    "Synced"
+  ]
+}

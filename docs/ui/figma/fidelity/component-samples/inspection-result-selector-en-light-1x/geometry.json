@@ -1,0 +1,16 @@
+{
+  "sample": "inspection-result-selector-en-light-1x",
+  "logicalSize": {
+    "width": 350.0,
+    "height": 70.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "inspection-result-selector": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 350.0,
+      "height": 70.0
+    }
+  }
+}

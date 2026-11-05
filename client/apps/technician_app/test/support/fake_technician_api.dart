@@ -2,6 +2,10 @@ import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/technician_api.dart';
 
 class FakeTechnicianApi implements TechnicianApi {
+  int consentRecords = 0;
+  String? lastConsentType;
+  String? lastConsentStatus;
+
   static const sampleJob = TechnicianJob(
     id: 'job-1',
     reference: 'JOB-5A0001',
@@ -103,6 +107,20 @@ class FakeTechnicianApi implements TechnicianApi {
       ),
     ],
   );
+
+  @override
+  Future<void> recordConsent(
+    String jobId, {
+    required String consentType,
+    required String status,
+    required String wordingVersion,
+    required String channel,
+    String? evidenceRef,
+  }) async {
+    consentRecords++;
+    lastConsentType = consentType;
+    lastConsentStatus = status;
+  }
 
   @override
   Future<List<String>> equipment(String jobId) async => const [];

@@ -1,0 +1,26 @@
+{
+  "id": "delivery-status-card-en-light-1x",
+  "name": "Delivery status card - Figma exact - EN, light, 1x",
+  "batch": "f1.1-component-samples",
+  "fixtureClass": "fidelity",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/16_16._Post-Finalization_Success/16._Post-Finalization_Success@2x.png",
+  "crop": { "x": 80, "y": 799, "width": 700, "height": 290 },
+  "logicalWidth": 350,
+  "logicalHeight": 145,
+  "dpr": 2,
+  "locale": "en",
+  "theme": "light",
+  "textScale": 1.0,
+  "render": "docs/ui/figma/fidelity/component-samples/delivery-status-card-en-light-1x/render.png",
+  "output": "docs/ui/figma/fidelity/component-samples/delivery-status-card-en-light-1x",
+  "expectedStrings": ["WhatsApp", "Sent", "Fleet Portal", "Synced"],
+  "keyBoxes": [
+    { "key": "delivery-status-card", "x": 0, "y": 0, "width": 350, "height": 145 }
+  ],
+  "keyBoxTolerance": 1,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "thresholdSsim": 0.98,
+  "owner": "fidelity-auditor",
+  "residualNotes": "Crop is the Figma Delivery Status Card node bounding box (350 x 145 at logical 20,399.5). Figma's own sample copy is used in this test-only fixture: WhatsApp/Sent and Fleet Portal/Synced. The product variant uses report-link/workshop-copy labels; that copy change is a documented content deviation."
+}

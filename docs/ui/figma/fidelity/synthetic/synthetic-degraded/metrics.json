@@ -1,0 +1,471 @@
+{
+  "sample": "synthetic-degraded",
+  "name": "Synthetic degraded pair (known noise + colour shift)",
+  "batch": "synthetic",
+  "renderer": "synthetic",
+  "fixture": "docs/ui/figma/fidelity/fixtures/synthetic/synthetic-degraded.json",
+  "reference": "docs/ui/figma/fidelity/synthetic/synthetic-degraded/reference.png",
+  "crop": null,
+  "logical": {
+    "width": 390,
+    "height": 120,
+    "dpr": 2
+  },
+  "comparedPixels": {
+    "width": 780,
+    "height": 240
+  },
+  "generatedAt": "2026-11-05T08:32:52.604Z",
+  "ssim": {
+    "global": 0.8970846612145653,
+    "minTile": 0.7348549218571548,
+    "tileSize": 64,
+    "tiles": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9035688537458659
+      },
+      {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.8629359327873068
+      },
+      {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.8683704199640498
+      },
+      {
+        "x": 192,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081120595148978
+      },
+      {
+        "x": 256,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081132864591878
+      },
+      {
+        "x": 320,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081135889509504
+      },
+      {
+        "x": 384,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081131054473984
+      },
+      {
+        "x": 448,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081118465700853
+      },
+      {
+        "x": 512,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081104122851433
+      },
+      {
+        "x": 576,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.908108830286717
+      },
+      {
+        "x": 640,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9081079129933589
+      },
+      {
+        "x": 704,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9049745732438238
+      },
+      {
+        "x": 768,
+        "y": 0,
+        "width": 12,
+        "height": 64,
+        "ssim": 0.9022443928773575
+      },
+      {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.8964874764235258
+      },
+      {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.7795362290466927
+      },
+      {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.7824764446806457
+      },
+      {
+        "x": 192,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9358579205610597
+      },
+      {
+        "x": 256,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9296180741966137
+      },
+      {
+        "x": 320,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9212533183028874
+      },
+      {
+        "x": 384,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9039894680076698
+      },
+      {
+        "x": 448,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9039895093901562
+      },
+      {
+        "x": 512,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9114666526634971
+      },
+      {
+        "x": 576,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9162210827749189
+      },
+      {
+        "x": 640,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9183446018018822
+      },
+      {
+        "x": 704,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9147279236625628
+      },
+      {
+        "x": 768,
+        "y": 64,
+        "width": 12,
+        "height": 64,
+        "ssim": 0.9022078641914598
+      },
+      {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.913331003205189
+      },
+      {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9300610396933592
+      },
+      {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.930259422908013
+      },
+      {
+        "x": 192,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9311578477912703
+      },
+      {
+        "x": 256,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9111469855195721
+      },
+      {
+        "x": 320,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9110413900009185
+      },
+      {
+        "x": 384,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9110414277500827
+      },
+      {
+        "x": 448,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9110415924471288
+      },
+      {
+        "x": 512,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.7348549218571548
+      },
+      {
+        "x": 576,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.8057872101443728
+      },
+      {
+        "x": 640,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9223389946470781
+      },
+      {
+        "x": 704,
+        "y": 128,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9149872688872528
+      },
+      {
+        "x": 768,
+        "y": 128,
+        "width": 12,
+        "height": 64,
+        "ssim": 0.9022132105428998
+      },
+      {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021582371929003
+      },
+      {
+        "x": 64,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021576680361223
+      },
+      {
+        "x": 128,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.902159450391892
+      },
+      {
+        "x": 192,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021607079101682
+      },
+      {
+        "x": 256,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021606572018129
+      },
+      {
+        "x": 320,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021594875285558
+      },
+      {
+        "x": 384,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021575898469494
+      },
+      {
+        "x": 448,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021546521021824
+      },
+      {
+        "x": 512,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021533871527708
+      },
+      {
+        "x": 576,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021553151799732
+      },
+      {
+        "x": 640,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.9021576680361223
+      },
+      {
+        "x": 704,
+        "y": 192,
+        "width": 64,
+        "height": 48,
+        "ssim": 0.902159450391892
+      },
+      {
+        "x": 768,
+        "y": 192,
+        "width": 12,
+        "height": 48,
+        "ssim": 0.9023523560796745
+      }
+    ]
+  },
+  "rmse": {
+    "rmse": 18.53851015098661,
+    "mae": 4.4076691595441595,
+    "maePerChannel": {
+      "r": 5.58991452991453,
+      "g": 3.72741452991453,
+      "b": 3.9056784188034186
+    },
+    "rmsePerChannel": {
+      "r": 26.703535610524764,
+      "g": 10.474904381180373,
+      "b": 14.430060289453573
+    }
+  },
+  "deltaE2000": {
+    "mean": 1.2843895411540214,
+    "median": 0.6080167466051206,
+    "p95": 1.6863578399146355,
+    "p99": 28.413240399838838,
+    "max": 29.11267107729726,
+    "percentOver2": 2.403846153846154,
+    "percentOver5": 2.403846153846154,
+    "percentOver10": 2.403846153846154
+  },
+  "diffBoxes": [
+    {
+      "x": 64,
+      "y": 64,
+      "width": 120,
+      "height": 24,
+      "area": 2880,
+      "logical": {
+        "x": 32,
+        "y": 32,
+        "width": 60,
+        "height": 12
+      }
+    },
+    {
+      "x": 520,
+      "y": 150,
+      "width": 90,
+      "height": 18,
+      "area": 1620,
+      "logical": {
+        "x": 260,
+        "y": 75,
+        "width": 45,
+        "height": 9
+      }
+    }
+  ],
+  "keyBoxes": {
+    "tolerance": 2,
+    "rows": [],
+    "pass": true
+  },
+  "text": {
+    "expected": [
+      "Continue"
+    ],
+    "actual": [
+      "Continue"
+    ],
+    "missing": [],
+    "pass": true
+  },
+  "forbiddenTerms": {
+    "denyList": "docs/ui/figma/fidelity/forbidden-terms.json",
+    "matches": [],
+    "pass": true
+  },
+  "gate": {
+    "thresholdSsim": 0.98,
+    "ssim": false,
+    "strings": true,
+    "forbidden": true,
+    "geometry": true,
+    "pass": false
+  },
+  "note": "All metrics are computed from the two normalised images. No pixel-perfect claim is made."
+}

@@ -1,0 +1,602 @@
+{
+  "sample": "inspection-result-selector-en-light-1x",
+  "name": "Inspection result selector - Figma exact - EN, light, 1x",
+  "batch": "f1.1-component-samples",
+  "renderer": "flutter",
+  "fixture": "docs/ui/figma/fidelity/fixtures/component-samples/inspection-result-selector-en-light-1x.json",
+  "reference": "docs/ui/figma-export/technision_figma/screens/09_9._Defect_Detail_&_Evidence/9._Defect_Detail_&_Evidence@2x.png",
+  "crop": {
+    "x": 160,
+    "y": 888,
+    "width": 700,
+    "height": 140
+  },
+  "logical": {
+    "width": 350,
+    "height": 70,
+    "dpr": 2
+  },
+  "comparedPixels": {
+    "width": 700,
+    "height": 140
+  },
+  "generatedAt": "2026-11-05T12:47:52.305Z",
+  "ssim": {
+    "global": 0.9834046796794758,
+    "minTile": 0.857217814224117,
+    "tileSize": 64,
+    "tiles": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9385304702009976
+      },
+      {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9370606603268625
+      },
+      {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9505079382505162
+      },
+      {
+        "x": 192,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9688891005362675
+      },
+      {
+        "x": 256,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9985387199673877
+      },
+      {
+        "x": 320,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9988701447691201
+      },
+      {
+        "x": 384,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9983855248685406
+      },
+      {
+        "x": 448,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9996492430163736
+      },
+      {
+        "x": 512,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 1
+      },
+      {
+        "x": 576,
+        "y": 0,
+        "width": 64,
+        "height": 64,
+        "ssim": 1
+      },
+      {
+        "x": 640,
+        "y": 0,
+        "width": 60,
+        "height": 64,
+        "ssim": 0.9999005235477144
+      },
+      {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9999069191695857
+      },
+      {
+        "x": 64,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.990731195533167
+      },
+      {
+        "x": 128,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9908169029348592
+      },
+      {
+        "x": 192,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9870132115986319
+      },
+      {
+        "x": 256,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9937291079756397
+      },
+      {
+        "x": 320,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9624450469059361
+      },
+      {
+        "x": 384,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9951952912969242
+      },
+      {
+        "x": 448,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9891328352505848
+      },
+      {
+        "x": 512,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9881227072688827
+      },
+      {
+        "x": 576,
+        "y": 64,
+        "width": 64,
+        "height": 64,
+        "ssim": 0.9890241943905321
+      },
+      {
+        "x": 640,
+        "y": 64,
+        "width": 60,
+        "height": 64,
+        "ssim": 0.9999297037791754
+      },
+      {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.9995566983235821
+      },
+      {
+        "x": 64,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 1
+      },
+      {
+        "x": 128,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 1
+      },
+      {
+        "x": 192,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.9976677959476786
+      },
+      {
+        "x": 256,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.8726459595513076
+      },
+      {
+        "x": 320,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.857217814224117
+      },
+      {
+        "x": 384,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.8826547071089687
+      },
+      {
+        "x": 448,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 0.9987886929382287
+      },
+      {
+        "x": 512,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 1
+      },
+      {
+        "x": 576,
+        "y": 128,
+        "width": 64,
+        "height": 12,
+        "ssim": 1
+      },
+      {
+        "x": 640,
+        "y": 128,
+        "width": 60,
+        "height": 12,
+        "ssim": 0.9997397679788216
+      }
+    ]
+  },
+  "rmse": {
+    "rmse": 8.269352893601262,
+    "mae": 1.4254149659863946,
+    "maePerChannel": {
+      "r": 1.1807244897959184,
+      "g": 1.4450204081632654,
+      "b": 1.6505
+    },
+    "rmsePerChannel": {
+      "r": 8.54005030334561,
+      "g": 8.36012767210391,
+      "b": 7.894453620053998
+    }
+  },
+  "deltaE2000": {
+    "mean": 0.5429555834647373,
+    "median": 0,
+    "p95": 3.1533554957472916,
+    "p99": 14.547962432057115,
+    "max": 65.78610538728825,
+    "percentOver2": 6.516326530612244,
+    "percentOver5": 2.211224489795918,
+    "percentOver10": 1.4081632653061225
+  },
+  "diffBoxes": [
+    {
+      "x": 70,
+      "y": 5,
+      "width": 13,
+      "height": 16,
+      "area": 63,
+      "logical": {
+        "x": 35,
+        "y": 2.5,
+        "width": 6.5,
+        "height": 8
+      }
+    },
+    {
+      "x": 15,
+      "y": 5,
+      "width": 8,
+      "height": 17,
+      "area": 60,
+      "logical": {
+        "x": 7.5,
+        "y": 2.5,
+        "width": 4,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 57,
+      "y": 5,
+      "width": 12,
+      "height": 17,
+      "area": 58,
+      "logical": {
+        "x": 28.5,
+        "y": 2.5,
+        "width": 6,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 108,
+      "y": 5,
+      "width": 14,
+      "height": 14,
+      "area": 53,
+      "logical": {
+        "x": 54,
+        "y": 2.5,
+        "width": 7,
+        "height": 7
+      }
+    },
+    {
+      "x": 102,
+      "y": 5,
+      "width": 4,
+      "height": 17,
+      "area": 51,
+      "logical": {
+        "x": 51,
+        "y": 2.5,
+        "width": 2,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 317,
+      "y": 80,
+      "width": 19,
+      "height": 18,
+      "area": 51,
+      "logical": {
+        "x": 158.5,
+        "y": 40,
+        "width": 9.5,
+        "height": 9
+      }
+    },
+    {
+      "x": 94,
+      "y": 6,
+      "width": 6,
+      "height": 16,
+      "area": 38,
+      "logical": {
+        "x": 47,
+        "y": 3,
+        "width": 3,
+        "height": 8
+      }
+    },
+    {
+      "x": 172,
+      "y": 6,
+      "width": 6,
+      "height": 16,
+      "area": 37,
+      "logical": {
+        "x": 86,
+        "y": 3,
+        "width": 3,
+        "height": 8
+      }
+    },
+    {
+      "x": 199,
+      "y": 6,
+      "width": 6,
+      "height": 16,
+      "area": 37,
+      "logical": {
+        "x": 99.5,
+        "y": 3,
+        "width": 3,
+        "height": 8
+      }
+    },
+    {
+      "x": 26,
+      "y": 5,
+      "width": 10,
+      "height": 9,
+      "area": 36,
+      "logical": {
+        "x": 13,
+        "y": 2.5,
+        "width": 5,
+        "height": 4.5
+      }
+    },
+    {
+      "x": 192,
+      "y": 5,
+      "width": 12,
+      "height": 17,
+      "area": 36,
+      "logical": {
+        "x": 96,
+        "y": 2.5,
+        "width": 6,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "width": 3,
+      "height": 17,
+      "area": 34,
+      "logical": {
+        "x": 0.5,
+        "y": 2.5,
+        "width": 1.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 8,
+      "y": 5,
+      "width": 3,
+      "height": 17,
+      "area": 34,
+      "logical": {
+        "x": 4,
+        "y": 2.5,
+        "width": 1.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 129,
+      "y": 5,
+      "width": 3,
+      "height": 17,
+      "area": 34,
+      "logical": {
+        "x": 64.5,
+        "y": 2.5,
+        "width": 1.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 138,
+      "y": 5,
+      "width": 5,
+      "height": 17,
+      "area": 34,
+      "logical": {
+        "x": 69,
+        "y": 2.5,
+        "width": 2.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 166,
+      "y": 5,
+      "width": 11,
+      "height": 17,
+      "area": 34,
+      "logical": {
+        "x": 83,
+        "y": 2.5,
+        "width": 5.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 88,
+      "y": 5,
+      "width": 11,
+      "height": 17,
+      "area": 33,
+      "logical": {
+        "x": 44,
+        "y": 2.5,
+        "width": 5.5,
+        "height": 8.5
+      }
+    },
+    {
+      "x": 152,
+      "y": 5,
+      "width": 9,
+      "height": 9,
+      "area": 33,
+      "logical": {
+        "x": 76,
+        "y": 2.5,
+        "width": 4.5,
+        "height": 4.5
+      }
+    },
+    {
+      "x": 207,
+      "y": 5,
+      "width": 3,
+      "height": 16,
+      "area": 32,
+      "logical": {
+        "x": 103.5,
+        "y": 2.5,
+        "width": 1.5,
+        "height": 8
+      }
+    },
+    {
+      "x": 223,
+      "y": 5,
+      "width": 10,
+      "height": 8,
+      "area": 32,
+      "logical": {
+        "x": 111.5,
+        "y": 2.5,
+        "width": 5,
+        "height": 4
+      }
+    }
+  ],
+  "keyBoxes": {
+    "tolerance": 1,
+    "rows": [
+      {
+        "key": "inspection-result-selector",
+        "expected": {
+          "key": "inspection-result-selector",
+          "x": 0,
+          "y": 0,
+          "width": 350,
+          "height": 70
+        },
+        "actual": {
+          "x": 0,
+          "y": 0,
+          "width": 350,
+          "height": 70
+        },
+        "delta": 0,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "text": {
+    "expected": [
+      "INSPECTION STATUS",
+      "Pass",
+      "Minor",
+      "Major"
+    ],
+    "actual": [
+      "INSPECTION STATUS",
+      "Pass",
+      "Minor",
+      "Major"
+    ],
+    "missing": [],
+    "pass": true
+  },
+  "forbiddenTerms": {
+    "denyList": "docs/ui/figma/fidelity/forbidden-terms.json",
+    "matches": [],
+    "pass": true
+  },
+  "gate": {
+    "thresholdSsim": 0.98,
+    "ssim": true,
+    "strings": true,
+    "forbidden": true,
+    "geometry": true,
+    "pass": true
+  },
+  "note": "All metrics are computed from the two normalised images. No pixel-perfect claim is made."
+}

@@ -201,3 +201,47 @@ Risk IDs are now unique (`TR-Rxxx`). The legacy table maps reused and phase-spec
 - **Arabic:** named native Arabic reviewer.
 - **QA:** pilot/device test owner.
 - **DBA:** database administrator.
+---
+
+## 5. Phase F1 design-system risks (5 November 2026)
+
+These are additional to the product risks above. F1 is a design-system/UI phase; no business logic or public allowlist was changed.
+
+| ID | Risk | Likelihood | Impact | Current mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F1-R01 | Noto Sans SC adds 15.68 MiB to every app build, although it is only for zh-Hans | High | Medium | Accepted in ADR-F1-002; subsetting or lazy loading is a candidate before release | Eng |
+| F1-R02 | Arabic native review not performed; Arabic shaping/RTL is only table- and render-tested | High | High | Noto/IBM candidates and RTL tests exist; native reviewer still required | Arabic |
+| F1-R03 | Goldens were generated/passed on Windows only; CI Linux may differ | Medium | Medium | 20 goldens pass on Windows; tolerant/cross-platform comparator still to be chosen | Eng |
+| F1-R04 | Three F1 component fidelity samples fail the 0.98 SSIM gate (0.938 / 0.880 / 0.756) | High | High | Residuals are listed in 1-report.md; owner acceptance or rework required before F2 | Product |
+| F1-R05 | Emerald fill boundary is 2.42–2.54:1 against the surface | Medium | Medium | A2 approved fill-only; primary button now has a 1.5 dp deep-green boundary; exception pending owner sign-off | Product |
+| F1-R06 | Decorative outlineVariant dividers are 1.14–2.19:1 | Low | Low | Not the sole boundary of interactive controls; exception pending owner sign-off | Product |
+| F1-R07 | Screen-reader activation fixes are code/test reviewed but not tested with TalkBack/VoiceOver | Medium | High | Semantics onTap added; manual device pass required | QA |
+| F1-R08 | Directional icon mirroring is only implemented for AppIcon.arrowForward; legacy IconData uses are not auto-mirrored | Medium | Medium | Screen-level RTL review in F2 will catch remaining icons | Eng |
+| F1-R09 | Gallery control labels are not localized | Low | Low | Developer-only gallery; not shipped | Eng |
+| F1-R10 | HTML report uses Plus Jakarta Sans/Noto Sans Arabic while the PDF still embeds Noto Sans/Naskh/SC | Medium | Medium | Token colours match; font parity deferred to F5 | Eng |
+| F1-R11 | Five Figma SVG icons are user-provided; provenance/licence is not independently verified | Medium | Low | Copied with stable names; lutter_svg is MIT; no runtime fetch | Product |
+| F1-R12 | Widget tests use an in-memory offline store; the production drift store is not exercised in those tests | Low | Low | Deterministic tests; real store has its own test coverage | Eng |
+| F1-R13 | F1 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
+---
+
+## 6. Phase F1.1 fidelity-first rework risks (5 November 2026)
+
+F1.1 reverted the design-system drift to the Figma values. No business logic,
+API contract, model, validation, permission, state-management or server logic was
+changed. The F1-R04 fidelity residual is closed for the three measured
+components; the remaining items are open decisions or unverified areas.
+
+| ID | Risk | Likelihood | Impact | Current mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F1.1-R01 | Primary-button colour is still undecided; option 1 (Figma white label on `#10B981`) is 2.54:1 and fails even the large-text 3:1 allowance | High | High | Four options measured in `contrast-after.md`; product default remains the ink-label option 3 (6.78:1); owner decision pending | Product |
+| F1.1-R02 | Borderless text field is Figma-exact but its fill against white is 1.09:1, below WCAG 2.2 1.4.11 for an input boundary | High | High | Documented as open deviation O-01; choice is accept Figma or restore a 1.5 dp boundary; not silently accepted | Product |
+| F1.1-R03 | Product type scale keeps 12 px labels and 12/18 body instead of Figma 11/13 px (B1) | Medium | Low | Owner-approved B1; exact variants use `FigmaType` 11/13; measured samples pass | Product |
+| F1.1-R04 | Only three components have a Figma-exact SSIM sample; the other shared components are structurally rebuilt but not measured at 0.98 | Medium | Medium | Three samples pass (0.99520 / 0.99198 / 0.98340); remaining components listed in the audit as unmeasured | Eng |
+| F1.1-R05 | Figma-exact fixtures use Figma sample copy (`Fleet Portal`, `Pass`/`Minor`/`Major`) | Low | Medium | Test-only fixtures under `docs/.../fidelity` and `test/`; gallery hidden in release by `FixtureGuard`; product copy uses approved vocabulary | Eng |
+| F1.1-R06 | Figma-exact samples are Windows-only and renderer-dependent; a Linux CI or a Flutter/font update can shift SSIM | Medium | Medium | Measured on Flutter 3.47.9 with the bundled OFL fonts; rerun the capture+compare command in CI when added | Eng |
+| F1.1-R07 | One `admin_app` still serves both admin roles with a flat `pages/` folder; Workshop header is 80 px vs the shared 64 px | Medium | Medium | App-structure report recommends keeping A with role skins and a folder boundary; owner decision pending | Product |
+| F1.1-R08 | `ui_gallery` is dev-only by structure plus a release guard, but the guard is not a security boundary | Low | Low | `FixtureGuard`, release-blocked entry, and a release-guard test; no product/infra/CI reference | Eng |
+| F1.1-R09 | Server authorization relies on URL-prefix rules for several controllers; `/api/v1/workshops/{id}` has no method annotation | Medium | High | Server tests cover role separation; recommend method annotations/ArchUnit; unchanged by the UI work | Security |
+| F1.1-R10 | Motion tokens cannot be compared to Figma because the export has no motion data | Low | Low | Reported as unverified; F1 motion retained | Eng |
+| F1.1-R11 | F1.1 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |

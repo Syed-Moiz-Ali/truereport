@@ -1,0 +1,384 @@
+{
+  "generatedDate": "2026-11-05",
+  "scope": "TrueReport F1 bundled fonts. No runtime downloads.",
+  "verificationTools": {
+    "fontTools": "4.63.0",
+    "python": "3.14.6",
+    "sizeAndHash": "PowerShell Get-Item / Get-FileHash SHA256"
+  },
+  "fonts": [
+    {
+      "family": "Plus Jakarta Sans",
+      "weight": 400,
+      "style": "normal",
+      "file": "PlusJakartaSans-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master/fonts/ttf/PlusJakartaSans-Regular.ttf",
+      "licence": "licenses/OFL-PlusJakartaSans.txt",
+      "bytes": 128972,
+      "sha256": "BD6276D4060E3B1EBC45047469E0BB86B08F301BA681CDF1CEB6245EA10478D2",
+      "version": "Version 2.071; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.30]",
+      "scriptsVerified": ["Latin", "Latin-ext"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "95/96",
+        "latinExtA": "126/128",
+        "arabic": "0/256",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "weight": 500,
+      "style": "normal",
+      "file": "PlusJakartaSans-Medium.ttf",
+      "source": "https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master/fonts/ttf/PlusJakartaSans-Medium.ttf",
+      "licence": "licenses/OFL-PlusJakartaSans.txt",
+      "bytes": 129180,
+      "sha256": "C77BAB757D7402EC6D9341D5F7DDAAFB2474E17026792697BA4624C7DC89CAF7",
+      "version": "Version 2.071; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.30]",
+      "scriptsVerified": ["Latin", "Latin-ext"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "95/96",
+        "latinExtA": "126/128",
+        "arabic": "0/256",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "weight": 600,
+      "style": "normal",
+      "file": "PlusJakartaSans-SemiBold.ttf",
+      "source": "https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master/fonts/ttf/PlusJakartaSans-SemiBold.ttf",
+      "licence": "licenses/OFL-PlusJakartaSans.txt",
+      "bytes": 129288,
+      "sha256": "65DBCEDB6596A41C30869729EB31CB57D1F5EDFE365684314BBA8A1994EAA4CB",
+      "version": "Version 2.071; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.30]",
+      "scriptsVerified": ["Latin", "Latin-ext"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "95/96",
+        "latinExtA": "126/128",
+        "arabic": "0/256",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "weight": 700,
+      "style": "normal",
+      "file": "PlusJakartaSans-Bold.ttf",
+      "source": "https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master/fonts/ttf/PlusJakartaSans-Bold.ttf",
+      "licence": "licenses/OFL-PlusJakartaSans.txt",
+      "bytes": 128988,
+      "sha256": "5F5342EF76862B5B5365D1DFF1A667629DFA484E388DD602552F647219C3870F",
+      "version": "Version 2.071; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.30]",
+      "scriptsVerified": ["Latin", "Latin-ext"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "95/96",
+        "latinExtA": "126/128",
+        "arabic": "0/256",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Plus Jakarta Sans",
+      "weight": 800,
+      "style": "normal",
+      "file": "PlusJakartaSans-ExtraBold.ttf",
+      "source": "https://raw.githubusercontent.com/tokotype/PlusJakartaSans/master/fonts/ttf/PlusJakartaSans-ExtraBold.ttf",
+      "licence": "licenses/OFL-PlusJakartaSans.txt",
+      "bytes": 128888,
+      "sha256": "7D60D21B5DEC501C77437E80AABD539F1D7A7B0AC7D4ADA361D4D42ABC7C55EA",
+      "version": "Version 2.071; ttfautohint (v1.8.4.7-5d5b);gftools[0.9.30]",
+      "scriptsVerified": ["Latin", "Latin-ext"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "95/96",
+        "latinExtA": "126/128",
+        "arabic": "0/256",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Noto Sans Arabic",
+      "weight": 400,
+      "style": "normal",
+      "file": "NotoSansArabic-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/NotoSansArabic%5Bwdth,wght%5D.ttf",
+      "derivation": "fontTools.varLib.instancer, wght=400, wdth=100",
+      "licence": "licenses/OFL-NotoSansArabic.txt",
+      "bytes": 194336,
+      "sha256": "AF2E99E42B8AAA04415649AEE873BAE0BEB91F2BA03A544A6ED757147FE03D71",
+      "version": "Version 2.012",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "256/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "96/96",
+        "arabicPresentationFormsA": "631/688",
+        "arabicPresentationFormsB": "141/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga"]
+      }
+    },
+    {
+      "family": "Noto Sans Arabic",
+      "weight": 500,
+      "style": "normal",
+      "file": "NotoSansArabic-Medium.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/NotoSansArabic%5Bwdth,wght%5D.ttf",
+      "derivation": "fontTools.varLib.instancer, wght=500, wdth=100",
+      "licence": "licenses/OFL-NotoSansArabic.txt",
+      "bytes": 194612,
+      "sha256": "E30AD3BA28F9A90B14A2FC6D0CA79D12CC089C370831B54B478998371D5A8E15",
+      "version": "Version 2.012",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "256/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "96/96",
+        "arabicPresentationFormsA": "631/688",
+        "arabicPresentationFormsB": "141/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga"]
+      }
+    },
+    {
+      "family": "Noto Sans Arabic",
+      "weight": 600,
+      "style": "normal",
+      "file": "NotoSansArabic-SemiBold.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/NotoSansArabic%5Bwdth,wght%5D.ttf",
+      "derivation": "fontTools.varLib.instancer, wght=600, wdth=100",
+      "licence": "licenses/OFL-NotoSansArabic.txt",
+      "bytes": 194656,
+      "sha256": "10FEC08D76B5AEAE3A1E5A59A1D44D53529E72EE99727FFA872291B9543897F1",
+      "version": "Version 2.012",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "256/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "96/96",
+        "arabicPresentationFormsA": "631/688",
+        "arabicPresentationFormsB": "141/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga"]
+      }
+    },
+    {
+      "family": "Noto Sans Arabic",
+      "weight": 700,
+      "style": "normal",
+      "file": "NotoSansArabic-Bold.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansarabic/NotoSansArabic%5Bwdth,wght%5D.ttf",
+      "derivation": "fontTools.varLib.instancer, wght=700, wdth=100",
+      "licence": "licenses/OFL-NotoSansArabic.txt",
+      "bytes": 194520,
+      "sha256": "0EEB437A4B6C0BFFD3991A5D4B10E92AB56200CAAE98FB0FD33DE71DAD97EE50",
+      "version": "Version 2.012",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "256/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "96/96",
+        "arabicPresentationFormsA": "631/688",
+        "arabicPresentationFormsB": "141/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga"]
+      }
+    },
+    {
+      "family": "IBM Plex Sans Arabic",
+      "weight": 400,
+      "style": "normal",
+      "file": "IBMPlexSansArabic-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsansarabic/IBMPlexSansArabic-Regular.ttf",
+      "licence": "licenses/OFL-IBMPlexSansArabic.txt",
+      "bytes": 235924,
+      "sha256": "6F611412270A132BBAC838DA9259D4C68569B4175F3B3B8FA3FA36A30B56DAB9",
+      "version": "Version 1.101",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "252/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "40/96",
+        "arabicPresentationFormsA": "196/688",
+        "arabicPresentationFormsB": "140/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga", "calt"]
+      }
+    },
+    {
+      "family": "IBM Plex Sans Arabic",
+      "weight": 500,
+      "style": "normal",
+      "file": "IBMPlexSansArabic-Medium.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsansarabic/IBMPlexSansArabic-Medium.ttf",
+      "licence": "licenses/OFL-IBMPlexSansArabic.txt",
+      "bytes": 242100,
+      "sha256": "B8363AB9F733DFA4F8E96B8B2102C24B5CF4110FB96D1D3D9A9412F6FB49CF74",
+      "version": "Version 1.101",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "252/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "40/96",
+        "arabicPresentationFormsA": "196/688",
+        "arabicPresentationFormsB": "140/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga", "calt"]
+      }
+    },
+    {
+      "family": "IBM Plex Sans Arabic",
+      "weight": 600,
+      "style": "normal",
+      "file": "IBMPlexSansArabic-SemiBold.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsansarabic/IBMPlexSansArabic-SemiBold.ttf",
+      "licence": "licenses/OFL-IBMPlexSansArabic.txt",
+      "bytes": 244616,
+      "sha256": "597BD5502E5997BE4414E4C9C88834B30FF3784250C84F20BCE2B20E53EBD467",
+      "version": "Version 1.101",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "252/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "40/96",
+        "arabicPresentationFormsA": "196/688",
+        "arabicPresentationFormsB": "140/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga", "calt"]
+      }
+    },
+    {
+      "family": "IBM Plex Sans Arabic",
+      "weight": 700,
+      "style": "normal",
+      "file": "IBMPlexSansArabic-Bold.ttf",
+      "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsansarabic/IBMPlexSansArabic-Bold.ttf",
+      "licence": "licenses/OFL-IBMPlexSansArabic.txt",
+      "bytes": 246992,
+      "sha256": "691E0C891A38637AE6BBDB69700F8042CB0724A137BEE615068FFDB92244F61F",
+      "version": "Version 1.101",
+      "scriptsVerified": ["Arabic", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "arabic": "252/256",
+        "arabicSupplement": "48/48",
+        "arabicExtA": "40/96",
+        "arabicPresentationFormsA": "196/688",
+        "arabicPresentationFormsB": "140/144",
+        "cyrillic": "0/256",
+        "cjkUnified": "0/20992"
+      },
+      "shapingTables": {
+        "GSUB": true,
+        "GPOS": true,
+        "arabicFeatures": ["init", "medi", "fina", "rlig", "liga", "calt"]
+      }
+    },
+    {
+      "family": "Noto Sans",
+      "weight": 400,
+      "style": "normal",
+      "file": "NotoSans-Regular.ttf",
+      "source": "https://github.com/notofonts/noto-fonts",
+      "originFile": "server/src/main/resources/public-report/fonts/NotoSans-Regular.ttf",
+      "licence": "licenses/OFL-NotoSans.txt",
+      "bytes": 569208,
+      "sha256": "B85C38ECEA8A7CFB39C24E395A4007474FA5A4FC864F6EE33309EB4948D232D5",
+      "version": "Version 2.008; ttfautohint (v1.8) -l 8 -r 50 -G 200 -x 14 -D latn -f none -a qsq -X \"\"",
+      "scriptsVerified": ["Latin", "Latin-ext", "Cyrillic"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "96/96",
+        "latinExtA": "128/128",
+        "cyrillic": "256/256",
+        "cyrillicSupplement": "48/48",
+        "arabic": "0/256",
+        "cjkUnified": "0/20992"
+      }
+    },
+    {
+      "family": "Noto Sans SC",
+      "weight": 400,
+      "style": "normal",
+      "file": "NotoSansSC-Regular.otf",
+      "source": "https://github.com/notofonts/noto-cjk",
+      "originFile": "server/src/main/resources/public-report/fonts/NotoSansSC-Regular.otf",
+      "licence": "licenses/OFL-NotoSansSC.txt",
+      "bytes": 16437364,
+      "sha256": "2C76254F6FC379FDDFCE0A7E84FB5385BB135D3E399294F6EEB6680D0365B74B",
+      "version": "Version 2.004;hotconv 1.0.118;makeotfexe 2.5.65603",
+      "scriptsVerified": ["CJK (zh-Hans)", "Latin"],
+      "coverage": {
+        "latinBasic": "95/95",
+        "latin1Supplement": "96/96",
+        "latinExtA": "30/128",
+        "cyrillic": "66/256",
+        "arabic": "0/256",
+        "cjkUnified": "20976/20992"
+      },
+      "notes": "Bundled for zh-Hans only. 16,437,364 bytes (15.68 MiB)."
+    }
+  ],
+  "sizeSummary": {
+    "allFontBytes": 19399644,
+    "allFontMiB": 18.5,
+    "excludingNotoSansSCBytes": 2962280,
+    "excludingNotoSansSCMiB": 2.83,
+    "notoSansSCBytes": 16437364,
+    "notoSansSCMiB": 15.68,
+    "licenceBytes": 22024
+  }
+}
