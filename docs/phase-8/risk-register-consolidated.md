@@ -261,6 +261,22 @@ in this step beyond F2-B.1 leftovers (L1–L8). Light-only, EN+AR.
 | F2B2-R06 | First-login forced password change stays deferred (L6 / C-A6, risk A6) | Medium | High | Recorded; designed screen deferred | Product/Security |
 | F2B2-R07 | F2-B.2 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
 
+## 9. Phase F2-B.3 close-out risks (6 November 2026)
+
+F2-B.3 made all suites green and built Level 1 Figma-structure fixtures
+for screens 9/11/13/14/15/16. No server/API/model change (one docs-generator
+line in `contrast.mjs` to emit the owner-accepted I1 note so `generate
+--check` passes on the generated file; no token/value change).
+
+| ID | Risk | Likelihood | Impact | Mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F2B3-R01 | Level 1 gate NOT met on screen 09 (SSIM 0.97362 < 0.98; short 0.0064) | High | Medium | Two fixture rounds; geometry exact; per-zone cost table in `f2b3/defect-detail/METHOD.md` (glyph AA ≈ 0.014 + pipeline ≈ 0.009). Owner must accept the residual or fund further work; no fixture-side path left | Product |
+| F2B3-R02 | Level 1 screen 15 passes on a thin margin (+0.00039; deterministic as archived, fragile to re-capture) | Medium | Low | PASS reproduced bit-identically ×2; re-captures must re-run the gate | Eng |
+| F2B3-R03 | Login `Contact Admin` truncates at 390 px (Figma-exact slot kept per J2); consent/hub count ellipsis by design | High | Low | Recorded (`golden-rebaseline.md` R1, `deviations.md` F2B3-R1/R4); owner options: shorter copy or footer rework | Product |
+| F2B3-R04 | Arabic derived, no native review; Arabic blocked for real customers until review (L2) | High | High | EN+AR goldens + fixtures light-only; native reviewer still required | Arabic |
+| F2B3-R05 | Real-device matrix not run (camera, keyboard, sunlight, TalkBack, 2.0x on device) | High | Medium | Owner phone-check list in `f2b3-report.md` §6 | QA |
+| F2B3-R06 | F2-B.3 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
 ## 7. Phase F2-A technician screen risks (5 November 2026)
 
 F2-A is a UI-only refresh of technician screens 1 to 7. No server, API, model, validation, permission or state-management change was made. Screen 6 is blocked by missing equipment names.

@@ -287,7 +287,7 @@ class InspectionHubView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.sectionBlock),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(bottom: _M.g12),
+                padding: EdgeInsetsDirectional.only(bottom: context.spacing.md),
                 child: Padding(
                   padding: EdgeInsetsDirectional.symmetric(
                     horizontal: context.spacing.xs,
@@ -326,7 +326,7 @@ class InspectionHubView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.ctaBlock),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(top: _M.g8),
+                padding: EdgeInsetsDirectional.only(top: context.spacing.sm),
                 child: FxButton(
                   label: next == null
                       ? l10n.technicianContinueChecklist

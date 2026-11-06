@@ -197,3 +197,15 @@ NO conflict found (sheet already implements M1–M8; triage verified).
 Nuance: M4 broadly says full VIN on technician-side screens while sheet row 89
 keeps full VIN to the finalize slot only (other tech screens show reference) —
 sheet-wins per instructions + owner note that broadening M4 needs approval.
+
+---
+
+## F2-B.3 owner decisions (6 November 2026; unedited lines approved)
+
+| ID | Decision | Implementation |
+|---|---|---|
+| N1 | Two-level fidelity: Level 1 test-only Figma-structure fixture per screen (Fx kit, exact Figma structure/data) must reach SSIM ≥ 0.98 with no unexplained diff > 4 px; Level 2 real product screens measured, differences only where the slot sheet says so, each with a numeric effect. Gate not lowered. | Level 1 fixtures + artifacts under `docs/ui/figma/fidelity/f2b3/` (11: 0.98311, 13: 0.98209, 14: 0.98312, 15: 0.98039, 16: 0.99075 pass; 09: 0.97362 below gate with quantified residual). Level 2 product-copy artifacts under `fidelity/f2b/` with slot-sheet differences. See `f2b3-report.md`. |
+| N2 | Visual waiver (owner option): waived only if the owner states in writing that screens 9/11/13/14/15/16 look identical on device; default not waived. | No waiver statement on record — Part 2 executed in full. |
+| N3 | Re-baseline the 14 F2-A goldens (and any other intentionally changed golden) after a visual check of each new render against its Figma; record each in `golden-rebaseline.md`. | Done: 14/14 regenerated + passing; record in `docs/ui/figma/golden-rebaseline.md` (copy-churn cause, residuals R1–R4). |
+| N4 | Delete dark-only tests (light-only decided); do not delete any other failing test. | Verified by search across all client suites: no dark-only test exists (removals already in the committed tree). Nothing deleted. |
+| N5 | M4 VIN scope not broadened: full VIN only in the Figma slot recorded in the slot sheet. | No VIN change in F2-B.3; finalize slot only, last-4 elsewhere. |

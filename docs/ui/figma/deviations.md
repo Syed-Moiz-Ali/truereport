@@ -197,6 +197,36 @@ status-bar furniture; no pixel-perfect claim. Reference renders:
 (12 fidelity `render.png` artifacts; EN+AR light-only). See `f2b2-report.md`.
 ---
 
+## F2-B.3 technician screens 9, 11, 13, 14, 15, 16 (6 November 2026)
+
+Rule unchanged (N1 two-level fidelity; gate 0.98 not lowered; N5 VIN scope
+unchanged). Level 1 fixtures prove the kit reproduces the Figma; Level 2
+lists product-screen differences against the slot sheet. Full tables in
+`f2b3-report.md`; re-baseline record in `golden-rebaseline.md`.
+
+### Level 1 outcome (measured)
+
+| Screen | SSIM | Gate |
+|---|---|---|
+| 09 defect-detail | 0.97362 | NOT met (short 0.0064; quantified rasterisation + pipeline residual) |
+| 11 dense-mechanical | 0.98311 | met |
+| 13 final-review | 0.98209 | met |
+| 14 finalize | 0.98312 | met |
+| 15 offline-sync | 0.98039 | met (thin margin +0.00039) |
+| 16 success | 0.99075 | met |
+
+### New product-rendering residuals (carried, not new violations)
+
+| ID | Item | Measured/observed | Status |
+|---|---|---|---|
+| F2B3-R1 | Login footer `Contact Admin` truncates (`Contact …` EN / `تواصل مع…` AR at 390 px) | Fixed Figma slot geometry (153.53/64.94 px boxes for the shorter `Request ID`); J2 text kept | Open; owner options: shorter approved copy or footer rework (geometry test x would move) |
+| F2B3-R2 | `Not available` pills on assigned-jobs golden fixtures | Fixture jobs carry non-canonical statuses; HEAD `notAvailable` fallback renders honestly | Recorded in `golden-rebaseline.md`; accepted product behaviour |
+| F2B3-R3 | Empty-state header-row edge clip (`0 JOBS`) | Same pattern as the old golden (`Bay 04` clipped) | Pre-existing, not a regression |
+| F2B3-R4 | Count/helper ellipsis (hub pills, consent card helpers, review numerals) | Longer product strings in fixed Figma slots; `maxLines:1`/ellipsis by design | Accepted pattern (F2-B.1 rule); owner phone check listed |
+| F2B3-R5 | Screen 09 Level 1 0.97362 < 0.98 | Per-zone cost table in `f2b3/defect-detail/METHOD.md`; geometry exact, no kit change helps | Gate item open; owner decision required |
+| F2B3-R6 | Screen 15 Level 1 margin +0.00039 | Deterministic as archived; fragile to re-capture | Recorded; treat re-captures with care |
+---
+
 ## F2-A.2 measurement correction and residuals (6 November 2026)
 
 ### Measurement defect found and fixed

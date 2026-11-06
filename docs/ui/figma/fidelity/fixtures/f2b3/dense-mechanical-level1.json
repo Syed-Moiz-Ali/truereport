@@ -1,0 +1,69 @@
+{
+  "id": "f2b3-dense-mechanical-level1",
+  "batch": "f2b3-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/11_11._Dense_Mechanical_List/11._Dense_Mechanical_List@2x.png",
+  "crop": {
+    "x": 40,
+    "y": 14,
+    "width": 780,
+    "height": 2160
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1080,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b3/dense-mechanical/render.png",
+  "output": "docs/ui/figma/fidelity/f2b3/dense-mechanical",
+  "expectedStrings": [
+    "INSPECTION ZONE 04",
+    "3 of 6 checkpoints logged",
+    "Live Bay #2",
+    "Engine Oil Level",
+    "Dipstick at optimal line \u2022 5W-30 synthetic",
+    "Coolant",
+    "Expansion reservoir inspection",
+    "ACTIVE",
+    "Normal",
+    "Low",
+    "Critical",
+    "Enter fluid level / notes",
+    "Take Photo",
+    "Brake Fluid Level",
+    "DOT 4 standard \u2022 Reservoir visual",
+    "Pass",
+    "Marginal",
+    "Fail",
+    "Transmission Fluid",
+    "Sealed system \u2022 Check overflow valve",
+    "Washer Fluid",
+    "Topped to max reservoir line",
+    "Diagnostic Checklist",
+    "Confirm Fluid Levels"
+  ],
+  "keyBoxes": [
+    {
+      "key": "header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "card",
+      "x": 20,
+      "y": 134,
+      "width": 350,
+      "height": 100
+    },
+    {
+      "key": "cta",
+      "x": 20,
+      "y": 1004,
+      "width": 350,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

@@ -62,17 +62,19 @@ class FinalizeView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  F2bStatusPill(
-                    label: l10n.reviewAndFinalize.toUpperCase(),
-                    background: Fx.container,
-                    foreground: Fx.muted,
-                    dot: Fx.deepGreen,
-                    style: Fx.text(
-                      11,
-                      14,
-                      FontWeight.w600,
-                      0.28,
-                      color: Fx.muted,
+                  Flexible(
+                    child: F2bStatusPill(
+                      label: l10n.reviewAndFinalize.toUpperCase(),
+                      background: Fx.container,
+                      foreground: Fx.muted,
+                      dot: Fx.deepGreen,
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.28,
+                        color: Fx.muted,
+                      ),
                     ),
                   ),
                 ],

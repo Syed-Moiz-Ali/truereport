@@ -2,7 +2,7 @@
 
 - **Status:** generated from `client/packages/design_system/tokens/tokens.json` (light theme only; C0 Workstream B removed the dark theme).
 - **Date:** 6 November 2026.
-- **F2-B.2 note (6 November 2026):** white on `#10B981` (~2.3:1) remains the owner-accepted **I1** risk (F2-A.1 I1 carried over). Deeper-green pairings pass. No new token pairs added by F2-B.2.
+- **F2-B note (6 November 2026):** white on `#10B981` (~2.3:1) remains the owner-accepted **I1** risk (F2-A.1 I1 carried over). Deeper-green pairings pass. No new token pairs added by F2-B.2/F2-B.3.
 - **Method:** WCAG 2.x relative luminance in sRGB, measured by `tools/design_tokens/contrast.mjs`; no value is inferred from a design tool.
 - **Thresholds:** normal text `4.5:1`, large text `3:1`, UI components and graphics `3:1`.
 - **Reproduce:** `node tools/design_tokens/generate.mjs --write` then read this file; `node tools/design_tokens/generate.mjs --check` verifies all generated outputs are current.

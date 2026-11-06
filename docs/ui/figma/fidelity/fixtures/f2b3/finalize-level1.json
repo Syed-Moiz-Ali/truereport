@@ -1,0 +1,72 @@
+{
+  "id": "f2b3-finalize-level1",
+  "batch": "f2b3-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/15_14._Finalize_&_Approval_(Swipe)/14._Finalize_&_Approval_(Swipe)@2x.png",
+  "crop": {
+    "x": 76,
+    "y": 14,
+    "width": 780,
+    "height": 2463
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1231.5,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b3/finalize/render.png",
+  "output": "docs/ui/figma/fidelity/f2b3/finalize",
+  "expectedStrings": [
+    "INSPECTION STEP 4 OF 4",
+    "Review & Finalize",
+    "Review verified points and sign off to dispatch fleet\nrecords.",
+    "2024 Ford Transit 350",
+    "VIN \u2022 1FTBR1Y85RKB92104",
+    "Bay #04",
+    "104",
+    "Checks",
+    "Completed",
+    "2",
+    "Defects Found",
+    "Marcus Vance",
+    "Lead Fleet Specialist \u2022 ID",
+    "#8842",
+    "Today",
+    "14:48",
+    "PST",
+    "Odometer: 14,820 mi",
+    "Flagged Items Summary",
+    "Requires Follow-up",
+    "Front Left Tire Tread Depth",
+    "Measured at 3/32 in. Marginal wear pattern\ndocumented.",
+    "Rear Cargo Door Latch",
+    "Minor resistance observed on secondary\nstrike latch.",
+    "By completing this inspection, technician confirms\nvehicle condition complies with fleet standards.\nDigital signature and GPS coordinates will be\npermanently appended to Fleet Ledger #2024-FLT-\n0982.",
+    "Slide to Finalize Inspection",
+    "Diagnostic Checklist"
+  ],
+  "keyBoxes": [
+    {
+      "key": "f2b3-header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "f2b3-summary",
+      "x": 20,
+      "y": 206,
+      "width": 350,
+      "height": 558
+    },
+    {
+      "key": "f2b3-slide",
+      "x": 20,
+      "y": 1146.63,
+      "width": 350,
+      "height": 64
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}
