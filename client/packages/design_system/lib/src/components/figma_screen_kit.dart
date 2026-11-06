@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:design_system/src/fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -52,17 +53,18 @@ abstract final class Fx {
   static const barWeak = Color(0x335E5D69);
   static const mint33 = Color(0x336FFBBE);
   static const whiteE5 = Color(0xE5FFFFFF);
+  static const whiteCC = Color(0xCCFFFFFF);
   static const white90 = Color(0xE6FFFFFF);
   static const black66 = Color(0x66000000);
   static const transparent = Color(0x00000000);
   static const surfaceLow = Color(0xFFF7F6FB);
 
-  static const String fontFamily = 'Plus Jakarta Sans';
+  static const String fontFamily = TrFonts.latin;
   static const List<String> fontFallback = <String>[
-    'Noto Sans Arabic',
-    'IBM Plex Sans Arabic',
-    'Noto Sans',
-    'Noto Sans SC',
+    TrFonts.arabicDefault,
+    TrFonts.arabicAlternative,
+    TrFonts.cyrillicFallback,
+    TrFonts.cjkFallback,
   ];
 
   static TextStyle text(
@@ -127,6 +129,10 @@ abstract final class Fx {
     BoxShadow(color: Color(0x0F000000), blurRadius: 2, offset: Offset(0, 1)),
   ];
 
+  static const switchThumbShadow = <BoxShadow>[
+    BoxShadow(color: Color(0x1A000000), blurRadius: 6, offset: Offset(0, 2)),
+  ];
+
   static const softShadow = <BoxShadow>[
     BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
   ];
@@ -187,8 +193,9 @@ class FxIcon extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.contain,
-            colorFilter:
-                color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
+            colorFilter: color == null
+                ? null
+                : ColorFilter.mode(color!, BlendMode.srcIn),
           )
         : SvgPicture.asset(
             'assets/icons/figma/Icon-$id.svg',
@@ -196,8 +203,9 @@ class FxIcon extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.contain,
-            colorFilter:
-                color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
+            colorFilter: color == null
+                ? null
+                : ColorFilter.mode(color!, BlendMode.srcIn),
             placeholderBuilder: (_) => fallback == null
                 ? SizedBox.square(dimension: size)
                 : Icon(fallback, size: size, color: color),
@@ -284,24 +292,9 @@ class FxButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (background, foreground, shadows, border) = switch (tone) {
-      FxButtonTone.primary => (
-        Fx.emerald,
-        Fx.white,
-        Fx.ctaShadow,
-        null,
-      ),
-      FxButtonTone.tonal => (
-        Fx.container,
-        Fx.ink,
-        Fx.pillShadow,
-        null,
-      ),
-      FxButtonTone.white => (
-        Fx.white,
-        Fx.ink,
-        Fx.pillShadow,
-        null,
-      ),
+      FxButtonTone.primary => (Fx.emerald, Fx.white, Fx.ctaShadow, null),
+      FxButtonTone.tonal => (Fx.container, Fx.ink, Fx.pillShadow, null),
+      FxButtonTone.white => (Fx.white, Fx.ink, Fx.pillShadow, null),
       FxButtonTone.text => (
         Colors.transparent,
         Fx.ink,
@@ -518,6 +511,7 @@ class FxTextField extends StatelessWidget {
                   autofillHints: autofillHints,
                   inputFormatters: inputFormatters,
                   validator: validator,
+
                   textDirection: ltr ? TextDirection.ltr : null,
                   style: Fx.body14.copyWith(color: Fx.ink),
                   cursorColor: Fx.emerald,
@@ -534,6 +528,7 @@ class FxTextField extends StatelessWidget {
                     hintText: hint,
                     hintStyle: Fx.body14.copyWith(color: Fx.outline),
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    filled: false,
                   ),
                 ),
               ),
@@ -631,9 +626,7 @@ class FxLanguageSwitch extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: Fx.label12.copyWith(
-              color: selected ? Fx.ink : Fx.muted,
-            ),
+            style: Fx.label12.copyWith(color: selected ? Fx.ink : Fx.muted),
           ),
         ),
       ),
@@ -649,6 +642,7 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.titleStyle,
     this.horizontalPadding = 16,
+    this.titleInset = 0,
     this.headerKey,
     super.key,
   });
@@ -659,6 +653,7 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final TextStyle? titleStyle;
   final double horizontalPadding;
+  final double titleInset;
   final Key? headerKey;
 
   static const double height = 64;
@@ -672,12 +667,12 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
       key: headerKey,
       height: height,
       decoration: const BoxDecoration(
-        color: Fx.white,
+        color: Fx.whiteCC,
         boxShadow: Fx.headerShadow,
       ),
       child: ClipRect(
         child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ui.ImageFilter.blur(sigmaX: 48, sigmaY: 48),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Row(
@@ -686,7 +681,8 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
                   leading ??
                       Semantics(
                         button: true,
-                        label: MaterialLocalizations.of(context).backButtonTooltip,
+                        label: MaterialLocalizations.of(context)
+                            .backButtonTooltip,
                         child: InkResponse(
                           onTap: () => Navigator.of(context).maybePop(),
                           radius: 24,
@@ -706,14 +702,17 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 4),
                 ],
                 Expanded(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: (titleStyle ?? Fx.heading18).copyWith(
-                        color: Fx.ink,
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(start: titleInset),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: (titleStyle ?? Fx.heading18).copyWith(
+                          color: Fx.ink,
+                        ),
                       ),
                     ),
                   ),
@@ -763,7 +762,9 @@ class FxProfileButton extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: image != null
-              ? ClipOval(child: RawImage(image: image, fit: BoxFit.cover))
+              ? ClipOval(
+                  child: RawImage(image: image, fit: BoxFit.cover),
+                )
               : iconId != null
               ? FxIcon(id: iconId!, size: 12, color: Fx.white)
               : Text(
@@ -816,7 +817,9 @@ class FxAvatar extends StatelessWidget {
               textDirection: TextDirection.ltr,
               style: (textStyle ?? Fx.label14).copyWith(color: Fx.white),
             )
-          : ClipOval(child: RawImage(image: image, fit: BoxFit.cover)),
+          : ClipOval(
+              child: RawImage(image: image, fit: BoxFit.cover),
+            ),
     );
     return Semantics(
       image: true,
@@ -1201,10 +1204,7 @@ class FxSectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Fx.label14.copyWith(
-        color: Fx.muted,
-        letterSpacing: 0.7,
-      ),
+      style: Fx.label14.copyWith(color: Fx.muted, letterSpacing: 0.7),
     );
   }
 }

@@ -528,12 +528,12 @@ Directory _repoRoot() {
 }
 
 String? _familyFor(String fileName) {
-  if (fileName.startsWith('PlusJakartaSans')) return 'Plus Jakarta Sans';
-  if (fileName.startsWith('NotoSansArabic')) return 'Noto Sans Arabic';
+  if (fileName.startsWith('PlusJakartaSans')) return TrFonts.latin;
+  if (fileName.startsWith('NotoSansArabic')) return TrFonts.arabicDefault;
   if (fileName.startsWith('IBMPlexSansArabic')) {
-    return 'IBM Plex Sans Arabic';
+    return TrFonts.arabicAlternative;
   }
-  if (fileName.startsWith('NotoSans-')) return 'Noto Sans';
+  if (fileName.startsWith('NotoSans-')) return TrFonts.cyrillicFallback;
   return null;
 }
 

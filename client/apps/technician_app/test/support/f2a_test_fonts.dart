@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 Future<void> loadF2AFonts() async {
+  TestWidgetsFlutterBinding.ensureInitialized();
   final root = repoRoot();
   final fontDir = Directory(
     '${root.path}/client/packages/design_system/assets/fonts',
@@ -52,11 +54,13 @@ Future<void> loadF2AFonts() async {
 }
 
 String? _familyFor(String fileName) {
-  if (fileName.startsWith('PlusJakartaSans')) return 'Plus Jakarta Sans';
-  if (fileName.startsWith('NotoSansArabic')) return 'Noto Sans Arabic';
-  if (fileName.startsWith('IBMPlexSansArabic')) return 'IBM Plex Sans Arabic';
-  if (fileName.startsWith('NotoSansSC')) return 'Noto Sans SC';
-  if (fileName.startsWith('NotoSans-')) return 'Noto Sans';
+  if (fileName.startsWith('PlusJakartaSans')) return TrFonts.latin;
+  if (fileName.startsWith('NotoSansArabic')) return TrFonts.arabicDefault;
+  if (fileName.startsWith('IBMPlexSansArabic')) {
+    return TrFonts.arabicAlternative;
+  }
+  if (fileName.startsWith('NotoSansSC')) return TrFonts.cjkFallback;
+  if (fileName.startsWith('NotoSans-')) return TrFonts.cyrillicFallback;
   return null;
 }
 
@@ -71,5 +75,7 @@ Directory repoRoot() {
     if (parent.path == dir.path) break;
     dir = parent;
   }
-  throw StateError('Could not find repository root from ${Directory.current.path}');
+  throw StateError(
+    'Could not find repository root from ${Directory.current.path}',
+  );
 }

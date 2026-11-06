@@ -1,4 +1,4 @@
-﻿import 'package:auth/auth.dart';
+import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,7 +24,6 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
     _search.dispose();
     super.dispose();
   }
-
 
   Future<void> _openFilters() async {
     final l10n = AppLocalizations.of(context);
@@ -76,8 +75,7 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
     final jobs = ref.watch(technicianJobsProvider);
     final online = ref.watch(connectivityProvider).value ?? true;
     final pending = ref.watch(pendingSyncCountProvider).value ?? 0;
-    final technicianName =
-        session?.user.displayName ?? l10n.roleTechnician;
+    final technicianName = session?.user.displayName ?? l10n.roleTechnician;
 
     ref.listen(connectivityProvider, (previous, next) {
       if (next.value == true && previous?.value == false) {
@@ -128,8 +126,7 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
                   '${job.vehicleMake} ${job.vehicleModel}'
                       .toLowerCase()
                       .contains(query);
-              return matchesQuery &&
-                  (_status.isEmpty || job.status == _status);
+              return matchesQuery && (_status.isEmpty || job.status == _status);
             })
             .toList(growable: false);
 
@@ -167,6 +164,3 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
     );
   }
 }
-
-
-

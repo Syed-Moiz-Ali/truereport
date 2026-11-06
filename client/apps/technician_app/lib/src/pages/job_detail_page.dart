@@ -21,14 +21,20 @@ class JobDetailPage extends ConsumerWidget {
     final job = ref.watch(technicianJobProvider(jobId));
     return job.when(
       loading: () => AppScaffold(
-        appBar: TechnicianAppBar(title: l10n.technicianJobIntake, showBack: true),
+        appBar: TechnicianAppBar(
+          title: l10n.technicianJobIntake,
+          showBack: true,
+        ),
         body: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.gutter),
           child: const LoadingSkeleton(lines: 6),
         ),
       ),
       error: (error, _) => AppScaffold(
-        appBar: TechnicianAppBar(title: l10n.technicianJobIntake, showBack: true),
+        appBar: TechnicianAppBar(
+          title: l10n.technicianJobIntake,
+          showBack: true,
+        ),
         body: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.all(context.spacing.gutter),
@@ -87,15 +93,13 @@ class _BodyState extends ConsumerState<_Body> {
         ref.invalidate(technicianJobProvider(job.id));
         ref.invalidate(inspectionChecklistProvider(job.id));
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.inspectionStarted)),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.inspectionStarted)));
         }
       } on Object {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.actionFailed)),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
         }
         return;
       } finally {
@@ -357,9 +361,7 @@ class _BodyState extends ConsumerState<_Body> {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final items = await ref
-          .read(technicianApiProvider)
-          .equipment(job.id);
+      final items = await ref.read(technicianApiProvider).equipment(job.id);
       await navigator.push(
         MaterialPageRoute<void>(
           fullscreenDialog: true,
@@ -415,9 +417,8 @@ class _FormSheet extends StatelessWidget {
                 }
               } on Object {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.actionFailed)),
-                  );
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
                 }
               }
             },
@@ -431,6 +432,3 @@ class _FormSheet extends StatelessWidget {
     );
   }
 }
-
-
-

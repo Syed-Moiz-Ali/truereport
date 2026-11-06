@@ -1,3 +1,4 @@
+import 'package:design_system/src/fonts.dart';
 import 'package:flutter/material.dart';
 
 /// Exact values transcribed from the Figma export JSON and the `@2x`
@@ -26,7 +27,7 @@ abstract final class FigmaColors {
 }
 
 abstract final class FigmaType {
-  static const String family = 'Plus Jakarta Sans';
+  static const String family = TrFonts.latin;
 
   static TextStyle get caption => _style(11, 14, FontWeight.w600, 0.44);
   static TextStyle get captionWide => _style(11, 14, FontWeight.w600, 0.55);
@@ -51,10 +52,10 @@ abstract final class FigmaType {
     return TextStyle(
       fontFamily: family,
       fontFamilyFallback: const <String>[
-        'Noto Sans Arabic',
-        'IBM Plex Sans Arabic',
-        'Noto Sans',
-        'Noto Sans SC',
+        TrFonts.arabicDefault,
+        TrFonts.arabicAlternative,
+        TrFonts.cyrillicFallback,
+        TrFonts.cjkFallback,
       ],
       fontSize: size,
       height: lineHeight / size,

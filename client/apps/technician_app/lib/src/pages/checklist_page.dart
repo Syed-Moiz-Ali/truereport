@@ -4,127 +4,138 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2a/profile_sheet.dart';
+import 'package:technician_app/src/screens/f2b/dense_mechanical_view.dart';
 import 'package:technician_app/src/technician_providers.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 
-class ChecklistPage extends ConsumerWidget {
+class ChecklistPage extends ConsumerStatefulWidget {
   const ChecklistPage({required this.jobId, super.key});
 
   final String jobId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChecklistPage> createState() => _ChecklistPageState();
+}
+
+class _ChecklistPageState extends ConsumerState<ChecklistPage> {
+  String? _busyItemId;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final checklist = ref.watch(inspectionChecklistProvider(jobId));
-    return AppScaffold(
-      appBar: AppBar(title: Text(l10n.checklist)),
-      body: checklist.when(
-        loading: () => Padding(
+    final checklist = ref.watch(inspectionChecklistProvider(widget.jobId));
+    return checklist.when(
+      loading: () => AppScaffold(
+        appBar: AppBar(title: Text(l10n.checklist)),
+        body: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           child: const LoadingSkeleton(lines: 7),
         ),
-        error: (error, _) => Center(
+      ),
+      error: (error, _) => AppScaffold(
+        appBar: AppBar(title: Text(l10n.checklist)),
+        body: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.all(context.spacing.lg),
             child: ErrorState(
               title: l10n.error,
               body: l10n.genericError,
-              onRetry: () => ref.invalidate(inspectionChecklistProvider(jobId)),
+              onRetry: () =>
+                  ref.invalidate(inspectionChecklistProvider(widget.jobId)),
               retryLabel: l10n.search,
             ),
           ),
         ),
-        data: (value) => _Body(checklist: value),
+      ),
+      data: (value) => DenseMechanicalView(
+        checklist: value,
+        finalized: value.job.status == 'FINALIZED',
+        busyItemId: _busyItemId,
+        onResult: (_, _) {},
+        onSaveItem: _saveItem,
+        onOpenItem: (item) => context.push(
+          '/jobs/${widget.jobId}/items/${item.inspectionItemId}',
+        ),
+        onContinue: () => context.push('/jobs/${widget.jobId}/review'),
+        onBack: () => context.pop(),
+        onProfile: () => showTechnicianProfile(context, ref),
       ),
     );
   }
-}
 
-class _Body extends ConsumerWidget {
-  const _Body({required this.checklist});
-
-  final InspectionChecklist checklist;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Future<void> _saveItem(
+    InspectionItem item,
+    String result,
+    String? severity,
+    String note,
+  ) async {
     final l10n = AppLocalizations.of(context);
-    final grouped = <String, List<InspectionItem>>{};
-    final labels = <String, String>{};
-    for (final item in checklist.items) {
-      final key = item.categoryLabelEn;
-      grouped.putIfAbsent(key, () => []).add(item);
-      labels[key] = item.categoryLabelEn;
+    final defect =
+        result == 'DEFECT_FOUND' || result == 'ATTENTION_RECOMMENDED';
+    final reasonRequired =
+        result == 'NOT_CHECKED' || result == 'COULD_NOT_VERIFY';
+    if (defect && (severity == null || severity.isEmpty)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.severity)));
+      return;
     }
-    final progress = checklist.total == 0
-        ? 0.0
-        : checklist.completed / checklist.total;
-    final finalized = checklist.job.status == 'FINALIZED';
-    return ListView(
-      padding: EdgeInsetsDirectional.all(context.spacing.lg),
-      children: [
-        SectionHeader(
-          title: l10n.checklist,
-          subtitle:
-              '${checklist.completed}/${checklist.total} ${l10n.completedItems}',
-        ),
-        LinearProgressIndicator(value: progress),
-        SizedBox(height: context.spacing.lg),
-        if (checklist.items.isEmpty)
-          EmptyState(title: l10n.noResults, body: l10n.checklist)
-        else
-          ...grouped.entries.map(
-            (group) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SectionHeader(title: labels[group.key] ?? group.key),
-                ...group.value.map(
-                  (item) => Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      bottom: context.spacing.sm,
-                    ),
-                    child: Card(
-                      child: AppListTile(
-                        key: Key('checklist-item-${item.inspectionItemId}'),
-                        leading: Icon(
-                          item.assessment == null
-                              ? Icons.radio_button_unchecked
-                              : Icons.check_circle_outline,
-                        ),
-                        title: item.labelEn,
-                        subtitle:
-                            '${item.stableCode} - v${item.versionNo}'
-                            '${item.evidenceRequirement == 'NONE' ? '' : ' - ${l10n.evidenceRequirement}'}'
-                            '${item.syncState == 'LOCAL_ONLY' ? ' - ${l10n.savedOnPhone}' : ''}'
-                            '${item.syncState == 'CONFLICT' ? ' - ${l10n.error}' : ''}',
-                        trailing: StatusChip(
-                          label: item.assessment == null
-                              ? l10n.notStarted
-                              : resultLabel(l10n, item.assessment!.resultCode),
-                          tone: resultTone(item.assessment?.resultCode),
-                        ),
-                        onTap: finalized
-                            ? null
-                            : () => context.push(
-                                '/jobs/${checklist.job.id}/items/${item.inspectionItemId}',
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: context.spacing.sm),
-              ],
-            ),
+    if (item.noteRequirement == 'REQUIRED' && note.trim().isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.note)));
+      return;
+    }
+    setState(() => _busyItemId = item.inspectionItemId);
+    try {
+      final existing = item.assessment;
+      final body = <String, dynamic>{
+        'baseVersion': existing?.version ?? 0,
+        'clientRevision': (existing?.clientRevision ?? 0) + 1,
+        'resultCode': result,
+        'severityCode': defect ? severity : null,
+        'note': note,
+        'reasonText': reasonRequired ? note : null,
+      };
+      final store = ref.read(offlineStoreProvider);
+      final localAssessment = InspectionAssessment(
+        id: existing?.id ?? 'local-${item.inspectionItemId}',
+        resultCode: result,
+        severityCode: defect ? severity : null,
+        note: note,
+        noteLanguage: existing?.noteLanguage,
+        reasonCode: existing?.reasonCode,
+        reasonText: reasonRequired ? note : null,
+        clientRevision: body['clientRevision'] as int,
+        serverRevision: existing?.serverRevision ?? 0,
+        version: existing?.version ?? 0,
+      ).toJson();
+      await store.saveAssessmentLocally(
+        jobId: widget.jobId,
+        itemId: item.inspectionItemId,
+        body: body,
+        assessment: localAssessment,
+      );
+      await ref.read(syncServiceProvider).syncAll();
+      final pending = await store.pendingCount();
+      ref.invalidate(pendingSyncCountProvider);
+      ref.invalidate(pendingOperationsProvider);
+      ref.invalidate(inspectionChecklistProvider(widget.jobId));
+      ref.invalidate(inspectionReviewProvider(widget.jobId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(pending == 0 ? l10n.itemSaved : l10n.savedOnPhone),
           ),
-        if (!finalized) ...[
-          SizedBox(height: context.spacing.lg),
-          AppButton(
-            label: l10n.reviewAndFinalize,
-            onPressed: () => context.push('/jobs/${checklist.job.id}/review'),
-            icon: Icons.fact_check_outlined,
-            expand: true,
-          ),
-        ],
-      ],
-    );
+        );
+      }
+    } on Object {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busyItemId = null);
+      }
+    }
   }
 }

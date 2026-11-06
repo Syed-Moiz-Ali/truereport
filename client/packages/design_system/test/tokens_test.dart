@@ -181,8 +181,8 @@ void main() {
       for (final font in AppArabicFont.values) {
         final theme = AppTheme.build(arabicFont: font);
         final expected = font == AppArabicFont.notoSansArabic
-            ? 'Noto Sans Arabic'
-            : 'IBM Plex Sans Arabic';
+            ? TrFonts.arabicDefault
+            : TrFonts.arabicAlternative;
         final fallback = theme.textTheme.bodyLarge!.fontFamilyFallback;
         expect(fallback, contains(expected));
       }

@@ -184,7 +184,7 @@ class JobIntakeView extends StatelessWidget {
               ),
             ),
             _ReadyCard(job: job, figmaText: figmaText),
-            if (showActions) ...[
+            if (showActions && !figmaText) ...[
               const SizedBox(height: _M.g16),
               _Actions(
                 onConsent: onConsent,
@@ -210,11 +210,7 @@ class JobIntakeView extends StatelessWidget {
 }
 
 class _VehicleHero extends StatelessWidget {
-  const _VehicleHero({
-    required this.job,
-    required this.figmaText,
-    this.image,
-  });
+  const _VehicleHero({required this.job, required this.figmaText, this.image});
 
   final TechnicianJob job;
   final bool figmaText;
@@ -255,10 +251,8 @@ class _VehicleHero extends StatelessWidget {
                   ),
                   child: TechnicianVehicleSilhouette(
                     height: _M.silhouetteHeight,
-                    semanticLabel:
-                        AppLocalizations.of(
-                          context,
-                        ).technicianVehicleSilhouette,
+                    semanticLabel: AppLocalizations.of(context)
+                        .technicianVehicleSilhouette,
                   ),
                 ),
               ),
@@ -308,9 +302,8 @@ class _VehicleHero extends StatelessWidget {
                         const SizedBox(height: _M.g4),
                         Text(
                           model.isEmpty
-                              ? AppLocalizations.of(
-                                  context,
-                                ).technicianUnknownVehicle
+                              ? AppLocalizations.of(context)
+                                    .technicianUnknownVehicle
                               : model,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -377,42 +370,25 @@ class _VehicleCard extends StatelessWidget {
                 const SizedBox(width: _M.g12),
                 Expanded(
                   child: Text(
-                    l10n.technicianVehicleInfo,
+                    figmaText ? 'Vehicle Info' : l10n.technicianVehicleInfo,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
                   ),
                 ),
-                Semantics(
-                  button: true,
-                  label: l10n.technicianCopyVin,
-                  child: InkResponse(
-                    onTap: vin.isEmpty
-                        ? null
-                        : () async {
-                            await Clipboard.setData(ClipboardData(text: vin));
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(l10n.technicianVinCopied),
-                                ),
-                              );
-                            }
-                          },
-                    radius: _M.copyHit / 2,
-                    child: Container(
-                      width: _M.copyButton,
-                      height: _M.copyButton,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Fx.container,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const FxIcon(
-                        id: '1_7450',
-                        size: 15,
-                        color: Fx.muted,
-                      ),
+                ExcludeSemantics(
+                  child: Container(
+                    width: _M.headerAction,
+                    height: _M.headerAction,
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const FxIcon(
+                      id: '1_7420',
+                      size: 15,
+                      color: Fx.muted,
                     ),
                   ),
                 ),
@@ -508,19 +484,38 @@ class _VehicleCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  width: _M.copyButton,
-                  height: _M.copyButton,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    color: Fx.white,
-                    shape: BoxShape.circle,
-                    boxShadow: Fx.pillShadow,
-                  ),
-                  child: const FxIcon(
-                    id: '1_7450',
-                    size: 15,
-                    color: Fx.muted,
+                Semantics(
+                  button: true,
+                  label: l10n.technicianCopyVin,
+                  child: InkResponse(
+                    onTap: vin.isEmpty
+                        ? null
+                        : () async {
+                            await Clipboard.setData(ClipboardData(text: vin));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(l10n.technicianVinCopied),
+                                ),
+                              );
+                            }
+                          },
+                    radius: _M.copyHit / 2,
+                    child: Container(
+                      width: _M.copyButton,
+                      height: _M.copyButton,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: Fx.white,
+                        shape: BoxShape.circle,
+                        boxShadow: Fx.pillShadow,
+                      ),
+                      child: const FxIcon(
+                        id: '1_7450',
+                        size: 15,
+                        color: Fx.muted,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -572,7 +567,9 @@ class _CustomerCard extends StatelessWidget {
                   ),
                 ),
                 FxPill(
-                  label: figmaText ? 'Primary Owner' : l10n.technicianCustomerChip,
+                  label: figmaText
+                      ? 'Primary Owner'
+                      : l10n.technicianCustomerChip,
                   height: _M.ownerHeight,
                   padding: const EdgeInsetsDirectional.symmetric(
                     horizontal: 10,
@@ -936,6 +933,7 @@ abstract final class _M {
   static const double gridGap = 16;
   static const double vinHeight = 66;
   static const double copyButton = 36;
+  static const double headerAction = 32;
   static const double copyHit = 44;
   static const double customerBlock = 296;
   static const double ownerHeight = 22;

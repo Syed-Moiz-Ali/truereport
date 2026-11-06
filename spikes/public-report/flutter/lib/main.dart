@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -11,7 +11,7 @@ void main() {
   }
   runApp(const ReportApp());
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    html.document.body?.setAttribute('data-report-ready', 'true');
+    document.body?.setAttribute('data-report-ready', 'true');
   });
 }
 

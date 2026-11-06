@@ -1,0 +1,3203 @@
+{
+  "screen": {
+    "id": "1:8809",
+    "name": "14. Finalize & Approval (Swipe)",
+    "width": 390,
+    "height": 1231.25
+  },
+  "source": "docs\\ui\\figma-export\\technision_figma\\screens\\15_14._Finalize_&_Approval_(Swipe)\\14._Finalize_&_Approval_(Swipe).json",
+  "root": {
+    "id": "1:8809",
+    "name": "14. Finalize & Approval (Swipe)",
+    "type": "FRAME",
+    "depth": 0,
+    "box": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1231.25
+    },
+    "layout": {
+      "mode": "VERTICAL",
+      "gap": 0,
+      "pad": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "primary": "MIN",
+      "counter": "MIN"
+    },
+    "fills": [
+      "#FFFFFF"
+    ],
+    "children": [
+      {
+        "id": "1:8810",
+        "name": "Main",
+        "type": "FRAME",
+        "depth": 1,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 1231.25
+        },
+        "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+            64,
+            0,
+            0,
+            0
+          ],
+          "primary": "MIN",
+          "counter": "MIN"
+        },
+        "fills": [
+          "#FFFFFF"
+        ],
+        "children": [
+          {
+            "id": "1:8811",
+            "name": "Container",
+            "type": "FRAME",
+            "depth": 2,
+            "box": {
+              "x": 0,
+              "y": 64,
+              "w": 390,
+              "h": 1167.25
+            },
+            "layout": {
+              "mode": "VERTICAL",
+              "gap": 0,
+              "pad": [
+                0,
+                0,
+                128,
+                0
+              ],
+              "primary": "MIN",
+              "counter": "MIN"
+            },
+            "children": [
+              {
+                "id": "1:8812",
+                "name": "Container",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 0,
+                  "y": 64,
+                  "w": 390,
+                  "h": 126
+                },
+                "layout": {
+                  "mode": "VERTICAL",
+                  "gap": 4,
+                  "pad": [
+                    12,
+                    20,
+                    8,
+                    20
+                  ],
+                  "primary": "MIN",
+                  "counter": "MIN"
+                },
+                "children": [
+                  {
+                    "id": "1:8813",
+                    "name": "Background",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 20,
+                      "y": 76,
+                      "w": 180.38,
+                      "h": 22
+                    },
+                    "layout": {
+                      "mode": "HORIZONTAL",
+                      "gap": 6,
+                      "pad": [
+                        4,
+                        12,
+                        4,
+                        12
+                      ],
+                      "primary": "MIN",
+                      "counter": "CENTER"
+                    },
+                    "radius": 9999,
+                    "radii": [
+                      9999,
+                      9999,
+                      9999,
+                      9999
+                    ],
+                    "fills": [
+                      "#F4F3F8"
+                    ],
+                    "children": [
+                      {
+                        "id": "1:8814",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 32,
+                          "y": 80.75,
+                          "w": 12.5,
+                          "h": 12.5
+                        },
+                        "layout": {
+                          "mode": "VERTICAL",
+                          "gap": 0,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "MIN",
+                          "counter": "MIN"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8815",
+                            "name": "Icon",
+                            "type": "VECTOR",
+                            "depth": 6,
+                            "box": {
+                              "x": 32,
+                              "y": 80.75,
+                              "w": 12.5,
+                              "h": 12.5
+                            },
+                            "fills": [
+                              "#006C49"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "1:8816",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 50.5,
+                          "y": 80,
+                          "w": 137.88,
+                          "h": 14
+                        },
+                        "layout": {
+                          "mode": "VERTICAL",
+                          "gap": 0,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "MIN",
+                          "counter": "MIN"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8817",
+                            "name": "Text",
+                            "type": "TEXT",
+                            "depth": 6,
+                            "box": {
+                              "x": 50.5,
+                              "y": 80,
+                              "w": 137.88,
+                              "h": 14
+                            },
+                            "fills": [
+                              "#5E5D69"
+                            ],
+                            "text": {
+                              "characters": "INSPECTION STEP 4 OF 4",
+                              "font": "Plus Jakarta Sans SemiBold",
+                              "size": 11,
+                              "weight": 600,
+                              "lineHeight": 14,
+                              "letterSpacing": 0.2750000059604645,
+                              "align": "LEFT",
+                              "textCase": "UPPER"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "1:8818",
+                    "name": "Heading 2",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 20,
+                      "y": 102,
+                      "w": 350,
+                      "h": 36
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        4,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8819",
+                        "name": "Review & Finalize",
+                        "type": "TEXT",
+                        "depth": 5,
+                        "box": {
+                          "x": 20,
+                          "y": 106,
+                          "w": 350,
+                          "h": 32
+                        },
+                        "fills": [
+                          "#1A1B1F"
+                        ],
+                        "text": {
+                          "characters": "Review & Finalize",
+                          "font": "Plus Jakarta Sans ExtraBold",
+                          "size": 26,
+                          "weight": 800,
+                          "lineHeight": 32,
+                          "letterSpacing": -0.6499999761581421,
+                          "align": "LEFT"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "1:8820",
+                    "name": "Container",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 20,
+                      "y": 142,
+                      "w": 350,
+                      "h": 40
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8821",
+                        "name": "Review verified points and sign off to dispatch fleet records.",
+                        "type": "TEXT",
+                        "depth": 5,
+                        "box": {
+                          "x": 20,
+                          "y": 142,
+                          "w": 350,
+                          "h": 40
+                        },
+                        "fills": [
+                          "#5E5D69"
+                        ],
+                        "text": {
+                          "characters": "Review verified points and sign off to dispatch fleet\nrecords.",
+                          "font": "Plus Jakarta Sans Medium",
+                          "size": 14,
+                          "weight": 500,
+                          "lineHeight": 20,
+                          "letterSpacing": -0.07000000029802322,
+                          "align": "LEFT"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1:8822",
+                "name": "Margin",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 0,
+                  "y": 190,
+                  "w": 390,
+                  "h": 574
+                },
+                "layout": {
+                  "mode": "VERTICAL",
+                  "gap": 0,
+                  "pad": [
+                    16,
+                    20,
+                    0,
+                    20
+                  ],
+                  "primary": "MIN",
+                  "counter": "MIN"
+                },
+                "children": [
+                  {
+                    "id": "1:8823",
+                    "name": "Background+Shadow",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 20,
+                      "y": 206,
+                      "w": 350,
+                      "h": 558
+                    },
+                    "radius": 32,
+                    "radii": [
+                      32,
+                      32,
+                      32,
+                      32
+                    ],
+                    "fills": [
+                      "#FFFFFF"
+                    ],
+                    "effects": [
+                      {
+                        "type": "DROP_SHADOW",
+                        "radius": 10,
+                        "offset": {
+                          "x": 0,
+                          "y": 8
+                        },
+                        "spread": -6,
+                        "color": null
+                      },
+                      {
+                        "type": "DROP_SHADOW",
+                        "radius": 25,
+                        "offset": {
+                          "x": 0,
+                          "y": 20
+                        },
+                        "spread": -5,
+                        "color": null
+                      }
+                    ],
+                    "children": [
+                      {
+                        "id": "1:8824",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 44,
+                          "y": 230,
+                          "w": 302,
+                          "h": 68
+                        },
+                        "layout": {
+                          "mode": "HORIZONTAL",
+                          "gap": 3.619999885559082,
+                          "pad": [
+                            0,
+                            0,
+                            20,
+                            0
+                          ],
+                          "primary": "SPACE_BETWEEN",
+                          "counter": "CENTER"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8825",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 44,
+                              "y": 230,
+                              "w": 224.55,
+                              "h": 48
+                            },
+                            "layout": {
+                              "mode": "HORIZONTAL",
+                              "gap": 12,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "CENTER"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8826",
+                                "name": "Background",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 44,
+                                  "y": 230,
+                                  "w": 48,
+                                  "h": 48
+                                },
+                                "layout": {
+                                  "mode": "HORIZONTAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "CENTER",
+                                  "counter": "CENTER"
+                                },
+                                "radius": 9999,
+                                "radii": [
+                                  9999,
+                                  9999,
+                                  9999,
+                                  9999
+                                ],
+                                "fills": [
+                                  "#F4F3F8"
+                                ],
+                                "children": [
+                                  {
+                                    "id": "1:8827",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 58.25,
+                                      "y": 245.33,
+                                      "w": 19.5,
+                                      "h": 17.33
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8828",
+                                        "name": "Icon",
+                                        "type": "VECTOR",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 58.25,
+                                          "y": 245.33,
+                                          "w": 19.5,
+                                          "h": 17.33
+                                        },
+                                        "fills": [
+                                          "#006C49"
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8829",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 104,
+                                  "y": 234,
+                                  "w": 164.55,
+                                  "h": 40
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8830",
+                                    "name": "Heading 3",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 104,
+                                      "y": 234,
+                                      "w": 164.55,
+                                      "h": 22
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8831",
+                                        "name": "Text",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 104,
+                                          "y": 234,
+                                          "w": 164.55,
+                                          "h": 22
+                                        },
+                                        "fills": [
+                                          "#1A1B1F"
+                                        ],
+                                        "text": {
+                                          "characters": "2024 Ford Transit 350",
+                                          "font": "Plus Jakarta Sans Bold",
+                                          "size": 16,
+                                          "weight": 700,
+                                          "lineHeight": 22,
+                                          "letterSpacing": -0.1599999964237213,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8832",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 104,
+                                      "y": 256,
+                                      "w": 164.55,
+                                      "h": 18
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8833",
+                                        "name": "Text",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 104,
+                                          "y": 256,
+                                          "w": 162.17,
+                                          "h": 18
+                                        },
+                                        "fills": [
+                                          "#5E5D69"
+                                        ],
+                                        "text": {
+                                          "characters": "VIN • 1FTBR1Y85RKB92104",
+                                          "font": "Plus Jakarta Sans Regular",
+                                          "size": 13,
+                                          "weight": 400,
+                                          "lineHeight": 18,
+                                          "letterSpacing": 0,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "1:8834",
+                            "name": "Background",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 272.17,
+                              "y": 243,
+                              "w": 73.83,
+                              "h": 22
+                            },
+                            "layout": {
+                              "mode": "VERTICAL",
+                              "gap": 0,
+                              "pad": [
+                                4,
+                                12,
+                                4,
+                                12
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "radius": 9999,
+                            "radii": [
+                              9999,
+                              9999,
+                              9999,
+                              9999
+                            ],
+                            "fills": [
+                              "#E1DEEC"
+                            ],
+                            "children": [
+                              {
+                                "id": "1:8835",
+                                "name": "Text",
+                                "type": "TEXT",
+                                "depth": 7,
+                                "box": {
+                                  "x": 284.17,
+                                  "y": 247,
+                                  "w": 49.83,
+                                  "h": 14
+                                },
+                                "fills": [
+                                  "#62616D"
+                                ],
+                                "text": {
+                                  "characters": "Bay #04",
+                                  "font": "Plus Jakarta Sans SemiBold",
+                                  "size": 11,
+                                  "weight": 600,
+                                  "lineHeight": 14,
+                                  "letterSpacing": 0.4399999976158142,
+                                  "align": "LEFT"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "1:8836",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 44,
+                          "y": 466,
+                          "w": 302,
+                          "h": 152
+                        },
+                        "layout": {
+                          "mode": "HORIZONTAL",
+                          "gap": 12,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "CENTER",
+                          "counter": "MIN"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8837",
+                            "name": "Background",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 44,
+                              "y": 466,
+                              "w": 145,
+                              "h": 152
+                            },
+                            "layout": {
+                              "mode": "VERTICAL",
+                              "gap": 0,
+                              "pad": [
+                                16,
+                                16,
+                                16,
+                                16
+                              ],
+                              "primary": "SPACE_BETWEEN",
+                              "counter": "MIN"
+                            },
+                            "fills": [
+                              "#F4F3F8"
+                            ],
+                            "children": [
+                              {
+                                "id": "1:8838",
+                                "name": "Margin",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 60,
+                                  "y": 482,
+                                  "w": 32,
+                                  "h": 44
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    12,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8839",
+                                    "name": "Background",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 60,
+                                      "y": 482,
+                                      "w": 32,
+                                      "h": 32
+                                    },
+                                    "layout": {
+                                      "mode": "HORIZONTAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "CENTER",
+                                      "counter": "CENTER"
+                                    },
+                                    "radius": 9999,
+                                    "radii": [
+                                      9999,
+                                      9999,
+                                      9999,
+                                      9999
+                                    ],
+                                    "fills": [
+                                      "#6FFBBE"
+                                    ],
+                                    "children": [
+                                      {
+                                        "id": "1:8840",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 68.5,
+                                          "y": 490.5,
+                                          "w": 15,
+                                          "h": 15
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8841",
+                                            "name": "Icon",
+                                            "type": "VECTOR",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 68.5,
+                                              "y": 490.5,
+                                              "w": 15,
+                                              "h": 15
+                                            },
+                                            "fills": [
+                                              "#002113"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8842",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 60,
+                                  "y": 526,
+                                  "w": 113,
+                                  "h": 76
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8843",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 60,
+                                      "y": 526,
+                                      "w": 113,
+                                      "h": 28
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8844",
+                                        "name": "Text",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 60,
+                                          "y": 526,
+                                          "w": 37.19,
+                                          "h": 28
+                                        },
+                                        "fills": [
+                                          "#1A1B1F"
+                                        ],
+                                        "text": {
+                                          "characters": "104",
+                                          "font": "Plus Jakarta Sans Bold",
+                                          "size": 22,
+                                          "weight": 700,
+                                          "lineHeight": 28,
+                                          "letterSpacing": -0.550000011920929,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8845",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 60,
+                                      "y": 556,
+                                      "w": 47.14,
+                                      "h": 18
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "Checks",
+                                      "font": "Plus Jakarta Sans Regular",
+                                      "size": 13,
+                                      "weight": 400,
+                                      "lineHeight": 18,
+                                      "letterSpacing": 0,
+                                      "align": "LEFT"
+                                    }
+                                  },
+                                  {
+                                    "id": "1:8846",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 60,
+                                      "y": 580,
+                                      "w": 71.44,
+                                      "h": 18
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "Completed",
+                                      "font": "Plus Jakarta Sans Regular",
+                                      "size": 13,
+                                      "weight": 400,
+                                      "lineHeight": 18,
+                                      "letterSpacing": 0,
+                                      "align": "LEFT"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "1:8847",
+                            "name": "Background",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 201,
+                              "y": 466,
+                              "w": 145,
+                              "h": 152
+                            },
+                            "layout": {
+                              "mode": "VERTICAL",
+                              "gap": 24,
+                              "pad": [
+                                16,
+                                16,
+                                16,
+                                16
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "fills": [
+                              "#F4F3F8"
+                            ],
+                            "children": [
+                              {
+                                "id": "1:8848",
+                                "name": "Margin",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 217,
+                                  "y": 482,
+                                  "w": 32,
+                                  "h": 44
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    12,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8849",
+                                    "name": "Background",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 217,
+                                      "y": 482,
+                                      "w": 32,
+                                      "h": 32
+                                    },
+                                    "layout": {
+                                      "mode": "HORIZONTAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "CENTER",
+                                      "counter": "CENTER"
+                                    },
+                                    "radius": 9999,
+                                    "radii": [
+                                      9999,
+                                      9999,
+                                      9999,
+                                      9999
+                                    ],
+                                    "fills": [
+                                      "#FFDAD6"
+                                    ],
+                                    "children": [
+                                      {
+                                        "id": "1:8850",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 227.38,
+                                          "y": 491.63,
+                                          "w": 11.25,
+                                          "h": 12.75
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8851",
+                                            "name": "Icon",
+                                            "type": "VECTOR",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 227.38,
+                                              "y": 491.63,
+                                              "w": 11.25,
+                                              "h": 12.75
+                                            },
+                                            "fills": [
+                                              "#93000A"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8852",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 217,
+                                  "y": 550,
+                                  "w": 113,
+                                  "h": 52
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 2,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    4,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8853",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 217,
+                                      "y": 550,
+                                      "w": 113,
+                                      "h": 28
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8854",
+                                        "name": "2",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 217,
+                                          "y": 550,
+                                          "w": 113,
+                                          "h": 28
+                                        },
+                                        "fills": [
+                                          "#1A1B1F"
+                                        ],
+                                        "text": {
+                                          "characters": "2",
+                                          "font": "Plus Jakarta Sans Bold",
+                                          "size": 22,
+                                          "weight": 700,
+                                          "lineHeight": 28,
+                                          "letterSpacing": -0.550000011920929,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8855",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 217,
+                                      "y": 580,
+                                      "w": 91.41,
+                                      "h": 18
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "Defects Found",
+                                      "font": "Plus Jakarta Sans Regular",
+                                      "size": 13,
+                                      "weight": 400,
+                                      "lineHeight": 18,
+                                      "letterSpacing": 0,
+                                      "align": "LEFT"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "1:8856",
+                        "name": "Background",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 44,
+                          "y": 642,
+                          "w": 302,
+                          "h": 98
+                        },
+                        "layout": {
+                          "mode": "HORIZONTAL",
+                          "gap": 2.842170943040401e-14,
+                          "pad": [
+                            16,
+                            16,
+                            16,
+                            16
+                          ],
+                          "primary": "SPACE_BETWEEN",
+                          "counter": "CENTER"
+                        },
+                        "fills": [
+                          "#F4F3F8"
+                        ],
+                        "children": [
+                          {
+                            "id": "1:8857",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 60,
+                              "y": 658,
+                              "w": 218.91,
+                              "h": 66
+                            },
+                            "layout": {
+                              "mode": "HORIZONTAL",
+                              "gap": 12,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "CENTER"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8858",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 60,
+                                  "y": 671,
+                                  "w": 34.94,
+                                  "h": 40
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "CENTER",
+                                  "counter": "MIN"
+                                },
+                                "radius": 9999,
+                                "radii": [
+                                  9999,
+                                  9999,
+                                  9999,
+                                  9999
+                                ],
+                                "children": [
+                                  {
+                                    "id": "1:8859",
+                                    "name": "AB6AXuA6dGDzYZ-RLaWksinhI7SgABKO8bMsu5g5yMUtDsLyRYHhXDRYb_zOrA_A_Ex8Th0NNXJfCUHR_XSUdAmTsbmZrwy0Ys4pLz2JSTnomARs5ZkI6GMMjbew3M6TKsSI0hbuETpSs9FXQ2phJ4ys17hXrhPKRytWBy4v1CSFs7ofXoiNdxYCkVe-hUACGavBx3BV1oI7Xo-bWlebHnNNF0JoqdNy_Tcq77WdHJu9LmqH",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 60,
+                                      "y": 671,
+                                      "w": 34.94,
+                                      "h": 40
+                                    },
+                                    "fills": [
+                                      "IMAGE"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8860",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 106.94,
+                                  "y": 658,
+                                  "w": 171.97,
+                                  "h": 66
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8861",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 106.94,
+                                      "y": 658,
+                                      "w": 170.64,
+                                      "h": 18
+                                    },
+                                    "layout": {
+                                      "mode": "HORIZONTAL",
+                                      "gap": 6,
+                                      "pad": [
+                                        0,
+                                        56.58000183105469,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "CENTER"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8862",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 106.94,
+                                          "y": 658,
+                                          "w": 93.39,
+                                          "h": 18
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8863",
+                                            "name": "Text",
+                                            "type": "TEXT",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 106.94,
+                                              "y": 658,
+                                              "w": 93.39,
+                                              "h": 18
+                                            },
+                                            "fills": [
+                                              "#1A1B1F"
+                                            ],
+                                            "text": {
+                                              "characters": "Marcus Vance",
+                                              "font": "Plus Jakarta Sans Bold",
+                                              "size": 14,
+                                              "weight": 700,
+                                              "lineHeight": 18,
+                                              "letterSpacing": -0.14000000059604645,
+                                              "align": "LEFT"
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "id": "1:8864",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 206.33,
+                                          "y": 660,
+                                          "w": 14.67,
+                                          "h": 14
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8865",
+                                            "name": "Icon",
+                                            "type": "VECTOR",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 206.33,
+                                              "y": 660,
+                                              "w": 14.67,
+                                              "h": 14
+                                            },
+                                            "fills": [
+                                              "#006C49"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8866",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 106.94,
+                                      "y": 678,
+                                      "w": 152.13,
+                                      "h": 18
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "Lead Fleet Specialist • ID",
+                                      "font": "Plus Jakarta Sans Regular",
+                                      "size": 13,
+                                      "weight": 400,
+                                      "lineHeight": 18,
+                                      "letterSpacing": 0,
+                                      "align": "LEFT"
+                                    }
+                                  },
+                                  {
+                                    "id": "1:8867",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 106.94,
+                                      "y": 702,
+                                      "w": 42.59,
+                                      "h": 18
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "#8842",
+                                      "font": "Plus Jakarta Sans Regular",
+                                      "size": 13,
+                                      "weight": 400,
+                                      "lineHeight": 18,
+                                      "letterSpacing": 0,
+                                      "align": "LEFT"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "1:8868",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 278.91,
+                              "y": 660,
+                              "w": 51.09,
+                              "h": 62
+                            },
+                            "children": [
+                              {
+                                "id": "1:8869",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 278.91,
+                                  "y": 660,
+                                  "w": 51.09,
+                                  "h": 14
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    16.639999389648438
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MAX"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8870",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 295.55,
+                                      "y": 660,
+                                      "w": 34.45,
+                                      "h": 14
+                                    },
+                                    "fills": [
+                                      "#5E5D69"
+                                    ],
+                                    "text": {
+                                      "characters": "Today",
+                                      "font": "Plus Jakarta Sans SemiBold",
+                                      "size": 11,
+                                      "weight": 600,
+                                      "lineHeight": 14,
+                                      "letterSpacing": 0.4399999976158142,
+                                      "align": "RIGHT"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8871",
+                                "name": "Text",
+                                "type": "TEXT",
+                                "depth": 7,
+                                "box": {
+                                  "x": 296.84,
+                                  "y": 677.5,
+                                  "w": 33.16,
+                                  "h": 16
+                                },
+                                "fills": [
+                                  "#1A1B1F"
+                                ],
+                                "text": {
+                                  "characters": "14:48",
+                                  "font": "Plus Jakarta Sans SemiBold",
+                                  "size": 12,
+                                  "weight": 600,
+                                  "lineHeight": 16,
+                                  "letterSpacing": 0.23999999463558197,
+                                  "align": "RIGHT"
+                                }
+                              },
+                              {
+                                "id": "1:8872",
+                                "name": "Text",
+                                "type": "TEXT",
+                                "depth": 7,
+                                "box": {
+                                  "x": 307.38,
+                                  "y": 701.5,
+                                  "w": 22.63,
+                                  "h": 16
+                                },
+                                "fills": [
+                                  "#1A1B1F"
+                                ],
+                                "text": {
+                                  "characters": "PST",
+                                  "font": "Plus Jakarta Sans SemiBold",
+                                  "size": 12,
+                                  "weight": 600,
+                                  "lineHeight": 16,
+                                  "letterSpacing": 0.23999999463558197,
+                                  "align": "RIGHT"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "1:8873",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 44,
+                          "y": 298,
+                          "w": 302,
+                          "h": 144
+                        },
+                        "layout": {
+                          "mode": "VERTICAL",
+                          "gap": 0,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "CENTER",
+                          "counter": "MIN"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8874",
+                            "name": "AB6AXuBC7qJfbrATy1AUuOCrOWmAPfTCHgkIEZHXcXCXZscxIWzB0SWT4WLRS-TpwOQqIHAC2adapAlluFOQv7DkK1cMcwPTKGyhf83HC5s0cD49omNXZxsrNe_NWqwsBZ9jXYdAQJFi1bTWTZUX-_e67Nj1ix7OUPhMhvNn2yWdqg73pbHKr4VAYE0LIcwjOQLJAO_NmlmVDTAWJ2XRdT-H16kBVUpH5NGc-btUpdgNG_r8",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 44,
+                              "y": 298,
+                              "w": 302,
+                              "h": 144
+                            },
+                            "fills": [
+                              "IMAGE"
+                            ]
+                          },
+                          {
+                            "id": "1:8875",
+                            "name": "Overlay+Shadow+OverlayBlur",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 52,
+                              "y": 412,
+                              "w": 155.39,
+                              "h": 22
+                            },
+                            "layout": {
+                              "mode": "HORIZONTAL",
+                              "gap": 6,
+                              "pad": [
+                                4,
+                                10,
+                                4,
+                                10
+                              ],
+                              "primary": "MIN",
+                              "counter": "CENTER"
+                            },
+                            "radius": 9999,
+                            "radii": [
+                              9999,
+                              9999,
+                              9999,
+                              9999
+                            ],
+                            "fills": [
+                              "#FFFFFFE5"
+                            ],
+                            "effects": [
+                              {
+                                "type": "DROP_SHADOW",
+                                "radius": 2,
+                                "offset": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "spread": 0,
+                                "color": null
+                              },
+                              {
+                                "type": "BACKGROUND_BLUR",
+                                "radius": 24,
+                                "color": null
+                              }
+                            ],
+                            "children": [
+                              {
+                                "id": "1:8876",
+                                "name": "Background",
+                                "type": "RECTANGLE",
+                                "depth": 7,
+                                "box": {
+                                  "x": 62,
+                                  "y": 419,
+                                  "w": 8,
+                                  "h": 8
+                                },
+                                "radius": 9999,
+                                "radii": [
+                                  9999,
+                                  9999,
+                                  9999,
+                                  9999
+                                ],
+                                "fills": [
+                                  "#10B981"
+                                ]
+                              },
+                              {
+                                "id": "1:8877",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 76,
+                                  "y": 416,
+                                  "w": 121.39,
+                                  "h": 14
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8878",
+                                    "name": "Text",
+                                    "type": "TEXT",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 76,
+                                      "y": 416,
+                                      "w": 121.39,
+                                      "h": 14
+                                    },
+                                    "fills": [
+                                      "#1A1B1F"
+                                    ],
+                                    "text": {
+                                      "characters": "Odometer: 14,820 mi",
+                                      "font": "Plus Jakarta Sans SemiBold",
+                                      "size": 11,
+                                      "weight": 600,
+                                      "lineHeight": 14,
+                                      "letterSpacing": 0.4399999976158142,
+                                      "align": "LEFT"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1:8879",
+                "name": "Margin",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 0,
+                  "y": 764,
+                  "w": 390,
+                  "h": 214
+                },
+                "layout": {
+                  "mode": "VERTICAL",
+                  "gap": 0,
+                  "pad": [
+                    16,
+                    20,
+                    0,
+                    20
+                  ],
+                  "primary": "MIN",
+                  "counter": "MIN"
+                },
+                "children": [
+                  {
+                    "id": "1:8880",
+                    "name": "Background+Shadow",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 20,
+                      "y": 780,
+                      "w": 350,
+                      "h": 198
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 12,
+                      "pad": [
+                        20,
+                        20,
+                        20,
+                        20
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "radius": 32,
+                    "radii": [
+                      32,
+                      32,
+                      32,
+                      32
+                    ],
+                    "fills": [
+                      "#FFFFFF"
+                    ],
+                    "effects": [
+                      {
+                        "type": "DROP_SHADOW",
+                        "radius": 2,
+                        "offset": {
+                          "x": 0,
+                          "y": 1
+                        },
+                        "spread": 0,
+                        "color": null
+                      }
+                    ],
+                    "children": [
+                      {
+                        "id": "1:8881",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 40,
+                          "y": 800,
+                          "w": 310,
+                          "h": 22
+                        },
+                        "layout": {
+                          "mode": "HORIZONTAL",
+                          "gap": 14.050000190734863,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "SPACE_BETWEEN",
+                          "counter": "CENTER"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8882",
+                            "name": "Heading 4",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 40,
+                              "y": 800,
+                              "w": 184.28,
+                              "h": 22
+                            },
+                            "layout": {
+                              "mode": "VERTICAL",
+                              "gap": 0,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8883",
+                                "name": "Text",
+                                "type": "TEXT",
+                                "depth": 7,
+                                "box": {
+                                  "x": 40,
+                                  "y": 800,
+                                  "w": 184.28,
+                                  "h": 22
+                                },
+                                "fills": [
+                                  "#1A1B1F"
+                                ],
+                                "text": {
+                                  "characters": "Flagged Items Summary",
+                                  "font": "Plus Jakarta Sans Bold",
+                                  "size": 16,
+                                  "weight": 700,
+                                  "lineHeight": 22,
+                                  "letterSpacing": -0.1599999964237213,
+                                  "align": "LEFT"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "1:8884",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 238.33,
+                              "y": 804,
+                              "w": 111.67,
+                              "h": 14
+                            },
+                            "layout": {
+                              "mode": "VERTICAL",
+                              "gap": 0,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8885",
+                                "name": "Text",
+                                "type": "TEXT",
+                                "depth": 7,
+                                "box": {
+                                  "x": 238.33,
+                                  "y": 804,
+                                  "w": 111.67,
+                                  "h": 14
+                                },
+                                "fills": [
+                                  "#B91A24"
+                                ],
+                                "text": {
+                                  "characters": "Requires Follow-up",
+                                  "font": "Plus Jakarta Sans SemiBold",
+                                  "size": 11,
+                                  "weight": 600,
+                                  "lineHeight": 14,
+                                  "letterSpacing": 0.4399999976158142,
+                                  "align": "LEFT"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "1:8886",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 40,
+                          "y": 834,
+                          "w": 310,
+                          "h": 124
+                        },
+                        "layout": {
+                          "mode": "VERTICAL",
+                          "gap": 12,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "MIN",
+                          "counter": "MIN"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8887",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 40,
+                              "y": 834,
+                              "w": 310,
+                              "h": 56
+                            },
+                            "layout": {
+                              "mode": "HORIZONTAL",
+                              "gap": 12,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8888",
+                                "name": "Margin",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 40,
+                                  "y": 834,
+                                  "w": 24,
+                                  "h": 26
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    2,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8889",
+                                    "name": "Background",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 40,
+                                      "y": 836,
+                                      "w": 24,
+                                      "h": 24
+                                    },
+                                    "layout": {
+                                      "mode": "HORIZONTAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "CENTER",
+                                      "counter": "CENTER"
+                                    },
+                                    "radius": 9999,
+                                    "radii": [
+                                      9999,
+                                      9999,
+                                      9999,
+                                      9999
+                                    ],
+                                    "fills": [
+                                      "#FFDAD6"
+                                    ],
+                                    "children": [
+                                      {
+                                        "id": "1:8890",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 45.58,
+                                          "y": 842.46,
+                                          "w": 12.83,
+                                          "h": 11.08
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8891",
+                                            "name": "Icon",
+                                            "type": "VECTOR",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 45.58,
+                                              "y": 842.46,
+                                              "w": 12.83,
+                                              "h": 11.08
+                                            },
+                                            "fills": [
+                                              "#93000A"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8892",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 76,
+                                  "y": 834,
+                                  "w": 274,
+                                  "h": 56
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8893",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 76,
+                                      "y": 834,
+                                      "w": 274,
+                                      "h": 20
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8894",
+                                        "name": "Front Left Tire Tread Depth",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 76,
+                                          "y": 834,
+                                          "w": 274,
+                                          "h": 20
+                                        },
+                                        "fills": [
+                                          "#1A1B1F"
+                                        ],
+                                        "text": {
+                                          "characters": "Front Left Tire Tread Depth",
+                                          "font": "Plus Jakarta Sans SemiBold",
+                                          "size": 14,
+                                          "weight": 600,
+                                          "lineHeight": 20,
+                                          "letterSpacing": -0.07000000029802322,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8895",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 76,
+                                      "y": 854,
+                                      "w": 274,
+                                      "h": 36
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8896",
+                                        "name": "Measured at 3/32 in. Marginal wear pattern documented.",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 76,
+                                          "y": 854,
+                                          "w": 274,
+                                          "h": 36
+                                        },
+                                        "fills": [
+                                          "#5E5D69"
+                                        ],
+                                        "text": {
+                                          "characters": "Measured at 3/32 in. Marginal wear pattern\ndocumented.",
+                                          "font": "Plus Jakarta Sans Regular",
+                                          "size": 13,
+                                          "weight": 400,
+                                          "lineHeight": 18,
+                                          "letterSpacing": 0,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "1:8897",
+                            "name": "Container",
+                            "type": "FRAME",
+                            "depth": 6,
+                            "box": {
+                              "x": 40,
+                              "y": 902,
+                              "w": 310,
+                              "h": 56
+                            },
+                            "layout": {
+                              "mode": "HORIZONTAL",
+                              "gap": 12,
+                              "pad": [
+                                0,
+                                0,
+                                0,
+                                0
+                              ],
+                              "primary": "MIN",
+                              "counter": "MIN"
+                            },
+                            "children": [
+                              {
+                                "id": "1:8898",
+                                "name": "Margin",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 40,
+                                  "y": 902,
+                                  "w": 24,
+                                  "h": 26
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    2,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8899",
+                                    "name": "Background",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 40,
+                                      "y": 904,
+                                      "w": 24,
+                                      "h": 24
+                                    },
+                                    "layout": {
+                                      "mode": "HORIZONTAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "CENTER",
+                                      "counter": "CENTER"
+                                    },
+                                    "radius": 9999,
+                                    "radii": [
+                                      9999,
+                                      9999,
+                                      9999,
+                                      9999
+                                    ],
+                                    "fills": [
+                                      "#FFDAD6"
+                                    ],
+                                    "children": [
+                                      {
+                                        "id": "1:8900",
+                                        "name": "Container",
+                                        "type": "FRAME",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 45.58,
+                                          "y": 910.46,
+                                          "w": 12.83,
+                                          "h": 11.08
+                                        },
+                                        "layout": {
+                                          "mode": "VERTICAL",
+                                          "gap": 0,
+                                          "pad": [
+                                            0,
+                                            0,
+                                            0,
+                                            0
+                                          ],
+                                          "primary": "MIN",
+                                          "counter": "MIN"
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "1:8901",
+                                            "name": "Icon",
+                                            "type": "VECTOR",
+                                            "depth": 10,
+                                            "box": {
+                                              "x": 45.58,
+                                              "y": 910.46,
+                                              "w": 12.83,
+                                              "h": 11.08
+                                            },
+                                            "fills": [
+                                              "#93000A"
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "1:8902",
+                                "name": "Container",
+                                "type": "FRAME",
+                                "depth": 7,
+                                "box": {
+                                  "x": 76,
+                                  "y": 902,
+                                  "w": 274,
+                                  "h": 56
+                                },
+                                "layout": {
+                                  "mode": "VERTICAL",
+                                  "gap": 0,
+                                  "pad": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "primary": "MIN",
+                                  "counter": "MIN"
+                                },
+                                "children": [
+                                  {
+                                    "id": "1:8903",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 76,
+                                      "y": 902,
+                                      "w": 274,
+                                      "h": 20
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8904",
+                                        "name": "Rear Cargo Door Latch",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 76,
+                                          "y": 902,
+                                          "w": 274,
+                                          "h": 20
+                                        },
+                                        "fills": [
+                                          "#1A1B1F"
+                                        ],
+                                        "text": {
+                                          "characters": "Rear Cargo Door Latch",
+                                          "font": "Plus Jakarta Sans SemiBold",
+                                          "size": 14,
+                                          "weight": 600,
+                                          "lineHeight": 20,
+                                          "letterSpacing": -0.07000000029802322,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "1:8905",
+                                    "name": "Container",
+                                    "type": "FRAME",
+                                    "depth": 8,
+                                    "box": {
+                                      "x": 76,
+                                      "y": 922,
+                                      "w": 274,
+                                      "h": 36
+                                    },
+                                    "layout": {
+                                      "mode": "VERTICAL",
+                                      "gap": 0,
+                                      "pad": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                      ],
+                                      "primary": "MIN",
+                                      "counter": "MIN"
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "1:8906",
+                                        "name": "Minor resistance observed on secondary strike latch.",
+                                        "type": "TEXT",
+                                        "depth": 9,
+                                        "box": {
+                                          "x": 76,
+                                          "y": 922,
+                                          "w": 274,
+                                          "h": 36
+                                        },
+                                        "fills": [
+                                          "#5E5D69"
+                                        ],
+                                        "text": {
+                                          "characters": "Minor resistance observed on secondary\nstrike latch.",
+                                          "font": "Plus Jakarta Sans Regular",
+                                          "size": 13,
+                                          "weight": 400,
+                                          "lineHeight": 18,
+                                          "letterSpacing": 0,
+                                          "align": "LEFT"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1:8907",
+                "name": "Margin",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 0,
+                  "y": 978,
+                  "w": 390,
+                  "h": 125.25
+                },
+                "layout": {
+                  "mode": "VERTICAL",
+                  "gap": 0,
+                  "pad": [
+                    19.25,
+                    28,
+                    0,
+                    28
+                  ],
+                  "primary": "MIN",
+                  "counter": "MIN"
+                },
+                "children": [
+                  {
+                    "id": "1:8908",
+                    "name": "Container",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 28,
+                      "y": 997.25,
+                      "w": 334,
+                      "h": 106
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "CENTER"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8909",
+                        "name": "Text",
+                        "type": "TEXT",
+                        "depth": 5,
+                        "box": {
+                          "x": 33.82,
+                          "y": 997.25,
+                          "w": 322.36,
+                          "h": 106
+                        },
+                        "fills": [
+                          "#5E5D69"
+                        ],
+                        "text": {
+                          "characters": "By completing this inspection, technician confirms\nvehicle condition complies with fleet standards.\nDigital signature and GPS coordinates will be\npermanently appended to Fleet Ledger #2024-FLT-\n0982.",
+                          "font": "Plus Jakarta Sans Regular",
+                          "size": 13,
+                          "weight": 400,
+                          "lineHeight": 21.1299991607666,
+                          "letterSpacing": 0,
+                          "align": "CENTER"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1:8910",
+        "name": "Background+OverlayBlur",
+        "type": "FRAME",
+        "depth": 1,
+        "box": {
+          "x": 0,
+          "y": 1126.63,
+          "w": 390,
+          "h": 104
+        },
+        "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+            20,
+            20,
+            20,
+            20
+          ],
+          "primary": "MIN",
+          "counter": "MIN"
+        },
+        "fills": [
+          "#FFFFFFF2"
+        ],
+        "effects": [
+          {
+            "type": "BACKGROUND_BLUR",
+            "radius": 48,
+            "color": null
+          }
+        ],
+        "children": [
+          {
+            "id": "1:8911",
+            "name": "Overlay+Shadow",
+            "type": "RECTANGLE",
+            "depth": 2,
+            "box": {
+              "x": 0,
+              "y": 1126.63,
+              "w": 390,
+              "h": 104
+            },
+            "fills": [
+              "#FFFFFF01"
+            ],
+            "effects": [
+              {
+                "type": "DROP_SHADOW",
+                "radius": 50,
+                "offset": {
+                  "x": 0,
+                  "y": 25
+                },
+                "spread": -12,
+                "color": null
+              }
+            ]
+          },
+          {
+            "id": "1:8912",
+            "name": "Background",
+            "type": "FRAME",
+            "depth": 2,
+            "box": {
+              "x": 20,
+              "y": 1146.63,
+              "w": 350,
+              "h": 64
+            },
+            "layout": {
+              "mode": "HORIZONTAL",
+              "gap": 0,
+              "pad": [
+                6,
+                6,
+                6,
+                6
+              ],
+              "primary": "MIN",
+              "counter": "CENTER"
+            },
+            "radius": 9999,
+            "radii": [
+              9999,
+              9999,
+              9999,
+              9999
+            ],
+            "fills": [
+              "#E9E7ED"
+            ],
+            "children": [
+              {
+                "id": "1:8913",
+                "name": "Container",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 20,
+                  "y": 1146.63,
+                  "w": 350,
+                  "h": 64
+                },
+                "layout": {
+                  "mode": "HORIZONTAL",
+                  "gap": 0,
+                  "pad": [
+                    0,
+                    0,
+                    0,
+                    40
+                  ],
+                  "primary": "CENTER",
+                  "counter": "CENTER"
+                },
+                "children": [
+                  {
+                    "id": "1:8914",
+                    "name": "Container",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 120.32,
+                      "y": 1169.63,
+                      "w": 189.36,
+                      "h": 18
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8915",
+                        "name": "Text",
+                        "type": "TEXT",
+                        "depth": 5,
+                        "box": {
+                          "x": 120.32,
+                          "y": 1169.63,
+                          "w": 189.36,
+                          "h": 18
+                        },
+                        "fills": [
+                          "#5E5D69"
+                        ],
+                        "text": {
+                          "characters": "Slide to Finalize Inspection",
+                          "font": "Plus Jakarta Sans Bold",
+                          "size": 14,
+                          "weight": 700,
+                          "lineHeight": 18,
+                          "letterSpacing": 0.3499999940395355,
+                          "align": "LEFT"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1:8916",
+                "name": "Background",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 26,
+                  "y": 1152.63,
+                  "w": 52,
+                  "h": 52
+                },
+                "layout": {
+                  "mode": "HORIZONTAL",
+                  "gap": 0,
+                  "pad": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "primary": "CENTER",
+                  "counter": "CENTER"
+                },
+                "radius": 9999,
+                "radii": [
+                  9999,
+                  9999,
+                  9999,
+                  9999
+                ],
+                "fills": [
+                  "#10B981"
+                ],
+                "children": [
+                  {
+                    "id": "1:8917",
+                    "name": "Overlay+Shadow",
+                    "type": "RECTANGLE",
+                    "depth": 4,
+                    "box": {
+                      "x": 26,
+                      "y": 1152.63,
+                      "w": 52,
+                      "h": 52
+                    },
+                    "radius": 9999,
+                    "radii": [
+                      9999,
+                      9999,
+                      9999,
+                      9999
+                    ],
+                    "fills": [
+                      "#FFFFFF01"
+                    ],
+                    "effects": [
+                      {
+                        "type": "DROP_SHADOW",
+                        "radius": 6,
+                        "offset": {
+                          "x": 0,
+                          "y": 4
+                        },
+                        "spread": -4,
+                        "color": null
+                      },
+                      {
+                        "type": "DROP_SHADOW",
+                        "radius": 15,
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "spread": -3,
+                        "color": null
+                      }
+                    ]
+                  },
+                  {
+                    "id": "1:8918",
+                    "name": "Container",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 43.83,
+                      "y": 1171.63,
+                      "w": 16.33,
+                      "h": 14
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8919",
+                        "name": "Icon",
+                        "type": "VECTOR",
+                        "depth": 5,
+                        "box": {
+                          "x": 43.83,
+                          "y": 1171.63,
+                          "w": 16.33,
+                          "h": 14
+                        },
+                        "fills": [
+                          "#FFFFFF"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "1:8920",
+        "name": "Header",
+        "type": "FRAME",
+        "depth": 1,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 64
+        },
+        "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "primary": "MIN",
+          "counter": "MIN"
+        },
+        "fills": [
+          "#FFFFFFCC"
+        ],
+        "effects": [
+          {
+            "type": "DROP_SHADOW",
+            "radius": 8,
+            "offset": {
+              "x": 0,
+              "y": 1
+            },
+            "spread": 0,
+            "color": null
+          },
+          {
+            "type": "BACKGROUND_BLUR",
+            "radius": 48,
+            "color": null
+          }
+        ],
+        "children": [
+          {
+            "id": "1:8921",
+            "name": "Container",
+            "type": "FRAME",
+            "depth": 2,
+            "box": {
+              "x": 0,
+              "y": 0,
+              "w": 390,
+              "h": 64
+            },
+            "layout": {
+              "mode": "HORIZONTAL",
+              "gap": 102.47000122070312,
+              "pad": [
+                0,
+                16,
+                0,
+                16
+              ],
+              "primary": "SPACE_BETWEEN",
+              "counter": "CENTER"
+            },
+            "children": [
+              {
+                "id": "1:8922",
+                "name": "Container",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 16,
+                  "y": 10,
+                  "w": 223.53,
+                  "h": 44
+                },
+                "layout": {
+                  "mode": "HORIZONTAL",
+                  "gap": 4,
+                  "pad": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "primary": "MIN",
+                  "counter": "CENTER"
+                },
+                "children": [
+                  {
+                    "id": "1:8923",
+                    "name": "Button - Go back",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 16,
+                      "y": 10,
+                      "w": 44,
+                      "h": 44
+                    },
+                    "layout": {
+                      "mode": "HORIZONTAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "CENTER",
+                      "counter": "CENTER"
+                    },
+                    "radius": 9999,
+                    "radii": [
+                      9999,
+                      9999,
+                      9999,
+                      9999
+                    ],
+                    "children": [
+                      {
+                        "id": "1:8924",
+                        "name": "Container",
+                        "type": "FRAME",
+                        "depth": 5,
+                        "box": {
+                          "x": 32.11,
+                          "y": 22,
+                          "w": 11.77,
+                          "h": 20
+                        },
+                        "layout": {
+                          "mode": "VERTICAL",
+                          "gap": 0,
+                          "pad": [
+                            0,
+                            0,
+                            0,
+                            0
+                          ],
+                          "primary": "MIN",
+                          "counter": "CENTER"
+                        },
+                        "children": [
+                          {
+                            "id": "1:8925",
+                            "name": "Icon",
+                            "type": "VECTOR",
+                            "depth": 6,
+                            "box": {
+                              "x": 32.11,
+                              "y": 22,
+                              "w": 11.77,
+                              "h": 20
+                            },
+                            "fills": [
+                              "#1A1B1F"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "1:8926",
+                    "name": "Heading 1",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 64,
+                      "y": 20,
+                      "w": 175.53,
+                      "h": 24
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        4
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8927",
+                        "name": "Text",
+                        "type": "TEXT",
+                        "depth": 5,
+                        "box": {
+                          "x": 68,
+                          "y": 20,
+                          "w": 171.53,
+                          "h": 24
+                        },
+                        "fills": [
+                          "#1A1B1F"
+                        ],
+                        "text": {
+                          "characters": "Diagnostic Checklist",
+                          "font": "Plus Jakarta Sans Bold",
+                          "size": 18,
+                          "weight": 700,
+                          "lineHeight": 24,
+                          "letterSpacing": -0.44999998807907104,
+                          "align": "LEFT"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1:8928",
+                "name": "Background",
+                "type": "FRAME",
+                "depth": 3,
+                "box": {
+                  "x": 342,
+                  "y": 16,
+                  "w": 32,
+                  "h": 32
+                },
+                "layout": {
+                  "mode": "HORIZONTAL",
+                  "gap": 0,
+                  "pad": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "primary": "CENTER",
+                  "counter": "CENTER"
+                },
+                "radius": 9999,
+                "radii": [
+                  9999,
+                  9999,
+                  9999,
+                  9999
+                ],
+                "fills": [
+                  "#006C49"
+                ],
+                "children": [
+                  {
+                    "id": "1:8929",
+                    "name": "Container",
+                    "type": "FRAME",
+                    "depth": 4,
+                    "box": {
+                      "x": 352,
+                      "y": 26,
+                      "w": 12,
+                      "h": 12
+                    },
+                    "layout": {
+                      "mode": "VERTICAL",
+                      "gap": 0,
+                      "pad": [
+                        0,
+                        0,
+                        0,
+                        0
+                      ],
+                      "primary": "MIN",
+                      "counter": "MIN"
+                    },
+                    "children": [
+                      {
+                        "id": "1:8930",
+                        "name": "Icon",
+                        "type": "VECTOR",
+                        "depth": 5,
+                        "box": {
+                          "x": 352,
+                          "y": 26,
+                          "w": 12,
+                          "h": 12
+                        },
+                        "fills": [
+                          "#FFFFFF"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

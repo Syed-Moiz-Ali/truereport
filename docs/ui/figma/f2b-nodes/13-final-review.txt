@@ -1,0 +1,130 @@
+1:8349 FRAME "13. Final Review (Missing Items)" @0,0 390x1008 fill=#FFFFFF layout=VERTICAL gap=0 pad=0,0,0,0
+  1:8350 FRAME "Main" @0,0 390x1008 fill=#FFFFFF layout=VERTICAL gap=0 pad=64,0,0,0
+    1:8351 FRAME "Container" @0,64 390x944 layout=VERTICAL gap=0 pad=0,20,40,20
+      1:8352 FRAME "Status Context & Overview Card" @20,64 350x138 layout=VERTICAL gap=4 pad=8,0,24,0
+        1:8353 FRAME "Container" @20,72 350x22 layout=HORIZONTAL gap=71.2300033569336 pad=0,0,0,0
+          1:8354 FRAME "Container" @20,75 165.38x16 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8355 TEXT "Text" @20,75 165.38x16 fill=#5E5D69 text="STEP 4 OF 4 • VALIDATION" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.6000000238418579 LEFT
+          1:8356 FRAME "Background" @256.61,72 113.39x22 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=6 pad=4,10,4,10
+            1:8357 RECTANGLE "Background" @266.61,80 6x6 r=9999 radii=9999/9999/9999/9999 fill=#B91A24
+            1:8358 TEXT "Text" @278.61,76 81.39x14 fill=#79000E text="3 Action Items" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+        1:8359 FRAME "Heading 2" @20,98 350x36 layout=VERTICAL gap=0 pad=4,0,0,0
+          1:8360 TEXT "Review Findings" @20,102 350x32 fill=#1A1B1F text="Review Findings" Plus Jakarta Sans ExtraBold 26/800 lh=32 ls=-0.6499999761581421 LEFT
+        1:8361 FRAME "Container" @20,138 350x40 layout=VERTICAL gap=0 pad=0,0,0,0
+          1:8362 TEXT "Resolve outstanding compliance requirements before submitting the digital work order." @20,138 350x40 fill=#5E5D69 text="Resolve outstanding compliance requirements\nbefore submitting the digital work order." Plus Jakarta Sans Medium 14/500 lh=20 ls=-0.07000000029802322 LEFT
+      1:8363 FRAME "Prominent Attention Banner:margin" @20,202 350x184 layout=VERTICAL gap=0 pad=0,0,24,0
+        1:8364 FRAME "Prominent Attention Banner" @20,202 350x160 r=32 radii=32/32/32/32 fill=#FFDAD74D fx=DROP_SHADOW(40 0,14) layout=HORIZONTAL gap=16 pad=20,20,20,20
+          1:8365 FRAME "Background+Shadow" @40,222 44x44 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFF fx=DROP_SHADOW(8 0,2) layout=HORIZONTAL gap=0 pad=0,0,0,0
+            1:8366 FRAME "Container" @51,234.5 22x19 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8367 VECTOR "Icon" @51,234.5 22x19 fill=#B91A24
+          1:8368 FRAME "Container" @100,222 250x120 layout=VERTICAL gap=4 pad=0,0,0,0
+            1:8369 FRAME "Container" @100,222 250x22 layout=HORIZONTAL gap=0 pad=0,0,0,0
+              1:8370 FRAME "Heading 3" @100,222 250x22 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8371 TEXT "3 Mandatory Photos Missing" @100,222 250x22 fill=#1A1B1F text="3 Mandatory Photos Missing" Plus Jakarta Sans Bold 16/700 lh=22 ls=-0.1599999964237213 LEFT
+            1:8372 FRAME "Container" @100,248 250x54 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8373 TEXT "Customer sign-off & quality assurance mandate verified optical documentation for critical fluid and wear sections." @100,248 250x54 fill=#62616D text="Customer sign-off & quality assurance\nmandate verified optical documentation\nfor critical fluid and wear sections." Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+            1:8374 FRAME "Container" @100,306 250x36 layout=HORIZONTAL gap=12 pad=8,0,0,0
+              1:8375 FRAME "Container" @100,316 56x24 layout=HORIZONTAL gap=-8 pad=0,0,0,0
+                1:8376 FRAME "Background" @100,316 24x24 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=2.75,0,4.25,0
+                  1:8377 TEXT "Text" @108.94,318.75 6.13x17 fill=#79000E text="1" Nimbus Sans Bold 11/700 lh=16.5 ls=0 CENTER
+                1:8378 FRAME "Margin" @116,316 24x24 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8379 FRAME "Background" @116,316 24x24 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=2.75,0,4.25,0
+                    1:8380 TEXT "Text" @124.94,318.75 6.13x17 fill=#79000E text="2" Nimbus Sans Bold 11/700 lh=16.5 ls=0 CENTER
+                1:8381 FRAME "Margin" @132,316 24x24 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8382 FRAME "Background" @132,316 24x24 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=2.75,0,4.25,0
+                    1:8383 TEXT "Text" @140.94,318.75 6.13x17 fill=#79000E text="3" Nimbus Sans Bold 11/700 lh=16.5 ls=0 CENTER
+              1:8384 FRAME "Container" @168,314 182x28 layout=VERTICAL gap=0 pad=0,11.170000076293945,0,0
+                1:8385 TEXT "Text" @168,314 170.83x28 fill=#5E5D69 text="Tap any item below to capture\ninstantly" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+      1:8386 FRAME "Missing Items Vertical Stack:margin" @20,386 350x354 layout=VERTICAL gap=0 pad=0,0,32,0
+        1:8387 FRAME "Missing Items Vertical Stack" @20,386 350x322 layout=VERTICAL gap=14 pad=0,0,0,0
+          1:8388 FRAME "Container" @20,386 350x16 layout=VERTICAL gap=0 pad=0,4,0,4
+            1:8389 TEXT "MANDATORY RESOLUTION ITEMS" @24,386 342x16 fill=#5E5D69 text="MANDATORY RESOLUTION ITEMS" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.6000000238418579 LEFT
+          1:8390 FRAME "Button - Item 1: Brake Fluid" @20,416 350x88 r=32 radii=32/32/32/32 fill=#FFFFFF fx=DROP_SHADOW(8 0,2)+DROP_SHADOW(40 0,14) layout=HORIZONTAL gap=16 pad=20,20,20,20
+            1:8391 FRAME "Container" @40,436 229.66x48 layout=HORIZONTAL gap=16 pad=0,0,0,0
+              1:8392 FRAME "Background" @40,436 48x48 r=9999 radii=9999/9999/9999/9999 fill=#F4F3F8 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8393 FRAME "Container" @55,451 18x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8394 VECTOR "Icon" @55,451 18x18 fill=#1A1B1F
+              1:8395 FRAME "Container" @104,439 165.66x42 layout=VERTICAL gap=2 pad=0,0,0,0
+                1:8396 FRAME "Container" @104,439 165.66x22 layout=HORIZONTAL gap=8 pad=0,0,0,0
+                  1:8397 FRAME "Heading 4" @104,439 83.95x22 layout=VERTICAL gap=0 pad=0,0,0,0
+                    1:8398 TEXT "Text" @104,439 83.95x22 fill=#1A1B1F text="Brake Fluid" Plus Jakarta Sans Bold 16/700 lh=22 ls=-0.1599999964237213 LEFT
+                  1:8399 FRAME "Container" @195.95,441 60.03x18 r=9999 radii=9999/9999/9999/9999 layout=VERTICAL gap=0 pad=2,8,2,8
+                    1:8400 TEXT "Text" @203.95,443 44.03x14 fill=#5E5D69 text="Chassis" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+                1:8401 FRAME "Container" @104,463 165.66x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8402 TEXT "Text" @104,463 165.66x18 fill=#5E5D69 text="Reservoir moisture gauge & test strip" Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+            1:8403 FRAME "Container" @299.83,442 50.17x36 layout=HORIZONTAL gap=8 pad=0,0,0,0
+              1:8404 FRAME "Background" @299.83,442 36x36 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8405 FRAME "Container" @308.67,451.67 18.33x16.67 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8406 VECTOR "Icon" @308.67,451.67 18.33x16.67 fill=#B91A24
+              1:8407 FRAME "Container" @343.83,455 6.17x10 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8408 VECTOR "Icon" @343.83,455 6.17x10 fill=#C7C5D3
+          1:8409 FRAME "Button - Item 2: Tread Photo" @20,518 350x88 r=32 radii=32/32/32/32 fill=#FFFFFF fx=DROP_SHADOW(8 0,2)+DROP_SHADOW(40 0,14) layout=HORIZONTAL gap=16 pad=20,20,20,20
+            1:8410 FRAME "Container" @40,538 230x48 layout=HORIZONTAL gap=16 pad=0,0,0,0
+              1:8411 FRAME "Background" @40,538 48x48 r=9999 radii=9999/9999/9999/9999 fill=#F4F3F8 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8412 FRAME "Container" @53,552.5 22x19 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8413 VECTOR "Icon" @53,552.5 22x19 fill=#1A1B1F
+              1:8414 FRAME "Container" @104,541 166x42 layout=VERTICAL gap=2 pad=0,0,0,0
+                1:8415 FRAME "Container" @104,541 166x22 layout=HORIZONTAL gap=8 pad=0,0,0,0
+                  1:8416 FRAME "Heading 4" @104,541 85.73x22 layout=VERTICAL gap=0 pad=0,8.369999885559082,0,0
+                    1:8417 TEXT "Text" @104,541 77.36x22 fill=#1A1B1F text="Tread Photo" Plus Jakarta Sans Bold 16/700 lh=22 ls=-0.1599999964237213 LEFT
+                  1:8418 FRAME "Container" @197.73,543 72.27x18 r=9999 radii=9999/9999/9999/9999 layout=VERTICAL gap=0 pad=2,8,2,8
+                    1:8419 TEXT "Text" @205.73,545 56.27x14 fill=#5E5D69 text="Front Left" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+                1:8420 FRAME "Container" @104,565 166x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8421 TEXT "Text" @104,565 161.59x18 fill=#5E5D69 text="3/32\" depth indicator macro verification" Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+            1:8422 FRAME "Container" @299.83,544 50.17x36 layout=HORIZONTAL gap=8 pad=0,0,0,0
+              1:8423 FRAME "Background" @299.83,544 36x36 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8424 FRAME "Container" @309.5,554.5 16.67x15 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8425 VECTOR "Icon" @309.5,554.5 16.67x15 fill=#B91A24
+              1:8426 FRAME "Container" @343.83,557 6.17x10 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8427 VECTOR "Icon" @343.83,557 6.17x10 fill=#C7C5D3
+          1:8428 FRAME "Button - Item 3: Customer Signature" @20,620 350x88 r=32 radii=32/32/32/32 fill=#FFFFFF fx=DROP_SHADOW(8 0,2)+DROP_SHADOW(40 0,14) layout=HORIZONTAL gap=16 pad=20,20,20,20
+            1:8429 FRAME "Container" @40,640 228.34x48 layout=HORIZONTAL gap=16 pad=0,0,0,0
+              1:8430 FRAME "Background" @40,640 48x48 r=9999 radii=9999/9999/9999/9999 fill=#F4F3F8 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8431 FRAME "Container" @54.5,655 19x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8432 VECTOR "Icon" @54.5,655 19x18 fill=#1A1B1F
+              1:8433 FRAME "Container" @104,643 164.34x42 layout=VERTICAL gap=2 pad=0,0,0,0
+                1:8434 FRAME "Container" @104,643 164.34x22 layout=HORIZONTAL gap=8 pad=0,0,0,0
+                  1:8435 FRAME "Heading 4" @104,643 73.86x22 layout=VERTICAL gap=0 pad=0,0,0,0
+                    1:8436 TEXT "Text" @104,643 73.86x22 fill=#1A1B1F text="Signature" Plus Jakarta Sans Bold 16/700 lh=22 ls=-0.1599999964237213 LEFT
+                  1:8437 FRAME "Background" @185.86,645 67.73x18 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=VERTICAL gap=0 pad=2,8,2,8
+                    1:8438 TEXT "Text" @193.86,647 51.73x14 fill=#B91A24 text="Required" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+                1:8439 FRAME "Container" @104,667 164.34x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8440 TEXT "Text" @104,667 164.34x18 fill=#5E5D69 text="Digital advisor & vehicle owner sign-off" Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+            1:8441 FRAME "Container" @299.83,646 50.17x36 layout=HORIZONTAL gap=8 pad=0,0,0,0
+              1:8442 FRAME "Background" @299.83,646 36x36 r=9999 radii=9999/9999/9999/9999 fill=#FFDAD6 layout=HORIZONTAL gap=0 pad=0,0,0,0
+                1:8443 FRAME "Container" @309.5,655.67 16.67x16.67 layout=VERTICAL gap=0 pad=0,0,0,0
+                  1:8444 VECTOR "Icon" @309.5,655.67 16.67x16.67 fill=#B91A24
+              1:8445 FRAME "Container" @343.83,659 6.17x10 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8446 VECTOR "Icon" @343.83,659 6.17x10 fill=#C7C5D3
+      1:8447 FRAME "Inspection Metadata Reference Card:margin" @20,740 350x116 layout=VERTICAL gap=0 pad=0,0,32,0
+        1:8448 FRAME "Inspection Metadata Reference Card" @20,740 350x84 r=32 radii=32/32/32/32 fill=#F4F3F899 layout=HORIZONTAL gap=0 pad=16,16,16,16
+          1:8449 FRAME "Container" @36,756 214.38x52 layout=HORIZONTAL gap=12 pad=0,0,0,0
+            1:8450 FRAME "Background" @36,766 25.83x32 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFF layout=HORIZONTAL gap=0 pad=0,0,0,0
+              1:8451 FRAME "Container" @40.67,774.13 16.5x15.75 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8452 VECTOR "Icon" @40.67,774.13 16.5x15.75 fill=#10B981
+            1:8453 FRAME "Container" @73.83,756 176.55x52 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8454 FRAME "Container" @73.83,756 176.55x16 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8455 TEXT "Text" @73.83,756 135.55x16 fill=#1A1B1F text="28 Verified Data Points" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.23999999463558197 LEFT
+              1:8456 FRAME "Container" @73.83,772 176.55x36 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8457 TEXT "Text" @73.83,772 176.55x36 fill=#5E5D69 text="Powertrain, OBD-II & exterior\nscans passed" Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+          1:8458 FRAME "Container" @285.86,768 68.14x28 layout=VERTICAL gap=0 pad=0,10.75,0,0
+            1:8459 TEXT "Text" @285.86,768 57.39x28 fill=#006C49 text="91%\nComplete" Plus Jakarta Sans Bold 11/700 lh=14 ls=0.4399999976158142 LEFT
+      1:8460 FRAME "Bottom Action Area" @20,856 350x112 layout=VERTICAL gap=12 pad=8,0,0,0
+        1:8461 FRAME "Disabled Main CTA Button" @20,864 350x56 r=9999 radii=9999/9999/9999/9999 layout=HORIZONTAL gap=8 pad=0,0,0,0
+          1:8462 FRAME "Container" @117.64,883.25 13.33x17.5 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8463 VECTOR "Icon" @117.64,883.25 13.33x17.5 fill=#C7C5D3
+          1:8464 FRAME "Container" @138.97,883 133.39x18 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8465 TEXT "Text" @138.97,883 133.39x18 fill=#C7C5D3 text="Resolve to Continue" Plus Jakarta Sans Bold 14/700 lh=18 ls=-0.14000000059604645 CENTER
+        1:8466 FRAME "Container" @20,932 350x36 layout=VERTICAL gap=0 pad=0,0,0,0
+          1:8467 TEXT "Text" @30.29,932 329.42x36 fill=#5E5D69 text="All 3 critical checklist items must be resolved to unlock\nclient sign-off." Plus Jakarta Sans Regular 13/400 lh=18 ls=0 CENTER
+  1:8468 FRAME "Header" @0,0 390x64 fill=#FFFFFFCC fx=DROP_SHADOW(8 0,1)+BACKGROUND_BLUR(48) layout=VERTICAL gap=0 pad=0,0,0,0
+    1:8469 FRAME "Container" @0,0 390x64 layout=HORIZONTAL gap=102.47000122070312 pad=0,16,0,16
+      1:8470 FRAME "Container" @16,10 223.53x44 layout=HORIZONTAL gap=4 pad=0,0,0,0
+        1:8471 FRAME "Button - Go back" @16,10 44x44 r=9999 radii=9999/9999/9999/9999 layout=HORIZONTAL gap=0 pad=0,0,0,0
+          1:8472 FRAME "Container" @32.11,22 11.77x20 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8473 VECTOR "Icon" @32.11,22 11.77x20 fill=#1A1B1F
+        1:8474 FRAME "Heading 1" @64,20 175.53x24 layout=VERTICAL gap=0 pad=0,0,0,4
+          1:8475 TEXT "Text" @68,20 171.53x24 fill=#1A1B1F text="Diagnostic Checklist" Plus Jakarta Sans Bold 18/700 lh=24 ls=-0.44999998807907104 LEFT
+      1:8476 FRAME "Background" @342,16 32x32 r=9999 radii=9999/9999/9999/9999 fill=#006C49 layout=HORIZONTAL gap=0 pad=0,0,0,0
+        1:8477 FRAME "Container" @352,26 12x12 layout=VERTICAL gap=0 pad=0,0,0,0
+          1:8478 VECTOR "Icon" @352,26 12x12 fill=#FFFFFF

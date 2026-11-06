@@ -118,7 +118,7 @@ void main() {
         if ((spacing - tracking).abs() > 0.001) {
           deltas.add('tracking $spacing vs $tracking');
         }
-        if (style.fontFamily != 'Plus Jakarta Sans') {
+        if (style.fontFamily != TrFonts.latin) {
           deltas.add('family ${style.fontFamily}');
         }
         if (deltas.isNotEmpty) {

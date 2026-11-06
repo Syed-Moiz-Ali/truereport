@@ -1,4 +1,5 @@
-﻿import 'package:design_system/src/generated/tokens.g.dart';
+﻿import 'package:design_system/src/fonts.dart';
+import 'package:design_system/src/generated/tokens.g.dart';
 import 'package:design_system/src/reduce_motion.dart';
 import 'package:flutter/material.dart';
 
@@ -813,16 +814,16 @@ abstract final class AppTheme {
           scrim: c.scrim,
         );
     final arabicFamily = arabicFont == AppArabicFont.notoSansArabic
-        ? TrFontFamilies.arabicDefault
-        : TrFontFamilies.arabicAlternative;
+        ? TrFonts.arabicDefault
+        : TrFonts.arabicAlternative;
     final type = isArabic ? const _ArabicTypeScale() : const _LatinTypeScale();
     TextStyle style(TrTypeStyleToken token) => TextStyle(
       color: c.onSurface,
-      fontFamily: TrFontFamilies.latin,
+      fontFamily: TrFonts.latin,
       fontFamilyFallback: <String>[
         arabicFamily,
-        TrFontFamilies.cyrillicFallback,
-        TrFontFamilies.cjkFallback,
+        TrFonts.cyrillicFallback,
+        TrFonts.cjkFallback,
       ],
       fontSize: token.size,
       height: token.height,
@@ -1072,11 +1073,11 @@ extension AppThemeContext on BuildContext {
     final token = isArabic ? TrTypeArabic.largeButton : TrType.largeButton;
     return TextStyle(
       color: colors.onSurface,
-      fontFamily: TrFontFamilies.latin,
+      fontFamily: TrFonts.latin,
       fontFamilyFallback: const <String>[
-        TrFontFamilies.arabicDefault,
-        TrFontFamilies.cyrillicFallback,
-        TrFontFamilies.cjkFallback,
+        TrFonts.arabicDefault,
+        TrFonts.cyrillicFallback,
+        TrFonts.cjkFallback,
       ],
       fontSize: token.size,
       height: token.height,

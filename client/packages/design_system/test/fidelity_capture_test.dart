@@ -289,10 +289,12 @@ Future<void> _loadBundledFonts() async {
 }
 
 String? _familyFor(String fileName) {
-  if (fileName.startsWith('PlusJakartaSans')) return 'Plus Jakarta Sans';
-  if (fileName.startsWith('NotoSansArabic')) return 'Noto Sans Arabic';
-  if (fileName.startsWith('IBMPlexSansArabic')) return 'IBM Plex Sans Arabic';
-  if (fileName.startsWith('NotoSansSC')) return 'Noto Sans SC';
-  if (fileName.startsWith('NotoSans-')) return 'Noto Sans';
+  if (fileName.startsWith('PlusJakartaSans')) return TrFonts.latin;
+  if (fileName.startsWith('NotoSansArabic')) return TrFonts.arabicDefault;
+  if (fileName.startsWith('IBMPlexSansArabic')) {
+    return TrFonts.arabicAlternative;
+  }
+  if (fileName.startsWith('NotoSansSC')) return TrFonts.cjkFallback;
+  if (fileName.startsWith('NotoSans-')) return TrFonts.cyrillicFallback;
   return null;
 }

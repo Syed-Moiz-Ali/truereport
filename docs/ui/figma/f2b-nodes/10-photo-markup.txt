@@ -1,0 +1,85 @@
+1:8135 FRAME "10. Photo Annotation & Markup" @0,0 390x884 fill=#FFFFFF layout=VERTICAL gap=0 pad=0,0,0,0
+  1:8136 FRAME "Main" @0,0 390x884 fill=#FFFFFF layout=VERTICAL gap=0 pad=64,0,22.5,0
+    1:8137 FRAME "Container" @0,64 390x797.5 layout=VERTICAL gap=0 pad=0,0,0,0
+      1:8138 FRAME "Container" @0,64 390x48 layout=HORIZONTAL gap=48.2599983215332 pad=8,20,12,20
+        1:8139 FRAME "Container" @20,72 184.33x28 layout=HORIZONTAL gap=8 pad=0,0,0,0
+          1:8140 FRAME "Overlay" @20,72 28x28 r=9999 radii=9999/9999/9999/9999 fill=#10B98126 layout=HORIZONTAL gap=0 pad=0,0,0,0
+            1:8141 FRAME "Container" @25.75,78.13 16.5x15.75 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8142 VECTOR "Icon" @25.75,78.13 16.5x15.75 fill=#006C49
+          1:8143 FRAME "Container" @56,78 148.33x16 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8144 TEXT "Text" @56,78 148.33x16 fill=#5E5D69 text="Front Bumper Inspection" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.23999999463558197 LEFT
+        1:8145 FRAME "Overlay+Shadow" @252.59,75 117.41x22 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFF01 fx=DROP_SHADOW(2 0,1) layout=HORIZONTAL gap=6 pad=4,12,4,12
+          1:8146 RECTANGLE "Background" @264.59,82 8x8 r=9999 radii=9999/9999/9999/9999 fill=#10B981
+          1:8147 FRAME "Container" @278.59,79 79.41x14 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8148 TEXT "Text" @278.59,79 79.41x14 fill=#1A1B1F text="Markup Active" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.2750000059604645 LEFT
+      1:8149 FRAME "Container" @0,112 390x453.5 layout=VERTICAL gap=0 pad=0,20,16,20
+        1:8150 FRAME "Overlay+Shadow" @20,112 350x437.5 r=32 radii=32/32/32/32 fill=#FFFFFF01 fx=DROP_SHADOW(8 0,2)+DROP_SHADOW(40 0,14) layout=HORIZONTAL gap=0 pad=0,0,0,0
+          1:8151 FRAME "AB6AXuD3XXJzF6MEUCcBeU_H4M_jmvT2FUGx-Ol0A3FvS-e95O1kqrVyGqFqUlheLIpPRAcDv-D5elTQrPUpnkI1q0U1nrldpvf8ZhTXYFgle3xThKlYcWM5eqEcjT5o04pZOYaMDiAoP-Z6obAwQLkpiq8qrjhCafs0d76OgcnP8RKx357kH-NOj5cpN7QEpQDzakB5l875a2IUA2UvN-dyqmzA4urpOQrdLVTGKK4b7rQP" @20,112 350x437.5 fill=IMAGE
+          1:8152 RECTANGLE "Gradient" @20,112 350x437.5 fill=GRADIENT_LINEAR
+          1:8153 FRAME "Container" @36,128 318x36 layout=HORIZONTAL gap=135.1199951171875 pad=0,0,0,0
+            1:8154 FRAME "Overlay+Shadow+OverlayBlur" @36,133 143.88x26 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFFE5 fx=DROP_SHADOW(24 0,8)+BACKGROUND_BLUR(24) layout=HORIZONTAL gap=8 pad=6,14,6,14
+              1:8155 FRAME "Container" @50,139.25 15x13.5 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8156 VECTOR "Icon" @50,139.25 15x13.5 fill=#006C49
+              1:8157 FRAME "Container" @73,139 92.88x14 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8158 TEXT "Text" @73,139 92.88x14 fill=#1A1B1F text="IMG_0842.HEIC" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+            1:8159 FRAME "Button - Toggle preview size" @318,128 36x36 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFFE5 fx=DROP_SHADOW(24 0,8)+BACKGROUND_BLUR(24) layout=HORIZONTAL gap=0 pad=0,0,0,0
+              1:8160 FRAME "Container" @329.25,139.25 13.5x13.5 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8161 VECTOR "Icon" @329.25,139.25 13.5x13.5 fill=#1A1B1F
+          1:8162 FRAME "SVG" @20,112 350x437.5
+            1:8163 GROUP "annotation-group" @128.81,271.25 128.1x118.08
+              1:8164 VECTOR "Vector" @128.81,279.85 128.1x109.48 stroke=#10B981@4.8125
+              1:8165 GROUP "Group" @209.88,271.25 22.75x22.75
+                1:8166 VECTOR "Vector" @209.88,271.25 22.75x22.75 fill=#FFFFFF
+                1:8167 VECTOR "Vector" @216.44,277.81 9.63x9.63 fill=#10B981
+          1:8168 FRAME "Container" @36,507.5 318x26 layout=HORIZONTAL gap=80.61000061035156 pad=0,0,0,0
+            1:8169 FRAME "Background+Shadow+OverlayBlur" @36,507.5 136.44x26 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFFF2 fx=DROP_SHADOW(24 0,8)+BACKGROUND_BLUR(24) layout=HORIZONTAL gap=8 pad=6,14,6,14
+              1:8170 RECTANGLE "Background" @50,515.5 10x10 r=9999 radii=9999/9999/9999/9999 fill=#10B981
+              1:8171 FRAME "Container" @68,513.5 90.44x14 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8172 TEXT "Text" @68,513.5 90.44x14 fill=#1A1B1F text="1 Defect Callout" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+            1:8173 FRAME "Background+Shadow+OverlayBlur" @253.05,507.5 100.95x26 r=9999 radii=9999/9999/9999/9999 fill=#FFFFFFF2 fx=DROP_SHADOW(24 0,8)+BACKGROUND_BLUR(24) layout=VERTICAL gap=0 pad=6,12,6,12
+              1:8174 TEXT "Text" @265.05,513.5 76.95x14 fill=#5E5D69 text="0.8 mm Scuff" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+      1:8175 FRAME "Container" @0,565.5 390x296 layout=VERTICAL gap=0 pad=4,20,32,20
+        1:8176 FRAME "Background+Shadow" @20,569.5 350x260 r=32 radii=32/32/32/32 fill=#FFFFFF fx=DROP_SHADOW(12 0,4)+DROP_SHADOW(50 0,18) layout=VERTICAL gap=20 pad=20,20,20,20
+          1:8177 FRAME "Container" @40,589.5 310x44 layout=HORIZONTAL gap=18.780000686645508 pad=0,0,4,0
+            1:8178 FRAME "Container" @40,589.5 216.13x40 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8179 FRAME "Container" @40,589.5 216.13x22 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8180 TEXT "Text" @40,589.5 127.86x22 fill=#1A1B1F text="Annotation Tools" Plus Jakarta Sans Bold 16/700 lh=22 ls=-0.1599999964237213 LEFT
+              1:8181 FRAME "Container" @40,611.5 216.13x18 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8182 TEXT "Text" @40,611.5 216.13x18 fill=#5E5D69 text="Tap draw to circle surface damages" Plus Jakarta Sans Regular 13/400 lh=18 ls=0 LEFT
+            1:8183 FRAME "Background" @278.24,598.5 71.76x22 r=9999 radii=9999/9999/9999/9999 fill=#F4F3F8 layout=HORIZONTAL gap=4 pad=4,10,4,10
+              1:8184 FRAME "Container" @288.24,603.5 12.67x11.99 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8185 VECTOR "Icon" @288.24,603.5 12.67x11.99 fill=#006C49
+              1:8186 FRAME "Container" @304.91,602.5 35.09x14 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8187 TEXT "Text" @304.91,602.5 35.09x14 fill=#1A1B1F text="4.0 pt" Plus Jakarta Sans SemiBold 11/600 lh=14 ls=0.4399999976158142 LEFT
+          1:8188 FRAME "Container" @40,653.5 310x80 layout=HORIZONTAL gap=12 pad=0,0,0,0
+            1:8189 FRAME "Button" @40,653.5 95.33x80 r=32 radii=32/32/32/32 fill=#10B981 fx=DROP_SHADOW(20 0,8) layout=VERTICAL gap=6 pad=0,31.969999313354492,0,31.950000762939453
+              1:8190 FRAME "Container" @77.36,672.75 20.58x19.5 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8191 VECTOR "Icon" @77.36,672.75 20.58x19.5 fill=#FFFFFF
+              1:8192 FRAME "Container" @71.95,698.25 31.41x16 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8193 TEXT "Text" @71.95,698.25 31.41x16 fill=#FFFFFF text="Draw" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.23999999463558197 CENTER
+            1:8194 FRAME "Button" @147.33,653.5 95.33x80 r=32 radii=32/32/32/32 fill=#F4F3F8 layout=VERTICAL gap=6 pad=0,31.459999084472656,0,31.450000762939453
+              1:8195 FRAME "Container" @186.32,674.38 17.33x16.25 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8196 VECTOR "Icon" @186.32,674.38 17.33x16.25 fill=#5E5D69
+              1:8197 FRAME "Container" @178.78,696.63 32.42x16 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8198 TEXT "Text" @178.78,696.63 32.42x16 fill=#5E5D69 text="Undo" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.23999999463558197 CENTER
+            1:8199 FRAME "Button" @254.66,653.5 95.34x80 r=32 radii=32/32/32/32 fill=#F4F3F8 layout=VERTICAL gap=6 pad=0,32.41999816894531,0,32.400001525878906
+              1:8200 FRAME "Container" @290.4,670.58 23.83x23.83 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8201 VECTOR "Icon" @290.4,670.58 23.83x23.83 fill=#5E5D69
+              1:8202 FRAME "Container" @287.06,700.42 30.52x16 layout=VERTICAL gap=0 pad=0,0,0,0
+                1:8203 TEXT "Text" @287.06,700.42 30.52x16 fill=#5E5D69 text="Crop" Plus Jakarta Sans SemiBold 12/600 lh=16 ls=0.23999999463558197 CENTER
+          1:8204 FRAME "Button" @40,753.5 310x56 r=9999 radii=9999/9999/9999/9999 fill=#10B981 fx=DROP_SHADOW(25 0,10) layout=HORIZONTAL gap=8 pad=0,0,0,0
+            1:8205 FRAME "Container" @144.85,773.17 16.67x16.67 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8206 VECTOR "Icon" @144.85,773.17 16.67x16.67 fill=#FFFFFF
+            1:8207 FRAME "Container" @169.52,772.5 75.63x18 layout=VERTICAL gap=0 pad=0,0,0,0
+              1:8208 TEXT "Text" @169.52,772.5 75.63x18 fill=#FFFFFF text="Save Photo" Plus Jakarta Sans Bold 14/700 lh=18 ls=-0.14000000059604645 CENTER
+  1:8209 FRAME "Header" @0,0 390x64 fill=#FFFFFFCC fx=DROP_SHADOW(8 0,1)+BACKGROUND_BLUR(48) layout=VERTICAL gap=0 pad=0,0,0,0
+    1:8210 FRAME "Container" @0,0 390x64 layout=HORIZONTAL gap=78.5199966430664 pad=0,16,0,16
+      1:8211 FRAME "Container" @16,10 247.48x44 layout=HORIZONTAL gap=4 pad=0,0,0,0
+        1:8212 FRAME "Button - Go back" @16,10 44x44 r=9999 radii=9999/9999/9999/9999 layout=HORIZONTAL gap=0 pad=0,0,0,0
+          1:8213 FRAME "Container" @32.11,22 11.77x20 layout=VERTICAL gap=0 pad=0,0,0,0
+            1:8214 VECTOR "Icon" @32.11,22 11.77x20 fill=#1A1B1F
+        1:8215 FRAME "Heading 1" @64,20 199.48x24 layout=VERTICAL gap=0 pad=0,0,0,4
+          1:8216 TEXT "Text" @68,20 195.48x24 fill=#1A1B1F text="Damage Markup Studio" Plus Jakarta Sans Bold 18/700 lh=24 ls=-0.44999998807907104 LEFT
+      1:8217 FRAME "Background" @342,16 32x32 r=9999 radii=9999/9999/9999/9999 fill=#006C49 layout=HORIZONTAL gap=0 pad=0,0,0,0
+        1:8218 FRAME "Container" @352,26 12x12 layout=VERTICAL gap=0 pad=0,0,0,0
+          1:8219 VECTOR "Icon" @352,26 12x12 fill=#FFFFFF

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +7,8 @@ import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/photo_service.dart';
+import 'package:technician_app/src/screens/f2b/defect_detail_view.dart';
 import 'package:technician_app/src/technician_providers.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 
 class AssessmentPage extends ConsumerStatefulWidget {
   const AssessmentPage({required this.jobId, required this.itemId, super.key});
@@ -31,8 +29,6 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
   bool _initialized = false;
   bool _busy = false;
   bool _photoBusy = false;
-  bool _guideLoaded = false;
-  Uint8List? _guideImage;
   List<LocalEvidence> _photos = const [];
 
   @override
@@ -52,14 +48,17 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final checklist = ref.watch(inspectionChecklistProvider(widget.jobId));
-    return AppScaffold(
-      appBar: AppBar(title: Text(l10n.result)),
-      body: checklist.when(
-        loading: () => Padding(
+    return checklist.when(
+      loading: () => AppScaffold(
+        appBar: AppBar(title: Text(l10n.result)),
+        body: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           child: const LoadingSkeleton(lines: 6),
         ),
-        error: (error, _) => Center(
+      ),
+      error: (error, _) => AppScaffold(
+        appBar: AppBar(title: Text(l10n.result)),
+        body: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.all(context.spacing.lg),
             child: ErrorState(
@@ -71,34 +70,35 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
             ),
           ),
         ),
-        data: (value) {
-          final item = _item(value);
-          if (item == null) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsetsDirectional.all(context.spacing.lg),
-                child: EmptyState(title: l10n.error, body: l10n.noResults),
-              ),
-            );
-          }
-          _initialize(item);
-          return _Form(
-            item: item,
-            note: _note,
-            reason: _reason,
-            result: _result,
-            severity: _severity,
-            busy: _busy,
-            photoBusy: _photoBusy,
-            photos: _photos,
-            guideImage: _guideImage,
-            onResult: (result) => setState(() => _result = result),
-            onSeverity: (severity) => setState(() => _severity = severity),
-            onSave: () => _save(item),
-            onAddPhoto: _addPhoto,
-          );
-        },
       ),
+      data: (value) {
+        final item = _item(value);
+        if (item == null) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsetsDirectional.all(context.spacing.lg),
+              child: EmptyState(title: l10n.error, body: l10n.noResults),
+            ),
+          );
+        }
+        _initialize(item);
+        return DefectDetailView(
+          job: value.job,
+          item: item,
+          noteController: _note,
+          selectedResult: _result,
+          selectedSeverity: _severity,
+          photos: _photos,
+          busy: _busy,
+          photoBusy: _photoBusy,
+          finalized: value.job.status == 'FINALIZED',
+          onResult: (result) => setState(() => _result = result),
+          onSeverity: (severity) => setState(() => _severity = severity),
+          onSave: () => _save(item),
+          onAddPhoto: _addPhoto,
+          onClose: () => context.pop(),
+        );
+      },
     );
   }
 
@@ -121,40 +121,6 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
     _severity = assessment?.severityCode;
     _note.text = assessment?.note ?? '';
     _reason.text = assessment?.reasonText ?? assessment?.reasonCode ?? '';
-    if (item.guideImageId != null && !_guideLoaded) {
-      _guideLoaded = true;
-      Future.microtask(_loadGuideImage);
-    }
-  }
-
-  Future<void> _loadGuideImage() async {
-    final store = ref.read(offlineStoreProvider);
-    try {
-      final cached = await store.loadGuideImage(widget.jobId, widget.itemId);
-      if (cached != null) {
-        if (mounted) {
-          setState(() => _guideImage = cached.bytes);
-        }
-        return;
-      }
-      final bytes = await ref
-          .read(technicianApiProvider)
-          .guideImage(widget.jobId, widget.itemId);
-      if (bytes.isNotEmpty) {
-        final data = Uint8List.fromList(bytes);
-        await store.cacheGuideImage(
-          widget.jobId,
-          widget.itemId,
-          'image/jpeg',
-          data,
-        );
-        if (mounted) {
-          setState(() => _guideImage = data);
-        }
-      }
-    } on Object {
-      return;
-    }
   }
 
   Future<void> _loadPhotos() async {
@@ -316,162 +282,5 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
         setState(() => _busy = false);
       }
     }
-  }
-}
-
-class _Form extends StatelessWidget {
-  const _Form({
-    required this.item,
-    required this.note,
-    required this.reason,
-    required this.result,
-    required this.severity,
-    required this.busy,
-    required this.photoBusy,
-    required this.photos,
-    required this.guideImage,
-    required this.onResult,
-    required this.onSeverity,
-    required this.onSave,
-    required this.onAddPhoto,
-  });
-
-  final InspectionItem item;
-  final TextEditingController note;
-  final TextEditingController reason;
-  final String? result;
-  final String? severity;
-  final bool busy;
-  final bool photoBusy;
-  final List<LocalEvidence> photos;
-  final Uint8List? guideImage;
-  final ValueChanged<String> onResult;
-  final ValueChanged<String> onSeverity;
-  final VoidCallback onSave;
-  final VoidCallback onAddPhoto;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final defect =
-        result == 'DEFECT_FOUND' || result == 'ATTENTION_RECOMMENDED';
-    final reasonRequired =
-        result == 'NOT_CHECKED' || result == 'COULD_NOT_VERIFY';
-    final evidenceRequired =
-        item.evidenceRequirement != 'NONE' || item.minPhotos > 0;
-    return ListView(
-      padding: EdgeInsetsDirectional.all(context.spacing.lg),
-      children: [
-        SectionHeader(
-          title: item.labelEn,
-          subtitle: '${item.stableCode} - v${item.versionNo}',
-        ),
-        Text(item.instructionEn, style: context.texts.bodyMedium),
-        SizedBox(height: context.spacing.md),
-        if (evidenceRequired)
-          StatusChip(
-            label: l10n.evidenceRequirement,
-            tone: StatusTone.warning,
-            icon: Icons.photo_camera_outlined,
-          ),
-        if (guideImage != null) ...[
-          SizedBox(height: context.spacing.lg),
-          SectionHeader(title: l10n.guideImage),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(context.radii.lg),
-            child: Image.memory(
-              guideImage!,
-              fit: BoxFit.cover,
-              height: 180,
-              width: double.infinity,
-            ),
-          ),
-        ],
-        if (evidenceRequired) ...[
-          SizedBox(height: context.spacing.lg),
-          SectionHeader(title: l10n.attachments),
-          if (photos.isEmpty)
-            Text(l10n.photoRequired, style: context.texts.bodySmall),
-          if (photos.isNotEmpty)
-            Wrap(
-              spacing: context.spacing.sm,
-              runSpacing: context.spacing.sm,
-              children: photos
-                  .map(
-                    (photo) => ClipRRect(
-                      borderRadius: BorderRadius.circular(context.radii.md),
-                      child: Image.memory(
-                        photo.bytes,
-                        width: 96,
-                        height: 96,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          SizedBox(height: context.spacing.sm),
-          AppButton(
-            label: l10n.addPhoto,
-            onPressed: photoBusy ? null : onAddPhoto,
-            isLoading: photoBusy,
-            icon: Icons.add_a_photo_outlined,
-            variant: AppButtonVariant.tonal,
-            expand: true,
-          ),
-        ],
-        SizedBox(height: context.spacing.lg),
-        SectionHeader(title: l10n.result),
-        Wrap(
-          spacing: context.spacing.xs,
-          runSpacing: context.spacing.xs,
-          children: item.resultOptions
-              .map(
-                (code) => AppSelectableText(
-                  label: resultLabel(l10n, code),
-                  selected: result == code,
-                  onTap: () => onResult(code),
-                ),
-              )
-              .toList(),
-        ),
-        if (defect) ...[
-          SizedBox(height: context.spacing.lg),
-          SectionHeader(title: l10n.severity),
-          Wrap(
-            spacing: context.spacing.xs,
-            runSpacing: context.spacing.xs,
-            children: const ['MINOR', 'MODERATE', 'MAJOR', 'SAFETY_CRITICAL']
-                .map(
-                  (code) => AppSelectableText(
-                    label: severityLabel(l10n, code),
-                    selected: severity == code,
-                    onTap: () => onSeverity(code),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-        SizedBox(height: context.spacing.lg),
-        AppTextField(
-          controller: note,
-          label: l10n.note,
-          maxLines: 3,
-          helperText: l10n.keyboardHelp,
-        ),
-        if (reasonRequired || result == 'NOT_APPLICABLE') ...[
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: reason, label: l10n.reason, maxLines: 2),
-        ],
-        SizedBox(height: context.spacing.xl),
-        AppButton(
-          label: l10n.saveAnswer,
-          onPressed: busy ? null : onSave,
-          isLoading: busy,
-          icon: Icons.save_outlined,
-          expand: true,
-        ),
-      ],
-    );
   }
 }
