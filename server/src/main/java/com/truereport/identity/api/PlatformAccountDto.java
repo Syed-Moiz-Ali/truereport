@@ -10,7 +10,6 @@ public record PlatformAccountDto(
         String role,
         String status,
         UUID workshopId,
-        boolean primary,
-        String invitationExpiresAt
+        boolean primary
 ) {
 }

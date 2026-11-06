@@ -29,17 +29,6 @@ class FakeAdminApi implements AdminApi {
       primary: true,
       invitationExpiresAt: null,
     );
-    const pending = PlatformAccount(
-      userId: 'pending-1',
-      displayName: 'Pending Tech',
-      email: 'pending@test.local',
-      emailMasked: 'p***@test.local',
-      role: 'TECHNICIAN',
-      status: 'PENDING_INVITATION',
-      workshopId: 'workshop-1',
-      primary: false,
-      invitationExpiresAt: '2026-11-06T10:00:00',
-    );
     return const HierarchyResponse(
       workshops: [
         HierarchyWorkshop(
@@ -50,11 +39,11 @@ class FakeAdminApi implements AdminApi {
           memberCount: 2,
           admins: [admin],
           technicians: [technician],
-          pendingInvitations: [pending],
+          pendingInvitations: [],
         ),
       ],
       totalWorkshops: 1,
-      totalAccounts: 3,
+      totalAccounts: 2,
     );
   }
 
@@ -385,6 +374,91 @@ class FakeAdminApi implements AdminApi {
 
   @override
   Future<List<ReportDelivery>> deliveries(String jobId) async => const [];
+
+  @override
+  Future<PlatformAccount> createUser({
+    required String email,
+    required String displayName,
+    required String temporaryPassword,
+    required String role,
+    required String workshopId,
+  }) async {
+    createdUsers.add(email);
+    return PlatformAccount(
+      userId: 'user-new',
+      displayName: displayName,
+      email: email,
+      emailMasked: email,
+      role: role,
+      status: 'ACTIVE',
+      workshopId: workshopId,
+      primary: false,
+      invitationExpiresAt: null,
+    );
+  }
+
+  @override
+  Future<PlatformAccount> createTechnician({
+    required String email,
+    required String displayName,
+    required String initialPassword,
+  }) async {
+    createdTechnicians.add(email);
+    return PlatformAccount(
+      userId: 'tech-new',
+      displayName: displayName,
+      email: email,
+      emailMasked: email,
+      role: 'TECHNICIAN',
+      status: 'ACTIVE',
+      workshopId: 'workshop-1',
+      primary: false,
+      invitationExpiresAt: null,
+    );
+  }
+
+  @override
+  Future<PlatformAccount> resetPlatformPassword(
+    String userId,
+    String newPassword,
+  ) async {
+    resetPlatformCalls.add(userId);
+    return const PlatformAccount(
+      userId: 'admin-1',
+      displayName: 'Admin A',
+      email: 'admin.a@test.local',
+      emailMasked: 'a***@test.local',
+      role: 'WORKSHOP_ADMIN',
+      status: 'ACTIVE',
+      workshopId: 'workshop-1',
+      primary: true,
+      invitationExpiresAt: null,
+    );
+  }
+
+  @override
+  Future<PlatformAccount> resetTechnicianPassword(
+    String userId,
+    String newPassword,
+  ) async {
+    resetTechnicianCalls.add(userId);
+    return const PlatformAccount(
+      userId: 'tech-1',
+      displayName: 'Technician A',
+      email: 'tech.a@test.local',
+      emailMasked: 't***@test.local',
+      role: 'TECHNICIAN',
+      status: 'ACTIVE',
+      workshopId: 'workshop-1',
+      primary: true,
+      invitationExpiresAt: null,
+    );
+  }
+
+  final createdUsers = <String>[];
+  final createdTechnicians = <String>[];
+  final resetPlatformCalls = <String>[];
+  final resetTechnicianCalls = <String>[];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();

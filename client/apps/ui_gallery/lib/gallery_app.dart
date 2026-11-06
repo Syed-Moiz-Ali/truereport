@@ -20,7 +20,6 @@ class _GalleryAppState extends State<GalleryApp> {
   static const List<double> _widths = <double>[390, 600, 900, 1280];
 
   Locale _locale = const Locale('en');
-  Brightness _brightness = Brightness.light;
   double _textScale = 1;
   AppColorStrategy _strategy = AppColorStrategy.emeraldFill;
   AppArabicFont _arabicFont = AppArabicFont.notoSansArabic;
@@ -33,9 +32,7 @@ class _GalleryAppState extends State<GalleryApp> {
     if (query['lang'] == 'ar') {
       _locale = const Locale('ar');
     }
-    if (query['theme'] == 'dark') {
-      _brightness = Brightness.dark;
-    }
+    // Light-only (C0 Workstream B): the '?theme=dark' query param was removed.
     final scale = double.tryParse(query['scale'] ?? '');
     if (scale == 1 || scale == 1.5 || scale == 2) {
       _textScale = scale!;
@@ -57,8 +54,8 @@ class _GalleryAppState extends State<GalleryApp> {
 
   bool get _isArabic => _locale.languageCode == 'ar';
 
+  // Light-only (C0 Workstream B): no brightness state; the gallery is light.
   ThemeData get _theme => AppTheme.build(
-    brightness: _brightness,
     colorStrategy: _strategy,
     arabicFont: _arabicFont,
     isArabic: _isArabic,
@@ -66,10 +63,6 @@ class _GalleryAppState extends State<GalleryApp> {
 
   void _selectLocale(bool arabic) {
     setState(() => _locale = Locale(arabic ? 'ar' : 'en'));
-  }
-
-  void _selectBrightness(Brightness brightness) {
-    setState(() => _brightness = brightness);
   }
 
   void _selectTextScale(double scale) {
@@ -199,21 +192,7 @@ class _GalleryControls extends StatelessWidget {
               ),
             ],
           ),
-          _ControlGroup(
-            label: 'Theme',
-            children: [
-              _Choice(
-                label: 'Light',
-                selected: state._brightness == Brightness.light,
-                onSelected: () => state._selectBrightness(Brightness.light),
-              ),
-              _Choice(
-                label: 'Dark',
-                selected: state._brightness == Brightness.dark,
-                onSelected: () => state._selectBrightness(Brightness.dark),
-              ),
-            ],
-          ),
+          // Light-only (C0 Workstream B): theme toggle removed.
           _ControlGroup(
             label: 'Text scale',
             children: [
@@ -373,7 +352,7 @@ class _GallerySections extends StatelessWidget {
         ],
         const GallerySection(
           title: 'Token swatches',
-          subtitle: 'Every semantic colour in light, dark, emeraldFill and deepGreenFill.',
+          subtitle: 'Every semantic colour in light, emeraldFill and deepGreenFill.',
           child: TokenSwatchesShowcase(),
         ),
         const GallerySection(
@@ -496,7 +475,6 @@ class _StrategyPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.build(
-      brightness: state._brightness,
       colorStrategy: strategy,
       arabicFont: state._arabicFont,
       isArabic: state._isArabic,

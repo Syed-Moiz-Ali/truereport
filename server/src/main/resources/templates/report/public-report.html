@@ -2,157 +2,158 @@
 <html th:lang="${r.lang}" th:dir="${r.dir}">
 <head>
   <meta charset="utf-8">
+  <!-- Light-only (C0 Workstream B): no dark variant is shipped. -->
+  <meta name="color-scheme" content="light">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="referrer" content="no-referrer">
   <meta name="description" th:content="${r.labels.neutralDescription}">
-  <meta property="og:title" content="Vehicle inspection report">
-  <meta property="og:description" content="A vehicle inspection report is available at this link.">
+  <meta property="og:title" th:content="${r.labels.title}">
+  <meta property="og:description" th:content="${r.labels.neutralDescription}">
   <meta property="og:type" content="article">
-  <title th:text="${r.labels.title}">Vehicle inspection report</title>
+  <title th:text="${r.labels.title}"></title>
   <link rel="stylesheet" th:href="@{/r/assets/report.css}">
 </head>
 <body>
-<a class="skip-link" href="#main" th:text="${r.labels.summary}">Skip to report</a>
+<a class="skip-link" href="#main" th:text="${r.labels.summary}"></a>
 <header class="report-header">
   <div class="container header-inner">
     <div>
       <div class="brand">TrueReport</div>
-      <h1 th:text="${r.labels.title}">Vehicle inspection report</h1>
+      <h1 th:text="${r.labels.title}"></h1>
       <p class="report-meta">
-        <span th:text="${r.reportNumber}">TR-0001</span>
+        <span th:text="${r.reportNumber}"></span>
         <span aria-hidden="true"> · </span>
-        <span th:text="${r.labels.version} + ' ' + ${r.version}">Version 1</span>
+        <span th:text="${r.labels.version} + ' ' + ${r.version}"></span>
       </p>
     </div>
     <nav class="language-switch" th:attr="aria-label=${r.labels.language}">
       <a class="button" th:if="${r.lang == 'ar'}" th:href="@{/r/{token}(token=${token},lang='en')}"
-         th:text="${r.labels.english}">English</a>
+         th:text="${r.labels.english}"></a>
       <a class="button" th:if="${r.lang != 'ar'}" th:href="@{/r/{token}(token=${token},lang='ar')}"
-         th:text="${r.labels.arabic}">العربية</a>
+         th:text="${r.labels.arabic}"></a>
       <a class="button primary" th:if="${r.pdfDownloadEnabled}"
-         th:href="@{/r/{token}/pdf(token=${token})}" th:text="${r.labels.downloadPdf}">Download PDF</a>
+         th:href="@{/r/{token}/pdf(token=${token})}" th:text="${r.labels.downloadPdf}"></a>
     </nav>
   </div>
 </header>
 
 <main id="main" class="container">
   <section aria-labelledby="summary-title">
-    <h2 id="summary-title" th:text="${r.labels.summary}">Inspection summary</h2>
+    <h2 id="summary-title" th:text="${r.labels.summary}"></h2>
     <div class="summary-grid">
       <div class="card">
-        <div class="muted small" th:text="${r.labels.coverage}">Coverage</div>
-        <div class="stat" th:text="${r.coverage.text}">0 / 0</div>
-        <div class="small" th:text="${r.labels.checksCompleted}">checks completed</div>
-        <p class="muted small" th:text="${r.labels.coverageNotScore}">Coverage is not a condition score.</p>
+        <div class="muted small" th:text="${r.labels.coverage}"></div>
+        <div class="stat" th:text="${r.coverage.text}"></div>
+        <div class="small" th:text="${r.labels.checksCompleted}"></div>
+        <p class="muted small" th:text="${r.labels.coverageNotScore}"></p>
       </div>
       <div class="card">
-        <div class="muted small" th:text="${r.labels.keyFindings}">Key findings</div>
-        <div class="stat" th:text="${#lists.size(r.keyFindings)}">0</div>
-        <div class="small" th:text="${r.labels.findings}">Findings</div>
+        <div class="muted small" th:text="${r.labels.keyFindings}"></div>
+        <div class="stat" th:text="${#lists.size(r.keyFindings)}"></div>
+        <div class="small" th:text="${r.labels.findings}"></div>
       </div>
       <div class="card">
-        <div class="muted small" th:text="${r.labels.inspection}">Inspection</div>
-        <div th:text="${r.inspection.dateTime}">Date</div>
-        <div class="muted small" th:text="${r.inspection.scope}">Scope</div>
+        <div class="muted small" th:text="${r.labels.inspection}"></div>
+        <div th:text="${r.inspection.dateTime}"></div>
+        <div class="muted small" th:text="${r.inspection.scope}"></div>
       </div>
     </div>
   </section>
 
   <section aria-labelledby="vehicle-title">
-    <h2 id="vehicle-title" th:text="${r.labels.vehicle}">Vehicle</h2>
+    <h2 id="vehicle-title" th:text="${r.labels.vehicle}"></h2>
     <div class="card detail-grid">
       <div>
-        <div class="muted small" th:text="${r.labels.vehicle}">Vehicle</div>
-        <div th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Corolla</div>
-        <div class="small muted" th:if="${r.vehicle.year != null}" th:text="${r.vehicle.year}">2021</div>
+        <div class="muted small" th:text="${r.labels.vehicle}"></div>
+        <div th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}"></div>
+        <div class="small muted" th:if="${r.vehicle.year != null}" th:text="${r.vehicle.year}"></div>
       </div>
       <div>
-        <div class="muted small">VIN</div>
-        <div class="ltr" th:text="${r.vehicle.vinMasked}">••••1234</div>
+        <div class="muted small" th:text="${r.labels.vin}"></div>
+        <div class="ltr" th:text="${r.vehicle.vinMasked}"></div>
       </div>
       <div th:if="${r.vehicle.odometer != ''}">
-        <div class="muted small" th:text="${r.labels.odometer}">Odometer</div>
-        <div th:text="${r.vehicle.odometer}">80,000 km</div>
+        <div class="muted small" th:text="${r.labels.odometer}"></div>
+        <div th:text="${r.vehicle.odometer}"></div>
       </div>
       <div>
-        <div class="muted small" th:text="${r.labels.workshop}">Workshop</div>
-        <div th:text="${r.workshop.name}">Workshop</div>
-        <div class="small muted" th:if="${r.workshop.branch != ''}" th:text="${r.workshop.branch}">Branch</div>
+        <div class="muted small" th:text="${r.labels.workshop}"></div>
+        <div th:text="${r.workshop.name}"></div>
+        <div class="small muted" th:if="${r.workshop.branch != ''}" th:text="${r.workshop.branch}"></div>
       </div>
       <div>
-        <div class="muted small" th:text="${r.labels.technician}">Technician</div>
-        <div th:text="${r.technician.displayName}">Technician</div>
+        <div class="muted small" th:text="${r.labels.technician}"></div>
+        <div th:text="${r.technician.displayName}"></div>
       </div>
       <div>
-        <div class="muted small" th:text="${r.labels.template}">Template version</div>
-        <div th:text="${r.inspection.templateVersion}">v1</div>
+        <div class="muted small" th:text="${r.labels.template}"></div>
+        <div th:text="${r.inspection.templateVersion}"></div>
       </div>
     </div>
   </section>
 
   <section aria-labelledby="findings-title">
-    <h2 id="findings-title" th:text="${r.labels.keyFindings}">Key findings</h2>
+    <h2 id="findings-title" th:text="${r.labels.keyFindings}"></h2>
     <div th:if="${#lists.isEmpty(r.keyFindings)}" class="card" th:text="${r.labels.noKeyFindings}">
-      No safety-critical or defect findings were recorded.
     </div>
     <div th:each="item : ${r.keyFindings}" class="card item">
       <div class="item-title">
-        <strong th:text="${item.label}">Finding</strong>
+        <strong th:text="${item.label}"></strong>
         <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
-              th:if="${item.severityCode != ''}" th:text="${item.severity}">Severity</span>
+              th:if="${item.severityCode != ''}" th:text="${item.severity}"></span>
       </div>
       <p th:if="${item.note != ''}" class="note" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
-         th:text="${item.note}">Note</p>
-      <p th:if="${item.reason != ''}" class="small" th:text="${r.labels.reason} + ': ' + ${item.reason}">Reason</p>
+         th:text="${item.note}"></p>
+      <p th:if="${item.reason != ''}" class="small" th:text="${r.labels.reason} + ': ' + ${item.reason}"></p>
       <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
         <figure th:each="photo : ${item.photos}">
           <img loading="lazy" th:src="@{/r/{token}/photo/{id}(token=${token},id=${photo.id})}"
                th:alt="${photo.alt}" width="640" height="480">
-          <figcaption th:text="${photo.caption}">Evidence</figcaption>
+          <figcaption th:text="${photo.caption}"></figcaption>
         </figure>
       </div>
     </div>
   </section>
 
   <section aria-labelledby="categories-title">
-    <h2 id="categories-title" th:text="${r.labels.findings}">Findings by category</h2>
+    <h2 id="categories-title" th:text="${r.labels.findings}"></h2>
     <div th:each="category : ${r.categories}">
-      <h3 th:text="${category.label}">Category</h3>
+      <h3 th:text="${category.label}"></h3>
       <table>
         <thead>
         <tr>
-          <th scope="col" th:text="${r.labels.result}">Result</th>
-          <th scope="col" th:text="${r.labels.severity}">Severity</th>
-          <th scope="col" th:text="${r.labels.note}">Note</th>
-          <th scope="col" th:text="${r.labels.reason}">Reason</th>
+          <th scope="col" th:text="${r.labels.result}"></th>
+          <th scope="col" th:text="${r.labels.severity}"></th>
+          <th scope="col" th:text="${r.labels.note}"></th>
+          <th scope="col" th:text="${r.labels.reason}"></th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="item : ${category.items}">
-          <td data-label="Check" th:attr="data-label=${r.labels.result}">
-            <strong th:text="${item.label}">Item</strong>
+          <td th:attr="data-label=${r.labels.result}">
+            <strong th:text="${item.label}"></strong>
             <div><span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
-                     th:text="${item.result}">Result</span></div>
+                     th:text="${item.result}"></span></div>
             <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
               <figure th:each="photo : ${item.photos}">
                 <img loading="lazy" th:src="@{/r/{token}/photo/{id}(token=${token},id=${photo.id})}"
                      th:alt="${photo.alt}" width="640" height="480">
-                <figcaption th:text="${photo.caption}">Evidence</figcaption>
+                <figcaption th:text="${photo.caption}"></figcaption>
               </figure>
             </div>
           </td>
-          <td data-label="Severity" th:attr="data-label=${r.labels.severity}">
-            <span class="badge" th:if="${item.severity != ''}" th:text="${item.severity}">Severity</span>
+          <td th:attr="data-label=${r.labels.severity}">
+            <span class="badge" th:if="${item.severity != ''}" th:text="${item.severity}"></span>
           </td>
-          <td data-label="Note" th:attr="data-label=${r.labels.note}">
+          <td th:attr="data-label=${r.labels.note}">
             <span th:if="${item.note == ''}" class="muted">—</span>
             <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
-                  th:text="${item.note}">Note</span>
+                  th:text="${item.note}"></span>
           </td>
-          <td data-label="Reason" th:attr="data-label=${r.labels.reason}">
+          <td th:attr="data-label=${r.labels.reason}">
             <span th:if="${item.reason == ''}" class="muted">—</span>
-            <span th:if="${item.reason != ''}" th:text="${item.reason}">Reason</span>
+            <span th:if="${item.reason != ''}" th:text="${item.reason}"></span>
           </td>
         </tr>
         </tbody>
@@ -161,54 +162,54 @@
   </section>
 
   <section aria-labelledby="not-checked-title" th:if="${!#lists.isEmpty(r.notChecked)}">
-    <h2 id="not-checked-title" th:text="${r.labels.notChecked}">Checks not completed</h2>
+    <h2 id="not-checked-title" th:text="${r.labels.notChecked}"></h2>
     <table>
       <thead>
       <tr>
-        <th scope="col" th:text="${r.labels.findings}">Check</th>
-        <th scope="col" th:text="${r.labels.result}">Result</th>
-        <th scope="col" th:text="${r.labels.reason}">Reason</th>
+        <th scope="col" th:text="${r.labels.findings}"></th>
+        <th scope="col" th:text="${r.labels.result}"></th>
+        <th scope="col" th:text="${r.labels.reason}"></th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="item : ${r.notChecked}">
-        <td th:text="${item.label}">Check</td>
-        <td th:text="${item.result}">Result</td>
-        <td th:text="${item.reason}">Reason</td>
+        <td th:text="${item.label}"></td>
+        <td th:text="${item.result}"></td>
+        <td th:text="${item.reason}"></td>
       </tr>
       </tbody>
     </table>
   </section>
 
   <section aria-labelledby="limitations-title">
-    <h2 id="limitations-title" th:text="${r.labels.limitations}">Limitations and disclaimer</h2>
+    <h2 id="limitations-title" th:text="${r.labels.limitations}"></h2>
     <div class="card">
       <ul>
-        <li th:each="limitation : ${r.limitations}" th:text="${limitation}">Limitation</li>
+        <li th:each="limitation : ${r.limitations}" th:text="${limitation}"></li>
       </ul>
-      <p class="disclaimer" th:text="${r.disclaimer}">Disclaimer</p>
-      <p class="small" th:text="${r.labels.notCertified}">Not an official certificate.</p>
-      <p class="small" th:text="${r.labels.revocationNotice}">Revocation notice</p>
+      <p class="disclaimer" th:text="${r.disclaimer}"></p>
+      <p class="small" th:text="${r.labels.notCertified}"></p>
+      <p class="small" th:text="${r.labels.revocationNotice}"></p>
     </div>
   </section>
 
   <section aria-labelledby="details-title">
-    <h2 id="details-title" th:text="${r.labels.reportDetails}">Report details</h2>
+    <h2 id="details-title" th:text="${r.labels.reportDetails}"></h2>
     <div class="card">
-      <p><strong th:text="${r.labels.reportId}">Report ID</strong>: <span th:text="${r.reportNumber}">TR-0001</span></p>
-      <p><strong th:text="${r.labels.version}">Version</strong>: <span th:text="${r.version}">1</span></p>
-      <p><strong th:text="${r.labels.finalized}">Finalized</strong>: <span th:text="${r.finalizedAt}">Date</span></p>
-      <p><strong th:text="${r.labels.published}">Published</strong>: <span th:text="${r.publishedAt}">Date</span></p>
-      <p><strong th:text="${r.labels.reportHash}">Hash</strong>: <span class="hash" th:text="${r.verificationHash}">hash</span></p>
+      <p><strong th:text="${r.labels.reportId}"></strong>: <span th:text="${r.reportNumber}"></span></p>
+      <p><strong th:text="${r.labels.version}"></strong>: <span th:text="${r.version}"></span></p>
+      <p><strong th:text="${r.labels.finalized}"></strong>: <span th:text="${r.finalizedAt}"></span></p>
+      <p><strong th:text="${r.labels.published}"></strong>: <span th:text="${r.publishedAt}"></span></p>
+      <p><strong th:text="${r.labels.reportHash}"></strong>: <span class="hash" th:text="${r.verificationHash}"></span></p>
     </div>
   </section>
 </main>
 
 <footer class="report-footer">
   <div class="container">
-    <span th:text="${r.reportNumber} + ' · ' + ${r.labels.version} + ' ' + ${r.version}">TR-0001 · v1</span>
+    <span th:text="${r.reportNumber} + ' · ' + ${r.labels.version} + ' ' + ${r.version}"></span>
     <span aria-hidden="true"> · </span>
-    <span th:text="${r.workshop.name}">Workshop</span>
+    <span th:text="${r.workshop.name}"></span>
   </div>
 </footer>
 </body>

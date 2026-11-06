@@ -1,4 +1,5 @@
 import 'package:admin_app/src/admin_providers.dart';
+import 'package:admin_app/src/labels.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,7 +55,8 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           children: [
             SectionHeader(
-              title: 'v${value.versionNo} · ${value.status}',
+              title:
+                  'v${value.versionNo} · ${contentStatusLabel(l10n, value.status)}',
               subtitle: value.publishedAt,
             ),
             Wrap(

@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_gallery/gallery_app.dart';
 
 void main() {
-  testWidgets('gallery renders and switches locale, theme and text scale', (
+  // Light-only (C0 Workstream B): the theme toggle was removed; this covers
+  // the A2 strategy switch instead.
+  testWidgets('gallery renders and switches locale, strategy and text scale', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -17,7 +19,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Dark').first);
+    await tester.tap(find.text('Deep green fill').first);
     await tester.pump(const Duration(milliseconds: 600));
     expect(tester.takeException(), isNull);
 

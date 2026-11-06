@@ -34,7 +34,7 @@ class _TestApp extends StatelessWidget {
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      theme: brightness == Brightness.dark ? AppTheme.dark : AppTheme.light,
+      theme: AppTheme.light,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context)
             .copyWith(textScaler: TextScaler.linear(textScale)),

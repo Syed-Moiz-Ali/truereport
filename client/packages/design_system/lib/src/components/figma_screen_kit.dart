@@ -545,8 +545,8 @@ class FxLanguageSwitch extends StatelessWidget {
   const FxLanguageSwitch({
     required this.isArabic,
     required this.onChanged,
-    this.englishLabel = 'English',
-    this.arabicLabel = 'عربي',
+    required this.englishLabel,
+    required this.arabicLabel,
     this.englishKey,
     this.arabicKey,
     this.switchKey,
@@ -581,7 +581,7 @@ class FxLanguageSwitch extends StatelessWidget {
             selected: !isArabic,
             width: 70.84,
             onTap: () => onChanged(false),
-            semanticLabel: 'English',
+            semanticLabel: englishLabel,
           ),
           _segment(
             key: arabicKey,
@@ -589,7 +589,7 @@ class FxLanguageSwitch extends StatelessWidget {
             selected: isArabic,
             width: 49.58,
             onTap: () => onChanged(true),
-            semanticLabel: 'العربية',
+            semanticLabel: arabicLabel,
           ),
         ],
       ),

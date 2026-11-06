@@ -35,7 +35,7 @@ List<TextStyle?> _allTextStyles(TextTheme theme) => <TextStyle?>[
 void main() {
   group('theme extensions', () {
     for (final strategy in AppColorStrategy.values) {
-      for (final brightness in Brightness.values) {
+      for (final brightness in const <Brightness>[Brightness.light]) {
         for (final arabicFont in AppArabicFont.values) {
           for (final isArabic in const <bool>[false, true]) {
             final name =
@@ -66,12 +66,10 @@ void main() {
       }
     }
 
-    test('light, dark and deep-green helpers expose the same extensions', () {
+    test('light and deep-green helpers expose the same extensions', () {
       for (final theme in <ThemeData>[
         AppTheme.light,
-        AppTheme.dark,
         AppTheme.lightDeepGreen,
-        AppTheme.darkDeepGreen,
       ]) {
         expect(theme.extension<AppSpacingTokens>(), isNotNull);
         expect(theme.extension<AppRadiiTokens>(), isNotNull);
@@ -148,9 +146,7 @@ void main() {
     test('no text style is below 12 px and body sizes are 14/16', () {
       for (final theme in <ThemeData>[
         AppTheme.light,
-        AppTheme.dark,
         AppTheme.build(isArabic: true),
-        AppTheme.build(brightness: Brightness.dark, isArabic: true),
       ]) {
         for (final style in _allTextStyles(theme.textTheme)) {
           expect(style, isNotNull);
@@ -214,7 +210,7 @@ void main() {
 
     test('every brand onFill/fill pair passes 4.5:1', () {
       for (final strategy in AppColorStrategy.values) {
-        for (final brightness in Brightness.values) {
+        for (final brightness in const <Brightness>[Brightness.light]) {
           final brand = AppTheme.build(
             brightness: brightness,
             colorStrategy: strategy,
@@ -236,7 +232,7 @@ void main() {
     });
 
     test('every status foreground/background pair passes 4.5:1', () {
-      for (final brightness in Brightness.values) {
+      for (final brightness in const <Brightness>[Brightness.light]) {
         final status = AppTheme.build(brightness: brightness)
             .extension<AppStatusColors>()!;
         for (final tone in StatusTone.values) {
@@ -251,7 +247,7 @@ void main() {
     });
 
     test('every severity foreground/background pair passes 4.5:1', () {
-      for (final brightness in Brightness.values) {
+      for (final brightness in const <Brightness>[Brightness.light]) {
         final severity = AppTheme.build(brightness: brightness)
             .extension<AppSeverityColors>()!;
         for (final level in AppSeverity.values) {
@@ -266,7 +262,7 @@ void main() {
     });
 
     test('focus ring is at least 3:1 against the surface', () {
-      for (final brightness in Brightness.values) {
+      for (final brightness in const <Brightness>[Brightness.light]) {
         final theme = AppTheme.build(brightness: brightness);
         final shadows = theme.extension<AppShadowTokens>()!;
         expect(

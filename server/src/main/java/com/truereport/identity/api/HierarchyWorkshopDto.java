@@ -10,7 +10,6 @@ public record HierarchyWorkshopDto(
         String status,
         long memberCount,
         List<PlatformAccountDto> admins,
-        List<PlatformAccountDto> technicians,
-        List<PlatformAccountDto> pendingInvitations
+        List<PlatformAccountDto> technicians
 ) {
 }

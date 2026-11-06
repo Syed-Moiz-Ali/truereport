@@ -696,6 +696,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get consentWithdrawn => 'مسحوبة';
 
   @override
+  String get consentRequired => 'مطلوب';
+
+  @override
   String get finalize => 'اعتماد';
 
   @override
@@ -730,6 +733,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addPhoto => 'إضافة صورة';
+
+  @override
+  String get photoSourceCamera => 'الكاميرا';
+
+  @override
+  String get photoSourceGallery => 'المعرض';
 
   @override
   String get photoSaved => 'تم حفظ الصورة على هذا الهاتف';
@@ -900,197 +909,198 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deliveryLink => 'الرابط';
 
   @override
-  String get technicianWelcomeBack => '?????? ???????';
+  String get technicianWelcomeBack => 'مرحباً بعودتك،';
 
   @override
   String technicianJobsInQueue(int count) {
-    return '$count ?? ????? ????????';
+    return '$count في القائمة';
   }
 
   @override
-  String get technicianAssignedToday => '?????? ???????? ?????';
+  String get technicianAssignedToday => 'مسند اليوم';
 
   @override
-  String get technicianPendingCheck => '??????? ?????';
+  String get technicianPendingCheck => 'فحص معلق';
 
   @override
-  String get technicianJobsTitle => '??????';
+  String get technicianJobsTitle => 'المهام';
 
   @override
-  String get technicianSyncTitle => '????????';
+  String get technicianSyncTitle => 'المزامنة';
 
   @override
-  String get technicianProfileTitle => '????? ??????';
+  String get technicianProfileTitle => 'الملف الشخصي';
 
   @override
-  String get technicianProfileSubtitle => '????? ?????? ????';
+  String get technicianProfileSubtitle => 'تم تسجيل الدخول باسم';
 
   @override
-  String get technicianLanguage => '?????';
+  String get technicianLanguage => 'اللغة';
 
   @override
-  String get technicianAllCaughtUp => '?? ???? ???? ??????';
+  String get technicianAllCaughtUp => 'لا توجد مهام معلقة';
 
   @override
-  String get technicianNoJobsBody => '?? ???? ?????? ??? ?????? ?????? ??.';
+  String get technicianNoJobsBody => 'لا توجد فحوصات معلقة مسندة إليك.';
 
   @override
-  String get technicianRefreshQueue => '????? ???????';
+  String get technicianRefreshQueue => 'تحديث القائمة';
 
   @override
-  String get technicianQueueRefreshed => '?? ????? ???????';
+  String get technicianQueueRefreshed => 'تم تحديث القائمة';
 
   @override
-  String get technicianJobIntake => '?????? ???????';
+  String get technicianJobIntake => 'استلام المهمة';
 
   @override
-  String get technicianVehicleInfo => '?????? ???????';
+  String get technicianVehicleInfo => 'بيانات المركبة';
 
   @override
-  String get technicianCustomerInfo => '?????? ??????';
+  String get technicianCustomerInfo => 'بيانات العميل';
 
   @override
-  String get technicianMake => '?????? ????????';
+  String get technicianMake => 'الماركة';
 
   @override
-  String get technicianModel => '??????';
+  String get technicianModel => 'الطراز';
 
   @override
-  String get technicianYear => '?????';
+  String get technicianYear => 'السنة';
 
   @override
-  String get technicianOdometer => '??????';
+  String get technicianOdometer => 'عداد المسافة';
 
   @override
-  String get technicianVin => '??? ??????';
+  String get technicianVin => 'رقم الهيكل';
 
   @override
-  String get technicianPlate => '???? ???????';
+  String get technicianPlate => 'اللوحة';
 
   @override
-  String get technicianPhone => '??????';
+  String get technicianPhone => 'الهاتف';
 
   @override
-  String get technicianEmail => '?????? ??????????';
+  String get technicianEmail => 'البريد الإلكتروني';
 
   @override
-  String get technicianTemplate => '???? ?????';
+  String get technicianTemplate => 'قالب الفحص';
 
   @override
-  String get technicianScope => '???? ?????';
+  String get technicianScope => 'النطاق';
 
   @override
-  String get technicianNotProvided => '??? ?????';
+  String get technicianNotProvided => 'غير متوفر';
 
   @override
-  String get technicianCopyVin => '??? ??? ??????';
+  String get technicianCopyVin => 'نسخ رقم الهيكل';
 
   @override
-  String get technicianVinCopied => '?? ??? ??? ??????';
+  String get technicianVinCopied => 'تم نسخ رقم الهيكل';
 
   @override
   String get technicianConsentIntro =>
-      '???? ?? ?????? ??? ???. ?? ?????? ??? ??? ?????.';
+      'اختر كل موافقة على حدة. لا يتم تسجيل أي شيء حتى تحفظ.';
 
   @override
   String get technicianConsentProcessingBody =>
-      '???? ????? ?????? ???? ?????? ?????? ?????.';
+      'سجّل إجابة العميل عن معالجة بيانات الفحص.';
 
   @override
   String get technicianConsentPublicLinkBody =>
-      '???? ????? ?????? ???? ?????? ???? ??????? ?????.';
+      'سجّل إجابة العميل عن مشاركة رابط التقرير العام.';
 
   @override
-  String get technicianConsentSave => '??? ????????';
+  String get technicianConsentSave => 'حفظ الموافقة';
 
   @override
-  String get technicianConsentNotRecorded => '?? ?????? ???';
+  String get technicianConsentNotRecorded => 'لم تُسجّل بعد';
 
   @override
-  String get technicianChecksDone => '?????? ??????';
+  String get technicianChecksDone => 'فحوصات منجزة';
 
   @override
-  String get technicianInspectionHub => '???? ?????';
+  String get technicianInspectionHub => 'مركز الفحص';
 
   @override
-  String get technicianInspectionInProgress => '????? ??? ???????';
+  String get technicianInspectionInProgress => 'الفحص جارٍ';
 
   @override
-  String get technicianInspectionModules => '????? ?????';
+  String get technicianInspectionModules => 'وحدات الفحص';
 
   @override
   String technicianCategoriesCount(int count) {
-    return '$count ????';
+    return '$count فئات';
   }
 
   @override
   String technicianChecksCount(int done, int total) {
-    return '$done/$total ??????';
+    return '$done من $total فحوصات';
   }
 
   @override
-  String get technicianModuleDone => '?????';
+  String get technicianModuleDone => 'مكتمل';
 
   @override
-  String get technicianModuleInProgress => '??? ???????';
+  String get technicianModuleInProgress => 'قيد التنفيذ';
 
   @override
-  String get technicianModuleNotStarted => '?? ????';
+  String get technicianModuleNotStarted => 'لم يبدأ';
 
   @override
   String technicianNoIssueCount(int count) {
-    return '$count ??? ???????';
+    return '$count بلا ملاحظات';
   }
 
   @override
   String technicianAttentionCount(int count) {
-    return '$count ????? ??????';
+    return '$count تحتاج انتباهاً';
   }
 
   @override
   String technicianDefectsCount(int count) {
-    return '$count ????';
+    return '$count عيوب';
   }
 
   @override
-  String get technicianContinueChecklist => '?????? ????? ?????';
+  String get technicianContinueChecklist => 'متابعة قائمة الفحص';
 
   @override
   String technicianCoverageSemantics(int done, int total) {
-    return '?? ????? $done ?? $total ?????';
+    return 'تم إنجاز $done من $total فحوصات';
   }
 
   @override
-  String get technicianVehicleSilhouette => '???? ???? ???? ???????';
+  String get technicianVehicleSilhouette => 'شكل نوع المركبة';
 
   @override
-  String get technicianUnknownVehicle => '?????';
+  String get technicianUnknownVehicle => 'مركبة';
 
   @override
   String get technicianStartHint =>
-      '???? ????? ??? ????? ?????? ??????? ???????.';
+      'ابدأ الفحص عندما يتم تأكيد بيانات المركبة والعميل.';
 
   @override
-  String get technicianSignInTagline => '?????? ??? ???????? ???? ???????.';
+  String get technicianSignInTagline => 'تقارير فحص المركبات للورش الشريكة.';
 
   @override
-  String get technicianAccountNote => '???? ????? ?????? ???? ?????.';
+  String get technicianAccountNote =>
+      'يتم إنشاء حساب الورشة الخاص بك من قبل مدير المنصة.';
 
   @override
-  String get technicianLanguagePrompt => '???? ????';
+  String get technicianLanguagePrompt => 'اختر لغتك';
 
   @override
-  String get technicianSignedInAs => '????? ?????? ????';
+  String get technicianSignedInAs => 'تم تسجيل الدخول باسم';
 
   @override
-  String get technicianPendingSync => '?? ??? ????????? ??? ??? ??????';
+  String get technicianPendingSync => 'تغييرات محفوظة على هذا الهاتف';
 
   @override
-  String get technicianAllSynced => '?? ??????? ??????? ????????';
+  String get technicianAllSynced => 'لا توجد تغييرات بانتظار المزامنة';
 
   @override
   String get technicianEquipmentIdsOnly =>
-      '????? ??????? ??? ?????? ?? ?????? ?? ??? ???????.';
+      'أسماء المعدات غير متوفرة من الخادم في هذا الإصدار.';
 
   @override
   String technicianOfTotal(int total) {

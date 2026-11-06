@@ -17,7 +17,12 @@ class ApiEndpoints {
   String workshopHierarchy(String workshopId) =>
       '$_root/platform/workshops/$workshopId/hierarchy';
   String get platformUsers => '$_root/platform/users';
+  String platformPasswordReset(String userId) =>
+      '$_root/platform/users/$userId/password-reset';
   String get platformInvitations => '$_root/platform/invitations';
+  String get workshopTechnicians => '$_root/workshop/technicians';
+  String workshopTechnicianPasswordReset(String userId) =>
+      '$_root/workshop/technicians/$userId/password-reset';
   String disableUser(String userId) => '$_root/platform/users/$userId/disable';
   String reactivateUser(String userId) =>
       '$_root/platform/users/$userId/reactivate';

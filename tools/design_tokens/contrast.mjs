@@ -95,7 +95,7 @@ export function buildContrastRows(tokens) {
     });
   };
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     const theme = tokens.color[themeName];
     const surfaces = surfaceRows(theme);
 
@@ -237,7 +237,7 @@ export function buildContrastRows(tokens) {
     });
   }
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     const surfaces = surfaceRows(tokens.color[themeName]);
     for (const strategy of ["emeraldFill", "deepGreenFill"]) {
       const brand = tokens.brand[strategy][themeName];
@@ -307,7 +307,7 @@ export function buildContrastRows(tokens) {
     }
   }
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     for (const tone of ["neutral", "info", "success", "warning", "danger", "critical"]) {
       const pair = tokens.status[themeName][tone];
       add({
@@ -329,7 +329,7 @@ export function buildContrastRows(tokens) {
     }
   }
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     const theme = tokens.color[themeName];
     for (const [surfaceName, surfaceHex] of surfaceRows(theme)) {
       add({
@@ -363,7 +363,7 @@ export function buildContrastRows(tokens) {
     }
   }
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     const theme = tokens.color[themeName];
     const brand = tokens.brand.emeraldFill[themeName];
     add({
@@ -462,7 +462,7 @@ export function buildContrastRows(tokens) {
     });
   }
 
-  for (const themeName of ["light", "dark"]) {
+  for (const themeName of ["light"]) {
     const theme = tokens.color[themeName];
     const brand = tokens.brand.emeraldFill[themeName];
     const section = `F2-A technician screens - ${themeName}`;
@@ -523,18 +523,14 @@ export function generateContrastMarkdown(tokens) {
   const rows = buildContrastRows(tokens);
   const totalPass = rows.filter((row) => row.result === "PASS").length;
   const totalFail = rows.length - totalPass;
+  // C0 Workstream B (light-only): dark groups removed.
   const groups = [
     ["Base text / UI — light", "base-light"],
-    ["Base text / UI — dark", "base-dark"],
     ["A2 brand strategies", "brand"],
     ["Status and severity — light", "status-light"],
-    ["Status and severity — dark", "status-dark"],
     ["Focus and borders — light", "ui-light"],
-    ["Focus and borders — dark", "ui-dark"],
     ["Public report — light", "public-light"],
-    ["Public report — dark", "public-dark"],
     ["F2-A technician screens - light", "f2a-light"],
-    ["F2-A technician screens - dark", "f2a-dark"],
   ];
   const summaryRows = groups.map(([label, group]) => {
     const summary = sectionSummary(rows, group);
@@ -552,10 +548,10 @@ export function generateContrastMarkdown(tokens) {
   });
 
   const lines = [];
-  lines.push("# F1 token contrast audit (measured)");
+  lines.push("# F1 token contrast audit (measured, light-only)");
   lines.push("");
-  lines.push("- **Status:** generated from `client/packages/design_system/tokens/tokens.json`.");
-  lines.push("- **Date:** 5 November 2026.");
+  lines.push("- **Status:** generated from `client/packages/design_system/tokens/tokens.json` (light theme only; C0 Workstream B removed the dark theme).");
+  lines.push("- **Date:** 6 November 2026.");
   lines.push("- **Method:** WCAG 2.x relative luminance in sRGB, measured by `tools/design_tokens/contrast.mjs`; no value is inferred from a design tool.");
   lines.push("- **Thresholds:** normal text `4.5:1`, large text `3:1`, UI components and graphics `3:1`.");
   lines.push("- **Reproduce:** `node tools/design_tokens/generate.mjs --write` then read this file; `node tools/design_tokens/generate.mjs --check` verifies all generated outputs are current.");
@@ -622,18 +618,16 @@ export function generateContrastMarkdown(tokens) {
   lines.push("|---|---|---|---:|---:|---|---|");
   lines.push(...prohibited);
   lines.push("");
-  lines.push("## Severity mapping check");
+  // C0 Workstream B (light-only): dark ratios removed.
+  lines.push("## Severity mapping check (light-only)");
   lines.push("");
-  lines.push("| Severity | Tone | Measured pair | Light ratio | Dark ratio | Result |");
-  lines.push("|---|---|---|---:|---:|---|");
+  lines.push("| Severity | Tone | Measured pair | Light ratio | Result |");
+  lines.push("|---|---|---|---:|---|");
   for (const severity of tokens.severity) {
     const light = tokens.status.light[severity.tone];
-    const dark = tokens.status.dark[severity.tone];
     const lightRatio = contrastRatio(light.foreground, light.background);
-    const darkRatio = contrastRatio(dark.foreground, dark.background);
-    const result =
-      lightRatio >= 4.5 && darkRatio >= 4.5 ? "PASS" : "FAIL";
-    lines.push(`| ${severity.name} | ${severity.tone} | ${severity.tone}.foreground on ${severity.tone}.background | ${formatRatio(lightRatio)}:1 | ${formatRatio(darkRatio)}:1 | ${result} |`);
+    const result = lightRatio >= 4.5 ? "PASS" : "FAIL";
+    lines.push(`| ${severity.name} | ${severity.tone} | ${severity.tone}.foreground on ${severity.tone}.background | ${formatRatio(lightRatio)}:1 | ${result} |`);
   }
   lines.push("");
   lines.push("## Inspection-result mapping check");

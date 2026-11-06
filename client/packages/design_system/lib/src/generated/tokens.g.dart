@@ -32,34 +32,6 @@ abstract final class TrColorLight {
   static const Color onPrimaryLarge = Color(0xFFFFFFFF);
 }
 
-abstract final class TrColorDark {
-  static const Color surface = Color(0xFF121114);
-  static const Color surfaceLowest = Color(0xFF0C0B0E);
-  static const Color surfaceLow = Color(0xFF1A191E);
-  static const Color surfaceContainer = Color(0xFF232128);
-  static const Color surfaceHigh = Color(0xFF2A282F);
-  static const Color surfaceHighest = Color(0xFF323036);
-  static const Color onSurface = Color(0xFFF1F0F5);
-  static const Color onSurfaceVariant = Color(0xFFC7C5D3);
-  static const Color outline = Color(0xFF9A98A6);
-  static const Color outlineVariant = Color(0xFF4A4854);
-  static const Color secondary = Color(0xFFC7C5D3);
-  static const Color onSecondary = Color(0xFF1B1B25);
-  static const Color secondaryContainer = Color(0xFF464651);
-  static const Color onSecondaryContainer = Color(0xFFE3E1EF);
-  static const Color error = Color(0xFFFFB4AB);
-  static const Color onError = Color(0xFF690005);
-  static const Color errorContainer = Color(0xFF93000A);
-  static const Color onErrorContainer = Color(0xFFFFDAD6);
-  static const Color focus = Color(0xFF9CCBFF);
-  static const Color overlay = Color(0x99000000);
-  static const Color scrim = Color(0xB3000000);
-  static const Color inverseSurface = Color(0xFFE9E7ED);
-  static const Color onInverseSurface = Color(0xFF1A1B1F);
-  static const Color primaryLarge = Color(0xFF34D399);
-  static const Color onPrimaryLarge = Color(0xFF002113);
-}
-
 @immutable
 class TrBrandColors {
   const TrBrandColors({
@@ -92,24 +64,6 @@ abstract final class TrBrandLight {
     ink: Color(0xFF006C49),
     container: Color(0xFFD9FBE8),
     onContainer: Color(0xFF00422B),
-  );
-}
-
-abstract final class TrBrandDark {
-  static const TrBrandColors emeraldFill = TrBrandColors(
-    fill: Color(0xFF4EDEA3),
-    onFill: Color(0xFF002113),
-    ink: Color(0xFF6FFBBE),
-    container: Color(0xFF005236),
-    onContainer: Color(0xFFB7F5D8),
-  );
-
-  static const TrBrandColors deepGreenFill = TrBrandColors(
-    fill: Color(0xFF6FFBBE),
-    onFill: Color(0xFF002113),
-    ink: Color(0xFF6FFBBE),
-    container: Color(0xFF005236),
-    onContainer: Color(0xFFB7F5D8),
   );
 }
 
@@ -153,38 +107,6 @@ abstract final class TrStatusLight {
   static const TrStatusPair critical = TrStatusPair(
     foreground: Color(0xFF7F1D1D),
     background: Color(0xFFF7DADA),
-  );
-}
-
-abstract final class TrStatusDark {
-  static const TrStatusPair neutral = TrStatusPair(
-    foreground: Color(0xFFC3D4DA),
-    background: Color(0xFF26373C),
-  );
-
-  static const TrStatusPair info = TrStatusPair(
-    foreground: Color(0xFFB7DCF7),
-    background: Color(0xFF173247),
-  );
-
-  static const TrStatusPair success = TrStatusPair(
-    foreground: Color(0xFFB5E8C9),
-    background: Color(0xFF173D2B),
-  );
-
-  static const TrStatusPair warning = TrStatusPair(
-    foreground: Color(0xFFFFDFA3),
-    background: Color(0xFF463611),
-  );
-
-  static const TrStatusPair danger = TrStatusPair(
-    foreground: Color(0xFFFFC4BD),
-    background: Color(0xFF4A1F1C),
-  );
-
-  static const TrStatusPair critical = TrStatusPair(
-    foreground: Color(0xFFFFD0D0),
-    background: Color(0xFF551C1C),
   );
 }
 
@@ -368,18 +290,9 @@ abstract final class TrShadows {
     ),
   ];
 
-  static const List<BoxShadow> focusLight = <BoxShadow>[
+  static const List<BoxShadow> focus = <BoxShadow>[
     BoxShadow(
       color: TrColorLight.focus,
-      offset: Offset(0, 0),
-      blurRadius: 0,
-      spreadRadius: 2,
-    ),
-  ];
-
-  static const List<BoxShadow> focusDark = <BoxShadow>[
-    BoxShadow(
-      color: TrColorDark.focus,
       offset: Offset(0, 0),
       blurRadius: 0,
       spreadRadius: 2,

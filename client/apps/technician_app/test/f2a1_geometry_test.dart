@@ -37,6 +37,9 @@ void main() {
           child: f2aScreen(id, figma: true),
           locale: const Locale('en'),
           theme: AppTheme.light,
+          // Figma wording comes from the test-only localization override;
+          // lib/ has no figmaText switch anymore.
+          figmaStrings: true,
         ),
       );
       await tester.pump(const Duration(milliseconds: 100));
@@ -112,7 +115,9 @@ void main() {
         final expectedHeight = lineHeight / size;
         final height = style.height;
         if (height == null || (height - expectedHeight).abs() > 0.001) {
-          deltas.add('lineHeight ${height == null ? 'null' : (height * size).toStringAsFixed(2)} vs $lineHeight');
+          deltas.add(
+            'lineHeight ${height == null ? 'null' : (height * size).toStringAsFixed(2)} vs $lineHeight',
+          );
         }
         final spacing = style.letterSpacing ?? 0;
         if ((spacing - tracking).abs() > 0.001) {
@@ -127,7 +132,6 @@ void main() {
           passed++;
         }
       }
-
 
       switch (id) {
         case 'login':
@@ -220,7 +224,12 @@ void main() {
             box(24, 346, 132.16, 18),
             width: false,
           );
-          check('first card', find.byType(FxCard).at(0), box(20, 380, 350, 130), height: false);
+          check(
+            'first card',
+            find.byType(FxCard).at(0),
+            box(20, 380, 350, 130),
+            height: false,
+          );
           check(
             'walk-in button',
             find.byType(FxButton).last,
@@ -304,24 +313,45 @@ void main() {
           check('header', find.byType(FxHeader), box(0, 0, 390, 64));
           check(
             'intake pill',
-            find.text('INTAKE PHASE'),
+            // Product logic renders the upper-cased job status here; the
+            // Figma mock's static "INTAKE PHASE" wording is not product copy.
+            find.text('ASSIGNED'),
             box(32, 76, 79.67, 14),
             width: false,
           );
           check(
             'ready pill',
-            find.text('Ready for Check'),
+            // Product logic renders the job status here; the Figma mock's
+            // static "Ready for Check" wording is not product copy. The pill
+            // x-position is content-driven ("Assigned" is narrower), so only
+            // y/height are gated; x is covered by the intake pill.
+            find.text('Assigned'),
             box(155.67, 76, 94, 14),
             width: false,
+            x: false,
           );
           check('hero', find.byType(ClipRRect).first, box(20, 118, 350, 176));
-          check('vehicle card', find.byType(FxCard).at(0), box(20, 318, 350, 290));
-          check('customer card', find.byType(FxCard).at(1), box(20, 628, 350, 276));
+          check(
+            'vehicle card',
+            find.byType(FxCard).at(0),
+            box(20, 318, 350, 290),
+          );
+          check(
+            'customer card',
+            find.byType(FxCard).at(1),
+            box(20, 628, 350, 276),
+          );
           check('ready card', find.byType(FxCard).at(2), box(20, 924, 350, 76));
           check('start', find.byType(FxButton).last, box(20, 1060, 350, 56));
           checkStyle(
             'intake title style',
-            find.text('Vehicle Walkaround Inspection'),
+            // The header title comes from the job's template name (product
+            // data path); the same string also appears as the service-package
+            // value with a different style, so scope to the header.
+            find.descendant(
+              of: find.byType(FxHeader),
+              matching: find.text('Vehicle Walkaround Inspection'),
+            ),
             size: 18,
             weight: FontWeight.w700,
             lineHeight: 24,
@@ -404,7 +434,10 @@ void main() {
           check('header', find.byType(FxHeader), box(0, 0, 390, 64));
           check(
             'status pill',
-            find.text('INSPECTION IN PROGRESS'),
+            // Product logic renders the upper-cased job status here; the
+            // Figma mock's static "INSPECTION IN PROGRESS" wording is not
+            // product copy.
+            find.text('IN PROGRESS'),
             box(48, 86, 155.59, 14),
             width: false,
           );
@@ -445,7 +478,8 @@ void main() {
       expect(
         failures,
         isEmpty,
-        reason: '$id: $passed/$checked key nodes within 1 px\n'
+        reason:
+            '$id: $passed/$checked key nodes within 1 px\n'
             '${failures.join('\n')}',
       );
     });

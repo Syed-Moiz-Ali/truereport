@@ -41,9 +41,10 @@ class MySqlMigrationIT {
                 .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("17");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("18");
         assertThat(tableExists("audit_events")).isTrue();
         assertThat(tableExists("invitations")).isTrue();
+        assertThat(tableExists("account_idempotency_keys")).isTrue();
         assertThat(tableExists("master_inspection_items")).isTrue();
         assertThat(tableExists("workshop_templates")).isTrue();
         assertThat(tableExists("inspection_jobs")).isTrue();

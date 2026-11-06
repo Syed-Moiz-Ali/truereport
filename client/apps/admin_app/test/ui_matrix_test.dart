@@ -47,9 +47,7 @@ class _MatrixAppState extends ConsumerState<_MatrixApp> {
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      theme: widget.brightness == Brightness.dark
-          ? AppTheme.dark
-          : AppTheme.light,
+      theme: AppTheme.light,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context)
             .copyWith(textScaler: TextScaler.linear(widget.textScale)),

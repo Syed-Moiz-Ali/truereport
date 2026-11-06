@@ -19,7 +19,6 @@ class InspectionHubView extends StatelessWidget {
     this.onCompleted,
     this.pendingSyncCount = 0,
     this.online = true,
-    this.figmaText = false,
     this.avatarImage,
     this.vehicleImage,
     super.key,
@@ -35,7 +34,6 @@ class InspectionHubView extends StatelessWidget {
   final VoidCallback? onCompleted;
   final int pendingSyncCount;
   final bool online;
-  final bool figmaText;
   final ui.Image? avatarImage;
   final ui.Image? vehicleImage;
 
@@ -46,12 +44,14 @@ class InspectionHubView extends StatelessWidget {
     final noIssue = _countResult(checklist.items, 'NO_ISSUE_OBSERVED');
     final attention = _countResult(checklist.items, 'ATTENTION_RECOMMENDED');
     final next = _nextCategory(categories);
-    final total = checklist.total == 0 ? categories.fold<int>(0, (sum, c) => sum + c.total) : checklist.total;
+    final total = checklist.total == 0
+        ? categories.fold<int>(0, (sum, c) => sum + c.total)
+        : checklist.total;
 
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: figmaText ? 'Intake Hub' : l10n.technicianInspectionHub,
+        title: l10n.technicianInspectionHub,
         titleStyle: Fx.text(22, 28, FontWeight.w700, -0.55),
         horizontalPadding: _M.gutter,
         leading: Padding(
@@ -64,11 +64,7 @@ class InspectionHubView extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Center(
-              child: FxIcon(
-                id: '1_7868',
-                size: 18.33,
-                color: Fx.deepGreen,
-              ),
+              child: FxIcon(id: '1_7868', size: 18.33, color: Fx.deepGreen),
             ),
           ),
         ),
@@ -104,12 +100,12 @@ class InspectionHubView extends StatelessWidget {
         },
         items: [
           FxDockItem(
-            label: figmaText ? 'Intake' : l10n.technicianJobsTitle,
+            label: l10n.technicianJobsTitle,
             iconId: '1_7878',
             semanticLabel: l10n.technicianJobsTitle,
           ),
           FxDockItem(
-            label: figmaText ? 'Fleet' : l10n.statusFinalized,
+            label: l10n.statusFinalized,
             iconId: '1_7883',
             semanticLabel: l10n.statusFinalized,
           ),
@@ -145,12 +141,10 @@ class InspectionHubView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: FxPill(
-                        label: figmaText
-                            ? 'INSPECTION IN PROGRESS'
-                            : technicianStatusLabel(
-                                l10n,
-                                job.status,
-                              ).toUpperCase(),
+                        label: technicianStatusLabel(
+                          l10n,
+                          job.status,
+                        ).toUpperCase(),
                         background: Fx.container,
                         foreground: Fx.ink,
                         height: _M.statusPillHeight,
@@ -172,15 +166,11 @@ class InspectionHubView extends StatelessWidget {
                     const SizedBox(width: _M.g8),
                     Flexible(
                       child: Text(
-                        figmaText
-                            ? 'Bay #04 • VIN 8492'
-                            : [
-                                job.reference,
-                                if (job.templateVersionNo != null)
-                                  'v${job.templateVersionNo}',
-                              ]
-                                  .where((value) => value.isNotEmpty)
-                                  .join(' • '),
+                        [
+                          job.reference,
+                          if (job.templateVersionNo != null)
+                            'v${job.templateVersionNo}',
+                        ].where((value) => value.isNotEmpty).join(' • '),
                         textDirection: TextDirection.ltr,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -229,14 +219,11 @@ class InspectionHubView extends StatelessWidget {
                               child: FxCoverageRing(
                                 done: checklist.completed,
                                 total: total,
-                                label: figmaText
-                                    ? 'CHECKS DONE'
-                                    : l10n.technicianChecksDoneLabel,
-                                semanticLabel:
-                                    l10n.technicianCoverageSemantics(
-                                      checklist.completed,
-                                      total,
-                                    ),
+                                label: l10n.technicianChecksDoneLabel,
+                                semanticLabel: l10n.technicianCoverageSemantics(
+                                  checklist.completed,
+                                  total,
+                                ),
                               ),
                             ),
                           ),
@@ -247,9 +234,7 @@ class InspectionHubView extends StatelessWidget {
                           children: [
                             Flexible(
                               child: FxPill(
-                                label: figmaText
-                                    ? '42 Passed'
-                                    : l10n.technicianNoIssueCount(noIssue),
+                                label: l10n.technicianNoIssueCount(noIssue),
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
@@ -265,9 +250,7 @@ class InspectionHubView extends StatelessWidget {
                             const SizedBox(width: _M.g8),
                             Flexible(
                               child: FxPill(
-                                label: figmaText
-                                    ? '3 Action Items'
-                                    : l10n.technicianAttentionCount(attention),
+                                label: l10n.technicianAttentionCount(attention),
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
@@ -296,7 +279,6 @@ class InspectionHubView extends StatelessWidget {
                 ),
                 child: _VehicleStrip(
                   job: job,
-                  figmaText: figmaText,
                   image: vehicleImage,
                   onTap: onVehicle,
                 ),
@@ -305,18 +287,16 @@ class InspectionHubView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.sectionBlock),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  bottom: _M.g12,
-                ),
+                padding: const EdgeInsetsDirectional.only(bottom: _M.g12),
                 child: Padding(
-                  padding: EdgeInsetsDirectional.symmetric(horizontal: context.spacing.xs),
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: context.spacing.xs,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
-                          figmaText
-                              ? 'Inspection Modules'
-                              : l10n.technicianInspectionModules,
+                          l10n.technicianInspectionModules,
                           style: Fx.text(
                             16,
                             22,
@@ -341,23 +321,15 @@ class InspectionHubView extends StatelessWidget {
                 ),
               ),
             ),
-            _ModuleGrid(
-              categories: categories,
-              figmaText: figmaText,
-              onOpenModule: onOpenModule,
-            ),
+            _ModuleGrid(categories: categories, onOpenModule: onOpenModule),
             const SizedBox(height: _M.g24),
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.ctaBlock),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  top: _M.g8,
-                ),
+                padding: const EdgeInsetsDirectional.only(top: _M.g8),
                 child: FxButton(
                   label: next == null
                       ? l10n.technicianContinueChecklist
-                      : figmaText
-                      ? 'Continue ${next.label} Checklist'
                       : '${l10n.technicianContinueChecklist} · ${next.label}',
                   onPressed: onContinue,
                   icon: const FxIcon(
@@ -446,14 +418,9 @@ String _iconIdForCategory(String label) {
 }
 
 class _ModuleGrid extends StatelessWidget {
-  const _ModuleGrid({
-    required this.categories,
-    required this.figmaText,
-    required this.onOpenModule,
-  });
+  const _ModuleGrid({required this.categories, required this.onOpenModule});
 
   final List<_CategoryCount> categories;
-  final bool figmaText;
   final ValueChanged<String> onOpenModule;
 
   @override
@@ -467,7 +434,6 @@ class _ModuleGrid extends StatelessWidget {
             width: _M.moduleWidth,
             child: _ModuleCard(
               category: category,
-              figmaText: figmaText,
               onTap: () => onOpenModule(category.label),
             ),
           ),
@@ -477,14 +443,9 @@ class _ModuleGrid extends StatelessWidget {
 }
 
 class _ModuleCard extends StatelessWidget {
-  const _ModuleCard({
-    required this.category,
-    required this.figmaText,
-    required this.onTap,
-  });
+  const _ModuleCard({required this.category, required this.onTap});
 
   final _CategoryCount category;
-  final bool figmaText;
   final VoidCallback onTap;
 
   @override
@@ -501,7 +462,8 @@ class _ModuleCard extends StatelessWidget {
       radius: _M.cardRadius,
       padding: EdgeInsets.all(context.spacing.gutter),
       onTap: onTap,
-      semanticLabel: '${category.label}, ${category.done}/${category.total}, $state',
+      semanticLabel:
+          '${category.label}, ${category.done}/${category.total}, $state',
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: _M.moduleInner),
         child: Column(
@@ -572,12 +534,7 @@ class _ModuleCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      done && figmaText
-                          ? '${category.done}/${category.total} Done'
-                          : l10n.technicianChecksCount(
-                              category.done,
-                              category.total,
-                            ),
+                      l10n.technicianChecksCount(category.done, category.total),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: done
@@ -597,7 +554,7 @@ class _ModuleCard extends StatelessWidget {
                     _ProgressBar(fraction: category.fraction)
                   else
                     Text(
-                      figmaText ? 'Queued' : l10n.technicianModuleNotStarted,
+                      l10n.technicianModuleNotStarted,
                       style: Fx.caption.copyWith(
                         color: Fx.muted,
                         letterSpacing: 0.44,
@@ -643,15 +600,9 @@ class _ProgressBar extends StatelessWidget {
 }
 
 class _VehicleStrip extends StatelessWidget {
-  const _VehicleStrip({
-    required this.job,
-    required this.figmaText,
-    required this.onTap,
-    this.image,
-  });
+  const _VehicleStrip({required this.job, required this.onTap, this.image});
 
   final TechnicianJob job;
-  final bool figmaText;
   final VoidCallback onTap;
   final ui.Image? image;
 
@@ -659,14 +610,11 @@ class _VehicleStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final odometer = formatOdometer(job.odometerValue, job.odometerUnit);
-    final title = figmaText
-        ? 'Porsche Taycan 4S'
-        : '${job.vehicleMake} ${job.vehicleModel}'.trim();
-    final subtitle = figmaText
-        ? 'WA1-VAA-Y7890 • 12,480 mi'
-        : [job.reference, if (odometer.isNotEmpty) odometer]
-              .where((value) => value.isNotEmpty)
-              .join(' • ');
+    final title = '${job.vehicleMake} ${job.vehicleModel}'.trim();
+    final subtitle = [
+      job.reference,
+      if (odometer.isNotEmpty) odometer,
+    ].where((value) => value.isNotEmpty).join(' • ');
     return Container(
       constraints: const BoxConstraints(minHeight: _M.vehicleHeight),
       decoration: const BoxDecoration(
@@ -690,11 +638,7 @@ class _VehicleStrip extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: image == null
-                    ? const FxIcon(
-                        id: '1_7804',
-                        size: 24,
-                        color: Fx.ink,
-                      )
+                    ? const FxIcon(id: '1_7804', size: 24, color: Fx.ink)
                     : ClipOval(
                         child: RawImage(image: image, fit: BoxFit.cover),
                       ),
@@ -730,11 +674,7 @@ class _VehicleStrip extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
-                  child: FxIcon(
-                    id: '1_7765',
-                    size: 9,
-                    color: Fx.muted,
-                  ),
+                  child: FxIcon(id: '1_7765', size: 9, color: Fx.muted),
                 ),
               ),
             ],
@@ -754,7 +694,6 @@ abstract final class _M {
   static const double g4 = 4;
   static const double g8 = 8;
   static const double g12 = 12;
-
 
   static const double g24 = 24;
   static const double headerMark = 36;

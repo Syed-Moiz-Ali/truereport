@@ -1,4 +1,5 @@
 import 'package:admin_app/src/admin_providers.dart';
+import 'package:admin_app/src/labels.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -69,12 +70,6 @@ class _HierarchyTabState extends ConsumerState<HierarchyTab> {
                 label: l10n.disabled,
                 selected: _status == 'DISABLED',
                 onTap: () => setState(() => _status = 'DISABLED'),
-              ),
-              SizedBox(width: context.spacing.sm),
-              AppSelectableText(
-                label: l10n.pending,
-                selected: _status == 'PENDING',
-                onTap: () => setState(() => _status = 'PENDING'),
               ),
             ],
           ),
@@ -182,31 +177,16 @@ class _WorkshopCard extends ConsumerWidget {
             currentWorkshop: workshop,
             onChanged: onChanged,
           ),
-          if (workshop.pendingInvitations.isNotEmpty)
-            _AccountSection(
-              title: l10n.pendingInvitations,
-              accounts: workshop.pendingInvitations,
-              workshops: workshops,
-              currentWorkshop: workshop,
-              onChanged: onChanged,
-              pending: true,
-            ),
           SizedBox(height: context.spacing.md),
           Wrap(
             spacing: context.spacing.sm,
             runSpacing: context.spacing.sm,
             children: [
               AppButton(
-                label: l10n.invite,
-                onPressed: () => _showInviteDialog(context, ref, workshop),
-                icon: Icons.mail_outline,
-                variant: AppButtonVariant.tonal,
-              ),
-              AppButton(
                 label: l10n.create,
                 onPressed: () => _showCreateDialog(context, ref, workshop),
                 icon: Icons.person_add_alt_1_outlined,
-                variant: AppButtonVariant.text,
+                variant: AppButtonVariant.tonal,
               ),
             ],
           ),
@@ -223,7 +203,6 @@ class _AccountSection extends StatelessWidget {
     required this.workshops,
     required this.currentWorkshop,
     required this.onChanged,
-    this.pending = false,
   });
 
   final String title;
@@ -231,7 +210,6 @@ class _AccountSection extends StatelessWidget {
   final List<HierarchyWorkshop> workshops;
   final HierarchyWorkshop currentWorkshop;
   final VoidCallback onChanged;
-  final bool pending;
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +226,6 @@ class _AccountSection extends StatelessWidget {
             workshops: workshops,
             currentWorkshop: currentWorkshop,
             onChanged: onChanged,
-            pending: pending,
           ),
         ),
       ],
@@ -262,14 +239,12 @@ class _AccountTile extends ConsumerWidget {
     required this.workshops,
     required this.currentWorkshop,
     required this.onChanged,
-    required this.pending,
   });
 
   final PlatformAccount account;
   final List<HierarchyWorkshop> workshops;
   final HierarchyWorkshop currentWorkshop;
   final VoidCallback onChanged;
-  final bool pending;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -280,23 +255,21 @@ class _AccountTile extends ConsumerWidget {
         child: Text(account.displayName.isEmpty ? '?' : account.displayName[0]),
       ),
       title: account.displayName,
-      subtitle:
-          '${account.email} · ${account.role}${pending ? ' · ${l10n.pending}' : ''}',
-      trailing: pending
-          ? Icon(Icons.schedule, color: context.statusColors.warning.foreground)
-          : PopupMenuButton<String>(
-              onSelected: (value) => _handleAction(context, ref, value),
-              itemBuilder: (context) => [
-                if (account.status == 'ACTIVE')
-                  PopupMenuItem(value: 'disable', child: Text(l10n.disable))
-                else
-                  PopupMenuItem(
-                    value: 'reactivate',
-                    child: Text(l10n.reactivate),
-                  ),
-                PopupMenuItem(value: 'transfer', child: Text(l10n.transfer)),
-              ],
-            ),
+      subtitle: '${account.email} · ${memberRoleLabel(l10n, account.role)}',
+      trailing: PopupMenuButton<String>(
+        onSelected: (value) => _handleAction(context, ref, value),
+        itemBuilder: (context) => [
+          if (account.status == 'ACTIVE')
+            PopupMenuItem(value: 'disable', child: Text(l10n.disable))
+          else
+            PopupMenuItem(value: 'reactivate', child: Text(l10n.reactivate)),
+          PopupMenuItem(value: 'transfer', child: Text(l10n.transfer)),
+          PopupMenuItem(
+            value: 'resetPassword',
+            child: Text(l10n.temporaryPassword),
+          ),
+        ],
+      ),
     );
   }
 
@@ -306,6 +279,20 @@ class _AccountTile extends ConsumerWidget {
     String action,
   ) async {
     final l10n = AppLocalizations.of(context);
+    if (action == 'resetPassword') {
+      final password = await _promptPassword(context, l10n);
+      if (password == null || !context.mounted) {
+        return;
+      }
+      await _run(
+        context,
+        ref,
+        () => ref
+            .read(adminApiProvider)
+            .resetPlatformPassword(account.userId, password),
+      );
+      return;
+    }
     if (action == 'transfer') {
       final target = await showAppBottomSheet<HierarchyWorkshop>(
         context,
@@ -401,108 +388,77 @@ Future<String?> _promptReason(
       ],
     ),
   );
-  controller.dispose();
+  // Do not dispose synchronously (pop animation frame still builds).
   return result == null || result.isEmpty ? null : result;
 }
 
-Future<void> _showInviteDialog(
+Future<String?> _promptPassword(
   BuildContext context,
-  WidgetRef ref,
-  HierarchyWorkshop workshop,
+  AppLocalizations l10n,
 ) async {
-  final l10n = AppLocalizations.of(context);
-  final email = TextEditingController();
-  final name = TextEditingController();
-  var role = 'TECHNICIAN';
-  String? token;
-  await showDialog<void>(
+  final controller = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  final result = await showDialog<String>(
     context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: Text(l10n.invite),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppTextField(controller: email, label: l10n.email),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(controller: name, label: l10n.displayName),
-              SizedBox(height: context.spacing.sm),
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                initialValue: role,
-                decoration: InputDecoration(labelText: l10n.role),
-                items: [
-                  DropdownMenuItem(
-                    value: 'TECHNICIAN',
-                    child: Text(l10n.roleTechnician),
-                  ),
-                  DropdownMenuItem(
-                    value: 'WORKSHOP_ADMIN',
-                    child: Text(l10n.roleWorkshopAdmin),
-                  ),
-                ],
-                onChanged: (value) => setState(() => role = value ?? role),
-              ),
-            ],
-          ),
+    builder: (context) => AlertDialog(
+      title: Text(l10n.temporaryPassword),
+      content: Form(
+        key: formKey,
+        child: AppTextField(
+          controller: controller,
+          label: l10n.temporaryPassword,
+          hint: l10n.temporaryPassword,
+          obscureText: true,
+          keyboardType: TextInputType.visiblePassword,
+          validator: (value) => _passwordError(l10n, value),
         ),
-        actions: [
-          AppButton(
-            label: l10n.cancel,
-            onPressed: () => Navigator.of(context).pop(),
-            variant: AppButtonVariant.text,
-          ),
-          AppButton(
-            label: l10n.invite,
-            onPressed: () async {
-              try {
-                final result = await ref
-                    .read(adminApiProvider)
-                    .invite(
-                      email: email.text.trim(),
-                      displayName: name.text.trim(),
-                      role: role,
-                      workshopId: workshop.id,
-                    );
-                token = result['invitationToken'] as String?;
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              } on Object {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-                }
-              }
-            },
-          ),
-        ],
       ),
+      actions: [
+        AppButton(
+          label: l10n.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+          variant: AppButtonVariant.text,
+        ),
+        AppButton(
+          label: l10n.confirm,
+          onPressed: () {
+            if (formKey.currentState?.validate() ?? false) {
+              Navigator.of(context).pop(controller.text);
+            }
+          },
+        ),
+      ],
     ),
   );
-  email.dispose();
-  name.dispose();
-  if (token != null && context.mounted) {
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.invitationCreated),
-        content: SelectableText('${l10n.invitationToken}:\n$token'),
-        actions: [
-          AppButton(
-            label: l10n.close,
-            onPressed: () => Navigator.of(context).pop(),
-            variant: AppButtonVariant.text,
-          ),
-        ],
-      ),
-    );
-    ref.invalidate(hierarchyProvider);
-    ref.invalidate(auditProvider);
-  }
+  // Do not dispose synchronously (pop animation frame still builds).
+  return result;
 }
 
+String? _passwordError(AppLocalizations l10n, String? value) {
+  if (value == null || value.isEmpty) {
+    return l10n.requiredField;
+  }
+  if (value.length < 12) {
+    return l10n.requiredField;
+  }
+  return null;
+}
+
+String? _emailError(AppLocalizations l10n, String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return l10n.requiredField;
+  }
+  if (!value.contains('@')) {
+    return l10n.invalidEmail;
+  }
+  return null;
+}
+
+/// Platform Admin creates a Workshop Admin in [workshop].
+///
+/// Role is fixed to Workshop Admin (server `ROLE_NOT_PERMITTED` otherwise)
+/// and the workshop is the card the dialog was opened from. See the Phase C0
+/// slot sheet for Figma fields that have no server counterpart.
 Future<void> _showCreateDialog(
   BuildContext context,
   WidgetRef ref,
@@ -512,82 +468,91 @@ Future<void> _showCreateDialog(
   final email = TextEditingController();
   final name = TextEditingController();
   final password = TextEditingController();
-  var role = 'TECHNICIAN';
+  final formKey = GlobalKey<FormState>();
   await showDialog<void>(
     context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: Text(l10n.create),
-        content: SingleChildScrollView(
+    builder: (context) => AlertDialog(
+      title: Text(l10n.create),
+      content: SingleChildScrollView(
+        child: Form(
+          key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AppTextField(controller: email, label: l10n.email),
+              AppTextField(
+                controller: email,
+                label: l10n.email,
+                hint: l10n.email,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) => _emailError(l10n, value),
+              ),
               SizedBox(height: context.spacing.sm),
-              AppTextField(controller: name, label: l10n.displayName),
+              AppTextField(
+                controller: name,
+                label: l10n.displayName,
+                hint: l10n.displayName,
+                validator: (value) => (value == null || value.trim().isEmpty)
+                    ? l10n.requiredField
+                    : null,
+              ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: password,
                 label: l10n.temporaryPassword,
+                hint: l10n.temporaryPassword,
                 obscureText: true,
+                keyboardType: TextInputType.visiblePassword,
+                validator: (value) => _passwordError(l10n, value),
               ),
               SizedBox(height: context.spacing.sm),
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                initialValue: role,
-                decoration: InputDecoration(labelText: l10n.role),
-                items: [
-                  DropdownMenuItem(
-                    value: 'TECHNICIAN',
-                    child: Text(l10n.roleTechnician),
-                  ),
-                  DropdownMenuItem(
-                    value: 'WORKSHOP_ADMIN',
-                    child: Text(l10n.roleWorkshopAdmin),
-                  ),
-                ],
-                onChanged: (value) => setState(() => role = value ?? role),
+              AppListTile(
+                title: l10n.roleWorkshopAdmin,
+                subtitle: '${l10n.role} · ${l10n.workshop}: ${workshop.name}',
               ),
             ],
           ),
         ),
-        actions: [
-          AppButton(
-            label: l10n.cancel,
-            onPressed: () => Navigator.of(context).pop(),
-            variant: AppButtonVariant.text,
-          ),
-          AppButton(
-            label: l10n.create,
-            onPressed: () async {
-              try {
-                await ref
-                    .read(adminApiProvider)
-                    .createUser(
-                      email: email.text.trim(),
-                      displayName: name.text.trim(),
-                      temporaryPassword: password.text,
-                      role: role,
-                      workshopId: workshop.id,
-                    );
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ref.invalidate(hierarchyProvider);
-                  ref.invalidate(auditProvider);
-                }
-              } on Object {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-                }
-              }
-            },
-          ),
-        ],
       ),
+      actions: [
+        AppButton(
+          label: l10n.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+          variant: AppButtonVariant.text,
+        ),
+        AppButton(
+          label: l10n.create,
+          onPressed: () async {
+            if (!(formKey.currentState?.validate() ?? false)) {
+              return;
+            }
+            try {
+              await ref
+                  .read(adminApiProvider)
+                  .createUser(
+                    email: email.text.trim(),
+                    displayName: name.text.trim(),
+                    temporaryPassword: password.text,
+                    role: 'WORKSHOP_ADMIN',
+                    workshopId: workshop.id,
+                  );
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l10n.accountCreated)));
+                ref.invalidate(hierarchyProvider);
+                ref.invalidate(auditProvider);
+              }
+            } on Object {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
+              }
+            }
+          },
+        ),
+      ],
     ),
   );
-  email.dispose();
-  name.dispose();
-  password.dispose();
+  // See staff_tab.dart: do not dispose synchronously (pop animation frame).
 }

@@ -70,6 +70,40 @@ void main() {
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
   });
 
+  testWidgets('Sign-in shows contact-admin help and no account creation', (
+    tester,
+  ) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(
+      const ProviderScope(child: _TestApp(home: SignInPage())),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    // Login help slot: localized neutral contact-admin info.
+    expect(find.text('Need technician access?'), findsOneWidget);
+    expect(find.text('Contact Admin'), findsOneWidget);
+    expect(find.text('Authorised workshop staff only'), findsOneWidget);
+    // No account-creation UI on the technician login.
+    expect(find.text('Create account'), findsNothing);
+    expect(find.text("Don't have an account?"), findsNothing);
+  });
+
+  testWidgets('Sign-in help slot is localized in Arabic RTL', (tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: _TestApp(home: SignInPage(), initialLocale: Locale('ar')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('تحتاج إلى وصول فني؟'), findsOneWidget);
+    expect(find.text('تواصل مع المسؤول'), findsOneWidget);
+    expect(find.text('إنشاء حساب'), findsNothing);
+  });
+
   testWidgets('Arabic sign-in shell renders RTL without overflow', (
     tester,
   ) async {

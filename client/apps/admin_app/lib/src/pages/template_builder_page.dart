@@ -1,5 +1,6 @@
 import 'package:admin_app/src/admin_api.dart';
 import 'package:admin_app/src/admin_providers.dart';
+import 'package:admin_app/src/labels.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:admin_app/src/pages/template_version_page.dart';
 import 'package:design_system/design_system.dart';
@@ -232,7 +233,8 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                 child: Card(
                   child: AppListTile(
                     key: Key('template-version-${version.id}'),
-                    title: 'v${version.versionNo} · ${version.status}',
+                    title:
+                        'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
                     subtitle:
                         '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
                     trailing: const Icon(Icons.chevron_right),

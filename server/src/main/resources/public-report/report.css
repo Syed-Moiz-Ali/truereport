@@ -89,6 +89,8 @@
 }
 
 html {
+  /* Light-only (C0 Workstream B): no dark variant is shipped. */
+  color-scheme: light;
   background: var(--surface);
 }
 

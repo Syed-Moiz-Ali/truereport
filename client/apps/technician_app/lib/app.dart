@@ -15,11 +15,7 @@ class TechnicianApp extends ConsumerWidget {
       title: 'TrueReport Technician',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.build(isArabic: locale.languageCode == 'ar'),
-      darkTheme: AppTheme.build(
-        brightness: Brightness.dark,
-        isArabic: locale.languageCode == 'ar',
-      ),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -10,8 +10,6 @@ class ConsentView extends StatelessWidget {
     required this.onStatusChanged,
     required this.onSave,
     this.saving = false,
-    this.figmaText = false,
-    this.figmaPreview = false,
     this.onBack,
     this.onProfile,
     this.title,
@@ -24,8 +22,6 @@ class ConsentView extends StatelessWidget {
   final ValueChanged<bool> onStatusChanged;
   final Future<void> Function() onSave;
   final bool saving;
-  final bool figmaText;
-  final bool figmaPreview;
   final VoidCallback? onBack;
   final VoidCallback? onProfile;
   final String? title;
@@ -90,9 +86,7 @@ class ConsentView extends StatelessWidget {
                         const SizedBox(width: _M.g8),
                         Expanded(
                           child: Text(
-                            figmaText
-                                ? 'STEP 4 OF 4 • FINAL SIGN-OFF'
-                                : l10n.technicianConsentStep,
+                            l10n.technicianConsentStep,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Fx.text(
@@ -108,7 +102,7 @@ class ConsentView extends StatelessWidget {
                     ),
                     const SizedBox(height: _M.g8),
                     Text(
-                      figmaText ? 'Authorizations' : l10n.consent,
+                      l10n.consent,
                       style: Fx.display26.copyWith(color: Fx.ink),
                     ),
                     const SizedBox(height: _M.g4),
@@ -125,14 +119,10 @@ class ConsentView extends StatelessWidget {
             _ConsentCard(
               key: const Key('consent-type-public-link'),
               iconId: '1_7551',
-              title: figmaText ? 'Allow PDF sharing' : l10n.consentPublicLink,
-              body: figmaText
-                  ? 'Send detailed diagnostic report via email'
-                  : l10n.technicianConsentPublicLinkBody,
+              title: l10n.consentPublicLink,
+              body: l10n.technicianConsentPublicLinkBody,
               selected: selectedType == 'PUBLIC_LINK',
-              granted:
-                  (selectedType == 'PUBLIC_LINK' && selectedStatus == true) ||
-                  figmaPreview,
+              granted: selectedType == 'PUBLIC_LINK' && selectedStatus == true,
               onTap: () => onTypeChanged('PUBLIC_LINK'),
               onToggle: (value) {
                 onTypeChanged('PUBLIC_LINK');
@@ -143,14 +133,10 @@ class ConsentView extends StatelessWidget {
             _ConsentCard(
               key: const Key('consent-type-processing'),
               iconId: '1_7563',
-              title: figmaText ? 'Customer road test consent' : l10n.consentProcessing,
-              body: figmaText
-                  ? 'Authorize certified technician dynamic evaluation'
-                  : l10n.technicianConsentProcessingBody,
+              title: l10n.consentProcessing,
+              body: l10n.technicianConsentProcessingBody,
               selected: selectedType == 'PROCESSING',
-              granted:
-                  (selectedType == 'PROCESSING' && selectedStatus == true) ||
-                  figmaPreview,
+              granted: selectedType == 'PROCESSING' && selectedStatus == true,
               onTap: () => onTypeChanged('PROCESSING'),
               onToggle: (value) {
                 onTypeChanged('PROCESSING');
@@ -160,10 +146,8 @@ class ConsentView extends StatelessWidget {
             const SizedBox(height: _M.cardGap),
             _ConsentCard(
               iconId: '1_7575',
-              title: figmaText ? 'Data storage authorization' : l10n.technicianDataStorage,
-              body: figmaText
-                  ? 'Encrypt telemetry logs and secure fleet cloud backups'
-                  : l10n.technicianUnavailable,
+              title: l10n.technicianDataStorage,
+              body: l10n.technicianUnavailable,
               selected: false,
               granted: false,
               enabled: false,
@@ -173,14 +157,10 @@ class ConsentView extends StatelessWidget {
             const SizedBox(height: _M.cardGap),
             _DecisionSection(
               selectedStatus: selectedStatus,
-              figmaText: figmaText,
               onStatusChanged: onStatusChanged,
             ),
             const SizedBox(height: _M.g24),
-            _SignerCard(
-              figmaText: figmaText,
-              selectedStatus: selectedStatus,
-            ),
+            _SignerCard(selectedStatus: selectedStatus),
             const SizedBox(height: _M.g16),
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.actionBlock),
@@ -191,7 +171,7 @@ class ConsentView extends StatelessWidget {
                 ),
                 child: FxButton(
                   key: const Key('consent-save'),
-                  label: figmaText ? 'Save Consent' : l10n.technicianConsentSave,
+                  label: l10n.technicianConsentSave,
                   onPressed: canSave ? onSave : null,
                   icon: const FxIcon(
                     id: '1_7629',
@@ -317,27 +297,27 @@ class _FxSwitch extends StatelessWidget {
             maxHeight: _M.switchHit,
             child: Center(
               child: AnimatedContainer(
-              duration: context.motionDuration(context.motion.fast),
-              width: _M.switchWidth,
-              height: _M.switchHeight,
-              padding: const EdgeInsets.all(_M.switchPad),
-              decoration: BoxDecoration(
-                color: value ? Fx.emerald : Fx.surfaceHighest,
-                borderRadius: BorderRadius.circular(_M.pill),
-              ),
-              child: AnimatedAlign(
                 duration: context.motionDuration(context.motion.fast),
-                alignment: value
-                    ? AlignmentDirectional.centerEnd
-                    : AlignmentDirectional.centerStart,
-                child: Container(
-                  width: _M.thumb,
-                  height: _M.thumb,
-                  decoration: const BoxDecoration(
-                    color: Fx.white,
-                    shape: BoxShape.circle,
-                    boxShadow: Fx.pillShadow,
-                  ),
+                width: _M.switchWidth,
+                height: _M.switchHeight,
+                padding: const EdgeInsets.all(_M.switchPad),
+                decoration: BoxDecoration(
+                  color: value ? Fx.emerald : Fx.surfaceHighest,
+                  borderRadius: BorderRadius.circular(_M.pill),
+                ),
+                child: AnimatedAlign(
+                  duration: context.motionDuration(context.motion.fast),
+                  alignment: value
+                      ? AlignmentDirectional.centerEnd
+                      : AlignmentDirectional.centerStart,
+                  child: Container(
+                    width: _M.thumb,
+                    height: _M.thumb,
+                    decoration: const BoxDecoration(
+                      color: Fx.white,
+                      shape: BoxShape.circle,
+                      boxShadow: Fx.pillShadow,
+                    ),
                   ),
                 ),
               ),
@@ -352,12 +332,10 @@ class _FxSwitch extends StatelessWidget {
 class _DecisionSection extends StatelessWidget {
   const _DecisionSection({
     required this.selectedStatus,
-    required this.figmaText,
     required this.onStatusChanged,
   });
 
   final bool? selectedStatus;
-  final bool figmaText;
   final ValueChanged<bool> onStatusChanged;
 
   @override
@@ -373,9 +351,7 @@ class _DecisionSection extends StatelessWidget {
               Expanded(
                 flex: 4,
                 child: Text(
-                  figmaText
-                      ? 'Digital Signature'
-                      : l10n.technicianConsentDecision,
+                  l10n.technicianConsentDecision,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Fx.label14.copyWith(color: Fx.ink),
@@ -383,7 +359,7 @@ class _DecisionSection extends StatelessWidget {
               ),
               const SizedBox(width: _M.g8),
               FxPill(
-                label: 'Required',
+                label: l10n.consentRequired,
                 background: Fx.tintEmerald,
                 foreground: Fx.emerald,
                 height: _M.requiredHeight,
@@ -397,9 +373,7 @@ class _DecisionSection extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: Text(
-                  figmaText
-                      ? 'Sign with finger or stylus'
-                      : l10n.technicianConsentHint,
+                  l10n.technicianConsentHint,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
@@ -444,9 +418,7 @@ class _DecisionSection extends StatelessWidget {
               ),
               const SizedBox(height: _M.g16),
               Text(
-                figmaText
-                    ? 'Sign Above Line'
-                    : l10n.technicianNoSignature,
+                l10n.technicianNoSignature,
                 style: Fx.caption.copyWith(color: Fx.ink),
               ),
             ],
@@ -465,7 +437,7 @@ class _DecisionSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  figmaText ? 'Clear' : l10n.technicianClear,
+                  l10n.technicianClear,
                   style: Fx.label12.copyWith(color: Fx.muted),
                 ),
               ],
@@ -478,20 +450,15 @@ class _DecisionSection extends StatelessWidget {
 }
 
 class _SignerCard extends StatelessWidget {
-  const _SignerCard({required this.figmaText, required this.selectedStatus});
+  const _SignerCard({required this.selectedStatus});
 
-  final bool figmaText;
   final bool? selectedStatus;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final title = figmaText
-        ? 'Alex Lindqvist'
-        : l10n.technicianAuthorizedRepresentative;
-    final subtitle = figmaText
-        ? 'Authorized Representative • VIN 4782'
-        : selectedStatus == null
+    final title = l10n.technicianAuthorizedRepresentative;
+    final subtitle = selectedStatus == null
         ? l10n.technicianConsentNotRecorded
         : selectedStatus == true
         ? l10n.consentGranted
@@ -510,15 +477,9 @@ class _SignerCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Text(
-              figmaText ? 'AL' : '—',
+              '—',
               textDirection: TextDirection.ltr,
-              style: Fx.text(
-                16,
-                22,
-                FontWeight.w700,
-                -0.16,
-                color: Fx.darkInk,
-              ),
+              style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.darkInk),
             ),
           ),
           const SizedBox(width: _M.g12),
@@ -542,11 +503,7 @@ class _SignerCard extends StatelessWidget {
               ],
             ),
           ),
-          const FxIcon(
-            id: '1_7625',
-            size: 16.67,
-            color: Fx.sage,
-          ),
+          const FxIcon(id: '1_7625', size: 16.67, color: Fx.sage),
         ],
       ),
     );

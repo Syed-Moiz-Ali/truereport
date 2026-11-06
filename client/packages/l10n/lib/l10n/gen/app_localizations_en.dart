@@ -698,6 +698,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get consentWithdrawn => 'Withdrawn';
 
   @override
+  String get consentRequired => 'Required';
+
+  @override
   String get finalize => 'Finalize';
 
   @override
@@ -732,6 +735,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addPhoto => 'Add photo';
+
+  @override
+  String get photoSourceCamera => 'Camera';
+
+  @override
+  String get photoSourceGallery => 'Gallery';
 
   @override
   String get photoSaved => 'Photo saved on this phone';

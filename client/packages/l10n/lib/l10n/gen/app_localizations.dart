@@ -1460,6 +1460,12 @@ abstract class AppLocalizations {
   /// **'Withdrawn'**
   String get consentWithdrawn;
 
+  /// No description provided for @consentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get consentRequired;
+
   /// No description provided for @finalize.
   ///
   /// In en, this message translates to:
@@ -1531,6 +1537,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add photo'**
   String get addPhoto;
+
+  /// No description provided for @photoSourceCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get photoSourceCamera;
+
+  /// No description provided for @photoSourceGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get photoSourceGallery;
 
   /// No description provided for @photoSaved.
   ///

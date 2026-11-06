@@ -79,9 +79,10 @@ function generateDart(tokens) {
     return `abstract final class ${name} {\n${body}\n}`;
   };
 
+  // C0 Workstream B (light-only): dark colour classes are no longer emitted.
+  // `tokens.json` may still carry `color.dark` until the lead removes it;
+  // the generator intentionally ignores it so build outputs stay light-only.
   lines.push(colourClass("TrColorLight", tokens.color.light));
-  lines.push("");
-  lines.push(colourClass("TrColorDark", tokens.color.dark));
   lines.push("");
 
   lines.push("@immutable");
@@ -119,11 +120,6 @@ function generateDart(tokens) {
     deepGreenFill: tokens.brand.deepGreenFill.light,
   }));
   lines.push("");
-  lines.push(brandClass("TrBrandDark", {
-    emeraldFill: tokens.brand.emeraldFill.dark,
-    deepGreenFill: tokens.brand.deepGreenFill.dark,
-  }));
-  lines.push("");
 
   lines.push("@immutable");
   lines.push("class TrStatusPair {");
@@ -148,8 +144,6 @@ function generateDart(tokens) {
   };
 
   lines.push(statusClass("TrStatusLight", tokens.status.light));
-  lines.push("");
-  lines.push(statusClass("TrStatusDark", tokens.status.dark));
   lines.push("");
 
   lines.push("@immutable");
@@ -301,20 +295,9 @@ function generateDart(tokens) {
   lines.push("    ),");
   lines.push("  ];");
   lines.push("");
-  lines.push("  static const List<BoxShadow> focusLight = <BoxShadow>[");
+  lines.push("  static const List<BoxShadow> focus = <BoxShadow>[");
   lines.push("    BoxShadow(");
   lines.push("      color: TrColorLight.focus,");
-  lines.push(
-    `      offset: Offset(${number(tokens.shadows.focus.x)}, ${number(tokens.shadows.focus.y)}),`,
-  );
-  lines.push(`      blurRadius: ${number(tokens.shadows.focus.blur)},`);
-  lines.push(`      spreadRadius: ${number(tokens.shadows.focus.spread)},`);
-  lines.push("    ),");
-  lines.push("  ];");
-  lines.push("");
-  lines.push("  static const List<BoxShadow> focusDark = <BoxShadow>[");
-  lines.push("    BoxShadow(");
-  lines.push("      color: TrColorDark.focus,");
   lines.push(
     `      offset: Offset(${number(tokens.shadows.focus.x)}, ${number(tokens.shadows.focus.y)}),`,
   );
@@ -358,15 +341,12 @@ function generateDart(tokens) {
 }
 
 function cssColourDeclarations(tokens) {
+  // C0 Workstream B (light-only): only the light theme is emitted.
+  // Dark source values in tokens.json are ignored until the lead removes them.
   const light = tokens.color.light;
-  const dark = tokens.color.dark;
   const lightBrand = {
     emeraldFill: tokens.brand.emeraldFill.light,
     deepGreenFill: tokens.brand.deepGreenFill.light,
-  };
-  const darkBrand = {
-    emeraldFill: tokens.brand.emeraldFill.dark,
-    deepGreenFill: tokens.brand.deepGreenFill.dark,
   };
 
   const baseKeys = [
@@ -445,7 +425,6 @@ function cssColourDeclarations(tokens) {
 
   return {
     light: declarations(light, lightBrand, tokens.status.light),
-    dark: declarations(dark, darkBrand, tokens.status.dark),
   };
 }
 
@@ -531,6 +510,9 @@ function generateCss(tokens) {
   lines.push(" * Regenerate: node tools/design_tokens/generate.mjs --write");
   lines.push(" */");
   lines.push("");
+  // Light-only (C0 Workstream B): no prefers-color-scheme dark block and no
+  // [data-theme="dark"] block. The [data-theme="light"] alias is kept so any
+  // existing markup that sets data-theme="light" keeps working.
   lines.push(":root {");
   lines.push("  color-scheme: light;");
   lines.push(...colours.light);
@@ -538,18 +520,6 @@ function generateCss(tokens) {
   lines.push(...cssStaticDeclarations(tokens));
   lines.push("");
   lines.push(...cssLegacyAliases(tokens));
-  lines.push("}");
-  lines.push("");
-  lines.push("@media (prefers-color-scheme: dark) {");
-  lines.push("  :root {");
-  lines.push("    color-scheme: dark;");
-  lines.push(...colours.dark.map((line) => `  ${line}`));
-  lines.push("  }");
-  lines.push("}");
-  lines.push("");
-  lines.push('[data-theme="dark"] {');
-  lines.push("  color-scheme: dark;");
-  lines.push(...colours.dark);
   lines.push("}");
   lines.push("");
   lines.push('[data-theme="light"] {');
@@ -571,8 +541,7 @@ function generateCss(tokens) {
   lines.push("");
   lines.push("@media print {");
   lines.push("  :root,");
-  lines.push('  [data-theme="light"],');
-  lines.push('  [data-theme="dark"] {');
+  lines.push('  [data-theme="light"] {');
   lines.push("    color-scheme: light;");
   lines.push(...colours.light.map((line) => `  ${line}`));
   lines.push("  }");

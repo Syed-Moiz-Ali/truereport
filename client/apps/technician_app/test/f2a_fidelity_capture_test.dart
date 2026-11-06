@@ -12,6 +12,7 @@ import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_images.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_views.dart';
+import 'support/figma_l10n_override.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +106,11 @@ Future<void> _render(
       theme: theme,
       locale: const Locale('en'),
       supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // The figma-text variant renders Figma sample wording through the
+      // test-only localization override; lib/ has no figmaText switch.
+      localizationsDelegates: variant.figma
+          ? figmaLocalizationsDelegates
+          : AppLocalizations.localizationsDelegates,
       home: Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
@@ -153,9 +158,8 @@ Future<void> _render(
     throw StateError('PNG encoding returned no data for $id');
   }
   outDir.createSync(recursive: true);
-  File('${outDir.path}/render.png').writeAsBytesSync(
-    byteData.buffer.asUint8List(),
-  );
+  File('${outDir.path}/render.png')
+      .writeAsBytesSync(byteData.buffer.asUint8List());
 
   final strings = tester
       .widgetList<Text>(find.byType(Text))

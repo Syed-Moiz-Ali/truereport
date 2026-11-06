@@ -20,7 +20,7 @@ flutter build web --release
 ## Controls
 
 - Locale: English / العربية
-- Theme: light / dark
+- Theme: light-only (C0 Workstream B removed the dark toggle)
 - Text scale: 1.0x / 1.5x / 2.0x
 - A2 strategy: emeraldFill / deepGreenFill (also shown side by side)
 - Arabic font: Noto Sans Arabic / IBM Plex Sans Arabic
@@ -30,13 +30,15 @@ flutter build web --release
 
 ```
 ?lang=en|ar
-&theme=light|dark
 &scale=1|1.5|2
 &strategy=emerald|deepGreen
 &font=noto|ibm
 &width=390|600|900|1280
 &autofocus=0
 ```
+
+Light-only (C0 Workstream B): the `&theme=` parameter was removed; the
+gallery always renders the light theme.
 
 `autofocus=0` prevents the focused-field specimen from scrolling the gallery.
 

@@ -44,7 +44,7 @@ public class PublicReportRateLimitFilter extends OncePerRequestFilter {
                 response.setStatus(429);
                 response.setHeader("Retry-After", "60");
                 response.setContentType("text/html;charset=UTF-8");
-                response.getWriter().write(neutralPage());
+                response.getWriter().write(neutralPage(request));
                 return;
             }
             values.addLast(now);
@@ -60,11 +60,16 @@ public class PublicReportRateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    private String neutralPage() {
-        String html = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
-                + "<meta name=\"robots\" content=\"noindex,nofollow\"><title>Link unavailable</title></head>"
-                + "<body><main><h1>This link is unavailable</h1>"
-                + "<p>Please try again later.</p></main></body></html>";
+    private String neutralPage(HttpServletRequest request) {
+        String language = "ar".equals(request.getParameter("lang")) ? "ar" : "en";
+        java.util.Map<String, Object> labels = ReportMessages.labels(language);
+        String dir = "ar".equals(language) ? "rtl" : "ltr";
+        String html = "<!doctype html><html lang=\"" + language + "\" dir=\"" + dir + "\">"
+                + "<head><meta charset=\"utf-8\">"
+                + "<meta name=\"robots\" content=\"noindex,nofollow\">"
+                + "<title>" + labels.get("title") + "</title></head>"
+                + "<body><main><h1>" + labels.get("unavailableTitle") + "</h1>"
+                + "<p>" + labels.get("temporaryBody") + "</p></main></body></html>";
         return new String(html.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }
 }

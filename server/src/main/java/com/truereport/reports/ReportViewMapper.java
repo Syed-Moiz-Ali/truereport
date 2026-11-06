@@ -222,8 +222,12 @@ public class ReportViewMapper {
             }
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("id", derivative.getId());
-            map.put("alt", "ar".equals(language) ? "صورة دليل للفحص" : "Inspection evidence photo");
-            map.put("caption", "ar".equals(language) ? "دليل" : "Evidence");
+            map.put("alt", ReportMessages.photoAlt(language));
+            map.put("altEn", ReportMessages.photoAlt("en"));
+            map.put("altAr", ReportMessages.photoAlt("ar"));
+            map.put("caption", ReportMessages.label(language, "evidenceCaption"));
+            map.put("captionEn", ReportMessages.label("en", "evidenceCaption"));
+            map.put("captionAr", ReportMessages.label("ar", "evidenceCaption"));
             result.add(map);
         }
         return result;
@@ -252,27 +256,11 @@ public class ReportViewMapper {
     }
 
     private List<String> limitations(boolean ar) {
-        if (ar) {
-            return List.of(
-                    "فحص بصري فقط؛ لم يتم تفكيك المكونات.",
-                    "اختبار الطريق والتشخيص وتحليل السوائل محدود بنطاق الفحص المسجل.",
-                    "قد لا تكون الأعطال الخفية أو المتقطعة أو المستقبلية مرئية وقت الفحص.",
-                    "التغطية ليست تقييماً لحالة المركبة، والنتيجة النظيفة لا تعني أن المركبة خالية من العيوب."
-            );
-        }
-        return List.of(
-                "Visual inspection only; components were not dismantled.",
-                "Road testing, diagnostics and fluid analysis are limited to the recorded scope.",
-                "Hidden, intermittent or future faults may not be visible at the time of inspection.",
-                "Coverage is not a condition score and a clean result does not mean the vehicle is perfect."
-        );
+        return ReportMessages.limitations(ar ? "ar" : "en");
     }
 
     private String disclaimer(boolean ar) {
-        if (ar) {
-            return "هذا فحص بصري غير تدخلي. لم يتم تفكيك المكونات. قد تبقى أعطال خفية. هذا التقرير ليس ضماناً أو شهادة رسمية أو موافقة مستقلة، ويعكس المركبة فقط وقت ونطاق الفحص.";
-        }
-        return "This is a visual, non-invasive inspection. Components were not dismantled. Hidden faults may remain. This report is not a warranty, official certificate or independent approval, and reflects the vehicle only at the time and within the scope of the inspection.";
+        return ReportMessages.disclaimer(ar ? "ar" : "en");
     }
 
     private String formatDate(String value, String language) {

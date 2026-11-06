@@ -13,10 +13,6 @@ import com.truereport.identity.UserStatus;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.uuid.UuidV7;
-import com.truereport.tenancy.Invitation;
-import com.truereport.tenancy.InvitationProperties;
-import com.truereport.tenancy.InvitationRepository;
-import com.truereport.tenancy.InvitationStatus;
 import com.truereport.tenancy.Workshop;
 import com.truereport.tenancy.WorkshopMembership;
 import com.truereport.tenancy.WorkshopMembershipRepository;
@@ -25,8 +21,8 @@ import com.truereport.tenancy.WorkshopRole;
 import com.truereport.identity.api.AuditEventDto;
 import com.truereport.identity.api.HierarchyResponse;
 import com.truereport.identity.api.HierarchyWorkshopDto;
-import com.truereport.identity.api.InvitationResponse;
 import com.truereport.identity.api.PlatformAccountDto;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,13 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,37 +41,38 @@ import java.util.UUID;
 @Service
 public class HierarchyService {
 
+    static final String IDEMPOTENCY_CREATE_WORKSHOP_ADMIN = "CREATE_WORKSHOP_ADMIN";
+    static final String IDEMPOTENCY_CREATE_TECHNICIAN = "CREATE_TECHNICIAN";
+    static final String IDEMPOTENCY_RESET_PLATFORM = "RESET_PASSWORD_PLATFORM";
+    static final String IDEMPOTENCY_RESET_WORKSHOP = "RESET_PASSWORD_WORKSHOP";
+
     private final WorkshopRepository workshops;
     private final WorkshopMembershipRepository memberships;
     private final UserRepository users;
-    private final InvitationRepository invitations;
     private final RefreshTokenRepository refreshTokens;
+    private final AccountIdempotencyKeyRepository idempotencyKeys;
     private final AuditEventRepository auditEvents;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
-    private final InvitationProperties invitationProperties;
     private final ObjectMapper objectMapper;
-    private final SecureRandom random = new SecureRandom();
 
     public HierarchyService(WorkshopRepository workshops,
                             WorkshopMembershipRepository memberships,
                             UserRepository users,
-                            InvitationRepository invitations,
                             RefreshTokenRepository refreshTokens,
+                            AccountIdempotencyKeyRepository idempotencyKeys,
                             AuditEventRepository auditEvents,
                             AuditService auditService,
                             PasswordEncoder passwordEncoder,
-                            InvitationProperties invitationProperties,
                             ObjectMapper objectMapper) {
         this.workshops = workshops;
         this.memberships = memberships;
         this.users = users;
-        this.invitations = invitations;
         this.refreshTokens = refreshTokens;
+        this.idempotencyKeys = idempotencyKeys;
         this.auditEvents = auditEvents;
         this.auditService = auditService;
         this.passwordEncoder = passwordEncoder;
-        this.invitationProperties = invitationProperties;
         this.objectMapper = objectMapper;
     }
 
@@ -86,7 +80,7 @@ public class HierarchyService {
     public HierarchyResponse hierarchy(String search, String status) {
         String query = search == null ? "" : search.trim().toLowerCase();
         String filter = status == null ? "" : status.trim().toUpperCase();
-        if (!filter.isEmpty() && !List.of("ACTIVE", "DISABLED", "PENDING").contains(filter)) {
+        if (!filter.isEmpty() && !List.of("ACTIVE", "DISABLED").contains(filter)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_FILTER", "error.filter.invalid", "Invalid status filter");
         }
         List<HierarchyWorkshopDto> result = new ArrayList<>();
@@ -97,17 +91,15 @@ public class HierarchyService {
                     || contains(workshop.getName(), query)
                     || contains(workshop.getBranchName(), query);
             boolean accountMatches = dto.admins().stream().anyMatch(a -> accountMatches(a, query))
-                    || dto.technicians().stream().anyMatch(a -> accountMatches(a, query))
-                    || dto.pendingInvitations().stream().anyMatch(a -> accountMatches(a, query));
+                    || dto.technicians().stream().anyMatch(a -> accountMatches(a, query));
             if (!query.isEmpty() && !workshopMatches && !accountMatches) {
                 continue;
             }
-            if (!filter.isEmpty() && dto.admins().isEmpty() && dto.technicians().isEmpty()
-                    && dto.pendingInvitations().isEmpty()) {
+            if (!filter.isEmpty() && dto.admins().isEmpty() && dto.technicians().isEmpty()) {
                 continue;
             }
             result.add(dto);
-            totalAccounts += dto.admins().size() + dto.technicians().size() + dto.pendingInvitations().size();
+            totalAccounts += dto.admins().size() + dto.technicians().size();
         }
         return new HierarchyResponse(result, result.size(), totalAccounts);
     }
@@ -118,78 +110,142 @@ public class HierarchyService {
         return buildWorkshop(workshop, "");
     }
 
+    /**
+     * Platform Admin creates a Workshop Admin (strict chain A1: Platform Admins
+     * cannot create technicians).
+     */
     @Transactional
     public PlatformAccountDto createUser(CurrentUser actor, String email, String displayName,
-                                         String temporaryPassword, String role, UUID workshopId) {
-        Workshop workshop = requireWorkshop(workshopId);
+                                         String temporaryPassword, String role, UUID workshopId,
+                                         String idempotencyKey) {
+        requirePlatformAdmin(actor);
         WorkshopRole workshopRole = parseRole(role);
+        if (workshopRole != WorkshopRole.WORKSHOP_ADMIN) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ROLE_NOT_PERMITTED",
+                    "error.role.notPermitted", "Platform Admins can only create Workshop Admin accounts");
+        }
+        Workshop workshop = requireWorkshop(workshopId);
+        PasswordPolicy.requireValid(temporaryPassword);
+        String key = requireIdempotencyKey(idempotencyKey);
         String normalized = User.normalizeEmail(email);
+        String canonical = "CREATE|WORKSHOP_ADMIN|" + normalized + "|"
+                + displayName + "|" + workshop.getId();
+        UUID replayed = checkIdempotency(key, actor.userId(), IDEMPOTENCY_CREATE_WORKSHOP_ADMIN, canonical);
+        if (replayed != null) {
+            return currentAccountState(replayed);
+        }
         if (users.findByEmailNormalized(normalized).isPresent()) {
-            throw ApiException.conflict("EMAIL_EXISTS", "An account with this email already exists");
+            throw ApiException.conflict("EMAIL_EXISTS", "Unable to create account with this email address");
         }
         User user = new User(email, passwordEncoder.encode(temporaryPassword), displayName);
         user.setStatus(UserStatus.ACTIVE);
         user = users.save(user);
         WorkshopMembership membership = memberships.save(
-                new WorkshopMembership(workshop.getId(), user.getId(), workshopRole, true));
+                new WorkshopMembership(workshop.getId(), user.getId(), WorkshopRole.WORKSHOP_ADMIN, true));
         audit(actor, workshop.getId(), user.getId(), "ACCOUNT_CREATED", null,
-                Map.of("role", workshopRole.name(), "workshopId", workshop.getId().toString()));
-        return account(user, membership, null);
+                Map.of("role", WorkshopRole.WORKSHOP_ADMIN.name(), "workshopId", workshop.getId().toString()));
+        rememberIdempotency(key, actor.userId(), IDEMPOTENCY_CREATE_WORKSHOP_ADMIN, canonical, user.getId());
+        return account(user, membership);
     }
 
+    /**
+     * Workshop Admin creates a Technician in their own workshop
+     * (strict chain A2: workshop derived from the caller, never from the request).
+     */
     @Transactional
-    public InvitationResponse invite(CurrentUser actor, String email, String displayName,
-                                     String role, UUID workshopId) {
+    public PlatformAccountDto createTechnician(CurrentUser caller, String email, String displayName,
+                                               String initialPassword, String idempotencyKey) {
+        UUID workshopId = requireWorkshopAdmin(caller);
         Workshop workshop = requireWorkshop(workshopId);
-        WorkshopRole workshopRole = parseRole(role);
+        PasswordPolicy.requireValid(initialPassword);
+        String key = requireIdempotencyKey(idempotencyKey);
         String normalized = User.normalizeEmail(email);
-        if (users.findByEmailNormalized(normalized).isPresent()) {
-            throw ApiException.conflict("EMAIL_EXISTS", "An account with this email already exists");
+        String canonical = "CREATE|TECHNICIAN|" + normalized + "|"
+                + displayName + "|" + workshop.getId();
+        UUID replayed = checkIdempotency(key, caller.userId(), IDEMPOTENCY_CREATE_TECHNICIAN, canonical);
+        if (replayed != null) {
+            return currentAccountState(replayed);
         }
-        User user = new User(email, passwordEncoder.encode(randomToken()), displayName);
-        user.setStatus(UserStatus.PENDING_INVITATION);
+        if (users.findByEmailNormalized(normalized).isPresent()) {
+            throw ApiException.conflict("EMAIL_EXISTS", "Unable to create account with this email address");
+        }
+        User user = new User(email, passwordEncoder.encode(initialPassword), displayName);
+        user.setStatus(UserStatus.ACTIVE);
         user = users.save(user);
-        String rawToken = randomToken();
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        Invitation invitation = invitations.save(new Invitation(
-                workshop.getId(),
-                user.getId(),
-                normalized,
-                workshopRole,
-                hash(rawToken),
-                now.plus(invitationProperties.ttl()),
-                actor.userId()
-        ));
-        audit(actor, workshop.getId(), user.getId(), "ACCOUNT_INVITED", null,
-                Map.of("role", workshopRole.name(), "invitationId", invitation.getId().toString()));
-        return new InvitationResponse(invitation.getId(), user.getId(), workshop.getId(),
-                user.getEmail(), workshopRole.name(), invitation.getStatus().name(),
-                invitation.getExpiresAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), rawToken);
+        WorkshopMembership membership = memberships.save(
+                new WorkshopMembership(workshop.getId(), user.getId(), WorkshopRole.TECHNICIAN, true));
+        audit(caller, workshop.getId(), user.getId(), "ACCOUNT_CREATED", null,
+                Map.of("role", WorkshopRole.TECHNICIAN.name(), "workshopId", workshop.getId().toString()));
+        rememberIdempotency(key, caller.userId(), IDEMPOTENCY_CREATE_TECHNICIAN, canonical, user.getId());
+        return account(user, membership);
     }
 
+    /**
+     * Platform Admin resets a Workshop Admin (or Platform Admin) password.
+     * Technicians are never reset through this endpoint (strict chain A1).
+     */
     @Transactional
-    public void acceptInvitation(String rawToken, String password) {
-        Invitation invitation = invitations.findByTokenHash(hash(rawToken))
-                .orElseThrow(() -> ApiException.unauthorized("INVITATION_INVALID", "Invitation is invalid"));
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        if (!invitation.isPending(now)) {
-            throw ApiException.conflict("INVITATION_EXPIRED", "Invitation is no longer valid");
+    public PlatformAccountDto resetPasswordByPlatform(CurrentUser actor, UUID userId,
+                                                      String newPassword, String idempotencyKey) {
+        requirePlatformAdmin(actor);
+        User user = requireUser(userId);
+        PasswordPolicy.requireValid(newPassword);
+        String key = requireIdempotencyKey(idempotencyKey);
+        UUID scopeWorkshopId = resolveAdminScopeWorkshop(user);
+        if (scopeWorkshopId == null && !user.isPlatformAdmin()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ROLE_NOT_PERMITTED",
+                    "error.role.notPermitted", "This account cannot be reset through this endpoint");
         }
-        User user = users.findById(invitation.getUserId()).orElseThrow(ApiException::notFound);
-        if (user.getStatus() != UserStatus.PENDING_INVITATION) {
-            throw ApiException.conflict("INVITATION_ALREADY_ACCEPTED", "Invitation was already accepted");
+        if (user.getStatus() != UserStatus.ACTIVE && user.getStatus() != UserStatus.DISABLED) {
+            throw ApiException.conflict("ACCOUNT_NOT_ACTIVE", "Account is not active");
         }
-        user.setPasswordHash(passwordEncoder.encode(password));
-        user.setStatus(UserStatus.ACTIVE);
+        String canonical = "RESET|" + user.getId();
+        UUID replayed = checkIdempotency(key, actor.userId(), IDEMPOTENCY_RESET_PLATFORM, canonical);
+        if (replayed != null) {
+            return currentAccountState(replayed);
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         users.save(user);
-        if (memberships.findByWorkshopIdAndUserId(invitation.getWorkshopId(), user.getId()).isEmpty()) {
-            memberships.save(new WorkshopMembership(
-                    invitation.getWorkshopId(), user.getId(), invitation.getRole(), true));
+        revokeSessions(user.getId());
+        audit(actor, scopeWorkshopId, user.getId(), "ACCOUNT_PASSWORD_RESET", null,
+                Map.of("userId", user.getId().toString()));
+        rememberIdempotency(key, actor.userId(), IDEMPOTENCY_RESET_PLATFORM, canonical, user.getId());
+        WorkshopMembership primary = memberships.findFirstByUserIdAndStatusAndPrimaryTrue(userId, "ACTIVE")
+                .orElse(null);
+        return account(user, primary);
+    }
+
+    /**
+     * Workshop Admin resets a Technician password in their own workshop.
+     * Any other target (including cross-workshop technicians) yields a neutral 404.
+     */
+    @Transactional
+    public PlatformAccountDto resetPasswordByWorkshopAdmin(CurrentUser caller, UUID userId,
+                                                           String newPassword, String idempotencyKey) {
+        UUID workshopId = requireWorkshopAdmin(caller);
+        PasswordPolicy.requireValid(newPassword);
+        String key = requireIdempotencyKey(idempotencyKey);
+        WorkshopMembership membership = memberships.findByWorkshopIdAndUserId(workshopId, userId)
+                .orElseThrow(ApiException::notFound);
+        if (membership.getRole() != WorkshopRole.TECHNICIAN) {
+            throw ApiException.notFound();
         }
-        invitation.accept(now);
-        invitations.save(invitation);
-        auditService.record(invitation.getWorkshopId(), user.getId(), invitation.getRole().name(),
-                "INVITATION_ACCEPTED", "USER", user.getId(), null, null);
+        User user = requireUser(userId);
+        if (user.getStatus() != UserStatus.ACTIVE && user.getStatus() != UserStatus.DISABLED) {
+            throw ApiException.conflict("ACCOUNT_NOT_ACTIVE", "Account is not active");
+        }
+        String canonical = "RESET|" + user.getId();
+        UUID replayed = checkIdempotency(key, caller.userId(), IDEMPOTENCY_RESET_WORKSHOP, canonical);
+        if (replayed != null) {
+            return currentAccountState(replayed);
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        users.save(user);
+        revokeSessions(user.getId());
+        audit(caller, workshopId, user.getId(), "ACCOUNT_PASSWORD_RESET", null,
+                Map.of("userId", user.getId().toString()));
+        rememberIdempotency(key, caller.userId(), IDEMPOTENCY_RESET_WORKSHOP, canonical, user.getId());
+        return account(user, membership);
     }
 
     @Transactional
@@ -217,7 +273,7 @@ public class HierarchyService {
         revokeSessions(userId);
         audit(actor, primary == null ? null : primary.getWorkshopId(), userId,
                 "ACCOUNT_DISABLED", reason, Map.of("userId", userId.toString()));
-        return account(user, primary, null);
+        return account(user, primary);
     }
 
     @Transactional
@@ -236,7 +292,7 @@ public class HierarchyService {
                 .orElse(null);
         audit(actor, primary == null ? null : primary.getWorkshopId(), userId,
                 "ACCOUNT_REACTIVATED", reason, Map.of("userId", userId.toString()));
-        return account(user, primary, null);
+        return account(user, primary);
     }
 
     @Transactional
@@ -252,6 +308,11 @@ public class HierarchyService {
         if (oldWorkshopId.equals(target.getId())) {
             throw ApiException.conflict("ALREADY_IN_WORKSHOP", "Account already belongs to this workshop");
         }
+        if (membership.getRole() == WorkshopRole.WORKSHOP_ADMIN
+                && memberships.countByWorkshopIdAndRoleAndStatus(oldWorkshopId,
+                WorkshopRole.WORKSHOP_ADMIN, "ACTIVE") <= 1) {
+            throw ApiException.conflict("LAST_WORKSHOP_ADMIN", "Cannot transfer the last Workshop Admin");
+        }
         if (memberships.findByWorkshopIdAndUserId(target.getId(), userId).isPresent()) {
             throw ApiException.conflict("MEMBERSHIP_EXISTS", "Account already has a membership in the target workshop");
         }
@@ -262,7 +323,7 @@ public class HierarchyService {
         audit(actor, target.getId(), userId, "ACCOUNT_TRANSFERRED", reason,
                 Map.of("fromWorkshopId", oldWorkshopId.toString(),
                         "toWorkshopId", target.getId().toString()));
-        return account(user, membership, null);
+        return account(user, membership);
     }
 
     @Transactional(readOnly = true)
@@ -286,39 +347,32 @@ public class HierarchyService {
             if (user == null) {
                 continue;
             }
-            PlatformAccountDto dto = account(user, membership, null);
+            PlatformAccountDto dto = account(user, membership);
             if (membership.getRole() == WorkshopRole.WORKSHOP_ADMIN) {
                 admins.add(dto);
             } else {
                 technicians.add(dto);
             }
         }
-        List<PlatformAccountDto> pending = new ArrayList<>();
-        if (filter.isEmpty() || filter.equals("PENDING")) {
-            for (Invitation invitation : invitations.findByWorkshopIdAndStatus(
-                    workshop.getId(), InvitationStatus.PENDING)) {
-                User user = users.findById(invitation.getUserId()).orElse(null);
-                if (user == null) {
-                    continue;
-                }
-                pending.add(new PlatformAccountDto(user.getId(), user.getDisplayName(), user.getEmail(),
-                        maskEmail(user.getEmail()), invitation.getRole().name(), "PENDING_INVITATION",
-                        workshop.getId(), false, invitation.getExpiresAt().toString()));
-            }
-        }
         long memberCount = members.stream().filter(m -> m.getStatus().equals("ACTIVE")).count();
         return new HierarchyWorkshopDto(workshop.getId(), workshop.getName(), workshop.getBranchName(),
-                workshop.getStatus(), memberCount, admins, technicians, pending);
+                workshop.getStatus(), memberCount, admins, technicians);
     }
 
-    private PlatformAccountDto account(User user, WorkshopMembership membership, String invitationExpiry) {
+    private PlatformAccountDto account(User user, WorkshopMembership membership) {
         return new PlatformAccountDto(user.getId(), user.getDisplayName(), user.getEmail(),
                 maskEmail(user.getEmail()),
                 membership == null ? "UNKNOWN" : membership.getRole().name(),
                 membership == null ? user.getStatus().name() : membership.getStatus(),
                 membership == null ? null : membership.getWorkshopId(),
-                membership != null && membership.isPrimary(),
-                invitationExpiry);
+                membership != null && membership.isPrimary());
+    }
+
+    private PlatformAccountDto currentAccountState(UUID userId) {
+        User user = requireUser(userId);
+        WorkshopMembership primary = memberships.findFirstByUserIdAndStatusAndPrimaryTrue(userId, "ACTIVE")
+                .orElse(null);
+        return account(user, primary);
     }
 
     private AuditEventDto toAuditDto(AuditEvent event) {
@@ -355,10 +409,77 @@ public class HierarchyService {
 
     private WorkshopRole parseRole(String role) {
         try {
-            WorkshopRole parsed = WorkshopRole.valueOf(role == null ? "" : role.trim().toUpperCase());
-            return parsed;
+            return WorkshopRole.valueOf(role == null ? "" : role.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_ROLE", "error.role.invalid", "Invalid role");
+        }
+    }
+
+    private void requirePlatformAdmin(CurrentUser actor) {
+        if (actor == null || !actor.isPlatformAdmin()) {
+            throw ApiException.forbidden();
+        }
+    }
+
+    private UUID requireWorkshopAdmin(CurrentUser caller) {
+        if (caller == null || !caller.isWorkshopAdmin() || caller.workshopId() == null) {
+            throw ApiException.forbidden();
+        }
+        return caller.workshopId();
+    }
+
+    /**
+     * Resolves the workshop scope for a platform password reset. Returns the
+     * primary workshop for Workshop Admin targets, {@code null} for Platform
+     * Admin targets, and throws for Technician targets (strict chain A1).
+     */
+    private UUID resolveAdminScopeWorkshop(User user) {
+        if (user.isPlatformAdmin()) {
+            return null;
+        }
+        WorkshopMembership primary = memberships.findFirstByUserIdAndStatusAndPrimaryTrue(user.getId(), "ACTIVE")
+                .orElse(null);
+        if (primary == null || primary.getRole() != WorkshopRole.WORKSHOP_ADMIN) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ROLE_NOT_PERMITTED",
+                    "error.role.notPermitted", "This account cannot be reset through this endpoint");
+        }
+        return primary.getWorkshopId();
+    }
+
+    private String requireIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "IDEMPOTENCY_KEY_REQUIRED",
+                    "error.idempotency.required", "Idempotency-Key is required");
+        }
+        return idempotencyKey.trim();
+    }
+
+    private UUID checkIdempotency(String idempotencyKey, UUID actorUserId, String endpoint, String canonical) {
+        byte[] keyHash = sha256(idempotencyKey);
+        byte[] requestHash = sha256(canonical);
+        return idempotencyKeys.findByKeyHashAndActorUserIdAndEndpoint(keyHash, actorUserId, endpoint)
+                .map(existing -> {
+                    if (!Arrays.equals(existing.getRequestHash(), requestHash)) {
+                        throw ApiException.conflict("IDEMPOTENCY_KEY_REUSED",
+                                "Idempotency key was reused with a different request");
+                    }
+                    return existing.getUserId();
+                })
+                .orElse(null);
+    }
+
+    private void rememberIdempotency(String idempotencyKey, UUID actorUserId, String endpoint,
+                                     String canonical, UUID userId) {
+        byte[] keyHash = sha256(idempotencyKey);
+        byte[] requestHash = sha256(canonical);
+        try {
+            idempotencyKeys.save(new AccountIdempotencyKey(keyHash, actorUserId, endpoint, requestHash, userId));
+        } catch (DataIntegrityViolationException e) {
+            UUID replayed = checkIdempotency(idempotencyKey, actorUserId, endpoint, canonical);
+            if (replayed == null || !replayed.equals(userId)) {
+                throw ApiException.conflict("IDEMPOTENCY_KEY_REUSED",
+                        "Idempotency key was reused with a different request");
+            }
         }
     }
 
@@ -381,13 +502,7 @@ public class HierarchyService {
                 || contains(account.role(), query);
     }
 
-    private String randomToken() {
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private byte[] hash(String raw) {
+    private byte[] sha256(String raw) {
         try {
             return MessageDigest.getInstance("SHA-256")
                     .digest(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));

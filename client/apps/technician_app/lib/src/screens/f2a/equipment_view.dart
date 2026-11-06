@@ -12,7 +12,6 @@ class EquipmentView extends StatelessWidget {
     required this.onProceed,
     this.onBack,
     this.onProfile,
-    this.figmaText = false,
     this.title,
     super.key,
   });
@@ -21,33 +20,18 @@ class EquipmentView extends StatelessWidget {
   final VoidCallback onProceed;
   final VoidCallback? onBack;
   final VoidCallback? onProfile;
-  final bool figmaText;
   final String? title;
 
-  static const _figmaNames = <String>[
-    'Tire Depth Gauge',
-    'OBD Scanner',
-    'Torque Wrench',
-    'Paint Depth Gauge',
-  ];
-  static const _figmaBodies = <String>[
-    'Digital laser calibration · Ready',
-    'Bluetooth module v4.2 · Tap to verify',
-    'Preset 120-140 Nm · Mechanical',
-    'Fe / NFe substrate probe',
-  ];
   static const _icons = <String>['1_7667', '1_7680', '1_7693', '1_7706'];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final count = figmaText ? 4 : equipment.length;
+    final count = equipment.length;
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: figmaText
-            ? 'Diagnostic Checklist'
-            : title ?? l10n.equipment,
+        title: title ?? l10n.equipment,
         showBack: onBack != null,
         titleStyle: Fx.text(18, 24, FontWeight.w700, -0.45),
         horizontalPadding: _M.headerPad,
@@ -96,9 +80,7 @@ class EquipmentView extends StatelessWidget {
                     const SizedBox(width: _M.g8),
                     Expanded(
                       child: Text(
-                        figmaText
-                            ? 'PRE-INSPECTION SETUP'
-                            : l10n.technicianPreInspectionSetup,
+                        l10n.technicianPreInspectionSetup,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -113,9 +95,7 @@ class EquipmentView extends StatelessWidget {
                     const SizedBox(width: _M.g8),
                     Flexible(
                       child: FxPill(
-                        label: figmaText
-                            ? '1 of 4 Verified'
-                            : l10n.technicianItemsCount(count),
+                        label: l10n.technicianItemsCount(count),
                         background: Fx.container,
                         foreground: Fx.emerald,
                         height: _M.verifiedHeight,
@@ -146,9 +126,7 @@ class EquipmentView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      figmaText
-                          ? 'Required Equipment'
-                          : l10n.technicianRequiredEquipment,
+                      l10n.technicianRequiredEquipment,
                       style: Fx.display26.copyWith(color: Fx.inkStrong),
                     ),
                     const SizedBox(height: _M.g4),
@@ -173,32 +151,26 @@ class EquipmentView extends StatelessWidget {
               )
             else
               ...List.generate(count, (index) {
-                final item = figmaText ? null : equipment[index];
-                final languageCode = Localizations.localeOf(
-                  context,
-                ).languageCode;
-                final label = item?.labelFor(languageCode) ?? '';
-                final itemTitle = figmaText
-                    ? _figmaNames[index % _figmaNames.length]
-                    : label.isNotEmpty
+                final item = equipment[index];
+                final languageCode = Localizations.localeOf(context)
+                    .languageCode;
+                final label = item.labelFor(languageCode);
+                final itemTitle = label.isNotEmpty
                     ? label
-                    : item!.code.isNotEmpty
+                    : item.code.isNotEmpty
                     ? item.code
                     : item.equipmentId;
-                final itemBody = figmaText
-                    ? _figmaBodies[index % _figmaBodies.length]
-                    : [item!.code, item.status]
-                          .where((value) => value.isNotEmpty)
-                          .join(' · ');
+                final itemBody = [
+                  item.code,
+                  item.status,
+                ].where((value) => value.isNotEmpty).join(' · ');
                 return Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    bottom: _M.cardGap,
-                  ),
+                  padding: const EdgeInsetsDirectional.only(bottom: _M.cardGap),
                   child: _EquipmentCard(
                     title: itemTitle,
                     body: itemBody,
                     iconId: _icons[index % _icons.length],
-                    verified: figmaText && index == 0,
+                    verified: false,
                     innerHeight: index == 1 ? _M.innerTall : _M.innerShort,
                   ),
                 );
@@ -207,7 +179,9 @@ class EquipmentView extends StatelessWidget {
             SizedBox(
               height: _M.standardsBlock,
               child: Padding(
-                padding: EdgeInsetsDirectional.only(bottom: context.spacing.xxl),
+                padding: EdgeInsetsDirectional.only(
+                  bottom: context.spacing.xxl,
+                ),
                 child: Container(
                   height: _M.standardsHeight,
                   padding: EdgeInsets.all(context.spacing.gutter),
@@ -243,9 +217,7 @@ class EquipmentView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                figmaText
-                                    ? 'Fleet Station Standards'
-                                    : l10n.technicianEquipmentStandards,
+                                l10n.technicianEquipmentStandards,
                                 style: Fx.text(
                                   12,
                                   16,
@@ -255,9 +227,7 @@ class EquipmentView extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                figmaText
-                                    ? 'ISO-9001 certified diagnostic requirements'
-                                    : l10n.technicianEquipmentStandardsBody,
+                                l10n.technicianEquipmentStandardsBody,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: Fx.body13.copyWith(color: Fx.muted),
@@ -273,13 +243,9 @@ class EquipmentView extends StatelessWidget {
             ),
             const SizedBox(height: _M.g6),
             FxButton(
-              label: figmaText ? 'Proceed' : l10n.technicianProceed,
+              label: l10n.technicianProceed,
               onPressed: onProceed,
-              icon: const FxIcon(
-                id: '1_7730',
-                size: 13.33,
-                color: Fx.white,
-              ),
+              icon: const FxIcon(id: '1_7730', size: 13.33, color: Fx.white),
               trailingIcon: true,
             ),
           ],

@@ -10,7 +10,7 @@ import java.util.UUID;
 public record CreateUserRequest(
         @Email @NotBlank String email,
         @NotBlank @Size(max = 200) String displayName,
-        @NotBlank @Size(min = 8, max = 128) String temporaryPassword,
+        @NotBlank @Size(min = 12, max = 128) String temporaryPassword,
         @NotBlank String role,
         @NotNull UUID workshopId
 ) {

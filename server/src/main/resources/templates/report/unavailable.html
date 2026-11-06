@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="referrer" content="no-referrer">
-  <title th:text="${labels.title}">Vehicle inspection report</title>
+  <title th:text="${labels.title}"></title>
   <link rel="stylesheet" th:href="@{/r/assets/report.css}">
 </head>
 <body>
 <main class="container">
   <section class="card unavailable">
-    <h1 th:text="${labels.unavailableTitle}">This link is unavailable</h1>
-    <p th:text="${labels.unavailableBody}">This report cannot be displayed from this link.</p>
+    <h1 th:text="${labels.unavailableTitle}"></h1>
+    <p th:text="${labels.unavailableBody}"></p>
   </section>
 </main>
 </body>

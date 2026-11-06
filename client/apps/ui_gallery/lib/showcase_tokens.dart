@@ -10,42 +10,23 @@ class TokenSwatchesShowcase extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _TokenPanel(
-          brightness: Brightness.light,
-          strategy: AppColorStrategy.emeraldFill,
-        ),
+        // Light-only (C0 Workstream B): dark panels removed.
+        const _TokenPanel(strategy: AppColorStrategy.emeraldFill),
         SizedBox(height: context.spacing.md),
-        const _TokenPanel(
-          brightness: Brightness.light,
-          strategy: AppColorStrategy.deepGreenFill,
-        ),
-        SizedBox(height: context.spacing.md),
-        const _TokenPanel(
-          brightness: Brightness.dark,
-          strategy: AppColorStrategy.emeraldFill,
-        ),
-        SizedBox(height: context.spacing.md),
-        const _TokenPanel(
-          brightness: Brightness.dark,
-          strategy: AppColorStrategy.deepGreenFill,
-        ),
+        const _TokenPanel(strategy: AppColorStrategy.deepGreenFill),
       ],
     );
   }
 }
 
 class _TokenPanel extends StatelessWidget {
-  const _TokenPanel({required this.brightness, required this.strategy});
+  const _TokenPanel({required this.strategy});
 
-  final Brightness brightness;
   final AppColorStrategy strategy;
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.build(
-      brightness: brightness,
-      colorStrategy: strategy,
-    );
+    final theme = AppTheme.build(colorStrategy: strategy);
     return Theme(
       data: theme,
       child: Builder(
@@ -120,7 +101,7 @@ class _TokenPanel extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
-                      '${brightness.name} / ${strategy.name}',
+                      'light / ${strategy.name}',
                       style: context.texts.titleLarge,
                     ),
                     StatusChip(
@@ -429,17 +410,15 @@ class ArabicFontComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
+    // Light-only (C0 Workstream B).
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 560;
-        final noto = _ArabicFontPanel(
-          brightness: brightness,
+        const noto = _ArabicFontPanel(
           font: AppArabicFont.notoSansArabic,
           name: 'Noto Sans Arabic',
         );
-        final ibm = _ArabicFontPanel(
-          brightness: brightness,
+        const ibm = _ArabicFontPanel(
           font: AppArabicFont.ibmPlexSansArabic,
           name: 'IBM Plex Sans Arabic',
         );
@@ -447,9 +426,9 @@ class ArabicFontComparison extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: noto),
+              const Expanded(child: noto),
               SizedBox(width: context.spacing.lg),
-              Expanded(child: ibm),
+              const Expanded(child: ibm),
             ],
           );
         }
@@ -467,23 +446,14 @@ class ArabicFontComparison extends StatelessWidget {
 }
 
 class _ArabicFontPanel extends StatelessWidget {
-  const _ArabicFontPanel({
-    required this.brightness,
-    required this.font,
-    required this.name,
-  });
+  const _ArabicFontPanel({required this.font, required this.name});
 
-  final Brightness brightness;
   final AppArabicFont font;
   final String name;
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.build(
-      brightness: brightness,
-      arabicFont: font,
-      isArabic: true,
-    );
+    final theme = AppTheme.build(arabicFont: font, isArabic: true);
     return Theme(
       data: theme,
       child: Builder(

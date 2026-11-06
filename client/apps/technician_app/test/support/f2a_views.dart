@@ -11,6 +11,7 @@ import 'package:technician_app/src/screens/f2a/inspection_hub_view.dart';
 import 'package:technician_app/src/screens/f2a/job_intake_view.dart';
 
 import 'f2a_fixture_data.dart';
+import 'figma_l10n_override.dart';
 
 const f2aScreenIds = <String>[
   'login',
@@ -22,6 +23,13 @@ const f2aScreenIds = <String>[
   'inspection-hub',
 ];
 
+/// Builds an F2-A screen for tests.
+///
+/// [figma] selects *data* fixtures only (technician name, jobs, checklist).
+/// Screens always render product widgets; there is no `figmaText` switch in
+/// `lib/` anymore. To render Figma *copy*, pump the result with
+/// [f2aHost] and `figmaStrings: true` (English only), which swaps in the
+/// test-only [FigmaTestLocalizations] override.
 Widget f2aScreen(
   String id, {
   bool figma = true,
@@ -40,14 +48,6 @@ Widget f2aScreen(
         onSubmit: () {},
         onValidateEmail: (_) => null,
         onValidateRequired: (_) => null,
-        copy: figma
-            ? const SignInCopy(
-                brand: 'TechInspect',
-                forgotLabel: 'Forgot password?',
-                accessAction: 'Request ID',
-                securityLabel: 'Authorised workshop staff only',
-              )
-            : null,
       );
     case 'assigned-jobs':
       return AssignedJobsView(
@@ -62,7 +62,6 @@ Widget f2aScreen(
         onProfile: () {},
         nowUtc: figmaNow,
         showSearch: false,
-        figmaText: figma,
         avatarImage: avatarImage,
       );
     case 'empty-state':
@@ -73,19 +72,19 @@ Widget f2aScreen(
         onWalkIn: () {},
         onSync: () {},
         onProfile: () {},
-        figmaText: figma,
         avatarImage: avatarImage,
       );
     case 'job-intake':
       return JobIntakeView(
-        job: figma ? figmaJob() : productJobs.first,
+        job: figma
+            ? figmaJob(template: 'Vehicle Walkaround Inspection')
+            : productJobs.first,
         onStart: () {},
         onEditCustomer: () {},
         onEditVehicle: () {},
         onConsent: () {},
         onEquipment: () {},
         onProfile: () {},
-        figmaText: figma,
         avatarImage: avatarImage,
         vehicleImage: vehicleImage,
       );
@@ -96,8 +95,6 @@ Widget f2aScreen(
         onTypeChanged: (_) {},
         onStatusChanged: (_) {},
         onSave: () async {},
-        figmaText: figma,
-        figmaPreview: figma,
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Vehicle Walkaround Inspection' : null,
@@ -142,7 +139,6 @@ Widget f2aScreen(
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Diagnostic Checklist' : null,
-        figmaText: figma,
       );
     case 'inspection-hub':
       final checklist = figma ? figmaChecklist() : productChecklist();
@@ -154,7 +150,6 @@ Widget f2aScreen(
         onVehicle: () {},
         onSync: () {},
         onProfile: () {},
-        figmaText: figma,
         avatarImage: avatarImage,
         vehicleImage: vehicleImage,
       );
@@ -168,20 +163,21 @@ Widget f2aHost({
   required Locale locale,
   required ThemeData theme,
   double textScale = 1,
+  bool figmaStrings = false,
 }) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     locale: locale,
     supportedLocales: AppLocalizations.supportedLocales,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    localizationsDelegates: figmaStrings
+        ? figmaLocalizationsDelegates
+        : AppLocalizations.localizationsDelegates,
     theme: theme,
     builder: (context, appChild) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: TextScaler.linear(textScale)),
       child: appChild ?? const SizedBox.shrink(),
     ),
     home: child,
   );
 }
-

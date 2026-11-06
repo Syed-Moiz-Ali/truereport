@@ -4,43 +4,12 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 
-/// Copy slots for the sign-in screen.
-///
-/// The defaults are the real product copy. The Figma-text fidelity fixture
-/// passes the Figma strings explicitly; those strings never ship because no
-/// production route builds them.
-@immutable
-class SignInCopy {
-  const SignInCopy({
-    this.brand = 'TrueReport',
-    this.tagline = 'Vehicle Condition & Fleet Diagnostics',
-    this.emailHint = 'Email',
-    this.passwordHint = 'Password',
-    this.forgotLabel = 'Password help',
-    this.signInLabel = 'Sign In',
-    this.verifyLabel = 'Verify',
-    this.accessPrompt = 'Need technician access?',
-    this.accessAction = 'Contact Admin',
-    this.securityLabel = 'Authorised workshop staff only',
-    this.englishLabel = 'English',
-    this.arabicLabel = 'عربي',
-  });
-
-  final String brand;
-  final String tagline;
-  final String emailHint;
-  final String passwordHint;
-  final String forgotLabel;
-  final String signInLabel;
-  final String verifyLabel;
-  final String accessPrompt;
-  final String accessAction;
-  final String securityLabel;
-  final String englishLabel;
-  final String arabicLabel;
-}
-
 /// Presentational sign-in screen. Business state stays in [SignInPage].
+///
+/// All user-visible copy comes from [AppLocalizations]. The Figma-text
+/// fidelity fixture renders this same widget under a test-only
+/// localization override (see `figma_l10n_override.dart` in the
+/// technician_app tests); no Figma sample strings ship in this package.
 class SignInView extends StatefulWidget {
   const SignInView({
     required this.emailController,
@@ -55,7 +24,6 @@ class SignInView extends StatefulWidget {
     this.challenge = false,
     this.submitting = false,
     this.errorText,
-    this.copy,
     super.key,
   });
 
@@ -71,7 +39,6 @@ class SignInView extends StatefulWidget {
   final bool challenge;
   final bool submitting;
   final String? errorText;
-  final SignInCopy? copy;
 
   @override
   State<SignInView> createState() => _SignInViewState();
@@ -83,19 +50,6 @@ class _SignInViewState extends State<SignInView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final copy = widget.copy ??
-        SignInCopy(
-          brand: l10n.appTitle,
-          tagline: l10n.technicianSignInTagline,
-          emailHint: l10n.emailLabel,
-          passwordHint: l10n.passwordLabel,
-          signInLabel: l10n.signInButton,
-          verifyLabel: l10n.verifyButton,
-          forgotLabel: l10n.technicianPasswordHelp,
-          accessPrompt: l10n.technicianNeedTechnicianAccess,
-          accessAction: l10n.technicianContactAdmin,
-          securityLabel: l10n.technicianSecurityLine,
-        );
     return AppScaffold(
       backgroundColor: Fx.white,
       body: SafeArea(
@@ -130,8 +84,8 @@ class _SignInViewState extends State<SignInView> {
                               child: FxLanguageSwitch(
                                 isArabic: widget.isArabic,
                                 onChanged: widget.onLocaleChanged,
-                                englishLabel: copy.englishLabel,
-                                arabicLabel: copy.arabicLabel,
+                                englishLabel: l10n.languageEnglish,
+                                arabicLabel: l10n.languageArabic,
                                 englishKey: const Key('sign-in-language-en'),
                                 arabicKey: const Key('sign-in-language-ar'),
                               ),
@@ -148,8 +102,8 @@ class _SignInViewState extends State<SignInView> {
                                 right: 0,
                                 child: Center(
                                   child: _BrandMark(
-                                    label: copy.brand,
-                                    semanticsLabel: copy.brand,
+                                    label: l10n.appTitle,
+                                    semanticsLabel: l10n.appTitle,
                                   ),
                                 ),
                               ),
@@ -161,7 +115,7 @@ class _SignInViewState extends State<SignInView> {
                                   child: Semantics(
                                     header: true,
                                     child: Text(
-                                      copy.brand,
+                                      l10n.appTitle,
                                       textAlign: TextAlign.center,
                                       style: Fx.display26.copyWith(
                                         color: Fx.ink,
@@ -176,7 +130,7 @@ class _SignInViewState extends State<SignInView> {
                                 right: 0,
                                 child: Center(
                                   child: Text(
-                                    copy.tagline,
+                                    l10n.technicianSignInTagline,
                                     textAlign: TextAlign.center,
                                     style: Fx.text(
                                       13,
@@ -201,9 +155,9 @@ class _SignInViewState extends State<SignInView> {
                               FxTextField(
                                 key: const Key('sign-in-email'),
                                 controller: widget.emailController,
-                                semanticLabel: copy.emailHint,
+                                semanticLabel: l10n.emailLabel,
                                 iconId: '1_7094',
-                                hint: copy.emailHint,
+                                hint: l10n.emailLabel,
                                 keyboardType: TextInputType.emailAddress,
                                 autofillHints: const [AutofillHints.email],
                                 textInputAction: TextInputAction.next,
@@ -214,9 +168,9 @@ class _SignInViewState extends State<SignInView> {
                               FxTextField(
                                 key: const Key('sign-in-password'),
                                 controller: widget.passwordController,
-                                semanticLabel: copy.passwordHint,
+                                semanticLabel: l10n.passwordLabel,
                                 iconId: '1_7101',
-                                hint: copy.passwordHint,
+                                hint: l10n.passwordLabel,
                                 obscure: _obscurePassword,
                                 autofillHints: const [AutofillHints.password],
                                 textInputAction: TextInputAction.done,
@@ -225,7 +179,7 @@ class _SignInViewState extends State<SignInView> {
                                 validator: widget.onValidateRequired,
                                 suffix: _Reveal(
                                   obscured: _obscurePassword,
-                                  semanticLabel: copy.passwordHint,
+                                  semanticLabel: l10n.passwordLabel,
                                   onPressed: () => setState(
                                     () => _obscurePassword = !_obscurePassword,
                                   ),
@@ -252,7 +206,7 @@ class _SignInViewState extends State<SignInView> {
                                 child: Align(
                                   alignment: AlignmentDirectional.centerEnd,
                                   child: Text(
-                                    copy.forgotLabel,
+                                    l10n.technicianPasswordHelp,
                                     style: Fx.caption.copyWith(
                                       color: Fx.muted,
                                       letterSpacing: 0.44,
@@ -267,9 +221,10 @@ class _SignInViewState extends State<SignInView> {
                                 child: widget.errorText == null
                                     ? const SizedBox.shrink()
                                     : Padding(
-                                        padding: const EdgeInsetsDirectional.only(
-                                          top: 8,
-                                        ),
+                                        padding:
+                                            const EdgeInsetsDirectional.only(
+                                              top: 8,
+                                            ),
                                         child: Semantics(
                                           liveRegion: true,
                                           child: Text(
@@ -287,8 +242,8 @@ class _SignInViewState extends State<SignInView> {
                               FxButton(
                                 key: const Key('sign-in-submit'),
                                 label: widget.challenge
-                                    ? copy.verifyLabel
-                                    : copy.signInLabel,
+                                    ? l10n.verifyButton
+                                    : l10n.signInButton,
                                 onPressed: widget.submitting
                                     ? null
                                     : widget.onSubmit,
@@ -322,7 +277,7 @@ class _SignInViewState extends State<SignInView> {
                                       SizedBox(
                                         width: _M.accessPromptWidth,
                                         child: Text(
-                                          copy.accessPrompt,
+                                          l10n.technicianNeedTechnicianAccess,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: Fx.body13.copyWith(
@@ -334,7 +289,7 @@ class _SignInViewState extends State<SignInView> {
                                       SizedBox(
                                         width: _M.accessActionWidth,
                                         child: Text(
-                                          copy.accessAction,
+                                          l10n.technicianContactAdmin,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: Fx.label12.copyWith(
@@ -357,7 +312,7 @@ class _SignInViewState extends State<SignInView> {
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
-                                        copy.securityLabel,
+                                        l10n.technicianSecurityLine,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Fx.caption.copyWith(
@@ -409,7 +364,9 @@ class _Reveal extends StatelessWidget {
           height: _M.revealHit,
           child: Center(
             child: Icon(
-              obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              obscured
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               size: _M.revealIcon,
               color: Fx.outline,
             ),
@@ -472,7 +429,6 @@ abstract final class _M {
   static const double heroHeight = 222;
   static const double logoTop = 32;
   static const double logoBox = 80;
-
 
   static const double glowInset = 10;
   static const double glowSize = 60;

@@ -20,7 +20,6 @@ class JobIntakeView extends StatelessWidget {
     this.pendingSyncCount = 0,
     this.online = true,
     this.starting = false,
-    this.figmaText = false,
     this.avatarImage,
     this.vehicleImage,
     super.key,
@@ -36,7 +35,6 @@ class JobIntakeView extends StatelessWidget {
   final int pendingSyncCount;
   final bool online;
   final bool starting;
-  final bool figmaText;
   final ui.Image? avatarImage;
   final ui.Image? vehicleImage;
 
@@ -47,9 +45,7 @@ class JobIntakeView extends StatelessWidget {
     final cancelled = job.status == 'CANCELLED';
     final startable = job.status == 'ASSIGNED' || job.status == 'SCHEDULED';
     final showActions = !finalized && !cancelled;
-    final title = figmaText
-        ? 'Vehicle Walkaround Inspection'
-        : job.templateName.isEmpty
+    final title = job.templateName.isEmpty
         ? l10n.technicianJobIntake
         : job.templateName;
 
@@ -73,11 +69,7 @@ class JobIntakeView extends StatelessWidget {
       ),
       bottomNavigationBar: showActions
           ? _StickyAction(
-              label: figmaText
-                  ? 'Start Inspection'
-                  : startable
-                  ? l10n.startInspection
-                  : l10n.resumeInspection,
+              label: startable ? l10n.startInspection : l10n.resumeInspection,
               onPressed: onStart,
               loading: starting,
             )
@@ -105,14 +97,11 @@ class JobIntakeView extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     _MetaPill(
-                      label: figmaText
-                          ? 'INTAKE PHASE'
-                          : technicianStatusLabel(
-                              l10n,
-                              job.status,
-                            ).toUpperCase(),
+                      label: technicianStatusLabel(
+                        l10n,
+                        job.status,
+                      ).toUpperCase(),
                       background: Fx.container,
-                      width: figmaText ? _M.phaseWidth : null,
                       style: Fx.text(
                         11,
                         14,
@@ -122,9 +111,7 @@ class JobIntakeView extends StatelessWidget {
                       ),
                     ),
                     _MetaPill(
-                      label: figmaText
-                          ? 'Ready for Check'
-                          : technicianStatusLabel(l10n, job.status),
+                      label: technicianStatusLabel(l10n, job.status),
                       background: Fx.mint33,
                       leading: const FxDot(size: 6),
                       style: Fx.text(
@@ -136,9 +123,7 @@ class JobIntakeView extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      figmaText
-                          ? '10:42 AM · Bay 3'
-                          : scheduledTimeUtc4(job.scheduledAt),
+                      scheduledTimeUtc4(job.scheduledAt),
                       textDirection: TextDirection.ltr,
                       style: Fx.text(
                         11,
@@ -158,11 +143,7 @@ class JobIntakeView extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(
                   bottom: _M.heroBottom,
                 ),
-                child: _VehicleHero(
-                  job: job,
-                  figmaText: figmaText,
-                  image: vehicleImage,
-                ),
+                child: _VehicleHero(job: job, image: vehicleImage),
               ),
             ),
             ConstrainedBox(
@@ -171,7 +152,7 @@ class JobIntakeView extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(
                   bottom: _M.sectionBottom,
                 ),
-                child: _VehicleCard(job: job, figmaText: figmaText),
+                child: _VehicleCard(job: job),
               ),
             ),
             ConstrainedBox(
@@ -180,11 +161,11 @@ class JobIntakeView extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(
                   bottom: _M.sectionBottom,
                 ),
-                child: _CustomerCard(job: job, figmaText: figmaText),
+                child: _CustomerCard(job: job),
               ),
             ),
-            _ReadyCard(job: job, figmaText: figmaText),
-            if (showActions && !figmaText) ...[
+            _ReadyCard(job: job),
+            if (showActions) ...[
               const SizedBox(height: _M.g16),
               _Actions(
                 onConsent: onConsent,
@@ -210,22 +191,17 @@ class JobIntakeView extends StatelessWidget {
 }
 
 class _VehicleHero extends StatelessWidget {
-  const _VehicleHero({required this.job, required this.figmaText, this.image});
+  const _VehicleHero({required this.job, this.image});
 
   final TechnicianJob job;
-  final bool figmaText;
   final ui.Image? image;
 
   @override
   Widget build(BuildContext context) {
-    final plate = figmaText
-        ? 'REG: LV71 XZP'
-        : job.vehiclePlate == null || job.vehiclePlate!.isEmpty
+    final plate = job.vehiclePlate == null || job.vehiclePlate!.isEmpty
         ? job.reference
         : job.vehiclePlate!;
-    final model = figmaText
-        ? 'Renault Megane 3'
-        : '${job.vehicleMake} ${job.vehicleModel}'.trim();
+    final model = '${job.vehicleMake} ${job.vehicleModel}'.trim();
     return ClipRRect(
       borderRadius: BorderRadius.circular(_M.heroRadius),
       child: Container(
@@ -336,21 +312,18 @@ class _VehicleHero extends StatelessWidget {
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.job, required this.figmaText});
+  const _VehicleCard({required this.job});
 
   final TechnicianJob job;
-  final bool figmaText;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final make = figmaText ? 'Renault' : job.vehicleMake;
-    final model = figmaText ? 'Megane 3' : job.vehicleModel;
-    final year = figmaText ? '2021' : job.vehicleYear?.toString() ?? '';
-    final odometer = figmaText
-        ? '34,180 mi'
-        : formatOdometer(job.odometerValue, job.odometerUnit);
-    final vin = figmaText ? 'VF1KZ040647192831' : job.vehicleVin ?? '';
+    final make = job.vehicleMake;
+    final model = job.vehicleModel;
+    final year = job.vehicleYear?.toString() ?? '';
+    final odometer = formatOdometer(job.odometerValue, job.odometerUnit);
+    final vin = job.vehicleVin ?? '';
     return FxCard(
       radius: _M.sectionRadius,
       padding: EdgeInsets.all(context.spacing.lg),
@@ -370,7 +343,7 @@ class _VehicleCard extends StatelessWidget {
                 const SizedBox(width: _M.g12),
                 Expanded(
                   child: Text(
-                    figmaText ? 'Vehicle Info' : l10n.technicianVehicleInfo,
+                    l10n.technicianVehicleInfo,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
@@ -528,19 +501,16 @@ class _VehicleCard extends StatelessWidget {
 }
 
 class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.job, required this.figmaText});
+  const _CustomerCard({required this.job});
 
   final TechnicianJob job;
-  final bool figmaText;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final name = figmaText ? 'Arthur Pendelton' : job.customerName;
-    final phone = figmaText ? '+44 7700 900077' : job.customerPhone ?? '';
-    final service = figmaText
-        ? 'Comprehensive Fleet Tier-1 Multi-Point'
-        : job.templateName;
+    final name = job.customerName;
+    final phone = job.customerPhone ?? '';
+    final service = job.templateName;
     return FxCard(
       radius: _M.sectionRadius,
       padding: EdgeInsets.all(context.spacing.lg),
@@ -567,9 +537,7 @@ class _CustomerCard extends StatelessWidget {
                   ),
                 ),
                 FxPill(
-                  label: figmaText
-                      ? 'Primary Owner'
-                      : l10n.technicianCustomerChip,
+                  label: l10n.technicianCustomerChip,
                   height: _M.ownerHeight,
                   padding: const EdgeInsetsDirectional.symmetric(
                     horizontal: 10,
@@ -643,27 +611,20 @@ class _ContactButton extends StatelessWidget {
 }
 
 class _ReadyCard extends StatelessWidget {
-  const _ReadyCard({required this.job, required this.figmaText});
+  const _ReadyCard({required this.job});
 
   final TechnicianJob job;
-  final bool figmaText;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final title = figmaText
-        ? 'Pre-Inspection Ready'
-        : l10n.technicianJobDetailsReady;
-    final subtitle = figmaText
-        ? 'Keys received · Fuel at 70%'
-        : [
-            technicianStatusLabel(l10n, job.status),
-            if (job.templateVersionNo != null)
-              '${l10n.versions} ${job.templateVersionNo}',
-          ].join(' · ');
-    final right = figmaText
-        ? 'Step 1 of 4'
-        : job.templateVersionNo == null
+    final title = l10n.technicianJobDetailsReady;
+    final subtitle = [
+      technicianStatusLabel(l10n, job.status),
+      if (job.templateVersionNo != null)
+        '${l10n.versions} ${job.templateVersionNo}',
+    ].join(' · ');
+    final right = job.templateVersionNo == null
         ? l10n.technicianInspection
         : '${l10n.versions} ${job.templateVersionNo}';
     return FxCard(
@@ -819,20 +780,17 @@ class _MetaPill extends StatelessWidget {
     required this.label,
     required this.background,
     required this.style,
-    this.width,
     this.leading,
   });
 
   final String label;
   final Color background;
   final TextStyle style;
-  final double? width;
   final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: width == null ? null : BoxConstraints(minWidth: width!),
       height: _M.metaPillHeight,
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: 12,
@@ -914,7 +872,6 @@ abstract final class _M {
   static const double metaTop = 8;
   static const double metaBottom = 24;
   static const double metaPillHeight = 22;
-  static const double phaseWidth = 103.67;
   static const double heroBlock = 200;
   static const double heroBottom = 24;
   static const double heroHeight = 176;

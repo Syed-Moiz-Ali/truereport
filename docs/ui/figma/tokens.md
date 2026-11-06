@@ -1,6 +1,7 @@
 # Figma Design-System Extraction (Phase F0)
 
 **Status:** Evidence and mapping only. This document does **not** choose a visual direction and does not change code, tokens, config, or other docs.
+**C0 note (6 November 2026):** the F0 evidence below is unchanged, but the product is now light-only per `adr/ADR-F1-006-light-only-theme.md`. Dark-theme rows describe the pre-C0 system and are superseded.
 **Scope:** all four Figma exports (45 screens), cross-checked against the existing implementation and design docs.
 **Date:** 2026-11-05.
 

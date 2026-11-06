@@ -2,7 +2,9 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <title>Vehicle inspection report</title>
+  <!-- Light-only (C0 Workstream B): no dark variant is shipped. -->
+  <meta name="color-scheme" content="light">
+  <title th:text="${r.en.title}"></title>
   <style th:utext="${r.fontCss}"></style>
   <!-- TOKENS:BEGIN -->
   <style>
@@ -183,122 +185,123 @@
 </head>
 <body>
 <div class="footer">
-  <span th:text="${r.reportNumber} + ' · ' + ${r.en.version} + ' ' + ${r.version}">TR-0001 · Version 1</span>
-  <span> · TrueReport</span>
+  <span th:text="${r.reportNumber} + ' · ' + ${r.en.version} + ' ' + ${r.version}"></span>
+  <span aria-hidden="true"> · </span>
+  <span>TrueReport</span>
 </div>
 
 <div class="cover">
   <div class="brand">TrueReport</div>
   <div class="bilingual">
     <div>
-      <h1 th:text="${r.en.title}">Vehicle inspection report</h1>
-      <p class="muted" th:text="${r.en.notCertified}">Not an official certificate.</p>
+      <h1 th:text="${r.en.title}"></h1>
+      <p class="muted" th:text="${r.en.notCertified}"></p>
     </div>
     <div class="ar" lang="ar">
-      <h1 th:text="${r.ar.title}">تقرير فحص مركبة</h1>
-      <p class="muted" th:text="${r.ar.notCertified}">هذا التقرير ليس شهادة رسمية.</p>
+      <h1 th:text="${r.ar.title}"></h1>
+      <p class="muted" th:text="${r.ar.notCertified}"></p>
     </div>
   </div>
   <div class="meta">
     <div class="box">
-      <div class="muted small" th:text="${r.en.reportId}">Report ID</div>
-      <strong th:text="${r.reportNumber}">TR-0001</strong>
-      <div class="small" th:text="${r.en.version} + ': ' + ${r.version}">Version: 1</div>
-      <div class="small" th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}">Finalized</div>
+      <div class="muted small" th:text="${r.en.reportId}"></div>
+      <strong th:text="${r.reportNumber}"></strong>
+      <div class="small" th:text="${r.en.version} + ': ' + ${r.version}"></div>
+      <div class="small" th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}"></div>
     </div>
     <div class="box ar" lang="ar">
-      <div class="muted small" th:text="${r.ar.reportId}">معرّف التقرير</div>
-      <strong th:text="${r.reportNumber}">TR-0001</strong>
-      <div class="small" th:text="${r.ar.version} + ': ' + ${r.version}">الإصدار: 1</div>
-      <div class="small" th:text="${r.ar.finalized} + ': ' + ${r.finalizedAt}">تاريخ الاعتماد</div>
+      <div class="muted small" th:text="${r.ar.reportId}"></div>
+      <strong th:text="${r.reportNumber}"></strong>
+      <div class="small" th:text="${r.ar.version} + ': ' + ${r.version}"></div>
+      <div class="small" th:text="${r.ar.finalized} + ': ' + ${r.finalizedAt}"></div>
     </div>
   </div>
 </div>
 
-<h2 th:text="${r.en.summary}">Inspection summary</h2>
+<h2 th:text="${r.en.summary}"></h2>
 <div class="stats">
-  <div class="stat"><strong th:text="${r.coverage.text}">0 / 0</strong><span class="small" th:text="${r.en.checksCompleted}">checks completed</span></div>
-  <div class="stat"><strong th:text="${#lists.size(r.keyFindings)}">0</strong><span class="small" th:text="${r.en.keyFindings}">key findings</span></div>
-  <div class="stat"><strong th:text="${r.coverage.notApplicable}">0</strong><span class="small">Not applicable / لا ينطبق</span></div>
-  <div class="stat"><strong th:text="${r.coverage.notChecked + r.coverage.couldNotVerify}">0</strong><span class="small">Not completed / لم تكتمل</span></div>
+  <div class="stat"><strong th:text="${r.coverage.text}"></strong><span class="small" th:text="${r.en.checksCompleted}"></span></div>
+  <div class="stat"><strong th:text="${#lists.size(r.keyFindings)}"></strong><span class="small" th:text="${r.en.keyFindings}"></span></div>
+  <div class="stat"><strong th:text="${r.coverage.notApplicable}"></strong><span class="small"><span th:text="${r.en.notApplicable}"></span> / <span class="ar" th:text="${r.ar.notApplicable}"></span></span></div>
+  <div class="stat"><strong th:text="${r.coverage.notChecked + r.coverage.couldNotVerify}"></strong><span class="small"><span th:text="${r.en.notCompleted}"></span> / <span class="ar" th:text="${r.ar.notCompleted}"></span></span></div>
 </div>
-<p class="small muted" th:text="${r.en.coverageNotScore}">Coverage is not a condition score.</p>
+<p class="small muted" th:text="${r.en.coverageNotScore}"></p>
 
 <div class="bilingual">
   <div class="box">
-    <h2 th:text="${r.en.vehicle}">Vehicle</h2>
-    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')">Vehicle</p>
-    <p class="small">VIN / رقم الهيكل: <span class="ltr" th:text="${r.vehicle.vinMasked}">••••1234</span></p>
-    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.en.odometer} + ': ' + ${r.vehicle.odometer}">Odometer</p>
-    <p class="small" th:text="${r.en.workshop} + ': ' + ${r.workshop.name}">Workshop</p>
-    <p class="small" th:text="${r.en.technician} + ': ' + ${r.technician.displayName}">Technician</p>
-    <p class="small" th:text="${r.en.scope} + ': ' + ${r.inspection.scope}">Scope</p>
-    <p class="small" th:text="${r.en.template} + ': ' + ${r.inspection.templateVersion}">Template</p>
+    <h2 th:text="${r.en.vehicle}"></h2>
+    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')"></p>
+    <p class="small"><span th:text="${r.en.vin}"></span> / <span th:text="${r.ar.vin}"></span><span th:text="': '"></span><span class="ltr" th:text="${r.vehicle.vinMasked}"></span></p>
+    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.en.odometer} + ': ' + ${r.vehicle.odometer}"></p>
+    <p class="small" th:text="${r.en.workshop} + ': ' + ${r.workshop.name}"></p>
+    <p class="small" th:text="${r.en.technician} + ': ' + ${r.technician.displayName}"></p>
+    <p class="small" th:text="${r.en.scope} + ': ' + ${r.inspection.scope}"></p>
+    <p class="small" th:text="${r.en.template} + ': ' + ${r.inspection.templateVersion}"></p>
   </div>
   <div class="box ar" lang="ar">
-    <h2 th:text="${r.ar.vehicle}">المركبة</h2>
-    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')">المركبة</p>
-    <p class="small">رقم الهيكل: <span class="ltr" th:text="${r.vehicle.vinMasked}">••••1234</span></p>
-    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.ar.odometer} + ': ' + ${r.vehicle.odometer}">العداد</p>
-    <p class="small" th:text="${r.ar.workshop} + ': ' + ${r.workshop.name}">الورشة</p>
-    <p class="small" th:text="${r.ar.technician} + ': ' + ${r.technician.displayName}">الفني</p>
-    <p class="small" th:text="${r.ar.scope} + ': ' + ${r.inspection.scope}">النطاق</p>
-    <p class="small" th:text="${r.ar.template} + ': ' + ${r.inspection.templateVersion}">القالب</p>
+    <h2 th:text="${r.ar.vehicle}"></h2>
+    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')"></p>
+    <p class="small"><span th:text="${r.ar.vin} + ': '"></span><span class="ltr" th:text="${r.vehicle.vinMasked}"></span></p>
+    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.ar.odometer} + ': ' + ${r.vehicle.odometer}"></p>
+    <p class="small" th:text="${r.ar.workshop} + ': ' + ${r.workshop.name}"></p>
+    <p class="small" th:text="${r.ar.technician} + ': ' + ${r.technician.displayName}"></p>
+    <p class="small" th:text="${r.ar.scope} + ': ' + ${r.inspection.scope}"></p>
+    <p class="small" th:text="${r.ar.template} + ': ' + ${r.inspection.templateVersion}"></p>
   </div>
 </div>
 
-<h2 th:text="${r.en.keyFindings}">Key findings</h2>
-<p th:if="${#lists.isEmpty(r.keyFindings)}" th:text="${r.en.noKeyFindings}">No key findings.</p>
+<h2 th:text="${r.en.keyFindings}"></h2>
+<p th:if="${#lists.isEmpty(r.keyFindings)}" th:text="${r.en.noKeyFindings}"></p>
 <div th:each="item : ${r.keyFindings}" class="finding" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'safety' : ''}">
   <div class="item-head">
-    <strong th:text="${item.labelEn} + ' / ' + ${item.labelAr}">Item</strong>
+    <strong th:text="${item.labelEn} + ' / ' + ${item.labelAr}"></strong>
     <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
-          th:if="${item.severityCode != ''}" th:text="${item.severityEn} + ' / ' + ${item.severityAr}">Severity</span>
+          th:if="${item.severityCode != ''}" th:text="${item.severityEn} + ' / ' + ${item.severityAr}"></span>
   </div>
-  <p class="small" th:text="${item.resultEn} + ' / ' + ${item.resultAr}">Result</p>
-  <div class="note" th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}">Note</div>
-  <p class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}">Reason</p>
+  <p class="small" th:text="${item.resultEn} + ' / ' + ${item.resultAr}"></p>
+  <div class="note" th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></div>
+  <p class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}"></p>
   <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
     <figure th:each="photo : ${item.photos}" th:if="${photo.dataUri != null}">
-      <img th:src="${photo.dataUri}" alt="Evidence photo">
-      <figcaption>Evidence / دليل</figcaption>
+      <img th:src="${photo.dataUri}" th:alt="${photo.altEn} + ' / ' + ${photo.altAr}">
+      <figcaption th:text="${r.en.evidenceCaption} + ' / ' + ${r.ar.evidenceCaption}"></figcaption>
     </figure>
   </div>
 </div>
 
 <div class="page-break"></div>
-<h2 th:text="${r.en.findings} + ' / ' + ${r.ar.findings}">Findings by category</h2>
+<h2 th:text="${r.en.findings} + ' / ' + ${r.ar.findings}"></h2>
 <div th:each="category : ${r.categories}">
-  <h3 th:text="${category.labelEn} + ' / ' + ${category.labelAr}">Category</h3>
+  <h3 th:text="${category.labelEn} + ' / ' + ${category.labelAr}"></h3>
   <table>
     <thead>
     <tr>
-      <th>Check / الفحص</th>
-      <th>Result / النتيجة</th>
-      <th>Severity / الخطورة</th>
-      <th>Note / الملاحظة</th>
+      <th><span th:text="${r.en.check}"></span> / <span th:text="${r.ar.check}"></span></th>
+      <th><span th:text="${r.en.result}"></span> / <span th:text="${r.ar.result}"></span></th>
+      <th><span th:text="${r.en.severity}"></span> / <span th:text="${r.ar.severity}"></span></th>
+      <th><span th:text="${r.en.note}"></span> / <span th:text="${r.ar.note}"></span></th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="item : ${category.items}">
       <td>
-        <strong th:text="${item.labelEn}">Item</strong>
-        <div class="ar" th:text="${item.labelAr}">البند</div>
+        <strong th:text="${item.labelEn}"></strong>
+        <div class="ar" th:text="${item.labelAr}"></div>
         <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
           <figure th:each="photo : ${item.photos}" th:if="${photo.dataUri != null}">
-            <img th:src="${photo.dataUri}" alt="Evidence photo">
-            <figcaption>Evidence / دليل</figcaption>
+            <img th:src="${photo.dataUri}" th:alt="${photo.altEn} + ' / ' + ${photo.altAr}">
+            <figcaption th:text="${r.en.evidenceCaption} + ' / ' + ${r.ar.evidenceCaption}"></figcaption>
           </figure>
         </div>
       </td>
-      <td><span th:text="${item.resultEn}">Result</span><br><span class="ar" th:text="${item.resultAr}">النتيجة</span></td>
-      <td><span th:if="${item.severityEn != ''}" th:text="${item.severityEn}">Severity</span>
-        <span class="ar" th:if="${item.severityAr != ''}" th:text="${item.severityAr}">الخطورة</span></td>
+      <td><span th:text="${item.resultEn}"></span><br><span class="ar" th:text="${item.resultAr}"></span></td>
+      <td><span th:if="${item.severityEn != ''}" th:text="${item.severityEn}"></span>
+        <span class="ar" th:if="${item.severityAr != ''}" th:text="${item.severityAr}"></span></td>
       <td>
         <span th:if="${item.note == ''}" class="muted">—</span>
-        <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}">Note</span>
-        <div class="small muted" th:if="${item.note != ''}" th:text="${r.en.noTranslation}">No separate translation supplied.</div>
-        <div class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}">Reason</div>
+        <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></span>
+        <div class="small muted" th:if="${item.note != ''}" th:text="${r.en.noTranslation}"></div>
+        <div class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}"></div>
       </td>
     </tr>
     </tbody>
@@ -306,38 +309,42 @@
 </div>
 
 <div th:if="${!#lists.isEmpty(r.notChecked)}">
-  <h2 th:text="${r.en.notChecked} + ' / ' + ${r.ar.notChecked}">Checks not completed</h2>
+  <h2 th:text="${r.en.notChecked} + ' / ' + ${r.ar.notChecked}"></h2>
   <table>
-    <thead><tr><th>Check / الفحص</th><th>Result / النتيجة</th><th>Reason / السبب</th></tr></thead>
+    <thead><tr>
+      <th><span th:text="${r.en.check}"></span> / <span th:text="${r.ar.check}"></span></th>
+      <th><span th:text="${r.en.result}"></span> / <span th:text="${r.ar.result}"></span></th>
+      <th><span th:text="${r.en.reason}"></span> / <span th:text="${r.ar.reason}"></span></th>
+    </tr></thead>
     <tbody>
     <tr th:each="item : ${r.notChecked}">
-      <td><span th:text="${item.labelEn}">Check</span><div class="ar" th:text="${item.labelAr}">الفحص</div></td>
-      <td><span th:text="${item.resultEn}">Result</span><div class="ar" th:text="${item.resultAr}">النتيجة</div></td>
-      <td><span th:text="${item.reason}">Reason</span></td>
+      <td><span th:text="${item.labelEn}"></span><div class="ar" th:text="${item.labelAr}"></div></td>
+      <td><span th:text="${item.resultEn}"></span><div class="ar" th:text="${item.resultAr}"></div></td>
+      <td><span th:text="${item.reason}"></span></td>
     </tr>
     </tbody>
   </table>
 </div>
 
-<h2 th:text="${r.en.limitations} + ' / ' + ${r.ar.limitations}">Limitations and disclaimer</h2>
+<h2 th:text="${r.en.limitations} + ' / ' + ${r.ar.limitations}"></h2>
 <div class="bilingual">
   <div>
-    <ul><li th:each="value : ${r.limitationsEn}" th:text="${value}">Limitation</li></ul>
-    <p class="disclaimer" th:text="${r.disclaimerEn}">Disclaimer</p>
+    <ul><li th:each="value : ${r.limitationsEn}" th:text="${value}"></li></ul>
+    <p class="disclaimer" th:text="${r.disclaimerEn}"></p>
   </div>
   <div class="ar" lang="ar">
-    <ul><li th:each="value : ${r.limitationsAr}" th:text="${value}">حد</li></ul>
-    <p class="disclaimer" th:text="${r.disclaimerAr}">إخلاء المسؤولية</p>
+    <ul><li th:each="value : ${r.limitationsAr}" th:text="${value}"></li></ul>
+    <p class="disclaimer" th:text="${r.disclaimerAr}"></p>
   </div>
 </div>
 
-<h2 th:text="${r.en.reportDetails} + ' / ' + ${r.ar.reportDetails}">Report details</h2>
+<h2 th:text="${r.en.reportDetails} + ' / ' + ${r.ar.reportDetails}"></h2>
 <p class="small">
-  <span th:text="${r.en.reportId} + ': ' + ${r.reportNumber}">Report ID</span> ·
-  <span th:text="${r.en.version} + ': ' + ${r.version}">Version</span> ·
-  <span th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}">Finalized</span>
+  <span th:text="${r.en.reportId} + ': ' + ${r.reportNumber}"></span> ·
+  <span th:text="${r.en.version} + ': ' + ${r.version}"></span> ·
+  <span th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}"></span>
 </p>
-<p class="hash" th:text="${r.en.reportHash} + ': ' + ${r.verificationHash}">Hash</p>
-<p class="small" th:text="${r.en.notCertified}">Not an official certificate.</p>
+<p class="hash" th:text="${r.en.reportHash} + ': ' + ${r.verificationHash}"></p>
+<p class="small" th:text="${r.en.notCertified}"></p>
 </body>
 </html>

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:admin_app/src/admin_providers.dart';
+import 'package:admin_app/src/labels.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:admin_app/src/pages/item_form_page.dart';
 import 'package:design_system/design_system.dart';
@@ -68,7 +69,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
                             child: AppListTile(
                               title: category.labelEn,
                               subtitle:
-                                  '${category.labelAr} · ${category.itemCount} ${l10n.itemCount} · ${category.status}',
+                                  '${category.labelAr} · ${category.itemCount} ${l10n.itemCount} · ${contentStatusLabel(l10n, category.status)}',
                               trailing: PopupMenuButton<String>(
                                 onSelected: (value) => _categoryAction(
                                   context,
@@ -175,7 +176,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
                               leading: const Icon(Icons.fact_check_outlined),
                               title: item.labelEn,
                               subtitle:
-                                  '${item.stableCode} · ${item.labelAr} · v${item.currentVersion ?? '-'} · ${item.status}',
+                                  '${item.stableCode} · ${item.labelAr} · v${item.currentVersion ?? '-'} · ${contentStatusLabel(l10n, item.status)}',
                               trailing: item.sampleData
                                   ? StatusChip(
                                       label: l10n.sampleData,

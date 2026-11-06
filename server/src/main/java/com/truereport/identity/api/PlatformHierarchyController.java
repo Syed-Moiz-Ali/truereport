@@ -8,18 +8,17 @@ import com.truereport.identity.api.AuditEventDto;
 import com.truereport.identity.api.CreateUserRequest;
 import com.truereport.identity.api.HierarchyResponse;
 import com.truereport.identity.api.HierarchyWorkshopDto;
-import com.truereport.identity.api.InvitationResponse;
-import com.truereport.identity.api.InviteRequest;
+import com.truereport.identity.api.PasswordResetRequest;
 import com.truereport.identity.api.PlatformAccountDto;
 import com.truereport.identity.api.TransferRequest;
 import jakarta.validation.Valid;
-import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,21 +52,24 @@ public class PlatformHierarchyController {
 
     @PostMapping("/users")
     public PlatformAccountDto createUser(JwtAuthenticationToken authentication,
+                                         @RequestHeader("Idempotency-Key") String idempotencyKey,
                                          @Valid @RequestBody CreateUserRequest request) {
         CurrentUser actor = currentUserService.require(authentication);
         return hierarchyService.createUser(actor, request.email(), request.displayName(),
-                request.temporaryPassword(), request.role(), request.workshopId());
+                request.temporaryPassword(), request.role(), request.workshopId(), idempotencyKey);
     }
 
-    @PostMapping("/invitations")
-    public ResponseEntity<InvitationResponse> invite(JwtAuthenticationToken authentication,
-                                                     @Valid @RequestBody InviteRequest request) {
+    @PostMapping("/users/{userId}/password-reset")
+    public ResponseEntity<PlatformAccountDto> resetPassword(JwtAuthenticationToken authentication,
+                                                           @PathVariable UUID userId,
+                                                           @RequestHeader("Idempotency-Key") String idempotencyKey,
+                                                           @Valid @RequestBody PasswordResetRequest request) {
         CurrentUser actor = currentUserService.require(authentication);
-        InvitationResponse response = hierarchyService.invite(actor, request.email(),
-                request.displayName(), request.role(), request.workshopId());
+        PlatformAccountDto result = hierarchyService.resetPasswordByPlatform(
+                actor, userId, request.newPassword(), idempotencyKey);
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
-                .body(response);
+                .header("Cache-Control", "no-store")
+                .body(result);
     }
 
     @PostMapping("/users/{userId}/disable")

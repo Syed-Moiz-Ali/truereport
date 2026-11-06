@@ -1,5 +1,6 @@
 import 'package:admin_app/src/admin_api.dart';
 import 'package:admin_app/src/admin_providers.dart';
+import 'package:admin_app/src/labels.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -427,7 +428,8 @@ class _ItemFormState extends ConsumerState<_ItemForm> {
                 padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
                 child: Card(
                   child: AppListTile(
-                    title: 'v${version.versionNo} · ${version.status}',
+                    title:
+                        'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
                     subtitle: version.translation('en').label,
                   ),
                 ),

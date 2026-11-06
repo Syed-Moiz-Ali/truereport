@@ -142,12 +142,12 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Camera'),
+              title: Text(l10n.photoSourceCamera),
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Gallery'),
+              title: Text(l10n.photoSourceGallery),
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
           ],

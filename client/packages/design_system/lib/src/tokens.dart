@@ -530,6 +530,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     required this.critical,
   });
 
+  // Light-only (C0 Workstream B): the dark status palette was removed.
   static final light = AppStatusColors(
     neutral: _pair(TrStatusLight.neutral),
     info: _pair(TrStatusLight.info),
@@ -537,15 +538,6 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     warning: _pair(TrStatusLight.warning),
     danger: _pair(TrStatusLight.danger),
     critical: _pair(TrStatusLight.critical),
-  );
-
-  static final dark = AppStatusColors(
-    neutral: _pair(TrStatusDark.neutral),
-    info: _pair(TrStatusDark.info),
-    success: _pair(TrStatusDark.success),
-    warning: _pair(TrStatusDark.warning),
-    danger: _pair(TrStatusDark.danger),
-    critical: _pair(TrStatusDark.critical),
   );
 
   final StatusColorPair neutral;
@@ -608,18 +600,12 @@ class AppSeverityColors extends ThemeExtension<AppSeverityColors> {
     required this.safetyCritical,
   });
 
+  // Light-only (C0 Workstream B): the dark severity palette was removed.
   static final light = AppSeverityColors(
     minor: AppStatusColors.light.neutral,
     moderate: AppStatusColors.light.warning,
     major: AppStatusColors.light.danger,
     safetyCritical: AppStatusColors.light.critical,
-  );
-
-  static final dark = AppSeverityColors(
-    minor: AppStatusColors.dark.neutral,
-    moderate: AppStatusColors.dark.warning,
-    major: AppStatusColors.dark.danger,
-    safetyCritical: AppStatusColors.dark.critical,
   );
 
   final StatusColorPair minor;
@@ -735,47 +721,42 @@ abstract final class AppBreakpoints {
 extension AppColorSchemeTokens on ColorScheme {
   Color get surfaceLowest => surfaceContainerLowest;
 
-  Color get focus =>
-      brightness == Brightness.dark ? TrColorDark.focus : TrColorLight.focus;
+  // Light-only (C0 Workstream B): the theme is always light.
+  Color get focus => TrColorLight.focus;
 
-  Color get overlay => brightness == Brightness.dark
-      ? TrColorDark.overlay
-      : TrColorLight.overlay;
+  Color get overlay => TrColorLight.overlay;
 }
 
 abstract final class AppTheme {
-  static ThemeData get light => build(brightness: Brightness.light);
-
-  static ThemeData get dark => build(brightness: Brightness.dark);
+  static ThemeData get light => build();
 
   static ThemeData get lightDeepGreen =>
       build(colorStrategy: AppColorStrategy.deepGreenFill);
 
-  static ThemeData get darkDeepGreen => build(
-    brightness: Brightness.dark,
-    colorStrategy: AppColorStrategy.deepGreenFill,
-  );
-
+  /// Light-only (C0 Workstream B): the dark theme was removed.
+  /// [brightness] is kept so existing call sites keep compiling during the
+  /// migration, but only [Brightness.light] is accepted.
   static ThemeData build({
     Brightness brightness = Brightness.light,
     AppColorStrategy colorStrategy = AppColorStrategy.emeraldFill,
     AppArabicFont arabicFont = AppArabicFont.notoSansArabic,
     bool isArabic = false,
   }) {
-    final isLight = brightness == Brightness.light;
-    final base = ThemeData(brightness: brightness, useMaterial3: true);
-    final c = isLight ? _lightColors : _darkColors;
+    assert(
+      brightness == Brightness.light,
+      'Dark theme was removed in C0 Workstream B (light-only).',
+    );
+    final base = ThemeData(brightness: Brightness.light, useMaterial3: true);
+    const c = _lightColors;
     final brandToken = colorStrategy == AppColorStrategy.emeraldFill
-        ? (isLight ? TrBrandLight.emeraldFill : TrBrandDark.emeraldFill)
-        : (isLight ? TrBrandLight.deepGreenFill : TrBrandDark.deepGreenFill);
+        ? TrBrandLight.emeraldFill
+        : TrBrandLight.deepGreenFill;
     final brand = AppBrandColors(
       strategy: colorStrategy,
       fill: brandToken.fill,
       onFill: brandToken.onFill,
-      largeFill: isLight ? TrColorLight.primaryLarge : TrColorDark.primaryLarge,
-      onLargeFill: isLight
-          ? TrColorLight.onPrimaryLarge
-          : TrColorDark.onPrimaryLarge,
+      largeFill: TrColorLight.primaryLarge,
+      onLargeFill: TrColorLight.onPrimaryLarge,
       ink: brandToken.ink,
       container: brandToken.container,
       onContainer: brandToken.onContainer,
@@ -783,12 +764,10 @@ abstract final class AppTheme {
     final scheme =
         ColorScheme.fromSeed(
           seedColor: brand.ink,
-          brightness: brightness,
+          brightness: Brightness.light,
         ).copyWith(
           primary: brand.ink,
-          onPrimary: isLight
-              ? TrColorLight.surfaceLowest
-              : TrColorDark.surfaceLowest,
+          onPrimary: TrColorLight.surfaceLowest,
           primaryContainer: brand.container,
           onPrimaryContainer: brand.onContainer,
           secondary: c.secondary,
@@ -857,13 +836,12 @@ abstract final class AppTheme {
           ? TrShadows.buttonEmerald
           : TrShadows.buttonDeepGreen,
       buttonSubtle: TrShadows.buttonSubtle,
-      focus: (isLight ? TrShadows.focusLight : TrShadows.focusDark).first,
-      focusRing: isLight ? TrShadows.focusLight : TrShadows.focusDark,
+      focus: TrShadows.focus.first,
+      focusRing: TrShadows.focus,
     );
-    final statusColors = isLight ? AppStatusColors.light : AppStatusColors.dark;
-    final severityColors = isLight
-        ? AppSeverityColors.light
-        : AppSeverityColors.dark;
+    // Light-only (C0 Workstream B).
+    final statusColors = AppStatusColors.light;
+    final severityColors = AppSeverityColors.light;
     return base.copyWith(
       colorScheme: scheme,
       textTheme: textTheme,
@@ -1092,8 +1070,8 @@ final AppShadowTokens _fallbackShadows = AppShadowTokens(
   floating: TrShadows.floating,
   button: TrShadows.buttonEmerald,
   buttonSubtle: TrShadows.buttonSubtle,
-  focus: TrShadows.focusLight.first,
-  focusRing: TrShadows.focusLight,
+  focus: TrShadows.focus.first,
+  focusRing: TrShadows.focus,
 );
 
 final AppBrandColors _fallbackBrand = AppBrandColors(
@@ -1274,29 +1252,5 @@ const _lightColors = _ColorSet(
   onInverseSurface: TrColorLight.onInverseSurface,
 );
 
-const _darkColors = _ColorSet(
-  surface: TrColorDark.surface,
-  surfaceLowest: TrColorDark.surfaceLowest,
-  surfaceLow: TrColorDark.surfaceLow,
-  surfaceContainer: TrColorDark.surfaceContainer,
-  surfaceHigh: TrColorDark.surfaceHigh,
-  surfaceHighest: TrColorDark.surfaceHighest,
-  onSurface: TrColorDark.onSurface,
-  onSurfaceVariant: TrColorDark.onSurfaceVariant,
-  outline: TrColorDark.outline,
-  outlineVariant: TrColorDark.outlineVariant,
-  secondary: TrColorDark.secondary,
-  onSecondary: TrColorDark.onSecondary,
-  secondaryContainer: TrColorDark.secondaryContainer,
-  onSecondaryContainer: TrColorDark.onSecondaryContainer,
-  error: TrColorDark.error,
-  onError: TrColorDark.onError,
-  errorContainer: TrColorDark.errorContainer,
-  onErrorContainer: TrColorDark.onErrorContainer,
-  focus: TrColorDark.focus,
-  overlay: TrColorDark.overlay,
-  scrim: TrColorDark.scrim,
-  inverseSurface: TrColorDark.inverseSurface,
-  onInverseSurface: TrColorDark.onInverseSurface,
-);
+// Light-only (C0 Workstream B): _darkColors removed with the dark theme.
 

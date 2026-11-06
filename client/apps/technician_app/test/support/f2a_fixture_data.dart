@@ -1,4 +1,4 @@
-﻿import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/models.dart';
 
 const figmaScheduled = '2026-11-05T06:42:00Z';
 final figmaNow = DateTime.utc(2026, 11, 5, 8);
@@ -126,7 +126,7 @@ InspectionItem fixtureItem({
   labelEn: label,
   labelAr: label,
   instructionEn: 'Inspect the item.',
-  instructionAr: 'Ø§ÙØ­Øµ Ø§Ù„Ø¹Ù†ØµØ±.',
+  instructionAr: 'افحص العنصر.',
   versionNo: 1,
   resultOptions: const [
     'NO_ISSUE_OBSERVED',

@@ -81,6 +81,19 @@ These decisions apply to F2-A (technician screens 1 to 7). They are recorded her
 
 ---
 
+## C0 Workstream B — light-only theme (6 November 2026)
+
+C0 supersedes decision `A6` (light-first with a derived, tested dark theme) and
+the dark-theme half of `G1` (dark golden/fidelity/contrast coverage). The
+product ships one theme: light. Details in
+`docs/ui/figma/adr/ADR-F1-006-light-only-theme.md`. Historical rows above are
+kept as record and are superseded for all new work, including the `A6` default
+(`A6` light is the fidelity target; dark is a derived, tested theme), the
+`E1–E6` "keep light and dark" rule for the public report, and any dark golden
+or fidelity-variant coverage under `G1`.
+
+---
+
 ## F2-A.1 technician decisions (owner supplied, 6 November 2026)
 
 This phase supersedes P1, P2, P7 and every "deviation by default" from F1.1/F2-A.
@@ -133,3 +146,16 @@ The owner confirmed the identical-first rule from F2-A.1 and added these decisio
 - F2-A.2 sets it to false for capture/goldens, guards every capture path, and restores the previous value before the test body ends (the binding verifies painting variables at that point).
 - The reference crop origin was also wrong: the Figma export adds an asymmetric shadow margin. Pixel analysis finds the white frame at x=60 (or 40) and **y=14**; the F2-A.1 crops used y=59 (or 7). Fixtures were corrected to y=14.
 - The earlier "shadow blur matches" claims were invalid. Component samples re-measured with real shadows: primary button 0.99520→0.99622; delivery card 0.99198→0.99261; result selector 0.98340→0.98756.
+
+---
+
+## C0 cross-cutting decisions (6 November 2026; supersedes A6, G1-dark half, RQ3, ADR-0011)
+
+| ID | Decision | Implementation |
+|---|---|---|
+| C-A1 | Strict chain: Platform Admin creates Workshop Admins; Workshop Admin creates Technicians own workshop only. Platform cannot create technicians. | `HierarchyService.createUser/createTechnician`, `StaffController`, role matrix tests. See `ADR-C0-001`. |
+| C-A2 | No invitations: endpoints/tokens/acceptance/pending filter removed. ACTIVE on creation. Tables retained, drop proposed separately. | `POST /platform/invitations` 404, `POST /auth/invitations/accept` 401 anon/404 authed; `pendingInvitations` dropped. |
+| C-A3 | Admin password reset same scoping, revokes sessions, audited without passwords. | `POST .../password-reset` x2; `ACCOUNT_PASSWORD_RESET`. |
+| C-A6 | No forced password change at first login (owner-accepted risk). | Recorded in risk register; designed screen deferred. |
+| C-B | Light only: dark ThemeData/tokens/goldens/CSS removed; `color-scheme: light`. | `ADR-F1-006`; generator `--check` light-only; `contrast-after.md` light-only. |
+| C-C | Full localization: no hardcoded visible/accessibility text in `lib/`; EN+AR full, ru/zh-Hans ready; server bundles EN+AR; ARB mojibake fixed; figmaText removed to test-only override. | `i18n-inventory.md`, `i18n_source_scan_test`, `ReportDeliveryBundleParityTest`, `ApiErrorContractTest`, `figma_l10n_override`. |

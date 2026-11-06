@@ -1,6 +1,7 @@
 import 'package:api_client/api_client.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class AdminApi {
   Future<HierarchyResponse> hierarchy({String search = '', String status = ''});
@@ -15,12 +16,21 @@ abstract class AdminApi {
     required String workshopId,
   });
 
-  Future<Map<String, dynamic>> invite({
+  Future<PlatformAccount> createTechnician({
     required String email,
     required String displayName,
-    required String role,
-    required String workshopId,
+    required String initialPassword,
   });
+
+  Future<PlatformAccount> resetPlatformPassword(
+    String userId,
+    String newPassword,
+  );
+
+  Future<PlatformAccount> resetTechnicianPassword(
+    String userId,
+    String newPassword,
+  );
 
   Future<PlatformAccount> disableUser(String userId, String reason);
 
@@ -358,6 +368,7 @@ class HttpAdminApi implements AdminApi {
   }) async {
     final data = await _api.postDynamic(
       _endpoints.platformUsers,
+      headers: {'Idempotency-Key': const Uuid().v7()},
       body: {
         'email': email,
         'displayName': displayName,
@@ -370,22 +381,47 @@ class HttpAdminApi implements AdminApi {
   }
 
   @override
-  Future<Map<String, dynamic>> invite({
+  Future<PlatformAccount> createTechnician({
     required String email,
     required String displayName,
-    required String role,
-    required String workshopId,
+    required String initialPassword,
   }) async {
     final data = await _api.postDynamic(
-      _endpoints.platformInvitations,
+      _endpoints.workshopTechnicians,
+      headers: {'Idempotency-Key': const Uuid().v7()},
       body: {
         'email': email,
         'displayName': displayName,
-        'role': role,
-        'workshopId': workshopId,
+        'initialPassword': initialPassword,
       },
     );
-    return Map<String, dynamic>.from(data as Map);
+    return PlatformAccount.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PlatformAccount> resetPlatformPassword(
+    String userId,
+    String newPassword,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformPasswordReset(userId),
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: {'newPassword': newPassword},
+    );
+    return PlatformAccount.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PlatformAccount> resetTechnicianPassword(
+    String userId,
+    String newPassword,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopTechnicianPasswordReset(userId),
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: {'newPassword': newPassword},
+    );
+    return PlatformAccount.fromJson(data as Map<String, dynamic>);
   }
 
   @override
