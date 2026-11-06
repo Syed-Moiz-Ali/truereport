@@ -2497,6 +2497,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items'**
   String technicianItemsCount(int count);
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBack;
+
+  /// No description provided for @rememberMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember me'**
+  String get rememberMe;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUp;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @signUpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start inspecting vehicles with TrueReport\'s precision diagnostic suite.'**
+  String get signUpSubtitle;
+
+  /// No description provided for @fullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fullNameLabel;
+
+  /// No description provided for @fullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your full name'**
+  String get fullNameHint;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @confirmPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get confirmPasswordHint;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password strength'**
+  String get passwordStrength;
+
+  /// No description provided for @passwordStrengthWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get passwordStrengthWeak;
+
+  /// No description provided for @passwordStrengthFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get passwordStrengthFair;
+
+  /// No description provided for @passwordStrengthGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get passwordStrengthGood;
+
+  /// No description provided for @passwordStrengthStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get passwordStrengthStrong;
+
+  /// No description provided for @termsAgreement.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the Terms of Service and Privacy Policy'**
+  String get termsAgreement;
+
+  /// No description provided for @termsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept the terms and conditions to proceed.'**
+  String get termsRequired;
+
+  /// No description provided for @signUpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get signUpButton;
+
+  /// No description provided for @featureBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'PRECISION DIAGNOSTICS'**
+  String get featureBadge;
+
+  /// No description provided for @featureHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Enterprise Condition Assessment & Audit-Proof Reports'**
+  String get featureHeadline;
+
+  /// No description provided for @featureSubhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Powering automotive workshops with immutable condition logs, instant customer delivery, and real-time offline sync.'**
+  String get featureSubhead;
+
+  /// No description provided for @statInspectionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'250K+'**
+  String get statInspectionCount;
+
+  /// No description provided for @statInspectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles inspected'**
+  String get statInspectionLabel;
+
+  /// No description provided for @statAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'99.8%'**
+  String get statAccuracy;
+
+  /// No description provided for @statAccuracyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic accuracy'**
+  String get statAccuracyLabel;
+
+  /// No description provided for @statSyncSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Real-time'**
+  String get statSyncSpeed;
+
+  /// No description provided for @statSyncLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline-first sync'**
+  String get statSyncLabel;
 }
 
 class _AppLocalizationsDelegate

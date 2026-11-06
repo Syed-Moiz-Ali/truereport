@@ -178,13 +178,11 @@
   "assignedJobs": "المهام المسندة",
   "noAssignedJobs": "لا توجد مهام مسندة. اطلب من مدير الورشة أو أنشئ مهمة دخول مباشر.",
   "walkInJob": "مهمة دخول مباشر",
-  "jobDetails": "تفاصيل المهمة",
   "startInspection": "بدء الفحص",
   "resumeInspection": "متابعة الفحص",
   "customerInformation": "بيانات العميل",
   "vehicleIdentification": "تعريف المركبة",
   "consent": "الموافقة",
-  "equipment": "المعدات",
   "checklist": "قائمة الفحص",
   "reviewAndFinalize": "المراجعة والاعتماد",
   "approveAndGenerateReport": "اعتماد الفحص",
@@ -193,7 +191,6 @@
   "result": "النتيجة",
   "severity": "الخطورة",
   "note": "ملاحظة",
-  "reason": "السبب",
   "notChecked": "لم يتم الفحص",
   "couldNotVerify": "تعذر التحقق",
   "noIssueObserved": "لم تلاحظ مشكلة",
@@ -362,14 +359,32 @@
   "technicianOnlineSync": "مزامنة\nمتصل",
   "technicianOfflineSync": "مزامنة\nغير متصل",
   "technicianShiftToday": "اليوم • {count} مهمة",
-  "@technicianShiftToday": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianShiftToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianShiftActive": "الوردية نشطة",
   "technicianQueueEmpty": "القائمة فارغة",
   "technicianJobsCount": "{count} مهمة",
-  "@technicianJobsCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianJobsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianTodaySummary": "ملخص اليوم",
   "technicianCompletedToday": "{count} مكتمل",
-  "@technicianCompletedToday": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianCompletedToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianQueueCurrent": "القائمة محدثة",
   "technicianCoverageOnly": "التغطية",
   "technicianPasswordHelp": "مساعدة كلمة المرور",
@@ -379,7 +394,16 @@
   "technicianRequiredEquipment": "المعدات المطلوبة",
   "technicianPreInspectionSetup": "إعداد ما قبل الفحص",
   "technicianEquipmentVerified": "{verified} من {total} مؤكد",
-  "@technicianEquipmentVerified": {"placeholders":{"verified":{"type":"int"},"total":{"type":"int"}}},
+  "@technicianEquipmentVerified": {
+    "placeholders": {
+      "verified": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "technicianEquipmentIntro": "تأكد من معايرة جميع أجهزة التشخيص وربطها قبل بدء استقبال السيارة.",
   "technicianEquipmentStandards": "معايير معدات الورشة",
   "technicianEquipmentNameUnavailable": "الاسم غير متاح",
@@ -407,5 +431,41 @@
   "technicianEquipmentStandardsBody": "يتم تأكيد توفر المعدات من قبل الورشة.",
   "technicianProceed": "متابعة",
   "technicianItemsCount": "{count} عنصر",
-  "@technicianItemsCount": {"placeholders":{"count":{"type":"int"}}}
+  "@technicianItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeBack": "مرحباً بعودتك",
+  "rememberMe": "تذكرني",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "dontHaveAccount": "ليس لديك حساب؟",
+  "signUp": "إنشاء حساب",
+  "alreadyHaveAccount": "لديك حساب بالفعل؟",
+  "createAccount": "إنشاء حساب",
+  "signUpSubtitle": "ابدأ فحص المركبات مع منصة ترو ريبورت التشخيصية المتطورة.",
+  "fullNameLabel": "الاسم الكامل",
+  "fullNameHint": "أدخل اسمك الكامل",
+  "confirmPasswordLabel": "تأكيد كلمة المرور",
+  "confirmPasswordHint": "أعد إدخال كلمة المرور",
+  "passwordMismatch": "كلمات المرور غير متطابقة.",
+  "passwordStrength": "قوة كلمة المرور",
+  "passwordStrengthWeak": "ضعيفة",
+  "passwordStrengthFair": "مقبولة",
+  "passwordStrengthGood": "جيدة",
+  "passwordStrengthStrong": "قوية",
+  "termsAgreement": "أوافق على شروط الخدمة وسياسة الخصوصية",
+  "termsRequired": "يجب الموافقة على الشروط والأحكام للمتابعة.",
+  "signUpButton": "إنشاء الحساب",
+  "featureBadge": "فحوصات تشخيصية دقيقة",
+  "featureHeadline": "تقييم حالة المركبات وتقارير تدقيق معتمدة للشركات",
+  "featureSubhead": "تمكين ورش السيارات بسجلات فحص غير قابلة للتعديل وتسليم فوري ومزامنة ذكية بدون إنترنت.",
+  "statInspectionCount": "+٢٥٠ ألف",
+  "statInspectionLabel": "مركبة تم فحصها",
+  "statAccuracy": "٩٩٫٨٪",
+  "statAccuracyLabel": "دقة الفحص والتشخيص",
+  "statSyncSpeed": "فوري ومباشر",
+  "statSyncLabel": "مزامنة سريعة دون اتصال"
 }

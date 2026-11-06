@@ -178,13 +178,11 @@
   "assignedJobs": "Assigned jobs",
   "noAssignedJobs": "No jobs assigned. Ask your Workshop Admin, or create a walk-in job.",
   "walkInJob": "Walk-in job",
-  "jobDetails": "Job details",
   "startInspection": "Start inspection",
   "resumeInspection": "Resume inspection",
   "customerInformation": "Customer information",
   "vehicleIdentification": "Vehicle identification",
   "consent": "Consent",
-  "equipment": "Equipment",
   "checklist": "Checklist",
   "reviewAndFinalize": "Review and finalize",
   "approveAndGenerateReport": "Finalize inspection",
@@ -193,7 +191,6 @@
   "result": "Result",
   "severity": "Severity",
   "note": "Note",
-  "reason": "Reason",
   "notChecked": "Not checked",
   "couldNotVerify": "Could not verify",
   "noIssueObserved": "No issue observed",
@@ -300,7 +297,13 @@
   "deliveryLink": "Link",
   "technicianWelcomeBack": "Welcome back,",
   "technicianJobsInQueue": "{count} in queue",
-  "@technicianJobsInQueue": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianJobsInQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianAssignedToday": "Assigned today",
   "technicianPendingCheck": "Pending check",
   "technicianJobsTitle": "Jobs",
@@ -338,21 +341,63 @@
   "technicianInspectionInProgress": "Inspection in progress",
   "technicianInspectionModules": "Inspection modules",
   "technicianCategoriesCount": "{count} categories",
-  "@technicianCategoriesCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianCategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianChecksCount": "{done}/{total} checks",
-  "@technicianChecksCount": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"}}},
+  "@technicianChecksCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "technicianModuleDone": "Done",
   "technicianModuleInProgress": "In progress",
   "technicianModuleNotStarted": "Not started",
   "technicianNoIssueCount": "{count} no issue observed",
-  "@technicianNoIssueCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianNoIssueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianAttentionCount": "{count} attention",
-  "@technicianAttentionCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianAttentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianDefectsCount": "{count} defects",
-  "@technicianDefectsCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianDefectsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianContinueChecklist": "Continue checklist",
   "technicianCoverageSemantics": "{done} of {total} checks done",
-  "@technicianCoverageSemantics": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"}}},
+  "@technicianCoverageSemantics": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "technicianVehicleSilhouette": "Vehicle type silhouette",
   "technicianUnknownVehicle": "Vehicle",
   "technicianStartHint": "Start the inspection when the vehicle and customer details are confirmed.",
@@ -364,20 +409,44 @@
   "technicianAllSynced": "No changes waiting to sync",
   "technicianEquipmentIdsOnly": "Equipment names are not available from the server in this build.",
   "technicianOfTotal": "of {total}",
-  "@technicianOfTotal": {"placeholders":{"total":{"type":"int"}}},
+  "@technicianOfTotal": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "technicianInspectionQueue": "Inspection Queue",
   "technicianLiveSync": "LIVE\nSYNC",
   "technicianOnlineSync": "ONLINE\nSYNC",
   "technicianOfflineSync": "OFFLINE\nSYNC",
   "technicianShiftToday": "TODAY • {count} JOBS",
-  "@technicianShiftToday": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianShiftToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianShiftActive": "SHIFT ACTIVE",
   "technicianQueueEmpty": "QUEUE EMPTY",
   "technicianJobsCount": "{count} JOBS",
-  "@technicianJobsCount": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianJobsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianTodaySummary": "TODAY'S SUMMARY",
   "technicianCompletedToday": "{count} Completed",
-  "@technicianCompletedToday": {"placeholders":{"count":{"type":"int"}}},
+  "@technicianCompletedToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "technicianQueueCurrent": "Queue is current",
   "technicianCoverageOnly": "Coverage",
   "technicianPasswordHelp": "Password help",
@@ -387,7 +456,16 @@
   "technicianRequiredEquipment": "Required Equipment",
   "technicianPreInspectionSetup": "PRE-INSPECTION SETUP",
   "technicianEquipmentVerified": "{verified} of {total} Verified",
-  "@technicianEquipmentVerified": {"placeholders":{"verified":{"type":"int"},"total":{"type":"int"}}},
+  "@technicianEquipmentVerified": {
+    "placeholders": {
+      "verified": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "technicianEquipmentIntro": "Ensure all diagnostic hardware is calibrated and paired before starting the inspection.",
   "technicianEquipmentStandards": "Workshop equipment standards",
   "technicianEquipmentNameUnavailable": "Name unavailable",
@@ -415,5 +493,41 @@
   "technicianEquipmentStandardsBody": "Equipment availability is confirmed by the workshop.",
   "technicianProceed": "Proceed",
   "technicianItemsCount": "{count} items",
-  "@technicianItemsCount": {"placeholders":{"count":{"type":"int"}}}
+  "@technicianItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeBack": "Welcome back",
+  "rememberMe": "Remember me",
+  "forgotPassword": "Forgot password?",
+  "dontHaveAccount": "Don't have an account?",
+  "signUp": "Sign up",
+  "alreadyHaveAccount": "Already have an account?",
+  "createAccount": "Create account",
+  "signUpSubtitle": "Start inspecting vehicles with TrueReport's precision diagnostic suite.",
+  "fullNameLabel": "Full name",
+  "fullNameHint": "Enter your full name",
+  "confirmPasswordLabel": "Confirm password",
+  "confirmPasswordHint": "Re-enter your password",
+  "passwordMismatch": "Passwords do not match.",
+  "passwordStrength": "Password strength",
+  "passwordStrengthWeak": "Weak",
+  "passwordStrengthFair": "Fair",
+  "passwordStrengthGood": "Good",
+  "passwordStrengthStrong": "Strong",
+  "termsAgreement": "I agree to the Terms of Service and Privacy Policy",
+  "termsRequired": "You must accept the terms and conditions to proceed.",
+  "signUpButton": "Create account",
+  "featureBadge": "PRECISION DIAGNOSTICS",
+  "featureHeadline": "Enterprise Condition Assessment & Audit-Proof Reports",
+  "featureSubhead": "Powering automotive workshops with immutable condition logs, instant customer delivery, and real-time offline sync.",
+  "statInspectionCount": "250K+",
+  "statInspectionLabel": "Vehicles inspected",
+  "statAccuracy": "99.8%",
+  "statAccuracyLabel": "Diagnostic accuracy",
+  "statSyncSpeed": "Real-time",
+  "statSyncLabel": "Offline-first sync"
 }

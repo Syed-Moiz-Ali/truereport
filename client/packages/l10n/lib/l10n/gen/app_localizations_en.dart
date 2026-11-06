@@ -1252,4 +1252,99 @@ class AppLocalizationsEn extends AppLocalizations {
   String technicianItemsCount(int count) {
     return '$count items';
   }
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String get rememberMe => 'Remember me';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get signUp => 'Sign up';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get signUpSubtitle =>
+      'Start inspecting vehicles with TrueReport\'s precision diagnostic suite.';
+
+  @override
+  String get fullNameLabel => 'Full name';
+
+  @override
+  String get fullNameHint => 'Enter your full name';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get confirmPasswordHint => 'Re-enter your password';
+
+  @override
+  String get passwordMismatch => 'Passwords do not match.';
+
+  @override
+  String get passwordStrength => 'Password strength';
+
+  @override
+  String get passwordStrengthWeak => 'Weak';
+
+  @override
+  String get passwordStrengthFair => 'Fair';
+
+  @override
+  String get passwordStrengthGood => 'Good';
+
+  @override
+  String get passwordStrengthStrong => 'Strong';
+
+  @override
+  String get termsAgreement =>
+      'I agree to the Terms of Service and Privacy Policy';
+
+  @override
+  String get termsRequired =>
+      'You must accept the terms and conditions to proceed.';
+
+  @override
+  String get signUpButton => 'Create account';
+
+  @override
+  String get featureBadge => 'PRECISION DIAGNOSTICS';
+
+  @override
+  String get featureHeadline =>
+      'Enterprise Condition Assessment & Audit-Proof Reports';
+
+  @override
+  String get featureSubhead =>
+      'Powering automotive workshops with immutable condition logs, instant customer delivery, and real-time offline sync.';
+
+  @override
+  String get statInspectionCount => '250K+';
+
+  @override
+  String get statInspectionLabel => 'Vehicles inspected';
+
+  @override
+  String get statAccuracy => '99.8%';
+
+  @override
+  String get statAccuracyLabel => 'Diagnostic accuracy';
+
+  @override
+  String get statSyncSpeed => 'Real-time';
+
+  @override
+  String get statSyncLabel => 'Offline-first sync';
 }

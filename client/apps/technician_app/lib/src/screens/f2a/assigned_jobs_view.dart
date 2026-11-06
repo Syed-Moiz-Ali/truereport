@@ -90,18 +90,17 @@ class AssignedJobsView extends StatelessWidget {
         .where((job) => job.status != 'FINALIZED' && job.status != 'CANCELLED')
         .toList(growable: false);
     final pendingCheck = jobs
-        .where(
-          (job) => job.status != 'FINALIZED' && job.status != 'CANCELLED',
-        )
+        .where((job) => job.status != 'FINALIZED' && job.status != 'CANCELLED')
         .length;
     final inProgress = jobs
         .where(
           (job) =>
-              job.status == 'IN_PROGRESS' ||
-              job.status == 'READY_TO_FINALIZE',
+              job.status == 'IN_PROGRESS' || job.status == 'READY_TO_FINALIZE',
         )
         .length;
-    final title = figmaText ? 'Inspection Queue' : l10n.technicianInspectionQueue;
+    final title = figmaText
+        ? 'Inspection Queue'
+        : l10n.technicianInspectionQueue;
     final shiftLabel = figmaText
         ? 'SHIFT 1 · BAY A'
         : l10n.technicianShiftToday(today.length);
@@ -263,9 +262,7 @@ class AssignedJobsView extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: _M.sectionBlock),
                 child: Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    bottom: _M.cardGap,
-                  ),
+                  padding: const EdgeInsetsDirectional.only(bottom: _M.cardGap),
                   child: Padding(
                     padding: const EdgeInsetsDirectional.symmetric(
                       horizontal: 4,
@@ -287,8 +284,8 @@ class AssignedJobsView extends StatelessWidget {
                         Flexible(
                           child: FxPill(
                             label: figmaText
-                              ? '${today.length} In Queue'
-                              : l10n.technicianJobsInQueue(today.length),
+                                ? '${today.length} In Queue'
+                                : l10n.technicianJobsInQueue(today.length),
                             background: Fx.tintEmerald,
                             foreground: Fx.deepGreen,
                             height: _M.queuePillHeight,
@@ -321,9 +318,7 @@ class AssignedJobsView extends StatelessWidget {
                 ...today.indexed.map(
                   (entry) => Padding(
                     padding: EdgeInsetsDirectional.only(
-                      bottom: entry.$1 == today.length - 1
-                          ? 0
-                          : _M.cardGap,
+                      bottom: entry.$1 == today.length - 1 ? 0 : _M.cardGap,
                     ),
                     child: _JobCard(
                       job: entry.$2,
@@ -393,9 +388,7 @@ class EmptyJobsView extends StatelessWidget {
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: figmaText
-            ? 'Inspection Queue'
-            : l10n.technicianInspectionQueue,
+        title: figmaText ? 'Inspection Queue' : l10n.technicianInspectionQueue,
         titleStyle: Fx.text(16, 22, FontWeight.w700, -0.4),
         horizontalPadding: _M.gutter,
         actions: [
@@ -834,11 +827,7 @@ class _InfoPill extends StatelessWidget {
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        style: textStyle,
-                      ),
+                      child: Text(label, maxLines: 1, style: textStyle),
                     ),
                   ),
           ),
@@ -961,11 +950,7 @@ class _JobCard extends StatelessWidget {
                     color: Fx.container,
                     borderRadius: BorderRadius.circular(_M.r16),
                   ),
-                  child: const FxIcon(
-                    id: '1_7185',
-                    size: 21,
-                    color: Fx.ink,
-                  ),
+                  child: const FxIcon(id: '1_7185', size: 21, color: Fx.ink),
                 ),
                 const SizedBox(width: _M.g16),
                 Expanded(
@@ -1017,31 +1002,31 @@ class _JobCard extends StatelessWidget {
             child: Padding(
               padding: EdgeInsetsDirectional.only(top: context.spacing.md),
               child: Row(
-              children: [
-                FxDot(size: 8, color: dotColor),
-                const SizedBox(width: _M.g6),
-                Expanded(
-                  child: Text(
-                    service.isEmpty ? l10n.technicianTemplate : service,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Fx.captionMedium.copyWith(
-                      color: Fx.muted,
-                      letterSpacing: 0.44,
+                children: [
+                  FxDot(size: 8, color: dotColor),
+                  const SizedBox(width: _M.g6),
+                  Expanded(
+                    child: Text(
+                      service.isEmpty ? l10n.technicianTemplate : service,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Fx.captionMedium.copyWith(
+                        color: Fx.muted,
+                        letterSpacing: 0.44,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: _M.g8),
-                FxPill(
-                  label: technicianStatusLabel(l10n, job.status),
-                  height: _M.statusPillHeight,
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    horizontal: 10,
-                    vertical: 2,
+                  const SizedBox(width: _M.g8),
+                  FxPill(
+                    label: technicianStatusLabel(l10n, job.status),
+                    height: _M.statusPillHeight,
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: 10,
+                      vertical: 2,
+                    ),
+                    style: Fx.caption.copyWith(color: Fx.ink),
                   ),
-                  style: Fx.caption.copyWith(color: Fx.ink),
-                ),
-              ],
+                ],
               ),
             ),
           ),
@@ -1219,11 +1204,7 @@ class _SummaryStrip extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: Fx.pillShadow,
             ),
-            child: const FxIcon(
-              id: '1_7350',
-              size: 16.5,
-              color: Fx.emerald,
-            ),
+            child: const FxIcon(id: '1_7350', size: 16.5, color: Fx.emerald),
           ),
           const SizedBox(width: _M.g12),
           Expanded(
@@ -1245,13 +1226,7 @@ class _SummaryStrip extends StatelessWidget {
                   l10n.technicianCompletedToday(completedToday),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Fx.text(
-                    16,
-                    22,
-                    FontWeight.w700,
-                    -0.16,
-                    color: Fx.ink,
-                  ),
+                  style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.ink),
                 ),
               ],
             ),
@@ -1263,9 +1238,7 @@ class _SummaryStrip extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    figmaText
-                        ? '100% Pass Rate'
-                        : l10n.technicianCoverageOnly,
+                    figmaText ? '100% Pass Rate' : l10n.technicianCoverageOnly,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
@@ -1279,11 +1252,7 @@ class _SummaryStrip extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: _M.g4),
-                const FxIcon(
-                  id: '1_7360',
-                  size: 12,
-                  color: Fx.deepGreen,
-                ),
+                const FxIcon(id: '1_7360', size: 12, color: Fx.deepGreen),
               ],
             ),
           ),
@@ -1298,7 +1267,6 @@ abstract final class _M {
   static const double contentWidth = 350;
   static const double pill = 999;
   static const double r16 = 16;
-
 
   static const double g2 = 2;
   static const double g4 = 4;

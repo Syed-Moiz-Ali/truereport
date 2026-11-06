@@ -1246,4 +1246,97 @@ class AppLocalizationsAr extends AppLocalizations {
   String technicianItemsCount(int count) {
     return '$count عنصر';
   }
+
+  @override
+  String get welcomeBack => 'مرحباً بعودتك';
+
+  @override
+  String get rememberMe => 'تذكرني';
+
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get dontHaveAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get signUp => 'إنشاء حساب';
+
+  @override
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟';
+
+  @override
+  String get createAccount => 'إنشاء حساب';
+
+  @override
+  String get signUpSubtitle =>
+      'ابدأ فحص المركبات مع منصة ترو ريبورت التشخيصية المتطورة.';
+
+  @override
+  String get fullNameLabel => 'الاسم الكامل';
+
+  @override
+  String get fullNameHint => 'أدخل اسمك الكامل';
+
+  @override
+  String get confirmPasswordLabel => 'تأكيد كلمة المرور';
+
+  @override
+  String get confirmPasswordHint => 'أعد إدخال كلمة المرور';
+
+  @override
+  String get passwordMismatch => 'كلمات المرور غير متطابقة.';
+
+  @override
+  String get passwordStrength => 'قوة كلمة المرور';
+
+  @override
+  String get passwordStrengthWeak => 'ضعيفة';
+
+  @override
+  String get passwordStrengthFair => 'مقبولة';
+
+  @override
+  String get passwordStrengthGood => 'جيدة';
+
+  @override
+  String get passwordStrengthStrong => 'قوية';
+
+  @override
+  String get termsAgreement => 'أوافق على شروط الخدمة وسياسة الخصوصية';
+
+  @override
+  String get termsRequired => 'يجب الموافقة على الشروط والأحكام للمتابعة.';
+
+  @override
+  String get signUpButton => 'إنشاء الحساب';
+
+  @override
+  String get featureBadge => 'فحوصات تشخيصية دقيقة';
+
+  @override
+  String get featureHeadline =>
+      'تقييم حالة المركبات وتقارير تدقيق معتمدة للشركات';
+
+  @override
+  String get featureSubhead =>
+      'تمكين ورش السيارات بسجلات فحص غير قابلة للتعديل وتسليم فوري ومزامنة ذكية بدون إنترنت.';
+
+  @override
+  String get statInspectionCount => '+٢٥٠ ألف';
+
+  @override
+  String get statInspectionLabel => 'مركبة تم فحصها';
+
+  @override
+  String get statAccuracy => '٩٩٫٨٪';
+
+  @override
+  String get statAccuracyLabel => 'دقة الفحص والتشخيص';
+
+  @override
+  String get statSyncSpeed => 'فوري ومباشر';
+
+  @override
+  String get statSyncLabel => 'مزامنة سريعة دون اتصال';
 }
