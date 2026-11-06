@@ -246,6 +246,21 @@ components; the remaining items are open decisions or unverified areas.
 | F1.1-R10 | Motion tokens cannot be compared to Figma because the export has no motion data | Low | Low | Reported as unverified; F1 motion retained | Eng |
 | F1.1-R11 | F1.1 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
 
+## 8. Phase F2-B.2 technician screens 9/11/13/14/15/16 risks (6 November 2026)
+
+F2-B.2 is UI-only for screens 9, 11, 13, 14, 15, 16. No server/API/model change
+in this step beyond F2-B.1 leftovers (L1–L8). Light-only, EN+AR.
+
+| ID | Risk | Likelihood | Impact | Mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F2B2-R01 | Fidelity gate (SSIM >= 0.98) NOT met on any screen (figma-text 0.76102–0.86278; product-copy 0.74529–0.86443) | High | High | Residuals = slot replacements + raster + status-bar furniture; no pixel-perfect claim; reference renders under `docs/ui/figma/fidelity/f2b/` | Product |
+| F2B2-R02 | White on `#10B981` ~2.3:1 | High | Medium | Owner-accepted I1 risk; deeper-green pairings pass; listed in `contrast-after.md` / `deviations.md` | Product |
+| F2B2-R03 | Arabic derived, no native review; Arabic blocked for real customers until native review (L2) | High | High | EN+AR goldens light-only; native reviewer still required | Arabic |
+| F2B2-R04 | Full client suite not re-run after fixes (only targeted batteries); full `mvn` not re-run; web/APK post-fix not run; real-device/Docker-gated beyond what ran not covered | High | Medium | Targeted passes recorded in `f2b2-test-report.md`; open, needs owner | QA |
+| F2B2-R05 | Open failing suites need owner: `f2a_goldens` 14 (copy-churn re-baseline), `inspection_ui` 3 (F2-A scope), `source_scan` 2 spacing lines on `inspection_hub_view` (pre-existing F2-A `_M` pattern) | Medium | Medium | Documented as open; re-baseline needs owner approval; F2-A scope untouched | Product |
+| F2B2-R06 | First-login forced password change stays deferred (L6 / C-A6, risk A6) | Medium | High | Recorded; designed screen deferred | Product/Security |
+| F2B2-R07 | F2-B.2 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
 ## 7. Phase F2-A technician screen risks (5 November 2026)
 
 F2-A is a UI-only refresh of technician screens 1 to 7. No server, API, model, validation, permission or state-management change was made. Screen 6 is blocked by missing equipment names.

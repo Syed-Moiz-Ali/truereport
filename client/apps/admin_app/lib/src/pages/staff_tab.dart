@@ -30,7 +30,7 @@ class StaffTab extends ConsumerWidget {
             title: l10n.error,
             body: l10n.genericError,
             onRetry: () => ref.invalidate(staffProvider),
-            retryLabel: l10n.search,
+            retryLabel: l10n.retryAction,
           ),
         ),
       ),

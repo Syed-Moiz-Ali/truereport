@@ -143,20 +143,20 @@
     [lang="ar"], [dir="rtl"] { font-family: "TR Arabic", "TR Sans", "TR CJK", sans-serif; }
     [lang="zh-Hans"] { font-family: "TR CJK", "TR Sans", sans-serif; }
     h1 { margin: 0 0 3mm; font-size: 22pt; line-height: 1.08; letter-spacing: -0.04em; }
-    h2 { margin: 0 0 2mm; font-size: 13pt; color: var(--tr-brand-ink); }
+    h2 { margin: 0 0 2mm; font-size: 13pt; color: var(--tr-brand-emerald-ink); }
     h3 { margin: 3mm 0 1.5mm; font-size: 10.5pt; color: var(--tr-secondary); }
     p { margin: 0 0 1.8mm; }
     .ar { direction: rtl; text-align: right; }
     .bilingual { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
     .muted { color: var(--tr-on-surface-variant); }
     .small { font-size: 8pt; }
-    .cover { border-bottom: 1.2mm solid var(--tr-brand-ink); padding-bottom: 5mm; margin-bottom: 6mm; }
+    .cover { border-bottom: 1.2mm solid var(--tr-brand-emerald-ink); padding-bottom: 5mm; margin-bottom: 6mm; }
     .brand { color: var(--tr-secondary); font-size: 8pt; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
     .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 4mm; }
     .box { border: .3mm solid var(--tr-outline-variant); border-radius: 2mm; padding: 3mm; break-inside: avoid; }
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 3mm 0 5mm; }
     .stat { border: .3mm solid var(--tr-outline-variant); border-radius: 2mm; padding: 3mm; }
-    .stat strong { display: block; font-size: 17pt; color: var(--tr-brand-ink); line-height: 1; }
+    .stat strong { display: block; font-size: 17pt; color: var(--tr-brand-emerald-ink); line-height: 1; }
     .badge { display: inline-block; border-radius: 99mm; padding: .5mm 2mm; font-size: 7.5pt; font-weight: 700; background: var(--tr-neutral-bg); color: var(--tr-on-surface-variant); }
     .badge.danger { background: var(--tr-danger-bg); color: var(--tr-danger); }
     .badge.warning { background: var(--tr-warning-bg); color: var(--tr-warning); }
@@ -218,14 +218,14 @@
   </div>
 </div>
 
-<h2 th:text="${r.en.summary}"></h2>
+<h2><span th:text="${r.en.summary}"></span> / <span th:text="${r.ar.summary}"></span></h2>
 <div class="stats">
-  <div class="stat"><strong th:text="${r.coverage.text}"></strong><span class="small" th:text="${r.en.checksCompleted}"></span></div>
-  <div class="stat"><strong th:text="${#lists.size(r.keyFindings)}"></strong><span class="small" th:text="${r.en.keyFindings}"></span></div>
+  <div class="stat"><strong th:text="${r.coverage.text}"></strong><span class="small"><span th:text="${r.en.checksCompleted}"></span> / <span class="ar" th:text="${r.ar.checksCompleted}"></span></span></div>
+  <div class="stat"><strong th:text="${#lists.size(r.keyFindings)}"></strong><span class="small"><span th:text="${r.en.keyFindings}"></span> / <span class="ar" th:text="${r.ar.keyFindings}"></span></span></div>
   <div class="stat"><strong th:text="${r.coverage.notApplicable}"></strong><span class="small"><span th:text="${r.en.notApplicable}"></span> / <span class="ar" th:text="${r.ar.notApplicable}"></span></span></div>
   <div class="stat"><strong th:text="${r.coverage.notChecked + r.coverage.couldNotVerify}"></strong><span class="small"><span th:text="${r.en.notCompleted}"></span> / <span class="ar" th:text="${r.ar.notCompleted}"></span></span></div>
 </div>
-<p class="small muted" th:text="${r.en.coverageNotScore}"></p>
+<p class="small muted"><span th:text="${r.en.coverageNotScore}"></span> / <span class="ar" th:text="${r.ar.coverageNotScore}"></span></p>
 
 <div class="bilingual">
   <div class="box">
@@ -250,8 +250,8 @@
   </div>
 </div>
 
-<h2 th:text="${r.en.keyFindings}"></h2>
-<p th:if="${#lists.isEmpty(r.keyFindings)}" th:text="${r.en.noKeyFindings}"></p>
+<h2><span th:text="${r.en.keyFindings}"></span> / <span th:text="${r.ar.keyFindings}"></span></h2>
+<p th:if="${#lists.isEmpty(r.keyFindings)}"><span th:text="${r.en.noKeyFindings}"></span> / <span class="ar" th:text="${r.ar.noKeyFindings}"></span></p>
 <div th:each="item : ${r.keyFindings}" class="finding" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'safety' : ''}">
   <div class="item-head">
     <strong th:text="${item.labelEn} + ' / ' + ${item.labelAr}"></strong>
@@ -260,7 +260,7 @@
   </div>
   <p class="small" th:text="${item.resultEn} + ' / ' + ${item.resultAr}"></p>
   <div class="note" th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></div>
-  <p class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}"></p>
+  <p class="small" th:if="${item.reason != ''}"><span th:text="${r.en.reason}"></span> / <span class="ar" th:text="${r.ar.reason}"></span><span th:text="': ' + ${item.reason}"></span></p>
   <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
     <figure th:each="photo : ${item.photos}" th:if="${photo.dataUri != null}">
       <img th:src="${photo.dataUri}" th:alt="${photo.altEn} + ' / ' + ${photo.altAr}">
@@ -300,8 +300,8 @@
       <td>
         <span th:if="${item.note == ''}" class="muted">—</span>
         <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></span>
-        <div class="small muted" th:if="${item.note != ''}" th:text="${r.en.noTranslation}"></div>
-        <div class="small" th:if="${item.reason != ''}" th:text="${r.en.reason} + ': ' + ${item.reason}"></div>
+        <div class="small muted" th:if="${item.note != ''}"><span th:text="${r.en.noTranslation}"></span> / <span class="ar" th:text="${r.ar.noTranslation}"></span></div>
+        <div class="small" th:if="${item.reason != ''}"><span th:text="${r.en.reason}"></span> / <span class="ar" th:text="${r.ar.reason}"></span><span th:text="': ' + ${item.reason}"></span></div>
       </td>
     </tr>
     </tbody>
@@ -344,7 +344,12 @@
   <span th:text="${r.en.version} + ': ' + ${r.version}"></span> ·
   <span th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}"></span>
 </p>
-<p class="hash" th:text="${r.en.reportHash} + ': ' + ${r.verificationHash}"></p>
-<p class="small" th:text="${r.en.notCertified}"></p>
+<p class="small ar" lang="ar">
+  <span th:text="${r.ar.reportId} + ': ' + ${r.reportNumber}"></span> ·
+  <span th:text="${r.ar.version} + ': ' + ${r.version}"></span> ·
+  <span th:text="${r.ar.finalized} + ': ' + ${r.finalizedAt}"></span>
+</p>
+<p class="hash"><span th:text="${r.en.reportHash} + ' / ' + ${r.ar.reportHash} + ': ' + ${r.verificationHash}"></span></p>
+<p class="small"><span th:text="${r.en.notCertified}"></span> / <span class="ar" th:text="${r.ar.notCertified}"></span></p>
 </body>
 </html>

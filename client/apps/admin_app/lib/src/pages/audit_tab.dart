@@ -23,7 +23,7 @@ class AuditTab extends ConsumerWidget {
             title: l10n.error,
             body: l10n.genericError,
             onRetry: () => ref.invalidate(auditProvider),
-            retryLabel: l10n.search,
+            retryLabel: l10n.retryAction,
           ),
         ),
       ),

@@ -510,9 +510,8 @@ function generateCss(tokens) {
   lines.push(" * Regenerate: node tools/design_tokens/generate.mjs --write");
   lines.push(" */");
   lines.push("");
-  // Light-only (C0 Workstream B): no prefers-color-scheme dark block and no
-  // [data-theme="dark"] block. The [data-theme="light"] alias is kept so any
-  // existing markup that sets data-theme="light" keeps working.
+  // Light-only (C0 Workstream B): only `:root` is emitted. No
+  // `prefers-color-scheme` dark block and no `[data-theme]` alias block.
   lines.push(":root {");
   lines.push("  color-scheme: light;");
   lines.push(...colours.light);
@@ -520,11 +519,6 @@ function generateCss(tokens) {
   lines.push(...cssStaticDeclarations(tokens));
   lines.push("");
   lines.push(...cssLegacyAliases(tokens));
-  lines.push("}");
-  lines.push("");
-  lines.push('[data-theme="light"] {');
-  lines.push("  color-scheme: light;");
-  lines.push(...colours.light);
   lines.push("}");
   lines.push("");
   lines.push('[data-brand-strategy="deepGreen"],');
@@ -540,8 +534,7 @@ function generateCss(tokens) {
   lines.push("}");
   lines.push("");
   lines.push("@media print {");
-  lines.push("  :root,");
-  lines.push('  [data-theme="light"] {');
+  lines.push("  :root {");
   lines.push("    color-scheme: light;");
   lines.push(...colours.light.map((line) => `  ${line}`));
   lines.push("  }");

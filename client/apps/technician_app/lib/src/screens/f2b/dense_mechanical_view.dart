@@ -83,6 +83,9 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final checklist = widget.checklist;
+    final derivedInitials = fxInitials(
+      checklist.job.assignedTechnicianName ?? '',
+    );
     final category = checklist.items.isEmpty
         ? l10n.checklist
         : _categoryOf(checklist.items.first, context);
@@ -91,7 +94,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 76, 20, 140),
+            padding: const EdgeInsetsDirectional.fromSTEB(_M.gutter, 76, _M.gutter, 140),
             children: [
               Row(
                 children: [
@@ -102,7 +105,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                         Text(
                           category.toUpperCase(),
                           maxLines: 1,
-                          overflow: TextOverflow.clip,
+                          overflow: TextOverflow.ellipsis,
                           style: Fx.text(
                             12,
                             16,
@@ -111,7 +114,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                             color: Fx.outline,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: _M.tick),
                         Text(
                           '${checklist.completed} ${l10n.technicianChecksDone} / ${checklist.total}',
                           style: Fx.body13.copyWith(color: Fx.muted),
@@ -119,19 +122,23 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                       ],
                     ),
                   ),
-                  F2bStatusPill(
-                    label: checklist.job.reference,
-                    background: Fx.container,
-                    foreground: Fx.ink,
-                    dot: Fx.emerald,
-                    style: Fx.caption.copyWith(color: Fx.ink),
+                  // Reference stays LTR in RTL locales; no visual change.
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: F2bStatusPill(
+                      label: checklist.job.reference,
+                      background: Fx.container,
+                      foreground: Fx.ink,
+                      dot: Fx.emerald,
+                      style: Fx.caption.copyWith(color: Fx.ink),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: _M.gutter),
               for (var index = 0; index < checklist.items.length; index++)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(bottom: 20),
+                  padding: const EdgeInsetsDirectional.only(bottom: _M.gutter),
                   child: _ItemCard(
                     item: checklist.items[index],
                     iconId: DenseMechanicalView
@@ -166,44 +173,62 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
             top: 0,
             start: 0,
             end: 0,
-            child: FxHeader(
-              title: l10n.checklist,
-              showBack: widget.onBack != null,
-              titleInset: 4,
-              actions: [
-                FxProfileButton(
-                  initials: 'TR',
-                  iconId: '1_8348',
-                  onPressed: widget.onProfile,
-                  semanticLabel: l10n.technicianProfileTitle,
+            // Header-level focus frame for the FxHeader back button; borderless
+            // when unfocused so the 1.0x geometry is unchanged.
+            child: F2bFocusFrame(
+              borderRadius: BorderRadius.zero,
+              child: FxHeader(
+                title: l10n.checklist,
+                showBack: widget.onBack != null,
+                titleInset: 4,
+                actions: [
+                // 48 dp invisible hit area; the visible disc stays Figma-exact.
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: F2bFocusFrame(
+                      borderRadius: BorderRadius.circular(Fx.pillRadius),
+                      child: FxProfileButton(
+                        initials: derivedInitials.isEmpty
+                            ? 'TR'
+                            : derivedInitials,
+                        iconId: '1_8348',
+                        onPressed: widget.onProfile,
+                        semanticLabel: l10n.technicianProfileTitle,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
+          ),
           ),
           PositionedDirectional(
             start: 0,
             end: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x00FFFFFF), Fx.white],
-                ),
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                _M.gutter,
+                _M.gutter,
+                _M.gutter,
+                _M.gutter,
               ),
+              decoration: const BoxDecoration(gradient: F2b.fadeGradient),
               child: SafeArea(
                 top: false,
-                child: FxButton(
-                  label: l10n.reviewAndFinalize,
-                  onPressed: widget.finalized ? null : widget.onContinue,
-                  icon: const FxIcon(
-                    id: '1_8335',
-                    size: 20.17,
-                    color: Fx.white,
+                child: F2bFocusFrame(
+                  child: FxButton(
+                    label: l10n.reviewAndFinalize,
+                    onPressed: widget.finalized ? null : widget.onContinue,
+                    icon: const FxIcon(
+                      id: '1_8335',
+                      size: 20.17,
+                      color: Fx.white,
+                    ),
+                    trailingIcon: false,
                   ),
-                  trailingIcon: false,
                 ),
               ),
             ),
@@ -252,12 +277,21 @@ class _ItemCard extends StatefulWidget {
 class _ItemCardState extends State<_ItemCard> {
   String? _severity;
   String? _result;
+  final FocusNode _headerFocus = FocusNode();
+  bool _headerFocused = false;
 
   @override
   void initState() {
     super.initState();
     _result = widget.item.assessment?.resultCode;
     _severity = widget.item.assessment?.severityCode;
+    _headerFocus.addListener(_handleHeaderFocus);
+  }
+
+  void _handleHeaderFocus() {
+    if (mounted && _headerFocused != _headerFocus.hasFocus) {
+      setState(() => _headerFocused = _headerFocus.hasFocus);
+    }
   }
 
   @override
@@ -267,6 +301,18 @@ class _ItemCardState extends State<_ItemCard> {
         widget.item.assessment?.resultCode) {
       _result = widget.item.assessment?.resultCode;
     }
+    if (oldWidget.item.assessment?.severityCode !=
+        widget.item.assessment?.severityCode) {
+      _severity = widget.item.assessment?.severityCode;
+    }
+  }
+
+  @override
+  void dispose() {
+    _headerFocus
+      ..removeListener(_handleHeaderFocus)
+      ..dispose();
+    super.dispose();
   }
 
   @override
@@ -286,70 +332,121 @@ class _ItemCardState extends State<_ItemCard> {
         : item.instructionEn;
     final done = result != null;
 
+    // The whole card is no longer the tap target: only the header expands,
+    // so inner fields and buttons keep their own gestures. The header row is
+    // 60 px tall, giving every state icon an invisible >= 48 dp hit area with
+    // no visual change; the focus ring appears on keyboard focus only.
     return FxCard(
       radius: 32,
-      padding: const EdgeInsets.all(20),
-      onTap: widget.finalized ? null : widget.onExpand,
+      padding: const EdgeInsets.all(_M.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Fx.container,
-                  shape: BoxShape.circle,
+          Semantics(
+            button: !widget.finalized,
+            expanded: widget.expanded,
+            label: label,
+            child: FocusableActionDetector(
+              enabled: !widget.finalized,
+              focusNode: _headerFocus,
+              mouseCursor: widget.finalized
+                  ? MouseCursor.defer
+                  : SystemMouseCursors.click,
+              actions: <Type, Action<Intent>>{
+                ActivateIntent: CallbackAction<ActivateIntent>(
+                  onInvoke: (_) {
+                    widget.onExpand();
+                    return null;
+                  },
                 ),
-                child: Center(
-                  child: FxIcon(id: widget.iconId, size: 17, color: Fx.ink),
+              },
+              child: GestureDetector(
+                onTap: widget.finalized ? null : widget.onExpand,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(Fx.tileRadius),
+                    border: _headerFocused
+                        ? Border.all(color: Fx.deepGreen, width: 2)
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: const BoxDecoration(
+                          color: Fx.container,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: FxIcon(
+                            id: widget.iconId,
+                            size: 17,
+                            color: Fx.ink,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Fx.text(
+                                18,
+                                24,
+                                FontWeight.w700,
+                                -0.45,
+                                color: Fx.ink,
+                              ),
+                            ),
+                            if (instruction.isNotEmpty)
+                              Text(
+                                instruction,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Fx.body13.copyWith(color: Fx.muted),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: _M.gapSmall),
+                      // Covered by the header semantics above; the row itself
+                      // is the >= 48 dp hit area for these sub-48 visuals.
+                      ExcludeSemantics(
+                        child: done
+                            ? Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: F2b.emeraldWash,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: FxIcon(
+                                    id: '1_8249',
+                                    size: 16.67,
+                                    color: Fx.emerald,
+                                  ),
+                                ),
+                              )
+                            : const FxIcon(
+                                id: '1_8317',
+                                size: 7,
+                                color: Fx.muted,
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.clip,
-                      style: Fx.text(
-                        18,
-                        24,
-                        FontWeight.w700,
-                        -0.45,
-                        color: Fx.ink,
-                      ),
-                    ),
-                    if (instruction.isNotEmpty)
-                      Text(
-                        instruction,
-                        maxLines: 2,
-                        overflow: TextOverflow.clip,
-                        style: Fx.body13.copyWith(color: Fx.muted),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (done)
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: Color(0x2610B981),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: FxIcon(id: '1_8249', size: 16.67, color: Fx.emerald),
-                  ),
-                )
-              else
-                const FxIcon(id: '1_8317', size: 7, color: Fx.muted),
-            ],
+            ),
           ),
           if (widget.expanded || defect) ...[
             const SizedBox(height: 14),
@@ -368,7 +465,7 @@ class _ItemCardState extends State<_ItemCard> {
                       widget.onResult(code);
                     },
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: _M.gapSmall),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -391,9 +488,9 @@ class _ItemCardState extends State<_ItemCard> {
           ],
           if (widget.expanded) ...[
             if (defect) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: _M.gapMid),
               F2bSectionLabel(l10n.severity),
-              const SizedBox(height: 4),
+              const SizedBox(height: _M.gapXSmall),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -414,61 +511,70 @@ class _ItemCardState extends State<_ItemCard> {
                 ],
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: _M.gapMid),
             F2bNoteField(
               controller: widget.noteController,
               hint: l10n.note,
               maxLines: 2,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: _M.gapMid),
             Row(
               children: [
                 Expanded(
-                  child: FxButton(
-                    label: l10n.addPhoto,
-                    onPressed: widget.finalized ? null : widget.onOpen,
-                    tone: FxButtonTone.primary,
-                    height: 48,
-                    icon: const FxIcon(
-                      id: '1_8277',
-                      size: 16.67,
-                      color: Fx.white,
+                  child: F2bFocusFrame(
+                    child: FxButton(
+                      label: l10n.addPhoto,
+                      onPressed: widget.finalized ? null : widget.onOpen,
+                      tone: FxButtonTone.primary,
+                      height: 48,
+                      icon: const FxIcon(
+                        id: '1_8277',
+                        size: 16.67,
+                        color: Fx.white,
+                      ),
+                      trailingIcon: false,
                     ),
-                    trailingIcon: false,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: _M.gapMid),
                 SizedBox(
                   width: 48,
                   height: 48,
-                  child: FxButton(
-                    label: '',
-                    onPressed: widget.finalized ? null : widget.onOpen,
-                    tone: FxButtonTone.tonal,
-                    height: 48,
-                    expand: false,
-                    icon: const FxIcon(
-                      id: '1_8282',
-                      size: 16.67,
-                      color: Fx.ink,
+                  child: F2bFocusFrame(
+                    child: FxButton(
+                      // Same-slot item opener (no pairing claim): the semantic
+                      // name is the item it opens; the visible icon is unchanged.
+                      label: '',
+                      semanticLabel: label,
+                      onPressed: widget.finalized ? null : widget.onOpen,
+                      tone: FxButtonTone.tonal,
+                      height: 48,
+                      expand: false,
+                      icon: const FxIcon(
+                        id: '1_8282',
+                        size: 16.67,
+                        color: Fx.ink,
+                      ),
+                      trailingIcon: false,
                     ),
-                    trailingIcon: false,
                   ),
                 ),
                 const Spacer(),
-                FxButton(
-                  label: l10n.saveAnswer,
-                  onPressed: widget.finalized || result == null || widget.busy
-                      ? null
-                      : () => widget.onSave(
-                          result,
-                          _severity,
-                          widget.noteController.text,
-                        ),
-                  tone: FxButtonTone.primary,
-                  height: 48,
-                  expand: false,
-                  trailingIcon: false,
+                F2bFocusFrame(
+                  child: FxButton(
+                    label: l10n.saveAnswer,
+                    onPressed: widget.finalized || result == null || widget.busy
+                        ? null
+                        : () => widget.onSave(
+                            result,
+                            _severity,
+                            widget.noteController.text,
+                          ),
+                    tone: FxButtonTone.primary,
+                    height: 48,
+                    expand: false,
+                    trailingIcon: false,
+                  ),
                 ),
               ],
             ),
@@ -477,4 +583,13 @@ class _ItemCardState extends State<_ItemCard> {
       ),
     );
   }
+}
+
+/// Figma-exact spacing for this screen (F2-A `_M` pattern).
+abstract final class _M {
+  static const double tick = 2;
+  static const double gapXSmall = 4;
+  static const double gapSmall = 8;
+  static const double gapMid = 12;
+  static const double gutter = 20;
 }

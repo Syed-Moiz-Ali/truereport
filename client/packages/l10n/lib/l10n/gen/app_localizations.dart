@@ -1622,6 +1622,12 @@ abstract class AppLocalizations {
   /// **'Retry report'**
   String get retryReport;
 
+  /// No description provided for @retryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryAction;
+
   /// No description provided for @createLink.
   ///
   /// In en, this message translates to:

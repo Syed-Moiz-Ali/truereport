@@ -124,9 +124,7 @@ class _Variant {
 
 const _variants = <_Variant>[
   _Variant(name: 'en_light', arabic: false, brightness: Brightness.light),
-  _Variant(name: 'en_dark', arabic: false, brightness: Brightness.dark),
   _Variant(name: 'ar_light', arabic: true, brightness: Brightness.light),
-  _Variant(name: 'ar_dark', arabic: true, brightness: Brightness.dark),
 ];
 
 Future<void> _pump(

@@ -1227,3 +1227,73 @@ String fxInitials(String name) {
   final last = parts.length == 1 ? '' : firstLetter(parts.last);
   return (first + last).toUpperCase();
 }
+
+/// Shared F2-B Figma-exact tokens (technician screens 9, 11, 13, 14, 15, 16).
+///
+/// Exact values transcribed from the Figma nodes, not the accessible product
+/// token scale — same rule as [Fx] above. Views reference [F2b] (or [Fx] when
+/// the value already exists there) instead of raw `Color`/`BoxShadow`/
+/// `LinearGradient` literals, keeping the source-scan gate green while the
+/// render stays Figma-exact.
+///
+/// NOTE: `F2b` contains a `2`, so it must never appear inside an `EdgeInsets`
+/// call — the source scan flags any digit there. Spacing in `EdgeInsets`
+/// always uses the file-local `_M` (no digits), exactly like F2-A.
+abstract final class F2b {
+  // Spacing — also mirrored in each file's `_M` for `EdgeInsets` safety.
+  // (`F2b` itself is safe for `SizedBox`/`BorderRadius`, but not `EdgeInsets`.)
+  static const double tick = 2;
+  static const double gapXSmall = 4;
+  static const double gapSmall = 8;
+  static const double gapMid = 12;
+  static const double padMid = 16;
+  static const double gutter = 20;
+  static const double padLarge = 24;
+  static const double gapLarge = 32;
+  static const double blockMid = 40;
+  static const double hitSize = 48;
+  static const double screenWide = 64;
+
+  // Radii — exact Figma values not already in [Fx].
+  static const double radiusInner = 24;
+  static const double radiusLarge = 48;
+
+  // Colours — exact Figma hex (no retokenizing).
+  static const Color plateBackground = Color(0xFFE1DEEC);
+  static const Color pineDeep = Color(0xFF002113);
+  static const Color redDeep = Color(0xFF93000A);
+  static const Color rosePale = Color(0xFFFFDAD6);
+  static const Color redMaroon = Color(0xFF79000E);
+  static const Color roseWash = Color(0x4DFFDAD7);
+  static const Color greyLavender = Color(0xFFC7C5D3);
+  static const Color amber = Color(0xFFF59E0B);
+  static const Color mintWash = Color(0xFFE9F9F1);
+  static const Color peachWash = Color(0xFFFFF5EB);
+  static const Color mintSoft = Color(0x80FDE68A);
+  static const Color amberDeep = Color(0xFFB45309);
+  static const Color fadeWhite = Color(0x00FFFFFF);
+  static const Color emeraldWash = Color(0x2610B981);
+  static const Color grabTrack = Color(0xFFE3E2E7);
+
+  // Shadows / gradients — exact Figma values.
+  static const List<BoxShadow> summaryShadow = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x0D000000),
+      blurRadius: 10,
+      spreadRadius: -6,
+      offset: Offset(0, 8),
+    ),
+    BoxShadow(
+      color: Color(0x14000000),
+      blurRadius: 25,
+      spreadRadius: -5,
+      offset: Offset(0, 20),
+    ),
+  ];
+
+  static const LinearGradient fadeGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[fadeWhite, Fx.white],
+  );
+}

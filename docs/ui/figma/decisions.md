@@ -154,8 +154,46 @@ The owner confirmed the identical-first rule from F2-A.1 and added these decisio
 | ID | Decision | Implementation |
 |---|---|---|
 | C-A1 | Strict chain: Platform Admin creates Workshop Admins; Workshop Admin creates Technicians own workshop only. Platform cannot create technicians. | `HierarchyService.createUser/createTechnician`, `StaffController`, role matrix tests. See `ADR-C0-001`. |
-| C-A2 | No invitations: endpoints/tokens/acceptance/pending filter removed. ACTIVE on creation. Tables retained, drop proposed separately. | `POST /platform/invitations` 404, `POST /auth/invitations/accept` 401 anon/404 authed; `pendingInvitations` dropped. |
+| C-A2 | No invitations: endpoints/tokens/acceptance/pending filter removed. ACTIVE on creation. Tables retained, drop proposed separately. | `POST /platform/invitations` 404, `POST /auth/invitations/acceptance` 401 anon/404 authed; `pendingInvitations` dropped. |
 | C-A3 | Admin password reset same scoping, revokes sessions, audited without passwords. | `POST .../password-reset` x2; `ACCOUNT_PASSWORD_RESET`. |
 | C-A6 | No forced password change at first login (owner-accepted risk). | Recorded in risk register; designed screen deferred. |
 | C-B | Light only: dark ThemeData/tokens/goldens/CSS removed; `color-scheme: light`. | `ADR-F1-006`; generator `--check` light-only; `contrast-after.md` light-only. |
 | C-C | Full localization: no hardcoded visible/accessibility text in `lib/`; EN+AR full, ru/zh-Hans ready; server bundles EN+AR; ARB mojibake fixed; figmaText removed to test-only override. | `i18n-inventory.md`, `i18n_source_scan_test`, `ReportDeliveryBundleParityTest`, `ApiErrorContractTest`, `figma_l10n_override`. |
+
+---
+
+## F2-B.2 owner decisions (6 November 2026)
+
+### L1–L8 (from F2-B.1, recorded here for F2-B.2 traceability)
+
+| ID | Decision |
+|---|---|
+| L1 | Dedicated retry ARB key; fix wrong `retryLabel:l10n.search` reuse. |
+| L2 | Remove Arabic-pending-review sentence from customer messages/PDF; keep in docs/risk only. Arabic blocked for real customers until native review. |
+| L3 | Each bilingual-PDF language section purely one language. |
+| L4 | Delete unused dark values from `tokens.json`; remove light alias. |
+| L5 | GET responses keep emails masked. |
+| L6 | First-login forced password change stays deferred (risk A6). |
+| L7 | Method-level authorization on all controllers incl. `GET /api/v1/workshops/{id}`; inventory test fails on unauthorised method. |
+| L8 | Same-slot neutral replacement (hide only if unsafe); screen 11 three-way pill + secondary row; screen 14 slide exact + invisible alternative; screen 16 real report + delivery; finalize full VIN only where slot requires, else last-4. |
+
+### M1–M8 (F2-B.2)
+
+| ID | Decision |
+|---|---|
+| M1 | Four severities; no P0–P3 mapping; same slot/style. |
+| M2 | Finalize gate = server-enforced only. |
+| M3 | Same-slot neutral localized legal text; no GPS. |
+| M4 | Full VIN on technician-side screens; last-4 on success; never public. |
+| M5 | Tick/coverage = answered, never passed/compliant. |
+| M6 | Raw statuses to plain ARB wording. |
+| M7 | Fleet/avatar/bay/hardware same-slot neutral or real same-shape data; hide only if unsafe. |
+| M8 | Barcode slot = neutral open-item action. |
+
+### Conflict check vs `f2b-slot-sheet.md`
+
+NO conflict found (sheet already implements M1–M8; triage verified).
+
+Nuance: M4 broadly says full VIN on technician-side screens while sheet row 89
+keeps full VIN to the finalize slot only (other tech screens show reference) —
+sheet-wins per instructions + owner note that broadening M4 needs approval.

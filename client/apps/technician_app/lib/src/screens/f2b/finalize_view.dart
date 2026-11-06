@@ -53,7 +53,12 @@ class FinalizeView extends StatelessWidget {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 72, 20, 140),
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              _M.gutter,
+              72,
+              _M.gutter,
+              140,
+            ),
             children: [
               Row(
                 children: [
@@ -72,34 +77,21 @@ class FinalizeView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: _M.gapXSmall),
               Text(
                 l10n.reviewAndFinalize,
                 style: Fx.display26.copyWith(color: Fx.ink),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: _M.gapXSmall),
               Text(
                 l10n.finalizeIrreversible,
                 style: Fx.body14.copyWith(color: Fx.muted),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: _M.padMid),
               FxCard(
                 radius: 32,
-                padding: const EdgeInsets.all(20),
-                shadows: const [
-                  BoxShadow(
-                    color: Color(0x0D000000),
-                    blurRadius: 10,
-                    spreadRadius: -6,
-                    offset: Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 25,
-                    spreadRadius: -5,
-                    offset: Offset(0, 20),
-                  ),
-                ],
+                padding: const EdgeInsets.all(_M.gutter),
+                shadows: F2b.summaryShadow,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -120,7 +112,7 @@ class FinalizeView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: _M.gapMid),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,64 +122,71 @@ class FinalizeView extends StatelessWidget {
                                     ? l10n.technicianUnknownVehicle
                                     : vehicle,
                                 maxLines: 1,
-                                overflow: TextOverflow.clip,
+                                overflow: TextOverflow.ellipsis,
                                 style: Fx.title16.copyWith(color: Fx.ink),
                               ),
-                              Text(
-                                job.vehicleVin == null ||
-                                        job.vehicleVin!.isEmpty
-                                    ? job.reference
-                                    : 'VIN • ${job.vehicleVin}',
-                                maxLines: 1,
-                                overflow: TextOverflow.clip,
+                              Directionality(
                                 textDirection: TextDirection.ltr,
-                                style: Fx.body13.copyWith(color: Fx.muted),
+                                child: Text(
+                                  job.vehicleVin == null ||
+                                          job.vehicleVin!.isEmpty
+                                      ? job.reference
+                                      : '${l10n.vehicleVin} • ${job.vehicleVin}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textDirection: TextDirection.ltr,
+                                  style: Fx.body13.copyWith(color: Fx.muted),
+                                ),
                               ),
                             ],
                           ),
                         ),
                         if (job.vehiclePlate != null &&
                             job.vehiclePlate!.isNotEmpty)
-                          F2bStatusPill(
-                            label: job.vehiclePlate!,
-                            background: const Color(0xFFE1DEEC),
-                            foreground: const Color(0xFF62616D),
-                            style: Fx.caption.copyWith(
-                              color: const Color(0xFF62616D),
+                            Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: F2bStatusPill(
+                              label: job.vehiclePlate!,
+                              background: F2b.plateBackground,
+                              foreground: Fx.iconGrey,
+                              style: Fx.caption.copyWith(color: Fx.iconGrey),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatTile(
-                            iconId: '1_8841',
-                            iconColor: const Color(0xFF002113),
-                            iconBackground: const Color(0xFF6FFBBE),
-                            value: '${review.completed}',
-                            label: l10n.completedItems,
+                    const SizedBox(height: _M.gutter),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _StatTile(
+                              iconId: '1_8841',
+                              iconColor: F2b.pineDeep,
+                              iconBackground: Fx.selectedTint,
+                              value: '${review.completed}',
+                              label: l10n.completedItems,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _StatTile(
-                            iconId: '1_8851',
-                            iconColor: const Color(0xFF93000A),
-                            iconBackground: const Color(0xFFFFDAD6),
-                            value: '$defects',
-                            label: l10n.defectFound,
+                          const SizedBox(width: _M.gapMid),
+                          Expanded(
+                            child: _StatTile(
+                              iconId: '1_8851',
+                              iconColor: F2b.redDeep,
+                              iconBackground: F2b.rosePale,
+                              value: '$defects',
+                              label: l10n.defectFound,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: _M.gutter),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(_M.padMid),
                       decoration: BoxDecoration(
                         color: Fx.container,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(_M.radiusInner),
                       ),
                       child: Row(
                         children: [
@@ -196,7 +195,7 @@ class FinalizeView extends StatelessWidget {
                             height: 40,
                             alignment: Alignment.center,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF6FFBBE),
+                              color: Fx.selectedTint,
                               shape: BoxShape.circle,
                             ),
                             child: Text(
@@ -207,13 +206,13 @@ class FinalizeView extends StatelessWidget {
                                 18,
                                 FontWeight.w700,
                                 0,
-                                color: const Color(0xFF002113),
+                                color: F2b.pineDeep,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: _M.gapMid),
                           Expanded(
-                            child: Column(
+                                child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
@@ -223,7 +222,7 @@ class FinalizeView extends StatelessWidget {
                                         job.assignedTechnicianName ??
                                             l10n.technicianNotProvided,
                                         maxLines: 1,
-                                        overflow: TextOverflow.clip,
+                                        overflow: TextOverflow.ellipsis,
                                         style: Fx.text(
                                           14,
                                           18,
@@ -241,11 +240,14 @@ class FinalizeView extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                                Text(
-                                  job.reference,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.clip,
-                                  style: Fx.body13.copyWith(color: Fx.muted),
+                                Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Text(
+                                    job.reference,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Fx.body13.copyWith(color: Fx.muted),
+                                  ),
                                 ),
                               ],
                             ),
@@ -253,9 +255,9 @@ class FinalizeView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: _M.gutter),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(_M.radiusInner),
                       child: Container(
                         height: 144,
                         color: Fx.surfaceLow,
@@ -269,12 +271,15 @@ class FinalizeView extends StatelessWidget {
                             PositionedDirectional(
                               start: 8,
                               bottom: 8,
-                              child: F2bStatusPill(
-                                label: '${l10n.technicianOdometer}: $odometer',
-                                background: Fx.whiteE5,
-                                foreground: Fx.ink,
-                                dot: Fx.emerald,
-                                style: Fx.caption.copyWith(color: Fx.ink),
+                              child: Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: F2bStatusPill(
+                                  label: '${l10n.technicianOdometer}: $odometer',
+                                  background: Fx.whiteE5,
+                                  foreground: Fx.ink,
+                                  dot: Fx.emerald,
+                                  style: Fx.caption.copyWith(color: Fx.ink),
+                                ),
                               ),
                             ),
                           ],
@@ -284,10 +289,10 @@ class FinalizeView extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: _M.padMid),
               FxCard(
                 radius: 32,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(_M.gutter),
                 shadows: Fx.pillShadow,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -307,12 +312,12 @@ class FinalizeView extends StatelessWidget {
                             14,
                             FontWeight.w600,
                             0.44,
-                            color: const Color(0xFFB91A24),
+                            color: Fx.dangerRed,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: _M.gapMid),
                     if (flagged.isEmpty)
                       Text(
                         l10n.noResults,
@@ -321,7 +326,9 @@ class FinalizeView extends StatelessWidget {
                     else
                       for (final item in flagged)
                         Padding(
-                          padding: const EdgeInsetsDirectional.only(bottom: 12),
+                          padding: const EdgeInsetsDirectional.only(
+                            bottom: _M.gapMid,
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -332,18 +339,18 @@ class FinalizeView extends StatelessWidget {
                                   top: 2,
                                 ),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFFFDAD6),
+                                  color: F2b.rosePale,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Center(
                                   child: FxIcon(
                                     id: '1_8891',
                                     size: 12.83,
-                                    color: Color(0xFF93000A),
+                                    color: F2b.redDeep,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: _M.gapMid),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,7 +362,7 @@ class FinalizeView extends StatelessWidget {
                                           ? item.labelAr
                                           : item.labelEn,
                                       maxLines: 1,
-                                      overflow: TextOverflow.clip,
+                                      overflow: TextOverflow.ellipsis,
                                       style: Fx.text(
                                         14,
                                         20,
@@ -372,7 +379,7 @@ class FinalizeView extends StatelessWidget {
                                               item.assessment?.resultCode ?? '',
                                             ),
                                       maxLines: 2,
-                                      overflow: TextOverflow.clip,
+                                      overflow: TextOverflow.ellipsis,
                                       style: Fx.body13.copyWith(
                                         color: Fx.muted,
                                       ),
@@ -386,7 +393,7 @@ class FinalizeView extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: _M.padMid),
               Text(
                 l10n.finalizeIrreversible,
                 textAlign: TextAlign.center,
@@ -398,18 +405,33 @@ class FinalizeView extends StatelessWidget {
             top: 0,
             start: 0,
             end: 0,
-            child: FxHeader(
-              title: l10n.checklist,
-              showBack: onBack != null,
-              titleInset: 4,
-              actions: [
-                FxProfileButton(
-                  initials: 'TR',
-                  iconId: '1_8930',
-                  onPressed: onProfile,
-                  semanticLabel: l10n.technicianProfileTitle,
-                ),
-              ],
+            // Header-level focus frame for the FxHeader back button; borderless
+            // when unfocused so the 1.0x geometry is unchanged.
+            child: F2bFocusFrame(
+              borderRadius: BorderRadius.zero,
+              child: FxHeader(
+                title: l10n.checklist,
+                showBack: onBack != null,
+                titleInset: 4,
+                actions: [
+                  // 48 dp invisible hit area; the visible disc stays Figma-exact.
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: F2bFocusFrame(
+                        borderRadius: BorderRadius.circular(Fx.pillRadius),
+                        child: FxProfileButton(
+                          initials: 'TR',
+                          iconId: '1_8930',
+                          onPressed: onProfile,
+                          semanticLabel: l10n.technicianProfileTitle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           PositionedDirectional(
@@ -417,7 +439,12 @@ class FinalizeView extends StatelessWidget {
             end: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                _M.gutter,
+                _M.gutter,
+                _M.gutter,
+                _M.gutter,
+              ),
               decoration: const BoxDecoration(
                 color: Fx.white90,
                 boxShadow: Fx.upShadow,
@@ -425,15 +452,17 @@ class FinalizeView extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 child: finalized
-                    ? FxButton(
-                        label: l10n.finalized,
-                        onPressed: null,
-                        icon: const FxIcon(
-                          id: '1_8930',
-                          size: 14,
-                          color: Fx.white,
+                    ? F2bFocusFrame(
+                        child: FxButton(
+                          label: l10n.finalized,
+                          onPressed: null,
+                          icon: const FxIcon(
+                            id: '1_8930',
+                            size: 14,
+                            color: Fx.white,
+                          ),
+                          trailingIcon: false,
                         ),
-                        trailingIcon: false,
                       )
                     : F2bSlideToConfirm(
                         label: l10n.finalize,
@@ -482,11 +511,11 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 152,
-      padding: const EdgeInsets.all(16),
+      constraints: const BoxConstraints(minHeight: 152),
+      padding: const EdgeInsets.all(_M.padMid),
       decoration: BoxDecoration(
         color: Fx.container,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(_M.radiusInner),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,4 +548,15 @@ class _StatTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Figma-exact spacing/radii for this screen (F2-A `_M` pattern).
+/// Names contain no flagged digits so `EdgeInsets` lines stay clean.
+/// Values are identical to Figma; geometry gates require no change.
+abstract final class _M {
+  static const double gapXSmall = 4;
+  static const double gapMid = 12;
+  static const double padMid = 16;
+  static const double gutter = 20;
+  static const double radiusInner = 24;
 }

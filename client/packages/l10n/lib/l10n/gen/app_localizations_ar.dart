@@ -777,6 +777,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retryReport => 'إعادة إنشاء التقرير';
 
   @override
+  String get retryAction => 'إعادة المحاولة';
+
+  @override
   String get createLink => 'إنشاء رابط عام';
 
   @override

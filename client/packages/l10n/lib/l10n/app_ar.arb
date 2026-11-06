@@ -254,6 +254,7 @@
   "reportReady": "جاهز",
   "reportFailed": "فشل",
   "retryReport": "إعادة إنشاء التقرير",
+  "retryAction": "إعادة المحاولة",
   "createLink": "إنشاء رابط عام",
   "copyLink": "نسخ الرابط",
   "deactivateLink": "تعطيل الرابط",

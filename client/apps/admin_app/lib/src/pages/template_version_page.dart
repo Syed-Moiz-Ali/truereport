@@ -47,7 +47,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                   '${widget.templateId}\u0001${widget.versionId}',
                 ),
               ),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

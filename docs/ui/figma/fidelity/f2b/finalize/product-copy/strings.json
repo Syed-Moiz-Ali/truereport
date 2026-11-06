@@ -1,0 +1,32 @@
+{
+  "sample": "finalize-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "REVIEW AND FINALIZE",
+    "Review and finalize",
+    "Finalized findings cannot be edited by anyone.",
+    "2022 Honda Accord",
+    "VIN • 1HGCM82633A004352",
+    "A 12345",
+    "17",
+    "completed",
+    "2",
+    "Defect found",
+    "DV",
+    "David Vance",
+    "JOB-2601",
+    "Odometer: 48210 KM",
+    "Missing items",
+    "2 attention",
+    "Interior check 6",
+    "Attention recommended",
+    "Interior check 7",
+    "Attention recommended",
+    "Finalized findings cannot be edited by anyone.",
+    "Checklist",
+    "Finalize"
+  ]
+}

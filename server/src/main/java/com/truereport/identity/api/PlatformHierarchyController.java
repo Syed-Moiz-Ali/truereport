@@ -13,6 +13,7 @@ import com.truereport.identity.api.PlatformAccountDto;
 import com.truereport.identity.api.TransferRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/platform")
+@PreAuthorize("hasRole('PLATFORM_ADMIN')")
 public class PlatformHierarchyController {
 
     private final HierarchyService hierarchyService;

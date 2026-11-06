@@ -10,7 +10,7 @@ String technicianStatusLabel(AppLocalizations l10n, String status) =>
       'READY_TO_FINALIZE' => l10n.statusReadyToFinalize,
       'FINALIZED' => l10n.statusFinalized,
       'CANCELLED' => l10n.statusCancelled,
-      _ => status,
+      _ => l10n.notAvailable,
     };
 
 StatusTone technicianStatusTone(String status) => switch (status) {
@@ -28,7 +28,7 @@ String resultLabel(AppLocalizations l10n, String result) => switch (result) {
   'NOT_CHECKED' => l10n.notChecked,
   'NOT_APPLICABLE' => l10n.notApplicable,
   'COULD_NOT_VERIFY' => l10n.couldNotVerify,
-  _ => result,
+  _ => l10n.notAvailable,
 };
 
 String severityLabel(AppLocalizations l10n, String severity) =>
@@ -37,7 +37,7 @@ String severityLabel(AppLocalizations l10n, String severity) =>
       'MODERATE' => l10n.moderate,
       'MAJOR' => l10n.major,
       'SAFETY_CRITICAL' => l10n.safetyCritical,
-      _ => severity,
+      _ => l10n.notAvailable,
     };
 
 StatusTone resultTone(String? result) => switch (result) {

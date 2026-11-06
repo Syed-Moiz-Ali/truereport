@@ -1,18 +1,38 @@
 package com.truereport;
 
+import jakarta.annotation.security.DenyAll;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class SecurityEndpointInventoryIT extends IntegrationTestBase {
+
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    RequestMappingHandlerMapping handlerMapping;
 
     private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/2fa/verify",
@@ -47,6 +67,38 @@ class SecurityEndpointInventoryIT extends IntegrationTestBase {
             }
         }
         assertThat(tested).isGreaterThan(50);
+    }
+
+    @Test
+    void everyHandlerHasExplicitAuthz() {
+        List<String> missing = new ArrayList<>();
+        int checked = 0;
+        for (var entry : handlerMapping.getHandlerMethods().entrySet()) {
+            RequestMappingInfo info = entry.getKey();
+            Method method = entry.getValue().getMethod();
+            Class<?> beanType = entry.getValue().getBeanType();
+            if (beanType == null || !beanType.getPackageName().startsWith("com.truereport")) {
+                continue;
+            }
+            if (!beanType.isAnnotationPresent(RestController.class)
+                    && !beanType.isAnnotationPresent(Controller.class)) {
+                continue;
+            }
+            checked++;
+            if (!hasExplicitAuthz(method) && !hasExplicitAuthz(beanType)) {
+                missing.add(beanType.getSimpleName() + "#" + method.getName() + " " + info);
+            }
+        }
+        assertThat(checked).isGreaterThan(50);
+        assertThat(missing).as("controller methods without explicit authz annotation").isEmpty();
+    }
+
+    private static boolean hasExplicitAuthz(java.lang.reflect.AnnotatedElement element) {
+        return element.isAnnotationPresent(PreAuthorize.class)
+                || element.isAnnotationPresent(Secured.class)
+                || element.isAnnotationPresent(RolesAllowed.class)
+                || element.isAnnotationPresent(PermitAll.class)
+                || element.isAnnotationPresent(DenyAll.class);
     }
 
     @Test

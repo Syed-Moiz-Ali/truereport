@@ -162,6 +162,41 @@ job/equipment card heights whose finder includes the parent gap are asserted for
 position only. No screen overflows at 360/390/600/900 and 1.0/1.5/2.0 text.
 ---
 
+## F2-B technician screens 9, 11, 13, 14, 15, 16 (6 November 2026)
+
+Rule: only owner-approved or rule-mandated deviations are listed here
+(content/privacy, measured text-contrast failure, language coverage/RTL).
+Everything else is exact per `f2b-slot-sheet.md`.
+
+### Owner-accepted risk
+
+| ID | Item | Measured/observed | Status |
+|---|---|---|---|
+| F2B-R1 | Primary button label white on `#10B981` | ~2.3:1 | Owner-accepted under **I1**; deeper-green pairings pass; carried over from F2-A.1/F2-A.2 |
+
+### Same-slot neutral replacements (rule-mandated, exact slot/style)
+
+| ID | Screen | Figma element | Product rendering | Cause |
+|---|---|---|---|---|
+| F2B-01 | All | Sample people/avatars, sample vehicle photos, bay labels | Initials disc / vehicle-type silhouette / reference + localized status | No avatar consent/provenance; no bay field (M7) |
+| F2B-02 | All | Fleet / Fleet Portal / Fleet Ledger / compliance / GPS / ledger / specialist-ID / verified-tick-as-approval / customer-notified / hardware-BLE / pass-rate % | Same-slot neutral copy or real same-shape data; hide only if unsafe with no neutral form | L8; no such feature/data (M7) |
+| F2B-03 | 09/11 | Damage type / `Cosmetic / Structural` / `mm` length / repair tags / invented fluid/tyre measurements | Severity chips + real master instruction/note; no invented taxonomy | No defect-type/measurement model (M1) |
+| F2B-04 | 09/11 | `P0–P3` priority labels | Four ARB severities, no P0–P3 mapping, same pill slots | M1 |
+| F2B-05 | 11 | Screen-11 three-way pill | Same geometry pill with 3 main ARB results + secondary row for other 3 | L8; result vocabulary |
+| F2B-06 | 13 | `%` / `Pass` / score wording | Coverage % only (`completed/total`), never passed/compliant | M5 |
+| F2B-07 | 14 | Slide to finalize | Figma slide exact (64 px track / 52 px thumb) + invisible semantic/keyboard alternative, same idempotent finalize | L8 a11y |
+| F2B-08 | 14 | Full VIN | Full VIN only in the finalize internal card slot; last-4 on success; never public/logs/URLs/shares | M4 |
+| F2B-09 | 15/16 | Raw `SENT/FAILED/DEAD_LETTER/generationStatus` | Plain ARB wording + tone in same slots | M6 |
+| F2B-10 | 16 | Delivery card `Fleet Portal / Sent/Synced` | Real `TechnicianDelivery` channel + server status (max 2 rows); real report status | M6; no Fleet Portal |
+| F2B-11 | 11 | Barcode slot | Same 48 px slot opening the same item (no fake pairing claim) | M8 |
+| F2B-12 | All | Legal/compliance disclaimer + GPS/signature block | Same centered block with approved limitation copy; no GPS | M3 |
+
+Gate: 0.98 NOT met on any screen; residuals = slot replacements + raster +
+status-bar furniture; no pixel-perfect claim. Reference renders:
+`docs/ui/figma/fidelity/f2b/<screen>/figma-text|product-copy/render.png`
+(12 fidelity `render.png` artifacts; EN+AR light-only). See `f2b2-report.md`.
+---
+
 ## F2-A.2 measurement correction and residuals (6 November 2026)
 
 ### Measurement defect found and fixed

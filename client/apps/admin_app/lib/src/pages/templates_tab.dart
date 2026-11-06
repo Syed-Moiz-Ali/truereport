@@ -24,7 +24,7 @@ class TemplatesTab extends ConsumerWidget {
             title: l10n.error,
             body: l10n.genericError,
             onRetry: () => ref.invalidate(templatesProvider),
-            retryLabel: l10n.search,
+            retryLabel: l10n.retryAction,
           ),
         ),
       ),

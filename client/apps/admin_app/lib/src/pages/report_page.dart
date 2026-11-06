@@ -47,7 +47,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
               title: l10n.error,
               body: l10n.genericError,
               onRetry: () => ref.invalidate(reportProvider(widget.jobId)),
-              retryLabel: l10n.cancel,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

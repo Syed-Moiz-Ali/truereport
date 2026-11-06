@@ -5,7 +5,6 @@ import java.util.UUID;
 public record PlatformAccountDto(
         UUID userId,
         String displayName,
-        String email,
         String emailMasked,
         String role,
         String status,

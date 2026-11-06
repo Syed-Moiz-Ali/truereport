@@ -1,0 +1,32 @@
+{
+  "sample": "offline-sync-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Sync",
+    "Offline. Work will be saved on this phone.",
+    "OFFLINE\nSYNC",
+    "Offline. Work will be saved on this phone.",
+    "OFFLINE\nSYNC",
+    "Changes saved on this phone",
+    "CHANGES SAVED ON THIS PHONE",
+    "2",
+    "Inspection items",
+    "SYNC QUEUE",
+    "1",
+    "Inspection Queue",
+    "Sync queue",
+    "Changes saved on this phone",
+    "Save answer",
+    "Jobs • JOB-2601",
+    "Queued",
+    "Photos",
+    "Jobs • JOB-2601",
+    "Queued",
+    "Sync now",
+    "Changes saved on this phone",
+    "Sync"
+  ]
+}

@@ -88,7 +88,7 @@ class _HierarchyTabState extends ConsumerState<HierarchyTab> {
                   title: l10n.error,
                   body: l10n.genericError,
                   onRetry: () => ref.invalidate(hierarchyProvider(_key)),
-                  retryLabel: l10n.search,
+                  retryLabel: l10n.retryAction,
                 ),
               ),
             ),
@@ -255,7 +255,7 @@ class _AccountTile extends ConsumerWidget {
         child: Text(account.displayName.isEmpty ? '?' : account.displayName[0]),
       ),
       title: account.displayName,
-      subtitle: '${account.email} · ${memberRoleLabel(l10n, account.role)}',
+      subtitle: '${account.emailMasked} · ${memberRoleLabel(l10n, account.role)}',
       trailing: PopupMenuButton<String>(
         onSelected: (value) => _handleAction(context, ref, value),
         itemBuilder: (context) => [

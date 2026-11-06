@@ -40,9 +40,6 @@ void main() {
       File(
         '${root.path}/client/apps/technician_app/test/f2a_goldens_test.dart',
       ),
-      File(
-        '${root.path}/client/apps/technician_app/test/f2a_goldens_dark_test.dart',
-      ),
     ];
     for (final file in files) {
       expect(file.existsSync(), isTrue, reason: file.path);

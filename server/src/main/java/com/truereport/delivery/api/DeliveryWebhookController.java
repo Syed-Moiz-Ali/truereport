@@ -1,6 +1,7 @@
 package com.truereport.delivery.api;
 
 import com.truereport.delivery.DeliveryWebhookService;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/delivery/webhooks")
+@PermitAll
 public class DeliveryWebhookController {
 
     private final DeliveryWebhookService service;

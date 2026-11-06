@@ -2,6 +2,7 @@ package com.truereport.reports.api;
 
 import com.truereport.reports.PublicReportService;
 import com.truereport.reports.ReportMessages;
+import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Controller
+@PermitAll
 public class PublicReportController {
 
     private final PublicReportService service;

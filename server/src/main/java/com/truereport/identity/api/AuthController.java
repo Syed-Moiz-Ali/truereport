@@ -4,6 +4,7 @@ import com.truereport.identity.AuthService;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import jakarta.validation.Valid;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -26,16 +27,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @PermitAll
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request.email(), request.password()));
     }
 
     @PostMapping("/refresh")
+    @PermitAll
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         return ResponseEntity.ok(authService.refresh(request.refreshToken()));
     }
 
     @PostMapping("/2fa/verify")
+    @PermitAll
     public ResponseEntity<AuthResponse> verifyTwoFactor(@Valid @RequestBody TwoFactorVerifyRequest request) {
         return ResponseEntity.ok(authService.verifyTwoFactor(request.challengeToken(), request.code()));
     }
@@ -63,6 +67,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logout(JwtAuthenticationToken authentication) {
         CurrentUser user = currentUserService.require(authentication);
         authService.logout(user.userId(), user.sessionId());
@@ -70,6 +75,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout-all")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logoutAll(JwtAuthenticationToken authentication) {
         CurrentUser user = currentUserService.require(authentication);
         authService.logoutAll(user.userId());
@@ -77,6 +83,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MeResponse> me(JwtAuthenticationToken authentication) {
         CurrentUser user = currentUserService.require(authentication);
         return ResponseEntity.ok(new MeResponse(

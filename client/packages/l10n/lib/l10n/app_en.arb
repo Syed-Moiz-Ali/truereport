@@ -254,6 +254,7 @@
   "reportReady": "Ready",
   "reportFailed": "Failed",
   "retryReport": "Retry report",
+  "retryAction": "Retry",
   "createLink": "Create public link",
   "copyLink": "Copy link",
   "deactivateLink": "Deactivate link",

@@ -1,0 +1,28 @@
+{
+  "sample": "finalize-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1232.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 390.0,
+      "height": 64.0
+    },
+    "summary": {
+      "x": 20.0,
+      "y": 170.0,
+      "width": 350.0,
+      "height": 516.0
+    },
+    "slide": {
+      "x": 20.0,
+      "y": 1148.0,
+      "width": 350.0,
+      "height": 64.0
+    }
+  }
+}

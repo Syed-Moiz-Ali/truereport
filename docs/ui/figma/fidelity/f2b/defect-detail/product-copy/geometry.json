@@ -1,0 +1,22 @@
+{
+  "sample": "defect-detail-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1032.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "segmented": {
+      "x": 20.0,
+      "y": 462.0,
+      "width": 350.0,
+      "height": 52.0
+    },
+    "save": {
+      "x": 20.0,
+      "y": 1021.0,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

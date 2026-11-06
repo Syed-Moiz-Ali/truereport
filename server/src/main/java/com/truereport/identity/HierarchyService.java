@@ -90,8 +90,7 @@ public class HierarchyService {
             boolean workshopMatches = query.isEmpty()
                     || contains(workshop.getName(), query)
                     || contains(workshop.getBranchName(), query);
-            boolean accountMatches = dto.admins().stream().anyMatch(a -> accountMatches(a, query))
-                    || dto.technicians().stream().anyMatch(a -> accountMatches(a, query));
+            boolean accountMatches = workshopHasAccountMatch(workshop.getId(), filter, query);
             if (!query.isEmpty() && !workshopMatches && !accountMatches) {
                 continue;
             }
@@ -360,7 +359,7 @@ public class HierarchyService {
     }
 
     private PlatformAccountDto account(User user, WorkshopMembership membership) {
-        return new PlatformAccountDto(user.getId(), user.getDisplayName(), user.getEmail(),
+        return new PlatformAccountDto(user.getId(), user.getDisplayName(),
                 maskEmail(user.getEmail()),
                 membership == null ? "UNKNOWN" : membership.getRole().name(),
                 membership == null ? user.getStatus().name() : membership.getStatus(),
@@ -495,10 +494,31 @@ public class HierarchyService {
         return value != null && value.toLowerCase().contains(query);
     }
 
+    private boolean workshopHasAccountMatch(UUID workshopId, String filter, String query) {
+        if (query.isEmpty()) {
+            return true;
+        }
+        for (WorkshopMembership membership : memberships.findByWorkshopIdOrderByRoleAsc(workshopId)) {
+            if (!filter.isEmpty() && !membership.getStatus().equals(filter)) {
+                continue;
+            }
+            User user = users.findById(membership.getUserId()).orElse(null);
+            if (user == null) {
+                continue;
+            }
+            if (contains(user.getDisplayName(), query)
+                    || contains(user.getEmail(), query)
+                    || contains(membership.getRole().name(), query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean accountMatches(PlatformAccountDto account, String query) {
         return query.isEmpty()
                 || contains(account.displayName(), query)
-                || contains(account.email(), query)
+                || contains(account.emailMasked(), query)
                 || contains(account.role(), query);
     }
 

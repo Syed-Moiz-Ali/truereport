@@ -1,0 +1,33 @@
+{
+  "sample": "defect-detail-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "⁦JOB-5A0001⁩ • IN PROGRESS",
+    "Inspection",
+    "EXTERIOR BODYWORK",
+    "Front Left Door",
+    "INSPECTION STATUS",
+    "Pass",
+    "Minor",
+    "Major",
+    "Not checked",
+    "Could not verify",
+    "Not applicable",
+    "DEFECT CLASSIFICATION",
+    "Minor",
+    "Moderate",
+    "Major",
+    "Safety-critical",
+    "PHOTOGRAPHIC EVIDENCE",
+    "0 / 4",
+    "Take a photo",
+    "Tap to capture",
+    "Take a photo",
+    "Tap to capture",
+    "Add defect notes (e.g. 2.5cm door ding)...",
+    "Save Defect"
+  ]
+}

@@ -779,6 +779,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retryReport => 'Retry report';
 
   @override
+  String get retryAction => 'Retry';
+
+  @override
   String get createLink => 'Create public link';
 
   @override

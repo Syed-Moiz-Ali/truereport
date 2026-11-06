@@ -42,7 +42,7 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
               body: l10n.genericError,
               onRetry: () =>
                   ref.invalidate(inspectionChecklistProvider(widget.jobId)),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

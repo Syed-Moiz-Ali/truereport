@@ -70,7 +70,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                 ref.invalidate(workshopCategoriesProvider);
                 ref.invalidate(publishedItemsProvider(_itemKey));
               },
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

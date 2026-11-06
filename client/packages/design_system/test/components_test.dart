@@ -326,9 +326,7 @@ class _GoldenVariant {
 
 const _goldenVariants = <_GoldenVariant>[
   _GoldenVariant('en_light', false, Brightness.light),
-  _GoldenVariant('en_dark', false, Brightness.dark),
   _GoldenVariant('ar_light', true, Brightness.light),
-  _GoldenVariant('ar_dark', true, Brightness.dark),
 ];
 
 const _goldenBoundaryKey = ValueKey<String>('golden-boundary');
@@ -574,7 +572,8 @@ void main() {
     const widths = <double>[390, 600, 900, 1280];
     const scales = <double>[1, 1.5, 2];
     for (final isArabic in const <bool>[false, true]) {
-      for (final brightness in Brightness.values) {
+      // Light-only product (C0): dark matrix cases removed.
+      for (final brightness in const <Brightness>[Brightness.light]) {
         for (final width in widths) {
           for (final scale in scales) {
             final name =

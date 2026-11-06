@@ -94,18 +94,7 @@ class DefectDetailView extends StatelessWidget {
                       borderRadius: BorderRadiusDirectional.vertical(
                         top: Radius.circular(48),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x14000000),
-                          blurRadius: 30,
-                          offset: Offset(0, -4),
-                        ),
-                        BoxShadow(
-                          color: Color(0x1A000000),
-                          blurRadius: 60,
-                          offset: Offset(0, -18),
-                        ),
-                      ],
+                      boxShadow: Fx.upShadow,
                     ),
                     child: SingleChildScrollView(
                       padding: const EdgeInsetsDirectional.fromSTEB(
@@ -117,17 +106,13 @@ class DefectDetailView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Center(
-                            child: Container(
-                              width: 44,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE3E2E7),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
+                          const SizedBox(
+                            height: 10,
+                            child: Center(
+                              child: _GrabHandle(),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: _M.padLarge),
                           Row(
                             children: [
                               Expanded(
@@ -140,16 +125,16 @@ class DefectDetailView extends StatelessWidget {
                                           width: 10,
                                           height: 10,
                                           decoration: const BoxDecoration(
-                                            color: Color(0xFFF59E0B),
+                                            color: F2b.amber,
                                             shape: BoxShape.circle,
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: _M.gapSmall),
                                         Flexible(
                                           child: Text(
                                             category,
                                             maxLines: 1,
-                                            overflow: TextOverflow.clip,
+                                            overflow: TextOverflow.ellipsis,
                                             style: Fx.text(
                                               11,
                                               14,
@@ -161,11 +146,11 @@ class DefectDetailView extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: _M.gapXSmall),
                                     Text(
                                       label,
                                       maxLines: 1,
-                                      overflow: TextOverflow.clip,
+                                      overflow: TextOverflow.ellipsis,
                                       style: Fx.display26.copyWith(
                                         color: Fx.ink,
                                       ),
@@ -173,7 +158,7 @@ class DefectDetailView extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: _M.gapMid),
                               Container(
                                 width: 40,
                                 height: 40,
@@ -191,9 +176,9 @@ class DefectDetailView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: _M.padLarge),
                           F2bSectionLabel(l10n.result),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: _M.gapXSmall),
                           F2bSegmented(
                             labels: _primaryResults
                                 .map((code) => resultLabel(l10n, code))
@@ -205,7 +190,7 @@ class DefectDetailView extends StatelessWidget {
                                 ? (_) {}
                                 : (index) => onResult(_primaryResults[index]),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: _M.gapSmall),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -222,9 +207,9 @@ class DefectDetailView extends StatelessWidget {
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: _M.padLarge),
                           F2bSectionLabel(l10n.severity),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: _M.gapXSmall),
                           Opacity(
                             opacity: defect ? 1 : 0.5,
                             child: Wrap(
@@ -247,7 +232,7 @@ class DefectDetailView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: _M.padLarge),
                           Row(
                             children: [
                               Expanded(
@@ -255,11 +240,12 @@ class DefectDetailView extends StatelessWidget {
                               ),
                               Text(
                                 '${photos.length} / ${item.minPhotos > 0 ? item.minPhotos : 1}',
+                                textDirection: TextDirection.ltr,
                                 style: Fx.caption.copyWith(color: Fx.muted),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: _M.gapXSmall),
                           Row(
                             children: [
                               Expanded(
@@ -267,9 +253,7 @@ class DefectDetailView extends StatelessWidget {
                                   label: photos.isNotEmpty
                                       ? l10n.attachments
                                       : l10n.addPhoto,
-                                  caption: photos.isNotEmpty
-                                      ? photos.first.createdAt.toIso8601String()
-                                      : l10n.photoRequired,
+                                  caption: l10n.photoRequired,
                                   image: photos.isEmpty
                                       ? null
                                       : MemoryImage(
@@ -277,10 +261,10 @@ class DefectDetailView extends StatelessWidget {
                                             photos.first.bytes,
                                           ),
                                         ),
-                                  onTap: onAddPhoto,
+                                  onTap: finalized ? null : onAddPhoto,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: _M.padMid),
                               Expanded(
                                 child: F2bEvidenceTile(
                                   label: l10n.addPhoto,
@@ -291,20 +275,22 @@ class DefectDetailView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: _M.padLarge),
                           F2bNoteField(
                             controller: noteController,
                             hint: l10n.note,
                             maxLines: 2,
                           ),
-                          const SizedBox(height: 20),
-                          FxButton(
-                            label: l10n.saveAnswer,
-                            onPressed: busy || finalized ? null : onSave,
-                            icon: const FxIcon(
-                              id: '1_8134',
-                              size: 13.58,
-                              color: Fx.white,
+                          const SizedBox(height: _M.padLarge),
+                          F2bFocusFrame(
+                            child: FxButton(
+                              label: l10n.saveAnswer,
+                              onPressed: busy || finalized ? null : onSave,
+                              icon: const FxIcon(
+                                id: '1_8134',
+                                size: 13.58,
+                                color: Fx.white,
+                              ),
                             ),
                           ),
                         ],
@@ -316,6 +302,24 @@ class DefectDetailView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _GrabHandle extends StatelessWidget {
+  const _GrabHandle();
+
+  @override
+  Widget build(BuildContext context) {
+    // Figma node 1:8059: 44x6 bar, fill #E3E2E7, pill radius. No Fx token
+    // covers this exact neutral, so the Figma value is kept (I7).
+    return Container(
+      width: 44,
+      height: 6,
+      decoration: BoxDecoration(
+        color: F2b.grabTrack,
+        borderRadius: BorderRadius.circular(Fx.pillRadius),
       ),
     );
   }
@@ -338,56 +342,67 @@ class _ContextHalf extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Figma 1:8022: 390x320, side padding 20. Figma 1:8023: 350x56 bar with
+    // 8px top pad holding two 48px buttons; the total (8 + 48) is the 56px.
+    final statusLabel =
+        '\u2066${job.reference.toUpperCase()}\u2069 • ${technicianStatusLabel(l10n, job.status).toUpperCase()}';
     return SizedBox(
       height: 320,
       child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
+        padding: const EdgeInsetsDirectional.fromSTEB(_M.gutter, 0, _M.gutter, 0),
         child: Column(
           children: [
-            SizedBox(
-              height: 56,
-              child: Row(
-                children: [
-                  F2bIconButton(
-                    iconId: '1_8026',
-                    semanticLabel: MaterialLocalizations.of(context)
-                        .closeButtonTooltip,
-                    onPressed: onClose,
-                    size: 48,
-                    iconSize: 14,
-                  ),
-                  const Spacer(),
-                  F2bStatusPill(
-                    label:
-                        '${job.reference} • ${technicianStatusLabel(l10n, job.status).toUpperCase()}',
-                    background: Fx.whiteE5,
-                    foreground: Fx.ink,
-                    dot: Fx.emerald,
-                    style: Fx.text(
-                      11,
-                      14,
-                      FontWeight.w600,
-                      0.55,
-                      color: Fx.ink,
+            Padding(
+              padding: const EdgeInsetsDirectional.only(top: _M.gapSmall),
+              child: SizedBox(
+                height: 48,
+                child: Row(
+                  children: [
+                    F2bIconButton(
+                      iconId: '1_8026',
+                      semanticLabel: l10n.close,
+                      onPressed: onClose,
+                      size: 48,
+                      iconSize: 14,
                     ),
-                  ),
-                  const Spacer(),
-                  F2bIconButton(
-                    iconId: '1_8033',
-                    semanticLabel: l10n.technicianInspection,
-                    onPressed: null,
-                    size: 48,
-                    iconSize: 18.33,
-                  ),
-                ],
+                    Expanded(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: F2bStatusPill(
+                            label: statusLabel,
+                            background: Fx.whiteE5,
+                            foreground: Fx.ink,
+                            dot: Fx.emerald,
+                            style: Fx.text(
+                              11,
+                              14,
+                              FontWeight.w600,
+                              0.55,
+                              color: Fx.ink,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    F2bIconButton(
+                      iconId: '1_8033',
+                      semanticLabel: l10n.technicianInspection,
+                      onPressed: null,
+                      size: 48,
+                      iconSize: 18.33,
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: _M.gapXSmall),
             Expanded(
               child: Container(
                 width: double.infinity,
-                margin: const EdgeInsetsDirectional.symmetric(vertical: 4),
-                decoration: BoxDecoration(
+                margin: const EdgeInsetsDirectional.symmetric(
+                  vertical: _M.gapXSmall,
+                ),                decoration: BoxDecoration(
                   color: Fx.surfaceLow,
                   borderRadius: BorderRadius.circular(Fx.cardRadius),
                 ),
@@ -395,7 +410,7 @@ class _ContextHalf extends StatelessWidget {
                   alignment: Alignment.center,
                   children: [
                     TechnicianVehicleSilhouette(
-                      height: 120,
+                      height: 140,
                       semanticLabel: l10n.technicianVehicleSilhouette,
                     ),
                     PositionedDirectional(
@@ -416,4 +431,14 @@ class _ContextHalf extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Figma-exact spacing for this screen (F2-A `_M` pattern).
+abstract final class _M {
+  static const double gapXSmall = 4;
+  static const double gapSmall = 8;
+  static const double gapMid = 12;
+  static const double padMid = 16;
+  static const double gutter = 20;
+  static const double padLarge = 24;
 }

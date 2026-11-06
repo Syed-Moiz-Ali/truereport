@@ -58,7 +58,7 @@ class _WalkInJobPageState extends ConsumerState<WalkInJobPage> {
               title: l10n.error,
               body: l10n.genericError,
               onRetry: () => ref.invalidate(technicianTemplateVersionsProvider),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

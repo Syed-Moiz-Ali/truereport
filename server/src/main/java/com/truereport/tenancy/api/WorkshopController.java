@@ -3,6 +3,7 @@ package com.truereport.tenancy.api;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import com.truereport.tenancy.WorkshopService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ public class WorkshopController {
     }
 
     @GetMapping("/workshops/{workshopId}")
+    @PreAuthorize("isAuthenticated()")
     public WorkshopDto getWorkshop(@PathVariable UUID workshopId, JwtAuthenticationToken authentication) {
         CurrentUser caller = currentUserService.require(authentication);
         return workshopService.getWorkshop(workshopId, caller);

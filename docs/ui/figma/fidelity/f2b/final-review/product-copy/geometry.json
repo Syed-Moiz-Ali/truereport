@@ -1,0 +1,28 @@
+{
+  "sample": "final-review-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1008.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 390.0,
+      "height": 64.0
+    },
+    "banner": {
+      "x": 20.0,
+      "y": 360.0,
+      "width": 350.0,
+      "height": 88.0
+    },
+    "continue": {
+      "x": 20.0,
+      "y": 684.0,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

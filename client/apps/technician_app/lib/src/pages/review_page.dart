@@ -48,7 +48,7 @@ class _ReviewPageState extends ConsumerState<ReviewPage> {
                 ref.invalidate(inspectionChecklistProvider(widget.jobId));
                 ref.invalidate(technicianJobProvider(widget.jobId));
               },
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

@@ -1,0 +1,33 @@
+{
+  "sample": "defect-detail-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "⁦JOB-2601⁩ • ASSIGNED",
+    "Inspection",
+    "Braking",
+    "Brake pad thickness",
+    "RESULT",
+    "No issue observed",
+    "Attention recommended",
+    "Defect found",
+    "Not checked",
+    "Could not verify",
+    "Not applicable",
+    "SEVERITY",
+    "Minor",
+    "Moderate",
+    "Major",
+    "Safety-critical",
+    "PHOTOS",
+    "0 / 1",
+    "Add photo",
+    "Add at least one photo.",
+    "Add photo",
+    "Add at least one photo.",
+    "Note",
+    "Save answer"
+  ]
+}

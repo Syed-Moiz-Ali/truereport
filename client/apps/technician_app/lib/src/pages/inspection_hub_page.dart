@@ -39,7 +39,7 @@ class InspectionHubPage extends ConsumerWidget {
                 ref.invalidate(technicianJobProvider(jobId));
                 ref.invalidate(inspectionChecklistProvider(jobId));
               },
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

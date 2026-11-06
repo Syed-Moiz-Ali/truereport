@@ -4,6 +4,7 @@ import com.truereport.jobs.WorkshopJobService;
 import com.truereport.shared.security.CurrentUserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/workshop/jobs")
+@PreAuthorize("hasRole('WORKSHOP_ADMIN')")
 public class WorkshopJobController {
 
     private final WorkshopJobService service;

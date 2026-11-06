@@ -59,7 +59,7 @@ class _JobFormPageState extends ConsumerState<JobFormPage> {
               title: l10n.error,
               body: l10n.genericError,
               onRetry: () => ref.invalidate(templateVersionOptionsProvider),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

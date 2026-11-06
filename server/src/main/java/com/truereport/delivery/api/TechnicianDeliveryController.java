@@ -2,6 +2,7 @@ package com.truereport.delivery.api;
 
 import com.truereport.delivery.DeliveryService;
 import com.truereport.shared.security.CurrentUserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/technician/jobs/{jobId}/deliveries")
+@PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianDeliveryController {
 
     private final DeliveryService service;

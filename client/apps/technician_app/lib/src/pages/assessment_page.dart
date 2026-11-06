@@ -66,7 +66,7 @@ class _AssessmentPageState extends ConsumerState<AssessmentPage> {
               body: l10n.genericError,
               onRetry: () =>
                   ref.invalidate(inspectionChecklistProvider(widget.jobId)),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
           ),
         ),

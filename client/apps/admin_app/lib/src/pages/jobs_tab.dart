@@ -119,7 +119,7 @@ class _JobsTabState extends ConsumerState<JobsTab> {
                   title: l10n.error,
                   body: l10n.genericError,
                   onRetry: () => ref.invalidate(jobsProvider(_key)),
-                  retryLabel: l10n.search,
+                  retryLabel: l10n.retryAction,
                 ),
               ),
             ),

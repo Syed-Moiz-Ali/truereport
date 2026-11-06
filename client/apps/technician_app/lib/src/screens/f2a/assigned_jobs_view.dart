@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/ui_helpers.dart';
@@ -10,16 +11,9 @@ String formatOdometer(int? value, String? unit) {
   if (value == null) {
     return '';
   }
-  final digits = value.abs().toString();
-  final buffer = StringBuffer();
-  for (var index = 0; index < digits.length; index++) {
-    if (index > 0 && (digits.length - index) % 3 == 0) {
-      buffer.write(',');
-    }
-    buffer.write(digits[index]);
-  }
-  final prefix = value < 0 ? '-' : '';
-  return '$prefix${buffer.toString()} ${(unit ?? 'KM').toUpperCase()}';
+  final formatted =
+      NumberFormat.decimalPattern(Intl.getCurrentLocale()).format(value);
+  return '$formatted ${(unit ?? 'KM').toUpperCase()}';
 }
 
 String scheduledTimeUtc4(String scheduledAt) {
@@ -28,9 +22,8 @@ String scheduledTimeUtc4(String scheduledAt) {
     return '';
   }
   final local = parsed.toUtc().add(const Duration(hours: 4));
-  final hour = local.hour.toString().padLeft(2, '0');
-  final minute = local.minute.toString().padLeft(2, '0');
-  return '$hour:$minute UTC+4';
+  final time = DateFormat.Hm(Intl.getCurrentLocale()).format(local);
+  return '$time UTC+4';
 }
 
 bool scheduledTodayUtc4(String scheduledAt, DateTime nowUtc) {

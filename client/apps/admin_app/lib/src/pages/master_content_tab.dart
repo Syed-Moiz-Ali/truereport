@@ -58,7 +58,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
               title: l10n.error,
               body: l10n.genericError,
               onRetry: () => ref.invalidate(categoriesProvider),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
             data: (list) => list.isEmpty
                 ? EmptyState(title: l10n.noResults, body: l10n.noResults)
@@ -163,7 +163,7 @@ class _MasterContentTabState extends ConsumerState<MasterContentTab> {
               title: l10n.error,
               body: l10n.genericError,
               onRetry: () => ref.invalidate(itemsProvider(_itemKey)),
-              retryLabel: l10n.search,
+              retryLabel: l10n.retryAction,
             ),
             data: (list) => list.isEmpty
                 ? EmptyState(title: l10n.noResults, body: l10n.noResults)
@@ -341,7 +341,7 @@ class _GuideImageManagerState extends ConsumerState<GuideImageManager> {
             title: l10n.error,
             body: l10n.genericError,
             onRetry: () => ref.invalidate(guideImagesProvider),
-            retryLabel: l10n.search,
+            retryLabel: l10n.retryAction,
           ),
           data: (list) => list.isEmpty
               ? EmptyState(title: l10n.noResults, body: l10n.noResults)
