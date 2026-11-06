@@ -110,6 +110,37 @@ class TechnicianJob {
   };
 }
 
+
+class EquipmentItem {
+  const EquipmentItem({
+    required this.equipmentId,
+    required this.code,
+    required this.labelEn,
+    required this.labelAr,
+    required this.status,
+    required this.sortOrder,
+  });
+
+  final String equipmentId;
+  final String code;
+  final String labelEn;
+  final String labelAr;
+  final String status;
+  final int sortOrder;
+
+  String labelFor(String languageCode) =>
+      languageCode == 'ar' ? labelAr : labelEn;
+
+  factory EquipmentItem.fromJson(Map<String, dynamic> json) => EquipmentItem(
+    equipmentId: json['equipmentId'] as String? ?? '',
+    code: json['code'] as String? ?? '',
+    labelEn: json['labelEn'] as String? ?? '',
+    labelAr: json['labelAr'] as String? ?? '',
+    status: json['status'] as String? ?? '',
+    sortOrder: json['sortOrder'] as int? ?? 0,
+  );
+}
+
 class InspectionAssessment {
   const InspectionAssessment({
     required this.id,

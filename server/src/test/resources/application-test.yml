@@ -50,3 +50,8 @@ truereport:
 logging:
   level:
     org.hibernate.SQL: WARN
+
+management:
+  health:
+    mail:
+      enabled: false

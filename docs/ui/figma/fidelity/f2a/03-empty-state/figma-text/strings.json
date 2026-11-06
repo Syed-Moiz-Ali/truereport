@@ -1,0 +1,28 @@
+{
+  "sample": "03-empty-state-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "DV",
+    "QUEUE EMPTY",
+    "0 JOBS",
+    "Welcome back,",
+    "David Vance",
+    "0 IN QUEUE",
+    "You are all caught up",
+    "No pending inspections are assigned to you.",
+    "Refresh queue",
+    "TODAY'S SUMMARY",
+    "0 Completed",
+    "Coverage",
+    "Inspection Queue",
+    "ONLINE\nSYNC",
+    "DV",
+    "Jobs",
+    "Finalized",
+    "Sync",
+    "Profile"
+  ]
+}

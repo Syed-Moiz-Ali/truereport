@@ -15,11 +15,14 @@ import org.springframework.http.MediaType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -322,6 +325,120 @@ class TechnicianInspectionIT extends IntegrationTestBase {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void technicianReadsOwnJobEquipmentWithLabelsCodeStatusAndOrder() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login technician = login("tech.a@test.local");
+        Login platform = login("platform@test.local");
+        EquipmentRef late = equipment(platform, "EQ-LATE", "Late equipment", "معدات متأخرة", 30);
+        EquipmentRef early = equipment(platform, "EQ-EARLY", "Early equipment", "معدات مبكرة", 10);
+        EquipmentRef middle = equipment(platform, "EQ-MIDDLE", "Middle equipment", "معدات متوسطة", 20);
+        UUID categoryId = category("equipment");
+        MasterItem item = item(categoryId, "SAMPLE-EQ-001", "Equipment item", "OPTIONAL", "NONE", 0,
+                "{}", List.of(late.id(), early.id(), middle.id()));
+        String templateId = template(adminA, "Equipment inspection", List.of(item.versionId()), "CAR");
+        String jobId = job(adminA, publishedVersion(adminA, templateId), "Equipment customer");
+        assign(adminA, jobId, fixture.techA().getId());
+        start(technician, jobId);
+
+        JsonNode equipment = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/equipment");
+        JsonNode items = equipment.get("items");
+        assertThat(items.size()).isEqualTo(3);
+        assertEquipmentItem(items.get(0), early);
+        assertEquipmentItem(items.get(1), middle);
+        assertEquipmentItem(items.get(2), late);
+        assertThat(items.get(0).get("sortOrder").asInt()).isLessThan(items.get(1).get("sortOrder").asInt());
+        assertThat(items.get(1).get("sortOrder").asInt()).isLessThan(items.get(2).get("sortOrder").asInt());
+    }
+
+    @Test
+    void equipmentIdsAndItemsAgreeInMembership() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login technician = login("tech.a@test.local");
+        Login platform = login("platform@test.local");
+        EquipmentRef first = equipment(platform, "EQ-MEM-1", "Membership one", "عضوية واحد", 2);
+        EquipmentRef second = equipment(platform, "EQ-MEM-2", "Membership two", "عضوية اثنان", 1);
+        UUID categoryId = category("equipment-membership");
+        MasterItem item = item(categoryId, "SAMPLE-EQ-MEM", "Equipment membership", "OPTIONAL",
+                "NONE", 0, "{}", List.of(first.id(), second.id()));
+        String templateId = template(adminA, "Equipment membership", List.of(item.versionId()), "CAR");
+        String jobId = job(adminA, publishedVersion(adminA, templateId), "Equipment membership customer");
+        assign(adminA, jobId, fixture.techA().getId());
+        start(technician, jobId);
+
+        JsonNode equipment = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/equipment");
+        Set<UUID> ids = uuids(equipment.get("equipmentIds"));
+        Set<UUID> itemIds = new LinkedHashSet<>();
+        equipment.get("items").forEach(value -> itemIds.add(UUID.fromString(value.get("equipmentId").asText())));
+        assertThat(itemIds).isEqualTo(ids);
+        assertThat(ids).containsExactlyInAnyOrder(first.id(), second.id());
+    }
+
+    @Test
+    void technicianCannotReadAnotherWorkshopsJobEquipmentAndEndpointIsReadOnly() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login technicianA = login("tech.a@test.local");
+        Login technicianB = login("tech.b@test.local");
+        Login platform = login("platform@test.local");
+        EquipmentRef ref = equipment(platform, "EQ-ISO", "Isolation equipment", "معدات العزل", 5);
+        UUID categoryId = category("equipment-isolation");
+        MasterItem item = item(categoryId, "SAMPLE-EQ-ISO", "Equipment isolation", "OPTIONAL", "NONE", 0,
+                "{}", List.of(ref.id()));
+        String templateId = template(adminA, "Equipment isolation", List.of(item.versionId()), "CAR");
+        String jobId = job(adminA, publishedVersion(adminA, templateId), "Equipment isolation customer");
+        assign(adminA, jobId, fixture.techA().getId());
+        start(technicianA, jobId);
+
+        String path = "/api/v1/technician/jobs/" + jobId + "/equipment";
+        mockMvc.perform(get(path)
+                        .header("Authorization", "Bearer " + technicianB.accessToken()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get(path)
+                        .header("Authorization", "Bearer " + adminA.accessToken()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get(path)
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post(path)
+                        .header("Authorization", "Bearer " + technicianA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isMethodNotAllowed());
+        mockMvc.perform(put(path)
+                        .header("Authorization", "Bearer " + technicianA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isMethodNotAllowed());
+        mockMvc.perform(delete(path)
+                        .header("Authorization", "Bearer " + technicianA.accessToken()))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    private EquipmentRef equipment(Login platform, String code, String labelEn, String labelAr,
+                                   int sortOrder) throws Exception {
+        JsonNode created = postJson(platform, "/api/v1/platform/master/equipment",
+                "{\"code\":\"" + code + "\",\"labelEn\":\"" + labelEn + "\",\"labelAr\":\"" + labelAr
+                        + "\",\"sortOrder\":" + sortOrder + "}");
+        return new EquipmentRef(UUID.fromString(created.get("id").asText()), code, labelEn, labelAr,
+                sortOrder, "ACTIVE");
+    }
+
+    private void assertEquipmentItem(JsonNode item, EquipmentRef expected) {
+        assertThat(item.get("equipmentId").asText()).isEqualTo(expected.id().toString());
+        assertThat(item.get("code").asText()).isEqualTo(expected.code());
+        assertThat(item.get("labelEn").asText()).isEqualTo(expected.labelEn());
+        assertThat(item.get("labelAr").asText()).isEqualTo(expected.labelAr());
+        assertThat(item.get("status").asText()).isEqualTo(expected.status());
+        assertThat(item.get("sortOrder").asInt()).isEqualTo(expected.sortOrder());
+    }
+
+    private Set<UUID> uuids(JsonNode array) {
+        Set<UUID> values = new LinkedHashSet<>();
+        array.forEach(value -> values.add(UUID.fromString(value.asText())));
+        return values;
+    }
+
     private void assertTechnicianForbidden(Login login, String path, String method) throws Exception {
         var request = switch (method) {
             case "POST" -> post(path)
@@ -455,12 +572,18 @@ class TechnicianInspectionIT extends IntegrationTestBase {
 
     private MasterItem item(UUID categoryId, String code, String label, String note,
                             String evidence, int minPhotos, String applicability) {
+        return item(categoryId, code, label, note, evidence, minPhotos, applicability, List.of());
+    }
+
+    private MasterItem item(UUID categoryId, String code, String label, String note,
+                            String evidence, int minPhotos, String applicability,
+                            List<UUID> equipmentIds) {
         ItemDetailDto detail = masterContent.createItem(platformActor(), new ItemCreateRequest(
                 code, categoryId, label, "Arabic " + label, "Instruction " + label,
                 "Arabic instruction " + label, true,
                 List.of("NO_ISSUE_OBSERVED", "DEFECT_FOUND", "NOT_CHECKED", "NOT_APPLICABLE"),
                 "{\"DEFECT_FOUND\":\"MODERATE\"}", applicability, List.of(),
-                note, evidence, minPhotos, List.of(), null));
+                note, evidence, minPhotos, equipmentIds, null));
         UUID itemId = detail.item().id();
         UUID versionId = detail.versions().get(0).id();
         masterContent.publish(platformActor(), itemId, versionId);
@@ -559,5 +682,9 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private record MasterItem(UUID itemId, UUID versionId) {
+    }
+
+    private record EquipmentRef(UUID id, String code, String labelEn, String labelAr,
+                                int sortOrder, String status) {
     }
 }

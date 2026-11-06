@@ -1,0 +1,26 @@
+{
+  "sample": "empty-state-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "SHIFT ACTIVE",
+    "Bay 04",
+    "Welcome back,",
+    "David Vance",
+    "0 IN QUEUE",
+    "You are all caught up!",
+    "No pending vehicle inspections assigned\nto you today.",
+    "Refresh Queue",
+    "TODAY'S SUMMARY",
+    "0 Completed",
+    "100% Pass Rate",
+    "Inspection Queue",
+    "LIVE\nSYNC",
+    "Intake",
+    "Fleet",
+    "Sync",
+    "Profile"
+  ]
+}

@@ -901,4 +901,355 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deliveryLink => 'Link';
+
+  @override
+  String get technicianWelcomeBack => 'Welcome back,';
+
+  @override
+  String technicianJobsInQueue(int count) {
+    return '$count in queue';
+  }
+
+  @override
+  String get technicianAssignedToday => 'Assigned today';
+
+  @override
+  String get technicianPendingCheck => 'Pending check';
+
+  @override
+  String get technicianJobsTitle => 'Jobs';
+
+  @override
+  String get technicianSyncTitle => 'Sync';
+
+  @override
+  String get technicianProfileTitle => 'Profile';
+
+  @override
+  String get technicianProfileSubtitle => 'Signed in as';
+
+  @override
+  String get technicianLanguage => 'Language';
+
+  @override
+  String get technicianAllCaughtUp => 'You are all caught up';
+
+  @override
+  String get technicianNoJobsBody =>
+      'No pending inspections are assigned to you.';
+
+  @override
+  String get technicianRefreshQueue => 'Refresh queue';
+
+  @override
+  String get technicianQueueRefreshed => 'Queue refreshed';
+
+  @override
+  String get technicianJobIntake => 'Job intake';
+
+  @override
+  String get technicianVehicleInfo => 'Vehicle info';
+
+  @override
+  String get technicianCustomerInfo => 'Customer info';
+
+  @override
+  String get technicianMake => 'Make';
+
+  @override
+  String get technicianModel => 'Model';
+
+  @override
+  String get technicianYear => 'Year';
+
+  @override
+  String get technicianOdometer => 'Odometer';
+
+  @override
+  String get technicianVin => 'VIN';
+
+  @override
+  String get technicianPlate => 'Plate';
+
+  @override
+  String get technicianPhone => 'Phone';
+
+  @override
+  String get technicianEmail => 'Email';
+
+  @override
+  String get technicianTemplate => 'Inspection template';
+
+  @override
+  String get technicianScope => 'Scope';
+
+  @override
+  String get technicianNotProvided => 'Not provided';
+
+  @override
+  String get technicianCopyVin => 'Copy VIN';
+
+  @override
+  String get technicianVinCopied => 'VIN copied';
+
+  @override
+  String get technicianConsentIntro =>
+      'Choose each consent separately. Nothing is recorded until you save.';
+
+  @override
+  String get technicianConsentProcessingBody =>
+      'Record the customer answer for processing inspection data.';
+
+  @override
+  String get technicianConsentPublicLinkBody =>
+      'Record the customer answer for sharing the public report link.';
+
+  @override
+  String get technicianConsentSave => 'Save consent';
+
+  @override
+  String get technicianConsentNotRecorded => 'Not recorded yet';
+
+  @override
+  String get technicianChecksDone => 'checks done';
+
+  @override
+  String get technicianInspectionHub => 'Inspection hub';
+
+  @override
+  String get technicianInspectionInProgress => 'Inspection in progress';
+
+  @override
+  String get technicianInspectionModules => 'Inspection modules';
+
+  @override
+  String technicianCategoriesCount(int count) {
+    return '$count categories';
+  }
+
+  @override
+  String technicianChecksCount(int done, int total) {
+    return '$done/$total checks';
+  }
+
+  @override
+  String get technicianModuleDone => 'Done';
+
+  @override
+  String get technicianModuleInProgress => 'In progress';
+
+  @override
+  String get technicianModuleNotStarted => 'Not started';
+
+  @override
+  String technicianNoIssueCount(int count) {
+    return '$count no issue observed';
+  }
+
+  @override
+  String technicianAttentionCount(int count) {
+    return '$count attention';
+  }
+
+  @override
+  String technicianDefectsCount(int count) {
+    return '$count defects';
+  }
+
+  @override
+  String get technicianContinueChecklist => 'Continue checklist';
+
+  @override
+  String technicianCoverageSemantics(int done, int total) {
+    return '$done of $total checks done';
+  }
+
+  @override
+  String get technicianVehicleSilhouette => 'Vehicle type silhouette';
+
+  @override
+  String get technicianUnknownVehicle => 'Vehicle';
+
+  @override
+  String get technicianStartHint =>
+      'Start the inspection when the vehicle and customer details are confirmed.';
+
+  @override
+  String get technicianSignInTagline =>
+      'Vehicle inspection reports for partner workshops.';
+
+  @override
+  String get technicianAccountNote =>
+      'Your workshop account is created by a Platform Admin.';
+
+  @override
+  String get technicianLanguagePrompt => 'Choose your language';
+
+  @override
+  String get technicianSignedInAs => 'Signed in as';
+
+  @override
+  String get technicianPendingSync => 'Changes saved on this phone';
+
+  @override
+  String get technicianAllSynced => 'No changes waiting to sync';
+
+  @override
+  String get technicianEquipmentIdsOnly =>
+      'Equipment names are not available from the server in this build.';
+
+  @override
+  String technicianOfTotal(int total) {
+    return 'of $total';
+  }
+
+  @override
+  String get technicianInspectionQueue => 'Inspection Queue';
+
+  @override
+  String get technicianLiveSync => 'LIVE\nSYNC';
+
+  @override
+  String get technicianOnlineSync => 'ONLINE\nSYNC';
+
+  @override
+  String get technicianOfflineSync => 'OFFLINE\nSYNC';
+
+  @override
+  String technicianShiftToday(int count) {
+    return 'TODAY • $count JOBS';
+  }
+
+  @override
+  String get technicianShiftActive => 'SHIFT ACTIVE';
+
+  @override
+  String get technicianQueueEmpty => 'QUEUE EMPTY';
+
+  @override
+  String technicianJobsCount(int count) {
+    return '$count JOBS';
+  }
+
+  @override
+  String get technicianTodaySummary => 'TODAY\'S SUMMARY';
+
+  @override
+  String technicianCompletedToday(int count) {
+    return '$count Completed';
+  }
+
+  @override
+  String get technicianQueueCurrent => 'Queue is current';
+
+  @override
+  String get technicianCoverageOnly => 'Coverage';
+
+  @override
+  String get technicianPasswordHelp => 'Password help';
+
+  @override
+  String get technicianNeedTechnicianAccess => 'Need technician access?';
+
+  @override
+  String get technicianContactAdmin => 'Contact Admin';
+
+  @override
+  String get technicianSecureDelivery => 'Secure report delivery';
+
+  @override
+  String get technicianRequiredEquipment => 'Required Equipment';
+
+  @override
+  String get technicianPreInspectionSetup => 'PRE-INSPECTION SETUP';
+
+  @override
+  String technicianEquipmentVerified(int verified, int total) {
+    return '$verified of $total Verified';
+  }
+
+  @override
+  String get technicianEquipmentIntro =>
+      'Ensure all diagnostic hardware is calibrated and paired before starting the inspection.';
+
+  @override
+  String get technicianEquipmentStandards => 'Workshop equipment standards';
+
+  @override
+  String get technicianEquipmentNameUnavailable => 'Name unavailable';
+
+  @override
+  String get technicianHubTitle => 'Intake Hub';
+
+  @override
+  String get technicianChecksDoneLabel => 'CHECKS DONE';
+
+  @override
+  String get technicianQueued => 'Queued';
+
+  @override
+  String get technicianNoConditionScore => 'No condition score';
+
+  @override
+  String get technicianVinChassis => 'VIN / Chassis';
+
+  @override
+  String get technicianCustomerChip => 'Customer';
+
+  @override
+  String get technicianCall => 'Call customer';
+
+  @override
+  String get technicianMessage => 'Message customer';
+
+  @override
+  String get technicianServicePackage => 'Service Package';
+
+  @override
+  String get technicianJobDetailsReady => 'Job details ready';
+
+  @override
+  String get technicianInspection => 'Inspection';
+
+  @override
+  String get technicianConsentStep => 'CONSENT • FINAL STEP';
+
+  @override
+  String get technicianConsentDecision => 'Consent decision';
+
+  @override
+  String get technicianNoSignature => 'No signature captured';
+
+  @override
+  String get technicianAuthorizedRepresentative => 'Authorized representative';
+
+  @override
+  String get technicianConsentHint => 'Choose Granted or Refused';
+
+  @override
+  String get technicianDataStorage => 'Data storage';
+
+  @override
+  String get technicianUnavailable => 'Not available in this version';
+
+  @override
+  String get technicianTimestamp => 'Timestamp';
+
+  @override
+  String get technicianClear => 'Clear';
+
+  @override
+  String get technicianSecurityLine => 'Authorised workshop staff only';
+
+  @override
+  String get technicianEquipmentStandardsBody =>
+      'Equipment availability is confirmed by the workshop.';
+
+  @override
+  String get technicianProceed => 'Proceed';
+
+  @override
+  String technicianItemsCount(int count) {
+    return '$count items';
+  }
 }

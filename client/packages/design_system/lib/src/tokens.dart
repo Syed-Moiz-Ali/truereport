@@ -1,4 +1,4 @@
-import 'package:design_system/src/generated/tokens.g.dart';
+﻿import 'package:design_system/src/generated/tokens.g.dart';
 import 'package:design_system/src/reduce_motion.dart';
 import 'package:flutter/material.dart';
 
@@ -300,6 +300,11 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
     required this.borderWidth,
     required this.dividerWidth,
     required this.maxContentWidth,
+    required this.heroHeight,
+    required this.heroSilhouetteHeight,
+    required this.jobCardMinHeight,
+    required this.emptyArt,
+    required this.authContentWidth,
   });
 
   static const standard = AppSizingTokens(
@@ -318,6 +323,11 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
     borderWidth: TrSizing.borderWidth,
     dividerWidth: TrSizing.dividerWidth,
     maxContentWidth: TrSizing.maxContentWidth,
+    heroHeight: TrSizing.heroHeight,
+    heroSilhouetteHeight: TrSizing.heroSilhouetteHeight,
+    jobCardMinHeight: TrSizing.jobCardMinHeight,
+    emptyArt: TrSizing.emptyArt,
+    authContentWidth: TrSizing.authContentWidth,
   );
 
   final double targetMin;
@@ -335,6 +345,11 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
   final double borderWidth;
   final double dividerWidth;
   final double maxContentWidth;
+  final double heroHeight;
+  final double heroSilhouetteHeight;
+  final double jobCardMinHeight;
+  final double emptyArt;
+  final double authContentWidth;
 
   @override
   AppSizingTokens copyWith({
@@ -353,6 +368,11 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
     double? borderWidth,
     double? dividerWidth,
     double? maxContentWidth,
+    double? heroHeight,
+    double? heroSilhouetteHeight,
+    double? jobCardMinHeight,
+    double? emptyArt,
+    double? authContentWidth,
   }) {
     return AppSizingTokens(
       targetMin: targetMin ?? this.targetMin,
@@ -371,6 +391,12 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
       borderWidth: borderWidth ?? this.borderWidth,
       dividerWidth: dividerWidth ?? this.dividerWidth,
       maxContentWidth: maxContentWidth ?? this.maxContentWidth,
+      heroHeight: heroHeight ?? this.heroHeight,
+      heroSilhouetteHeight:
+          heroSilhouetteHeight ?? this.heroSilhouetteHeight,
+      jobCardMinHeight: jobCardMinHeight ?? this.jobCardMinHeight,
+      emptyArt: emptyArt ?? this.emptyArt,
+      authContentWidth: authContentWidth ?? this.authContentWidth,
     );
   }
 
@@ -399,6 +425,15 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
       borderWidth: _lerp(borderWidth, other.borderWidth, t),
       dividerWidth: _lerp(dividerWidth, other.dividerWidth, t),
       maxContentWidth: _lerp(maxContentWidth, other.maxContentWidth, t),
+      heroHeight: _lerp(heroHeight, other.heroHeight, t),
+      heroSilhouetteHeight: _lerp(
+        heroSilhouetteHeight,
+        other.heroSilhouetteHeight,
+        t,
+      ),
+      jobCardMinHeight: _lerp(jobCardMinHeight, other.jobCardMinHeight, t),
+      emptyArt: _lerp(emptyArt, other.emptyArt, t),
+      authContentWidth: _lerp(authContentWidth, other.authContentWidth, t),
     );
   }
 }
@@ -633,6 +668,8 @@ class AppBrandColors extends ThemeExtension<AppBrandColors> {
     required this.strategy,
     required this.fill,
     required this.onFill,
+    required this.largeFill,
+    required this.onLargeFill,
     required this.ink,
     required this.container,
     required this.onContainer,
@@ -641,6 +678,8 @@ class AppBrandColors extends ThemeExtension<AppBrandColors> {
   final AppColorStrategy strategy;
   final Color fill;
   final Color onFill;
+  final Color largeFill;
+  final Color onLargeFill;
   final Color ink;
   final Color container;
   final Color onContainer;
@@ -650,6 +689,8 @@ class AppBrandColors extends ThemeExtension<AppBrandColors> {
     AppColorStrategy? strategy,
     Color? fill,
     Color? onFill,
+    Color? largeFill,
+    Color? onLargeFill,
     Color? ink,
     Color? container,
     Color? onContainer,
@@ -658,6 +699,8 @@ class AppBrandColors extends ThemeExtension<AppBrandColors> {
       strategy: strategy ?? this.strategy,
       fill: fill ?? this.fill,
       onFill: onFill ?? this.onFill,
+      largeFill: largeFill ?? this.largeFill,
+      onLargeFill: onLargeFill ?? this.onLargeFill,
       ink: ink ?? this.ink,
       container: container ?? this.container,
       onContainer: onContainer ?? this.onContainer,
@@ -673,6 +716,8 @@ class AppBrandColors extends ThemeExtension<AppBrandColors> {
       strategy: t < 0.5 ? strategy : other.strategy,
       fill: Color.lerp(fill, other.fill, t)!,
       onFill: Color.lerp(onFill, other.onFill, t)!,
+      largeFill: Color.lerp(largeFill, other.largeFill, t)!,
+      onLargeFill: Color.lerp(onLargeFill, other.onLargeFill, t)!,
       ink: Color.lerp(ink, other.ink, t)!,
       container: Color.lerp(container, other.container, t)!,
       onContainer: Color.lerp(onContainer, other.onContainer, t)!,
@@ -726,6 +771,10 @@ abstract final class AppTheme {
       strategy: colorStrategy,
       fill: brandToken.fill,
       onFill: brandToken.onFill,
+      largeFill: isLight ? TrColorLight.primaryLarge : TrColorDark.primaryLarge,
+      onLargeFill: isLight
+          ? TrColorLight.onPrimaryLarge
+          : TrColorDark.onPrimaryLarge,
       ink: brandToken.ink,
       container: brandToken.container,
       onContainer: brandToken.onContainer,
@@ -1017,6 +1066,24 @@ extension AppThemeContext on BuildContext {
 
   Duration motionDuration(Duration normal) =>
       ReduceMotion.duration(this, normal);
+
+  /// Large primary technician action label (19 px bold, P1).
+  TextStyle get largeButtonTextStyle {
+    final token = isArabic ? TrTypeArabic.largeButton : TrType.largeButton;
+    return TextStyle(
+      color: colors.onSurface,
+      fontFamily: TrFontFamilies.latin,
+      fontFamilyFallback: const <String>[
+        TrFontFamilies.arabicDefault,
+        TrFontFamilies.cyrillicFallback,
+        TrFontFamilies.cjkFallback,
+      ],
+      fontSize: token.size,
+      height: token.height,
+      fontWeight: _fontWeight(token.weight),
+      letterSpacing: token.tracking,
+    );
+  }
 }
 
 final AppShadowTokens _fallbackShadows = AppShadowTokens(
@@ -1032,6 +1099,8 @@ final AppBrandColors _fallbackBrand = AppBrandColors(
   strategy: AppColorStrategy.emeraldFill,
   fill: TrBrandLight.emeraldFill.fill,
   onFill: TrBrandLight.emeraldFill.onFill,
+  largeFill: TrColorLight.primaryLarge,
+  onLargeFill: TrColorLight.onPrimaryLarge,
   ink: TrBrandLight.emeraldFill.ink,
   container: TrBrandLight.emeraldFill.container,
   onContainer: TrBrandLight.emeraldFill.onContainer,
@@ -1229,3 +1298,4 @@ const _darkColors = _ColorSet(
   inverseSurface: TrColorDark.inverseSurface,
   onInverseSurface: TrColorDark.onInverseSurface,
 );
+

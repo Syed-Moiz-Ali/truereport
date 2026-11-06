@@ -28,6 +28,8 @@ abstract final class TrColorLight {
   static const Color scrim = Color(0x66000000);
   static const Color inverseSurface = Color(0xFF2F3034);
   static const Color onInverseSurface = Color(0xFFF1F0F5);
+  static const Color primaryLarge = Color(0xFF059669);
+  static const Color onPrimaryLarge = Color(0xFFFFFFFF);
 }
 
 abstract final class TrColorDark {
@@ -54,6 +56,8 @@ abstract final class TrColorDark {
   static const Color scrim = Color(0xB3000000);
   static const Color inverseSurface = Color(0xFFE9E7ED);
   static const Color onInverseSurface = Color(0xFF1A1B1F);
+  static const Color primaryLarge = Color(0xFF34D399);
+  static const Color onPrimaryLarge = Color(0xFF002113);
 }
 
 @immutable
@@ -245,6 +249,7 @@ abstract final class TrType {
   static const labelLg = TrTypeStyleToken(size: 14, lineHeight: 18, weight: 700, tracking: -0.14);
   static const labelMd = TrTypeStyleToken(size: 12, lineHeight: 16, weight: 600, tracking: 0.24);
   static const labelSm = TrTypeStyleToken(size: 12, lineHeight: 16, weight: 600, tracking: 0.3);
+  static const largeButton = TrTypeStyleToken(size: 19, lineHeight: 24, weight: 700, tracking: -0.19);
 }
 
 abstract final class TrTypeArabic {
@@ -262,6 +267,7 @@ abstract final class TrTypeArabic {
   static const labelLg = TrTypeStyleToken(size: 14, lineHeight: 18, weight: 700, tracking: 0);
   static const labelMd = TrTypeStyleToken(size: 12, lineHeight: 16, weight: 600, tracking: 0);
   static const labelSm = TrTypeStyleToken(size: 12, lineHeight: 16, weight: 600, tracking: 0);
+  static const largeButton = TrTypeStyleToken(size: 19, lineHeight: 24, weight: 700, tracking: 0);
 }
 
 abstract final class TrFontFamilies {
@@ -397,6 +403,11 @@ abstract final class TrSizing {
   static const double borderWidth = 1.5;
   static const double dividerWidth = 1;
   static const double maxContentWidth = 1280;
+  static const double heroHeight = 176;
+  static const double heroSilhouetteHeight = 120;
+  static const double jobCardMinHeight = 130;
+  static const double emptyArt = 128;
+  static const double authContentWidth = 390;
 }
 
 abstract final class TrMotion {

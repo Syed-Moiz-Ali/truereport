@@ -1,0 +1,20 @@
+{
+  "sample": "login-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "English",
+    "عربي",
+    "TrueReport",
+    "Vehicle inspection reports for partner workshops.",
+    "Email",
+    "Password",
+    "Password help",
+    "Sign in",
+    "Need technician access?",
+    "Contact Admin",
+    "Authorised workshop staff only"
+  ]
+}

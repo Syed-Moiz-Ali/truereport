@@ -1,4 +1,4 @@
-import 'package:design_system/design_system.dart';
+﻿import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
@@ -339,6 +339,43 @@ class TreeViewShowcase extends StatelessWidget {
               icon: Icons.storefront_outlined,
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class TechnicianDockComparison extends StatelessWidget {
+  const TechnicianDockComparison({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Product dock (P7 default): Jobs / Sync / Profile',
+          style: context.texts.labelLarge,
+        ),
+        SizedBox(height: context.spacing.sm),
+        TechnicianDock(
+          jobsLabel: 'Jobs',
+          syncLabel: 'Sync',
+          profileLabel: 'Profile',
+          selectedIndex: 0,
+          onSelected: (_) {},
+        ),
+        SizedBox(height: context.spacing.lg),
+        Text(
+          'Figma dock (not product): Intake / Fleet / Sync / Profile',
+          style: context.texts.labelLarge,
+        ),
+        SizedBox(height: context.spacing.sm),
+        const TechnicianFigmaDockPreview(
+          intakeLabel: 'Intake',
+          fleetLabel: 'Fleet',
+          syncLabel: 'Sync',
+          profileLabel: 'Profile',
         ),
       ],
     );

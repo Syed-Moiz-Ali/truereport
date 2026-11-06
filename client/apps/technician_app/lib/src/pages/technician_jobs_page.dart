@@ -1,11 +1,12 @@
-import 'package:auth/auth.dart';
+﻿import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart';
+import 'package:technician_app/src/screens/f2a/profile_sheet.dart';
 import 'package:technician_app/src/technician_providers.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 
 class TechnicianJobsPage extends ConsumerStatefulWidget {
   const TechnicianJobsPage({super.key});
@@ -24,174 +25,38 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+
+  Future<void> _openFilters() async {
     final l10n = AppLocalizations.of(context);
-    final locale = ref.watch(localeProvider);
-    final jobs = ref.watch(technicianJobsProvider);
-    final online = ref.watch(connectivityProvider).value ?? true;
-    final pending = ref.watch(pendingSyncCountProvider).value ?? 0;
-    ref.listen(connectivityProvider, (previous, next) {
-      if (next.value == true && previous?.value == false) {
-        ref.read(syncServiceProvider).syncAll().then((_) {
-          ref.invalidate(pendingSyncCountProvider);
-          ref.invalidate(technicianJobsProvider);
-          ref.invalidate(inspectionChecklistProvider);
-          ref.invalidate(inspectionReviewProvider);
-        });
-      }
-    });
-    return AppScaffold(
-      appBar: AppBar(
-        title: Text(l10n.assignedJobs),
-        actions: [
-          AppButton(
-            label: locale.languageCode == 'ar'
-                ? l10n.languageEnglish
-                : l10n.languageArabic,
-            onPressed: () => ref
-                .read(localeProvider.notifier)
-                .setLocale(
-                  locale.languageCode == 'ar'
-                      ? const Locale('en')
-                      : const Locale('ar'),
-                ),
-            variant: AppButtonVariant.text,
-          ),
-          IconButton(
-            tooltip: l10n.syncQueue,
-            onPressed: () async {
-              await context.push('/sync');
-              ref.invalidate(pendingSyncCountProvider);
-            },
-            icon: Badge(
-              isLabelVisible: pending > 0,
-              label: Text('$pending'),
-              child: const Icon(Icons.sync),
+    await showAppBottomSheet<void>(
+      context,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TechnicianSectionTitle(title: l10n.search),
+            SizedBox(height: context.spacing.md),
+            AppTextField(
+              controller: _search,
+              label: l10n.search,
+              labelAbove: true,
+              onChanged: (_) => setState(() {}),
             ),
-          ),
-          IconButton(
-            tooltip: l10n.signOut,
-            onPressed: () =>
-                ref.read(authControllerProvider.notifier).signOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/jobs/new'),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.walkInJob),
-      ),
-      body: jobs.when(
-        loading: () => Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.lg),
-          child: const LoadingSkeleton(lines: 5),
-        ),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: EdgeInsetsDirectional.all(context.spacing.lg),
-            child: ErrorState(
-              title: l10n.error,
-              body: l10n.genericError,
-              onRetry: () => ref.invalidate(technicianJobsProvider),
-              retryLabel: l10n.search,
-            ),
-          ),
-        ),
-        data: (items) {
-          final filtered = items
-              .where((job) {
-                final query = _search.text.trim().toLowerCase();
-                final matchesQuery =
-                    query.isEmpty ||
-                    job.reference.toLowerCase().contains(query) ||
-                    job.customerName.toLowerCase().contains(query) ||
-                    '${job.vehicleMake} ${job.vehicleModel}'
-                        .toLowerCase()
-                        .contains(query);
-                return matchesQuery &&
-                    (_status.isEmpty || job.status == _status);
-              })
-              .toList(growable: false);
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(technicianJobsProvider),
-            child: ListView(
-              padding: EdgeInsetsDirectional.all(context.spacing.lg),
+            SizedBox(height: context.spacing.lg),
+            Wrap(
+              spacing: context.spacing.sm,
+              runSpacing: context.spacing.sm,
               children: [
-                SectionHeader(title: l10n.assignedJobs),
-                if (!online)
-                  Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      bottom: context.spacing.sm,
-                    ),
-                    child: StatusChip(
-                      label: l10n.offlineBanner,
-                      tone: StatusTone.warning,
-                      icon: Icons.cloud_off_outlined,
-                    ),
-                  ),
-                AppTextField(
-                  controller: _search,
-                  label: l10n.search,
-                  hint: l10n.search,
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: context.spacing.sm),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _filter(l10n.filterAll, ''),
-                      SizedBox(width: context.spacing.sm),
-                      _filter(l10n.statusAssigned, 'ASSIGNED'),
-                      SizedBox(width: context.spacing.sm),
-                      _filter(l10n.statusInProgress, 'IN_PROGRESS'),
-                      SizedBox(width: context.spacing.sm),
-                      _filter(l10n.statusReadyToFinalize, 'READY_TO_FINALIZE'),
-                      SizedBox(width: context.spacing.sm),
-                      _filter(l10n.statusFinalized, 'FINALIZED'),
-                    ],
-                  ),
-                ),
-                SizedBox(height: context.spacing.md),
-                if (filtered.isEmpty)
-                  EmptyState(
-                    title: l10n.noAssignedJobs,
-                    body: l10n.walkInJob,
-                    icon: Icons.work_outline,
-                    action: AppButton(
-                      label: l10n.walkInJob,
-                      onPressed: () => context.push('/jobs/new'),
-                      variant: AppButtonVariant.tonal,
-                    ),
-                  )
-                else
-                  ...filtered.map(
-                    (job) => Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        bottom: context.spacing.sm,
-                      ),
-                      child: Card(
-                        child: AppListTile(
-                          key: Key('technician-job-${job.id}'),
-                          leading: const Icon(Icons.directions_car_outlined),
-                          title: '${job.reference} · ${job.customerName}',
-                          subtitle:
-                              '${job.vehicleMake} ${job.vehicleModel} · ${job.templateName} v${job.templateVersionNo ?? '-'}',
-                          trailing: StatusChip(
-                            label: technicianStatusLabel(l10n, job.status),
-                            tone: technicianStatusTone(job.status),
-                          ),
-                          onTap: () => context.push('/jobs/${job.id}'),
-                        ),
-                      ),
-                    ),
-                  ),
+                _filter(l10n.filterAll, ''),
+                _filter(l10n.statusAssigned, 'ASSIGNED'),
+                _filter(l10n.statusInProgress, 'IN_PROGRESS'),
+                _filter(l10n.statusReadyToFinalize, 'READY_TO_FINALIZE'),
+                _filter(l10n.statusFinalized, 'FINALIZED'),
               ],
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -203,4 +68,105 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
       onTap: () => setState(() => _status = status),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final session = ref.watch(authControllerProvider).value;
+    final jobs = ref.watch(technicianJobsProvider);
+    final online = ref.watch(connectivityProvider).value ?? true;
+    final pending = ref.watch(pendingSyncCountProvider).value ?? 0;
+    final technicianName =
+        session?.user.displayName ?? l10n.roleTechnician;
+
+    ref.listen(connectivityProvider, (previous, next) {
+      if (next.value == true && previous?.value == false) {
+        ref.read(syncServiceProvider).syncAll().then((_) {
+          ref.invalidate(pendingSyncCountProvider);
+          ref.invalidate(technicianJobsProvider);
+          ref.invalidate(inspectionChecklistProvider);
+          ref.invalidate(inspectionReviewProvider);
+        });
+      }
+    });
+
+    Future<void> refresh() async {
+      ref.invalidate(technicianJobsProvider);
+      await ref.read(technicianJobsProvider.future);
+    }
+
+    return jobs.when(
+      loading: () => AppScaffold(
+        appBar: TechnicianAppBar(title: l10n.assignedJobs),
+        body: Padding(
+          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
+          child: const LoadingSkeleton(lines: 6),
+        ),
+      ),
+      error: (error, _) => AppScaffold(
+        appBar: TechnicianAppBar(title: l10n.assignedJobs),
+        body: Center(
+          child: Padding(
+            padding: EdgeInsetsDirectional.all(context.spacing.gutter),
+            child: ErrorState(
+              title: l10n.error,
+              body: l10n.genericError,
+              onRetry: () => ref.invalidate(technicianJobsProvider),
+              retryLabel: l10n.search,
+            ),
+          ),
+        ),
+      ),
+      data: (items) {
+        final query = _search.text.trim().toLowerCase();
+        final filtered = items
+            .where((job) {
+              final matchesQuery =
+                  query.isEmpty ||
+                  job.reference.toLowerCase().contains(query) ||
+                  job.customerName.toLowerCase().contains(query) ||
+                  '${job.vehicleMake} ${job.vehicleModel}'
+                      .toLowerCase()
+                      .contains(query);
+              return matchesQuery &&
+                  (_status.isEmpty || job.status == _status);
+            })
+            .toList(growable: false);
+
+        if (items.isEmpty) {
+          return EmptyJobsView(
+            technicianName: technicianName,
+            pendingSyncCount: pending,
+            onRefresh: refresh,
+            onWalkIn: () => context.push('/jobs/new'),
+            onSync: () async {
+              await context.push('/sync');
+              ref.invalidate(pendingSyncCountProvider);
+            },
+            onProfile: () => showTechnicianProfile(context, ref),
+          );
+        }
+
+        return AssignedJobsView(
+          technicianName: technicianName,
+          jobs: filtered,
+          pendingSyncCount: pending,
+          online: online,
+          onOpenJob: (job) => context.push('/jobs/${job.id}'),
+          onRefresh: refresh,
+          onWalkIn: () => context.push('/jobs/new'),
+          onSync: () async {
+            await context.push('/sync');
+            ref.invalidate(pendingSyncCountProvider);
+          },
+          onProfile: () => showTechnicianProfile(context, ref),
+          onSearch: _openFilters,
+          showSearch: true,
+        );
+      },
+    );
+  }
 }
+
+
+

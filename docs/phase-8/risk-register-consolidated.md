@@ -245,3 +245,20 @@ components; the remaining items are open decisions or unverified areas.
 | F1.1-R09 | Server authorization relies on URL-prefix rules for several controllers; `/api/v1/workshops/{id}` has no method annotation | Medium | High | Server tests cover role separation; recommend method annotations/ArchUnit; unchanged by the UI work | Security |
 | F1.1-R10 | Motion tokens cannot be compared to Figma because the export has no motion data | Low | Low | Reported as unverified; F1 motion retained | Eng |
 | F1.1-R11 | F1.1 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
+## 7. Phase F2-A technician screen risks (5 November 2026)
+
+F2-A is a UI-only refresh of technician screens 1 to 7. No server, API, model, validation, permission or state-management change was made. Screen 6 is blocked by missing equipment names.
+
+| ID | Risk | Likelihood | Impact | Mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F2A-R01 | Fidelity gate (SSIM >= 0.98, no unexplained diff > 4 px) is not met on any of the six built screens (0.7723-0.8860) | High | High | Residuals are measured and listed in `docs/ui/figma/f2a-report.md` and each per-screen `REPORT.md`; caused by P1/P2, required removals and copy. Owner must accept, or change P1/P2/removals | Product |
+| F2A-R02 | Screen 6 equipment checklist cannot be built: the technician API returns `equipmentIds` only | High | Medium | Screen not faked; existing sheet states names are unavailable; needs a small server/API change or stays deferred | Product/Eng |
+| F2A-R03 | Borderless field fill boundary is 1.10:1 light / 1.18:1 dark, below 3:1 | High | Medium | Accepted under P2; visible label above and F1 focus ring; listed in `deviations.md` and `contrast-after.md` | Product |
+| F2A-R04 | Large primary label white on `#059669` is 3.77:1, below 4.5:1 normal text | Medium | Low | P1 requires 19 px bold (large text, 3:1 threshold); measured and recorded | Product |
+| F2A-R05 | Arabic is derived from the same tokens; no native review and no Arabic Figma frame | High | High | EN/AR goldens, RTL matrix, LTR VIN/plate/numerals; native reviewer still required | Arabic |
+| F2A-R06 | Real device, sunlight, one-hand reach and screen-reader behaviour were not tested | High | Medium | Manual pass on a real Android/iOS device is in the report checklist | QA |
+| F2A-R07 | Goldens were generated on Windows only | Medium | Medium | 18 F2-A goldens pass on Windows; cross-platform comparator still to be chosen | Eng |
+| F2A-R08 | Product dock is 3 items (Jobs/Sync/Profile); Figma shows 4 (Intake/Fleet/Sync/Profile) | Medium | Low | P7 default; 4-item layout is gallery-only; no Fleet route | Product |
+| F2A-R09 | Figma sample copy exists in test-only fixtures | Low | Medium | Fixtures live under `test/` and `docs/.../fidelity`; gallery dock is behind `FixtureGuard`; product fixtures use neutral data | Eng |
+| F2A-R10 | F2-A changes are uncommitted | High | Low | Review and commit only after owner approval | Product |

@@ -123,7 +123,7 @@ class FakeTechnicianApi implements TechnicianApi {
   }
 
   @override
-  Future<List<String>> equipment(String jobId) async => const [];
+  Future<List<EquipmentItem>> equipment(String jobId) async => const [];
 
   @override
   Future<TechnicianReportStatus> reportStatus(String jobId) async =>

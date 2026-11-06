@@ -8,7 +8,7 @@
 - **Reference crop (px):** {"x":48,"y":944,"width":684,"height":112}
 - **Logical size:** 342 × 56 @ DPR 2
 - **Compared pixels:** 684 × 112
-- **Generated:** 2026-11-05T12:47:51.250Z
+- **Generated:** 2026-11-06T03:30:44.396Z
 - **Owner:** fidelity-auditor
 
 ## Gate
@@ -17,7 +17,7 @@
 
 | Check | Result | Detail |
 |---|---|---|
-| SSIM | pass | global 0.9952; min 64×64 tile 0.97849 |
+| SSIM | pass | global 0.99622; min 64×64 tile 0.97967 |
 | Text | pass | 1 expected string(s) present |
 | Forbidden terms | pass | 0 match(es) |
 | Key boxes | pass | 1/1 within 1 logical px |
@@ -26,16 +26,16 @@
 
 | Metric | Value |
 |---|---|
-| SSIM (global) | 0.9952 |
-| SSIM (worst 64×64 tile) | 0.97849 |
-| RMSE (RGB 0–255) | 4.714 |
-| MAE (RGB 0–255) | 0.402 |
-| ΔE2000 mean | 0.107 |
+| SSIM (global) | 0.99622 |
+| SSIM (worst 64×64 tile) | 0.97967 |
+| RMSE (RGB 0–255) | 4.663 |
+| MAE (RGB 0–255) | 0.387 |
+| ΔE2000 mean | 0.105 |
 | ΔE2000 median | 0 |
 | ΔE2000 p95 | 0 |
 | ΔE2000 max | 30.789 |
-| ΔE2000 > 2 (JND) | 1.12% |
-| ΔE2000 > 5 | 0.6% |
+| ΔE2000 > 2 (JND) | 0.87% |
+| ΔE2000 > 5 | 0.59% |
 | ΔE2000 > 10 | 0.38% |
 
 ## Diff bounding boxes (ΔE2000 > 5)

@@ -462,6 +462,36 @@ export function buildContrastRows(tokens) {
     });
   }
 
+  for (const themeName of ["light", "dark"]) {
+    const theme = tokens.color[themeName];
+    const brand = tokens.brand.emeraldFill[themeName];
+    const section = `F2-A technician screens - ${themeName}`;
+    const group = `f2a-${themeName}`;
+    const f2a = [
+      ["Body text", "onSurface", theme.onSurface, "surface", theme.surface, 4.5, "F2-A screen body text.", ""],
+      ["Muted text", "onSurfaceVariant", theme.onSurfaceVariant, "surface", theme.surface, 4.5, "F2-A labels and secondary text.", ""],
+      ["Muted text on field fill", "onSurfaceVariant", theme.onSurfaceVariant, "surfaceContainer", theme.surfaceContainer, 4.5, "F2-A field labels/hints on the filled input.", ""],
+      ["Muted text on nav surface", "onSurfaceVariant", theme.onSurfaceVariant, "surfaceLowest", theme.surfaceLowest, 4.5, "F2-A dock unselected label.", ""],
+      ["Brand ink text/icon", "emeraldFill.ink", brand.ink, "surface", theme.surface, 4.5, "F2-A icons and links on white.", ""],
+      ["Brand container text", "emeraldFill.onContainer", brand.onContainer, "emeraldFill.container", brand.container, 4.5, "F2-A selected chip and icon tile label.", ""],
+      ["Primary small label", "emeraldFill.onFill", brand.onFill, "emeraldFill.fill", brand.fill, 4.5, "P1 option 3: smaller emerald buttons use the ink label.", ""],
+      ["Primary large label", "onPrimaryLarge", theme.onPrimaryLarge, "primaryLarge", theme.primaryLarge, 3, "P1 option 2: 19 px bold large CTA label.", "Owner-approved large-text pair (3.77:1 light) with a 19 px bold label."],
+      ["Primary large fill boundary", "primaryLarge", theme.primaryLarge, "surface", theme.surface, 3, "P1 option 2 button boundary on the page.", ""],
+      ["Field fill boundary", "surfaceContainer", theme.surfaceContainer, "surface", theme.surface, 3, "Borderless filled field boundary.", "Accepted accessibility risk P2: visible label above and F1 focus ring carry the affordance."],
+      ["Focus ring", "focus", theme.focus, "surface", theme.surface, 3, "F2-A focus ring around fields and actions.", ""],
+      ["Error text", "error", theme.error, "surface", theme.surface, 4.5, "F2-A validation text.", ""],
+      ["Neutral status", "status.neutral.fg", tokens.status[themeName].neutral.foreground, "status.neutral.bg", tokens.status[themeName].neutral.background, 4.5, "F2-A status/result chip.", ""],
+      ["Info status", "status.info.fg", tokens.status[themeName].info.foreground, "status.info.bg", tokens.status[themeName].info.background, 4.5, "F2-A in-progress status chip.", ""],
+      ["Success status", "status.success.fg", tokens.status[themeName].success.foreground, "status.success.bg", tokens.status[themeName].success.background, 4.5, "F2-A no-issue-observed count chip.", ""],
+      ["Warning status", "status.warning.fg", tokens.status[themeName].warning.foreground, "status.warning.bg", tokens.status[themeName].warning.background, 4.5, "F2-A attention count chip.", ""],
+      ["Danger status", "status.danger.fg", tokens.status[themeName].danger.foreground, "status.danger.bg", tokens.status[themeName].danger.background, 4.5, "F2-A defect count chip.", ""],
+      ["Critical status", "status.critical.fg", tokens.status[themeName].critical.foreground, "status.critical.bg", tokens.status[themeName].critical.background, 4.5, "F2-A critical severity chip.", ""],
+    ];
+    for (const [role, fgName, fg, bgName, bg, threshold, usage, exception] of f2a) {
+      add({ section, group, theme: themeName, strategy: "-", role, fgName, fg, bgName, bg, threshold, usage, exception });
+    }
+  }
+
   return rows;
 }
 
@@ -503,6 +533,8 @@ export function generateContrastMarkdown(tokens) {
     ["Focus and borders — dark", "ui-dark"],
     ["Public report — light", "public-light"],
     ["Public report — dark", "public-dark"],
+    ["F2-A technician screens - light", "f2a-light"],
+    ["F2-A technician screens - dark", "f2a-dark"],
   ];
   const summaryRows = groups.map(([label, group]) => {
     const summary = sectionSummary(rows, group);

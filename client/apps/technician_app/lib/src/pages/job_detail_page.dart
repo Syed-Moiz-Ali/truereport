@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2a/consent_view.dart';
+import 'package:technician_app/src/screens/f2a/equipment_view.dart';
+import 'package:technician_app/src/screens/f2a/job_intake_view.dart';
+import 'package:technician_app/src/screens/f2a/profile_sheet.dart';
 import 'package:technician_app/src/technician_providers.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 
 class JobDetailPage extends ConsumerWidget {
   const JobDetailPage({required this.jobId, super.key});
@@ -16,16 +19,19 @@ class JobDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final job = ref.watch(technicianJobProvider(jobId));
-    return AppScaffold(
-      appBar: AppBar(title: Text(l10n.jobDetails)),
-      body: job.when(
-        loading: () => Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.lg),
+    return job.when(
+      loading: () => AppScaffold(
+        appBar: TechnicianAppBar(title: l10n.technicianJobIntake, showBack: true),
+        body: Padding(
+          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
           child: const LoadingSkeleton(lines: 6),
         ),
-        error: (error, _) => Center(
+      ),
+      error: (error, _) => AppScaffold(
+        appBar: TechnicianAppBar(title: l10n.technicianJobIntake, showBack: true),
+        body: Center(
           child: Padding(
-            padding: EdgeInsetsDirectional.all(context.spacing.lg),
+            padding: EdgeInsetsDirectional.all(context.spacing.gutter),
             child: ErrorState(
               title: l10n.error,
               body: l10n.genericError,
@@ -34,160 +40,76 @@ class JobDetailPage extends ConsumerWidget {
             ),
           ),
         ),
-        data: (value) => _Body(job: value),
       ),
+      data: (value) => _Body(job: value),
     );
   }
 }
 
-class _Body extends ConsumerWidget {
+class _Body extends ConsumerStatefulWidget {
   const _Body({required this.job});
 
   final TechnicianJob job;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+  ConsumerState<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends ConsumerState<_Body> {
+  bool _starting = false;
+
+  TechnicianJob get job => widget.job;
+
+  @override
+  Widget build(BuildContext context) {
     final online = ref.watch(connectivityProvider).value ?? true;
     final pending = ref.watch(pendingSyncCountProvider).value ?? 0;
-    final finalized = job.status == 'FINALIZED';
-    final cancelled = job.status == 'CANCELLED';
-    return ListView(
-      padding: EdgeInsetsDirectional.all(context.spacing.lg),
-      children: [
-        SectionHeader(
-          title: job.reference,
-          subtitle: technicianStatusLabel(l10n, job.status),
-        ),
-        Card(
-          child: Padding(
-            padding: EdgeInsetsDirectional.all(context.spacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(job.customerName, style: context.texts.titleMedium),
-                SizedBox(height: context.spacing.xs),
-                Text(
-                  '${job.vehicleMake} ${job.vehicleModel}'
-                  '${job.vehicleYear == null ? '' : ' · ${job.vehicleYear}'}',
-                  style: context.texts.bodyMedium,
-                ),
-                SizedBox(height: context.spacing.xs),
-                Text(
-                  '${job.templateName} · v${job.templateVersionNo ?? '-'} · ${job.scope}',
-                  style: context.texts.bodySmall,
-                ),
-                if (!online || pending > 0) ...[
-                  SizedBox(height: context.spacing.sm),
-                  StatusChip(
-                    label: online ? l10n.savedOnPhone : l10n.offlineBanner,
-                    tone: StatusTone.warning,
-                    icon: online
-                        ? Icons.phone_iphone
-                        : Icons.cloud_off_outlined,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: context.spacing.lg),
-        if (!finalized && !cancelled) ...[
-          Wrap(
-            spacing: context.spacing.sm,
-            runSpacing: context.spacing.sm,
-            children: [
-              AppButton(
-                label: l10n.customerInformation,
-                onPressed: () => _editCustomer(context, ref),
-                icon: Icons.person_outline,
-                variant: AppButtonVariant.tonal,
-              ),
-              AppButton(
-                label: l10n.vehicleIdentification,
-                onPressed: () => _editVehicle(context, ref),
-                icon: Icons.directions_car_outlined,
-                variant: AppButtonVariant.tonal,
-              ),
-              AppButton(
-                label: l10n.consent,
-                onPressed: () => _consent(context, ref),
-                icon: Icons.verified_user_outlined,
-                variant: AppButtonVariant.tonal,
-              ),
-              AppButton(
-                label: l10n.equipment,
-                onPressed: () => _equipment(context, ref),
-                icon: Icons.handyman_outlined,
-                variant: AppButtonVariant.text,
-              ),
-              if (pending > 0)
-                AppButton(
-                  label: l10n.syncQueue,
-                  onPressed: () => context.push('/sync'),
-                  icon: Icons.sync,
-                  variant: AppButtonVariant.text,
-                ),
-            ],
-          ),
-          SizedBox(height: context.spacing.lg),
-          if (job.status == 'ASSIGNED')
-            AppButton(
-              label: l10n.startInspection,
-              onPressed: () => _start(context, ref),
-              icon: Icons.play_arrow,
-              expand: true,
-            )
-          else
-            Wrap(
-              spacing: context.spacing.sm,
-              runSpacing: context.spacing.sm,
-              children: [
-                AppButton(
-                  label: l10n.checklist,
-                  onPressed: () => context.push('/jobs/${job.id}/checklist'),
-                  icon: Icons.checklist,
-                ),
-                AppButton(
-                  label: l10n.reviewAndFinalize,
-                  onPressed: () => context.push('/jobs/${job.id}/review'),
-                  icon: Icons.fact_check_outlined,
-                  variant: AppButtonVariant.tonal,
-                ),
-              ],
-            ),
-        ] else if (finalized)
-          AppButton(
-            label: l10n.finalizedReadOnly,
-            onPressed: () => context.push('/jobs/${job.id}/finalized'),
-            icon: Icons.lock_outline,
-            variant: AppButtonVariant.tonal,
-            expand: true,
-          ),
-      ],
+    return JobIntakeView(
+      job: job,
+      starting: _starting,
+      pendingSyncCount: pending,
+      online: online,
+      onStart: _start,
+      onEditCustomer: _editCustomer,
+      onEditVehicle: _editVehicle,
+      onConsent: _consent,
+      onEquipment: _equipment,
+      onProfile: () => showTechnicianProfile(context, ref),
     );
   }
 
-  Future<void> _start(BuildContext context, WidgetRef ref) async {
+  Future<void> _start() async {
     final l10n = AppLocalizations.of(context);
-    try {
-      await ref.read(technicianApiProvider).start(job.id);
-      ref.invalidate(technicianJobProvider(job.id));
-      ref.invalidate(inspectionChecklistProvider(job.id));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.inspectionStarted)));
-        context.push('/jobs/${job.id}/checklist');
+    if (job.status == 'ASSIGNED' || job.status == 'SCHEDULED') {
+      setState(() => _starting = true);
+      try {
+        await ref.read(technicianApiProvider).start(job.id);
+        ref.invalidate(technicianJobProvider(job.id));
+        ref.invalidate(inspectionChecklistProvider(job.id));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.inspectionStarted)),
+          );
+        }
+      } on Object {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.actionFailed)),
+          );
+        }
+        return;
+      } finally {
+        if (mounted) {
+          setState(() => _starting = false);
+        }
       }
-    } on Object {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-      }
+    }
+    if (mounted) {
+      context.push('/jobs/${job.id}/hub');
     }
   }
 
-  Future<void> _editCustomer(BuildContext context, WidgetRef ref) async {
+  Future<void> _editCustomer() async {
     final l10n = AppLocalizations.of(context);
     final name = TextEditingController(text: job.customerName);
     final phone = TextEditingController(text: job.customerPhone ?? '');
@@ -197,17 +119,23 @@ class _Body extends ConsumerWidget {
       child: _FormSheet(
         title: l10n.customerInformation,
         children: [
-          AppTextField(controller: name, label: l10n.customerName),
-          SizedBox(height: context.spacing.sm),
+          AppTextField(
+            controller: name,
+            label: l10n.customerName,
+            labelAbove: true,
+          ),
+          SizedBox(height: context.spacing.md),
           AppTextField(
             controller: phone,
             label: l10n.customerPhone,
+            labelAbove: true,
             keyboardType: TextInputType.phone,
           ),
-          SizedBox(height: context.spacing.sm),
+          SizedBox(height: context.spacing.md),
           AppTextField(
             controller: email,
             label: l10n.customerEmail,
+            labelAbove: true,
             keyboardType: TextInputType.emailAddress,
           ),
         ],
@@ -237,9 +165,9 @@ class _Body extends ConsumerWidget {
     name.dispose();
     phone.dispose();
     email.dispose();
-    if (saved == true && context.mounted) {
+    if (saved == true && mounted) {
       final pending = await ref.read(offlineStoreProvider).pendingCount();
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
       ref.invalidate(pendingSyncCountProvider);
@@ -252,7 +180,7 @@ class _Body extends ConsumerWidget {
     }
   }
 
-  Future<void> _editVehicle(BuildContext context, WidgetRef ref) async {
+  Future<void> _editVehicle() async {
     final l10n = AppLocalizations.of(context);
     final make = TextEditingController(text: job.vehicleMake);
     final model = TextEditingController(text: job.vehicleModel);
@@ -268,31 +196,50 @@ class _Body extends ConsumerWidget {
       child: _FormSheet(
         title: l10n.vehicleIdentification,
         children: [
-          AppTextField(controller: make, label: l10n.vehicleMake),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: model, label: l10n.vehicleModel),
-          SizedBox(height: context.spacing.sm),
+          AppTextField(
+            controller: make,
+            label: l10n.vehicleMake,
+            labelAbove: true,
+          ),
+          SizedBox(height: context.spacing.md),
+          AppTextField(
+            controller: model,
+            label: l10n.vehicleModel,
+            labelAbove: true,
+          ),
+          SizedBox(height: context.spacing.md),
           AppTextField(
             controller: year,
             label: l10n.vehicleYear,
+            labelAbove: true,
             keyboardType: TextInputType.number,
           ),
-          SizedBox(height: context.spacing.sm),
+          SizedBox(height: context.spacing.md),
           AppTextField(
             controller: vin,
             label: l10n.vehicleVin,
+            labelAbove: true,
             textDirection: TextDirection.ltr,
           ),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: plate, label: l10n.vehiclePlate),
-          SizedBox(height: context.spacing.sm),
+          SizedBox(height: context.spacing.md),
+          AppTextField(
+            controller: plate,
+            label: l10n.vehiclePlate,
+            labelAbove: true,
+          ),
+          SizedBox(height: context.spacing.md),
           AppTextField(
             controller: odometer,
             label: l10n.odometer,
+            labelAbove: true,
             keyboardType: TextInputType.number,
           ),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: unit, label: l10n.odometerUnit),
+          SizedBox(height: context.spacing.md),
+          AppTextField(
+            controller: unit,
+            label: l10n.odometerUnit,
+            labelAbove: true,
+          ),
         ],
         onSave: () async {
           final body = <String, dynamic>{
@@ -332,9 +279,9 @@ class _Body extends ConsumerWidget {
     plate.dispose();
     odometer.dispose();
     unit.dispose();
-    if (saved == true && context.mounted) {
+    if (saved == true && mounted) {
       final pending = await ref.read(offlineStoreProvider).pendingCount();
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
       ref.invalidate(pendingSyncCountProvider);
@@ -347,47 +294,22 @@ class _Body extends ConsumerWidget {
     }
   }
 
-  Future<void> _consent(BuildContext context, WidgetRef ref) async {
+  Future<void> _consent() async {
     final l10n = AppLocalizations.of(context);
     String? type;
     bool? granted;
+    var saving = false;
     final saved = await showAppBottomSheet<bool>(
       context,
       child: StatefulBuilder(
-        builder: (context, setState) => _FormSheet(
-          title: l10n.consent,
-          enabled: granted != null && type != null,
-          saveKey: const Key('consent-save'),
-          children: [
-            AppSelectableText(
-              key: const Key('consent-type-processing'),
-              label: l10n.consentProcessing,
-              selected: type == 'PROCESSING',
-              onTap: () => setState(() => type = 'PROCESSING'),
-            ),
-            SizedBox(height: context.spacing.sm),
-            AppSelectableText(
-              key: const Key('consent-type-public-link'),
-              label: l10n.consentPublicLink,
-              selected: type == 'PUBLIC_LINK',
-              onTap: () => setState(() => type = 'PUBLIC_LINK'),
-            ),
-            SizedBox(height: context.spacing.md),
-            AppSelectableText(
-              key: const Key('consent-granted'),
-              label: l10n.consentGranted,
-              selected: granted == true,
-              onTap: () => setState(() => granted = true),
-            ),
-            SizedBox(height: context.spacing.sm),
-            AppSelectableText(
-              key: const Key('consent-refused'),
-              label: l10n.consentRefused,
-              selected: granted == false,
-              onTap: () => setState(() => granted = false),
-            ),
-          ],
+        builder: (context, setState) => ConsentView(
+          selectedType: type,
+          selectedStatus: granted,
+          saving: saving,
+          onTypeChanged: (value) => setState(() => type = value),
+          onStatusChanged: (value) => setState(() => granted = value),
           onSave: () async {
+            setState(() => saving = true);
             final body = <String, dynamic>{
               'consentType': type!,
               'status': granted! ? 'GRANTED' : 'REFUSED',
@@ -409,13 +331,16 @@ class _Body extends ConsumerWidget {
                   .read(offlineStoreProvider)
                   .saveConsentLocally(jobId: job.id, body: body);
             }
+            if (context.mounted) {
+              Navigator.of(context).pop(true);
+            }
           },
         ),
       ),
     );
-    if (saved == true && context.mounted) {
+    if (saved == true && mounted) {
       final pending = await ref.read(offlineStoreProvider).pendingCount();
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
       ref.invalidate(pendingSyncCountProvider);
@@ -427,36 +352,28 @@ class _Body extends ConsumerWidget {
     }
   }
 
-  Future<void> _equipment(BuildContext context, WidgetRef ref) async {
+  Future<void> _equipment() async {
     final l10n = AppLocalizations.of(context);
-    await showAppBottomSheet<void>(
-      context,
-      child: FutureBuilder<List<String>>(
-        future: ref.read(technicianApiProvider).equipment(job.id),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const LoadingSkeleton(lines: 3);
-          }
-          final ids = snapshot.data!;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SectionHeader(title: l10n.equipment),
-              if (ids.isEmpty)
-                EmptyState(title: l10n.noResults, body: l10n.equipment)
-              else
-                ...ids.map(
-                  (id) => AppListTile(
-                    title: id,
-                    leading: const Icon(Icons.handyman_outlined),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-    );
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final items = await ref
+          .read(technicianApiProvider)
+          .equipment(job.id);
+      await navigator.push(
+        MaterialPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (dialogContext) => EquipmentView(
+            equipment: items,
+            title: l10n.equipment,
+            onBack: () => Navigator.of(dialogContext).pop(),
+            onProceed: () => Navigator.of(dialogContext).pop(),
+          ),
+        ),
+      );
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.genericError)));
+    }
   }
 
   String? _emptyToNull(String value) {
@@ -470,15 +387,11 @@ class _FormSheet extends StatelessWidget {
     required this.title,
     required this.children,
     required this.onSave,
-    this.enabled = true,
-    this.saveKey,
   });
 
   final String title;
   final List<Widget> children;
   final Future<void> Function() onSave;
-  final bool enabled;
-  final Key? saveKey;
 
   @override
   Widget build(BuildContext context) {
@@ -488,29 +401,28 @@ class _FormSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SectionHeader(title: title),
+          TechnicianSectionTitle(title: title),
+          SizedBox(height: context.spacing.md),
           ...children,
           SizedBox(height: context.spacing.lg),
           AppButton(
-            key: saveKey,
             label: l10n.save,
-            onPressed: enabled
-                ? () async {
-                    try {
-                      await onSave();
-                      if (context.mounted) {
-                        Navigator.of(context).pop(true);
-                      }
-                    } on Object {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.actionFailed)),
-                        );
-                      }
-                    }
-                  }
-                : null,
+            onPressed: () async {
+              try {
+                await onSave();
+                if (context.mounted) {
+                  Navigator.of(context).pop(true);
+                }
+              } on Object {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.actionFailed)),
+                  );
+                }
+              }
+            },
             icon: Icons.save_outlined,
+            large: true,
             expand: true,
           ),
           SizedBox(height: context.spacing.lg),
@@ -519,3 +431,6 @@ class _FormSheet extends StatelessWidget {
     );
   }
 }
+
+
+

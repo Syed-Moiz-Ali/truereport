@@ -64,3 +64,4 @@ flutter:
     - assets/fonts/fonts.json
     - assets/fonts/licenses/
     - assets/icons/
+    - assets/icons/figma/

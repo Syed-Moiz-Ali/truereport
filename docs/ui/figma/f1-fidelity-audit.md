@@ -81,6 +81,14 @@ no multiplier or correction factor was applied. Visual check: the card
 `side-by-side.png` shows the same softness at the 32 px corners; the button
 `side-by-side.png` shows the same 2-3 px falloff.
 
+> **Correction, F2-A.2 (6 November 2026):** the visual check above was performed
+> while `debugDisableShadows` was true, so the blurred shadows were solid blocks.
+> The claim that the blur visually matched is withdrawn. F2-A.2 re-measured with
+> real shadows and the corrected reference crop: primary button 0.99520→0.99622,
+> delivery card 0.99198→0.99261, result selector 0.98340→0.98756. The token
+> values were already exact; the residual is Flutter-vs-Figma shadow
+> rasterisation. See `f2a2-report.md` and `deviations.md`.
+
 ### 2.3 Radii
 
 | Token | Figma | F1 | Action |

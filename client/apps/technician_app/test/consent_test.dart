@@ -38,7 +38,7 @@ Future<FakeTechnicianApi> _pumpConsent(WidgetTester tester) async {
   );
   await tester.pumpAndSettle();
 
-  final consentButton = find.widgetWithText(AppButton, 'Consent');
+  final consentButton = find.widgetWithText(FxButton, 'Consent');
   await tester.ensureVisible(consentButton);
   await tester.tap(consentButton);
   await tester.pumpAndSettle();
@@ -58,7 +58,7 @@ void main() {
     final refused = tester.widget<AppSelectableText>(
       find.byKey(const Key('consent-refused')),
     );
-    final save = tester.widget<AppButton>(
+    final save = tester.widget<FxButton>(
       find.byKey(const Key('consent-save')),
     );
 
@@ -67,23 +67,28 @@ void main() {
     expect(save.onPressed, isNull);
     expect(api.consentRecords, 0);
 
+    await tester.ensureVisible(
+      find.byKey(const Key('consent-type-processing')),
+    );
     await tester.tap(find.byKey(const Key('consent-type-processing')));
     await tester.pumpAndSettle();
     expect(
-      tester.widget<AppButton>(find.byKey(const Key('consent-save'))).onPressed,
+      tester.widget<FxButton>(find.byKey(const Key('consent-save'))).onPressed,
       isNull,
     );
     expect(api.consentRecords, 0);
 
+    await tester.ensureVisible(find.byKey(const Key('consent-granted')));
     await tester.tap(find.byKey(const Key('consent-granted')));
     await tester.pumpAndSettle();
 
-    final enabledSave = tester.widget<AppButton>(
+    final enabledSave = tester.widget<FxButton>(
       find.byKey(const Key('consent-save')),
     );
     expect(enabledSave.onPressed, isNotNull);
     expect(api.consentRecords, 0);
 
+    await tester.ensureVisible(find.byKey(const Key('consent-save')));
     await tester.tap(find.byKey(const Key('consent-save')));
     await tester.pumpAndSettle();
 
@@ -97,12 +102,17 @@ void main() {
   ) async {
     final api = await _pumpConsent(tester);
 
+    await tester.ensureVisible(
+      find.byKey(const Key('consent-type-public-link')),
+    );
     await tester.tap(find.byKey(const Key('consent-type-public-link')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('consent-refused')));
     await tester.tap(find.byKey(const Key('consent-refused')));
     await tester.pumpAndSettle();
 
     expect(api.consentRecords, 0);
+    await tester.ensureVisible(find.byKey(const Key('consent-save')));
     await tester.tap(find.byKey(const Key('consent-save')));
     await tester.pumpAndSettle();
 

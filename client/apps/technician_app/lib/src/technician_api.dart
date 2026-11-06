@@ -52,7 +52,7 @@ abstract class TechnicianApi {
     String? evidenceRef,
   });
 
-  Future<List<String>> equipment(String jobId);
+  Future<List<EquipmentItem>> equipment(String jobId);
 
   Future<InspectionItem> assess(
     String jobId,
@@ -245,12 +245,28 @@ class HttpTechnicianApi implements TechnicianApi {
   }
 
   @override
-  Future<List<String>> equipment(String jobId) async {
+  Future<List<EquipmentItem>> equipment(String jobId) async {
     final data = await _api.getDynamic(_endpoints.technicianEquipment(jobId));
-    final ids =
-        (data as Map<String, dynamic>)['equipmentIds'] as List<dynamic>? ??
-        <dynamic>[];
-    return ids.map((value) => value.toString()).toList(growable: false);
+    final map = data as Map<String, dynamic>;
+    final items = (map['items'] as List<dynamic>?) ?? <dynamic>[];
+    if (items.isNotEmpty) {
+      return items
+          .map((value) => EquipmentItem.fromJson(value as Map<String, dynamic>))
+          .toList(growable: false);
+    }
+    final ids = (map['equipmentIds'] as List<dynamic>?) ?? <dynamic>[];
+    return ids
+        .map(
+          (value) => EquipmentItem(
+            equipmentId: value.toString(),
+            code: '',
+            labelEn: '',
+            labelAr: '',
+            status: '',
+            sortOrder: 0,
+          ),
+        )
+        .toList(growable: false);
   }
 
   @override

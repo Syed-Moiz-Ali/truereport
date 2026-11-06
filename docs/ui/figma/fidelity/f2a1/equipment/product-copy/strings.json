@@ -1,0 +1,26 @@
+{
+  "sample": "equipment-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "01",
+    "PRE-INSPECTION SETUP",
+    "4 items",
+    "Required Equipment",
+    "Ensure all diagnostic hardware is calibrated and paired before starting the inspection.",
+    "Tire Depth Gauge",
+    "TDG · ACTIVE",
+    "OBD Scanner",
+    "OBD · ACTIVE",
+    "Torque Wrench",
+    "TW · ACTIVE",
+    "Paint Depth Gauge",
+    "PDG · ACTIVE",
+    "Workshop equipment standards",
+    "Equipment availability is confirmed by the workshop.",
+    "Proceed",
+    "Equipment"
+  ]
+}

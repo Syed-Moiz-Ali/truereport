@@ -54,3 +54,82 @@ These are implementation defaults, not new product decisions:
 - E1–E6 and F1–F7 remain the rules for F5/F3/F4; F1 did not build those screens.
 - G1–G3: the harness, gallery and measured reports exist. Three component-level samples are below the 0.98 SSIM threshold and are listed as residuals in 1-report.md; they are **not** accepted as passing yet.
 - Owner decisions still pending: (1) accept or reject the 14 contrast exceptions, (2) accept or rework the three fidelity residuals, (3) choose the Arabic font after native review, (4) accept or reduce the 15.68 MiB Noto Sans SC cost, (5) decide whether PDF fonts must match the HTML stack.
+
+---
+
+## F2-A technician decisions (owner supplied, 5 November 2026)
+
+These decisions apply to F2-A (technician screens 1 to 7). They are recorded here before implementation; unedited lines are approved.
+
+| ID | Decision | Implementation evidence |
+|---|---|---|
+| P1 | **Primary button:** large primary CTAs (56 px, 19 px bold label) use option 2 (`#059669` fill, white label); smaller emerald buttons use option 3 (ink label `#1A1B1F` on `#10B981`). Figma-exact variants stay in the gallery only. | `AppButton.large` uses `brand.largeFill/onLargeFill` and `TrType.largeButton` 19/24 w700. Measured: white on `#059669` = **3.77:1**, which passes the 3:1 large-text threshold because the label is 19 px bold (>= 18.66 px bold). Ink on `#10B981` = **6.78:1**. `#059669` against white = **3.77:1** (UI boundary passes 3:1). Derived dark: `#002113` on `#34D399` = **8.90:1**; `#34D399` against `#121114` = **9.79:1**. |
+| P2 | Borderless filled text fields approved as designed, with a visible label above the field and the F1 focus ring. | `AppTextField(labelAbove: true)` is used on every F2-A field. Measured field-fill boundary (`#F4F3F8` on white) = **1.10:1** light / **1.18:1** dark, below 3:1. It is listed in `deviations.md` as an accepted accessibility risk; the visible label and focus ring carry the affordance. |
+| P3 | Remaining contrast exceptions accepted: 12 decorative divider tokens and 2 emerald fill-boundary pairs. | `contrast-after.md`: the F1 exceptions remain accepted. F2-A adds 2 field-fill failures under P2. F2-A's own 18 pairs per theme pass except the field-fill pair. |
+| P4 | One `admin_app` stays. | No admin restructuring in F2-A. |
+| P5 | Noto Sans SC stays bundled for now; verify and report whether Flutter web would otherwise download fallback fonts at runtime. | Verified in the technician web build: `FontManifest.json` lists MaterialIcons, Plus Jakarta Sans, Noto Sans Arabic, IBM Plex Sans Arabic, Noto Sans and Noto Sans SC; every file is under `assets/packages/design_system/assets/fonts/` (Noto Sans SC is 16,437,364 B in the web build). There is no `google_fonts` dependency and no network font request. Flutter web therefore does **not** download fallback fonts at runtime; missing glyphs use the browser's local system fallback. |
+| P6 | Arabic font default: Noto Sans Arabic until a native reviewer decides. | `AppTheme.build(...)` default `AppArabicFont.notoSansArabic`; IBM Plex Sans Arabic remains selectable in the gallery. Arabic is marked derived, pending native review. |
+| P7 | The Figma dock shows Intake / Fleet / Sync / Profile. We have no fleet feature: propose **Jobs, Sync, Profile**. Show both the 3-item product dock and the Figma 4-item layout in the gallery. | `TechnicianDock` is the product 3-item dock. `TechnicianFigmaDockPreview` is gallery-only, behind `FixtureGuard`. The gallery section is "Technician dock decision (P7)". No Fleet route or feature was added. |
+| P8 | Fidelity gate: SSIM >= 0.98 and no unexplained difference > 4 px, using test-only Figma-text fixtures; a second measurement uses real product copy and lists copy-driven differences as residuals. Never claim "pixel-perfect". | 12 measured fixtures (6 screens x 2 variants) under `docs/ui/figma/fidelity/f2a/`. **The 0.98 gate was not reached on any screen** because P1/P2, the required removals and the screen-6 data gap change large regions. Measured values and residuals are in `f2a-report.md` and each per-screen `REPORT.md`. No "pixel-perfect" claim is made. |
+
+### F2-A implementation status
+
+- Screens 1, 2, 3, 4, 5 and 7 are implemented.
+- Screen 6 (equipment checklist) is **not implemented**: the technician endpoint returns `equipmentIds` only (`EquipmentListDto`), with no names, descriptions, verification or pairing state. The existing equipment sheet now states that names are unavailable; no names/specs were invented.
+- No server, API contract, model, validation, permission or state-management change was made.
+- The screen-1 brand is TrueReport; the Figma `TechInspect` name, ISO claim, forgot-password and request-ID links are removed.
+
+---
+
+## F2-A.1 technician decisions (owner supplied, 6 November 2026)
+
+This phase supersedes P1, P2, P7 and every "deviation by default" from F1.1/F2-A.
+The owner requirement is a 100% identical UI, UX, style and layout; only text or
+data that would be false or unsafe may change, and each change keeps the same
+slot, size, style, colour and position unless the owner approves otherwise.
+
+| ID | Decision | Implementation evidence |
+|---|---|---|
+| I1 | **Primary button = Figma exact:** `#10B981` fill, white label, Figma size/weight, emerald glow, pill radius, label + arrow positions. Accessible alternatives stay behind one token switch that is off; the white-on-emerald contrast is an owner-accepted risk. | `FxButton` (primary) uses `Fx.emerald`, `Fx.white`, `Fx.label14`, `Fx.ctaShadow`; measured white on `#10B981` = **2.54:1** (below 4.5:1; listed in `contrast-after.md` and `deviations.md`). |
+| I2 | **Fields = Figma exact:** white cards, soft shadow, icon + placeholder inside, 48 px height, 16 px radius, no label above, no filled lavender. | `FxTextField` draws the 48 px white shadowed card; `Semantics(label:)` supplies the field name invisibly; the whole card is the hit area. |
+| I3 | **Targets:** keep Figma visual sizes; enlarge only the invisible hit area where the control is smaller than 48 dp. | Language segments use a 24 px visual with a 44 px hit row; password reveal uses a 44 px hit box; dock/icon buttons use a 44 px hit box around the Figma glyph. |
+| I4 | **Bottom dock = Figma 4 slots** (Intake / Fleet / Sync / Profile) with Figma icons, positions and shadow. Fleet maps to a **Completed/Finalized** jobs list from existing finalized jobs. Owner must approve the mapping. | `FxDock` is four slots with the exported SVGs; the second slot opens finalized jobs through `onCompleted`. Label is `Finalized` in the product build; `Fleet` only in the test-only Figma fixture. **Pending owner approval.** |
+| I5 | Fonts: **Plus Jakarta Sans** at the exact Figma sizes/weights/line heights/letter spacing; Arabic fallback Noto Sans Arabic. | All F2-A.1 styles read `Fx.text(...)` with the Figma metrics; the fonts are bundled (no runtime download). |
+| I6 | Brand text `TechInspect` becomes `TrueReport` in the same slot/style. The logo slot keeps the Figma glow/layout; own mark used. | Login title is `TrueReport` at 26/32 w800; the 64 px mark sits in the same glow slot. The Figma `TechInspect` string is fixture-only. |
+| I7 | Shadows, radii, spacing, colours and component structure = Figma values exactly; F1.1 shadow tests extended to every shadow used. | `Fx.cardShadow`, `Fx.pillShadow`, `Fx.ctaShadow`, `Fx.navShadow`, `Fx.upShadow`, `Fx.headerShadow`, `Fx.panelShadow` match the node effects; all screens use them. |
+
+### F2-A.1 implementation status
+
+- Screens 1–7 are rebuilt; screen 6 is now a full screen but still shows IDs only
+  because the API has no names/specs/verification.
+- 7/7 geometry test cases pass. 55 key nodes are asserted; text nodes are checked
+  for position/line box, and three card heights whose finder includes the parent
+  gap are checked for position only. Intrinsic text width is font-metric
+  dependent and is recorded as a residual.
+- Visual fidelity: measured SSIM is **0.79111–0.97210** (fixture a) and
+  **0.79974–0.95233** (fixture b). The **0.98 gate is not met**; every residual is
+  listed in `deviations.md` and each per-screen `REPORT.md`.
+- No server, API contract, model, validation, permission or state-management
+  change was made.
+---
+
+## F2-A.2 owner decisions and measurement correction (6 November 2026)
+
+The owner confirmed the identical-first rule from F2-A.1 and added these decisions.
+
+| ID | Decision | Implementation |
+|---|---|---|
+| J1 | Fleet dock slot maps to **Finalized** jobs, using existing finalized-job data; Figma icon and position kept. | `FxDock` keeps four slots; the second slot opens finalized jobs (`onCompleted`). Product label is `Finalized`; the test-only Figma fixture keeps `Fleet`. |
+| J2 | Keep neutral **Password help** and **Contact Admin**, same slot/size/style as the Figma text. | `SignInCopy` defaults and the Figma fixture use those strings. |
+| J3 | Replace the security line with **“Authorised workshop staff only”**, same slot, icon, size and style. No security or certification claim. | `SignInCopy.securityLabel` default and the Figma fixture use the new line. The forbidden-term product lint passes. |
+| J4 | Signature capture stays out of scope. | The 350×176 decision slot holds explicit Granted/Refused, not a signature pad. Recorded as an approved residual. |
+| J5 | Add a small read-only equipment API extension: `labelEn`, `labelAr`, `code`, `status`, `sortOrder`, from existing master equipment data. No schema/write/permission change. | Server returns `equipmentIds` plus `items`; Flutter parses `EquipmentItem` and shows the real label/code/status. Server tests pass (65 run, 0 failures, 6 Docker-skipped). |
+| J6 | Logo slot matches the preview: soft green glow only; no solid TR tile. Report the export JSON node. | Login now renders only the blurred emerald glow in the 80×80 slot. The export JSON contains an empty `TechInspect Minimal Logo` frame at x163,y104,64×64 (no vector/raster asset); the preview shows only the glow. |
+| J7 | Fidelity harness may use the Figma exported raster photos/avatars in test-only fixtures, guarded from release builds. | Capture decodes the exported avatar/vehicle PNGs into `ui.Image`s passed only by test helpers; the images are not in any pubspec asset list and not referenced from `lib/`. A guard test proves this and checks the web asset manifest. |
+
+### Measurement correction (F2-A.2)
+
+- `debugDisableShadows` **was true** during the F2-A.1 captures and goldens. Evidence: `AutomatedTestWidgetsFlutterBinding.disableShadows => true` in the pinned Flutter 3.47.9 SDK; the F2-A.2 harness test asserts the default and the override.
+- F2-A.2 sets it to false for capture/goldens, guards every capture path, and restores the previous value before the test body ends (the binding verifies painting variables at that point).
+- The reference crop origin was also wrong: the Figma export adds an asymmetric shadow margin. Pixel analysis finds the white frame at x=60 (or 40) and **y=14**; the F2-A.1 crops used y=59 (or 7). Fixtures were corrected to y=14.
+- The earlier "shadow blur matches" claims were invalid. Component samples re-measured with real shadows: primary button 0.99520→0.99622; delivery card 0.99198→0.99261; result selector 0.98340→0.98756.

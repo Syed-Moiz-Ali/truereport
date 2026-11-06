@@ -1,0 +1,21 @@
+{
+  "sample": "01-login-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "English",
+    "عربي",
+    "TR",
+    "TrueReport",
+    "Vehicle inspection reports for partner workshops.",
+    "Email",
+    "Password",
+    "Password help",
+    "Sign in",
+    "Need technician access?",
+    "Contact Admin",
+    "Secure report delivery"
+  ]
+}

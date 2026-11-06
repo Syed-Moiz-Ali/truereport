@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -352,10 +353,18 @@ public class MasterContentService {
 
     @Transactional(readOnly = true)
     public List<EquipmentDto> listEquipment() {
-        return equipment.findAllByOrderBySortOrderAsc().stream().map(item -> new EquipmentDto(
-                item.getId(), item.getCode(), item.getStatus(), item.getSortOrder(),
-                text(EQUIPMENT, item.getId(), "en", "label"),
-                text(EQUIPMENT, item.getId(), "ar", "label"))).toList();
+        return equipment.findAllByOrderBySortOrderAsc().stream().map(this::equipmentDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EquipmentDto> listEquipmentByIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return equipment.findAllById(ids).stream()
+                .sorted(Comparator.comparingInt(Equipment::getSortOrder))
+                .map(this::equipmentDto)
+                .toList();
     }
 
     @Transactional
@@ -620,6 +629,12 @@ public class MasterContentService {
                 version.getNoteRequirement(), version.getEvidenceRequirement(), version.getMinPhotos(),
                 parseUuids(version.getEquipmentIdsJson()), version.getGuideImageId(),
                 version.getPublishedAt() == null ? "" : version.getPublishedAt().toString(), translations);
+    }
+
+    private EquipmentDto equipmentDto(Equipment item) {
+        return new EquipmentDto(item.getId(), item.getCode(), item.getStatus(), item.getSortOrder(),
+                text(EQUIPMENT, item.getId(), "en", "label"),
+                text(EQUIPMENT, item.getId(), "ar", "label"));
     }
 
     private GuideImageDto guideImageDto(GuideImage image) {

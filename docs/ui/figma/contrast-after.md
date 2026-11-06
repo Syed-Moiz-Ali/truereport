@@ -19,9 +19,11 @@
 | Focus and borders — dark | 12 | 6 | 6 |
 | Public report — light | 10 | 10 | 0 |
 | Public report — dark | 10 | 10 | 0 |
-| **Total audited token pairs** | **154** | **140** | **14** |
+| F2-A technician screens - light | 18 | 17 | 1 |
+| F2-A technician screens - dark | 18 | 17 | 1 |
+| **Total audited token pairs** | **190** | **174** | **16** |
 
-**Result: 140 pass, 14 fail.** Every failing pair is listed below with its usage or exception.
+**Result: 174 pass, 16 fail.** Every failing pair is listed below with its usage or exception.
 
 The four prohibited raw `#10B981` text/icon pairs are listed separately at the end and are **not** counted as token pairs because the generator never emits `#10B981` as a text or icon token.
 
@@ -233,6 +235,52 @@ The four prohibited raw `#10B981` text/icon pairs are listed separately at the e
 | Report critical badge | --critical | #FFD0D0 | --critical-bg | #551C1C | 9.68:1 | 4.5:1 | PASS | report.css .badge.critical. |
 | Report neutral badge | --on-variant | #C7C5D3 | --surface-high | #2A282F | 8.56:1 | 4.5:1 | PASS | report.css .badge default. |
 
+## F2-A technician screens - light
+
+| Role | Foreground token | Hex | Background token | Hex | Ratio | AA threshold | Result | Usage / exception |
+|---|---|---|---|---:|---:|---:|---|---|
+| Body text | onSurface | #1A1B1F | surface | #FFFFFF | 17.21:1 | 4.5:1 | PASS | F2-A screen body text. |
+| Muted text | onSurfaceVariant | #5E5D69 | surface | #FFFFFF | 6.47:1 | 4.5:1 | PASS | F2-A labels and secondary text. |
+| Muted text on field fill | onSurfaceVariant | #5E5D69 | surfaceContainer | #F4F3F8 | 5.86:1 | 4.5:1 | PASS | F2-A field labels/hints on the filled input. |
+| Muted text on nav surface | onSurfaceVariant | #5E5D69 | surfaceLowest | #FFFFFF | 6.47:1 | 4.5:1 | PASS | F2-A dock unselected label. |
+| Brand ink text/icon | emeraldFill.ink | #006C49 | surface | #FFFFFF | 6.48:1 | 4.5:1 | PASS | F2-A icons and links on white. |
+| Brand container text | emeraldFill.onContainer | #00422B | emeraldFill.container | #D9FBE8 | 10.43:1 | 4.5:1 | PASS | F2-A selected chip and icon tile label. |
+| Primary small label | emeraldFill.onFill | #1A1B1F | emeraldFill.fill | #10B981 | 6.78:1 | 4.5:1 | PASS | P1 option 3: smaller emerald buttons use the ink label. |
+| Primary large label | onPrimaryLarge | #FFFFFF | primaryLarge | #059669 | 3.77:1 | 3.0:1 | PASS | P1 option 2: 19 px bold large CTA label. EXCEPTION: Owner-approved large-text pair (3.77:1 light) with a 19 px bold label. |
+| Primary large fill boundary | primaryLarge | #059669 | surface | #FFFFFF | 3.77:1 | 3.0:1 | PASS | P1 option 2 button boundary on the page. |
+| Field fill boundary | surfaceContainer | #F4F3F8 | surface | #FFFFFF | 1.10:1 | 3.0:1 | FAIL | Borderless filled field boundary. EXCEPTION: Accepted accessibility risk P2: visible label above and F1 focus ring carry the affordance. |
+| Focus ring | focus | #0B63CE | surface | #FFFFFF | 5.69:1 | 3.0:1 | PASS | F2-A focus ring around fields and actions. |
+| Error text | error | #A3231F | surface | #FFFFFF | 7.45:1 | 4.5:1 | PASS | F2-A validation text. |
+| Neutral status | status.neutral.fg | #3F4A54 | status.neutral.bg | #EDF1F3 | 7.97:1 | 4.5:1 | PASS | F2-A status/result chip. |
+| Info status | status.info.fg | #1D5C8A | status.info.bg | #E5F0F8 | 6.15:1 | 4.5:1 | PASS | F2-A in-progress status chip. |
+| Success status | status.success.fg | #1F6B45 | status.success.bg | #E6F3EC | 5.67:1 | 4.5:1 | PASS | F2-A no-issue-observed count chip. |
+| Warning status | status.warning.fg | #8A5A00 | status.warning.bg | #FFF4D6 | 5.41:1 | 4.5:1 | PASS | F2-A attention count chip. |
+| Danger status | status.danger.fg | #A3231F | status.danger.bg | #FBE9E7 | 6.36:1 | 4.5:1 | PASS | F2-A defect count chip. |
+| Critical status | status.critical.fg | #7F1D1D | status.critical.bg | #F7DADA | 7.63:1 | 4.5:1 | PASS | F2-A critical severity chip. |
+
+## F2-A technician screens - dark
+
+| Role | Foreground token | Hex | Background token | Hex | Ratio | AA threshold | Result | Usage / exception |
+|---|---|---|---|---:|---:|---:|---|---|
+| Body text | onSurface | #F1F0F5 | surface | #121114 | 16.60:1 | 4.5:1 | PASS | F2-A screen body text. |
+| Muted text | onSurfaceVariant | #C7C5D3 | surface | #121114 | 11.07:1 | 4.5:1 | PASS | F2-A labels and secondary text. |
+| Muted text on field fill | onSurfaceVariant | #C7C5D3 | surfaceContainer | #232128 | 9.36:1 | 4.5:1 | PASS | F2-A field labels/hints on the filled input. |
+| Muted text on nav surface | onSurfaceVariant | #C7C5D3 | surfaceLowest | #0C0B0E | 11.55:1 | 4.5:1 | PASS | F2-A dock unselected label. |
+| Brand ink text/icon | emeraldFill.ink | #6FFBBE | surface | #121114 | 14.53:1 | 4.5:1 | PASS | F2-A icons and links on white. |
+| Brand container text | emeraldFill.onContainer | #B7F5D8 | emeraldFill.container | #005236 | 7.55:1 | 4.5:1 | PASS | F2-A selected chip and icon tile label. |
+| Primary small label | emeraldFill.onFill | #002113 | emeraldFill.fill | #4EDEA3 | 10.03:1 | 4.5:1 | PASS | P1 option 3: smaller emerald buttons use the ink label. |
+| Primary large label | onPrimaryLarge | #002113 | primaryLarge | #34D399 | 8.90:1 | 3.0:1 | PASS | P1 option 2: 19 px bold large CTA label. EXCEPTION: Owner-approved large-text pair (3.77:1 light) with a 19 px bold label. |
+| Primary large fill boundary | primaryLarge | #34D399 | surface | #121114 | 9.79:1 | 3.0:1 | PASS | P1 option 2 button boundary on the page. |
+| Field fill boundary | surfaceContainer | #232128 | surface | #121114 | 1.18:1 | 3.0:1 | FAIL | Borderless filled field boundary. EXCEPTION: Accepted accessibility risk P2: visible label above and F1 focus ring carry the affordance. |
+| Focus ring | focus | #9CCBFF | surface | #121114 | 11.11:1 | 3.0:1 | PASS | F2-A focus ring around fields and actions. |
+| Error text | error | #FFB4AB | surface | #121114 | 11.08:1 | 4.5:1 | PASS | F2-A validation text. |
+| Neutral status | status.neutral.fg | #C3D4DA | status.neutral.bg | #26373C | 8.12:1 | 4.5:1 | PASS | F2-A status/result chip. |
+| Info status | status.info.fg | #B7DCF7 | status.info.bg | #173247 | 9.22:1 | 4.5:1 | PASS | F2-A in-progress status chip. |
+| Success status | status.success.fg | #B5E8C9 | status.success.bg | #173D2B | 8.83:1 | 4.5:1 | PASS | F2-A no-issue-observed count chip. |
+| Warning status | status.warning.fg | #FFDFA3 | status.warning.bg | #463611 | 9.09:1 | 4.5:1 | PASS | F2-A attention count chip. |
+| Danger status | status.danger.fg | #FFC4BD | status.danger.bg | #4A1F1C | 9.23:1 | 4.5:1 | PASS | F2-A defect count chip. |
+| Critical status | status.critical.fg | #FFD0D0 | status.critical.bg | #551C1C | 9.68:1 | 4.5:1 | PASS | F2-A critical severity chip. |
+
 ## Primary button options (A2 re-opened, measured)
 
 Measured from the four fills the owner asked to see on the Figma primary button. WCAG large text is >= 18.66 px bold (14 pt) or >= 24 px regular; the threshold is 3:1 for large text and 4.5:1 for normal text.
@@ -287,3 +335,27 @@ node tools/design_tokens/generate.mjs --check
 ```
 
 The generator reads `client/packages/design_system/tokens/tokens.json` and writes `tokens.g.dart`, `tokens.g.css` and this report. It exits non-zero on stale output when `--check` is used.
+
+## F2-A.1 primary button (I1) — measured and owner-accepted
+
+The owner required the Figma-exact primary button: `#10B981` fill with a white
+label. Measured with the same WCAG 2.2 relative-luminance formula used above:
+
+| Pair | Ratio | Threshold | Result |
+|---|---|---|---|
+| `#FFFFFF` on `#10B981` (primary CTA) | **2.54:1** | 4.5:1 normal text / 3:1 large text | **FAIL**; accepted risk under decision **I1** |
+| `#1A1B1F` on `#10B981` (available alternative, switch off) | 6.78:1 | 4.5:1 | PASS |
+| `#FFFFFF` on `#059669` (available alternative) | 3.77:1 | 3:1 large text (19 px bold) | PASS for large text only |
+| `#FFFFFF` on `#006C49` (available alternative) | 6.48:1 | 4.5:1 | PASS |
+| White field card on white page (I2) | 1.00:1 visible boundary; the `0,1,2` shadow is the only edge | 3:1 UI boundary | **FAIL**; accepted risk under **I2** |
+
+The two failures are deliberate consequences of the identical-first requirement
+and are recorded as owner-accepted risks. No other F2-A.1 pair newly fails: the
+danger text colour used for the login error is `#A3231F` on white (6.26:1).
+## F2-A.2 re-check
+
+The I1 white-on-`#10B981` pair remains **2.54:1** and remains the owner-accepted
+risk; nothing in F2-A.2 changed it. The field white-on-white boundary remains the
+I2 accepted risk. No new contrast pair was introduced by J1–J7. The F2-A.2
+measurement fix (real shadows, corrected reference crop) changes fidelity numbers
+only, not the colour pairs.

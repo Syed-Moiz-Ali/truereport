@@ -25,6 +25,7 @@ class AppTextField extends StatefulWidget {
     this.prefixText,
     this.suffixText,
     this.focusNode,
+    this.labelAbove = false,
     super.key,
   });
 
@@ -50,6 +51,10 @@ class AppTextField extends StatefulWidget {
   final String? prefixText;
   final String? suffixText;
   final FocusNode? focusNode;
+
+  /// Renders the label above the filled field (owner decision P2) instead of
+  /// using a floating in-field label.
+  final bool labelAbove;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -106,7 +111,7 @@ class _AppTextFieldState extends State<AppTextField> {
     final sizing = context.sizing;
     final radius = BorderRadius.circular(radii.xl);
 
-    return Semantics(
+    final field = Semantics(
       textField: true,
       label: widget.label,
       child: AnimatedContainer(
@@ -152,7 +157,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   horizontal: spacing.lg,
                   vertical: spacing.md,
                 ),
-                labelText: widget.label,
+                labelText: widget.labelAbove ? null : widget.label,
                 hintText: widget.hint,
                 helperText: widget.helperText,
                 errorText: widget.errorText,
@@ -181,6 +186,26 @@ class _AppTextFieldState extends State<AppTextField> {
           ),
         ),
       ),
+    );
+
+    if (!widget.labelAbove) {
+      return field;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: Text(
+            widget.label,
+            style: texts.labelLarge?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+        ),
+        SizedBox(height: spacing.xs),
+        field,
+      ],
     );
   }
 }

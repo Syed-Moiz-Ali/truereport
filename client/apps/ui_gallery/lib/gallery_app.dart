@@ -1,4 +1,4 @@
-import 'package:design_system/design_system.dart';
+﻿import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:ui_gallery/fixture_guard.dart';
@@ -421,6 +421,13 @@ class _GallerySections extends StatelessWidget {
           subtitle: 'Bottom dock.',
           child: NavigationShowcase(),
         ),
+        if (FixtureGuard.enabled)
+          const GallerySection(
+            title: 'Technician dock decision (P7)',
+            subtitle:
+                'Product 3-item dock and the Figma 4-item layout, shown for owner review only.',
+            child: TechnicianDockComparison(),
+          ),
         const GallerySection(
           title: 'Admin chrome',
           subtitle: 'Sidebar, top bar and AdminShell.',
@@ -548,3 +555,4 @@ class _StrategyPanel extends StatelessWidget {
     );
   }
 }
+

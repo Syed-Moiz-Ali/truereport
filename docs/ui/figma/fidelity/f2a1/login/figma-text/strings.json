@@ -1,0 +1,20 @@
+{
+  "sample": "login-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "English",
+    "عربي",
+    "TechInspect",
+    "Vehicle Condition & Fleet Diagnostics",
+    "Email",
+    "Password",
+    "Forgot password?",
+    "Sign In",
+    "Need technician access?",
+    "Request ID",
+    "Authorised workshop staff only"
+  ]
+}

@@ -1867,6 +1867,636 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link'**
   String get deliveryLink;
+
+  /// No description provided for @technicianWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back,'**
+  String get technicianWelcomeBack;
+
+  /// No description provided for @technicianJobsInQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in queue'**
+  String technicianJobsInQueue(int count);
+
+  /// No description provided for @technicianAssignedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned today'**
+  String get technicianAssignedToday;
+
+  /// No description provided for @technicianPendingCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending check'**
+  String get technicianPendingCheck;
+
+  /// No description provided for @technicianJobsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs'**
+  String get technicianJobsTitle;
+
+  /// No description provided for @technicianSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get technicianSyncTitle;
+
+  /// No description provided for @technicianProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get technicianProfileTitle;
+
+  /// No description provided for @technicianProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as'**
+  String get technicianProfileSubtitle;
+
+  /// No description provided for @technicianLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get technicianLanguage;
+
+  /// No description provided for @technicianAllCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You are all caught up'**
+  String get technicianAllCaughtUp;
+
+  /// No description provided for @technicianNoJobsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending inspections are assigned to you.'**
+  String get technicianNoJobsBody;
+
+  /// No description provided for @technicianRefreshQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh queue'**
+  String get technicianRefreshQueue;
+
+  /// No description provided for @technicianQueueRefreshed.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue refreshed'**
+  String get technicianQueueRefreshed;
+
+  /// No description provided for @technicianJobIntake.
+  ///
+  /// In en, this message translates to:
+  /// **'Job intake'**
+  String get technicianJobIntake;
+
+  /// No description provided for @technicianVehicleInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle info'**
+  String get technicianVehicleInfo;
+
+  /// No description provided for @technicianCustomerInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer info'**
+  String get technicianCustomerInfo;
+
+  /// No description provided for @technicianMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make'**
+  String get technicianMake;
+
+  /// No description provided for @technicianModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get technicianModel;
+
+  /// No description provided for @technicianYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get technicianYear;
+
+  /// No description provided for @technicianOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer'**
+  String get technicianOdometer;
+
+  /// No description provided for @technicianVin.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN'**
+  String get technicianVin;
+
+  /// No description provided for @technicianPlate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate'**
+  String get technicianPlate;
+
+  /// No description provided for @technicianPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get technicianPhone;
+
+  /// No description provided for @technicianEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get technicianEmail;
+
+  /// No description provided for @technicianTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection template'**
+  String get technicianTemplate;
+
+  /// No description provided for @technicianScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Scope'**
+  String get technicianScope;
+
+  /// No description provided for @technicianNotProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'Not provided'**
+  String get technicianNotProvided;
+
+  /// No description provided for @technicianCopyVin.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy VIN'**
+  String get technicianCopyVin;
+
+  /// No description provided for @technicianVinCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN copied'**
+  String get technicianVinCopied;
+
+  /// No description provided for @technicianConsentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose each consent separately. Nothing is recorded until you save.'**
+  String get technicianConsentIntro;
+
+  /// No description provided for @technicianConsentProcessingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the customer answer for processing inspection data.'**
+  String get technicianConsentProcessingBody;
+
+  /// No description provided for @technicianConsentPublicLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record the customer answer for sharing the public report link.'**
+  String get technicianConsentPublicLinkBody;
+
+  /// No description provided for @technicianConsentSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save consent'**
+  String get technicianConsentSave;
+
+  /// No description provided for @technicianConsentNotRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded yet'**
+  String get technicianConsentNotRecorded;
+
+  /// No description provided for @technicianChecksDone.
+  ///
+  /// In en, this message translates to:
+  /// **'checks done'**
+  String get technicianChecksDone;
+
+  /// No description provided for @technicianInspectionHub.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection hub'**
+  String get technicianInspectionHub;
+
+  /// No description provided for @technicianInspectionInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection in progress'**
+  String get technicianInspectionInProgress;
+
+  /// No description provided for @technicianInspectionModules.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection modules'**
+  String get technicianInspectionModules;
+
+  /// No description provided for @technicianCategoriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} categories'**
+  String technicianCategoriesCount(int count);
+
+  /// No description provided for @technicianChecksCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} checks'**
+  String technicianChecksCount(int done, int total);
+
+  /// No description provided for @technicianModuleDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get technicianModuleDone;
+
+  /// No description provided for @technicianModuleInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get technicianModuleInProgress;
+
+  /// No description provided for @technicianModuleNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get technicianModuleNotStarted;
+
+  /// No description provided for @technicianNoIssueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} no issue observed'**
+  String technicianNoIssueCount(int count);
+
+  /// No description provided for @technicianAttentionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attention'**
+  String technicianAttentionCount(int count);
+
+  /// No description provided for @technicianDefectsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} defects'**
+  String technicianDefectsCount(int count);
+
+  /// No description provided for @technicianContinueChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue checklist'**
+  String get technicianContinueChecklist;
+
+  /// No description provided for @technicianCoverageSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} checks done'**
+  String technicianCoverageSemantics(int done, int total);
+
+  /// No description provided for @technicianVehicleSilhouette.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle type silhouette'**
+  String get technicianVehicleSilhouette;
+
+  /// No description provided for @technicianUnknownVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get technicianUnknownVehicle;
+
+  /// No description provided for @technicianStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the inspection when the vehicle and customer details are confirmed.'**
+  String get technicianStartHint;
+
+  /// No description provided for @technicianSignInTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle inspection reports for partner workshops.'**
+  String get technicianSignInTagline;
+
+  /// No description provided for @technicianAccountNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workshop account is created by a Platform Admin.'**
+  String get technicianAccountNote;
+
+  /// No description provided for @technicianLanguagePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get technicianLanguagePrompt;
+
+  /// No description provided for @technicianSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as'**
+  String get technicianSignedInAs;
+
+  /// No description provided for @technicianPendingSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes saved on this phone'**
+  String get technicianPendingSync;
+
+  /// No description provided for @technicianAllSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes waiting to sync'**
+  String get technicianAllSynced;
+
+  /// No description provided for @technicianEquipmentIdsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment names are not available from the server in this build.'**
+  String get technicianEquipmentIdsOnly;
+
+  /// No description provided for @technicianOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'of {total}'**
+  String technicianOfTotal(int total);
+
+  /// No description provided for @technicianInspectionQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection Queue'**
+  String get technicianInspectionQueue;
+
+  /// No description provided for @technicianLiveSync.
+  ///
+  /// In en, this message translates to:
+  /// **'LIVE\nSYNC'**
+  String get technicianLiveSync;
+
+  /// No description provided for @technicianOnlineSync.
+  ///
+  /// In en, this message translates to:
+  /// **'ONLINE\nSYNC'**
+  String get technicianOnlineSync;
+
+  /// No description provided for @technicianOfflineSync.
+  ///
+  /// In en, this message translates to:
+  /// **'OFFLINE\nSYNC'**
+  String get technicianOfflineSync;
+
+  /// No description provided for @technicianShiftToday.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY • {count} JOBS'**
+  String technicianShiftToday(int count);
+
+  /// No description provided for @technicianShiftActive.
+  ///
+  /// In en, this message translates to:
+  /// **'SHIFT ACTIVE'**
+  String get technicianShiftActive;
+
+  /// No description provided for @technicianQueueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'QUEUE EMPTY'**
+  String get technicianQueueEmpty;
+
+  /// No description provided for @technicianJobsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} JOBS'**
+  String technicianJobsCount(int count);
+
+  /// No description provided for @technicianTodaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY\'S SUMMARY'**
+  String get technicianTodaySummary;
+
+  /// No description provided for @technicianCompletedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Completed'**
+  String technicianCompletedToday(int count);
+
+  /// No description provided for @technicianQueueCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue is current'**
+  String get technicianQueueCurrent;
+
+  /// No description provided for @technicianCoverageOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage'**
+  String get technicianCoverageOnly;
+
+  /// No description provided for @technicianPasswordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Password help'**
+  String get technicianPasswordHelp;
+
+  /// No description provided for @technicianNeedTechnicianAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Need technician access?'**
+  String get technicianNeedTechnicianAccess;
+
+  /// No description provided for @technicianContactAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Admin'**
+  String get technicianContactAdmin;
+
+  /// No description provided for @technicianSecureDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure report delivery'**
+  String get technicianSecureDelivery;
+
+  /// No description provided for @technicianRequiredEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Required Equipment'**
+  String get technicianRequiredEquipment;
+
+  /// No description provided for @technicianPreInspectionSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'PRE-INSPECTION SETUP'**
+  String get technicianPreInspectionSetup;
+
+  /// No description provided for @technicianEquipmentVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'{verified} of {total} Verified'**
+  String technicianEquipmentVerified(int verified, int total);
+
+  /// No description provided for @technicianEquipmentIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Ensure all diagnostic hardware is calibrated and paired before starting the inspection.'**
+  String get technicianEquipmentIntro;
+
+  /// No description provided for @technicianEquipmentStandards.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop equipment standards'**
+  String get technicianEquipmentStandards;
+
+  /// No description provided for @technicianEquipmentNameUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Name unavailable'**
+  String get technicianEquipmentNameUnavailable;
+
+  /// No description provided for @technicianHubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Intake Hub'**
+  String get technicianHubTitle;
+
+  /// No description provided for @technicianChecksDoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CHECKS DONE'**
+  String get technicianChecksDoneLabel;
+
+  /// No description provided for @technicianQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get technicianQueued;
+
+  /// No description provided for @technicianNoConditionScore.
+  ///
+  /// In en, this message translates to:
+  /// **'No condition score'**
+  String get technicianNoConditionScore;
+
+  /// No description provided for @technicianVinChassis.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN / Chassis'**
+  String get technicianVinChassis;
+
+  /// No description provided for @technicianCustomerChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get technicianCustomerChip;
+
+  /// No description provided for @technicianCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call customer'**
+  String get technicianCall;
+
+  /// No description provided for @technicianMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message customer'**
+  String get technicianMessage;
+
+  /// No description provided for @technicianServicePackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Package'**
+  String get technicianServicePackage;
+
+  /// No description provided for @technicianJobDetailsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Job details ready'**
+  String get technicianJobDetailsReady;
+
+  /// No description provided for @technicianInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection'**
+  String get technicianInspection;
+
+  /// No description provided for @technicianConsentStep.
+  ///
+  /// In en, this message translates to:
+  /// **'CONSENT • FINAL STEP'**
+  String get technicianConsentStep;
+
+  /// No description provided for @technicianConsentDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent decision'**
+  String get technicianConsentDecision;
+
+  /// No description provided for @technicianNoSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'No signature captured'**
+  String get technicianNoSignature;
+
+  /// No description provided for @technicianAuthorizedRepresentative.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized representative'**
+  String get technicianAuthorizedRepresentative;
+
+  /// No description provided for @technicianConsentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Granted or Refused'**
+  String get technicianConsentHint;
+
+  /// No description provided for @technicianDataStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Data storage'**
+  String get technicianDataStorage;
+
+  /// No description provided for @technicianUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in this version'**
+  String get technicianUnavailable;
+
+  /// No description provided for @technicianTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get technicianTimestamp;
+
+  /// No description provided for @technicianClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get technicianClear;
+
+  /// No description provided for @technicianSecurityLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorised workshop staff only'**
+  String get technicianSecurityLine;
+
+  /// No description provided for @technicianEquipmentStandardsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment availability is confirmed by the workshop.'**
+  String get technicianEquipmentStandardsBody;
+
+  /// No description provided for @technicianProceed.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed'**
+  String get technicianProceed;
+
+  /// No description provided for @technicianItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String technicianItemsCount(int count);
 }
 
 class _AppLocalizationsDelegate

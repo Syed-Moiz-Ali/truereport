@@ -1,0 +1,26 @@
+{
+  "sample": "equipment-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "01",
+    "PRE-INSPECTION SETUP",
+    "1 of 4 Verified",
+    "Required Equipment",
+    "Ensure all diagnostic hardware is calibrated and paired before starting the inspection.",
+    "Tire Depth Gauge",
+    "Digital laser calibration · Ready",
+    "OBD Scanner",
+    "Bluetooth module v4.2 · Tap to verify",
+    "Torque Wrench",
+    "Preset 120-140 Nm · Mechanical",
+    "Paint Depth Gauge",
+    "Fe / NFe substrate probe",
+    "Fleet Station Standards",
+    "ISO-9001 certified diagnostic requirements",
+    "Proceed",
+    "Diagnostic Checklist"
+  ]
+}

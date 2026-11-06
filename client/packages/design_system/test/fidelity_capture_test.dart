@@ -8,6 +8,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/fidelity_harness.dart';
+
 /// Fidelity capture for the Figma-exact component variants.
 ///
 /// Each sample renders only the Figma node bounding box (button 342 x 56,
@@ -27,7 +29,12 @@ void main() {
       final outDir = Directory(
         '${root.path}/docs/ui/figma/fidelity/component-samples/${sample.id}',
       );
-      await _render(tester, sample, outDir);
+      final previous = enableFidelityShadows();
+      try {
+        await _render(tester, sample, outDir);
+      } finally {
+        restoreFidelityShadows(previous);
+      }
     });
   }
 }
@@ -72,6 +79,7 @@ Future<void> _render(
   _Sample sample,
   Directory outDir,
 ) async {
+  assertFidelityShadows();
   const dpr = 2.0;
   tester.view.physicalSize = Size(sample.width * dpr, sample.height * dpr);
   tester.view.devicePixelRatio = dpr;

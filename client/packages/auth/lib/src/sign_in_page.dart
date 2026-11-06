@@ -1,7 +1,7 @@
-import 'package:auth/src/auth_controller.dart';
+﻿import 'package:auth/src/auth_controller.dart';
 import 'package:auth/src/auth_repository.dart';
+import 'package:auth/src/sign_in_view.dart';
 import 'package:core/core.dart';
-import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
@@ -99,158 +99,30 @@ class _SignInPageState extends ConsumerState<SignInPage> {
       'genericError' => l10n.genericError,
       _ => null,
     };
-
-    return AppScaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth >= 900
-              ? constraints.maxWidth * 0.38
-              : constraints.maxWidth;
-          return SingleChildScrollView(
-            padding: EdgeInsetsDirectional.all(context.spacing.lg),
-            child: Center(
-              child: SizedBox(
-                width: width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Wrap(
-                      spacing: context.spacing.sm,
-                      runSpacing: context.spacing.sm,
-                      children: [
-                        AppSelectableText(
-                          key: const Key('sign-in-language-en'),
-                          label: l10n.languageEnglish,
-                          selected: locale.languageCode == 'en',
-                          onTap: () => ref
-                              .read(localeProvider.notifier)
-                              .setLocale(const Locale('en')),
-                        ),
-                        AppSelectableText(
-                          key: const Key('sign-in-language-ar'),
-                          label: l10n.languageArabic,
-                          selected: locale.languageCode == 'ar',
-                          onTap: () => ref
-                              .read(localeProvider.notifier)
-                              .setLocale(const Locale('ar')),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: context.spacing.lg),
-                    FadeInCard(
-                      child: AppCard(
-                        padding: EdgeInsetsDirectional.all(context.spacing.xl),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                l10n.appTitle,
-                                style: context.texts.displaySmall,
-                              ),
-                              SizedBox(height: context.spacing.xl),
-                              Text(
-                                l10n.signInTitle,
-                                style: context.texts.headlineMedium,
-                              ),
-                              SizedBox(height: context.spacing.xs),
-                              Text(
-                                l10n.signInSubtitle,
-                                style: context.texts.bodyLarge?.copyWith(
-                                  color: context.colors.onSurfaceVariant,
-                                ),
-                              ),
-                              SizedBox(height: context.spacing.xl),
-                              AppTextField(
-                                key: const Key('sign-in-email'),
-                                controller: _email,
-                                label: l10n.emailLabel,
-                                keyboardType: TextInputType.emailAddress,
-                                autofillHints: const [AutofillHints.email],
-                                textDirection: TextDirection.ltr,
-                                textInputAction: TextInputAction.next,
-                                validator: (value) {
-                                  final required = _required(value);
-                                  if (required != null) {
-                                    return required;
-                                  }
-                                  return Validators.email(value) == null
-                                      ? null
-                                      : AppLocalizations.of(context)
-                                            .invalidEmail;
-                                },
-                              ),
-                              SizedBox(height: context.spacing.lg),
-                              AppTextField(
-                                key: const Key('sign-in-password'),
-                                controller: _password,
-                                label: l10n.passwordLabel,
-                                obscureText: true,
-                                autofillHints: const [AutofillHints.password],
-                                textDirection: TextDirection.ltr,
-                                textInputAction: TextInputAction.done,
-                                validator: _required,
-                                onFieldSubmitted: (_) => _submit(),
-                              ),
-                              if (_challengeToken != null) ...[
-                                SizedBox(height: context.spacing.lg),
-                                AppTextField(
-                                  key: const Key('sign-in-code'),
-                                  controller: _code,
-                                  label: l10n.twoFactorLabel,
-                                  keyboardType: TextInputType.number,
-                                  textDirection: TextDirection.ltr,
-                                  validator: (value) =>
-                                      (value ?? '').length == 6
-                                      ? null
-                                      : l10n.requiredField,
-                                ),
-                              ],
-                              AnimatedSwitcher(
-                                duration: context.motionDuration(
-                                  context.motion.normal,
-                                ),
-                                switchInCurve: context.motion.enterCurve,
-                                switchOutCurve: context.motion.exitCurve,
-                                child: errorText == null
-                                    ? const SizedBox.shrink()
-                                    : Padding(
-                                        padding: EdgeInsetsDirectional.only(
-                                          top: context.spacing.lg,
-                                        ),
-                                        child: Text(
-                                          errorText,
-                                          key: ValueKey(errorText),
-                                          style: context.texts.bodyMedium
-                                              ?.copyWith(
-                                                color: context.colors.error,
-                                              ),
-                                        ),
-                                      ),
-                              ),
-                              SizedBox(height: context.spacing.xl),
-                              AppButton(
-                                key: const Key('sign-in-submit'),
-                                label: _challengeToken == null
-                                    ? l10n.signInButton
-                                    : l10n.verifyButton,
-                                isLoading: _submitting,
-                                onPressed: _submit,
-                                expand: true,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+    return SignInView(
+      emailController: _email,
+      passwordController: _password,
+      codeController: _code,
+      formKey: _formKey,
+      isArabic: locale.languageCode == 'ar',
+      onLocaleChanged: (isArabic) => ref
+          .read(localeProvider.notifier)
+          .setLocale(Locale(isArabic ? 'ar' : 'en')),
+      onSubmit: _submit,
+      onValidateEmail: (value) {
+        final required = _required(value);
+        if (required != null) {
+          return required;
+        }
+        return Validators.email(value) == null
+            ? null
+            : AppLocalizations.of(context).invalidEmail;
+      },
+      onValidateRequired: _required,
+      challenge: _challengeToken != null,
+      submitting: _submitting,
+      errorText: errorText,
     );
   }
 }
+

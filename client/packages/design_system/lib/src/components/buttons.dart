@@ -1,4 +1,4 @@
-import 'package:design_system/src/tokens.dart';
+﻿import 'package:design_system/src/tokens.dart';
 import 'package:flutter/material.dart';
 
 enum AppButtonVariant { primary, tonal, text, destructive }
@@ -11,6 +11,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.variant = AppButtonVariant.primary,
     this.expand = false,
+    this.large = false,
     super.key,
   });
 
@@ -20,6 +21,9 @@ class AppButton extends StatefulWidget {
   final IconData? icon;
   final AppButtonVariant variant;
   final bool expand;
+
+  /// Large primary technician action: 19 px bold label, P1 option 2 fill.
+  final bool large;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -35,9 +39,18 @@ class _AppButtonState extends State<AppButton> {
     final sizing = context.sizing;
     final effective = widget.isLoading ? null : widget.onPressed;
     final isText = widget.variant == AppButtonVariant.text;
-    final minimumHeight = isText ? sizing.targetMin : sizing.buttonHeight;
+    final isLarge = widget.large && !isText;
+    final minimumHeight = isText
+        ? sizing.targetMin
+        : isLarge
+        ? sizing.technicianPrimaryHeight
+        : sizing.buttonHeight;
 
     final (Color background, Color baseForeground) = switch (widget.variant) {
+      AppButtonVariant.primary when isLarge => (
+        brand.largeFill,
+        brand.onLargeFill,
+      ),
       AppButtonVariant.primary => (brand.fill, brand.onFill),
       AppButtonVariant.tonal => (brand.container, brand.onContainer),
       AppButtonVariant.text => (colors.surface, brand.ink),
@@ -46,6 +59,9 @@ class _AppButtonState extends State<AppButton> {
     final foreground = effective == null && !widget.isLoading
         ? colors.onSurfaceVariant
         : baseForeground;
+    final labelStyle = isLarge
+        ? context.largeButtonTextStyle.copyWith(color: foreground)
+        : context.texts.labelLarge?.copyWith(color: foreground);
 
     final child = widget.isLoading
         ? SizedBox.square(
@@ -67,7 +83,7 @@ class _AppButtonState extends State<AppButton> {
                 child: Text(
                   widget.label,
                   textAlign: TextAlign.center,
-                  style: context.texts.labelLarge?.copyWith(color: foreground),
+                  style: labelStyle,
                 ),
               ),
             ],
@@ -90,7 +106,7 @@ class _AppButtonState extends State<AppButton> {
                 vertical: context.spacing.md,
               ),
               shape: shape,
-              textStyle: context.texts.labelLarge,
+              textStyle: labelStyle,
             ),
             child: child,
           )
@@ -110,7 +126,7 @@ class _AppButtonState extends State<AppButton> {
                 vertical: context.spacing.md,
               ),
               shape: shape,
-              textStyle: context.texts.labelLarge,
+              textStyle: labelStyle,
             ),
             child: child,
           );
@@ -269,3 +285,4 @@ class _PressScaleState extends State<_PressScale> {
     );
   }
 }
+

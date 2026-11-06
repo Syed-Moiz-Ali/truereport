@@ -1,0 +1,22 @@
+{
+  "id": "f2a1-inspection-hub-product-copy",
+  "batch": "f2a1-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/07_7._Main_Inspection_Hub/7._Main_Inspection_Hub@2x.png",
+  "crop": {
+    "x": 60,
+    "y": 14,
+    "width": 780,
+    "height": 2260
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1130,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2a1/inspection-hub/product-copy/render.png",
+  "output": "docs/ui/figma/fidelity/f2a1/inspection-hub/product-copy",
+  "expectedStrings": [],
+  "keyBoxes": [],
+  "keyBoxTolerance": 1,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
+  "thresholdSsim": 0.98
+}

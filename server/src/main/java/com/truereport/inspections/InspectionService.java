@@ -8,6 +8,7 @@ import com.truereport.inspections.api.AssessmentDto;
 import com.truereport.inspections.api.AssessmentRequest;
 import com.truereport.inspections.api.ConsentRequest;
 import com.truereport.inspections.api.CustomerUpdateRequest;
+import com.truereport.inspections.api.EquipmentItemDto;
 import com.truereport.inspections.api.EquipmentListDto;
 import com.truereport.inspections.api.FinalizeResponse;
 import com.truereport.inspections.api.InspectionChecklistDto;
@@ -22,6 +23,7 @@ import com.truereport.jobs.WorkshopJobService;
 import com.truereport.jobs.InspectionFinalizedEvent;
 import com.truereport.tenancy.WorkshopRepository;
 import com.truereport.jobs.api.JobDto;
+import com.truereport.masterdata.MasterContentService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.templates.WorkshopTemplateService;
@@ -71,6 +73,7 @@ public class InspectionService {
     private final ObjectMapper objectMapper;
     private final WorkshopRepository workshops;
     private final UserRepository users;
+    private final MasterContentService masterContent;
     private final org.springframework.context.ApplicationEventPublisher events;
 
     public InspectionService(InspectionJobRepository jobs,
@@ -87,6 +90,7 @@ public class InspectionService {
                              ObjectMapper objectMapper,
                              WorkshopRepository workshops,
                              UserRepository users,
+                             MasterContentService masterContent,
                              org.springframework.context.ApplicationEventPublisher events) {
         this.jobs = jobs;
         this.snapshots = snapshots;
@@ -102,6 +106,7 @@ public class InspectionService {
         this.objectMapper = objectMapper;
         this.workshops = workshops;
         this.users = users;
+        this.masterContent = masterContent;
         this.events = events;
     }
 
@@ -166,7 +171,12 @@ public class InspectionService {
                 }
             }
         }
-        return new EquipmentListDto(new ArrayList<>(ids));
+        List<UUID> equipmentIds = new ArrayList<>(ids);
+        List<EquipmentItemDto> items = masterContent.listEquipmentByIds(equipmentIds).stream()
+                .map(item -> new EquipmentItemDto(item.id(), item.code(), item.labelEn(),
+                        item.labelAr(), item.status(), item.sortOrder()))
+                .toList();
+        return new EquipmentListDto(equipmentIds, items);
     }
 
     @Transactional

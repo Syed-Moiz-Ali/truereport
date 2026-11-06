@@ -8,6 +8,7 @@ import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/pages/assessment_page.dart';
 import 'package:technician_app/src/pages/checklist_page.dart';
 import 'package:technician_app/src/pages/finalized_page.dart';
+import 'package:technician_app/src/pages/inspection_hub_page.dart';
 import 'package:technician_app/src/pages/job_detail_page.dart';
 import 'package:technician_app/src/pages/review_page.dart';
 import 'package:technician_app/src/pages/sync_queue_page.dart';
@@ -50,6 +51,11 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
         path: '/jobs/:id',
         builder: (context, state) =>
             JobDetailPage(jobId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/jobs/:id/hub',
+        builder: (context, state) =>
+            InspectionHubPage(jobId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/jobs/:id/checklist',
