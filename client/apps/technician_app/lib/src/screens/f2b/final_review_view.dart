@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
@@ -34,6 +35,7 @@ class FinalReviewView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final percent = review.total == 0
         ? 0
         : ((review.completed / review.total) * 100).round();
@@ -63,7 +65,8 @@ class FinalReviewView extends StatelessWidget {
                       ),
                     ),
                     F2bStatusPill(
-                      label: '${review.blocking.length} ${l10n.missingItems}',
+                      label:
+                          '${formatCountLocalized(review.blocking.length, localeName)} ${l10n.missingItems}',
                       background: F2b.rosePale,
                       foreground: F2b.redMaroon,
                       dot: Fx.dangerRed,
@@ -124,7 +127,7 @@ class FinalReviewView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${review.blocking.length} ${l10n.missingItems}',
+                              '${formatCountLocalized(review.blocking.length, localeName)} ${l10n.missingItems}',
                               style: Fx.title16.copyWith(color: Fx.ink),
                             ),
                             const SizedBox(height: _M.gapXSmall),
@@ -184,7 +187,11 @@ class FinalReviewView extends StatelessWidget {
                         Expanded(
                           child: F2bKeyValue(
                             label: l10n.completedItems,
-                            value: '${review.completed} / ${review.total}',
+                            value: formatCountPairLocalized(
+                              review.completed,
+                              review.total,
+                              localeName,
+                            ),
                           ),
                         ),
                         Column(
@@ -205,7 +212,7 @@ class FinalReviewView extends StatelessWidget {
                             ),
                             const SizedBox(height: _M.tick),
                             Text(
-                              '$percent%',
+                              formatPercentLocalized(percent, localeName),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.end,
@@ -360,6 +367,7 @@ class _IssueRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final title = _issueTitle(l10n, issue);
     final detail = _issueDetail(l10n, issue);
     return FxCard(
@@ -378,7 +386,7 @@ class _IssueRow extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                '$index',
+                formatCountLocalized(index, localeName),
                 textDirection: TextDirection.ltr,
                 style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.ink),
               ),

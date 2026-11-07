@@ -6,12 +6,16 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.action,
+    this.titleDirection,
     super.key,
   });
 
   final String title;
   final String? subtitle;
   final Widget? action;
+
+  /// Explicit direction for identifier-like titles (references, VINs).
+  final TextDirection? titleDirection;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +24,11 @@ class SectionHeader extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(title, style: context.texts.headlineSmall),
+          child: Text(
+            title,
+            textDirection: titleDirection,
+            style: context.texts.headlineSmall,
+          ),
         ),
         if (subtitle != null) ...[
           SizedBox(height: context.spacing.xs),
@@ -78,6 +86,8 @@ class AppListTile extends StatefulWidget {
     this.onLongPress,
     this.semanticLabel,
     this.enabled = true,
+    this.titleDirection,
+    this.subtitleDirection,
     super.key,
   });
 
@@ -89,6 +99,11 @@ class AppListTile extends StatefulWidget {
   final VoidCallback? onLongPress;
   final String? semanticLabel;
   final bool enabled;
+
+  /// Explicit directions for identifier-like content (references, VINs,
+  /// plates, phone numbers). Names stay ambient.
+  final TextDirection? titleDirection;
+  final TextDirection? subtitleDirection;
 
   @override
   State<AppListTile> createState() => _AppListTileState();
@@ -116,17 +131,22 @@ class _AppListTileState extends State<AppListTile> {
             flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.title, style: context.texts.titleMedium),
-                if (widget.subtitle != null) ...[
-                  SizedBox(height: context.spacing.xs),
+                children: [
                   Text(
-                    widget.subtitle!,
-                    style: context.texts.bodySmall?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                    ),
+                    widget.title,
+                    textDirection: widget.titleDirection,
+                    style: context.texts.titleMedium,
                   ),
-                ],
+                  if (widget.subtitle != null) ...[
+                    SizedBox(height: context.spacing.xs),
+                    Text(
+                      widget.subtitle!,
+                      textDirection: widget.subtitleDirection,
+                      style: context.texts.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 
 /// Figma screen 16. Post-finalization success, driven by the real job, report
@@ -75,6 +76,7 @@ class SuccessView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final finalized = job.status == 'FINALIZED';
     final vin = job.vehicleVin ?? '';
     final vinEnding = vin.length >= 4 ? vin.substring(vin.length - 4) : vin;
@@ -298,8 +300,11 @@ class SuccessView extends StatelessWidget {
                           Expanded(
                             child: F2bKeyValue(
                               label: l10n.completedItems,
-                              value:
-                                  '${checklist.completed} / ${checklist.total}',
+                              value: formatCountPairLocalized(
+                                checklist.completed,
+                                checklist.total,
+                                localeName,
+                              ),
                             ),
                           ),
                           Container(
@@ -315,7 +320,7 @@ class SuccessView extends StatelessWidget {
                                 label: l10n.report,
                                 value: report == null
                                     ? l10n.technicianNotProvided
-                                    : 'v${report!.version}',
+                                    : 'v${formatCountLocalized(report!.version, localeName)}',
                               ),
                             ),
                           ),

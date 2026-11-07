@@ -1,0 +1,28 @@
+{
+  "sample": "builder-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1251.5
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "title": {
+      "x": 16.0,
+      "y": 72.0,
+      "width": 205.69606018066406,
+      "height": 22.0
+    },
+    "dropzone": {
+      "x": 504.7518796992481,
+      "y": 874.0,
+      "width": 759.2481203007519,
+      "height": 102.0
+    },
+    "seq-0": {
+      "x": 1176.0,
+      "y": 558.0,
+      "width": 48.0,
+      "height": 48.0
+    }
+  }
+}

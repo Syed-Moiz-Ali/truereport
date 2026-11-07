@@ -800,6 +800,180 @@ abstract class AppLocalizations {
   /// **'Templates'**
   String get templatesTab;
 
+  /// No description provided for @dashboardTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get dashboardTab;
+
+  /// No description provided for @dashboardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs by status in your workshop'**
+  String get dashboardSubtitle;
+
+  /// No description provided for @dashboardStatActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active jobs'**
+  String get dashboardStatActive;
+
+  /// No description provided for @dashboardStatNewScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'New & scheduled'**
+  String get dashboardStatNewScheduled;
+
+  /// No description provided for @dashboardStatFinalizedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalized today'**
+  String get dashboardStatFinalizedToday;
+
+  /// No description provided for @dashboardRecentJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent jobs'**
+  String get dashboardRecentJobs;
+
+  /// No description provided for @queueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job queue'**
+  String get queueTitle;
+
+  /// No description provided for @scheduleJobTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule new job'**
+  String get scheduleJobTitle;
+
+  /// No description provided for @scheduleJobSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the job in this workshop — assign a technician afterwards'**
+  String get scheduleJobSubtitle;
+
+  /// No description provided for @assignTechnicianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign technician'**
+  String get assignTechnicianTitle;
+
+  /// No description provided for @assignTechnicianSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an available technician'**
+  String get assignTechnicianSubtitle;
+
+  /// No description provided for @assignReasonOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get assignReasonOptional;
+
+  /// No description provided for @workshopStaffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop Staff'**
+  String get workshopStaffTitle;
+
+  /// No description provided for @staffFilterTechnicians.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians'**
+  String get staffFilterTechnicians;
+
+  /// No description provided for @staffFilterAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
+  String get staffFilterAdmins;
+
+  /// No description provided for @staffResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get staffResetPassword;
+
+  /// No description provided for @createTechnicianTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create technician'**
+  String get createTechnicianTitle;
+
+  /// No description provided for @createTechnicianSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the name, email and initial password. The technician signs in with these credentials.'**
+  String get createTechnicianSubtitle;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
+  /// No description provided for @emailAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered.'**
+  String get emailAlreadyInUse;
+
+  /// No description provided for @templateListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection templates'**
+  String get templateListTitle;
+
+  /// No description provided for @templateTotalCheckpoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Total checkpoints'**
+  String get templateTotalCheckpoints;
+
+  /// No description provided for @templatesUpdatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {date}'**
+  String templatesUpdatedOn(String date);
+
+  /// No description provided for @templateViewGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get templateViewGrid;
+
+  /// No description provided for @templateViewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get templateViewList;
+
+  /// No description provided for @builderMasterItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Master items'**
+  String get builderMasterItems;
+
+  /// No description provided for @builderSequenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Template sequence'**
+  String get builderSequenceTitle;
+
+  /// No description provided for @builderDropHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop checkpoint here'**
+  String get builderDropHint;
+
   /// No description provided for @newJob.
   ///
   /// In en, this message translates to:
@@ -2327,13 +2501,13 @@ abstract class AppLocalizations {
   /// No description provided for @technicianNeedTechnicianAccess.
   ///
   /// In en, this message translates to:
-  /// **'Need technician access?'**
+  /// **'Need technician login?'**
   String get technicianNeedTechnicianAccess;
 
   /// No description provided for @technicianContactAdmin.
   ///
   /// In en, this message translates to:
-  /// **'Contact Admin'**
+  /// **'Get help'**
   String get technicianContactAdmin;
 
   /// No description provided for @technicianSecureDelivery.

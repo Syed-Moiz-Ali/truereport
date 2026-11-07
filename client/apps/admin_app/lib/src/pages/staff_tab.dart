@@ -1,93 +1,288 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/labels.dart';
+import 'package:admin_app/src/models.dart';
+import 'package:admin_app/src/pages/create_technician_sheet.dart';
+import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 
-/// Workshop Admin staff screen.
+/// Workshop Admin staff screen (Figma screen 5, drawn at 1280).
 ///
-/// Lists technicians of the caller's own workshop (server-scoped staff
-/// endpoint) and offers minimal account management: create a Technician
-/// (workshop technicians endpoint) and reset a Technician password
-/// (technician password-reset endpoint). No invitation flow exists here.
-class StaffTab extends ConsumerWidget {
+/// Roster core only, from the existing server-scoped staff endpoint
+/// (`staffProvider`): a [WorkshopHeader] title +
+/// client-side search + role filter chips with client-side counts + one
+/// [WorkshopStaffCard] per member (initials tile + status dot from `status`,
+/// displayName, neutral role label, masked email, password-reset menu).
+/// The "+ Add" trigger opens the screen-6 create-Technician sheet
+/// ([CreateTechnicianSheet.showCreateTechnicianSheet]).
+///
+/// Omitted per the F3 slot sheet (same slots, no invented data): LIVE ROSTER
+/// pill, Active-Shift chip, bay/shift metric cards (counts live in the chips
+/// only), skill/certification/level rows, logged-hours, NFC banner, roster
+/// export, shift rules, availability toggles (no mutation endpoint), sample
+/// emails (masked only), manager titles (neutral roles only).
+///
+/// Derived phone/tablet layouts collapse the 3-column grid to 2/1 columns and
+/// stack the header search (labelled here only — O3/P7, no device claim).
+class StaffTab extends ConsumerStatefulWidget {
   const StaffTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StaffTab> createState() => _StaffTabState();
+}
+
+class _StaffTabState extends ConsumerState<StaffTab> {
+  final _search = TextEditingController();
+
+  /// '' = all; otherwise a C0 role code (TECHNICIAN / WORKSHOP_ADMIN).
+  String _role = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final staff = ref.watch(staffProvider);
-    return staff.when(
-      loading: () => Padding(
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
-        child: const LoadingSkeleton(lines: 4),
-      ),
-      error: (error, _) => Center(
-        child: Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.lg),
-          child: ErrorState(
-            title: l10n.error,
-            body: l10n.genericError,
-            onRetry: () => ref.invalidate(staffProvider),
-            retryLabel: l10n.retryAction,
+    final counts = staff.maybeWhen(
+      data: (members) => members,
+      orElse: () => null,
+    );
+    final authState = ref.watch(authControllerProvider);
+    final session = authState.value;
+    final displayName = session?.user.displayName.trim() ?? '';
+    final workshopName = session != null && session.memberships.isNotEmpty
+        ? session.memberships.first.workshopName
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(
+            start: context.spacing.lg,
+            end: context.spacing.lg,
+            top: context.spacing.lg,
+          ),
+          child: WorkshopHeader(
+            semanticLabel: l10n.workshopStaffTitle,
+            title: l10n.workshopStaffTitle,
+            search: AppTextField(
+              key: const Key('staff-search'),
+              controller: _search,
+              label: l10n.search,
+              hint: l10n.search,
+              prefixIcon: const Icon(Icons.search),
+              onChanged: (_) => setState(() {}),
+            ),
+            actions: [
+              AppButton(
+                label: l10n.create,
+                onPressed: () async {
+                  final created =
+                      await CreateTechnicianSheet.showCreateTechnicianSheet(
+                        context,
+                      );
+                  if (created != null) {
+                    ref.invalidate(staffProvider);
+                  }
+                },
+                icon: Icons.person_add_alt_1_outlined,
+                variant: AppButtonVariant.tonal,
+              ),
+            ],
+            // Signed-in account only: display name + workshop name.
+            // No sample names, no role claim.
+            user: displayName.isEmpty
+                ? null
+                : WorkshopUserChip(
+                    initials: _initials(displayName),
+                    displayName: displayName,
+                    workshopName: workshopName,
+                  ),
           ),
         ),
-      ),
-      data: (members) => ListView(
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
-        children: [
-          SectionHeader(
-            title: l10n.staffTab,
-            action: AppButton(
-              label: l10n.create,
-              onPressed: () => showCreateTechnicianDialog(context, ref),
-              icon: Icons.person_add_alt_1_outlined,
-              variant: AppButtonVariant.tonal,
-            ),
+        Padding(
+          padding: EdgeInsetsDirectional.symmetric(
+            horizontal: context.spacing.lg,
+            vertical: context.spacing.sm,
           ),
-          if (members.isEmpty)
-            EmptyState(
-              title: l10n.noResults,
-              body: l10n.noTechnicians,
-              icon: Icons.groups_outlined,
-            )
-          else
-            ...members.map(
-              (member) => Padding(
-                padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-                child: Card(
-                  child: AppListTile(
-                    leading: CircleAvatar(
-                      child: Text(
-                        member.displayName.isEmpty
-                            ? '?'
-                            : member.displayName[0],
-                      ),
-                    ),
-                    title: member.displayName,
-                    subtitle:
-                        '${member.emailMasked} · ${memberRoleLabel(l10n, member.role)}',
-                    trailing: _StaffActions(userId: member.userId),
-                  ),
+          // Wrap (not a horizontal scroller): the three chips sit in one
+          // row at 1280 and wrap on derived phone/tablet widths (O3/P7).
+          child: Wrap(
+            spacing: context.spacing.sm,
+            runSpacing: context.spacing.sm,
+            children: [
+              _filter(context, l10n, '', l10n.filterAll, counts),
+              _filter(
+                context,
+                l10n,
+                'TECHNICIAN',
+                l10n.staffFilterTechnicians,
+                counts,
+              ),
+              _filter(
+                context,
+                l10n,
+                'WORKSHOP_ADMIN',
+                l10n.staffFilterAdmins,
+                counts,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: staff.when(
+            loading: () => Padding(
+              padding: EdgeInsetsDirectional.all(context.spacing.lg),
+              child: const LoadingSkeleton(lines: 4),
+            ),
+            error: (error, _) => Center(
+              child: Padding(
+                padding: EdgeInsetsDirectional.all(context.spacing.lg),
+                child: ErrorState(
+                  title: l10n.error,
+                  body: l10n.genericError,
+                  onRetry: () => ref.invalidate(staffProvider),
+                  retryLabel: l10n.retryAction,
                 ),
               ),
             ),
-        ],
-      ),
+            data: (members) {
+              final query = _search.text.trim().toLowerCase();
+              final filtered = members.where((member) {
+                if (_role.isNotEmpty && member.role != _role) {
+                  return false;
+                }
+                if (query.isEmpty) {
+                  return true;
+                }
+                return member.displayName.toLowerCase().contains(query) ||
+                    member.emailMasked.toLowerCase().contains(query);
+              }).toList(growable: false);
+              if (filtered.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.all(context.spacing.lg),
+                    child: EmptyState(
+                      title: l10n.noResults,
+                      body: l10n.noTechnicians,
+                      icon: Icons.groups_outlined,
+                    ),
+                  ),
+                );
+              }
+              return SingleChildScrollView(
+                padding: EdgeInsetsDirectional.all(context.spacing.lg),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Derived narrow layouts collapse the drawn 1280
+                    // 3-column grid (O3/P7): phone -> 1, tablet -> 2.
+                    final columns =
+                        constraints.maxWidth < AppBreakpoints.phone
+                        ? 1
+                        : constraints.maxWidth < AppBreakpoints.tablet
+                        ? 2
+                        : 3;
+                    final gap = context.spacing.sm;
+                    final cardWidth =
+                        (constraints.maxWidth - gap * (columns - 1)) / columns;
+                    return Wrap(
+                      spacing: gap,
+                      runSpacing: gap,
+                      children: [
+                        for (final member in filtered)
+                          SizedBox(
+                            width: columns == 1
+                                ? constraints.maxWidth
+                                : cardWidth,
+                            child: WorkshopStaffCard(
+                              key: Key('staff-${member.userId}'),
+                              displayName: member.displayName,
+                              statusActive: member.status == 'ACTIVE',
+                              roleLabel: memberRoleLabel(l10n, member.role),
+                              detail: Text(member.emailMasked),
+                              trailing: _StaffActions(
+                                userId: member.userId,
+                                displayName: member.displayName,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Role chip with a client-side count derived from the unfiltered `GET
+  /// /staff` snapshot (slot sheet screen 5 — no shift/bay data exists).
+  Widget _filter(
+    BuildContext context,
+    AppLocalizations l10n,
+    String value,
+    String label,
+    List<StaffMember>? all,
+  ) {
+    final count = all == null
+        ? null
+        : value.isEmpty
+        ? all.length
+        : all.where((member) => member.role == value).length;
+    return AppSelectableText(
+      label: count == null ? label : '$label (${_formatCount(context, count)})',
+      selected: _role == value,
+      onTap: () => setState(() => _role = value),
     );
   }
 }
 
+/// Locale-aware count (`NumberFormat.decimalPattern` under the active
+/// locale; verified: EN unchanged, and 'ar' also renders Latin digits in
+/// intl 0.20.3 — no digit conversion is invented here).
+String _formatCount(BuildContext context, int value) {
+  final locale = Localizations.localeOf(context).toString();
+  return NumberFormat.decimalPattern(locale).format(value);
+}
+
+String _initials(String displayName) {
+  final parts = displayName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.isEmpty) {
+    return '';
+  }
+  if (parts.length == 1) {
+    return parts.first.characters.first.toUpperCase();
+  }
+  return (parts.first.characters.first + parts[1].characters.first)
+      .toUpperCase();
+}
+
 class _StaffActions extends ConsumerWidget {
-  const _StaffActions({required this.userId});
+  const _StaffActions({required this.userId, required this.displayName});
 
   final String userId;
+  final String displayName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return PopupMenuButton<String>(
+      tooltip: '$displayName · ${l10n.actions}',
       onSelected: (value) async {
         if (value != 'resetPassword') {
           return;
@@ -169,115 +364,8 @@ Future<String?> showResetPasswordDialog(BuildContext context) {
         ),
       ],
     ),
-  // Do not dispose synchronously (pop animation frame still builds).
+    // Do not dispose synchronously (pop animation frame still builds).
   ).then((value) {
     return value;
   });
-}
-
-/// Minimal create-technician dialog for the Workshop Admin's own workshop.
-///
-/// Role is fixed to Technician and the workshop is derived server-side from
-/// the caller, so neither is editable. See the Phase C0 slot sheet for
-/// Figma fields with no server counterpart.
-Future<void> showCreateTechnicianDialog(
-  BuildContext context,
-  WidgetRef ref,
-) async {
-  final l10n = AppLocalizations.of(context);
-  final email = TextEditingController();
-  final name = TextEditingController();
-  final password = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-  await showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(l10n.create),
-      content: SingleChildScrollView(
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppTextField(
-                controller: email,
-                label: l10n.email,
-                hint: l10n.email,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return l10n.requiredField;
-                  }
-                  if (!value.contains('@')) {
-                    return l10n.invalidEmail;
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: name,
-                label: l10n.displayName,
-                hint: l10n.displayName,
-                validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.requiredField
-                    : null,
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: password,
-                label: l10n.temporaryPassword,
-                hint: l10n.temporaryPassword,
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                validator: (value) => staffPasswordError(l10n, value),
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppListTile(title: l10n.roleTechnician, subtitle: l10n.role),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        AppButton(
-          label: l10n.cancel,
-          onPressed: () => Navigator.of(context).pop(),
-          variant: AppButtonVariant.text,
-        ),
-        AppButton(
-          label: l10n.create,
-          onPressed: () async {
-            if (!(formKey.currentState?.validate() ?? false)) {
-              return;
-            }
-            try {
-              await ref
-                  .read(adminApiProvider)
-                  .createTechnician(
-                    email: email.text.trim(),
-                    displayName: name.text.trim(),
-                    initialPassword: password.text,
-                  );
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(l10n.accountCreated)));
-                ref.invalidate(staffProvider);
-              }
-            } on Object {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-              }
-            }
-          },
-        ),
-      ],
-    ),
-  );
-  // Controllers are intentionally not disposed synchronously: the dialog pop
-  // animation still builds TextFields for a frame after showDialog returns,
-  // and disposing here causes use-after-dispose in widget tests. The dialog
-  // is short-lived; GC reclaims them (tech debt: convert to Stateful dialog).
 }

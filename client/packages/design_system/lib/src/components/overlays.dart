@@ -1,5 +1,6 @@
 import 'package:design_system/src/tokens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 Future<bool> showAppConfirmDialog(
   BuildContext context, {
@@ -65,29 +66,54 @@ Future<bool> showAppConfirmDialog(
   return result ?? false;
 }
 
+/// Modal bottom sheet with explicit Esc-to-close and focus return.
+///
+/// Esc is handled by an explicit [Shortcuts]/[Actions] pair (the framework
+/// route also dismisses on system back); focus returns to the invoker via
+/// [FocusManager.primaryFocus] capture, matching [WorkshopSideSheet].
 Future<T?> showAppBottomSheet<T>(
   BuildContext context, {
   required Widget child,
   bool isScrollControlled = true,
-}) {
-  return showModalBottomSheet<T>(
-    context: context,
-    isScrollControlled: isScrollControlled,
-    showDragHandle: true,
-    useSafeArea: true,
-    backgroundColor: context.colors.surfaceContainerLowest,
-    barrierColor: context.colors.scrim,
-    builder: (sheetContext) => Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: sheetContext.spacing.lg,
-        end: sheetContext.spacing.lg,
-        bottom:
-            MediaQuery.viewInsetsOf(sheetContext).bottom +
-            sheetContext.spacing.lg,
+}) async {
+  final previouslyFocused = FocusManager.instance.primaryFocus;
+  try {
+    return await showModalBottomSheet<T>(
+      context: context,
+      isScrollControlled: isScrollControlled,
+      showDragHandle: true,
+      useSafeArea: true,
+      backgroundColor: context.colors.surfaceContainerLowest,
+      barrierColor: context.colors.scrim,
+      builder: (sheetContext) => Shortcuts(
+        shortcuts: <LogicalKeySet, Intent>{
+          LogicalKeySet(LogicalKeyboardKey.escape): const DismissIntent(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            DismissIntent: CallbackAction<DismissIntent>(
+              onInvoke: (_) {
+                Navigator.of(sheetContext).maybePop();
+                return null;
+              },
+            ),
+          },
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: sheetContext.spacing.lg,
+              end: sheetContext.spacing.lg,
+              bottom:
+                  MediaQuery.viewInsetsOf(sheetContext).bottom +
+                  sheetContext.spacing.lg,
+            ),
+            child: child,
+          ),
+        ),
       ),
-      child: child,
-    ),
-  );
+    );
+  } finally {
+    previouslyFocused?.requestFocus();
+  }
 }
 
 abstract final class AppSnackBar {

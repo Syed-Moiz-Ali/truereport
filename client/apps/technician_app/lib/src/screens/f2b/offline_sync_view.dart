@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 
 /// Figma screen 15. Offline sync queue rebuilt with the real local queue and
@@ -36,6 +37,7 @@ class OfflineSyncView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final jobs = operations.map((operation) => operation.jobId).toSet().length;
     return Scaffold(
       backgroundColor: Fx.white,
@@ -171,7 +173,7 @@ class OfflineSyncView extends StatelessWidget {
                       child: _StatCard(
                         label: l10n.technicianPendingSync,
                         iconId: '1_8672',
-                        value: '$pendingCount',
+                        value: formatCountLocalized(pendingCount, localeName),
                         suffix: l10n.items,
                       ),
                     ),
@@ -180,7 +182,7 @@ class OfflineSyncView extends StatelessWidget {
                       child: _StatCard(
                         label: l10n.syncQueue,
                         iconId: '1_8682',
-                        value: '$jobs',
+                        value: formatCountLocalized(jobs, localeName),
                         suffix: l10n.technicianInspectionQueue,
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:api_client/api_client.dart';
+import 'package:admin_app/src/job_counts.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
@@ -129,6 +130,8 @@ abstract class AdminApi {
   Future<List<StaffMember>> staff();
 
   Future<List<WorkshopJob>> jobs({String search = '', String status = ''});
+
+  Future<JobCounts> jobCounts();
 
   Future<WorkshopJob> createJob({
     required String templateVersionId,
@@ -755,6 +758,12 @@ class HttpAdminApi implements AdminApi {
     return (data as List<dynamic>)
         .map((item) => WorkshopJob.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
+  }
+
+  @override
+  Future<JobCounts> jobCounts() async {
+    final data = await _api.getDynamic('${_endpoints.workshopJobs}/counts');
+    return JobCounts.fromJson(data as Map<String, dynamic>);
   }
 
   @override

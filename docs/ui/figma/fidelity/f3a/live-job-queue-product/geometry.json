@@ -1,0 +1,22 @@
+{
+  "sample": "queue-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1125.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "job-1": {
+      "x": 16.0,
+      "y": 176.0,
+      "width": 1248.0,
+      "height": 154.0
+    },
+    "search": {
+      "x": 134.19203186035156,
+      "y": 24.75,
+      "width": 622.2719993591309,
+      "height": 62.5
+    }
+  }
+}

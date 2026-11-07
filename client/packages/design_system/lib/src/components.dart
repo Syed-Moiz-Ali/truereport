@@ -15,3 +15,4 @@ export 'components/results.dart';
 export 'components/states.dart';
 export 'components/technician_shell.dart';
 export 'components/tree_view.dart';
+export 'components/workshop_admin.dart';

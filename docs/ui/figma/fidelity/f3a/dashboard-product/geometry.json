@@ -1,0 +1,28 @@
+{
+  "sample": "dashboard-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1230.672
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 16.0,
+      "y": 16.0,
+      "width": 1248.0,
+      "height": 80.0
+    },
+    "stat-active": {
+      "x": 16.0,
+      "y": 140.0,
+      "width": 240.0,
+      "height": 120.0
+    },
+    "job-1": {
+      "x": 16.0,
+      "y": 322.0,
+      "width": 1248.0,
+      "height": 154.0
+    }
+  }
+}

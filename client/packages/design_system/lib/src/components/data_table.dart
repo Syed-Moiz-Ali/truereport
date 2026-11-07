@@ -2,6 +2,7 @@
 
 import 'package:design_system/src/tokens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 typedef AppDataCellBuilder<T> = Widget Function(
   BuildContext context,
@@ -131,7 +132,7 @@ class AppDataTable<T> extends StatelessWidget {
               height: constraints.maxHeight.isFinite
                   ? constraints.maxHeight
                   : null,
-              child: body,
+              child: _TableArrowNav(child: body),
             ),
           ),
         );
@@ -517,8 +518,55 @@ class AppDataTable<T> extends StatelessWidget {
   }
 }
 
-class _DataRowShell extends StatefulWidget {
-  const _DataRowShell({
+/// Arrow-key row navigation for the table.
+///
+/// Up/Down moves focus between header sort buttons and row taps in layout
+/// order (the enclosing [FocusTraversalGroup] follows reading order).
+/// Text editing widgets keep their own caret behaviour: the move is
+/// skipped while an [EditableText] holds primary focus.
+class _TableArrowNav extends StatelessWidget {
+  const _TableArrowNav({required this.child});
+
+  final Widget child;
+
+  bool _editing() {
+    final focused = FocusManager.instance.primaryFocus;
+    return focused != null && focused.context?.widget is EditableText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.arrowDown): NextFocusIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowUp): PreviousFocusIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          NextFocusIntent: CallbackAction<NextFocusIntent>(
+            onInvoke: (intent) {
+              if (!_editing()) {
+                FocusScope.of(context).nextFocus();
+              }
+              return null;
+            },
+          ),
+          PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
+            onInvoke: (intent) {
+              if (!_editing()) {
+                FocusScope.of(context).previousFocus();
+              }
+              return null;
+            },
+          ),
+        },
+        child: FocusTraversalGroup(child: child),
+      ),
+    );
+  }
+}
+
+class _DataRowShell extends StatefulWidget {  const _DataRowShell({
     required this.child,
     required this.onTap,
     required this.semanticLabel,

@@ -30,6 +30,12 @@ public class WorkshopJobController {
         this.currentUserService = currentUserService;
     }
 
+    @GetMapping("/counts")
+    @PreAuthorize("hasRole('WORKSHOP_ADMIN')")
+    public JobCountsDto counts(JwtAuthenticationToken authentication) {
+        return service.counts(currentUserService.require(authentication));
+    }
+
     @GetMapping
     public List<JobDto> list(JwtAuthenticationToken authentication,
                              @RequestParam(required = false) String search,

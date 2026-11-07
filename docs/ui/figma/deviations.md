@@ -227,6 +227,45 @@ lists product-screen differences against the slot sheet. Full tables in
 | F2B3-R6 | Screen 15 Level 1 margin +0.00039 | Deterministic as archived; fragile to re-capture | Recorded; treat re-captures with care |
 ---
 
+## F3-0 Step 0 fixes (6/7 November 2026)
+
+UI/test changes only (O2). No server change.
+
+| ID | Item | Change | Status |
+|---|---|---|---|
+| F30-01 | Login footer truncation (was F2B3-R1) | ARB copy shortened to fit the exact Figma slots: EN "Need technician login?" (139.78/153.53) + "Get help" (51.36/64.94); AR "تحتاج إلى دخول؟" (105.78/153.53) + "مساعدة" (40.36/64.94). Measured with real fonts. New `o2_copy_fit_test` gates the slots. | Fixed; login goldens EN+AR re-baselined |
+| F30-02 | Empty-state header clip (was F2B3-R3) | `_M.contentWidth` 350 → 334 (viewport is 350 − 16 end-pad). Trailing pill now ends at x=354 exactly; pill-1 x unchanged. | Fixed; empty-state goldens EN+AR re-baselined |
+| F30-03 | Screen 09 Level 1 residual (was F2B3-R5) | Accepted by written owner waiver O1 (recorded in `decisions.md` with date). | Waived; measurement unchanged (0.97362) |
+---
+
+## F3-A Workshop Admin screens 1 to 4 (7 November 2026)
+
+Rule unchanged (N1 two-level fidelity; gate 0.98 not lowered). Level 1
+fixtures are test-only; Level 2 lists product differences vs the slot
+sheet. Full tables in `f3a-report.md`.
+
+### Level 1 outcome (measured, 1280)
+
+| Screen | SSIM | Gate |
+|---|---|---|
+| 1 dashboard | 0.97814 | NOT met (short 0.00186; rasterizer-only per audit, no missed fixable error) |
+| 2 live-job-queue | 0.98194 | met |
+| 3 create-schedule | 0.98569 | met |
+| 4 assign-technician | 0.99135 | met |
+
+### Product rendering notes (owner-approved or rule-mandated)
+
+| ID | Item | Measured/observed | Status |
+|---|---|---|---|
+| F3A-R1 | WorkshopHeader blur 24 vs Figma 48 background blur | Approximated at half strength for raster cost; recorded in code | Open; exact value is a one-line change if the owner wants it |
+| F3A-R2 | Schedule footer helper capped at 2 lines at 2.0x/390 | Bottom-sheet space; full text reachable by scroll | Accepted behaviour; recorded |
+| F3A-R3 | `technicianItemsCount` ARB key reused for template tier counts | Generic "$count items" text; key name is technician-scoped | Accepted; rename only with an ARB refactor |
+| F3A-R4 | Dashboard `Active = assigned + inProgress` derived client-side | Endpoint exposes per-status counts, no `active` field | Open; owner to confirm definition |
+| F3A-R5 | Product assign dialog is content-sized (466.5 h) vs Figma 660 | Fewer rows (real data); x/w exact, centred | Accepted layout consequence of real data |
+| F3A-R6 | Admin `scheduledAt` shown as raw ISO in details/cards | Pre-existing pattern; C0 ICU-formatting follow-up | Open; needs locale date formatting decision |
+| F3A-R7 | Screen 1 Level 1 0.97814 < 0.98 | Per-zone table in `f3a/dashboard/METHOD.md`; geometry exact, no kit change helps | Gate item open; owner decision required |
+---
+
 ## F2-A.2 measurement correction and residuals (6 November 2026)
 
 ### Measurement defect found and fixed

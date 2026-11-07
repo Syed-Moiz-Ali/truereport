@@ -1,0 +1,22 @@
+{
+  "sample": "create-staff-level2",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Open",
+    "Create technician",
+    "Set the name, email and initial password. The technician signs in with these credentials.",
+    "Display name",
+    "Display name",
+    "Email",
+    "Email",
+    "Temporary password",
+    "Temporary password",
+    "Technician",
+    "Role",
+    "Cancel",
+    "Create"
+  ]
+}

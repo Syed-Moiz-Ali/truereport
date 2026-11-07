@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
@@ -33,6 +34,7 @@ class FinalizeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final flagged = checklist.items
         .where(
           (item) =>
@@ -46,7 +48,11 @@ class FinalizeView extends StatelessWidget {
             .trim();
     final odometer = job.odometerValue == null
         ? l10n.technicianNotProvided
-        : '${job.odometerValue} ${job.odometerUnit ?? ''}'.trim();
+        : formatOdometerLocalized(
+            job.odometerValue,
+            job.odometerUnit,
+            localeName,
+          );
 
     return Scaffold(
       backgroundColor: Fx.white,
@@ -166,7 +172,10 @@ class FinalizeView extends StatelessWidget {
                               iconId: '1_8841',
                               iconColor: F2b.pineDeep,
                               iconBackground: Fx.selectedTint,
-                              value: '${review.completed}',
+                              value: formatCountLocalized(
+                                review.completed,
+                                localeName,
+                              ),
                               label: l10n.completedItems,
                             ),
                           ),
@@ -176,7 +185,10 @@ class FinalizeView extends StatelessWidget {
                               iconId: '1_8851',
                               iconColor: F2b.redDeep,
                               iconBackground: F2b.rosePale,
-                              value: '$defects',
+                              value: formatCountLocalized(
+                                defects,
+                                localeName,
+                              ),
                               label: l10n.defectFound,
                             ),
                           ),

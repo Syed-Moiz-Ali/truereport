@@ -277,6 +277,37 @@ line in `contrast.mjs` to emit the owner-accepted I1 note so `generate
 | F2B3-R05 | Real-device matrix not run (camera, keyboard, sunlight, TalkBack, 2.0x on device) | High | Medium | Owner phone-check list in `f2b3-report.md` §6 | QA |
 | F2B3-R06 | F2-B.3 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
 
+## 10. Phase F3-0 audit risks (7 November 2026)
+
+F3-0 built nothing; 12 Workshop Admin screens audited (specs under
+`docs/ui/figma/specs/workshop/`), `f3-slot-sheet.md` (34 rows),
+`f3-decisions-needed.md` (10 decisions), `build-plan-f3.md` (batches A/B/C).
+Only code changes: O2 login-copy shortening + empty-header clip fix with
+tests and golden re-baselines. No server change.
+
+| ID | Risk | Likelihood | Impact | Mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F30-R01 | New AR login strings ("تحتاج إلى دخول؟", "مساعدة") have no native review | High | Medium | Same standing rule as TR-R009; native reviewer must approve before release | Arabic |
+| F30-R02 | Screens 1/9/11/12 as drawn need data that does not exist (bays, shifts, telemetry, settings PUT, certificate layer); building them as drawn would invent data | High | High | Slot sheet marks them blocked/deltas-only; batch plan holds screen 11; owner decisions D-F3-1–D-F3-10 pending | Product |
+| F30-R03 | Screen 11 (Settings) has no settings endpoint at all — building any settings UI now risks shipping a dead surface | Medium | Medium | Recommended hold (D-F3-8); O10 allows only existing settings | Product/Eng |
+| F30-R04 | Docker unavailable this run: 3 MySQL Testcontainers suites skipped (were green with Docker) | Low | Medium | Re-run with Docker before any server-touching phase; no server code changed in F3-0 | Eng/Ops |
+| F30-R05 | F3-0 changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
+## 11. Phase F3-A build risks (7 November 2026)
+
+F3-A built shared workshop components, the P6 read-only counts endpoint,
+and screens 1–4 (dashboard, queue, schedule drawer, assign dialog).
+Level 1: 3/4 pass (screen 1 at 0.97814).
+
+| ID | Risk | Likelihood | Impact | Mitigation / status | Owner |
+|---|---|---|---|---|---|
+| F3A-R01 | Dashboard Level 1 0.97814 < 0.98 (rasterizer-only per audit) | High | Medium | Audited; no missed fixable error; owner decision required (accept or fund) | Product |
+| F3A-R02 | `Active = assigned + inProgress` is a client-side derivation (endpoint has no `active`) | Medium | Low | Recorded (F3A-R4); owner to confirm definition | Product |
+| F3A-R03 | Docker unavailable: 3 MySQL suites skipped (were green with Docker) | Medium | Medium | Re-run with Docker before any server-touching phase; no server change beyond P6 | Eng/Ops |
+| F3A-R04 | New AR strings (11 keys) have no native review | High | Medium | Same standing rule as TR-R009; native review before release | Arabic |
+| F3A-R05 | Raw-ISO `scheduledAt` display (pre-existing admin pattern) | Medium | Low | C0 ICU-formatting follow-up open; needs locale date decision | Product |
+| F3A-R06 | F3-A changes are uncommitted | High | Low | Review and commit only after owner approval | Product |
+
 ## 7. Phase F2-A technician screen risks (5 November 2026)
 
 F2-A is a UI-only refresh of technician screens 1 to 7. No server, API, model, validation, permission or state-management change was made. Screen 6 is blocked by missing equipment names.

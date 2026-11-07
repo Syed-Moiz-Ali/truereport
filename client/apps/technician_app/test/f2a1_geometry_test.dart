@@ -169,7 +169,7 @@ void main() {
           );
           check(
             'access prompt',
-            find.text('Need technician access?'),
+            find.text('Need technician login?'),
             box(81.76, 592, 153.53, 18),
             width: false,
           );
@@ -275,7 +275,7 @@ void main() {
           check(
             'bay pill',
             find.text('Bay 04'),
-            box(317.98, 89, 40.02, 14),
+            box(301.98, 89, 40.02, 14),
             width: false,
           );
           check(

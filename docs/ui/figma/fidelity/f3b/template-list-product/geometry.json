@@ -1,0 +1,28 @@
+{
+  "sample": "templates-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1586.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 16.0,
+      "y": 16.0,
+      "width": 1248.0,
+      "height": 80.0
+    },
+    "metric": {
+      "x": 16.0,
+      "y": 112.0,
+      "width": 1248.0,
+      "height": 104.0
+    },
+    "card-1": {
+      "x": 16.0,
+      "y": 292.0,
+      "width": 408.0,
+      "height": 252.0
+    }
+  }
+}

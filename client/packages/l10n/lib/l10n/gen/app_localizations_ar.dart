@@ -363,6 +363,96 @@ class AppLocalizationsAr extends AppLocalizations {
   String get templatesTab => 'القوالب';
 
   @override
+  String get dashboardTab => 'نظرة عامة';
+
+  @override
+  String get dashboardSubtitle => 'المهام حسب الحالة في ورشتك';
+
+  @override
+  String get dashboardStatActive => 'مهام نشطة';
+
+  @override
+  String get dashboardStatNewScheduled => 'جديدة ومجدولة';
+
+  @override
+  String get dashboardStatFinalizedToday => 'أُنجزت اليوم';
+
+  @override
+  String get dashboardRecentJobs => 'أحدث المهام';
+
+  @override
+  String get queueTitle => 'قائمة المهام';
+
+  @override
+  String get scheduleJobTitle => 'جدولة مهمة جديدة';
+
+  @override
+  String get scheduleJobSubtitle => 'أنشئ المهمة في هذه الورشة — ثم عيّن فنيًا';
+
+  @override
+  String get assignTechnicianTitle => 'تعيين فني';
+
+  @override
+  String get assignTechnicianSubtitle => 'اختر فنيًا متاحًا';
+
+  @override
+  String get assignReasonOptional => 'السبب (اختياري)';
+
+  @override
+  String get workshopStaffTitle => 'موظفو الورشة';
+
+  @override
+  String get staffFilterTechnicians => 'الفنيون';
+
+  @override
+  String get staffFilterAdmins => 'الإداريون';
+
+  @override
+  String get staffResetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get createTechnicianTitle => 'إنشاء حساب فني';
+
+  @override
+  String get createTechnicianSubtitle =>
+      'حدّد الاسم والبريد الإلكتروني وكلمة المرور الأولية. يسجّل الفني الدخول بهذه البيانات.';
+
+  @override
+  String get showPassword => 'إظهار كلمة المرور';
+
+  @override
+  String get hidePassword => 'إخفاء كلمة المرور';
+
+  @override
+  String get emailAlreadyInUse => 'هذا البريد الإلكتروني مسجّل مسبقًا.';
+
+  @override
+  String get templateListTitle => 'قوالب الفحص';
+
+  @override
+  String get templateTotalCheckpoints => 'إجمالي نقاط الفحص';
+
+  @override
+  String templatesUpdatedOn(String date) {
+    return 'آخر تحديث $date';
+  }
+
+  @override
+  String get templateViewGrid => 'شبكة';
+
+  @override
+  String get templateViewList => 'قائمة';
+
+  @override
+  String get builderMasterItems => 'العناصر الرئيسية';
+
+  @override
+  String get builderSequenceTitle => 'تسلسل القالب';
+
+  @override
+  String get builderDropHint => 'أفلت نقطة الفحص هنا';
+
+  @override
   String get newJob => 'مهمة جديدة';
 
   @override
@@ -1156,10 +1246,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianPasswordHelp => 'مساعدة كلمة المرور';
 
   @override
-  String get technicianNeedTechnicianAccess => 'تحتاج إلى وصول فني؟';
+  String get technicianNeedTechnicianAccess => 'تحتاج إلى دخول؟';
 
   @override
-  String get technicianContactAdmin => 'تواصل مع المسؤول';
+  String get technicianContactAdmin => 'مساعدة';
 
   @override
   String get technicianSecureDelivery => 'تسليم آمن للتقرير';

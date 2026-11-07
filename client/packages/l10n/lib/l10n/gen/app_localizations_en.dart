@@ -362,6 +362,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templatesTab => 'Templates';
 
   @override
+  String get dashboardTab => 'Overview';
+
+  @override
+  String get dashboardSubtitle => 'Jobs by status in your workshop';
+
+  @override
+  String get dashboardStatActive => 'Active jobs';
+
+  @override
+  String get dashboardStatNewScheduled => 'New & scheduled';
+
+  @override
+  String get dashboardStatFinalizedToday => 'Finalized today';
+
+  @override
+  String get dashboardRecentJobs => 'Recent jobs';
+
+  @override
+  String get queueTitle => 'Job queue';
+
+  @override
+  String get scheduleJobTitle => 'Schedule new job';
+
+  @override
+  String get scheduleJobSubtitle =>
+      'Create the job in this workshop — assign a technician afterwards';
+
+  @override
+  String get assignTechnicianTitle => 'Assign technician';
+
+  @override
+  String get assignTechnicianSubtitle => 'Select an available technician';
+
+  @override
+  String get assignReasonOptional => 'Reason (optional)';
+
+  @override
+  String get workshopStaffTitle => 'Workshop Staff';
+
+  @override
+  String get staffFilterTechnicians => 'Technicians';
+
+  @override
+  String get staffFilterAdmins => 'Admins';
+
+  @override
+  String get staffResetPassword => 'Reset password';
+
+  @override
+  String get createTechnicianTitle => 'Create technician';
+
+  @override
+  String get createTechnicianSubtitle =>
+      'Set the name, email and initial password. The technician signs in with these credentials.';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get emailAlreadyInUse => 'This email is already registered.';
+
+  @override
+  String get templateListTitle => 'Inspection templates';
+
+  @override
+  String get templateTotalCheckpoints => 'Total checkpoints';
+
+  @override
+  String templatesUpdatedOn(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get templateViewGrid => 'Grid';
+
+  @override
+  String get templateViewList => 'List';
+
+  @override
+  String get builderMasterItems => 'Master items';
+
+  @override
+  String get builderSequenceTitle => 'Template sequence';
+
+  @override
+  String get builderDropHint => 'Drop checkpoint here';
+
+  @override
   String get newJob => 'New job';
 
   @override
@@ -1161,10 +1252,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get technicianPasswordHelp => 'Password help';
 
   @override
-  String get technicianNeedTechnicianAccess => 'Need technician access?';
+  String get technicianNeedTechnicianAccess => 'Need technician login?';
 
   @override
-  String get technicianContactAdmin => 'Contact Admin';
+  String get technicianContactAdmin => 'Get help';
 
   @override
   String get technicianSecureDelivery => 'Secure report delivery';

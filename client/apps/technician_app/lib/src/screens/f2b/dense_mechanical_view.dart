@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
@@ -82,6 +83,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final checklist = widget.checklist;
     final derivedInitials = fxInitials(
       checklist.job.assignedTechnicianName ?? '',
@@ -116,7 +118,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                         ),
                         const SizedBox(height: _M.tick),
                         Text(
-                          '${checklist.completed} ${l10n.technicianChecksDone} / ${checklist.total}',
+                          '${formatCountLocalized(checklist.completed, localeName)} ${l10n.technicianChecksDone} / ${formatCountLocalized(checklist.total, localeName)}',
                           style: Fx.body13.copyWith(color: Fx.muted),
                         ),
                       ],

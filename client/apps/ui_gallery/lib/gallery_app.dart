@@ -8,6 +8,7 @@ import 'package:ui_gallery/showcase_fidelity.dart';
 import 'package:ui_gallery/showcase_selection.dart';
 import 'package:ui_gallery/showcase_tokens.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
+import 'package:ui_gallery/workshop_showcase.dart';
 
 class GalleryApp extends StatefulWidget {
   const GalleryApp({super.key});
@@ -419,6 +420,11 @@ class _GallerySections extends StatelessWidget {
           child: OverlaysShowcase(),
         ),
         const GallerySection(title: 'Data table', child: DataTableShowcase()),
+        const GallerySection(
+          title: 'Workshop admin',
+          subtitle: 'F3-A header, stat, job and option cards, dialog, sheet.',
+          child: WorkshopShowcase(),
+        ),
         const GallerySection(title: 'Tree view', child: TreeViewShowcase()),
       ],
     );

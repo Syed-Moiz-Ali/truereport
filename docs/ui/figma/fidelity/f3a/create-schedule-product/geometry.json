@@ -1,0 +1,16 @@
+{
+  "sample": "schedule-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1058.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "drawer": {
+      "x": 860.0,
+      "y": 0.0,
+      "width": 420.0,
+      "height": 1058.0
+    }
+  }
+}

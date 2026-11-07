@@ -81,8 +81,8 @@ void main() {
 
     expect(tester.takeException(), isNull);
     // Login help slot: localized neutral contact-admin info.
-    expect(find.text('Need technician access?'), findsOneWidget);
-    expect(find.text('Contact Admin'), findsOneWidget);
+    expect(find.text('Need technician login?'), findsOneWidget);
+    expect(find.text('Get help'), findsOneWidget);
     expect(find.text('Authorised workshop staff only'), findsOneWidget);
     // No account-creation UI on the technician login.
     expect(find.text('Create account'), findsNothing);
@@ -99,8 +99,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.text('تحتاج إلى وصول فني؟'), findsOneWidget);
-    expect(find.text('تواصل مع المسؤول'), findsOneWidget);
+    expect(find.text('تحتاج إلى دخول؟'), findsOneWidget);
+    expect(find.text('مساعدة'), findsOneWidget);
     expect(find.text('إنشاء حساب'), findsNothing);
   });
 

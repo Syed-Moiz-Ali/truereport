@@ -1,0 +1,32 @@
+{
+  "sample": "staff-level2",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Workshop Staff",
+    "Search",
+    "Search",
+    "Create",
+    "All (4)",
+    "Technicians (2)",
+    "Admins (2)",
+    "TA",
+    "Technician A",
+    "Technician",
+    "t***@test.local",
+    "TB",
+    "Technician B",
+    "Technician",
+    "tb***@test.local",
+    "AA",
+    "Admin A",
+    "Workshop Admin",
+    "a***@test.local",
+    "AB",
+    "Admin B",
+    "Workshop Admin",
+    "ab***@test.local"
+  ]
+}

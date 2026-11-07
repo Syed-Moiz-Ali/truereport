@@ -1,10 +1,12 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/models.dart';
-import 'package:admin_app/src/pages/job_form_page.dart';
+import 'package:admin_app/src/pages/assign_technician_dialog.dart';
 import 'package:admin_app/src/pages/report_page.dart';
+import 'package:admin_app/src/pages/schedule_job_sheet.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 
 String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
@@ -26,6 +28,57 @@ StatusTone jobStatusTone(String status) => switch (status) {
   _ => StatusTone.neutral,
 };
 
+/// Parses a raw ISO `scheduledAt`/`finalizedAt` string and returns the
+/// Asia/Dubai (UTC+4) wall-clock instant for display.
+///
+/// Strings carrying no UTC offset are treated as UTC (matching the
+/// technician app's `scheduledTimeUtc4` instant interpretation in
+/// `assigned_jobs_view.dart`, which displays `toUtc() + 4h`). Returns null
+/// when the string is empty or unparseable.
+DateTime? _dubaiWallTime(String raw) {
+  if (raw.trim().isEmpty) {
+    return null;
+  }
+  final parsed = DateTime.tryParse(raw.trim());
+  if (parsed == null) {
+    return null;
+  }
+  final hasOffset = RegExp(r'([Zz]|[+-]\d{2}:?\d{2})$').hasMatch(raw.trim());
+  final utc = hasOffset
+      ? parsed.toUtc()
+      : DateTime.utc(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          parsed.hour,
+          parsed.minute,
+          parsed.second,
+          parsed.millisecond,
+          parsed.microsecond,
+        );
+  return utc.add(const Duration(hours: 4));
+}
+
+/// Locale-aware date+time for a raw ISO instant (`DateFormat.yMd + add_Hm`
+/// under the active locale). Falls back to the raw string when unparseable
+/// so no information is silently dropped.
+String _formatInstant(BuildContext context, String raw) {
+  final wall = _dubaiWallTime(raw);
+  if (wall == null) {
+    return raw;
+  }
+  final locale = Localizations.localeOf(context).toString();
+  return DateFormat.yMd(locale).add_Hm().format(wall);
+}
+
+/// Locale-aware count (`NumberFormat.decimalPattern` under the active
+/// locale; verified: EN unchanged, and 'ar' also renders Latin digits in
+/// intl 0.20.3 — no digit conversion is invented here).
+String _formatCount(BuildContext context, int value) {
+  final locale = Localizations.localeOf(context).toString();
+  return NumberFormat.decimalPattern(locale).format(value);
+}
+
 class JobsTab extends ConsumerStatefulWidget {
   const JobsTab({super.key});
 
@@ -45,64 +98,67 @@ class _JobsTabState extends ConsumerState<JobsTab> {
 
   String get _key => '${_search.text}\u0001$_status';
 
+  /// Counts key: same search text, unfiltered status. The list itself stays
+  /// server-filtered via [_key]; chip counts are derived client-side from
+  /// this unfiltered snapshot (slot sheet P2/P3 — no bay/progress/flags).
+  String get _countsKey => '${_search.text}\u0001';
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final jobs = ref.watch(jobsProvider(_key));
+    final counts = ref.watch(jobsProvider(_countsKey)).maybeWhen(
+      data: (items) => items,
+      orElse: () => null,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            context.spacing.lg,
-            context.spacing.lg,
-            context.spacing.lg,
-            context.spacing.sm,
+          padding: EdgeInsetsDirectional.only(
+            start: context.spacing.lg,
+            end: context.spacing.lg,
+            top: context.spacing.lg,
           ),
-          child: SectionHeader(
-            title: l10n.jobsTab,
-            action: AppButton(
-              label: l10n.newJob,
-              onPressed: () => _openCreate(context),
-              icon: Icons.add,
+          child: WorkshopHeader(
+            title: l10n.queueTitle,
+            search: AppTextField(
+              key: const Key('jobs-search'),
+              controller: _search,
+              label: l10n.jobSearch,
+              hint: l10n.jobSearch,
+              prefixIcon: const Icon(Icons.search),
+              onChanged: (_) => setState(() {}),
             ),
+            actions: [
+              AppButton(
+                label: l10n.newJob,
+                onPressed: () => _openCreate(context),
+                icon: Icons.add,
+              ),
+            ],
           ),
         ),
         Padding(
           padding: EdgeInsetsDirectional.symmetric(
             horizontal: context.spacing.lg,
-          ),
-          child: AppTextField(
-            key: const Key('jobs-search'),
-            controller: _search,
-            label: l10n.jobSearch,
-            hint: l10n.jobSearch,
-            onChanged: (_) => setState(() {}),
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsetsDirectional.symmetric(
-            horizontal: context.spacing.lg,
             vertical: context.spacing.sm,
           ),
-          child: Row(
+          // Wrap (not a horizontal scroller): the four chips sit in one
+          // row at 1280 and wrap on derived phone/tablet widths (O3/P7).
+          child: Wrap(
+            spacing: context.spacing.sm,
+            runSpacing: context.spacing.sm,
             children: [
-              _filter('', l10n.filterAll),
-              SizedBox(width: context.spacing.sm),
-              _filter('DRAFT', l10n.draft),
-              SizedBox(width: context.spacing.sm),
-              _filter('SCHEDULED', l10n.statusScheduled),
-              SizedBox(width: context.spacing.sm),
-              _filter('ASSIGNED', l10n.statusAssigned),
-              SizedBox(width: context.spacing.sm),
-              _filter('IN_PROGRESS', l10n.statusInProgress),
-              SizedBox(width: context.spacing.sm),
-              _filter('READY_TO_FINALIZE', l10n.statusReadyToFinalize),
-              SizedBox(width: context.spacing.sm),
-              _filter('FINALIZED', l10n.statusFinalized),
-              SizedBox(width: context.spacing.sm),
-              _filter('CANCELLED', l10n.statusCancelled),
+              _filter(context, '', l10n.filterAll, counts),
+              _filter(context, 'IN_PROGRESS', l10n.statusInProgress, counts),
+              _filter(
+                context,
+                'READY_TO_FINALIZE',
+                l10n.statusReadyToFinalize,
+                counts,
+              ),
+              _filter(context, 'FINALIZED', l10n.statusFinalized, counts),
             ],
           ),
         ),
@@ -145,21 +201,35 @@ class _JobsTabState extends ConsumerState<JobsTab> {
                       itemCount: items.length,
                       separatorBuilder: (_, _) =>
                           SizedBox(height: context.spacing.sm),
-                      itemBuilder: (context, index) => Card(
-                        child: AppListTile(
-                          key: Key('job-${items[index].id}'),
-                          leading: const Icon(Icons.work_outline),
-                          title:
-                              '${items[index].reference} · ${items[index].customerName}',
-                          subtitle:
-                              '${items[index].vehicleMake} ${items[index].vehicleModel} · ${items[index].templateName} v${items[index].templateVersionNo ?? '-'}',
-                          trailing: StatusChip(
-                            label: jobStatusLabel(l10n, items[index].status),
-                            tone: jobStatusTone(items[index].status),
+                      itemBuilder: (context, index) {
+                        final job = items[index];
+                        final vehicle =
+                            '${job.vehicleMake} ${job.vehicleModel}'.trim();
+                        return WorkshopJobCard(
+                          key: Key('job-${job.id}'),
+                          title: vehicle.isEmpty
+                              ? job.customerName
+                              : vehicle,
+                          reference: job.reference,
+                          status: StatusChip(
+                            label: jobStatusLabel(l10n, job.status),
+                            tone: jobStatusTone(job.status),
                           ),
-                          onTap: () => _openDetails(context, items[index]),
-                        ),
-                      ),
+                          meta: [
+                            Text(job.customerName),
+                            Text(
+                              '${job.templateName} v${job.templateVersionNo ?? '-'}',
+                            ),
+                          ],
+                          assignee: Text(
+                            job.assignedTechnicianName?.isNotEmpty == true
+                                ? job.assignedTechnicianName!
+                                : l10n.unassigned,
+                          ),
+                          onTap: () => _openDetails(context, job),
+                          onOpen: () => _openDetails(context, job),
+                        );
+                      },
                     ),
                   ),
           ),
@@ -168,18 +238,29 @@ class _JobsTabState extends ConsumerState<JobsTab> {
     );
   }
 
-  Widget _filter(String value, String label) {
+  Widget _filter(
+    BuildContext context,
+    String value,
+    String label,
+    List<WorkshopJob>? all,
+  ) {
+    final count = all == null
+        ? null
+        : value.isEmpty
+        ? all.length
+        : all.where((job) => job.status == value).length;
     return AppSelectableText(
-      label: label,
+      label: count == null ? label : '$label (${_formatCount(context, count)})',
       selected: _status == value,
       onTap: () => setState(() => _status = value),
     );
   }
 
   Future<void> _openCreate(BuildContext context) async {
-    await Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => const JobFormPage()));
-    ref.invalidate(jobsProvider(_key));
+    final created = await ScheduleJobSheet.showScheduleJobSheet(context);
+    if (created != null) {
+      ref.invalidate(jobsProvider(_key));
+    }
   }
 
   Future<void> _openDetails(BuildContext context, WorkshopJob job) async {
@@ -193,12 +274,14 @@ class _JobsTabState extends ConsumerState<JobsTab> {
           children: [
             SectionHeader(
               title: job.reference,
+              titleDirection: TextDirection.ltr,
               subtitle: jobStatusLabel(l10n, job.status),
             ),
             AppListTile(
               leading: const Icon(Icons.person_outline),
               title: job.customerName,
               subtitle: job.customerPhone ?? job.customerEmail ?? '',
+              subtitleDirection: TextDirection.ltr,
             ),
             AppListTile(
               leading: const Icon(Icons.directions_car_outlined),
@@ -207,6 +290,7 @@ class _JobsTabState extends ConsumerState<JobsTab> {
                   .whereType<String>()
                   .where((value) => value.isNotEmpty)
                   .join(' · '),
+              subtitleDirection: TextDirection.ltr,
             ),
             AppListTile(
               leading: const Icon(Icons.dashboard_customize_outlined),
@@ -217,7 +301,7 @@ class _JobsTabState extends ConsumerState<JobsTab> {
               AppListTile(
                 leading: const Icon(Icons.schedule),
                 title: l10n.scheduledAt,
-                subtitle: job.scheduledAt,
+                subtitle: _formatInstant(context, job.scheduledAt),
               ),
             if (job.status == 'FINALIZED') ...[
               SizedBox(height: context.spacing.md),
@@ -264,66 +348,11 @@ class _JobsTabState extends ConsumerState<JobsTab> {
   }
 
   Future<void> _assign(BuildContext context, WorkshopJob job) async {
-    final l10n = AppLocalizations.of(context);
-    final selected = await showAppBottomSheet<String>(
-      context,
-      child: Consumer(
-        builder: (context, ref, _) {
-          final staff = ref.watch(staffProvider);
-          return staff.when(
-            loading: () => const LoadingSkeleton(lines: 3),
-            error: (error, _) =>
-                ErrorState(title: l10n.error, body: l10n.genericError),
-            data: (members) {
-              final technicians = members
-                  .where(
-                    (member) =>
-                        member.role == 'TECHNICIAN' &&
-                        member.status == 'ACTIVE',
-                  )
-                  .toList();
-              if (technicians.isEmpty) {
-                return EmptyState(
-                  title: l10n.noTechnicians,
-                  body: l10n.staffReadOnlyBody,
-                  icon: Icons.groups_outlined,
-                );
-              }
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SectionHeader(title: l10n.assign),
-                  ...technicians.map(
-                    (member) => AppListTile(
-                      title: member.displayName,
-                      subtitle: member.emailMasked,
-                      onTap: () => Navigator.of(context).pop(member.userId),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
-    );
+    final selected = await WorkshopAssignDialog.show(context, job);
     if (selected == null || !context.mounted) {
       return;
     }
-    try {
-      await ref.read(adminApiProvider).assignJob(job.id, selected, null);
-      ref.invalidate(jobsProvider(_key));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.jobAssigned)));
-      }
-    } on Object {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-      }
-    }
+    ref.invalidate(jobsProvider(_key));
   }
 
   Future<void> _cancel(BuildContext context, WorkshopJob job) async {

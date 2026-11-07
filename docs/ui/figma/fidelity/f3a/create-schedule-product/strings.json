@@ -1,0 +1,30 @@
+{
+  "sample": "schedule-level2",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Open",
+    "Schedule new job",
+    "Create the job in this workshop — assign a technician afterwards",
+    "Job details",
+    "Customer name",
+    "Customer phone",
+    "Customer email",
+    "Vehicle make",
+    "Vehicle model",
+    "Vehicle year",
+    "VIN",
+    "Plate",
+    "Inspection scope",
+    "Scheduled at",
+    "Full inspection · v1",
+    "12 items",
+    "Quick check · v2",
+    "5 items",
+    "Select a template",
+    "Create",
+    "Create the job in this workshop — assign a technician afterwards"
+  ]
+}

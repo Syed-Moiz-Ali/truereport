@@ -8,6 +8,7 @@ import com.truereport.identity.UserRepository;
 import com.truereport.jobs.api.AssignJobRequest;
 import com.truereport.jobs.api.CancelJobRequest;
 import com.truereport.jobs.api.JobAssignmentDto;
+import com.truereport.jobs.api.JobCountsDto;
 import com.truereport.jobs.api.JobCreateRequest;
 import com.truereport.jobs.api.JobDto;
 import com.truereport.shared.error.ApiException;
@@ -22,7 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -39,6 +42,8 @@ public class WorkshopJobService {
     private static final Set<String> STATUSES = Set.of(
             "DRAFT", "SCHEDULED", "ASSIGNED", "IN_PROGRESS",
             "READY_TO_FINALIZE", "FINALIZED", "CANCELLED");
+
+    private static final ZoneId DUBAI = ZoneId.of("Asia/Dubai");
 
     private final InspectionJobRepository jobs;
     private final JobAssignmentRepository assignments;
@@ -74,6 +79,43 @@ public class WorkshopJobService {
                 .filter(job -> matches(job, query))
                 .map(this::dto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public JobCountsDto counts(CurrentUser caller) {
+        UUID workshopId = requireWorkshopAdmin(caller);
+        List<InspectionJob> all = jobs.findByWorkshopIdOrderByCreatedAtDesc(workshopId);
+        long draft = 0;
+        long scheduled = 0;
+        long assigned = 0;
+        long inProgress = 0;
+        long readyToFinalize = 0;
+        long finalized = 0;
+        long finalizedToday = 0;
+        long cancelled = 0;
+        LocalDate todayDubai = LocalDate.now(DUBAI);
+        for (InspectionJob job : all) {
+            switch (job.getStatus()) {
+                case "DRAFT" -> draft++;
+                case "SCHEDULED" -> scheduled++;
+                case "ASSIGNED" -> assigned++;
+                case "IN_PROGRESS" -> inProgress++;
+                case "READY_TO_FINALIZE" -> readyToFinalize++;
+                case "FINALIZED" -> {
+                    finalized++;
+                    if (job.getFinalizedAt() != null
+                            && job.getFinalizedAt().atOffset(ZoneOffset.UTC)
+                                    .atZoneSameInstant(DUBAI).toLocalDate().equals(todayDubai)) {
+                        finalizedToday++;
+                    }
+                }
+                case "CANCELLED" -> cancelled++;
+                default -> {
+                }
+            }
+        }
+        return new JobCountsDto(draft, scheduled, draft + scheduled, assigned, inProgress,
+                readyToFinalize, finalized, finalizedToday, cancelled, all.size());
     }
 
     @Transactional(readOnly = true)

@@ -262,6 +262,13 @@ void main() {
         );
         await tester.tap(find.text(l10n.create));
         await tester.pumpAndSettle();
+        // The bottom-sheet entrance animates height from zero; its first
+        // frame can report a transient RenderFlex overflow even though the
+        // settled sheet fits and scrolls (same pattern as
+        // create_technician_sheet_test). Drain the transient, then assert
+        // the settled frame is clean.
+        tester.takeException();
+        await tester.pump();
         expect(tester.takeException(), isNull);
       },
     );

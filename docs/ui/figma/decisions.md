@@ -209,3 +209,49 @@ sheet-wins per instructions + owner note that broadening M4 needs approval.
 | N3 | Re-baseline the 14 F2-A goldens (and any other intentionally changed golden) after a visual check of each new render against its Figma; record each in `golden-rebaseline.md`. | Done: 14/14 regenerated + passing; record in `docs/ui/figma/golden-rebaseline.md` (copy-churn cause, residuals R1–R4). |
 | N4 | Delete dark-only tests (light-only decided); do not delete any other failing test. | Verified by search across all client suites: no dark-only test exists (removals already in the committed tree). Nothing deleted. |
 | N5 | M4 VIN scope not broadened: full VIN only in the Figma slot recorded in the slot sheet. | No VIN change in F2-B.3; finalize slot only, last-4 elsewhere. |
+
+---
+
+## F3-0 owner decisions (6 November 2026; unedited lines approved)
+
+| ID | Decision | Implementation |
+|---|---|---|
+| O1 | Screen 09 (technician defect detail) Level 1 residual (SSIM 0.97362, geometry exact, SVGs byte-identical, residual quantified as text and photo resampling) is accepted by written owner waiver. | Waiver recorded here 6 November 2026. Residual details: `docs/ui/figma/fidelity/f2b3/defect-detail/METHOD.md` (per-zone cost table; glyph AA ≈ 0.014 + pipeline ≈ 0.009). F2 closing item "Level 1 met on all six" remains 5/6 on measurement, waived by this decision. |
+| O2 | Fix the login `Contact …` truncation by shortening the EN/AR ARB copy to fit the Figma slot; fix the empty-state header clip. Only code changes allowed in F3-0, plus tests. | See F3-0 session record (`docs/ui/figma/f3-0-test-report.md`). |
+| O3 | Workshop Admin is web + mobile; 1280 px Figma frames built as drawn; tablet/phone layouts derived from the same tokens, labelled "derived, pending designer review", no fidelity claim. | Applies to F3-A/B/C build batches, not F3-0. |
+| O4 | Dashboard numbers only from existing data (counts by status, in progress, ready to finalize, finalized today). No invented metrics. | Slot-sheet + analyst mapping rule for F3. |
+| O5 | "Add Staff / Create Account" maps to Create Technician (own workshop) under the C0 account model; unsupported Figma fields go through the slot sheet. | Slot-sheet + analyst mapping rule for F3. |
+| O6 | No "pending review", "approve", "sign off" or review-queue wording/states anywhere (locked rule); same-slot neutral replacements. | Slot-sheet rule for F3. |
+| O7 | Template builder as drawn only if feasible with existing template rules (approved master items, reorder, drafts, publish, versions, locked-rule indicators); required-photo gates follow existing master-item evidence rules. No new template capabilities. | Slot-sheet rule for F3. |
+| O8 | Share-link deactivation keeps mandatory reason + audit; wording must state copies/screenshots cannot be recalled. | Slot-sheet rule for F3. |
+| O9 | Report viewer and print-ready PDF preview show our report/PDF (same allowlist, no certificate/compliance claims, PDF download follows existing per-report setting). No print-studio/A4 stamp features. | Slot-sheet rule for F3. |
+| O10 | Workshop Settings: only settings that already exist; business credentials, DOT licensing, dispatch triggers are data gaps for the slot sheet; do not invent. | Slot-sheet rule for F3. |
+
+---
+
+## F3-A owner decisions (7 November 2026; unedited lines approved)
+
+| ID | Decision | Implementation |
+|---|---|---|
+| P1 | D-F3-1: dashboard shows counts only from existing data (new/scheduled, assigned, in progress, ready to finalize, finalized today). | `dashboard_tab.dart` + P6 `GET /workshop/jobs/counts`; no invented metrics. `Active` derived client-side as assigned+inProgress (owner to confirm — F3A-R4). |
+| P2 | D-F3-2: bays, shifts, telemetry, utilization, throughput, averages omitted (same-slot neutral or hide; never fake numbers). | Omitted per slot-sheet rows; no invented data in product. |
+| P3 | D-F3-3: roles in staff pickers are Technician only. | Dialog filters `TECHNICIAN`+`ACTIVE`; user chip shows no role. |
+| P4 | D-F3-4: protocol tiers map to real published templates. | Drawer tier cards from `templateVersionOptions` + item counts; no fixed tiers/durations. |
+| P5 | D-F3-5–D-F3-10 approved for later batches as recommended. | Recorded; screens 5–12 untouched. |
+| P6 | One read-only `GET /api/v1/workshop/jobs/counts` (Workshop Admin only, tenant isolation, role matrix, idempotent GET; no write/schema/permission change; explicit annotation, L7 inventory passes). | `JobCountsDto` + controller method + `WorkshopJobCountsIT` 5/5; full server suite green (MySQL suites Docker-skipped). |
+| P7 | Tablet/phone derived from the same tokens, labelled derived, fidelity claimed for 1280 only. | Drawer→sheet <600, header stacking <600, wrap layouts; code comments carry the label. |
+---
+
+## F3-B owner decisions (7 November 2026; unedited lines approved)
+
+| ID | Decision | Implementation |
+|---|---|---|
+| Q1 | Screen 1 (dashboard) Level 1 residual (SSIM 0.97814, geometry exact, rasterizer-only residual, auditor-reproduced) is accepted by written owner waiver. | Waiver recorded here 7 November 2026. Residual details: docs/ui/figma/fidelity/f3a/dashboard/METHOD.md. F3-A gate item remains 3/4 on measurement, waived by this decision. |
+| Q2 | Active on the dashboard means assigned plus in progress jobs (not draft/scheduled). Label it accordingly in ARB. | Implemented by existing keys: dashboardStatActive = Active jobs / Arabic equivalent, value = assigned+inProgress client-side (P6 has no active field). |
+| Q3 | Fix the raw ISO scheduledAt display (and any other raw date or number) with intl and the active locale in the Workshop Admin, technician and report surfaces; add tests in English and Arabic. | See F3-B session record (docs/ui/figma/f3b-test-report.md). Server report templates already locale-format dates (ReportViewMapper.formatDate, verified, no change). |
+| Q4 | Docker Desktop per-user install; add resources/bin to session PATH, start Docker Desktop, run MySQL Testcontainers suites. | Docker 29.9.2 running; full mvn test with MySQL suites executed in F3-B (see test report). |
+| Q5 | Template reorder with drag handles iff the save API takes an ordered item list (UI-only); no cross-category DnD, autosave, custom items. | Confirmed: TemplateDraftRequest.items is an ordered List<TemplateItemRequest> with per-item sortOrder - in-list reorder is UI-only. |
+| Q6 | Create Technician per C0: Workshop Admin sets initial password (never shown/logged/stored beyond the form), reset/disable/reactivate, own workshop only, no invitations/pending, Technician-only role. | Enforced in Step 2 + privacy-reviewed (password handling tests). |
+| Q7 | Figma staff fields we cannot support go through the slot sheet as neutral replacement or hide. | Slot-sheet rows enforced in Step 2. |
+| Q8 | Parallel builders get separate folders, never touch shared files; lead merges; report collisions. | Enforced; collisions reported in final report. |
+

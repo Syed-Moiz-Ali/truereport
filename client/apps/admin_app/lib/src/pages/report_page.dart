@@ -5,6 +5,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 
 class ReportPage extends ConsumerStatefulWidget {
@@ -14,6 +15,49 @@ class ReportPage extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ReportPage> createState() => _ReportPageState();
+}
+
+/// Parses a raw ISO `scheduledAt`/`finalizedAt` string and returns the
+/// Asia/Dubai (UTC+4) wall-clock instant for display.
+///
+/// Strings carrying no UTC offset are treated as UTC (matching the
+/// technician app's `scheduledTimeUtc4` instant interpretation in
+/// `assigned_jobs_view.dart`, which displays `toUtc() + 4h`). Returns null
+/// when the string is empty or unparseable.
+DateTime? _dubaiWallTime(String raw) {
+  if (raw.trim().isEmpty) {
+    return null;
+  }
+  final parsed = DateTime.tryParse(raw.trim());
+  if (parsed == null) {
+    return null;
+  }
+  final hasOffset = RegExp(r'([Zz]|[+-]\d{2}:?\d{2})$').hasMatch(raw.trim());
+  final utc = hasOffset
+      ? parsed.toUtc()
+      : DateTime.utc(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          parsed.hour,
+          parsed.minute,
+          parsed.second,
+          parsed.millisecond,
+          parsed.microsecond,
+        );
+  return utc.add(const Duration(hours: 4));
+}
+
+/// Locale-aware date+time for a raw ISO instant (`DateFormat.yMd + add_Hm`
+/// under the active locale). Falls back to the raw string when unparseable
+/// so no information is silently dropped.
+String _formatInstant(BuildContext context, String raw) {
+  final wall = _dubaiWallTime(raw);
+  if (wall == null) {
+    return raw;
+  }
+  final locale = Localizations.localeOf(context).toString();
+  return DateFormat.yMd(locale).add_Hm().format(wall);
 }
 
 class _ReportPageState extends ConsumerState<ReportPage> {
@@ -73,7 +117,11 @@ class _ReportPageState extends ConsumerState<ReportPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _row(context, l10n.reportStatus, report.generationStatus),
-                _row(context, l10n.finalized, report.finalizedAt),
+                _row(
+                  context,
+                  l10n.finalized,
+                  _formatInstant(context, report.finalizedAt),
+                ),
                 _row(context, l10n.consent, report.consentState),
                 _row(context, l10n.publicLink, report.linkState),
                 _row(

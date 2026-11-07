@@ -1,0 +1,16 @@
+{
+  "sample": "assign-level2",
+  "logicalSize": {
+    "width": 1280.0,
+    "height": 1120.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "modal": {
+      "x": 384.0,
+      "y": 326.75,
+      "width": 512.0,
+      "height": 466.5
+    }
+  }
+}

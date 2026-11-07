@@ -1,3 +1,4 @@
+import 'package:admin_app/src/pages/dashboard_tab.dart';
 import 'package:admin_app/src/pages/jobs_tab.dart';
 import 'package:admin_app/src/pages/staff_tab.dart';
 import 'package:admin_app/src/pages/templates_tab.dart';
@@ -15,7 +16,7 @@ class WorkshopAdminHomePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= AppBreakpoints.tablet;
@@ -48,6 +49,11 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                     isScrollable: true,
                     tabs: [
                       Tab(
+                        key: const Key('workshop-tab-overview'),
+                        icon: const Icon(Icons.dashboard_outlined),
+                        text: l10n.dashboardTab,
+                      ),
+                      Tab(
                         key: const Key('workshop-tab-jobs'),
                         icon: const Icon(Icons.work_outline),
                         text: l10n.jobsTab,
@@ -66,7 +72,7 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                   ),
           );
           const tabs = TabBarView(
-            children: [JobsTab(), StaffTab(), TemplatesTab()],
+            children: [DashboardTab(), JobsTab(), StaffTab(), TemplatesTab()],
           );
           if (!wide) {
             return AppScaffold(appBar: appBar, body: tabs);
@@ -84,6 +90,14 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                       onDestinationSelected: controller.animateTo,
                       labelType: NavigationRailLabelType.all,
                       destinations: [
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.dashboard_outlined),
+                          selectedIcon: const Icon(Icons.dashboard),
+                          label: Text(
+                            l10n.dashboardTab,
+                            key: const Key('workshop-tab-overview'),
+                          ),
+                        ),
                         NavigationRailDestination(
                           icon: const Icon(Icons.work_outline),
                           selectedIcon: const Icon(Icons.work),

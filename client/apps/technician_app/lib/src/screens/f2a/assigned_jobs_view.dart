@@ -1202,7 +1202,7 @@ class _SummaryStrip extends StatelessWidget {
 
 abstract final class _M {
   static const double gutter = 20;
-  static const double contentWidth = 350;
+  static const double contentWidth = 334;
   static const double pill = 999;
   static const double r16 = 16;
 

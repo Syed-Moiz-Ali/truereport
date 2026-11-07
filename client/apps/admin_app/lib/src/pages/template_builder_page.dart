@@ -8,6 +8,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
+/// F3-B Step 2, screen 8 — Template Builder workbench.
+///
+/// Figma 1280 draws a two-column workbench: left master-item catalog
+/// (search + category filter + tap-to-add cards), right numbered inspection
+/// sequence with reorder controls + tap-to-add drop zone + versions.
+/// Derived phone/tablet layout stacks the catalog above the sequence.
+///
+/// Existing behaviour is preserved verbatim: tap-to-add, move up/down/remove,
+/// save draft (PUT with the ordered item list incl. sortOrder), publish
+/// (save then POST publish), retire, create draft, versions navigation and the
+/// EN/AR preview bottom sheet. Only existing ARB keys and tokens are used.
+/// Deliberately omitted per O7: custom-item creation, autosave, per-item
+/// Active/Automated flags, numeric ranges, telemetry/AI, QA policy card,
+/// semver, time estimates and "of 14" counts.
 class TemplateBuilderPage extends ConsumerStatefulWidget {
   const TemplateBuilderPage({required this.templateId, super.key});
 
@@ -79,6 +93,9 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     final template = detail.requireValue;
     _initialize(template);
     final draft = template.draft;
+    // Existing catalog contract: approved master items via the
+    // published-items provider (?search= plus category filter).
+    final catalog = items.requireValue.take(80).toList();
     return AppScaffold(
       appBar: AppBar(
         title: Text(template.name),
@@ -103,156 +120,387 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
             ),
         ],
       ),
-      body: ListView(
-        key: const Key('template-builder-list'),
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
-        children: [
-          SectionHeader(title: l10n.templateDetails),
-          AppTextField(controller: _name, label: l10n.templateName),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(
-            controller: _description,
-            label: l10n.templateDescription,
-            maxLines: 2,
-          ),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: _serviceType, label: l10n.serviceType),
-          SizedBox(height: context.spacing.sm),
-          AppTextField(controller: _vehicleType, label: l10n.vehicleType),
-          SizedBox(height: context.spacing.lg),
-          if (draft == null)
-            EmptyState(
-              title: l10n.readOnlyVersion,
-              body: l10n.createDraft,
-              icon: Icons.lock_outline,
-              action: AppButton(
-                label: l10n.createDraft,
-                onPressed: _busy ? null : _createDraft,
-                variant: AppButtonVariant.tonal,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Figma 1280: catalog and sequence sit side by side.
+          // Derived phone/tablet layout: catalog stacks above the sequence.
+          final wide = constraints.maxWidth >= 900;
+          return ListView(
+            key: const Key('template-builder-list'),
+            padding: EdgeInsetsDirectional.all(context.spacing.lg),
+            children: [
+              _header(context, l10n, template, draft, wide),
+              SizedBox(height: context.spacing.lg),
+              SectionHeader(title: l10n.templateDetails),
+              AppTextField(controller: _name, label: l10n.templateName),
+              SizedBox(height: context.spacing.sm),
+              AppTextField(
+                controller: _description,
+                label: l10n.templateDescription,
+                maxLines: 2,
               ),
-            )
-          else ...[
-            SectionHeader(title: l10n.addItems),
-            AppTextField(
-              controller: _search,
-              label: l10n.searchItems,
-              hint: l10n.searchItems,
-              onChanged: (_) => setState(() {}),
-            ),
-            SizedBox(height: context.spacing.sm),
-            DropdownButtonFormField<String>(
-              isExpanded: true,
-              initialValue: _categoryId.isEmpty ? null : _categoryId,
-              decoration: InputDecoration(labelText: l10n.allCategories),
-              items: [
-                DropdownMenuItem(value: '', child: Text(l10n.allCategories)),
-                ...categories.requireValue.map(
-                  (category) => DropdownMenuItem(
-                    value: category.id,
-                    child: Text(category.labelEn),
+              SizedBox(height: context.spacing.sm),
+              AppTextField(
+                controller: _serviceType,
+                label: l10n.serviceType,
+              ),
+              SizedBox(height: context.spacing.sm),
+              AppTextField(
+                controller: _vehicleType,
+                label: l10n.vehicleType,
+              ),
+              SizedBox(height: context.spacing.lg),
+              if (draft == null)
+                EmptyState(
+                  title: l10n.readOnlyVersion,
+                  body: l10n.createDraft,
+                  icon: Icons.lock_outline,
+                  action: AppButton(
+                    label: l10n.createDraft,
+                    onPressed: _busy ? null : _createDraft,
+                    variant: AppButtonVariant.tonal,
                   ),
-                ),
-              ],
-              onChanged: (value) => setState(() => _categoryId = value ?? ''),
-            ),
-            SizedBox(height: context.spacing.sm),
-            ...items.requireValue
-                .take(80)
-                .map(
-                  (item) => Card(
-                    child: AppListTile(
-                      key: Key('published-item-${item.versionId}'),
-                      leading: const Icon(Icons.fact_check_outlined),
-                      title: item.labelEn,
-                      subtitle:
-                          '${item.categoryLabelEn} · v${item.version.versionNo}${item.sampleData ? ' · ${l10n.sampleData}' : ''}',
-                      trailing: IconButton(
-                        tooltip: l10n.add,
-                        onPressed: _contains(item.versionId)
-                            ? null
-                            : () => _add(item),
-                        icon: const Icon(Icons.add_circle_outline),
+                )
+              else ...[
+                if (wide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 404,
+                        child: _catalogPanel(
+                          context,
+                          l10n,
+                          categories.requireValue,
+                          catalog,
+                        ),
                       ),
-                      onTap: _contains(item.versionId)
-                          ? null
-                          : () => _add(item),
-                    ),
-                  ),
-                ),
-            SizedBox(height: context.spacing.lg),
-            SectionHeader(
-              title: l10n.selectedItems,
-              subtitle: '${_selected.length} ${l10n.itemsSelected}',
-              action: AppButton(
-                label: l10n.preview,
-                onPressed: _selected.isEmpty ? null : _preview,
-                icon: Icons.visibility_outlined,
-                variant: AppButtonVariant.tonal,
-              ),
-            ),
-            if (_selected.isEmpty)
-              EmptyState(
-                title: l10n.noItems,
-                body: l10n.addItems,
-                icon: Icons.playlist_add_check,
-              )
-            else
-              ..._selected.asMap().entries.map(
-                (entry) => Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    bottom: context.spacing.sm,
-                  ),
-                  child: Card(
-                    child: AppListTile(
-                      title: entry.value.labelEn,
-                      subtitle:
-                          '${entry.value.categoryLabelEn} · v${entry.value.versionNo} · ${entry.value.noteRequirement}/${entry.value.evidenceRequirement} · ${l10n.lockedByPlatform}',
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) => _itemAction(entry.key, value),
-                        itemBuilder: (context) => [
-                          PopupMenuItem(value: 'up', child: Text(l10n.moveUp)),
-                          PopupMenuItem(
-                            value: 'down',
-                            child: Text(l10n.moveDown),
-                          ),
-                          PopupMenuItem(
-                            value: 'remove',
-                            child: Text(l10n.remove),
-                          ),
-                        ],
+                      SizedBox(width: context.spacing.xl),
+                      Expanded(
+                        flex: 660,
+                        child: _sequencePanel(
+                          context,
+                          l10n,
+                          template,
+                          draft,
+                          catalog,
+                        ),
                       ),
-                    ),
+                    ],
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _catalogPanel(
+                        context,
+                        l10n,
+                        categories.requireValue,
+                        catalog,
+                      ),
+                      SizedBox(height: context.spacing.xl),
+                      _sequencePanel(
+                        context,
+                        l10n,
+                        template,
+                        draft,
+                        catalog,
+                      ),
+                    ],
                   ),
-                ),
-              ),
-            SizedBox(height: context.spacing.xl),
-            SectionHeader(title: l10n.versionHistory),
-            ...template.versions.map(
-              (version) => Padding(
-                padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-                child: Card(
-                  child: AppListTile(
-                    key: Key('template-version-${version.id}'),
-                    title:
-                        'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
-                    subtitle:
-                        '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => TemplateVersionPage(
-                          templateId: widget.templateId,
-                          versionId: version.id,
+                SizedBox(height: context.spacing.xl),
+                SectionHeader(title: l10n.versionHistory),
+                ...template.versions.map(
+                  (version) => Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      bottom: context.spacing.sm,
+                    ),
+                    child: Card(
+                      child: AppListTile(
+                        key: Key('template-version-${version.id}'),
+                        title:
+                            'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
+                        subtitle:
+                            '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => TemplateVersionPage(
+                              templateId: widget.templateId,
+                              versionId: version.id,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Top bar: template title, integer version pill (vN, never semver),
+  /// preview (existing EN/AR sheet) and publish (existing flow).
+  Widget _header(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateDetail template,
+    TemplateVersionView? draft,
+    bool wide,
+  ) {
+    final pill = StatusChip(
+      label: draft != null
+          ? 'v${draft.versionNo}'
+          : contentStatusLabel(l10n, template.status),
+    );
+    final title = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          template.name,
+          key: const Key('builder-title'),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.texts.headlineSmall,
+        ),
+        SizedBox(height: context.spacing.xs),
+        pill,
+      ],
+    );
+    final actions = [
+      AppButton(
+        key: const Key('builder-preview'),
+        label: l10n.preview,
+        onPressed: draft == null || _selected.isEmpty || _busy
+            ? null
+            : _preview,
+        icon: Icons.visibility_outlined,
+        variant: AppButtonVariant.tonal,
+      ),
+      AppButton(
+        key: const Key('builder-publish'),
+        label: l10n.publishTemplate,
+        onPressed: draft == null || _busy ? null : _publish,
+        icon: Icons.publish_outlined,
+      ),
+    ];
+    if (wide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: title),
+          ...actions.map(
+            (action) => Padding(
+              padding: EdgeInsetsDirectional.only(start: context.spacing.sm),
+              child: action,
+            ),
+          ),
+        ],
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        title,
+        SizedBox(height: context.spacing.sm),
+        Wrap(
+          spacing: context.spacing.sm,
+          runSpacing: context.spacing.sm,
+          children: actions,
+        ),
+      ],
+    );
+  }
+
+  /// Left catalog column: search, category filter and tap-to-add cards.
+  /// Workshop cannot create master items (platform GET-only contract), so no
+  /// custom-item button is offered.
+  Widget _catalogPanel(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<Category> categories,
+    List<PublishedItem> catalog,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SectionHeader(
+          title: '${l10n.builderMasterItems} · ${catalog.length}',
+        ),
+        AppTextField(
+          key: const Key('builder-search'),
+          controller: _search,
+          label: l10n.searchItems,
+          hint: l10n.searchItems,
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: context.spacing.sm),
+        DropdownButtonFormField<String>(
+          key: const Key('builder-category'),
+          isExpanded: true,
+          initialValue: _categoryId.isEmpty ? null : _categoryId,
+          decoration: InputDecoration(labelText: l10n.allCategories),
+          items: [
+            DropdownMenuItem(value: '', child: Text(l10n.allCategories)),
+            ...categories.map(
+              (category) => DropdownMenuItem(
+                value: category.id,
+                child: Text(category.labelEn),
               ),
             ),
           ],
-        ],
+          onChanged: (value) => setState(() => _categoryId = value ?? ''),
+        ),
+        SizedBox(height: context.spacing.sm),
+        ...catalog.map(
+          (item) => Padding(
+            padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
+            child: Card(
+              child: AppListTile(
+                key: Key('published-item-${item.versionId}'),
+                leading: const Icon(Icons.fact_check_outlined),
+                title: item.labelEn,
+                subtitle:
+                    '${item.categoryLabelEn} · v${item.version.versionNo}${item.sampleData ? ' · ${l10n.sampleData}' : ''}',
+                trailing: IconButton(
+                  key: Key('catalog-add-${item.versionId}'),
+                  tooltip: l10n.add,
+                  onPressed: _contains(item.versionId)
+                      ? null
+                      : () => _add(item),
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+                onTap: _contains(item.versionId) ? null : () => _add(item),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Right sequence column: numbered cards with locked-rule pills, keyboard
+  /// reachable up/down/remove buttons plus a drag handle per row, and a
+  /// tap-to-add drop zone wired to the existing add flow.
+  Widget _sequencePanel(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateDetail template,
+    TemplateVersionView draft,
+    List<PublishedItem> catalog,
+  ) {
+    final hasAvailable =
+        catalog.any((item) => !_contains(item.versionId));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SectionHeader(
+          title: l10n.builderSequenceTitle,
+          subtitle: '${_selected.length} ${l10n.itemsSelected}',
+        ),
+        if (_selected.isEmpty)
+          EmptyState(
+            title: l10n.noItems,
+            body: l10n.addItems,
+            icon: Icons.playlist_add_check,
+          )
+        else
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            proxyDecorator: _dragProxy,
+            onReorderItem: _reorderItem,
+            children: _selected.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              return WorkshopSequenceCard(
+                key: ValueKey('seq-row-${item.masterItemVersionId}'),
+                indexLabel: (index + 1).toString().padLeft(2, '0'),
+                title: item.labelEn,
+                chips: [
+                  WorkshopLockedPill(
+                    label:
+                        '${item.noteRequirement}/${item.evidenceRequirement} · ${l10n.lockedByPlatform}',
+                  ),
+                  StatusChip(
+                    label:
+                        '${item.categoryLabelEn} · v${item.versionNo}',
+                  ),
+                ],
+                ruleNote: Text(
+                  item.instructionEn.isEmpty
+                      ? item.categoryLabelEn
+                      : item.instructionEn,
+                ),
+                controls: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      key: Key('seq-up-$index'),
+                      tooltip: l10n.moveUp,
+                      onPressed: index > 0
+                          ? () => _itemAction(index, 'up')
+                          : null,
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                    IconButton(
+                      key: Key('seq-down-$index'),
+                      tooltip: l10n.moveDown,
+                      onPressed: index < _selected.length - 1
+                          ? () => _itemAction(index, 'down')
+                          : null,
+                      icon: const Icon(Icons.arrow_downward),
+                    ),
+                    IconButton(
+                      key: Key('seq-remove-$index'),
+                      tooltip: l10n.remove,
+                      onPressed: () => _itemAction(index, 'remove'),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Icon(
+                        Icons.drag_handle,
+                        key: Key('seq-drag-$index'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        SizedBox(height: context.spacing.sm),
+        WorkshopDropZone(
+          key: const Key('builder-dropzone'),
+          label: l10n.builderDropHint,
+          hint: l10n.addItems,
+          onTap: hasAvailable ? () => _addFirstAvailable(catalog) : null,
+        ),
+      ],
+    );
+  }
+
+  /// Drag proxy keeps the card style while a row is being dragged.
+  Widget _dragProxy(
+    Widget child,
+    int index,
+    Animation<double> animation,
+  ) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, proxyChild) => Material(
+        type: MaterialType.transparency,
+        child: proxyChild,
       ),
+      child: child,
     );
   }
 
@@ -284,6 +532,15 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     setState(() => _selected.add(_SelectedItem.fromPublished(item)));
   }
 
+  void _addFirstAvailable(List<PublishedItem> catalog) {
+    for (final item in catalog) {
+      if (!_contains(item.versionId)) {
+        _add(item);
+        return;
+      }
+    }
+  }
+
   void _itemAction(int index, String action) {
     setState(() {
       if (action == 'remove') {
@@ -295,6 +552,13 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
         final item = _selected.removeAt(index);
         _selected.insert(index + 1, item);
       }
+    });
+  }
+
+  void _reorderItem(int fromIndex, int toIndex) {
+    setState(() {
+      final item = _selected.removeAt(fromIndex);
+      _selected.insert(toIndex, item);
     });
   }
 

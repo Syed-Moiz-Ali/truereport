@@ -1,0 +1,83 @@
+{
+  "id": "f3a-assign-level1",
+  "batch": "f3a-assign-technician",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/Workshop_admin_figma/screens/04_4._Assign_Technician/4._Assign_Technician@2x.png",
+  "crop": {
+    "x": 32,
+    "y": 0,
+    "width": 2560,
+    "height": 2240
+  },
+  "logicalWidth": 1280,
+  "logicalHeight": 1120,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f3a/assign-technician/render.png",
+  "output": "docs/ui/figma/fidelity/f3a/assign-technician",
+  "expectedStrings": [
+    "ACTIVE DISPATCH BOARD",
+    "Service Bay Diagnostics",
+    "Shift A \u2022 Morning Inflow",
+    "12 Bays Operational",
+    "#1040 \u2022 Express",
+    "In Progress",
+    "Audi e-tron GT",
+    "VIN: 9AU4810294J",
+    "#1041 \u2022 Heavy",
+    "Inspection",
+    "Freightliner M2",
+    "VIN: 1FUJGLD9381",
+    "#1042 \u2022 Intake",
+    "Unassigned",
+    "2024 Ford Transit",
+    "VIN: 1FTBR1Y80RKA391",
+    "BAY ACTIVE",
+    "Shop Floor #04",
+    "Search VIN, tech, job ticket...",
+    "Marcus Vance",
+    "Lead Inspector",
+    "REPAIR TICKET #1042",
+    "Stage 01",
+    "Assign Technician for Job #1042",
+    "Select an available certified specialist for 2024 Ford Transit",
+    "Transit 350 High Roof",
+    "3.5L EcoBoost \u2022 Brake System Recall",
+    "Est. 2.5h",
+    "David Vance",
+    "Brakes L2",
+    "1 Active Job \u2022 Bay 02",
+    "Lead Tech",
+    "3 Active Jobs \u2022 Bay 04",
+    "Sarah Jenkins",
+    "Powertrain",
+    "0 Active Jobs \u2022 Bay 01 (Available)",
+    "Cancel",
+    "Confirm Assignment"
+  ],
+  "keyBoxes": [
+    {
+      "key": "modal",
+      "x": 384,
+      "y": 206,
+      "width": 512,
+      "height": 660
+    },
+    {
+      "key": "tech-card-1",
+      "x": 416,
+      "y": 450,
+      "width": 448,
+      "height": 80
+    },
+    {
+      "key": "confirm",
+      "x": 526.89,
+      "y": 774,
+      "width": 337.11,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

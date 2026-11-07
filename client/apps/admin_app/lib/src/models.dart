@@ -558,6 +558,7 @@ class TemplateSummary {
     required this.status,
     required this.currentVersion,
     required this.itemCount,
+    this.updatedAt = '',
   });
 
   final String id;
@@ -568,6 +569,9 @@ class TemplateSummary {
   final int? currentVersion;
   final int itemCount;
 
+  /// Server DTO already carries `updatedAt`; previously unparsed.
+  final String updatedAt;
+
   factory TemplateSummary.fromJson(Map<String, dynamic> json) =>
       TemplateSummary(
         id: json['id'] as String,
@@ -577,6 +581,7 @@ class TemplateSummary {
         status: json['status'] as String? ?? 'DRAFT',
         currentVersion: json['currentVersion'] as int?,
         itemCount: json['itemCount'] as int? ?? 0,
+        updatedAt: json['updatedAt'] as String? ?? '',
       );
 }
 

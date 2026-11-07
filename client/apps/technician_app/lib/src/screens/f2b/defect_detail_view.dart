@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
@@ -60,6 +61,7 @@ class DefectDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toString();
     final category = Localizations.localeOf(context).languageCode == 'ar'
         ? item.categoryLabelAr
         : item.categoryLabelEn;
@@ -239,7 +241,7 @@ class DefectDetailView extends StatelessWidget {
                                 child: F2bSectionLabel(l10n.attachments),
                               ),
                               Text(
-                                '${photos.length} / ${item.minPhotos > 0 ? item.minPhotos : 1}',
+                                '${formatCountLocalized(photos.length, localeName)} / ${formatCountLocalized(item.minPhotos > 0 ? item.minPhotos : 1, localeName)}',
                                 textDirection: TextDirection.ltr,
                                 style: Fx.caption.copyWith(color: Fx.muted),
                               ),
