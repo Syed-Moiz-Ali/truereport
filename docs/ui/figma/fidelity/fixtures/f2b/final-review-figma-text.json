@@ -15,16 +15,18 @@
   "render": "docs/ui/figma/fidelity/f2b/final-review/figma-text/render.png",
   "output": "docs/ui/figma/fidelity/f2b/final-review/figma-text",
   "expectedStrings": [
-    "REVIEW & FINALIZE",
-    "3 Missing items",
-    "Review & Finalize",
-    "MISSING ITEMS",
+    "STEP 4 OF 4 • VALIDATION",
+    "3 Action Items",
+    "Review Findings",
+    "3 Mandatory Photos Missing",
+    "MANDATORY RESOLUTION ITEMS",
     "Brake Fluid",
     "Tread Photo",
     "Signature",
-    "28 / 31",
-    "Coverage",
-    "90%"
+    "28 Verified Data Points",
+    "91%\nComplete",
+    "Resolve to Continue",
+    "Diagnostic Checklist"
   ],
   "keyBoxes": [
     {
@@ -37,14 +39,14 @@
     {
       "key": "banner",
       "x": 20,
-      "y": 360,
+      "y": 202,
       "width": 350,
-      "height": 88
+      "height": 160
     },
     {
       "key": "continue",
       "x": 20,
-      "y": 798,
+      "y": 864,
       "width": 350,
       "height": 56
     }

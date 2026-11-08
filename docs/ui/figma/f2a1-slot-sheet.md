@@ -72,6 +72,21 @@ neutral form exists).
 | 10 Photo Markup | `0.8 mm Scuff` • `1 Defect Callout` | Sample measurement | **Active defect measurement and callout count** in the same floating pill slots | Real defect telemetry | Dynamic label | A implemented |
 | 11 Dense Mechanical | `Live Bay #2` | Bay not modelled | **Job reference** in the same 26 px status pill slot | Real bay | Remove pill | A implemented |
 | 11 Dense Mechanical | `Confirm Fluid Levels` | Figma-specific CTA label | **Review & Finalize** in product copy, same slot/icon/style | Review & Finalize | Remove | A implemented |
+| 12 Tire Condition | `Axle 2 • Michelin Pilot Sport 4S` | Sample tire specification | **Dynamic axle and tire specification** in the same slot | Real tire telemetry | Remove | A implemented |
+| 12 Tire Condition | `34.5 PSI (Norm)` • `No Gouges / Flaws` | Sample diagnostic values | **Dynamic diagnostic values** in the same snapshot tiles | Real sensor telemetry | Remove | A implemented |
+| 13 Final Review | `3 Action Items`, `3 Mandatory Photos Missing` | Sample action items & missing count | **Dynamic missing action items count** in the same pill and banner slots | Real missing findings | Remove | A implemented |
+| 13 Final Review | `Brake Fluid Level Photo`, `Tread Depth Photo` | Sample missing item list | **Dynamic required checklist items** in the same item card slots | Real required items | Remove | A implemented |
+| 14 Finalize | `Marcus Vance`, `Lead Fleet Specialist • ID #8842` | Sample technician info | **Dynamic assigned technician name & role** in the same card slot | Real technician record | Remove | A implemented |
+| 14 Finalize | `Fleet Ledger #2024-FLT-0982` disclaimer | Sample fleet ledger / GPS claim | **Neutral finalization disclaimer** (`finalizeIrreversible`) in product copy | Real workshop disclaimer | Remove | A implemented |
+| 15 Offline Sync | `Local Engine v4.2 • Background sync`, `No Signal` | Engine version and speed claim | **Neutral connectivity & local sync status** in the same sub-nav slots | Real connectivity telemetry | Remove | A implemented |
+| 15 Offline Sync | `148.6 MB Local`, `3 Inspections Awaiting link` | Sample cache size & pending count | **Dynamic pending operations & inspection count** in the same snapshot tiles | Real storage telemetry | Remove | A implemented |
+| 15 Offline Sync | Sample jobs `#IN-88912`, `#IN-88909`, `#IN-88904` | Sample sync operation items | **Dynamic pending sync operations list** in the same queue cards | Real queue operations | Remove | A implemented |
+| 15 Offline Sync | `Device will ping master servers every 60 seconds` | Specific 60-second ping claim | **Neutral sync hint** (`technicianPendingSync`) in the same slot | Real retry scheduler | Remove | A implemented |
+| 15 Offline Sync | Dock `Fleet` | No fleet feature | Same mapping as screen 2: **Completed** / Finalized jobs list | Real fleet module | Remove | A implemented |
+| 16 Success | `SERVICE SESSION #1042`, `Locked & Signed` | Hardcoded session & locked label | Dynamic `JOB #<ref>` & `Finalized` in the same context slots | Real job status | Remove | A implemented |
+| 16 Success | `Report #1042 has been locked and uploaded.` | Hardcoded report number claim | Dynamic `Report #<ref> has been locked and uploaded.` in same typography slot | Real upload confirmation | Remove | A implemented |
+| 16 Success | `WhatsApp Sent`, `Fleet Portal Synced` | Hardcoded delivery channels | Dynamic server delivery records (`WhatsApp`, `Web Portal`) in same delivery card slots | Real delivery records | Remove | A implemented |
+| 16 Success | `VIN ENDING ·8492`, `ITEMS VERIFIED 38 / 38`, `PDF SIZE 2.4 MB` | Static metadata values & "VERIFIED" claim | Dynamic VIN ending (`·<vinLast4>`), items count (`ITEMS CHECKED`), and PDF size in same meta strip | Real metadata | Remove | A implemented |
 
 ## Decisions the owner must make
 

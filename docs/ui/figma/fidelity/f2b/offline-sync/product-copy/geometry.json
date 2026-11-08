@@ -1,0 +1,28 @@
+{
+  "sample": "offline-sync-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1362.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 390.0,
+      "height": 64.0
+    },
+    "queue": {
+      "x": 20.0,
+      "y": 569.94,
+      "width": 350.0,
+      "height": 222.0
+    },
+    "retry": {
+      "x": 20.0,
+      "y": 1051.94,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

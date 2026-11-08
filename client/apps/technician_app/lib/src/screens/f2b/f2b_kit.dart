@@ -951,7 +951,20 @@ class _F2bSlideToConfirmState extends State<F2bSlideToConfirm> {
                           decoration: BoxDecoration(
                             color: Fx.emerald,
                             shape: BoxShape.circle,
-                            boxShadow: Fx.softShadow,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 6,
+                                spreadRadius: -4,
+                                offset: Offset(0, 4),
+                              ),
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 15,
+                                spreadRadius: -3,
+                                offset: Offset(0, 10),
+                              ),
+                            ],
                             border: _focused
                                 ? Border.all(color: Fx.deepGreen, width: 3)
                                 : null,
@@ -959,7 +972,7 @@ class _F2bSlideToConfirmState extends State<F2bSlideToConfirm> {
                           child: const Center(
                             child: FxIcon(
                               id: '1_8919',
-                              size: 16,
+                              size: 16.33,
                               color: Fx.white,
                             ),
                           ),

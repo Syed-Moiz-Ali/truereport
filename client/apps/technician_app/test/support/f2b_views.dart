@@ -36,7 +36,7 @@ const f2bHeights = <String, double>{
   'dense-mechanical': 1080,
   'tire-condition': 1085.5,
   'final-review': 1008,
-  'finalize': 1232,
+  'finalize': 1231.5,
   'offline-sync': 1362,
   'success': 884,
 };
@@ -111,7 +111,9 @@ class F2bFigmaTestLocalizations extends AppLocalizationsEn {
   @override
   String get reviewAndFinalize => activeScreenId == 'dense-mechanical'
       ? F2bFigmaStrings.confirmFluidLevels
-      : F2bFigmaStrings.reviewFinalizeTitle;
+      : activeScreenId == 'final-review'
+          ? F2bFigmaStrings.reviewFindings
+          : F2bFigmaStrings.reviewFinalizeTitle;
 
   @override
   String get finalize => F2bFigmaStrings.finalizeAction;
@@ -439,20 +441,26 @@ ReviewResult _f2bReview({required bool figma}) {
   }
   return const ReviewResult(
     ready: false,
-    completed: 17,
-    total: 40,
+    completed: 28,
+    total: 31,
     blocking: [
       ReviewIssue(
-        code: 'ITEM_UNANSWERED',
-        inspectionItemId: 'item-1',
-        label: null,
-        detail: null,
+        code: 'EVIDENCE_REQUIRED',
+        inspectionItemId: 'mech-brake',
+        label: 'Brake Fluid',
+        detail: 'Reservoir moisture gauge & test strip',
       ),
       ReviewIssue(
         code: 'EVIDENCE_REQUIRED',
-        inspectionItemId: 'item-2',
-        label: null,
-        detail: null,
+        inspectionItemId: 'tread-fl',
+        label: 'Tread Photo',
+        detail: '3/32" depth indicator macro verification',
+      ),
+      ReviewIssue(
+        code: 'NOTE_REQUIRED',
+        inspectionItemId: 'sig',
+        label: 'Signature',
+        detail: 'Digital advisor & vehicle owner sign-off',
       ),
     ],
     warnings: [],
@@ -532,6 +540,8 @@ Widget f2bScreen(
   bool figma = true,
   ui.Image? wireframeImage,
   ui.Image? evidenceImage,
+  ui.Image? vehicleImage,
+  ui.Image? avatarImage,
 }) {
   switch (id) {
     case 'defect-detail':
@@ -582,17 +592,24 @@ Widget f2bScreen(
         onSelectTire: (_) {},
       );
     case 'final-review':
+      F2bFigmaTestLocalizations.activeScreenId = 'final-review';
       return FinalReviewView(
         job: figma
-            ? figmaJob(status: 'IN_PROGRESS', reference: 'JOB-5A0001')
+            ? figmaJob(
+                status: 'IN_PROGRESS',
+                reference: 'JOB-5A0001',
+                template: 'Diagnostic Checklist',
+              )
             : productJobs.first,
         review: _f2bReview(figma: figma),
+        isFigma: figma,
         onOpenIssue: (_) {},
         onContinue: () {},
         onBack: () {},
         onProfile: () {},
       );
     case 'finalize':
+      F2bFigmaTestLocalizations.activeScreenId = 'finalize';
       final checklist = _f2bChecklist(figma: figma);
       return FinalizeView(
         job: figma
@@ -614,6 +631,9 @@ Widget f2bScreen(
           warnings: const [],
         ),
         checklist: checklist,
+        isFigma: figma,
+        vehicleImage: vehicleImage,
+        avatarImage: avatarImage,
         onFinalize: () async {},
         onBack: () {},
         onProfile: () {},
@@ -624,6 +644,7 @@ Widget f2bScreen(
         operations: ops,
         pendingCount: ops.length,
         online: false,
+        isFigma: figma,
         onRetry: () {},
         onBack: () {},
         onProfile: () {},
@@ -631,6 +652,7 @@ Widget f2bScreen(
     case 'success':
       final checklist = _f2bChecklist(figma: figma);
       return SuccessView(
+        isFigma: figma,
         job: figma
             ? figmaJob(
                 status: 'FINALIZED',

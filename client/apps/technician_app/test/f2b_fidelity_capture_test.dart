@@ -102,26 +102,26 @@ Map<String, Finder> _boxFinders(String id) {
       };
     case 'final-review':
       return {
-        'header': find.byType(FxHeader),
-        'banner': find.byType(FxCard).first,
-        'continue': find.byType(FxButton).last,
+        'header': find.byKey(const ValueKey('header')),
+        'banner': find.byKey(const ValueKey('banner')),
+        'continue': find.byKey(const ValueKey('continue')),
       };
     case 'finalize':
       return {
-        'header': find.byType(FxHeader),
-        'summary': find.byType(FxCard).first,
-        'slide': find.byType(F2bSlideToConfirm),
+        'header': find.byKey(const ValueKey('header')),
+        'summary': find.byKey(const ValueKey('summary')),
+        'slide': find.byKey(const ValueKey('slide')),
       };
     case 'offline-sync':
       return {
-        'header': find.byType(FxHeader),
-        'queue': find.byType(FxCard).first,
-        'retry': find.byType(FxButton).last,
+        'header': find.byKey(const ValueKey('header')),
+        'queue': find.byKey(const ValueKey('queue')),
+        'retry': find.byKey(const ValueKey('retry')),
       };
     case 'success':
       return {
-        'delivery': find.byType(FxCard).first,
-        'cta': find.byType(FxButton).last,
+        'delivery': find.byKey(const ValueKey('delivery')),
+        'cta': find.byKey(const ValueKey('cta')),
       };
     default:
       throw ArgumentError('Unknown F2-B screen: $id');
@@ -140,6 +140,8 @@ Future<void> _render(
   final root = repoRoot();
   ui.Image? wireframe;
   ui.Image? evidence;
+  ui.Image? avatar;
+  ui.Image? vehicle;
   if (id == 'defect-detail' && variant.figma) {
     final wireframePath =
         '${root.path}/docs/ui/figma-export/technision_figma/screens/09_9._Defect_Detail_&_Evidence/assets/composed/png/Blur-1_8036@2x.png';
@@ -152,6 +154,14 @@ Future<void> _render(
     final photoPath =
         '${root.path}/docs/ui/figma-export/technision_figma/screens/10_10._Photo_Annotation_&_Markup/assets/images/rendered_png/AB6AXuD3XXJzF6MEUCcBeU_H4M_jmvT2FUGx-Ol0A3FvS-e95O1kqrVyGqFqUlheLIpPRAcDv-D5elTQrPUpnkI1q0U1nrldpvf8-1_8151@2x.png';
     evidence = await tester.runAsync(() => loadFigmaTestImage(photoPath));
+  }
+  if (id == 'finalize' && variant.figma) {
+    final avatarPath =
+        '${root.path}/docs/ui/figma-export/technision_figma/screens/15_14._Finalize_&_Approval_(Swipe)/assets/images/rendered_png/AB6AXuA6dGDzYZ-RLaWksinhI7SgABKO8bMsu5g5yMUtDsLyRYHhXDRYb_zOrA_A_Ex8Th0NNXJfCUHR_XSUdAmTsbmZrwy0Ys4p-1_8859@2x.png';
+    final vehiclePath =
+        '${root.path}/docs/ui/figma-export/technision_figma/screens/15_14._Finalize_&_Approval_(Swipe)/assets/images/rendered_png/AB6AXuBC7qJfbrATy1AUuOCrOWmAPfTCHgkIEZHXcXCXZscxIWzB0SWT4WLRS-TpwOQqIHAC2adapAlluFOQv7DkK1cMcwPTKGyh-1_8874@2x.png';
+    avatar = await tester.runAsync(() => loadFigmaTestImage(avatarPath));
+    vehicle = await tester.runAsync(() => loadFigmaTestImage(vehiclePath));
   }
 
   tester.view.physicalSize = Size(390 * dpr, height * dpr);
@@ -179,6 +189,8 @@ Future<void> _render(
                 figma: variant.figma,
                 wireframeImage: wireframe,
                 evidenceImage: evidence,
+                vehicleImage: vehicle,
+                avatarImage: avatar,
               ),
             ),
           ),

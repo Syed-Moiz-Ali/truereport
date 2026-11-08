@@ -459,7 +459,7 @@ class F3aDashboardFixture extends StatelessWidget {
           ),
           Positioned(
             left: _M.thirtyTwo,
-            top: 308.66,
+            top: 309.0,
             width: 282.67,
             height: _M.six,
             child: Stack(

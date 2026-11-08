@@ -10,21 +10,19 @@
     "height": 2463
   },
   "logicalWidth": 390,
-  "logicalHeight": 1232,
+  "logicalHeight": 1231.5,
   "dpr": 2,
   "render": "docs/ui/figma/fidelity/f2b/finalize/figma-text/render.png",
   "output": "docs/ui/figma/fidelity/f2b/finalize/figma-text",
   "expectedStrings": [
-    "REVIEW & FINALIZE",
     "Review & Finalize",
     "2024 Ford Transit 350",
     "VIN • 1FTBR1Y85RKB92104",
-    "LV71 XZP",
-    "JOB-5A0001",
-    "Odometer: 34180 MI",
+    "Bay #04",
+    "Odometer: 14,820 mi",
     "Slide to Finalize Inspection",
     "Diagnostic Checklist",
-    "David Vance"
+    "Marcus Vance"
   ],
   "keyBoxes": [
     {
@@ -37,14 +35,14 @@
     {
       "key": "summary",
       "x": 20,
-      "y": 170,
+      "y": 206,
       "width": 350,
-      "height": 516
+      "height": 558
     },
     {
       "key": "slide",
       "x": 20,
-      "y": 1148,
+      "y": 1147,
       "width": 350,
       "height": 64
     }

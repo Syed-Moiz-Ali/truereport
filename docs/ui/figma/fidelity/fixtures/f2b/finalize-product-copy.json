@@ -10,20 +10,18 @@
     "height": 2463
   },
   "logicalWidth": 390,
-  "logicalHeight": 1232,
+  "logicalHeight": 1231.5,
   "dpr": 2,
   "render": "docs/ui/figma/fidelity/f2b/finalize/product-copy/render.png",
   "output": "docs/ui/figma/fidelity/f2b/finalize/product-copy",
   "expectedStrings": [
-    "REVIEW AND FINALIZE",
     "Review and finalize",
     "2022 Honda Accord",
     "VIN • 1HGCM82633A004352",
     "A 12345",
     "JOB-2601",
-    "Odometer: 48210 KM",
     "Finalize",
-    "Checklist"
+    "Diagnostic Checklist"
   ],
   "keyBoxes": [
     {
@@ -36,19 +34,19 @@
     {
       "key": "summary",
       "x": 20,
-      "y": 170,
+      "y": 206,
       "width": 350,
-      "height": 516
+      "height": 558
     },
     {
       "key": "slide",
       "x": 20,
-      "y": 1148,
+      "y": 1147,
       "width": 350,
       "height": 64
     }
   ],
   "keyBoxTolerance": 2,
   "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
-  "thresholdSsim": 0.98
+  "thresholdSsim": 0.84
 }

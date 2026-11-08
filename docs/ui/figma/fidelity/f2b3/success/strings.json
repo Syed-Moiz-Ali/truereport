@@ -1,0 +1,24 @@
+{
+  "sample": "success-level1",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "SERVICE SESSION #1042",
+    "Locked & Signed",
+    "Inspection Finalized",
+    "Report #1042 has been locked and uploaded.",
+    "WhatsApp",
+    "Sent",
+    "Fleet Portal",
+    "Synced",
+    "VIN ENDING",
+    "·8492",
+    "ITEMS VERIFIED",
+    "38 / 38",
+    "PDF SIZE",
+    "2.4 MB",
+    "Back to Job List"
+  ]
+}

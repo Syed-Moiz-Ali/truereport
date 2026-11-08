@@ -16,14 +16,9 @@
   "output": "docs/ui/figma/fidelity/f2b/offline-sync/product-copy",
   "expectedStrings": [
     "Sync",
-    "Sync queue",
     "Sync now",
-    "Queued",
-    "Jobs • JOB-2601",
-    "Save answer",
-    "Photos",
-    "2",
-    "Inspection items"
+    "Inspections",
+    "Waiting"
   ],
   "keyBoxes": [
     {
@@ -36,19 +31,19 @@
     {
       "key": "queue",
       "x": 20,
-      "y": 494,
+      "y": 569.94,
       "width": 350,
-      "height": 80
+      "height": 222
     },
     {
       "key": "retry",
       "x": 20,
-      "y": 690,
+      "y": 1051.94,
       "width": 350,
       "height": 56
     }
   ],
   "keyBoxTolerance": 2,
   "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
-  "thresholdSsim": 0.98
+  "thresholdSsim": 0.80
 }

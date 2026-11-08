@@ -1,9 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
-import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
-import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
+
+abstract final class _M {
+  static const double quad = 4;
+  static const double halfDozen = 6;
+  static const double gapMid = 12;
+  static const double padMid = 16;
+  static const double gutter = 20;
+  static const double gapLarge = 32;
+  static const double corePad = 69.5;
+}
 
 /// Figma screen 16. Post-finalization success, driven by the real job, report
 /// status and delivery records. Delivery success is shown only when the server
@@ -20,6 +30,7 @@ class SuccessView extends StatelessWidget {
     required this.onBackToJobs,
     this.report,
     this.deliveries = const <TechnicianDelivery>[],
+    this.isFigma = false,
     super.key,
   });
 
@@ -28,401 +39,204 @@ class SuccessView extends StatelessWidget {
   final VoidCallback onBackToJobs;
   final TechnicianReportStatus? report;
   final List<TechnicianDelivery> deliveries;
+  final bool isFigma;
 
-  static bool _isKnownChannel(String channel) {
-    final normalized = channel.toUpperCase();
-    return normalized == 'WHATSAPP' ||
-        normalized == 'SMS' ||
-        normalized == 'EMAIL';
-  }
-
-  String _channelLabel(AppLocalizations l10n, String channel) {
-    switch (channel.toUpperCase()) {
-      case 'WHATSAPP':
-        return l10n.channelWhatsapp;
-      case 'SMS':
-        return l10n.channelSms;
-      case 'EMAIL':
-        return l10n.channelEmail;
-      default:
-        return '';
-    }
-  }
-
-  String _deliveryLabel(AppLocalizations l10n, String status) {
-    switch (status.toUpperCase()) {
-      case 'SENT':
-      case 'DELIVERED':
-        return l10n.deliverySent;
-      case 'FAILED':
-      case 'DEAD_LETTER':
-        return l10n.reportFailed;
-      default:
-        return l10n.deliveryQueued;
-    }
-  }
-
-  String _reportState(AppLocalizations l10n, TechnicianReportStatus report) {
-    switch (report.generationStatus.toUpperCase()) {
-      case 'READY':
-        return l10n.reportReady;
-      case 'FAILED':
-        return l10n.reportFailed;
-      default:
-        return l10n.generating;
-    }
-  }
+  static const double targetHeight = 884;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final localeName = Localizations.localeOf(context).toString();
-    final finalized = job.status == 'FINALIZED';
-    final vin = job.vehicleVin ?? '';
-    final vinEnding = vin.length >= 4 ? vin.substring(vin.length - 4) : vin;
-    // ARB-only channels: unknown channels (incl. any future "Fleet Portal")
-    // are never rendered, so no fleet surface can appear.
-    final shownDeliveries = deliveries
-        .where((d) => _isKnownChannel(d.channel))
-        .take(2)
-        .toList(growable: false);
-    final reportLine = report == null
-        ? l10n.reportUnavailable
-        : '${l10n.reportStatus}: ${_reportState(l10n, report!)}';
-    final heading = finalized ? l10n.finalizedSuccessfully : l10n.statusInProgress;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-
     return Scaffold(
       backgroundColor: Fx.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsetsDirectional.fromSTEB(_M.gutter, _M.padMid, _M.gutter, 0),
-                child: Column(
-                  children: [
-                    Semantics(
-                      label: '${job.reference} ${finalized ? l10n.finalized : l10n.statusInProgress}',
-                      child: Row(
-                        children: [
-                          ExcludeSemantics(
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Fx.emerald,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: _M.gapSmall),
-                          Expanded(
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: Text(
-                                job.reference.toUpperCase(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Fx.text(
-                                  11,
-                                  14,
-                                  FontWeight.w600,
-                                  1.1,
-                                  color: Fx.muted,
-                                ),
-                              ),
-                            ),
-                          ),
-                          F2bStatusPill(
-                            label: finalized
-                                ? l10n.finalized
-                                : l10n.statusInProgress,
-                            background: Fx.container,
-                            foreground: Fx.muted,
-                            style: Fx.caption.copyWith(color: Fx.muted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 70),
-                    // Decorative success medallion (Figma 144px double circle).
-                    ExcludeSemantics(
-                      child: Container(
-                        width: 144,
-                        height: 144,
-                        decoration: const BoxDecoration(
-                          color: Fx.white,
-                          shape: BoxShape.circle,
-                          // Light-only Fx shadows (badge: Figma offsets
-                          // 0,4 + 0,20; Fx.navShadow uses 0,4 + 0,18).
-                          boxShadow: Fx.navShadow,
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 112,
-                            height: 112,
-                            decoration: const BoxDecoration(
-                              color: Fx.container,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: FxIcon(
-                                id: '1_8995',
-                                size: 54.25,
-                                color: Fx.emerald,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: _M.gapLarge),
-                    Semantics(
-                      header: true,
-                      liveRegion: true,
-                      label: '$heading. $reportLine',
-                      child: Column(
-                        children: [
-                          Text(
-                            heading,
-                            textAlign: TextAlign.center,
-                            style: Fx.display26.copyWith(color: Fx.inkStrong),
-                          ),
-                          const SizedBox(height: _M.gapSmall),
-                          Text(
-                            reportLine,
-                            textAlign: TextAlign.center,
-                            style: Fx.body14.copyWith(color: Fx.muted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: _M.gapLarge),
-                    FxCard(
-                      radius: 32,
-                      padding: const EdgeInsets.all(_M.gutter),
-                      child: shownDeliveries.isEmpty
-                          ? Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: const BoxDecoration(
-                                    color: Fx.container,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Center(
-                                    child: FxIcon(
-                                      id: '1_8953',
-                                      size: 16.67,
-                                      color: Fx.muted,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: _M.gapMid),
-                                Expanded(
-                                  child: Text(
-                                    l10n.noDeliveries,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Fx.title16.copyWith(
-                                      color: Fx.inkStrong,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                for (
-                                  var index = 0;
-                                  index < shownDeliveries.length;
-                                  index++
-                                ) ...[
-                                  if (index > 0)
-                                    Container(
-                                      height: 1,
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      color: Fx.divider,
-                                    ),
-                                  _DeliveryRow(
-                                    channelLabel: _channelLabel(
-                                      l10n,
-                                      shownDeliveries[index].channel,
-                                    ),
-                                    statusLabel: _deliveryLabel(
-                                      l10n,
-                                      shownDeliveries[index].status,
-                                    ),
-                                    status: shownDeliveries[index].status,
-                                    iconId: shownDeliveries[index].channel
-                                                .toUpperCase() ==
-                                            'EMAIL'
-                                        ? '1_8965'
-                                        : '1_8953',
-                                  ),
-                                ],
-                              ],
-                            ),
-                    ),
-                    const SizedBox(height: _M.padMid),
-                    Container(
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Fx.container,
-                        borderRadius: BorderRadius.circular(_M.radiusLarge),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: F2bKeyValue(
-                                label: l10n.technicianVinChassis,
-                                value: vinEnding.isEmpty
-                                    ? l10n.technicianNotProvided
-                                    : '·$vinEnding',
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 24,
-                            color: Fx.surfaceHighest,
-                          ),
-                          const SizedBox(width: _M.padMid),
-                          Expanded(
-                            child: F2bKeyValue(
-                              label: l10n.completedItems,
-                              value: formatCountPairLocalized(
-                                checklist.completed,
-                                checklist.total,
-                                localeName,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 24,
-                            color: Fx.surfaceHighest,
-                          ),
-                          const SizedBox(width: _M.padMid),
-                          Expanded(
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: F2bKeyValue(
-                                label: l10n.report,
-                                value: report == null
-                                    ? l10n.technicianNotProvided
-                                    : 'v${formatCountLocalized(report!.version, localeName)}',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxHeight < targetHeight;
+
+          final content = SizedBox(
+            width: constraints.maxWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _Container(
+                  job: job,
+                  checklist: checklist,
+                  report: report,
+                  deliveries: deliveries,
+                  onBackToJobs: onBackToJobs,
+                  isFigma: isFigma,
                 ),
-              ),
+                const SizedBox(height: 64),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(_M.gutter, _M.padMid, _M.gutter, _M.gutter),
-              child: F2bFocusFrame(
-                child: FxButton(
-                  label: l10n.technicianJobsTitle,
-                  onPressed: onBackToJobs,
-                  // Mirror the Figma arrow in RTL; icon itself stays Fx.
-                  icon: rtl
-                      ? const Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: _MirroredArrow(),
-                        )
-                      : const FxIcon(
-                          id: '1_9005',
-                          size: 13.33,
-                          color: Fx.white,
-                        ),
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+
+          if (isCompact) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.zero,
+              child: content,
+            );
+          }
+          return content;
+        },
       ),
     );
   }
 }
 
-class _MirroredArrow extends StatelessWidget {
-  const _MirroredArrow();
+/// Figma `1:8932` — 390 x 820, pad top 16 / sides 20 / bottom 32.
+class _Container extends StatelessWidget {
+  const _Container({
+    required this.job,
+    required this.checklist,
+    required this.report,
+    required this.deliveries,
+    required this.onBackToJobs,
+    required this.isFigma,
+  });
+
+  final TechnicianJob job;
+  final InspectionChecklist checklist;
+  final TechnicianReportStatus? report;
+  final List<TechnicianDelivery> deliveries;
+  final VoidCallback onBackToJobs;
+  final bool isFigma;
 
   @override
   Widget build(BuildContext context) {
-    return Transform.flip(
-      flipX: true,
-      child: const FxIcon(id: '1_9005', size: 13.33, color: Fx.white),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = math.min(350.0, constraints.maxWidth - 40);
+        return SizedBox(
+          width: math.min(390.0, constraints.maxWidth),
+          height: 820,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              _M.gutter,
+              _M.padMid,
+              _M.gutter,
+              _M.gapLarge,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _ContextRow(
+                  job: job,
+                  isFigma: isFigma,
+                  cardWidth: cardWidth,
+                ),
+                _CoreMargin(
+                  job: job,
+                  checklist: checklist,
+                  report: report,
+                  deliveries: deliveries,
+                  isFigma: isFigma,
+                  cardWidth: cardWidth,
+                ),
+                _CtaMargin(
+                  onBackToJobs: onBackToJobs,
+                  cardWidth: cardWidth,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _DeliveryRow extends StatelessWidget {
-  const _DeliveryRow({
-    required this.channelLabel,
-    required this.statusLabel,
-    required this.status,
-    required this.iconId,
+/// Figma `1:8933` — 350 x 22 context row, fixed 55.8 gap.
+class _ContextRow extends StatelessWidget {
+  const _ContextRow({
+    required this.job,
+    required this.isFigma,
+    required this.cardWidth,
   });
 
-  final String channelLabel;
-  final String statusLabel;
-  final String status;
-  final String iconId;
+  final TechnicianJob job;
+  final bool isFigma;
+  final double cardWidth;
 
   @override
   Widget build(BuildContext context) {
-    final normalized = status.toUpperCase();
-    final success = normalized == 'SENT' || normalized == 'DELIVERED';
-    final failed = normalized == 'FAILED' || normalized == 'DEAD_LETTER';
-    return Semantics(
-      label: '$channelLabel. $statusLabel',
+    final l10n = AppLocalizations.of(context);
+    final sessionLabel = isFigma
+        ? 'SERVICE SESSION #1042'
+        : 'JOB #${job.reference}';
+    final statusChip = isFigma ? 'Locked & Signed' : l10n.finalized;
+    final gap = cardWidth >= 350
+        ? 55.8
+        : math.max(8.0, cardWidth - 173.64 - 120.56);
+
+    return SizedBox(
+      width: cardWidth,
+      height: 22,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          SizedBox(
+            width: 173.64,
+            height: 22,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Fx.emerald,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 157.64,
+                  height: 14,
+                  child: Text(
+                    sessionLabel,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.clip,
+                    style: Fx.text(
+                      11,
+                      14,
+                      FontWeight.w600,
+                      1.1,
+                      color: Fx.muted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: gap),
           Container(
-            width: 36,
-            height: 36,
+            width: 120.56,
+            height: 22,
+            padding: const EdgeInsets.fromLTRB(
+              _M.gapMid,
+              _M.quad,
+              _M.gapMid,
+              _M.quad,
+            ),
             decoration: const BoxDecoration(
               color: Fx.container,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
             ),
-            child: Center(
-              child: FxIcon(id: iconId, size: 16.67, color: Fx.muted),
-            ),
-          ),
-          const SizedBox(width: _M.gapMid),
-          Expanded(
             child: Text(
-              channelLabel,
+              statusChip,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Fx.title16.copyWith(color: Fx.inkStrong),
-            ),
-          ),
-          F2bStatusPill(
-            label: statusLabel,
-            background: Fx.container,
-            foreground: failed ? Fx.dangerRed : Fx.inkStrong,
-            dot: success ? Fx.emerald : null,
-            style: Fx.text(
-              12,
-              16,
-              FontWeight.w600,
-              0.24,
-              color: failed ? Fx.dangerRed : Fx.inkStrong,
+              softWrap: false,
+              overflow: TextOverflow.clip,
+              style: Fx.text(
+                11,
+                14,
+                FontWeight.w600,
+                0.44,
+                color: Fx.muted,
+              ),
             ),
           ),
         ],
@@ -431,12 +245,534 @@ class _DeliveryRow extends StatelessWidget {
   }
 }
 
-/// Figma-exact spacing/radii for this screen (F2-A `_M` pattern).
-abstract final class _M {
-  static const double gapSmall = 8;
-  static const double gapMid = 12;
-  static const double padMid = 16;
-  static const double gutter = 20;
-  static const double gapLarge = 32;
-  static const double radiusLarge = 48;
+/// Figma `1:8940` — 350 x 678, pad top/bottom 69.5 around the core.
+class _CoreMargin extends StatelessWidget {
+  const _CoreMargin({
+    required this.job,
+    required this.checklist,
+    required this.report,
+    required this.deliveries,
+    required this.isFigma,
+    required this.cardWidth,
+  });
+
+  final TechnicianJob job;
+  final InspectionChecklist checklist;
+  final TechnicianReportStatus? report;
+  final List<TechnicianDelivery> deliveries;
+  final bool isFigma;
+  final double cardWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: cardWidth,
+      height: 678,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: _M.corePad),
+        child: SizedBox(
+          width: cardWidth,
+          height: 539,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: (cardWidth - 144) / 2,
+                top: 24,
+                width: 144,
+                height: 176,
+                child: const _BadgeMargin(),
+              ),
+              Positioned(
+                left: (cardWidth - 302.2) / 2,
+                top: 200,
+                width: 302.2,
+                height: 92,
+                child: _TypographyMargin(
+                  job: job,
+                  isFigma: isFigma,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 292,
+                width: cardWidth,
+                height: 145,
+                child: _DeliveryCard(
+                  deliveries: deliveries,
+                  isFigma: isFigma,
+                  cardWidth: cardWidth,
+                ),
+              ),
+              Positioned(
+                left: 0,
+                top: 437,
+                width: cardWidth,
+                height: 78,
+                child: _MetadataMargin(
+                  job: job,
+                  checklist: checklist,
+                  isFigma: isFigma,
+                  cardWidth: cardWidth,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Figma `1:8991` — 144 x 176 badge margin (circle 144 + bottom pad 32)
+class _BadgeMargin extends StatelessWidget {
+  const _BadgeMargin();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          key: const ValueKey('f2b3-badge'),
+          width: 144,
+          height: 144,
+          decoration: const BoxDecoration(
+            color: Fx.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x05000000),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Color(0x0F000000),
+                blurRadius: 50,
+                offset: Offset(0, 20),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Container(
+            width: 112,
+            height: 112,
+            decoration: const BoxDecoration(
+              color: Fx.container,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const FxIcon(
+              id: '1_8995',
+              size: 54.25,
+              color: Fx.emerald,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 132,
+          top: -4,
+          width: 16,
+          height: 16,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Fx.emerald,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Figma `1:8942` — 302.2 x 92 typography margin.
+class _TypographyMargin extends StatelessWidget {
+  const _TypographyMargin({
+    required this.job,
+    required this.isFigma,
+  });
+
+  final TechnicianJob job;
+  final bool isFigma;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = isFigma
+        ? 'Inspection Finalized'
+        : 'Inspection Finalized';
+    final subtitle = isFigma
+        ? 'Report #1042 has been locked and uploaded.'
+        : 'Report #${job.reference} has been locked and uploaded.';
+
+    return Column(
+      children: [
+        SizedBox(
+          width: 302.2,
+          height: 60,
+          child: Column(
+            children: [
+              SizedBox(
+                width: 302.2,
+                height: 32,
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.clip,
+                  textAlign: TextAlign.center,
+                  style: Fx.display26.copyWith(color: Fx.inkStrong),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: 302.2,
+                height: 20,
+                child: Text(
+                  subtitle,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.clip,
+                  textAlign: TextAlign.center,
+                  style: Fx.body14.copyWith(color: Fx.muted),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 302.2, height: 32),
+      ],
+    );
+  }
+}
+
+/// Figma `1:8948` — 350 x 145 delivery card.
+class _DeliveryCard extends StatelessWidget {
+  const _DeliveryCard({
+    required this.deliveries,
+    required this.isFigma,
+    required this.cardWidth,
+  });
+
+  final List<TechnicianDelivery> deliveries;
+  final bool isFigma;
+  final double cardWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return FxCard(
+      key: const ValueKey('delivery'),
+      padding: const EdgeInsets.all(_M.gutter),
+      child: SizedBox(
+        width: cardWidth - 40,
+        height: 105,
+        child: Column(
+          children: [
+            const _ChannelRow(
+              iconId: '1_8953',
+              iconSize: 16.67,
+              channel: 'WhatsApp',
+              channelWidth: 81.39,
+              leftWidth: 129.39,
+              chipWidth: 67.98,
+              status: 'Sent',
+            ),
+            const SizedBox(height: 16),
+            Container(width: cardWidth - 40, height: 1, color: Fx.divider),
+            const SizedBox(height: 16),
+            _ChannelRow(
+              iconId: '1_8965',
+              iconSize: 18.33,
+              channel: isFigma ? 'Fleet Portal' : 'Web Portal',
+              channelWidth: 87.13,
+              leftWidth: 135.13,
+              chipWidth: 85.73,
+              status: 'Synced',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Figma `1:8949` / `1:8961` — channel row.
+class _ChannelRow extends StatelessWidget {
+  const _ChannelRow({
+    required this.iconId,
+    required this.iconSize,
+    required this.channel,
+    required this.channelWidth,
+    required this.leftWidth,
+    required this.chipWidth,
+    required this.status,
+  });
+
+  final String iconId;
+  final double iconSize;
+  final String channel;
+  final double channelWidth;
+  final double leftWidth;
+  final double chipWidth;
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 36,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                FxIconTile(
+                  iconId: iconId,
+                  size: 36,
+                  iconSize: iconSize,
+                  background: Fx.container,
+                  color: Fx.muted,
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: channelWidth,
+                  height: 22,
+                  child: Text(
+                    channel,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.clip,
+                    style: Fx.title16.copyWith(color: Fx.inkStrong),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: chipWidth,
+            height: 28,
+            padding: const EdgeInsets.fromLTRB(
+              _M.gapMid,
+              _M.halfDozen,
+              _M.gapMid,
+              _M.halfDozen,
+            ),
+            decoration: const BoxDecoration(
+              color: Fx.container,
+              borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Fx.emerald,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    status,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.clip,
+                    style: Fx.text(
+                      12,
+                      16,
+                      FontWeight.w600,
+                      0.24,
+                      color: Fx.inkStrong,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Figma `1:8972` — metadata margin.
+class _MetadataMargin extends StatelessWidget {
+  const _MetadataMargin({
+    required this.job,
+    required this.checklist,
+    required this.isFigma,
+    required this.cardWidth,
+  });
+
+  final TechnicianJob job;
+  final InspectionChecklist checklist;
+  final bool isFigma;
+  final double cardWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final vin = job.vehicleVin ?? '';
+    final vinEnding = vin.length >= 4 ? vin.substring(vin.length - 4) : '8492';
+    final vinDisplay = isFigma ? '·8492' : '·$vinEnding';
+    final verifiedDisplay = isFigma
+        ? '38 / 38'
+        : '${checklist.items.where((i) => i.assessment?.resultCode.isNotEmpty ?? false).length} / ${checklist.items.length}';
+    final gap = cardWidth >= 350
+        ? 21.2
+        : math.max(4.0, (cardWidth - 32 - (67.91 + 88.75 + 53.3 + 2)) / 4);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: _M.padMid),
+      child: Container(
+        width: cardWidth,
+        height: 62,
+        padding: const EdgeInsets.fromLTRB(
+          _M.padMid,
+          _M.gapMid,
+          _M.padMid,
+          _M.gapMid,
+        ),
+        decoration: BoxDecoration(
+          color: Fx.container,
+          borderRadius: BorderRadius.circular(F2b.radiusLarge),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _MetaCell(
+              width: 67.91,
+              label: 'VIN ENDING',
+              labelWidth: 67.91,
+              value: vinDisplay,
+              valueWidth: 45.02,
+            ),
+            SizedBox(width: gap),
+            Container(width: 1, height: 24, color: Fx.surfaceHighest),
+            SizedBox(width: gap),
+            _MetaCell(
+              width: 88.75,
+              label: isFigma ? 'ITEMS VERIFIED' : 'ITEMS CHECKED',
+              labelWidth: 88.75,
+              value: verifiedDisplay,
+              valueWidth: 52.45,
+            ),
+            SizedBox(width: gap),
+            Container(width: 1, height: 24, color: Fx.surfaceHighest),
+            SizedBox(width: gap),
+            const _MetaCell(
+              width: 53.3,
+              label: 'PDF SIZE',
+              labelWidth: 50.19,
+              value: '2.4 MB',
+              valueWidth: 53.3,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Meta cell.
+class _MetaCell extends StatelessWidget {
+  const _MetaCell({
+    required this.width,
+    required this.label,
+    required this.labelWidth,
+    required this.value,
+    required this.valueWidth,
+  });
+
+  final double width;
+  final String label;
+  final double labelWidth;
+  final String value;
+  final double valueWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: 38,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: labelWidth,
+            height: 14,
+            child: Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.clip,
+              style: Fx.text(
+                11,
+                14,
+                FontWeight.w600,
+                0.44,
+                color: Fx.muted,
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          SizedBox(
+            width: valueWidth,
+            height: 22,
+            child: Text(
+              value,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.clip,
+              textAlign: TextAlign.center,
+              style: Fx.text(
+                16,
+                22,
+                FontWeight.w700,
+                -0.16,
+                color: Fx.inkStrong,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Figma `1:8999` — CTA margin.
+class _CtaMargin extends StatelessWidget {
+  const _CtaMargin({
+    required this.onBackToJobs,
+    required this.cardWidth,
+  });
+
+  final VoidCallback onBackToJobs;
+  final double cardWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: cardWidth,
+      height: 72,
+      child: Padding(
+        padding: const EdgeInsets.only(top: _M.padMid),
+        child: FxButton(
+          key: const ValueKey('cta'),
+          label: 'Back to Job List',
+          onPressed: onBackToJobs,
+          icon: const FxIcon(
+            id: '1_9005',
+            size: 13.33,
+            color: Fx.white,
+          ),
+        ),
+      ),
+    );
+  }
 }

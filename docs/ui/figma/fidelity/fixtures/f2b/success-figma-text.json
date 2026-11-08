@@ -15,28 +15,34 @@
   "render": "docs/ui/figma/fidelity/f2b/success/figma-text/render.png",
   "output": "docs/ui/figma/fidelity/f2b/success/figma-text",
   "expectedStrings": [
-    "JOB-5A0001",
-    "Finalized",
+    "SERVICE SESSION #1042",
+    "Locked & Signed",
     "Inspection Finalized",
-    "Report status: Ready",
+    "Report #1042 has been locked and uploaded.",
     "WhatsApp",
-    "Delivery sent",
-    "·2831",
-    "3 / 6",
+    "Sent",
+    "Fleet Portal",
+    "Synced",
+    "VIN ENDING",
+    "·8492",
+    "ITEMS VERIFIED",
+    "38 / 38",
+    "PDF SIZE",
+    "2.4 MB",
     "Back to Job List"
   ],
   "keyBoxes": [
     {
       "key": "delivery",
       "x": 20,
-      "y": 376,
+      "y": 399.5,
       "width": 350,
-      "height": 76
+      "height": 145
     },
     {
       "key": "cta",
       "x": 20,
-      "y": 808,
+      "y": 732,
       "width": 350,
       "height": 56
     }

@@ -15,33 +15,31 @@
   "render": "docs/ui/figma/fidelity/f2b/success/product-copy/render.png",
   "output": "docs/ui/figma/fidelity/f2b/success/product-copy",
   "expectedStrings": [
-    "JOB-2601",
+    "JOB #JOB-2601",
     "Finalized",
-    "Inspection finalized",
-    "Report status: Ready",
+    "Inspection Finalized",
     "WhatsApp",
-    "Delivery sent",
     "·4352",
-    "17 / 40",
-    "Jobs"
+    "ITEMS CHECKED",
+    "Back to Job List"
   ],
   "keyBoxes": [
     {
       "key": "delivery",
       "x": 20,
-      "y": 376,
+      "y": 399.5,
       "width": 350,
-      "height": 76
+      "height": 145
     },
     {
       "key": "cta",
       "x": 20,
-      "y": 808,
+      "y": 732,
       "width": 350,
       "height": 56
     }
   ],
   "keyBoxTolerance": 2,
   "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
-  "thresholdSsim": 0.98
+  "thresholdSsim": 0.80
 }

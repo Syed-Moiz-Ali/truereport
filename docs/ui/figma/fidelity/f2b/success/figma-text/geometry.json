@@ -1,0 +1,22 @@
+{
+  "sample": "success-figma-text",
+  "logicalSize": {
+    "width": 390,
+    "height": 884.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "delivery": {
+      "x": 20.0,
+      "y": 399.5,
+      "width": 350.0,
+      "height": 145.0
+    },
+    "cta": {
+      "x": 20.0,
+      "y": 732.0,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

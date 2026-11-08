@@ -1,10 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 
 /// Screen 12. Tire Condition Capture screen built pixel-perfect to Figma spec.
 class TireConditionView extends StatefulWidget {
@@ -115,7 +113,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                 actions: <Widget>[
                   Semantics(
                     button: true,
-                    label: l10n?.technicianProfileTitle ?? 'Profile',
+                    label: l10n.technicianProfileTitle,
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -155,16 +153,20 @@ class _TireConditionViewState extends State<TireConditionView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Text(
-              'INSPECTION SEQUENCE',
-              style: Fx.text(
-                11,
-                14,
-                FontWeight.w600,
-                1.1,
-                color: const Color(0xFF5E5D69),
+            Flexible(
+              child: Text(
+                'INSPECTION SEQUENCE',
+                overflow: TextOverflow.ellipsis,
+                style: Fx.text(
+                  11,
+                  14,
+                  FontWeight.w600,
+                  1.1,
+                  color: const Color(0xFF5E5D69),
+                ),
               ),
             ),
+            const SizedBox(width: 8),
             Text(
               '6 of 8 Completed',
               style: Fx.text(
@@ -252,7 +254,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         child: Stack(
           children: <Widget>[
             // Chassis wireframe illustration
-            Positioned(
+            const Positioned(
               left: 87,
               top: 16,
               width: 176,
@@ -306,7 +308,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               child: Container(
                 width: 99.5,
                 height: 28.5,
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 6),
+                padding: const EdgeInsetsDirectional.only(start: 12, top: 5.0, end: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xE5FFFFFF),
                   borderRadius: BorderRadius.circular(999),
@@ -320,26 +322,31 @@ class _TireConditionViewState extends State<TireConditionView> {
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Container(
                       width: 8,
                       height: 8,
+                      margin: const EdgeInsetsDirectional.only(top: 5.25),
                       decoration: const BoxDecoration(
                         color: Color(0xFF10B981),
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      'Active Zone',
-                      maxLines: 1,
-                      softWrap: false,
-                      style: Fx.text(
-                        11,
-                        16.5,
-                        FontWeight.w600,
-                        -0.28,
-                        color: const Color(0xFF1A1B1F),
+                    Flexible(
+                      child: Text(
+                        'Active Zone',
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.clip,
+                        style: Fx.text(
+                          11,
+                          16.5,
+                          FontWeight.w600,
+                          -0.28,
+                          color: const Color(0xFF1A1B1F),
+                        ),
                       ),
                     ),
                   ],
@@ -483,7 +490,7 @@ class _TireConditionViewState extends State<TireConditionView> {
     return Container(
       key: const ValueKey('detail-card'),
       width: 350,
-      height: 489.5,
+      constraints: const BoxConstraints(minHeight: 489.5),
       padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 24),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -556,14 +563,17 @@ class _TireConditionViewState extends State<TireConditionView> {
                   color: const Color(0xFFF4F3F8),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(
-                  'Verified',
-                  style: Fx.text(
-                    11,
-                    14,
-                    FontWeight.w700,
-                    0.44,
-                    color: const Color(0xFF10B981),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Verified',
+                    style: Fx.text(
+                      11,
+                      14,
+                      FontWeight.w700,
+                      0.44,
+                      color: const Color(0xFF10B981),
+                    ),
                   ),
                 ),
               ),
@@ -590,7 +600,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedCondition = 'As New'),
                   child: Container(
-                    height: 93,
+                    constraints: const BoxConstraints(minHeight: 93),
                     decoration: BoxDecoration(
                       color: _selectedCondition == 'As New'
                           ? const Color(0xFF10B981)
@@ -653,7 +663,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedCondition = 'Part Worn'),
                   child: Container(
-                    height: 93,
+                    constraints: const BoxConstraints(minHeight: 93),
                     decoration: BoxDecoration(
                       color: _selectedCondition == 'Part Worn'
                           ? const Color(0xFF10B981)
@@ -716,16 +726,20 @@ class _TireConditionViewState extends State<TireConditionView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text(
-                'Measured Groove Depth',
-                style: Fx.text(
-                  12,
-                  16,
-                  FontWeight.w600,
-                  0.24,
-                  color: const Color(0xFF5E5D69),
+              Flexible(
+                child: Text(
+                  'Measured Groove Depth',
+                  overflow: TextOverflow.ellipsis,
+                  style: Fx.text(
+                    12,
+                    16,
+                    FontWeight.w600,
+                    0.24,
+                    color: const Color(0xFF5E5D69),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Legal Minimum: 1.6 mm',
                 style: Fx.text(
@@ -746,8 +760,12 @@ class _TireConditionViewState extends State<TireConditionView> {
             decoration: const BoxDecoration(
               color: Color(0xFFF4F3F8),
             ),
-            child: Row(
-              children: <Widget>[
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
                 Container(
                   width: 25,
                   height: 32,
@@ -781,7 +799,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                     color: const Color(0xFF1A1B1F),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 11),
                 // Minus button
                 GestureDetector(
                   onTap: () => _stepDepth(-0.1),
@@ -866,6 +884,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               ],
             ),
           ),
+        ),
           const SizedBox(height: 20),
           // Tire wall & pressure quick snapshot (y: 885 to 941.5)
           Row(
@@ -873,8 +892,8 @@ class _TireConditionViewState extends State<TireConditionView> {
               // Cold pressure
               Expanded(
                 child: Container(
-                  height: 56.5,
-                  padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+                  constraints: const BoxConstraints(minHeight: 56.5),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 9.5, 8, 9.5),
                   decoration: const BoxDecoration(
                     color: Color(0xFFF4F3F8),
                   ),
@@ -896,6 +915,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               'Cold Pressure',
                               maxLines: 1,
                               softWrap: false,
+                              overflow: TextOverflow.ellipsis,
                               style: Fx.text(
                                 11,
                                 16.5,
@@ -908,6 +928,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               '34.5 PSI (Norm)',
                               maxLines: 1,
                               softWrap: false,
+                              overflow: TextOverflow.ellipsis,
                               style: Fx.text(
                                 12,
                                 16,
@@ -927,8 +948,8 @@ class _TireConditionViewState extends State<TireConditionView> {
               // Sidewall
               Expanded(
                 child: Container(
-                  height: 56.5,
-                  padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+                  constraints: const BoxConstraints(minHeight: 56.5),
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 9.5, 8, 9.5),
                   decoration: const BoxDecoration(
                     color: Color(0xFFF4F3F8),
                   ),
@@ -950,6 +971,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               'Sidewall',
                               maxLines: 1,
                               softWrap: false,
+                              overflow: TextOverflow.ellipsis,
                               style: Fx.text(
                                 11,
                                 16.5,
@@ -962,6 +984,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               'No Gouges / Flaws',
                               maxLines: 1,
                               softWrap: false,
+                              overflow: TextOverflow.ellipsis,
                               style: Fx.text(
                                 12,
                                 16,

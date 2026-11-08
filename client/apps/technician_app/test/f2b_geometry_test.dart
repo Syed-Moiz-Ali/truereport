@@ -359,42 +359,40 @@ void main() {
             tracking: 0.35,
           );
         case 'final-review':
-          // Figma 13-final-review.txt. Product kicker slot renders
-          // reviewAndFinalize upper-cased ("REVIEW & FINALIZE"); Figma's
-          // "STEP 4 OF 4 • VALIDATION" is sample copy, not product copy.
-          check('header', find.byType(FxHeader), box(0, 0, 390, 64));
+          // Figma 13. Final Review (Missing Items).
           check(
-            'kicker',
-            find.text('REVIEW & FINALIZE'),
-            // Figma slot 1:8355 (20,75 165.38x16). Measured 75.
-            box(20, 75, 165.38, 16),
-            width: false,
+            'header',
+            find.byKey(const ValueKey('header')),
+            box(0, 0, 390, 64),
           );
           check(
-            'title',
-            find.text('Review & Finalize'),
-            // Figma slot 1:8360 (20,102 350x32). Product title block sits
-            // lower because the kicker row carries the status pill; measured.
-            box(20, 118, 350, 32),
-            width: false,
+            'overview',
+            find.byKey(const ValueKey('overview')),
+            box(20, 64, 350, 138),
           );
           check(
             'banner',
-            find.byType(FxCard).at(0),
-            // Figma slot 1:8390 first issue (20,416 350x88). Product stack
-            // above is shorter (no photo-missing banner copy); measured 360.
-            box(20, 360, 350, 88),
-            height: false,
+            find.byKey(const ValueKey('banner')),
+            box(20, 202, 350, 160),
+          );
+          check(
+            'items stack',
+            find.byKey(const ValueKey('items-stack')),
+            box(20, 386, 350, 322),
+          );
+          check(
+            'metadata card',
+            find.byKey(const ValueKey('metadata-card')),
+            box(20, 740, 350, 84),
           );
           check(
             'continue',
-            find.byType(FxButton).last,
-            // Figma slot 1:8461 (20,864 350x56). Same slot; measured 798.
-            box(20, 798, 350, 56),
+            find.byKey(const ValueKey('continue')),
+            box(20, 864, 350, 56),
           );
           checkStyle(
             'title style',
-            find.text('Review & Finalize'),
+            find.text('Review Findings'),
             size: 26,
             weight: FontWeight.w800,
             lineHeight: 32,
@@ -402,44 +400,28 @@ void main() {
           );
           checkStyle(
             'kicker style',
-            find.text('REVIEW & FINALIZE'),
+            find.text('STEP 4 OF 4 \u2022 VALIDATION'),
             size: 12,
             weight: FontWeight.w600,
             lineHeight: 16,
             tracking: 0.6,
           );
         case 'finalize':
-          // Figma 14-finalize.txt. Product ListView top pad is 72 (lib) vs
-          // Figma 64+12=76; systematic -4 offset for the first slot.
-          check('header', find.byType(FxHeader), box(0, 0, 390, 64));
           check(
-            'step pill',
-            find.byType(F2bStatusPill).at(0),
-            // Figma slot 1:8813 (20,76 ...). Measured 72.
-            box(20, 72, 180.38, 22),
-            width: false,
-          );
-          check(
-            'title',
-            find.text('Review & Finalize'),
-            // Figma slot 1:8819 (20,106 350x32). Measured 98.
-            box(20, 98, 350, 32),
-            width: false,
+            'header',
+            find.byKey(const ValueKey('header')),
+            box(0, 0, 390, 64),
           );
           check(
             'summary card',
-            find.byType(FxCard).at(0),
-            // Figma slot 1:8823 (20,206 350x558). Product card stack above is
-            // shorter (no odometer image copy); measured 170.
-            box(20, 170, 350, 558),
+            find.byKey(const ValueKey('summary')),
+            box(20, 206, 350, 558),
             height: false,
           );
           check(
             'slide control',
-            find.byType(F2bSlideToConfirm),
-            // Figma slot 1:8912 (20,1146.63 350x64). Product bottom dock is
-            // pinned (Positioned bottom); measured 1148 at 1232 height.
-            box(20, 1148, 350, 64),
+            find.byKey(const ValueKey('slide')),
+            box(20, 1147, 350, 64),
             height: false,
           );
           checkStyle(
@@ -459,30 +441,22 @@ void main() {
             tracking: 0.35,
           );
         case 'offline-sync':
-          // Figma 15-offline-sync.txt. Title slot renders Figma copy
-          // ("Sync Status"); the banner/queue slots keep product layout.
-          check('header', find.byType(FxHeader), box(0, 0, 390, 64));
+          check('header', find.byKey(const ValueKey('header')), box(0, 0, 390, 64));
           check(
             'title',
             find.text('Sync Status'),
-            // Figma slot 1:8643 (73.81,76 144.05x32). Measured 80,72.
-            box(80, 72, 144.05, 32),
+            box(73.81, 76, 181.57, 32),
             width: false,
           );
           check(
             'queue card 1',
-            find.byType(FxCard).at(0),
-            // Figma slot 1:8695 active card (20,569.94 350x222). Product
-            // queue cards replace Figma's progress/speed copy (slot-sheet);
-            // first product card measured at 494.
-            box(20, 494, 350, 222),
-            height: false,
+            find.byKey(const ValueKey('queue')),
+            box(20, 569.94, 350, 222),
           );
           check(
             'retry',
-            find.byType(FxButton).last,
-            // Figma slot 1:8768 (20,1051.94 350x56). Same slot; measured 782.
-            box(20, 782, 350, 56),
+            find.byKey(const ValueKey('retry')),
+            box(20, 1051.94, 350, 56),
           );
           checkStyle(
             'title style',
@@ -501,27 +475,21 @@ void main() {
             tracking: -0.27,
           );
         case 'success':
-          // Figma 16-success.txt. Same slots; product SafeArea/column packs
-          // tighter than Figma's 69.5 top margin, so Y is product-anchored.
           check(
             'delivery card',
-            find.byType(FxCard).at(0),
-            // Figma slot 1:8948 (20,399.5 350x145). Measured 376.
-            box(20, 376, 350, 145),
-            height: false,
+            find.byKey(const ValueKey('delivery')),
+            box(20, 399.5, 350, 145),
           );
           check(
             'heading',
             find.text('Inspection Finalized'),
-            // Figma slot 1:8945 (74.97,307.5 240.05x32). Measured 284.
-            box(74.97, 284, 240.05, 32),
+            box(43.9, 307.5, 302.2, 32),
             width: false,
           );
           check(
             'cta',
-            find.byType(FxButton).last,
-            // Figma slot 1:9000 (20,732 350x56). Measured 808.
-            box(20, 808, 350, 56),
+            find.byKey(const ValueKey('cta')),
+            box(20, 732, 350, 56),
           );
           checkStyle(
             'heading style',
