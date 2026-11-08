@@ -1,0 +1,34 @@
+{
+  "sample": "tire-condition-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1085.5
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 390.0,
+      "height": 64.0
+    },
+    "chassisCard": {
+      "x": 20.0,
+      "y": 244.0,
+      "width": 350.0,
+      "height": 288.0
+    },
+    "detailCard": {
+      "x": 20.0,
+      "y": 556.0,
+      "width": 350.0,
+      "height": 489.5
+    },
+    "saveButton": {
+      "x": 44.0,
+      "y": 965.5,
+      "width": 302.0,
+      "height": 56.0
+    }
+  }
+}

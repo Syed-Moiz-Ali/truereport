@@ -27,9 +27,12 @@ abstract final class FigmaTestStrings {
   static const forgotPassword = 'Forgot password?';
   static const signIn = 'Sign In';
   static const requestId = 'Request ID';
+  static const needAccess = 'Need technician access?';
+  static const isoSecurity = 'ISO 27001 Certified Fleet Security';
 
   // Queue chrome.
-  static const shiftAndBay = 'SHIFT 1 · BAY A';
+  static const shiftAndBay = 'SHIFT 1 • BAY A';
+  static const onlineSync = 'LIVE\nSYNC';
   static const intakeTab = 'Intake';
   static const fleetTab = 'Fleet';
   // NOTE: `statusInProgress` is intentionally NOT overridden. The Figma
@@ -56,6 +59,7 @@ abstract final class FigmaTestStrings {
   // Consent.
   static const consentSteps = 'STEP 4 OF 4 • FINAL SIGN-OFF';
   static const authorizations = 'Authorizations';
+  static const consentIntro = 'Review compliance permissions and provide\ncustomer digital sign-off.';
   static const allowPdf = 'Allow PDF sharing';
   static const allowPdfBody = 'Send detailed diagnostic report via email';
   static const roadTest = 'Customer road test consent';
@@ -73,6 +77,8 @@ abstract final class FigmaTestStrings {
   static const setupKicker = 'PRE-INSPECTION SETUP';
   static const verifiedPill = '1 of 4 Verified';
   static const requiredEquipment = 'Required Equipment';
+  static const equipmentIntro =
+      'Ensure all diagnostic hardware is calibrated and\npaired before launching bay intake.';
   static const stationStandards = 'Fleet Station Standards';
   static const stationStandardsBody =
       'ISO-9001 certified diagnostic requirements';
@@ -115,6 +121,12 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
   @override
   String get technicianContactAdmin => FigmaTestStrings.requestId;
 
+  @override
+  String get technicianNeedTechnicianAccess => FigmaTestStrings.needAccess;
+
+  @override
+  String get technicianSecurityLine => FigmaTestStrings.isoSecurity;
+
   // The Figma mock's language switch shows "عربي"; product copy uses the
   // localized "العربية" (l10n.languageArabic).
   @override
@@ -122,6 +134,9 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
 
   @override
   String technicianShiftToday(int count) => FigmaTestStrings.shiftAndBay;
+
+  @override
+  String get technicianOnlineSync => FigmaTestStrings.onlineSync;
 
   @override
   String get technicianJobsTitle => FigmaTestStrings.intakeTab;
@@ -166,6 +181,9 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
   String get technicianVehicleInfo => FigmaTestStrings.vehicleInfo;
 
   @override
+  String get technicianPhone => 'Phone Number';
+
+  @override
   String get technicianCustomerChip => FigmaTestStrings.primaryOwner;
 
   @override
@@ -179,6 +197,9 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
 
   @override
   String get consent => FigmaTestStrings.authorizations;
+
+  @override
+  String get technicianConsentIntro => FigmaTestStrings.consentIntro;
 
   @override
   String get consentPublicLink => FigmaTestStrings.allowPdf;
@@ -220,6 +241,9 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
   String get technicianRequiredEquipment => FigmaTestStrings.requiredEquipment;
 
   @override
+  String get technicianEquipmentIntro => FigmaTestStrings.equipmentIntro;
+
+  @override
   String get technicianEquipmentStandards => FigmaTestStrings.stationStandards;
 
   @override
@@ -242,6 +266,15 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
 
   @override
   String get technicianModuleNotStarted => FigmaTestStrings.queued;
+
+  @override
+  String get technicianModuleInProgress => 'Active Bay';
+
+  @override
+  String technicianCategoriesCount(int count) => ' Categories';
+
+  @override
+  String get technicianContinueChecklist => 'Continue Interior Checklist';
 
   @override
   String technicianChecksCount(int done, int total) =>

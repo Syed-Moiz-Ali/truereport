@@ -2,6 +2,7 @@ import 'package:api_client/api_client.dart';
 import 'package:auth/src/session_store.dart';
 import 'package:core/core.dart';
 import 'package:domain/domain.dart';
+import 'package:flutter/foundation.dart';
 
 sealed class AuthResult {
   const AuthResult();
@@ -48,11 +49,31 @@ class AuthRepository {
   }
 
   Future<AuthResult> signIn(String email, String password) async {
-    final json = await _api.post(
-      _endpoints.authLogin,
-      body: <String, dynamic>{'email': email.trim(), 'password': password},
-    );
-    return _handleAuthJson(json);
+    final target = _endpoints.authLogin;
+    if (kDebugMode) {
+      // Never log the password.
+      debugPrint('[Auth] POST $target email=${email.trim()}');
+    }
+    try {
+      final json = await _api.post(
+        target,
+        body: <String, dynamic>{'email': email.trim(), 'password': password},
+      );
+      if (kDebugMode) {
+        debugPrint(
+          '[Auth] POST $target ok requiresTwoFactor=${json['requiresTwoFactor']}',
+        );
+      }
+      return await _handleAuthJson(json);
+    } on AppFailure catch (failure) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Auth] POST $target failed '
+          'code=${failure.code} status=${failure.statusCode}',
+        );
+      }
+      rethrow;
+    }
   }
 
   Future<AuthResult> verifyTwoFactor(String challengeToken, String code) async {

@@ -32,8 +32,12 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
+      // Never log the password.
+      debugPrint('[SignIn] validation failed, not calling API');
       return;
     }
+    // Never log the password.
+    debugPrint('[SignIn] submit email=${_email.text.trim()}');
     setState(() {
       _submitting = true;
       _errorKey = null;
@@ -50,14 +54,19 @@ class _SignInPageState extends ConsumerState<SignInPage> {
         return;
       }
       if (result is AuthChallenge) {
+        debugPrint('[SignIn] 2FA challenge received');
         setState(() => _challengeToken = result.challengeToken);
+      } else {
+        debugPrint('[SignIn] success, waiting for router redirect');
       }
     } on AppFailure catch (failure) {
+      debugPrint('[SignIn] failed code=${failure.code}');
       if (!mounted) {
         return;
       }
       setState(() => _errorKey = _messageFor(failure.code));
-    } catch (_) {
+    } catch (error) {
+      debugPrint('[SignIn] unexpected error: $error');
       if (!mounted) {
         return;
       }

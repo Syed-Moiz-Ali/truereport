@@ -226,7 +226,7 @@ class _Pin extends StatelessWidget {
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: [
-                  // 1:8049 white button + shadow (kit-soft black approx).
+                  // 1:8049 white button + shadow.
                   Container(
                     width: 40,
                     height: 40,
@@ -235,7 +235,7 @@ class _Pin extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0x14000000),
+                          color: Color(0x59F59E0B),
                           blurRadius: 24,
                           offset: Offset(0, 8),
                         ),
@@ -247,7 +247,7 @@ class _Pin extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: const BoxDecoration(
-                        color: F2b.amber,
+                        color: Color(0xFFF59E0B),
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
@@ -344,10 +344,10 @@ class _Sheet extends StatelessWidget {
           const SizedBox(height: 24),
           // 1:8081 classification 350 x 88.
           const _ClassificationBlock(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 24.5),
           // 1:8096 evidence 350 x 185.
           _EvidenceBlock(evidence: evidence),
-          const SizedBox(height: 24),
+          const SizedBox(height: 23.5),
           // 1:8120 note 350 x 56.67.
           const _NoteRow(),
           const SizedBox(height: 24),
@@ -530,7 +530,7 @@ class _SegmentOption extends StatelessWidget {
           boxShadow: selected
               ? const [
                   BoxShadow(
-                    color: Color(0x14000000),
+                    color: Color(0x2EFB923C),
                     blurRadius: 12,
                     offset: Offset(0, 4),
                   ),
@@ -595,23 +595,84 @@ class _ClassificationBlock extends StatelessWidget {
             height: 70,
             child: Stack(
               children: [
-                const Positioned(
+                Positioned(
                   left: 0,
                   top: 0,
-                  child: F2bChip(
+                  child: Semantics(
+                    button: true,
                     label: 'Dent / Crease',
-                    selected: true,
-                    leadingDot: F2b.amber,
-                    onTap: _noop,
+                    child: Container(
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEEEDF3),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(Fx.pillRadius),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const FxIcon(
+                            id: '1_8090',
+                            size: 9.33,
+                            color: Color(0xFFF59E0B),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Dent / Crease',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Fx.text(
+                              11,
+                              14,
+                              FontWeight.w600,
+                              0.44,
+                              color: Fx.ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   left: 140.61,
                   top: 0,
-                  child: F2bChip(
+                  child: Semantics(
+                    button: true,
                     label: 'Surface Scratch',
-                    selected: false,
-                    onTap: _noop,
+                    child: Container(
+                      height: 32,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Fx.container,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(Fx.pillRadius),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Surface Scratch',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Fx.text(
+                          11,
+                          14,
+                          FontWeight.w600,
+                          0.44,
+                          color: Fx.muted,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 // `Paint Chip` is 30 tall in Figma (kit `F2bChip` fixes 32,
@@ -933,7 +994,7 @@ class _SaveBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      padding: const EdgeInsets.only(top: 4.5, bottom: 7.5),
       child: Semantics(
         button: true,
         label: l10n.saveAnswer.toUpperCase(),

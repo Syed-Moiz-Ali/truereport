@@ -93,16 +93,90 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
       await ref.read(technicianJobsProvider.future);
     }
 
+    Widget buildDock(int selectedIndex) {
+      final isAr = Localizations.localeOf(context).languageCode == 'ar';
+      return FxDock(
+        key: const Key('f2a1-dock'),
+        selectedIndex: selectedIndex,
+        onSelected: (index) {
+          switch (index) {
+            case 0:
+              setState(() => _status = '');
+              break;
+            case 1:
+              setState(
+                () => _status = _status == 'FINALIZED' ? '' : 'FINALIZED',
+              );
+              break;
+            case 2:
+              context.push('/sync').then((_) {
+                ref.invalidate(pendingSyncCountProvider);
+              });
+              break;
+            case 3:
+              showTechnicianProfile(context, ref);
+              break;
+            default:
+              break;
+          }
+        },
+        items: [
+          FxDockItem(
+            label: isAr ? 'استلام' : 'Intake',
+            iconId: '1_7269',
+            iconWidth: 18,
+            iconHeight: 20,
+            semanticLabel: isAr ? 'استلام' : 'Intake',
+          ),
+          FxDockItem(
+            label: isAr ? 'الأسطول' : 'Fleet',
+            iconId: '1_7274',
+            iconWidth: 18,
+            iconHeight: 16,
+            semanticLabel: isAr ? 'الأسطول' : 'Fleet',
+          ),
+          FxDockItem(
+            label: l10n.technicianSyncTitle,
+            iconId: '1_7279',
+            iconWidth: 22,
+            iconHeight: 18,
+            semanticLabel: l10n.technicianSyncTitle,
+          ),
+          FxDockItem(
+            label: l10n.technicianProfileTitle,
+            iconId: '1_7284',
+            iconWidth: 20,
+            iconHeight: 20,
+            semanticLabel: l10n.technicianProfileTitle,
+          ),
+        ],
+      );
+    }
+
+    final selectedIndex = _status == 'FINALIZED' ? 1 : 0;
+
     return jobs.when(
       loading: () => AppScaffold(
-        appBar: TechnicianAppBar(title: l10n.assignedJobs),
+        backgroundColor: Fx.white,
+        extendBody: true,
+        appBar: FxHeader(
+          title: l10n.technicianInspectionQueue,
+          titleStyle: Fx.text(16, 22, FontWeight.w700, -0.4),
+        ),
+        bottomNavigationBar: buildDock(selectedIndex),
         body: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.gutter),
           child: const LoadingSkeleton(lines: 6),
         ),
       ),
       error: (error, _) => AppScaffold(
-        appBar: TechnicianAppBar(title: l10n.assignedJobs),
+        backgroundColor: Fx.white,
+        extendBody: true,
+        appBar: FxHeader(
+          title: l10n.technicianInspectionQueue,
+          titleStyle: Fx.text(16, 22, FontWeight.w700, -0.4),
+        ),
+        bottomNavigationBar: buildDock(selectedIndex),
         body: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.all(context.spacing.gutter),
@@ -134,6 +208,11 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
           return EmptyJobsView(
             technicianName: technicianName,
             pendingSyncCount: pending,
+            selectedIndex: selectedIndex,
+            onIntake: () => setState(() => _status = ''),
+            onCompleted: () => setState(
+              () => _status = _status == 'FINALIZED' ? '' : 'FINALIZED',
+            ),
             onRefresh: refresh,
             onWalkIn: () => context.push('/jobs/new'),
             onSync: () async {
@@ -149,6 +228,11 @@ class _TechnicianJobsPageState extends ConsumerState<TechnicianJobsPage> {
           jobs: filtered,
           pendingSyncCount: pending,
           online: online,
+          selectedIndex: selectedIndex,
+          onIntake: () => setState(() => _status = ''),
+          onCompleted: () => setState(
+            () => _status = _status == 'FINALIZED' ? '' : 'FINALIZED',
+          ),
           onOpenJob: (job) => context.push('/jobs/${job.id}'),
           onRefresh: refresh,
           onWalkIn: () => context.push('/jobs/new'),

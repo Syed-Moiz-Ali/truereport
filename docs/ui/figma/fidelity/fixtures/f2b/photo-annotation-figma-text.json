@@ -1,0 +1,65 @@
+{
+  "id": "f2b-photo-annotation-figma-text",
+  "batch": "f2b-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/10_10._Photo_Annotation_&_Markup/10._Photo_Annotation_&_Markup@2x.png",
+  "crop": {
+    "x": 60,
+    "y": 14,
+    "width": 780,
+    "height": 1768
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 884,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b/photo-annotation/figma-text/render.png",
+  "output": "docs/ui/figma/fidelity/f2b/photo-annotation/figma-text",
+  "expectedStrings": [
+    "Damage Markup Studio",
+    "Front Bumper Inspection",
+    "Markup Active",
+    "IMG_0842.HEIC",
+    "1 Defect Callout",
+    "0.8 mm Scuff",
+    "Annotation Tools",
+    "Tap draw to circle surface damages",
+    "4.0 pt",
+    "Draw",
+    "Undo",
+    "Crop",
+    "Save Photo"
+  ],
+  "keyBoxes": [
+    {
+      "key": "card",
+      "x": 20,
+      "y": 112,
+      "width": 350,
+      "height": 437.5
+    },
+    {
+      "key": "tools",
+      "x": 20,
+      "y": 569.5,
+      "width": 350,
+      "height": 260
+    },
+    {
+      "key": "draw",
+      "x": 40,
+      "y": 653.5,
+      "width": 95.33,
+      "height": 80
+    },
+    {
+      "key": "save",
+      "x": 40,
+      "y": 753.5,
+      "width": 310,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

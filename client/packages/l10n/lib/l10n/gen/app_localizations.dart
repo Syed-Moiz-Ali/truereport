@@ -2875,6 +2875,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offline-first sync'**
   String get statSyncLabel;
+
+  /// No description provided for @technicianExteriorInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'EXTERIOR INSPECTION'**
+  String get technicianExteriorInspection;
+
+  /// No description provided for @technicianDetectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 Detected} other{{count} Detected}}'**
+  String technicianDetectedCount(int count);
+
+  /// No description provided for @technicianExteriorStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 2: Tap the area to\ncapture damage'**
+  String get technicianExteriorStep2;
+
+  /// No description provided for @technicianExteriorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin scratches, dents, or paint chips directly on the\nwireframe schematic.'**
+  String get technicianExteriorHint;
+
+  /// No description provided for @technicianAnglePerspective.
+  ///
+  /// In en, this message translates to:
+  /// **'ANGLE PERSPECTIVE'**
+  String get technicianAnglePerspective;
+
+  /// No description provided for @technicianTapToRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to rotate 360°'**
+  String get technicianTapToRotate;
+
+  /// No description provided for @technicianPerspectiveFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get technicianPerspectiveFront;
+
+  /// No description provided for @technicianPerspectiveDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get technicianPerspectiveDriver;
+
+  /// No description provided for @technicianPerspectivePassenger.
+  ///
+  /// In en, this message translates to:
+  /// **'Passenger'**
+  String get technicianPerspectivePassenger;
+
+  /// No description provided for @technicianPerspectiveRear.
+  ///
+  /// In en, this message translates to:
+  /// **'Rear'**
+  String get technicianPerspectiveRear;
+
+  /// No description provided for @technicianConfirmExteriorMarkup.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Exterior Markup'**
+  String get technicianConfirmExteriorMarkup;
+
+  /// No description provided for @technicianNoDamageOnPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'No Damage Found on this Panel'**
+  String get technicianNoDamageOnPanel;
+
+  /// No description provided for @technicianDriverSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'DRIVER SIDE VIEW'**
+  String get technicianDriverSideView;
+
+  /// No description provided for @technicianWalkaroundInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Walkaround Inspection'**
+  String get technicianWalkaroundInspection;
 }
 
 class _AppLocalizationsDelegate

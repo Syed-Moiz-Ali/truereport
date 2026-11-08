@@ -1,0 +1,26 @@
+{
+  "sample": "exterior-wireframe-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "EXTERIOR INSPECTION",
+    "1 Detected",
+    "Step 2: Tap the area to\ncapture damage",
+    "Pin scratches, dents, or paint chips directly on the\nwireframe schematic.",
+    "DRIVER SIDE VIEW",
+    "Front Left Door Dent",
+    "2.5 cm Crease • Photo\nAttached",
+    "Edit",
+    "ANGLE PERSPECTIVE",
+    "Tap to rotate 360°",
+    "Front",
+    "Driver",
+    "Passenger",
+    "Rear",
+    "Confirm Exterior Markup",
+    "No Damage Found on this Panel",
+    "Vehicle Walkaround Inspection"
+  ]
+}

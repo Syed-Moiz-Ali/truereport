@@ -4,12 +4,14 @@ import 'package:l10n/l10n.dart';
 String technicianStatusLabel(AppLocalizations l10n, String status) =>
     switch (status) {
       'DRAFT' => l10n.draft,
-      'SCHEDULED' => l10n.statusScheduled,
+      'SCHEDULED' || 'Scheduled' => l10n.statusScheduled,
       'ASSIGNED' => l10n.statusAssigned,
       'IN_PROGRESS' => l10n.statusInProgress,
       'READY_TO_FINALIZE' => l10n.statusReadyToFinalize,
       'FINALIZED' => l10n.statusFinalized,
       'CANCELLED' => l10n.statusCancelled,
+      'READY' || 'Ready' => 'Ready',
+      'HIGH_PRIORITY' || 'High Priority' => 'High Priority',
       _ => l10n.notAvailable,
     };
 

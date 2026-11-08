@@ -1,13 +1,16 @@
 import 'dart:ui' as ui;
 
-import 'package:auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart';
+import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart'
+    hide EmptyJobsView;
+import 'package:technician_app/src/screens/f2a/empty_state/empty_jobs_view.dart';
+import 'package:technician_app/src/screens/f2a/login_view.dart';
 import 'package:technician_app/src/screens/f2a/consent_view.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/screens/f2a/equipment_view.dart';
 import 'package:technician_app/src/screens/f2a/inspection_hub_view.dart';
+import 'package:technician_app/src/screens/f2a/exterior_wireframe_view.dart';
 import 'package:technician_app/src/screens/f2a/job_intake_view.dart';
 
 import 'f2a_fixture_data.dart';
@@ -21,6 +24,7 @@ const f2aScreenIds = <String>[
   'consent',
   'equipment',
   'inspection-hub',
+  'exterior-wireframe',
 ];
 
 /// Builds an F2-A screen for tests.
@@ -38,7 +42,7 @@ Widget f2aScreen(
 }) {
   switch (id) {
     case 'login':
-      return SignInView(
+      return LoginView(
         emailController: TextEditingController(),
         passwordController: TextEditingController(),
         codeController: TextEditingController(),
@@ -63,11 +67,15 @@ Widget f2aScreen(
         nowUtc: figmaNow,
         showSearch: false,
         avatarImage: avatarImage,
+        snapshotPendingValue: figma ? '3 Tasks' : null,
+        snapshotSecondaryValue: figma ? '45 min' : null,
+        snapshotSecondaryLabel: figma ? 'Avg. turnover' : null,
       );
     case 'empty-state':
       return EmptyJobsView(
         technicianName: figma ? 'David Vance' : 'Layla Hassan',
         pendingSyncCount: 0,
+        completedToday: figma ? 14 : 0,
         onRefresh: () async {},
         onWalkIn: () {},
         onSync: () {},
@@ -98,6 +106,7 @@ Widget f2aScreen(
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Vehicle Walkaround Inspection' : null,
+        isFigma: figma,
       );
     case 'equipment':
       return EquipmentView(
@@ -139,6 +148,7 @@ Widget f2aScreen(
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Diagnostic Checklist' : null,
+        isFigma: figma,
       );
     case 'inspection-hub':
       final checklist = figma ? figmaChecklist() : productChecklist();
@@ -152,6 +162,14 @@ Widget f2aScreen(
         onProfile: () {},
         avatarImage: avatarImage,
         vehicleImage: vehicleImage,
+        isFigma: figma,
+      );
+    case 'exterior-wireframe':
+      return ExteriorWireframeView(
+        onBack: () {},
+        onProfile: () {},
+        avatarImage: avatarImage,
+        isFigma: figma,
       );
     default:
       throw ArgumentError('Unknown F2-A screen: $id');

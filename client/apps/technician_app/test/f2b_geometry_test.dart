@@ -164,18 +164,13 @@ void main() {
           check(
             'evidence tile 1',
             find.byType(F2bEvidenceTile).at(0),
-            // Figma slot 1:8102 (20,668 350x167 row; tile 167x167). Y is
-            // product-anchored: upstream severity/chip rows replace Figma's
-            // defect-classification copy (slot-sheet), so Y=750 measured.
-            box(20, 750, 167, 167),
+            box(20, 668, 167, 167),
             height: false,
           );
           check(
             'save button',
             find.byType(FxButton).last,
-            // Figma slot 1:8130 (20,943.67 350x56). Same slot; Y follows the
-            // taller product evidence/note stack. Measured 1021.
-            box(20, 1021, 350, 56),
+            box(20, 943.67, 350, 56),
             height: false,
           );
           checkStyle(
@@ -196,7 +191,76 @@ void main() {
           );
           checkStyle(
             'save style',
-            find.text('Save Defect'),
+            find.text('SAVE DEFECT'),
+            size: 14,
+            weight: FontWeight.w700,
+            lineHeight: 18,
+            tracking: 0.7,
+          );
+        case 'photo-annotation':
+          check(
+            'card',
+            find.byKey(const ValueKey('photo-annotation-card')),
+            box(20, 112, 350, 437.5),
+          );
+          check(
+            'tools',
+            find.byKey(const ValueKey('photo-annotation-tools')),
+            box(20, 569.5, 350, 260),
+          );
+          check(
+            'draw',
+            find.byKey(const ValueKey('photo-annotation-draw')),
+            box(40, 653.5, 95.33, 80),
+          );
+          check(
+            'save',
+            find.byType(FxButton).last,
+            box(40, 753.5, 310, 56),
+          );
+          checkStyle(
+            'title',
+            find.text('Damage Markup Studio'),
+            size: 18,
+            weight: FontWeight.w700,
+            lineHeight: 24,
+            tracking: -0.45,
+          );
+          checkStyle(
+            'context',
+            find.text('Front Bumper Inspection'),
+            size: 12,
+            weight: FontWeight.w600,
+            lineHeight: 16,
+            tracking: 0.24,
+          );
+          checkStyle(
+            'markup active',
+            find.text('Markup Active'),
+            size: 11,
+            weight: FontWeight.w600,
+            lineHeight: 14,
+            tracking: 0.275,
+          );
+          checkStyle(
+            'tools title',
+            find.text('Annotation Tools'),
+            size: 16,
+            weight: FontWeight.w700,
+            lineHeight: 22,
+            tracking: -0.16,
+          );
+          checkStyle(
+            'draw tool',
+            find.text('Draw'),
+            size: 12,
+            weight: FontWeight.w600,
+            lineHeight: 16,
+            tracking: 0.24,
+          );
+          checkStyle(
+            'save button',
+            find.text('Save Photo'),
             size: 14,
             weight: FontWeight.w700,
             lineHeight: 18,
@@ -208,24 +272,19 @@ void main() {
           check(
             'zone label',
             find.text('INSPECTION ZONE 04'),
-            // Figma 1:8227 (20,80 138.11x16). Product ListView top pad is 76
-            // (lib) vs Figma 64+16=80; systematic -4 offset. Measured 76.
-            box(20, 76, 138.11, 16),
+            box(20, 80, 138.11, 16),
             width: false,
           );
           check(
             'first card',
             find.byType(FxCard).at(0),
-            // Figma 1:8236 (20,134 350x100). Same -2 net offset. Measured 132.
-            box(20, 132, 350, 100),
+            box(20, 134, 350, 100),
             height: false,
           );
           check(
             'first card title',
             find.text('Engine Oil Level'),
-            // Figma 1:8244 (102,154 ...). Card moved -2; title inside card
-            // keeps its 20px card pad: measured 155.
-            box(102, 155, 129.61, 24),
+            box(102, 154, 129.61, 24),
             width: false,
           );
           check(
@@ -248,6 +307,56 @@ void main() {
             weight: FontWeight.w700,
             lineHeight: 24,
             tracking: -0.45,
+          );
+        case 'tire-condition':
+          // Figma 12-tire-condition.
+          check('header', find.byType(FxHeader), box(0, 0, 390, 64));
+          check(
+            'kicker',
+            find.text('INSPECTION SEQUENCE'),
+            box(20, 80, 151.1, 14),
+            width: false,
+          );
+          check(
+            'step title',
+            find.text('Step 6: Set condition for\neach tyre'),
+            box(20, 116, 350, 64),
+            width: false,
+          );
+          check(
+            'active tire title',
+            find.text('RLT — Rear Left Tyre'),
+            box(96, 580, 146.4, 22),
+            width: false,
+          );
+          check(
+            'save button',
+            find.byKey(const ValueKey('save-button')),
+            box(44, 965.5, 302, 56),
+          );
+          checkStyle(
+            'kicker style',
+            find.text('INSPECTION SEQUENCE'),
+            size: 11,
+            weight: FontWeight.w600,
+            lineHeight: 14,
+            tracking: 1.1,
+          );
+          checkStyle(
+            'step title style',
+            find.text('Step 6: Set condition for\neach tyre'),
+            size: 26,
+            weight: FontWeight.w800,
+            lineHeight: 32,
+            tracking: -0.65,
+          );
+          checkStyle(
+            'save style',
+            find.text('SAVE'),
+            size: 14,
+            weight: FontWeight.w700,
+            lineHeight: 18,
+            tracking: 0.35,
           );
         case 'final-review':
           // Figma 13-final-review.txt. Product kicker slot renders

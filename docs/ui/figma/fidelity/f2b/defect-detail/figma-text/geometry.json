@@ -1,0 +1,22 @@
+{
+  "sample": "defect-detail-figma-text",
+  "logicalSize": {
+    "width": 390,
+    "height": 1031.67
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "segmented": {
+      "x": 20.0,
+      "y": 462.0,
+      "width": 350.0,
+      "height": 52.0
+    },
+    "save": {
+      "x": 20.0,
+      "y": 944.17,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

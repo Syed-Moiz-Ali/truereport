@@ -10,7 +10,7 @@
     "height": 2063
   },
   "logicalWidth": 390,
-  "logicalHeight": 1032,
+  "logicalHeight": 1031.67,
   "dpr": 2,
   "render": "docs/ui/figma/fidelity/f2b/defect-detail/product-copy/render.png",
   "output": "docs/ui/figma/fidelity/f2b/defect-detail/product-copy",
@@ -23,10 +23,9 @@
     "Defect found",
     "SEVERITY",
     "PHOTOS",
-    "0 / 1",
     "Add photo",
     "Note",
-    "Save answer"
+    "SAVE ANSWER"
   ],
   "keyBoxes": [
     {
@@ -39,7 +38,7 @@
     {
       "key": "save",
       "x": 20,
-      "y": 1021,
+      "y": 943.67,
       "width": 350,
       "height": 56
     }

@@ -1,0 +1,29 @@
+{
+  "sample": "defect-detail-level1",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "BAY 04 • IN PROGRESS",
+    "PIN #03",
+    "EXTERIOR BODYWORK",
+    "Front Left Door",
+    "INSPECTION STATUS",
+    "Pass",
+    "Minor",
+    "Major",
+    "DEFECT CLASSIFICATION",
+    "1 Selected",
+    "Dent / Crease",
+    "Surface Scratch",
+    "Paint Chip",
+    "PHOTOGRAPHIC EVIDENCE",
+    "1 of 4 Required",
+    "Tagged",
+    "Take a photo",
+    "Tap to capture",
+    "Add defect notes (e.g. 2.5cm door ding)...",
+    "SAVE DEFECT"
+  ]
+}

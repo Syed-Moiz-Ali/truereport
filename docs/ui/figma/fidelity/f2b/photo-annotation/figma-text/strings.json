@@ -1,0 +1,22 @@
+{
+  "sample": "photo-annotation-figma-text",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Front Bumper Inspection",
+    "Markup Active",
+    "IMG_0842.HEIC",
+    "1 Defect Callout",
+    "0.8 mm Scuff",
+    "Annotation Tools",
+    "Tap draw to circle surface damages",
+    "4.0 pt",
+    "Draw",
+    "Undo",
+    "Crop",
+    "Save Photo",
+    "Damage Markup Studio"
+  ]
+}

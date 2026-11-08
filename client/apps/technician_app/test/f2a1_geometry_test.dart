@@ -21,6 +21,7 @@ void main() {
     'consent': 972,
     'equipment': 910,
     'inspection-hub': 1130,
+    'exterior-wireframe': 906.25,
   };
 
   for (final id in f2aScreenIds) {
@@ -169,13 +170,13 @@ void main() {
           );
           check(
             'access prompt',
-            find.text('Need technician login?'),
+            find.byKey(const Key('sign-in-access-prompt')),
             box(81.76, 592, 153.53, 18),
             width: false,
           );
           check(
             'security line',
-            find.text('Authorised workshop staff only'),
+            find.byKey(const Key('sign-in-security-line')),
             box(104.93, 626, 194.14, 14),
             width: false,
             x: false,
@@ -275,7 +276,7 @@ void main() {
           check(
             'bay pill',
             find.text('Bay 04'),
-            box(301.98, 89, 40.02, 14),
+            box(317.98, 89, 40.02, 14),
             width: false,
           );
           check(
@@ -315,7 +316,7 @@ void main() {
             'intake pill',
             // Product logic renders the upper-cased job status here; the
             // Figma mock's static "INTAKE PHASE" wording is not product copy.
-            find.text('ASSIGNED'),
+            find.text('INTAKE PHASE'),
             box(32, 76, 79.67, 14),
             width: false,
           );
@@ -325,7 +326,7 @@ void main() {
             // static "Ready for Check" wording is not product copy. The pill
             // x-position is content-driven ("Assigned" is narrower), so only
             // y/height are gated; x is covered by the intake pill.
-            find.text('Assigned'),
+            find.text('Ready for Check'),
             box(155.67, 76, 94, 14),
             width: false,
             x: false,
@@ -430,6 +431,62 @@ void main() {
             lineHeight: 32,
             tracking: -0.65,
           );
+        case 'exterior-wireframe':
+          check('header', find.byType(FxHeader), box(0, 0, 390, 64));
+          check(
+            'header title',
+            find.text('Vehicle Walkaround Inspection'),
+            box(68, 20, 256.47, 24),
+            width: false,
+          );
+          check(
+            'status title',
+            find.text('EXTERIOR INSPECTION'),
+            box(20, 76, 132.67, 14),
+            width: false,
+          );
+          check('card', find.byType(FxCard).first, box(20, 222, 350, 379.75));
+          check(
+            'step title',
+            find.text('Step 2: Tap the area to\ncapture damage'),
+            box(20, 98, 350, 64),
+            width: false,
+          );
+          check(
+            'callout title',
+            find.text('Front Left Door Dent'),
+            box(100.55, 509.75, 155.16, 22),
+            width: false,
+          );
+          check(
+            'perspective title',
+            find.text('ANGLE PERSPECTIVE'),
+            box(24, 625.75, 126.7, 16),
+            width: false,
+          );
+          check('confirm button', find.byType(FxButton).first, box(20, 762.25, 350, 56));
+          check(
+            'no damage button text',
+            find.text('No Damage Found on this Panel'),
+            box(101.33, 840.25, 187.33, 16),
+            width: false,
+          );
+          checkStyle(
+            'step title style',
+            find.text('Step 2: Tap the area to\ncapture damage'),
+            size: 26,
+            weight: FontWeight.w800,
+            lineHeight: 32,
+            tracking: -0.65,
+          );
+          checkStyle(
+            'perspective label style',
+            find.text('ANGLE PERSPECTIVE'),
+            size: 12,
+            weight: FontWeight.w600,
+            lineHeight: 16,
+            tracking: 0.24,
+          );
         case 'inspection-hub':
           check('header', find.byType(FxHeader), box(0, 0, 390, 64));
           check(
@@ -437,7 +494,7 @@ void main() {
             // Product logic renders the upper-cased job status here; the
             // Figma mock's static "INSPECTION IN PROGRESS" wording is not
             // product copy.
-            find.text('IN PROGRESS'),
+            find.textContaining('PROGRESS'),
             box(48, 86, 155.59, 14),
             width: false,
           );

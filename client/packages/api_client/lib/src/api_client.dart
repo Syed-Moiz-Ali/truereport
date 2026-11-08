@@ -15,6 +15,27 @@ class ApiClient {
         },
       ),
     );
+    // Debug-only HTTP trace. Pure-Dart debug check (no flutter dependency).
+    // Bodies are NEVER logged (login posts carry the password).
+    var debug = false;
+    assert(() {
+      debug = true;
+      return true;
+    }());
+    if (debug) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          request: true,
+          requestHeader: false,
+          requestBody: false,
+          responseHeader: false,
+          responseBody: false,
+          error: true,
+          // ignore: avoid_print — debug-only trace; api_client has no flutter dep for debugPrint.
+          logPrint: (obj) => print('[Api] $obj'),
+        ),
+      );
+    }
   }
 
   final Dio _dio;

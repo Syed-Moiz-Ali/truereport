@@ -1,0 +1,29 @@
+{
+  "sample": "empty-state-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "LH",
+    "QUEUE EMPTY",
+    "0 JOBS",
+    "Welcome back,",
+    "Layla Hassan",
+    "0 IN QUEUE",
+    "You are all caught up",
+    "No pending inspections are assigned to you.",
+    "Refresh queue",
+    "Queue is current • Synced just now",
+    "TODAY'S SUMMARY",
+    "0 Completed",
+    "Coverage",
+    "Inspection Queue",
+    "ONLINE\nSYNC",
+    "LH",
+    "Intake",
+    "Fleet",
+    "Sync",
+    "Profile"
+  ]
+}

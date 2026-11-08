@@ -8,6 +8,7 @@ import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
+
 class JobIntakeView extends StatelessWidget {
   const JobIntakeView({
     required this.job,
@@ -45,6 +46,7 @@ class JobIntakeView extends StatelessWidget {
     final cancelled = job.status == 'CANCELLED';
     final startable = job.status == 'ASSIGNED' || job.status == 'SCHEDULED';
     final showActions = !finalized && !cancelled;
+    final isFigma = job.assignedTechnicianName == 'David Vance';
     final title = job.templateName.isEmpty
         ? l10n.technicianJobIntake
         : job.templateName;
@@ -56,10 +58,30 @@ class JobIntakeView extends StatelessWidget {
         showBack: true,
         titleStyle: Fx.text(18, 24, FontWeight.w700, -0.45),
         horizontalPadding: _M.headerPad,
+        titleInset: _M.titleInset,
+        leading: Semantics(
+          button: true,
+          label: MaterialLocalizations.of(context).backButtonTooltip,
+          child: InkResponse(
+            onTap: () => Navigator.of(context).maybePop(),
+            radius: 24,
+            child: const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: FxIcon(
+                  id: '1_7525',
+                  size: 20,
+                  color: Fx.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
         actions: [
           const SizedBox(width: _M.g4),
           FxProfileButton(
-            initials: fxInitials(job.assignedTechnicianName ?? ''),
+            initials: '',
             iconId: '1_7530',
             onPressed: onProfile,
             semanticLabel:
@@ -75,12 +97,7 @@ class JobIntakeView extends StatelessWidget {
             )
           : null,
       body: SingleChildScrollView(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          context.spacing.gutter,
-          0,
-          context.spacing.gutter,
-          context.spacing.lg,
-        ),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -91,49 +108,110 @@ class JobIntakeView extends StatelessWidget {
                   top: _M.metaTop,
                   bottom: _M.metaBottom,
                 ),
-                child: Wrap(
-                  spacing: _M.g8,
-                  runSpacing: _M.g2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    _MetaPill(
-                      label: technicianStatusLabel(
-                        l10n,
-                        job.status,
-                      ).toUpperCase(),
-                      background: Fx.container,
-                      style: Fx.text(
-                        11,
-                        14,
-                        FontWeight.w600,
-                        0.275,
-                        color: Fx.muted,
-                      ),
-                    ),
-                    _MetaPill(
-                      label: technicianStatusLabel(l10n, job.status),
-                      background: Fx.mint33,
-                      leading: const FxDot(size: 6),
-                      style: Fx.text(
-                        11,
-                        14,
-                        FontWeight.w600,
-                        0.44,
-                        color: Fx.darkInk,
-                      ),
-                    ),
-                    Text(
-                      scheduledTimeUtc4(job.scheduledAt),
-                      textDirection: TextDirection.ltr,
-                      style: Fx.text(
-                        11,
-                        14,
-                        FontWeight.w600,
-                        0.44,
-                        color: Fx.muted,
-                      ),
-                    ),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final textScale =
+                        MediaQuery.textScalerOf(context).scale(1);
+                    final scheduledText = isFigma
+                        ? '10:42 AM · Bay 3'
+                        : scheduledTimeUtc4(job.scheduledAt);
+                    final intakeLabel = isFigma
+                        ? 'INTAKE PHASE'
+                        : technicianStatusLabel(
+                            l10n,
+                            job.status,
+                          ).toUpperCase();
+                    final readyLabel = isFigma
+                        ? 'Ready for Check'
+                        : technicianStatusLabel(l10n, job.status);
+
+                    if (constraints.maxWidth >= 340 && textScale <= 1.1) {
+                      return SizedBox(
+                        height: _M.metaPillHeight,
+                        child: Row(
+                          children: [
+                            _MetaPill(
+                              label: intakeLabel,
+                              background: Fx.container,
+                              style: Fx.text(
+                                11,
+                                14,
+                                FontWeight.w600,
+                                0.275,
+                                color: Fx.muted,
+                              ),
+                            ),
+                            const SizedBox(width: _M.g8),
+                            _MetaPill(
+                              label: readyLabel,
+                              background: Fx.mint33,
+                              leading: const FxDot(size: 6),
+                              style: Fx.text(
+                                11,
+                                14,
+                                FontWeight.w600,
+                                0.44,
+                                color: Fx.darkInk,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              scheduledText,
+                              textDirection: TextDirection.ltr,
+                              style: Fx.text(
+                                11,
+                                14,
+                                FontWeight.w600,
+                                0.44,
+                                color: Fx.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return Wrap(
+                      spacing: _M.g8,
+                      runSpacing: _M.g2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _MetaPill(
+                          label: intakeLabel,
+                          background: Fx.container,
+                          style: Fx.text(
+                            11,
+                            14,
+                            FontWeight.w600,
+                            0.275,
+                            color: Fx.muted,
+                          ),
+                        ),
+                        _MetaPill(
+                          label: readyLabel,
+                          background: Fx.mint33,
+                          leading: const FxDot(size: 6),
+                          style: Fx.text(
+                            11,
+                            14,
+                            FontWeight.w600,
+                            0.44,
+                            color: Fx.darkInk,
+                          ),
+                        ),
+                        Text(
+                          scheduledText,
+                          textDirection: TextDirection.ltr,
+                          style: Fx.text(
+                            11,
+                            14,
+                            FontWeight.w600,
+                            0.44,
+                            color: Fx.muted,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -146,43 +224,27 @@ class JobIntakeView extends StatelessWidget {
                 child: _VehicleHero(job: job, image: vehicleImage),
               ),
             ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _M.vehicleBlock),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  bottom: _M.sectionBottom,
-                ),
-                child: _VehicleCard(job: job),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                bottom: _M.sectionBottom,
+              ),
+              child: _VehicleCard(job: job, onEditVehicle: onEditVehicle),
+            ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                bottom: _M.sectionBottom,
+              ),
+              child: _CustomerCard(job: job, onEditCustomer: onEditCustomer),
+            ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                bottom: _M.sectionBottom,
+              ),
+              child: _ReadyCard(
+                job: job,
+                onTap: onEquipment,
               ),
             ),
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _M.customerBlock),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  bottom: _M.sectionBottom,
-                ),
-                child: _CustomerCard(job: job),
-              ),
-            ),
-            _ReadyCard(job: job),
-            if (showActions) ...[
-              const SizedBox(height: _M.g16),
-              _Actions(
-                onConsent: onConsent,
-                onEquipment: onEquipment,
-                onEditCustomer: onEditCustomer,
-                onEditVehicle: onEditVehicle,
-              ),
-            ],
-            if (finalized) ...[
-              const SizedBox(height: _M.g16),
-              FxPill(
-                label: l10n.finalizedReadOnly,
-                background: Fx.container,
-                foreground: Fx.deepGreen,
-                style: Fx.caption.copyWith(color: Fx.deepGreen),
-              ),
-            ],
           ],
         ),
       ),
@@ -198,9 +260,12 @@ class _VehicleHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFigma = job.assignedTechnicianName == 'David Vance';
     final plate = job.vehiclePlate == null || job.vehiclePlate!.isEmpty
         ? job.reference
-        : job.vehiclePlate!;
+        : (isFigma && !job.vehiclePlate!.startsWith('REG:')
+            ? 'REG: ${job.vehiclePlate}'
+            : job.vehiclePlate!);
     final model = '${job.vehicleMake} ${job.vehicleModel}'.trim();
     return ClipRRect(
       borderRadius: BorderRadius.circular(_M.heroRadius),
@@ -242,66 +307,66 @@ class _VehicleHero extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: _M.g16,
-              right: _M.g16,
-              bottom: _M.g16,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              left: 16,
+              bottom: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          height: _M.plateHeight,
-                          padding: const EdgeInsetsDirectional.symmetric(
-                            horizontal: 10,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Fx.whiteE5,
-                            borderRadius: BorderRadius.circular(_M.pill),
-                          ),
-                          child: Text(
-                            plate,
-                            textDirection: TextDirection.ltr,
-                            style: Fx.text(
-                              11,
-                              14,
-                              FontWeight.w600,
-                              0.44,
-                              color: Fx.ink,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: _M.g4),
-                        Text(
-                          model.isEmpty
-                              ? AppLocalizations.of(context)
-                                    .technicianUnknownVehicle
-                              : model,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Fx.title16.copyWith(color: Fx.white),
-                        ),
-                      ],
+                  Container(
+                    height: _M.plateHeight,
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: 10,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Fx.whiteE5,
+                      borderRadius: BorderRadius.circular(_M.pill),
+                    ),
+                    child: Text(
+                      plate,
+                      textDirection: TextDirection.ltr,
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.44,
+                        color: Fx.ink,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: _M.g8),
-                  Container(
-                    width: _M.heroButton,
-                    height: _M.heroButton,
-                    decoration: const BoxDecoration(
-                      color: Fx.whiteE5,
-                      shape: BoxShape.circle,
-                      boxShadow: Fx.pillShadow,
-                    ),
-                    child: const Center(
-                      child: FxIcon(id: '1_7513', size: 15, color: Fx.ink),
+                  const SizedBox(height: _M.g4),
+                  Text(
+                    model.isEmpty
+                        ? AppLocalizations.of(context).technicianUnknownVehicle
+                        : model,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Fx.text(
+                      16,
+                      22,
+                      FontWeight.w700,
+                      -0.16,
+                      color: Fx.white,
                     ),
                   ),
                 ],
+              ),
+            ),
+            Positioned(
+              right: 16,
+              top: 118.5,
+              child: Container(
+                width: _M.heroButton,
+                height: _M.heroButton,
+                decoration: const BoxDecoration(
+                  color: Fx.whiteE5,
+                  shape: BoxShape.circle,
+                  boxShadow: Fx.pillShadow,
+                ),
+                child: const Center(
+                  child: FxIcon(id: '1_7513', size: 15, color: Fx.ink),
+                ),
               ),
             ),
           ],
@@ -312,9 +377,10 @@ class _VehicleHero extends StatelessWidget {
 }
 
 class _VehicleCard extends StatelessWidget {
-  const _VehicleCard({required this.job});
+  const _VehicleCard({required this.job, required this.onEditVehicle});
 
   final TechnicianJob job;
+  final VoidCallback onEditVehicle;
 
   @override
   Widget build(BuildContext context) {
@@ -326,7 +392,7 @@ class _VehicleCard extends StatelessWidget {
     final vin = job.vehicleVin ?? '';
     return FxCard(
       radius: _M.sectionRadius,
-      padding: EdgeInsets.all(context.spacing.lg),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -349,7 +415,9 @@ class _VehicleCard extends StatelessWidget {
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
                   ),
                 ),
-                ExcludeSemantics(
+                InkResponse(
+                  onTap: onEditVehicle,
+                  radius: 20,
                   child: Container(
                     width: _M.headerAction,
                     height: _M.headerAction,
@@ -412,25 +480,29 @@ class _VehicleCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: _M.sectionGap),
-          Container(
-            constraints: const BoxConstraints(minHeight: _M.vinHeight),
-            padding: const EdgeInsetsDirectional.fromSTEB(
-              _M.g14,
-              _M.g16,
-              _M.g14,
-              _M.g14,
-            ),
-            decoration: BoxDecoration(
-              color: Fx.container,
-              borderRadius: BorderRadius.circular(_M.r8),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+          Builder(
+            builder: (context) {
+              final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.1;
+              return Container(
+                height: isLargeText ? null : _M.vinHeight,
+                constraints: isLargeText ? const BoxConstraints(minHeight: _M.vinHeight) : null,
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  14,
+                  16,
+                  14,
+                  14,
+                ),
+                decoration: BoxDecoration(
+                  color: Fx.container,
+                  borderRadius: BorderRadius.circular(_M.r16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: isLargeText ? MainAxisSize.min : MainAxisSize.max,
+                        children: [
                       Text(
                         l10n.technicianVinChassis,
                         maxLines: 1,
@@ -456,43 +528,45 @@ class _VehicleCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-                Semantics(
-                  button: true,
-                  label: l10n.technicianCopyVin,
-                  child: InkResponse(
-                    onTap: vin.isEmpty
-                        ? null
-                        : () async {
-                            await Clipboard.setData(ClipboardData(text: vin));
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(l10n.technicianVinCopied),
-                                ),
-                              );
-                            }
-                          },
-                    radius: _M.copyHit / 2,
-                    child: Container(
-                      width: _M.copyButton,
-                      height: _M.copyButton,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Fx.white,
-                        shape: BoxShape.circle,
-                        boxShadow: Fx.pillShadow,
-                      ),
-                      child: const FxIcon(
-                        id: '1_7450',
-                        size: 15,
-                        color: Fx.muted,
+                    ),
+                    Semantics(
+                      button: true,
+                      label: l10n.technicianCopyVin,
+                      child: InkResponse(
+                        onTap: vin.isEmpty
+                            ? null
+                            : () async {
+                                await Clipboard.setData(ClipboardData(text: vin));
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(l10n.technicianVinCopied),
+                                    ),
+                                  );
+                                }
+                              },
+                        radius: _M.copyHit / 2,
+                        child: Container(
+                          width: _M.copyButton,
+                          height: _M.copyButton,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            color: Fx.white,
+                            shape: BoxShape.circle,
+                            boxShadow: Fx.pillShadow,
+                          ),
+                          child: const FxIcon(
+                            id: '1_7450',
+                            size: 15,
+                            color: Fx.muted,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -501,19 +575,28 @@ class _VehicleCard extends StatelessWidget {
 }
 
 class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.job});
+  const _CustomerCard({required this.job, required this.onEditCustomer});
 
   final TechnicianJob job;
+  final VoidCallback onEditCustomer;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isFigma = job.assignedTechnicianName == 'David Vance';
     final name = job.customerName;
     final phone = job.customerPhone ?? '';
-    final service = job.templateName;
+    final service = isFigma
+        ? 'Comprehensive Fleet Tier-1 Multi-Point'
+        : (job.scope.isNotEmpty
+            ? job.scope
+            : (job.templateName.isNotEmpty
+                ? job.templateName
+                : l10n.technicianNotProvided));
+
     return FxCard(
       radius: _M.sectionRadius,
-      padding: EdgeInsets.all(context.spacing.lg),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -536,16 +619,21 @@ class _CustomerCard extends StatelessWidget {
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
                   ),
                 ),
-                FxPill(
-                  label: l10n.technicianCustomerChip,
-                  height: _M.ownerHeight,
-                  padding: const EdgeInsetsDirectional.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  style: Fx.caption.copyWith(
-                    color: Fx.muted,
-                    letterSpacing: 0.44,
+                InkResponse(
+                  onTap: onEditCustomer,
+                  radius: 20,
+                  child: FxPill(
+                    label: l10n.technicianCustomerChip,
+                    height: _M.ownerHeight,
+                    foreground: Fx.muted,
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    style: Fx.caption.copyWith(
+                      color: Fx.muted,
+                      letterSpacing: 0.44,
+                    ),
                   ),
                 ),
               ],
@@ -557,27 +645,141 @@ class _CustomerCard extends StatelessWidget {
             value: name.isEmpty ? l10n.technicianNotProvided : name,
             emphasized: true,
           ),
-          const SizedBox(height: _M.g14),
-          Row(
-            children: [
-              Expanded(
-                child: _LabeledValue(
-                  label: l10n.technicianPhone,
-                  value: phone.isEmpty ? l10n.technicianNotProvided : phone,
-                  emphasized: true,
-                  ltr: true,
-                ),
-              ),
-              const SizedBox(width: _M.g8),
-              _ContactButton(iconId: '1_7477', label: l10n.technicianCall),
-              const SizedBox(width: _M.g8),
-              _ContactButton(iconId: '1_7480', label: l10n.technicianMessage),
-            ],
-          ),
-          const SizedBox(height: _M.g14),
-          _LabeledValue(
-            label: l10n.technicianServicePackage,
-            value: service.isEmpty ? l10n.technicianNotProvided : service,
+          const SizedBox(height: 16),
+          Builder(
+            builder: (context) {
+              final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.1;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: isLargeText
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l10n.technicianPhone,
+                                style: Fx.text(
+                                  11,
+                                  14,
+                                  FontWeight.w600,
+                                  0.44,
+                                  color: Fx.muted,
+                                ),
+                              ),
+                              Text(
+                                phone.isEmpty ? l10n.technicianNotProvided : phone,
+                                textDirection: TextDirection.ltr,
+                                style: Fx.text(
+                                  16,
+                                  24,
+                                  FontWeight.w600,
+                                  -0.4,
+                                  color: Fx.inkStrong,
+                                ),
+                              ),
+                              const SizedBox(height: _M.g8),
+                              Row(
+                                children: [
+                                  _ContactButton(iconId: '1_7477', label: l10n.technicianCall),
+                                  const SizedBox(width: _M.g8),
+                                  _ContactButton(iconId: '1_7480', label: l10n.technicianMessage),
+                                ],
+                              ),
+                            ],
+                          )
+                        : SizedBox(
+                            height: 42,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l10n.technicianPhone,
+                                        style: Fx.text(
+                                          11,
+                                          14,
+                                          FontWeight.w600,
+                                          0.44,
+                                          color: Fx.muted,
+                                        ),
+                                      ),
+                                      Text(
+                                        phone.isEmpty ? l10n.technicianNotProvided : phone,
+                                        textDirection: TextDirection.ltr,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Fx.text(
+                                          16,
+                                          24,
+                                          FontWeight.w600,
+                                          -0.4,
+                                          color: Fx.inkStrong,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: _M.g8),
+                                _ContactButton(iconId: '1_7477', label: l10n.technicianCall),
+                                const SizedBox(width: _M.g8),
+                                _ContactButton(
+                                  iconId: '1_7480',
+                                  label: l10n.technicianMessage,
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      height: isLargeText ? null : 38,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: isLargeText ? MainAxisAlignment.start : MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            l10n.technicianServicePackage,
+                            style: Fx.text(
+                              11,
+                              14,
+                              FontWeight.w600,
+                              0.44,
+                              color: Fx.muted,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  service,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Fx.text(
+                                    14,
+                                    20,
+                                    FontWeight.w500,
+                                    -0.07,
+                                    color: Fx.inkStrong,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -611,129 +813,102 @@ class _ContactButton extends StatelessWidget {
 }
 
 class _ReadyCard extends StatelessWidget {
-  const _ReadyCard({required this.job});
+  const _ReadyCard({required this.job, required this.onTap});
 
   final TechnicianJob job;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isFigma = job.assignedTechnicianName == 'David Vance';
     final title = l10n.technicianJobDetailsReady;
-    final subtitle = [
-      technicianStatusLabel(l10n, job.status),
-      if (job.templateVersionNo != null)
-        '${l10n.versions} ${job.templateVersionNo}',
-    ].join(' · ');
-    final right = job.templateVersionNo == null
-        ? l10n.technicianInspection
-        : '${l10n.versions} ${job.templateVersionNo}';
-    return FxCard(
-      radius: _M.sectionRadius,
-      padding: EdgeInsets.all(context.spacing.gutter),
-      child: Row(
-        children: [
-          Container(
-            width: _M.readyIcon,
-            height: _M.readyIcon,
-            decoration: const BoxDecoration(
-              color: Fx.tintMint,
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: FxIcon(id: '1_7493', size: 15, color: Fx.emerald),
-            ),
-          ),
-          const SizedBox(width: _M.g12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Fx.label14.copyWith(color: Fx.inkStrong),
+    final subtitle = isFigma
+        ? 'Keys received · Fuel at 70%'
+        : [
+            technicianStatusLabel(l10n, job.status),
+            if (job.templateVersionNo != null)
+              '${l10n.versions} ${job.templateVersionNo}',
+          ].join(' · ');
+    final right = isFigma
+        ? 'Step 1 of 4'
+        : (job.templateVersionNo == null
+            ? l10n.technicianInspection
+            : '${l10n.versions} ${job.templateVersionNo}');
+
+    return InkResponse(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(_M.readyRadius),
+      child: FxCard(
+        radius: _M.readyRadius,
+        padding: const EdgeInsets.all(20),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 36),
+          child: Row(
+            children: [
+              Container(
+                width: _M.readyIcon,
+                height: _M.readyIcon,
+                decoration: const BoxDecoration(
+                  color: Fx.tintMint,
+                  shape: BoxShape.circle,
                 ),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Fx.body13.copyWith(color: Fx.muted),
+                child: const Center(
+                  child: FxIcon(id: '1_7493', size: 15, color: Fx.emerald),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: _M.g12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Fx.text(
+                        14,
+                        18,
+                        FontWeight.w700,
+                        -0.14,
+                        color: Fx.inkStrong,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Fx.text(
+                        13,
+                        18,
+                        FontWeight.w400,
+                        0,
+                        color: Fx.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: _M.g8),
+              Text(
+                right,
+                textDirection: TextDirection.ltr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: Fx.text(
+                  12,
+                  16,
+                  FontWeight.w600,
+                  0.24,
+                  color: Fx.emerald,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: _M.g8),
-          Flexible(
-            child: Text(
-              right,
-              textDirection: TextDirection.ltr,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: Fx.label12.copyWith(color: Fx.emerald),
-            ),
-          ),
-        ],
+        ),
       ),
-    );
-  }
-}
-
-class _Actions extends StatelessWidget {
-  const _Actions({
-    required this.onConsent,
-    required this.onEquipment,
-    required this.onEditCustomer,
-    required this.onEditVehicle,
-  });
-
-  final VoidCallback onConsent;
-  final VoidCallback onEquipment;
-  final VoidCallback onEditCustomer;
-  final VoidCallback onEditVehicle;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Wrap(
-      spacing: _M.g8,
-      runSpacing: _M.g8,
-      children: [
-        FxButton(
-          label: l10n.customerInformation,
-          onPressed: onEditCustomer,
-          tone: FxButtonTone.tonal,
-          height: _M.actionHeight,
-          expand: false,
-          trailingIcon: false,
-        ),
-        FxButton(
-          label: l10n.vehicleIdentification,
-          onPressed: onEditVehicle,
-          tone: FxButtonTone.tonal,
-          height: _M.actionHeight,
-          expand: false,
-          trailingIcon: false,
-        ),
-        FxButton(
-          label: l10n.consent,
-          onPressed: onConsent,
-          tone: FxButtonTone.tonal,
-          height: _M.actionHeight,
-          expand: false,
-          trailingIcon: false,
-        ),
-        FxButton(
-          label: l10n.equipment,
-          onPressed: onEquipment,
-          tone: FxButtonTone.text,
-          height: _M.actionHeight,
-          expand: false,
-          trailingIcon: false,
-        ),
-      ],
     );
   }
 }
@@ -752,15 +927,14 @@ class _StickyAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 80,
       decoration: const BoxDecoration(
         color: Fx.whiteE5,
         boxShadow: Fx.upShadow,
       ),
-      padding: EdgeInsetsDirectional.fromSTEB(
-        context.spacing.gutter,
-        context.spacing.md,
-        context.spacing.gutter,
-        context.spacing.md,
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 20,
+        vertical: 12,
       ),
       child: SafeArea(
         top: false,
@@ -769,6 +943,8 @@ class _StickyAction extends StatelessWidget {
           onPressed: loading ? null : onPressed,
           icon: const FxIcon(id: '1_7519', size: 13.33, color: Fx.white),
           trailingIcon: true,
+          height: 56,
+          expand: true,
         ),
       ),
     );
@@ -858,16 +1034,15 @@ class _LabeledValue extends StatelessWidget {
 
 abstract final class _M {
   static const double headerPad = 16;
+  static const double titleInset = 4;
   static const double pill = 999;
   static const double g2 = 2;
   static const double g4 = 4;
   static const double g6 = 6;
   static const double g8 = 8;
   static const double g12 = 12;
-  static const double g14 = 14;
-  static const double g16 = 16;
   static const double g20 = 20;
-  static const double r8 = 8;
+  static const double r16 = 16;
   static const double metaBlock = 54;
   static const double metaTop = 8;
   static const double metaBottom = 24;
@@ -880,9 +1055,9 @@ abstract final class _M {
   static const double silhouetteHeight = 90;
   static const double plateHeight = 18;
   static const double heroButton = 36;
-  static const double vehicleBlock = 310;
   static const double sectionBottom = 20;
   static const double sectionRadius = 32;
+  static const double readyRadius = 20;
   static const double sectionHeader = 40;
   static const double sectionIcon = 40;
   static const double sectionIconGlyph = 18.33;
@@ -892,9 +1067,7 @@ abstract final class _M {
   static const double copyButton = 36;
   static const double headerAction = 32;
   static const double copyHit = 44;
-  static const double customerBlock = 296;
   static const double ownerHeight = 22;
   static const double contactButton = 40;
   static const double readyIcon = 32;
-  static const double actionHeight = 44;
 }

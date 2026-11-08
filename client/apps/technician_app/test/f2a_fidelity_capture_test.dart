@@ -59,6 +59,7 @@ const _heights = <String, double>{
   'consent': 972,
   'equipment': 910,
   'inspection-hub': 1130,
+  'exterior-wireframe': 906,
 };
 
 Future<void> _render(
@@ -89,6 +90,9 @@ Future<void> _render(
       : null;
   if (id != 'job-intake' && id != 'inspection-hub') {
     vehicleImage = null;
+  }
+  if (id == 'exterior-wireframe') {
+    avatarImage = null;
   }
   tester.view.physicalSize = Size(390 * dpr, height * dpr);
   tester.view.devicePixelRatio = dpr;
@@ -125,7 +129,7 @@ Future<void> _render(
               width: 390,
               height: height,
               child: ColoredBox(
-                color: theme.colorScheme.surface,
+                color: Colors.white,
                 child: Material(
                   type: MaterialType.transparency,
                   child: Builder(

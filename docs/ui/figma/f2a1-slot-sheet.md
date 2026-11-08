@@ -60,6 +60,18 @@ neutral form exists).
 | 07 Hub | `Active Bay` | No bay field | **In progress** label in the same line | Real bay | Remove | A implemented |
 | 07 Hub | Fixed `45/110` ring and sample model | Sample values | **Real completed / total coverage** in the same ring; real vehicle data | Live data | Empty state | A implemented |
 | 07 Hub | Dock `Fleet` | No fleet feature | Same mapping as screen 2: **Finalized** list | Real fleet module | Remove | A implemented; owner approval required |
+| 08 Wireframe | Sample damage (`Front Left Door Dent • 2.5 cm Crease`) | Sample defect data | **Real defect markup title and description** in the same card slot | Live inspection defects | Empty card | A implemented; product uses real defect data |
+| 08 Wireframe | `1 Detected` | Sample defect count | **Dynamic detected count** in the same status pill slot | Live count | Remove pill | A implemented |
+| 08 Wireframe | Profile button | Photo avatar vs green profile icon | **Initials/profile icon button** in the same 32 px slot | Real technician photo with consent | Hide | A implemented |
+| 09 Defect Detail | `BAY 04 • IN PROGRESS` | Bay not modelled | **Job reference • Status** in the same 22 px status pill slot | Real bay + status | Remove pill | A implemented |
+| 09 Defect Detail | Sample wireframe & PIN #03 | Sample defect pin | **Automotive wireframe backdrop + active defect pin** in the same 350×256 slot | Real vehicle wireframe | Remove canvas | A implemented |
+| 09 Defect Detail | Sample defect chips (`Dent / Crease`, etc.) | Sample defect classifications | **Assessment severity options** in the same pill chip slots | Master defect types | Remove chips | A implemented |
+| 09 Defect Detail | Sample photo & `1 of 4 Required` | Sample evidence | **Captured local evidence + dynamic count** in the same 167×167 tiles | Real evidence | Remove tile | A implemented |
+| 10 Photo Markup | `Damage Markup Studio` | Hardcoded studio title | **Technician Inspection** / title parameter in the same 18px bold slot | Dynamic screen title | Neutral title | A implemented |
+| 10 Photo Markup | Sample photo `IMG_0842.HEIC` | Static sample image | **Live inspection photo** in the same 350×437.5 photo canvas card slot | Real camera capture | Neutral grey container | A implemented |
+| 10 Photo Markup | `0.8 mm Scuff` • `1 Defect Callout` | Sample measurement | **Active defect measurement and callout count** in the same floating pill slots | Real defect telemetry | Dynamic label | A implemented |
+| 11 Dense Mechanical | `Live Bay #2` | Bay not modelled | **Job reference** in the same 26 px status pill slot | Real bay | Remove pill | A implemented |
+| 11 Dense Mechanical | `Confirm Fluid Levels` | Figma-specific CTA label | **Review & Finalize** in product copy, same slot/icon/style | Review & Finalize | Remove | A implemented |
 
 ## Decisions the owner must make
 

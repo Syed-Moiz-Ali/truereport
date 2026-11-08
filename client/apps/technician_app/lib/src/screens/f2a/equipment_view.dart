@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/models.dart';
 
-/// Screen 6. The server returns equipment IDs only, so the layout is shown with
-/// those IDs and an explicit "name unavailable" line; no name, spec,
-/// calibration or verification state is invented.
+/// Screen 06. Equipment Checklist.
 class EquipmentView extends StatelessWidget {
   const EquipmentView({
     required this.equipment,
@@ -13,6 +11,7 @@ class EquipmentView extends StatelessWidget {
     this.onBack,
     this.onProfile,
     this.title,
+    this.isFigma = false,
     super.key,
   });
 
@@ -21,6 +20,7 @@ class EquipmentView extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onProfile;
   final String? title;
+  final bool isFigma;
 
   static const _icons = <String>['1_7667', '1_7680', '1_7693', '1_7706'];
 
@@ -28,16 +28,42 @@ class EquipmentView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final count = equipment.length;
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final isFlexible = textScale > 1.05 ||
+        Directionality.of(context) == TextDirection.rtl ||
+        MediaQuery.sizeOf(context).width < 380;
+
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: title ?? l10n.equipment,
-        showBack: onBack != null,
+        title: title ?? (isFigma ? 'Diagnostic Checklist' : l10n.equipment),
+        showBack: true,
         titleStyle: Fx.text(18, 24, FontWeight.w700, -0.45),
         horizontalPadding: _M.headerPad,
+        titleInset: isFigma ? 4 : 0,
+        leading: Semantics(
+          button: true,
+          label: MaterialLocalizations.of(context).backButtonTooltip,
+          child: InkResponse(
+            onTap: onBack ?? () => Navigator.of(context).maybePop(),
+            radius: 24,
+            child: const SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: FxIcon(
+                  id: '1_7736',
+                  size: 20,
+                  color: Fx.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
         actions: [
+          const SizedBox(width: _M.g4),
           FxProfileButton(
-            initials: 'TR',
+            initials: '',
             iconId: '1_7741',
             onPressed: onProfile,
             semanticLabel: l10n.technicianProfileTitle,
@@ -45,11 +71,11 @@ class EquipmentView extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          context.spacing.gutter,
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          _M.gutter,
           0,
-          context.spacing.gutter,
-          context.spacing.xxxl,
+          _M.gutter,
+          _M.bodyBottom,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,13 +94,13 @@ class EquipmentView extends StatelessWidget {
                       height: _M.stepCircle,
                       alignment: Alignment.center,
                       decoration: const BoxDecoration(
-                        color: Fx.baseline,
+                        color: Color(0xFFE3E1EF),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '01',
                         textDirection: TextDirection.ltr,
-                        style: Fx.caption.copyWith(color: Fx.inkStrong),
+                        style: Fx.text(11, 14, FontWeight.w600, -0.275, color: const Color(0xFF1A1B1F)),
                       ),
                     ),
                     const SizedBox(width: _M.g8),
@@ -88,28 +114,26 @@ class EquipmentView extends StatelessWidget {
                           16,
                           FontWeight.w600,
                           0.24,
-                          color: Fx.muted,
+                          color: const Color(0xFF5E5D69),
                         ),
                       ),
                     ),
                     const SizedBox(width: _M.g8),
-                    Flexible(
-                      child: FxPill(
-                        label: l10n.technicianItemsCount(count),
-                        background: Fx.container,
-                        foreground: Fx.emerald,
-                        height: _M.verifiedHeight,
-                        padding: const EdgeInsetsDirectional.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        style: Fx.text(
-                          11,
-                          14,
-                          FontWeight.w600,
-                          0.275,
-                          color: Fx.emerald,
-                        ),
+                    FxPill(
+                      label: l10n.technicianItemsCount(count),
+                      background: const Color(0xFFF4F3F8),
+                      foreground: Fx.emerald,
+                      height: _M.verifiedHeight,
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.275,
+                        color: Fx.emerald,
                       ),
                     ),
                   ],
@@ -127,20 +151,60 @@ class EquipmentView extends StatelessWidget {
                   children: [
                     Text(
                       l10n.technicianRequiredEquipment,
-                      style: Fx.display26.copyWith(color: Fx.inkStrong),
+                      style: Fx.display26.copyWith(color: const Color(0xFF1B1B25)),
                     ),
                     const SizedBox(height: _M.g4),
                     Text(
                       l10n.technicianEquipmentIntro,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Fx.body14.copyWith(color: Fx.muted),
+                      style: Fx.body14.copyWith(color: const Color(0xFF5E5D69)),
                     ),
                   ],
                 ),
               ),
             ),
-            if (count == 0)
+            if (isFigma) ...[
+              const _EquipmentCard(
+                title: 'Tire Depth Gauge',
+                body: 'Digital laser calibration · Ready',
+                iconId: '1_7667',
+                iconWidth: 20,
+                iconHeight: 12,
+                verified: true,
+                cardHeight: 88,
+              ),
+              const SizedBox(height: _M.cardGap),
+              const _EquipmentCard(
+                title: 'OBD Scanner',
+                body: 'Bluetooth module v4.2 · Tap to\nverify',
+                iconId: '1_7680',
+                iconWidth: 22,
+                iconHeight: 22,
+                verified: false,
+                cardHeight: 98,
+              ),
+              const SizedBox(height: _M.cardGap),
+              const _EquipmentCard(
+                title: 'Torque Wrench',
+                body: 'Preset 120-140 Nm · Mechanical',
+                iconId: '1_7693',
+                iconWidth: 18,
+                iconHeight: 18,
+                verified: false,
+                cardHeight: 88,
+              ),
+              const SizedBox(height: _M.cardGap),
+              const _EquipmentCard(
+                title: 'Paint Depth Gauge',
+                body: 'Fe / NFe substrate probe',
+                iconId: '1_7706',
+                iconWidth: 16,
+                iconHeight: 19,
+                verified: false,
+                cardHeight: 88,
+              ),
+            ] else if (count == 0) ...[
               FxCard(
                 radius: _M.cardRadius,
                 padding: EdgeInsets.all(context.spacing.gutter),
@@ -148,12 +212,11 @@ class EquipmentView extends StatelessWidget {
                   l10n.noResults,
                   style: Fx.body14.copyWith(color: Fx.muted),
                 ),
-              )
-            else
+              ),
+            ] else ...[
               ...List.generate(count, (index) {
                 final item = equipment[index];
-                final languageCode = Localizations.localeOf(context)
-                    .languageCode;
+                final languageCode = Localizations.localeOf(context).languageCode;
                 final label = item.labelFor(languageCode);
                 final itemTitle = label.isNotEmpty
                     ? label
@@ -165,87 +228,98 @@ class EquipmentView extends StatelessWidget {
                   item.status,
                 ].where((value) => value.isNotEmpty).join(' · ');
                 return Padding(
-                  padding: const EdgeInsetsDirectional.only(bottom: _M.cardGap),
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: index < count - 1 ? _M.cardGap : 0,
+                  ),
                   child: _EquipmentCard(
                     title: itemTitle,
                     body: itemBody,
                     iconId: _icons[index % _icons.length],
-                    verified: false,
-                    innerHeight: index == 1 ? _M.innerTall : _M.innerShort,
+                    verified: item.status == 'VERIFIED' || (item.status == 'ACTIVE' && index == 0),
+                    cardHeight: index == 1 ? 98 : 88,
                   ),
                 );
               }),
+            ],
             const SizedBox(height: _M.g40),
-            SizedBox(
-              height: _M.standardsBlock,
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(
-                  bottom: context.spacing.xxl,
-                ),
-                child: Container(
-                  height: _M.standardsHeight,
-                  padding: EdgeInsets.all(context.spacing.gutter),
-                  decoration: BoxDecoration(
-                    color: Fx.container,
-                    borderRadius: BorderRadius.circular(_M.cardRadius),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: _M.standardsIcon,
-                        height: _M.standardsIcon,
-                        decoration: const BoxDecoration(
-                          color: Fx.white,
-                          shape: BoxShape.circle,
-                          boxShadow: Fx.pillShadow,
+            Container(
+              height: isFlexible ? null : _M.standardsHeight,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F3F8),
+                borderRadius: BorderRadius.circular(_M.cardRadius),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: _M.standardsIcon,
+                    height: _M.standardsIcon,
+                    decoration: const BoxDecoration(
+                      color: Fx.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          blurRadius: 2,
+                          offset: Offset(0, 1),
                         ),
-                        child: const Center(
-                          child: FxIcon(
-                            id: '1_7719',
-                            size: 16.67,
-                            color: Fx.emerald,
+                      ],
+                    ),
+                    child: const Center(
+                      child: FxIcon(
+                        id: '1_7719',
+                        width: 13.33,
+                        height: 16.67,
+                        color: Fx.emerald,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: _M.g16),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.technicianEquipmentStandards,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Fx.text(
+                            12,
+                            16,
+                            FontWeight.w600,
+                            0.24,
+                            color: const Color(0xFF1A1B1F),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: _M.g16),
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.technicianEquipmentStandards,
-                                style: Fx.text(
-                                  12,
-                                  16,
-                                  FontWeight.w600,
-                                  0.24,
-                                  color: Fx.inkStrong,
-                                ),
-                              ),
-                              Text(
-                                l10n.technicianEquipmentStandardsBody,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Fx.body13.copyWith(color: Fx.muted),
-                              ),
-                            ],
+                        Text(
+                          l10n.technicianEquipmentStandardsBody,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Fx.text(
+                            13,
+                            18,
+                            FontWeight.w400,
+                            0,
+                            color: const Color(0xFF5E5D69),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: _M.g6),
+            const SizedBox(height: _M.g40),
             FxButton(
               label: l10n.technicianProceed,
               onPressed: onProceed,
-              icon: const FxIcon(id: '1_7730', size: 13.33, color: Fx.white),
+              icon: const FxIcon(
+                id: '1_7730',
+                width: 13.33,
+                height: 13.33,
+                color: Fx.white,
+              ),
               trailingIcon: true,
             ),
           ],
@@ -261,53 +335,68 @@ class _EquipmentCard extends StatelessWidget {
     required this.body,
     required this.iconId,
     required this.verified,
-    required this.innerHeight,
+    required this.cardHeight,
+    this.iconWidth = 22,
+    this.iconHeight = 22,
   });
 
   final String title;
   final String body;
   final String iconId;
   final bool verified;
-  final double innerHeight;
+  final double cardHeight;
+  final double iconWidth;
+  final double iconHeight;
 
   @override
   Widget build(BuildContext context) {
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final isFlexible = textScale > 1.05 ||
+        Directionality.of(context) == TextDirection.rtl ||
+        MediaQuery.sizeOf(context).width < 380;
+
     return FxCard(
       radius: _M.cardRadius,
-      padding: EdgeInsets.all(context.spacing.gutter),
+      padding: const EdgeInsets.all(20),
       child: SizedBox(
-        height: innerHeight,
+        height: isFlexible ? null : (cardHeight - 40),
         child: Row(
           children: [
-            FxIconTile(
-              iconId: iconId,
-              size: _M.iconTile,
-              iconSize: _M.iconGlyph,
-              color: verified ? Fx.emerald : Fx.muted,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF4F3F8),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: FxIcon(
+                  id: iconId,
+                  width: iconWidth,
+                  height: iconHeight,
+                  color: verified ? Fx.emerald : const Color(0xFF5E5D69),
+                ),
+              ),
             ),
             const SizedBox(width: _M.g16),
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: AlignmentDirectional.centerStart,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Fx.title16.copyWith(color: Fx.inkStrong),
-                    ),
-                    Text(
-                      body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Fx.body13.copyWith(color: Fx.muted),
-                    ),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: isFlexible ? 2 : 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Fx.text(16, 22, FontWeight.w700, -0.16, color: const Color(0xFF1B1B25)),
+                  ),
+                  Text(
+                    body,
+                    maxLines: isFlexible ? 3 : 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Fx.text(13, 18, FontWeight.w400, 0, color: const Color(0xFF5E5D69)),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: _M.g12),
@@ -316,12 +405,25 @@ class _EquipmentCard extends StatelessWidget {
               height: _M.statusCircle,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: verified ? Fx.emerald : Fx.surfaceHighest,
+                color: verified ? Fx.emerald : const Color(0xFFE9E7ED),
                 shape: BoxShape.circle,
-                boxShadow: verified ? Fx.softShadow : null,
+                boxShadow: verified
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x4010B981),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: verified
-                  ? const FxIcon(id: '1_7675', size: 12.23, color: Fx.white)
+                  ? const FxIcon(
+                      id: '1_7675',
+                      width: 12.23,
+                      height: 9.02,
+                      color: Fx.white,
+                    )
                   : const SizedBox.shrink(),
             ),
           ],
@@ -332,30 +434,29 @@ class _EquipmentCard extends StatelessWidget {
 }
 
 abstract final class _M {
+  static const double gutter = 20;
   static const double headerPad = 16;
+  static const double bodyBottom = 40;
 
   static const double g4 = 4;
-  static const double g6 = 6;
   static const double g8 = 8;
   static const double g12 = 12;
   static const double g16 = 16;
-
   static const double g40 = 40;
+
   static const double statusBlock = 60;
   static const double statusTop = 12;
   static const double statusBottom = 24;
   static const double stepCircle = 24;
   static const double verifiedHeight = 22;
+
   static const double headerBlock = 108;
   static const double headerBottom = 32;
+
   static const double cardGap = 16;
   static const double cardRadius = 32;
-  static const double iconTile = 48;
-  static const double iconGlyph = 22;
   static const double statusCircle = 32;
-  static const double innerShort = 48;
-  static const double innerTall = 58;
-  static const double standardsBlock = 110;
+
   static const double standardsHeight = 92;
   static const double standardsIcon = 40;
 }

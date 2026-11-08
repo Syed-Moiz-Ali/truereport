@@ -569,5 +569,26 @@
   "statAccuracy": "99.8%",
   "statAccuracyLabel": "Diagnostic accuracy",
   "statSyncSpeed": "Real-time",
-  "statSyncLabel": "Offline-first sync"
+  "statSyncLabel": "Offline-first sync",
+  "technicianExteriorInspection": "EXTERIOR INSPECTION",
+  "technicianDetectedCount": "{count, plural, =1{1 Detected} other{{count} Detected}}",
+  "@technicianDetectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "technicianExteriorStep2": "Step 2: Tap the area to\ncapture damage",
+  "technicianExteriorHint": "Pin scratches, dents, or paint chips directly on the\nwireframe schematic.",
+  "technicianAnglePerspective": "ANGLE PERSPECTIVE",
+  "technicianTapToRotate": "Tap to rotate 360°",
+  "technicianPerspectiveFront": "Front",
+  "technicianPerspectiveDriver": "Driver",
+  "technicianPerspectivePassenger": "Passenger",
+  "technicianPerspectiveRear": "Rear",
+  "technicianConfirmExteriorMarkup": "Confirm Exterior Markup",
+  "technicianNoDamageOnPanel": "No Damage Found on this Panel",
+  "technicianDriverSideView": "DRIVER SIDE VIEW",
+  "technicianWalkaroundInspection": "Vehicle Walkaround Inspection"
 }

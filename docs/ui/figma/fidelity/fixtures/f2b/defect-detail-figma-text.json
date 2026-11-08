@@ -10,7 +10,7 @@
     "height": 2063
   },
   "logicalWidth": 390,
-  "logicalHeight": 1032,
+  "logicalHeight": 1031.67,
   "dpr": 2,
   "render": "docs/ui/figma/fidelity/f2b/defect-detail/figma-text/render.png",
   "output": "docs/ui/figma/fidelity/f2b/defect-detail/figma-text",
@@ -23,10 +23,9 @@
     "Major",
     "DEFECT CLASSIFICATION",
     "PHOTOGRAPHIC EVIDENCE",
-    "0 / 4",
     "Take a photo",
     "Tap to capture",
-    "Save Defect"
+    "SAVE DEFECT"
   ],
   "keyBoxes": [
     {
@@ -39,7 +38,7 @@
     {
       "key": "save",
       "x": 20,
-      "y": 1021,
+      "y": 943.67,
       "width": 350,
       "height": 56
     }

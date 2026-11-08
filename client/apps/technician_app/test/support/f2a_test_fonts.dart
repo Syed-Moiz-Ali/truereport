@@ -33,7 +33,14 @@ Future<void> loadF2AFonts() async {
     for (final entity in svgDir.listSync()) {
       if (entity is! File || !entity.path.endsWith('.svg')) continue;
       final name = entity.uri.pathSegments.last;
-      final id = name.substring('Icon-'.length, name.length - '.svg'.length);
+      final String id;
+      if (name.startsWith('Icon-')) {
+        id = name.substring('Icon-'.length, name.length - '.svg'.length);
+      } else if (name.startsWith('Vector-')) {
+        id = name.substring('Vector-'.length, name.length - '.svg'.length);
+      } else {
+        id = name.substring(0, name.length - '.svg'.length);
+      }
       FxSvgCache.register(id, entity.readAsStringSync());
     }
   }

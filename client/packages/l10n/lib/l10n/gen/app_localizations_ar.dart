@@ -1442,4 +1442,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statSyncLabel => 'مزامنة سريعة دون اتصال';
+
+  @override
+  String get technicianExteriorInspection => 'الفحص الخارجي';
+
+  @override
+  String technicianDetectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم اكتشاف $count',
+      one: 'تم اكتشاف 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianExteriorStep2 =>
+      'الخطوة 2: اضغط على المنطقة\nلتسجيل الضرر';
+
+  @override
+  String get technicianExteriorHint =>
+      'حدد الخدوش أو الصدمات أو تقشير الطلاء مباشرة على مخطط الهيكل.';
+
+  @override
+  String get technicianAnglePerspective => 'زاوية الرؤية';
+
+  @override
+  String get technicianTapToRotate => 'اضغط للتدوير 360°';
+
+  @override
+  String get technicianPerspectiveFront => 'الأمام';
+
+  @override
+  String get technicianPerspectiveDriver => 'السائق';
+
+  @override
+  String get technicianPerspectivePassenger => 'الراكب';
+
+  @override
+  String get technicianPerspectiveRear => 'الخلف';
+
+  @override
+  String get technicianConfirmExteriorMarkup => 'تأكيد علامات الهيكل الخارجي';
+
+  @override
+  String get technicianNoDamageOnPanel =>
+      'لم يتم العثور على أضرار في هذا الجزء';
+
+  @override
+  String get technicianDriverSideView => 'عرض جانب السائق';
+
+  @override
+  String get technicianWalkaroundInspection => 'فحص جولة المركبة';
 }

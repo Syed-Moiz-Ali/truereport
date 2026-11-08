@@ -19,6 +19,9 @@ class DenseMechanicalView extends StatefulWidget {
     this.onProfile,
     this.finalized = false,
     this.busyItemId,
+    this.initialExpandedId,
+    this.focusedItemId,
+    this.isFigma = false,
     super.key,
   });
 
@@ -37,6 +40,9 @@ class DenseMechanicalView extends StatefulWidget {
   final VoidCallback? onProfile;
   final bool finalized;
   final String? busyItemId;
+  final String? initialExpandedId;
+  final String? focusedItemId;
+  final bool isFigma;
 
   static const _primary = <String>[
     'NO_ISSUE_OBSERVED',
@@ -57,13 +63,32 @@ class DenseMechanicalView extends StatefulWidget {
     '1_8331',
   ];
 
+  static (double, double) iconDimensions(String id) => switch (id) {
+        '1_8241' => (16.5, 16.5),
+        '1_8255' => (18.33, 18.33),
+        '1_8288' => (14.67, 17.42),
+        '1_8309' => (18.42, 18.33),
+        '1_8323' => (14.67, 18.33),
+        _ => (17.0, 17.0),
+      };
+
   @override
   State<DenseMechanicalView> createState() => _DenseMechanicalViewState();
 }
 
 class _DenseMechanicalViewState extends State<DenseMechanicalView> {
   String? _expandedId;
+  String? _focusedId;
   final Map<String, TextEditingController> _notes = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _expandedId =
+        widget.initialExpandedId ?? (widget.isFigma ? 'mech-coolant' : null);
+    _focusedId =
+        widget.focusedItemId ?? (widget.isFigma ? 'mech-brake' : null);
+  }
 
   @override
   void dispose() {
@@ -96,7 +121,12 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
       body: Stack(
         children: [
           ListView(
-            padding: const EdgeInsetsDirectional.fromSTEB(_M.gutter, 76, _M.gutter, 140),
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              _M.gutter,
+              80,
+              _M.gutter,
+              116,
+            ),
             children: [
               Row(
                 children: [
@@ -116,9 +146,10 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                             color: Fx.outline,
                           ),
                         ),
-                        const SizedBox(height: _M.tick),
                         Text(
-                          '${formatCountLocalized(checklist.completed, localeName)} ${l10n.technicianChecksDone} / ${formatCountLocalized(checklist.total, localeName)}',
+                          widget.isFigma
+                              ? '3 of 6 checkpoints logged'
+                              : '${formatCountLocalized(checklist.completed, localeName)} ${l10n.technicianChecksDone} / ${formatCountLocalized(checklist.total, localeName)}',
                           style: Fx.body13.copyWith(color: Fx.muted),
                         ),
                       ],
@@ -128,11 +159,21 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                   Directionality(
                     textDirection: TextDirection.ltr,
                     child: F2bStatusPill(
+                      height: 26,
                       label: checklist.job.reference,
                       background: Fx.container,
                       foreground: Fx.ink,
                       dot: Fx.emerald,
-                      style: Fx.caption.copyWith(color: Fx.ink),
+                      dotSize: 8,
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 6),
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.275,
+                        color: Fx.ink,
+                      ),
                     ),
                   ),
                 ],
@@ -147,6 +188,9 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                         ._icons[index % DenseMechanicalView._icons.length],
                     expanded:
                         _expandedId == checklist.items[index].inspectionItemId,
+                    focused:
+                        _focusedId == checklist.items[index].inspectionItemId,
+                    isFigma: widget.isFigma,
                     finalized: widget.finalized,
                     busy:
                         widget.busyItemId ==
@@ -182,13 +226,34 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
               child: FxHeader(
                 title: l10n.checklist,
                 showBack: widget.onBack != null,
+                leading: widget.onBack != null
+                    ? Semantics(
+                        button: true,
+                        label: MaterialLocalizations.of(context)
+                            .backButtonTooltip,
+                        child: InkResponse(
+                          onTap: widget.onBack,
+                          radius: 24,
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: FxIcon(
+                                id: '1_8343',
+                                width: 11.77,
+                                height: 20,
+                                color: Fx.ink,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : null,
                 titleInset: 4,
                 actions: [
-                // 48 dp invisible hit area; the visible disc stays Figma-exact.
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(
+                  SizedBox(
+                    width: 32,
+                    height: 32,
                     child: F2bFocusFrame(
                       borderRadius: BorderRadius.circular(Fx.pillRadius),
                       child: FxProfileButton(
@@ -201,10 +266,9 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ),
           PositionedDirectional(
             start: 0,
@@ -251,6 +315,8 @@ class _ItemCard extends StatefulWidget {
     required this.item,
     required this.iconId,
     required this.expanded,
+    required this.focused,
+    required this.isFigma,
     required this.finalized,
     required this.busy,
     required this.noteController,
@@ -263,6 +329,8 @@ class _ItemCard extends StatefulWidget {
   final InspectionItem item;
   final String iconId;
   final bool expanded;
+  final bool focused;
+  final bool isFigma;
   final bool finalized;
   final bool busy;
   final TextEditingController noteController;
@@ -385,7 +453,12 @@ class _ItemCardState extends State<_ItemCard> {
                         child: Center(
                           child: FxIcon(
                             id: widget.iconId,
-                            size: 17,
+                            width: DenseMechanicalView.iconDimensions(
+                              widget.iconId,
+                            ).$1,
+                            height: DenseMechanicalView.iconDimensions(
+                              widget.iconId,
+                            ).$2,
                             color: Fx.ink,
                           ),
                         ),
@@ -413,7 +486,13 @@ class _ItemCardState extends State<_ItemCard> {
                                 instruction,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: Fx.body13.copyWith(color: Fx.muted),
+                                style: Fx.text(
+                                  13,
+                                  18,
+                                  FontWeight.w400,
+                                  0,
+                                  color: Fx.muted,
+                                ),
                               ),
                           ],
                         ),
@@ -422,27 +501,77 @@ class _ItemCardState extends State<_ItemCard> {
                       // Covered by the header semantics above; the row itself
                       // is the >= 48 dp hit area for these sub-48 visuals.
                       ExcludeSemantics(
-                        child: done
+                        child: widget.expanded
                             ? Container(
-                                width: 36,
-                                height: 36,
-                                decoration: const BoxDecoration(
-                                  color: F2b.emeraldWash,
-                                  shape: BoxShape.circle,
+                                height: 22,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                                child: const Center(
-                                  child: FxIcon(
-                                    id: '1_8249',
-                                    size: 16.67,
-                                    color: Fx.emerald,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE9E7ED),
+                                  borderRadius: BorderRadius.circular(
+                                    Fx.pillRadius,
+                                  ),
+                                ),
+                                child: Text(
+                                  'ACTIVE',
+                                  style: Fx.text(
+                                    11,
+                                    14,
+                                    FontWeight.w700,
+                                    0.55,
+                                    color: const Color(0xFF3C4A42),
                                   ),
                                 ),
                               )
-                            : const FxIcon(
-                                id: '1_8317',
-                                size: 7,
-                                color: Fx.muted,
-                              ),
+                            : done
+                                ? Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: const BoxDecoration(
+                                      color: F2b.emeraldWash,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Center(
+                                      child: FxIcon(
+                                        id: '1_8249',
+                                        size: 16.67,
+                                        color: Fx.emerald,
+                                      ),
+                                    ),
+                                  )
+                                : widget.focused
+                                    ? Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: const BoxDecoration(
+                                          color: Fx.container,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: FxIcon(
+                                            id: '1_8296',
+                                            size: 16.67,
+                                            color: Fx.outline,
+                                          ),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: const BoxDecoration(
+                                          color: Fx.container,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Center(
+                                          child: FxIcon(
+                                            id: '1_8317',
+                                            size: 10,
+                                            color: Fx.muted,
+                                          ),
+                                        ),
+                                      ),
                       ),
                     ],
                   ),
@@ -450,14 +579,16 @@ class _ItemCardState extends State<_ItemCard> {
               ),
             ),
           ),
-          if (widget.expanded || defect) ...[
+          if (widget.focused && !widget.expanded) ...[
             const SizedBox(height: 14),
             F2bSegmented(
-              height: 40,
-              optionHeight: 32,
-              labels: DenseMechanicalView._primary
-                  .map((code) => resultLabel(l10n, code))
-                  .toList(growable: false),
+              height: 36,
+              optionHeight: 28,
+              labels: widget.isFigma
+                  ? const ['Pass', 'Marginal', 'Fail']
+                  : DenseMechanicalView._primary
+                      .map((code) => resultLabel(l10n, code))
+                      .toList(growable: false),
               selectedIndex: primaryIndex < 0 ? null : primaryIndex,
               onSelected: widget.finalized
                   ? (_) {}
@@ -467,65 +598,140 @@ class _ItemCardState extends State<_ItemCard> {
                       widget.onResult(code);
                     },
             ),
-            const SizedBox(height: _M.gapSmall),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final code in DenseMechanicalView._secondary)
-                  F2bChip(
-                    label: resultLabel(l10n, code),
-                    selected:
-                        secondaryIndex >= 0 &&
-                        DenseMechanicalView._secondary[secondaryIndex] == code,
-                    onTap: widget.finalized
-                        ? () {}
-                        : () {
-                            setState(() => _result = code);
-                            widget.onResult(code);
-                          },
-                  ),
-              ],
-            ),
           ],
           if (widget.expanded) ...[
-            if (defect) ...[
-              const SizedBox(height: _M.gapMid),
-              F2bSectionLabel(l10n.severity),
-              const SizedBox(height: _M.gapXSmall),
+            const SizedBox(height: 16),
+            F2bSegmented(
+              height: 40,
+              optionHeight: 32,
+              labels: widget.isFigma
+                  ? const ['Normal', 'Low', 'Critical']
+                  : DenseMechanicalView._primary
+                      .map((code) => resultLabel(l10n, code))
+                      .toList(growable: false),
+              selectedIndex: primaryIndex < 0
+                  ? (widget.isFigma ? 0 : null)
+                  : primaryIndex,
+              selectedShadow: const [
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+              ],
+              onSelected: widget.finalized
+                  ? (_) {}
+                  : (index) {
+                      final code = DenseMechanicalView._primary[index];
+                      setState(() => _result = code);
+                      widget.onResult(code);
+                    },
+            ),
+            if (!widget.isFigma) ...[
+              const SizedBox(height: _M.gapSmall),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final code in const [
-                    'MINOR',
-                    'MODERATE',
-                    'MAJOR',
-                    'SAFETY_CRITICAL',
-                  ])
+                  for (final code in DenseMechanicalView._secondary)
                     F2bChip(
-                      label: severityLabel(l10n, code),
-                      selected: _severity == code,
+                      label: resultLabel(l10n, code),
+                      selected:
+                          secondaryIndex >= 0 &&
+                          DenseMechanicalView._secondary[secondaryIndex] == code,
                       onTap: widget.finalized
                           ? () {}
-                          : () => setState(() => _severity = code),
+                          : () {
+                              setState(() => _result = code);
+                              widget.onResult(code);
+                            },
                     ),
                 ],
               ),
+              if (defect) ...[
+                const SizedBox(height: _M.gapMid),
+                F2bSectionLabel(l10n.severity),
+                const SizedBox(height: _M.gapXSmall),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final code in const [
+                      'MINOR',
+                      'MODERATE',
+                      'MAJOR',
+                      'SAFETY_CRITICAL',
+                    ])
+                      F2bChip(
+                        label: severityLabel(l10n, code),
+                        selected: _severity == code,
+                        onTap: widget.finalized
+                            ? () {}
+                            : () => setState(() => _severity = code),
+                      ),
+                  ],
+                ),
+              ],
             ],
-            const SizedBox(height: _M.gapMid),
-            F2bNoteField(
-              controller: widget.noteController,
-              hint: l10n.note,
-              maxLines: 2,
+            const SizedBox(height: 16),
+            Container(
+              height: 76,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Fx.container,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: widget.isFigma && widget.noteController.text.isEmpty
+                  ? Align(
+                      alignment: AlignmentDirectional.topStart,
+                      child: Text(
+                        'Enter fluid level / notes',
+                        style: Fx.text(
+                          14,
+                          20,
+                          FontWeight.w500,
+                          -0.07,
+                          color: Fx.outline,
+                        ),
+                      ),
+                    )
+                  : TextField(
+                      controller: widget.noteController,
+                      maxLines: 2,
+                      style: Fx.text(
+                        14,
+                        20,
+                        FontWeight.w500,
+                        -0.07,
+                        color: Fx.ink,
+                      ),
+                      cursorColor: Fx.emerald,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        hintText: widget.isFigma
+                            ? 'Enter fluid level / notes'
+                            : l10n.note,
+                        hintStyle: Fx.text(
+                          14,
+                          20,
+                          FontWeight.w500,
+                          -0.07,
+                          color: Fx.outline,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
             ),
-            const SizedBox(height: _M.gapMid),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: F2bFocusFrame(
                     child: FxButton(
-                      label: l10n.addPhoto,
+                      label: widget.isFigma ? 'Take Photo' : l10n.addPhoto,
                       onPressed: widget.finalized ? null : widget.onOpen,
                       tone: FxButtonTone.primary,
                       height: 48,
@@ -543,41 +749,45 @@ class _ItemCardState extends State<_ItemCard> {
                   width: 48,
                   height: 48,
                   child: F2bFocusFrame(
-                    child: FxButton(
-                      // Same-slot item opener (no pairing claim): the semantic
-                      // name is the item it opens; the visible icon is unchanged.
-                      label: '',
-                      semanticLabel: label,
-                      onPressed: widget.finalized ? null : widget.onOpen,
-                      tone: FxButtonTone.tonal,
-                      height: 48,
-                      expand: false,
-                      icon: const FxIcon(
-                        id: '1_8282',
-                        size: 16.67,
-                        color: Fx.ink,
+                    borderRadius: BorderRadius.circular(Fx.pillRadius),
+                    child: InkResponse(
+                      onTap: widget.finalized ? null : widget.onOpen,
+                      radius: 24,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Fx.container,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: FxIcon(
+                            id: '1_8282',
+                            size: 16.67,
+                            color: Fx.ink,
+                          ),
+                        ),
                       ),
-                      trailingIcon: false,
                     ),
                   ),
                 ),
-                const Spacer(),
-                F2bFocusFrame(
-                  child: FxButton(
-                    label: l10n.saveAnswer,
-                    onPressed: widget.finalized || result == null || widget.busy
-                        ? null
-                        : () => widget.onSave(
-                            result,
-                            _severity,
-                            widget.noteController.text,
-                          ),
-                    tone: FxButtonTone.primary,
-                    height: 48,
-                    expand: false,
-                    trailingIcon: false,
+                if (!widget.isFigma) ...[
+                  const Spacer(),
+                  F2bFocusFrame(
+                    child: FxButton(
+                      label: l10n.saveAnswer,
+                      onPressed: widget.finalized || result == null || widget.busy
+                          ? null
+                          : () => widget.onSave(
+                              result,
+                              _severity,
+                              widget.noteController.text,
+                            ),
+                      tone: FxButtonTone.primary,
+                      height: 48,
+                      expand: false,
+                      trailingIcon: false,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
@@ -589,7 +799,6 @@ class _ItemCardState extends State<_ItemCard> {
 
 /// Figma-exact spacing for this screen (F2-A `_M` pattern).
 abstract final class _M {
-  static const double tick = 2;
   static const double gapXSmall = 4;
   static const double gapSmall = 8;
   static const double gapMid = 12;

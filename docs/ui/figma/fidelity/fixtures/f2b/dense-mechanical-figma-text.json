@@ -16,13 +16,13 @@
   "output": "docs/ui/figma/fidelity/f2b/dense-mechanical/figma-text",
   "expectedStrings": [
     "INSPECTION ZONE 04",
-    "3 checks done / 6",
-    "JOB-5A0001",
+    "3 of 6 checkpoints logged",
+    "Live Bay #2",
     "Engine Oil Level",
-    "Dipstick at optimal line.",
+    "Dipstick at optimal line • 5W-30\nsynthetic",
     "Brake Fluid Level",
     "Diagnostic Checklist",
-    "Review & Finalize"
+    "Confirm Fluid Levels"
   ],
   "keyBoxes": [
     {
@@ -35,9 +35,9 @@
     {
       "key": "card",
       "x": 20,
-      "y": 132,
+      "y": 134,
       "width": 350,
-      "height": 88
+      "height": 100
     },
     {
       "key": "cta",

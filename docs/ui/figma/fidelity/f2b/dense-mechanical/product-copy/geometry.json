@@ -1,0 +1,28 @@
+{
+  "sample": "dense-mechanical-product-copy",
+  "logicalSize": {
+    "width": 390,
+    "height": 1080.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "header": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 390.0,
+      "height": 64.0
+    },
+    "card": {
+      "x": 20.0,
+      "y": 134.0,
+      "width": 350.0,
+      "height": 88.0
+    },
+    "cta": {
+      "x": 20.0,
+      "y": 1004.0,
+      "width": 350.0,
+      "height": 56.0
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "sample": "dense-mechanical-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "EXTERIOR",
+    "17 checks done / 40",
+    "JOB-2601",
+    "Exterior check 1",
+    "Inspect the item.",
+    "Exterior check 2",
+    "Inspect the item.",
+    "Exterior check 3",
+    "Inspect the item.",
+    "Exterior check 4",
+    "Inspect the item.",
+    "Exterior check 5",
+    "Inspect the item.",
+    "Exterior check 6",
+    "Inspect the item.",
+    "Exterior check 7",
+    "Inspect the item.",
+    "Exterior check 8",
+    "Inspect the item.",
+    "Exterior check 9",
+    "Inspect the item.",
+    "Checklist",
+    "Review and finalize"
+  ]
+}

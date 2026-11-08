@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:design_system/src/fonts.dart';
@@ -121,6 +122,21 @@ abstract final class Fx {
     BoxShadow(color: Color(0x0F000000), blurRadius: 2, offset: Offset(0, 1)),
   ];
 
+  static const buttonSubtleShadow = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x1A000000),
+      offset: Offset(0, 2),
+      blurRadius: 4,
+      spreadRadius: -2,
+    ),
+    BoxShadow(
+      color: Color(0x1A000000),
+      offset: Offset(0, 4),
+      blurRadius: 6,
+      spreadRadius: -1,
+    ),
+  ];
+
   static const ctaShadow = <BoxShadow>[
     BoxShadow(color: Color(0x4D10B981), blurRadius: 25, offset: Offset(0, 10)),
   ];
@@ -173,44 +189,61 @@ abstract final class FxSvgCache {
 class FxIcon extends StatelessWidget {
   const FxIcon({
     required this.id,
-    required this.size,
+    this.size,
+    this.width,
+    this.height,
     this.color,
     this.fallback,
     super.key,
-  });
+  }) : assert(size != null || (width != null && height != null));
 
   final String id;
-  final double size;
+  final double? size;
+  final double? width;
+  final double? height;
   final Color? color;
   final IconData? fallback;
 
+  double get effectiveWidth => width ?? size!;
+  double get effectiveHeight => height ?? size!;
+
   @override
   Widget build(BuildContext context) {
+    final w = effectiveWidth;
+    final h = effectiveHeight;
     final cached = FxSvgCache.get(id);
+    final assetName = id.startsWith('Icon-') ||
+            id.startsWith('Vector-') ||
+            id.startsWith('SVG-') ||
+            id.startsWith('Group-') ||
+            id.startsWith('annotation-') ||
+            id.startsWith('Minimalist_')
+        ? id
+        : 'Icon-$id';
     final icon = cached != null
         ? SvgPicture.string(
             cached,
-            width: size,
-            height: size,
+            width: w,
+            height: h,
             fit: BoxFit.contain,
             colorFilter: color == null
                 ? null
                 : ColorFilter.mode(color!, BlendMode.srcIn),
           )
         : SvgPicture.asset(
-            'assets/icons/figma/Icon-$id.svg',
+            'assets/icons/figma/$assetName.svg',
             package: 'design_system',
-            width: size,
-            height: size,
+            width: w,
+            height: h,
             fit: BoxFit.contain,
             colorFilter: color == null
                 ? null
                 : ColorFilter.mode(color!, BlendMode.srcIn),
             placeholderBuilder: (_) => fallback == null
-                ? SizedBox.square(dimension: size)
-                : Icon(fallback, size: size, color: color),
+                ? SizedBox(width: w, height: h)
+                : Icon(fallback, size: math.max(w, h), color: color),
           );
-    return SizedBox.square(dimension: size, child: icon);
+    return SizedBox(width: w, height: h, child: icon);
   }
 }
 
@@ -277,6 +310,8 @@ class FxButton extends StatelessWidget {
     this.height = 56,
     this.trailingIcon = true,
     this.semanticLabel,
+    this.shadows,
+    this.labelStyle,
     super.key,
   });
 
@@ -288,10 +323,12 @@ class FxButton extends StatelessWidget {
   final double height;
   final bool trailingIcon;
   final String? semanticLabel;
+  final List<BoxShadow>? shadows;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
-    final (background, foreground, shadows, border) = switch (tone) {
+    final (background, foreground, defaultShadows, border) = switch (tone) {
       FxButtonTone.primary => (Fx.emerald, Fx.white, Fx.ctaShadow, null),
       FxButtonTone.tonal => (Fx.container, Fx.ink, Fx.pillShadow, null),
       FxButtonTone.white => (Fx.white, Fx.ink, Fx.pillShadow, null),
@@ -302,6 +339,7 @@ class FxButton extends StatelessWidget {
         null,
       ),
     };
+    final effectiveShadows = shadows ?? defaultShadows;
     final content = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -313,7 +351,7 @@ class FxButton extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: Fx.label14.copyWith(color: foreground),
+            style: (labelStyle ?? Fx.label14).copyWith(color: foreground),
           ),
         ),
         if (icon != null && trailingIcon) ...[const SizedBox(width: 8), icon!],
@@ -328,7 +366,7 @@ class FxButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(999),
-        boxShadow: shadows,
+        boxShadow: effectiveShadows,
         border: border == null ? null : Border.all(color: border),
       ),
       child: Material(
@@ -460,6 +498,9 @@ class FxTextField extends StatelessWidget {
     this.height = 48,
     this.ltr = false,
     this.enabled = true,
+    this.iconWidth,
+    this.iconHeight,
+    this.iconGap = 12,
     super.key,
   });
 
@@ -479,6 +520,9 @@ class FxTextField extends StatelessWidget {
   final double height;
   final bool ltr;
   final bool enabled;
+  final double? iconWidth;
+  final double? iconHeight;
+  final double iconGap;
 
   @override
   Widget build(BuildContext context) {
@@ -496,8 +540,13 @@ class FxTextField extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            FxIcon(id: iconId, size: 17, color: Fx.outline),
-            const SizedBox(width: 12),
+            FxIcon(
+              id: iconId,
+              width: iconWidth ?? 17,
+              height: iconHeight ?? 17,
+              color: Fx.outline,
+            ),
+            SizedBox(width: iconGap),
             Expanded(
               child: ExcludeSemantics(
                 child: TextFormField(
@@ -533,7 +582,7 @@ class FxTextField extends StatelessWidget {
                 ),
               ),
             ),
-            if (suffix != null) ...[const SizedBox(width: 8), suffix!],
+            ?suffix,
           ],
         ),
       ),
@@ -642,8 +691,10 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.titleStyle,
     this.horizontalPadding = 16,
+    this.endPadding,
     this.titleInset = 0,
     this.headerKey,
+    this.primary = true,
     super.key,
   });
 
@@ -653,8 +704,10 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final TextStyle? titleStyle;
   final double horizontalPadding;
+  final double? endPadding;
   final double titleInset;
   final Key? headerKey;
+  final bool primary;
 
   static const double height = 64;
 
@@ -663,64 +716,65 @@ class FxHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = primary ? MediaQuery.paddingOf(context).top : 0.0;
     return Container(
       key: headerKey,
-      height: height,
+      height: height + topPadding,
       decoration: const BoxDecoration(
-        color: Fx.whiteCC,
+        color: Fx.white,
         boxShadow: Fx.headerShadow,
       ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 48, sigmaY: 48),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: Row(
-              children: [
-                if (showBack || leading != null) ...[
-                  leading ??
-                      Semantics(
-                        button: true,
-                        label: MaterialLocalizations.of(context)
-                            .backButtonTooltip,
-                        child: InkResponse(
-                          onTap: () => Navigator.of(context).maybePop(),
-                          radius: 24,
-                          child: const SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Center(
-                              child: Icon(
-                                Icons.arrow_back_ios_new,
-                                size: 20,
-                                color: Fx.ink,
-                              ),
-                            ),
+      padding: EdgeInsetsDirectional.only(
+        top: topPadding,
+        start: horizontalPadding,
+        end: endPadding ?? horizontalPadding,
+      ),
+      child: SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            if (showBack || leading != null) ...[
+              leading ??
+                  Semantics(
+                    button: true,
+                    label: MaterialLocalizations.of(context)
+                        .backButtonTooltip,
+                    child: InkResponse(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      radius: 24,
+                      child: const SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Center(
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 20,
+                            color: Fx.ink,
                           ),
-                        ),
-                      ),
-                  const SizedBox(width: 4),
-                ],
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(start: titleInset),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: (titleStyle ?? Fx.heading18).copyWith(
-                          color: Fx.ink,
                         ),
                       ),
                     ),
                   ),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(start: titleInset),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: (titleStyle ?? Fx.heading18).copyWith(
+                      color: Fx.ink,
+                    ),
+                  ),
                 ),
-                ...actions,
-              ],
+              ),
             ),
-          ),
+            ...actions,
+          ],
         ),
       ),
     );
@@ -829,12 +883,12 @@ class FxAvatar extends StatelessWidget {
             ? Container(
                 width: size,
                 height: size,
-                decoration: BoxDecoration(
-                  color: Fx.emerald.withValues(alpha: 0.15),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFDBF5EC),
                   shape: BoxShape.circle,
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: Color(0x2610B981),
+                      color: Color(0x2E10B981),
                       blurRadius: 16,
                       offset: Offset(0, 4),
                     ),
@@ -874,11 +928,15 @@ class FxDockItem {
     required this.label,
     required this.iconId,
     required this.semanticLabel,
+    this.iconWidth,
+    this.iconHeight,
   });
 
   final String label;
   final String iconId;
   final String semanticLabel;
+  final double? iconWidth;
+  final double? iconHeight;
 }
 
 class FxDock extends StatelessWidget {
@@ -901,70 +959,93 @@ class FxDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[];
-    for (var i = 0; i < items.length; i++) {
-      if (i > 0) {
-        children.add(SizedBox(width: gap));
-      }
+    Widget buildSlot(int i) {
       final selected = i == selectedIndex;
-      children.add(
-        Semantics(
-          button: true,
-          selected: selected,
-          label: items[i].semanticLabel,
-          child: InkResponse(
-            onTap: onSelected == null ? null : () => onSelected!(i),
-            radius: slotWidth / 2,
-            child: SizedBox(
-              width: slotWidth,
-              height: 44,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FxIcon(
-                      id: items[i].iconId,
-                      size: 20,
-                      color: selected ? Fx.ink : Fx.muted,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      items[i].label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: Fx.caption.copyWith(
+      return Semantics(
+        button: true,
+        selected: selected,
+        label: items[i].semanticLabel,
+        child: InkResponse(
+          onTap: onSelected == null ? null : () => onSelected!(i),
+          radius: 28,
+          child: SizedBox(
+            width: slotWidth,
+            height: 44,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 20,
+                    child: Center(
+                      child: FxIcon(
+                        id: items[i].iconId,
+                        width: items[i].iconWidth,
+                        height: items[i].iconHeight,
+                        size: items[i].iconWidth == null ? 20 : null,
                         color: selected ? Fx.ink : Fx.muted,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    items[i].label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Fx.caption.copyWith(
+                      color: selected ? Fx.ink : Fx.muted,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       );
     }
+
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 16 + bottomInset),
       child: Container(
         key: dockKey ?? const Key('f2a1-dock-container'),
         height: 64,
-        decoration: BoxDecoration(
-          color: Fx.white.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(999),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(999)),
           boxShadow: Fx.navShadow,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: const BorderRadius.all(Radius.circular(999)),
           child: BackdropFilter(
             filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: children,
+            child: Container(
+              color: Fx.white.withValues(alpha: 0.95),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final availableWidth = constraints.maxWidth;
+                  final isReferenceWidth = (availableWidth - 350.0).abs() < 1.0;
+                  final double sidePadding;
+                  if (isReferenceWidth) {
+                    sidePadding = 27.75;
+                  } else {
+                    final totalItemWidth = items.length * slotWidth;
+                    final freeSpace = (availableWidth - totalItemWidth).clamp(0.0, double.infinity);
+                    final effectiveGap = (freeSpace / (items.length + 0.405)).clamp(12.0, 64.0);
+                    sidePadding = math.max(8.0, (freeSpace - (items.length - 1) * effectiveGap) / 2);
+                  }
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: sidePadding),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        for (var i = 0; i < items.length; i++)
+                          buildSlot(i),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -1049,6 +1130,7 @@ class FxCoverageRing extends StatelessWidget {
     this.strokeWidth = 13.2,
     this.semanticLabel,
     this.label,
+    this.progressFraction,
     super.key,
   });
 
@@ -1058,10 +1140,11 @@ class FxCoverageRing extends StatelessWidget {
   final double strokeWidth;
   final String? semanticLabel;
   final String? label;
+  final double? progressFraction;
 
   @override
   Widget build(BuildContext context) {
-    final fraction = total <= 0 ? 0.0 : (done / total).clamp(0.0, 1.0);
+    final fraction = progressFraction ?? (total <= 0 ? 0.0 : (done / total).clamp(0.0, 1.0));
     return Semantics(
       label: semanticLabel,
       value: '$done / $total',
@@ -1090,7 +1173,7 @@ class FxCoverageRing extends StatelessWidget {
                     Text(
                       '$done',
                       textDirection: TextDirection.ltr,
-                      style: Fx.display26.copyWith(color: Fx.ink, height: 1),
+                      style: Fx.display26.copyWith(color: Fx.ink),
                     ),
                     Text(
                       '/$total',
@@ -1100,7 +1183,7 @@ class FxCoverageRing extends StatelessWidget {
                   ],
                 ),
                 if (label != null) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 2.5),
                   Text(
                     label!,
                     textAlign: TextAlign.center,
@@ -1132,7 +1215,7 @@ class _FxRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = (size.shortestSide - strokeWidth) / 2;
+    const radius = 72.6;
     final track = Paint()
       ..color = Fx.surfaceHigh
       ..style = PaintingStyle.stroke
@@ -1164,6 +1247,8 @@ class FxIconTile extends StatelessWidget {
     required this.iconId,
     this.size = 40,
     this.iconSize = 18,
+    this.iconWidth,
+    this.iconHeight,
     this.background = Fx.container,
     this.color = Fx.ink,
     this.circle = true,
@@ -1174,6 +1259,8 @@ class FxIconTile extends StatelessWidget {
   final String iconId;
   final double size;
   final double iconSize;
+  final double? iconWidth;
+  final double? iconHeight;
   final Color background;
   final Color color;
   final bool circle;
@@ -1190,7 +1277,13 @@ class FxIconTile extends StatelessWidget {
         shape: circle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: circle ? null : BorderRadius.circular(radius),
       ),
-      child: FxIcon(id: iconId, size: iconSize, color: color),
+      child: FxIcon(
+        id: iconId,
+        size: iconWidth == null ? iconSize : null,
+        width: iconWidth,
+        height: iconHeight,
+        color: color,
+      ),
     );
   }
 }

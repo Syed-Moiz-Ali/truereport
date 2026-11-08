@@ -10,6 +10,7 @@ import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 
 import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';
+import 'support/f2a_test_images.dart';
 import 'support/f2b_views.dart';
 
 /// F2-B fidelity capture (mirrors `f2a_fidelity_capture_test.dart`).
@@ -79,11 +80,25 @@ Map<String, Finder> _boxFinders(String id) {
         'segmented': find.byType(F2bSegmented).first,
         'save': find.byType(FxButton).last,
       };
+    case 'photo-annotation':
+      return {
+        'card': find.byKey(const ValueKey('photo-annotation-card')),
+        'tools': find.byKey(const ValueKey('photo-annotation-tools')),
+        'draw': find.byKey(const ValueKey('photo-annotation-draw')),
+        'save': find.byType(FxButton),
+      };
     case 'dense-mechanical':
       return {
         'header': find.byType(FxHeader),
         'card': find.byType(FxCard).first,
         'cta': find.byType(FxButton).last,
+      };
+    case 'tire-condition':
+      return {
+        'header': find.byType(FxHeader),
+        'chassisCard': find.byKey(const ValueKey('chassis-card')),
+        'detailCard': find.byKey(const ValueKey('detail-card')),
+        'saveButton': find.byKey(const ValueKey('save-button')),
       };
     case 'final-review':
       return {
@@ -122,6 +137,23 @@ Future<void> _render(
   assertFidelityShadows();
   const dpr = 2.0;
   final height = f2bHeights[id]!;
+  final root = repoRoot();
+  ui.Image? wireframe;
+  ui.Image? evidence;
+  if (id == 'defect-detail' && variant.figma) {
+    final wireframePath =
+        '${root.path}/docs/ui/figma-export/technision_figma/screens/09_9._Defect_Detail_&_Evidence/assets/composed/png/Blur-1_8036@2x.png';
+    final evidencePath =
+        '${root.path}/docs/ui/figma-export/technision_figma/screens/09_9._Defect_Detail_&_Evidence/assets/images/rendered_png/AB6AXuClXyUAQtLTkS7GotDu0YwpZvc-mLvq2FI2ng933ExC4Uq4qbafLdUeOK0C434imw-CoHDYH2ZRbZY5uYmsPeWxH5U4_PyY-1_8104@2x.png';
+    wireframe = await tester.runAsync(() => loadFigmaTestImage(wireframePath));
+    evidence = await tester.runAsync(() => loadFigmaTestImage(evidencePath));
+  }
+  if (id == 'photo-annotation' && variant.figma) {
+    final photoPath =
+        '${root.path}/docs/ui/figma-export/technision_figma/screens/10_10._Photo_Annotation_&_Markup/assets/images/rendered_png/AB6AXuD3XXJzF6MEUCcBeU_H4M_jmvT2FUGx-Ol0A3FvS-e95O1kqrVyGqFqUlheLIpPRAcDv-D5elTQrPUpnkI1q0U1nrldpvf8-1_8151@2x.png';
+    evidence = await tester.runAsync(() => loadFigmaTestImage(photoPath));
+  }
+
   tester.view.physicalSize = Size(390 * dpr, height * dpr);
   tester.view.devicePixelRatio = dpr;
   addTearDown(() {
@@ -142,7 +174,12 @@ Future<void> _render(
             color: AppTheme.light.colorScheme.surface,
             child: Material(
               type: MaterialType.transparency,
-              child: f2bScreen(id, figma: variant.figma),
+              child: f2bScreen(
+                id,
+                figma: variant.figma,
+                wireframeImage: wireframe,
+                evidenceImage: evidence,
+              ),
             ),
           ),
         ),

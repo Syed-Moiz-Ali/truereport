@@ -8,11 +8,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
 
+/// Notifies GoRouter to re-run `redirect` when auth state changes.
+///
+/// The router instance itself is created ONCE. Recreating GoRouter on every
+/// auth change (via `ref.watch`) disposes the current page, which wiped the
+/// sign-in form text and swallowed the error message on failed logins.
+class _AuthRefresh extends ChangeNotifier {
+  _AuthRefresh(Ref ref) {
+    ref.listen(authControllerProvider, (_, _) => notifyListeners());
+  }
+}
+
 final adminRouterProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authControllerProvider);
+  final refresh = _AuthRefresh(ref);
+  ref.onDispose(refresh.dispose);
   return GoRouter(
     initialLocation: '/signin',
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final auth = ref.read(authControllerProvider);
       if (auth.isLoading) {
         return null;
       }

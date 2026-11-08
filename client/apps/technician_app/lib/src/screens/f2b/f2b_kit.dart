@@ -44,38 +44,48 @@ class F2bSectionLabel extends StatelessWidget {
 class F2bStatusPill extends StatelessWidget {
   const F2bStatusPill({
     required this.label,
+    this.height = 22,
     this.background = Fx.container,
     this.foreground = Fx.muted,
     this.dot,
     this.style,
+    this.padding,
+    this.dotSize = 6,
+    this.shadow,
     super.key,
   });
 
   final String label;
+  final double height;
   final Color background;
   final Color foreground;
   final Color? dot;
   final TextStyle? style;
+  final EdgeInsetsDirectional? padding;
+  final double dotSize;
+  final List<BoxShadow>? shadow;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 22,
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 10,
-        vertical: 4,
-      ),
+      height: height,
+      padding: padding ??
+          const EdgeInsetsDirectional.symmetric(
+            horizontal: 10,
+            vertical: 4,
+          ),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(Fx.pillRadius),
+        boxShadow: shadow,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (dot != null) ...[
             Container(
-              width: 6,
-              height: 6,
+              width: dotSize,
+              height: dotSize,
               decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
@@ -240,7 +250,13 @@ class F2bSegmented extends StatelessWidget {
     required this.onSelected,
     this.height = 52,
     this.optionHeight = 40,
+    this.padding,
+    this.spacing,
     this.semanticLabels,
+    this.selectedColor,
+    this.selectedShadow,
+    this.selectedTextStyle,
+    this.unselectedTextStyle,
     super.key,
   });
 
@@ -249,13 +265,22 @@ class F2bSegmented extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final double height;
   final double optionHeight;
+  final EdgeInsetsGeometry? padding;
+  final double? spacing;
   final List<String>? semanticLabels;
+  final Color? selectedColor;
+  final List<BoxShadow>? selectedShadow;
+  final TextStyle? selectedTextStyle;
+  final TextStyle? unselectedTextStyle;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveSpacing = spacing ?? (height >= 50 ? 6.0 : 0.0);
+    final effectivePadding =
+        padding ?? EdgeInsets.all((height - optionHeight) / 2);
     return Container(
       height: height,
-      padding: const EdgeInsets.all(6),
+      padding: effectivePadding,
       decoration: BoxDecoration(
         color: Fx.container,
         borderRadius: BorderRadius.circular(Fx.pillRadius),
@@ -263,7 +288,8 @@ class F2bSegmented extends StatelessWidget {
       child: Row(
         children: [
           for (var index = 0; index < labels.length; index++) ...[
-            if (index > 0) const SizedBox(width: 6),
+            if (index > 0 && effectiveSpacing > 0)
+              SizedBox(width: effectiveSpacing),
             Expanded(
               child: _SegmentOption(
                 label: labels[index],
@@ -272,6 +298,10 @@ class F2bSegmented extends StatelessWidget {
                     : semanticLabels![index],
                 selected: selectedIndex == index,
                 height: optionHeight,
+                selectedColor: selectedColor,
+                selectedShadow: selectedShadow,
+                selectedTextStyle: selectedTextStyle,
+                unselectedTextStyle: unselectedTextStyle,
                 onSelected: () => onSelected(index),
               ),
             ),
@@ -289,6 +319,10 @@ class _SegmentOption extends StatefulWidget {
     required this.selected,
     required this.height,
     required this.onSelected,
+    this.selectedColor,
+    this.selectedShadow,
+    this.selectedTextStyle,
+    this.unselectedTextStyle,
   });
 
   final String label;
@@ -296,6 +330,10 @@ class _SegmentOption extends StatefulWidget {
   final bool selected;
   final double height;
   final VoidCallback onSelected;
+  final Color? selectedColor;
+  final List<BoxShadow>? selectedShadow;
+  final TextStyle? selectedTextStyle;
+  final TextStyle? unselectedTextStyle;
 
   @override
   State<_SegmentOption> createState() => _SegmentOptionState();
@@ -354,9 +392,10 @@ class _SegmentOptionState extends State<_SegmentOption> {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: widget.selected
-                    ? Fx.surfaceHigh
+                    ? (widget.selectedColor ?? Fx.surfaceHigh)
                     : Fx.transparent,
                 borderRadius: BorderRadius.circular(Fx.pillRadius),
+                boxShadow: widget.selected ? widget.selectedShadow : null,
                 border: _focused
                     ? Border.all(color: Fx.deepGreen, width: 2)
                     : null,
@@ -366,13 +405,23 @@ class _SegmentOptionState extends State<_SegmentOption> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: Fx.text(
-                  12,
-                  16,
-                  widget.selected ? FontWeight.w700 : FontWeight.w600,
-                  0.24,
-                  color: widget.selected ? Fx.ink : Fx.muted,
-                ),
+                style: widget.selected
+                    ? (widget.selectedTextStyle ??
+                        Fx.text(
+                          12,
+                          16,
+                          FontWeight.w700,
+                          0.24,
+                          color: Fx.ink,
+                        ))
+                    : (widget.unselectedTextStyle ??
+                        Fx.text(
+                          12,
+                          16,
+                          FontWeight.w600,
+                          0.24,
+                          color: Fx.muted,
+                        )),
               ),
             ),
             if (expand > 0)
@@ -593,6 +642,8 @@ class F2bEvidenceTile extends StatefulWidget {
     this.image,
     this.onTap,
     this.busy = false,
+    this.decoration,
+    this.child,
     super.key,
   });
 
@@ -601,6 +652,8 @@ class F2bEvidenceTile extends StatefulWidget {
   final ImageProvider? image;
   final VoidCallback? onTap;
   final bool busy;
+  final Decoration? decoration;
+  final Widget? child;
 
   @override
   State<F2bEvidenceTile> createState() => _F2bEvidenceTileState();
@@ -654,22 +707,24 @@ class _F2bEvidenceTileState extends State<F2bEvidenceTile> {
           behavior: HitTestBehavior.opaque,
           child: Container(
             height: 167,
-            decoration: BoxDecoration(
-              color: filled ? Fx.container : Fx.white,
-              borderRadius: BorderRadius.circular(Fx.tileRadius),
-              boxShadow: Fx.cardShadow,
-              border: _focused
-                  ? Border.all(color: Fx.deepGreen, width: 2)
-                  : null,
-              image: widget.image == null
-                  ? null
-                  : DecorationImage(
-                      image: widget.image!,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            child: filled
-                ? Align(
+            decoration: widget.decoration ??
+                BoxDecoration(
+                  color: filled ? Fx.container : Fx.white,
+                  borderRadius: BorderRadius.circular(Fx.tileRadius),
+                  boxShadow: Fx.cardShadow,
+                  border: _focused
+                      ? Border.all(color: Fx.deepGreen, width: 2)
+                      : null,
+                  image: widget.image == null
+                      ? null
+                      : DecorationImage(
+                          image: widget.image!,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+            child: widget.child ??
+                (filled
+                    ? Align(
                     alignment: AlignmentDirectional.bottomStart,
                     child: Padding(
                       padding: const EdgeInsets.all(_M.gapSmall),
@@ -739,7 +794,7 @@ class _F2bEvidenceTileState extends State<F2bEvidenceTile> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
           ),
         ),
       ),

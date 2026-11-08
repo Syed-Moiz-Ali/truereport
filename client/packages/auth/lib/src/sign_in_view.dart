@@ -157,6 +157,9 @@ class _SignInViewState extends State<SignInView> {
                                 controller: widget.emailController,
                                 semanticLabel: l10n.emailLabel,
                                 iconId: '1_7094',
+                                iconWidth: 16.67,
+                                iconHeight: 13.33,
+                                iconGap: 12,
                                 hint: l10n.emailLabel,
                                 keyboardType: TextInputType.emailAddress,
                                 autofillHints: const [AutofillHints.email],
@@ -170,6 +173,9 @@ class _SignInViewState extends State<SignInView> {
                                 controller: widget.passwordController,
                                 semanticLabel: l10n.passwordLabel,
                                 iconId: '1_7101',
+                                iconWidth: 13.33,
+                                iconHeight: 17.5,
+                                iconGap: 12,
                                 hint: l10n.passwordLabel,
                                 obscure: _obscurePassword,
                                 autofillHints: const [AutofillHints.password],
@@ -247,9 +253,11 @@ class _SignInViewState extends State<SignInView> {
                                 onPressed: widget.submitting
                                     ? null
                                     : widget.onSubmit,
+                                shadows: Fx.buttonSubtleShadow,
                                 icon: const FxIcon(
                                   id: '1_7118',
-                                  size: 10.67,
+                                  width: 10.67,
+                                  height: 10.67,
                                   color: Fx.white,
                                 ),
                                 trailingIcon: true,
@@ -275,6 +283,7 @@ class _SignInViewState extends State<SignInView> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       SizedBox(
+                                        key: const Key('sign-in-access-prompt'),
                                         width: _M.accessPromptWidth,
                                         child: Text(
                                           l10n.technicianNeedTechnicianAccess,
@@ -302,11 +311,13 @@ class _SignInViewState extends State<SignInView> {
                                 ),
                                 const SizedBox(height: _M.securityTop),
                                 Row(
+                                  key: const Key('sign-in-security-line'),
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const FxIcon(
                                       id: '1_7128',
-                                      size: 8,
+                                      width: 8,
+                                      height: 10,
                                       color: Fx.outline,
                                     ),
                                     const SizedBox(width: 6),
@@ -359,15 +370,14 @@ class _Reveal extends StatelessWidget {
       child: GestureDetector(
         onTap: onPressed,
         behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: _M.revealHit,
-          height: _M.revealHit,
+        child: const SizedBox(
+          width: 24.5,
+          height: 19.25,
           child: Center(
-            child: Icon(
-              obscured
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              size: _M.revealIcon,
+            child: FxIcon(
+              id: '1_7107',
+              width: 16.5,
+              height: 11.25,
               color: Fx.outline,
             ),
           ),
@@ -446,6 +456,4 @@ abstract final class _M {
   static const double accessActionWidth = 64.94;
   static const double bottomPad = 202;
   static const double gapSm = 8;
-  static const double revealHit = 44;
-  static const double revealIcon = 18;
 }

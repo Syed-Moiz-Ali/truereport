@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:l10n/l10n.dart';
@@ -9,14 +11,18 @@ import 'package:technician_app/src/screens/f2b/dense_mechanical_view.dart';
 import 'package:technician_app/src/screens/f2b/final_review_view.dart';
 import 'package:technician_app/src/screens/f2b/finalize_view.dart';
 import 'package:technician_app/src/screens/f2b/offline_sync_view.dart';
+import 'package:technician_app/src/screens/f2b/photo_annotation_view.dart';
 import 'package:technician_app/src/screens/f2b/success_view.dart';
+import 'package:technician_app/src/screens/f2b/tire_condition_view.dart';
 
 import 'f2a_fixture_data.dart';
 import 'figma_l10n_override.dart';
 
 const f2bScreenIds = <String>[
   'defect-detail',
+  'photo-annotation',
   'dense-mechanical',
+  'tire-condition',
   'final-review',
   'finalize',
   'offline-sync',
@@ -25,8 +31,10 @@ const f2bScreenIds = <String>[
 
 /// Figma frame heights at 390 logical width (from docs/ui/figma/f2b-nodes).
 const f2bHeights = <String, double>{
-  'defect-detail': 1032,
+  'defect-detail': 1031.67,
+  'photo-annotation': 884,
   'dense-mechanical': 1080,
+  'tire-condition': 1085.5,
   'final-review': 1008,
   'finalize': 1232,
   'offline-sync': 1362,
@@ -77,6 +85,7 @@ abstract final class F2bFigmaStrings {
 
 class F2bFigmaTestLocalizations extends AppLocalizationsEn {
   F2bFigmaTestLocalizations() : super('en');
+  static String? activeScreenId;
 
   @override
   String get result => F2bFigmaStrings.inspectionStatus;
@@ -100,7 +109,9 @@ class F2bFigmaTestLocalizations extends AppLocalizationsEn {
   String get note => F2bFigmaStrings.defectNoteHint;
 
   @override
-  String get reviewAndFinalize => F2bFigmaStrings.reviewFinalizeTitle;
+  String get reviewAndFinalize => activeScreenId == 'dense-mechanical'
+      ? F2bFigmaStrings.confirmFluidLevels
+      : F2bFigmaStrings.reviewFinalizeTitle;
 
   @override
   String get finalize => F2bFigmaStrings.finalizeAction;
@@ -227,7 +238,6 @@ InspectionItem _f2bProductItem() => const InspectionItem(
 
 InspectionChecklist _f2bChecklist({required bool figma}) {
   if (figma) {
-    final base = figmaChecklist();
     final items = <InspectionItem>[
       const InspectionItem(
         inspectionItemId: 'mech-oil',
@@ -238,7 +248,7 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         categoryLabelAr: 'INSPECTION ZONE 04',
         labelEn: 'Engine Oil Level',
         labelAr: 'Engine Oil Level',
-        instructionEn: 'Dipstick at optimal line.',
+        instructionEn: 'Dipstick at optimal line • 5W-30\nsynthetic',
         instructionAr: 'مستوى الزيت.',
         versionNo: 1,
         resultOptions: [
@@ -277,7 +287,7 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         categoryLabelAr: 'INSPECTION ZONE 04',
         labelEn: 'Coolant',
         labelAr: 'Coolant',
-        instructionEn: 'Expansion reservoir inspection.',
+        instructionEn: 'Expansion reservoir\ninspection',
         instructionAr: 'فحص الخزان.',
         versionNo: 1,
         resultOptions: [
@@ -305,7 +315,7 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         categoryLabelAr: 'INSPECTION ZONE 04',
         labelEn: 'Brake Fluid Level',
         labelAr: 'Brake Fluid Level',
-        instructionEn: 'DOT 4 standard.',
+        instructionEn: 'DOT 4 standard • Reservoir visual',
         instructionAr: 'معيار DOT 4.',
         versionNo: 1,
         resultOptions: [
@@ -333,7 +343,7 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         categoryLabelAr: 'INSPECTION ZONE 04',
         labelEn: 'Transmission Fluid',
         labelAr: 'Transmission Fluid',
-        instructionEn: 'Sealed system.',
+        instructionEn: 'Sealed system • Check overflow\nvalve',
         instructionAr: 'نظام مغلق.',
         versionNo: 1,
         resultOptions: [
@@ -361,7 +371,7 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         categoryLabelAr: 'INSPECTION ZONE 04',
         labelEn: 'Washer Fluid',
         labelAr: 'Washer Fluid',
-        instructionEn: 'Topped to max line.',
+        instructionEn: 'Topped to max reservoir line',
         instructionAr: 'حتى الخط الأقصى.',
         versionNo: 1,
         resultOptions: [
@@ -392,7 +402,8 @@ InspectionChecklist _f2bChecklist({required bool figma}) {
         ),
       ),
     ];
-    return InspectionChecklist(job: base.job, items: items, completed: 3, total: 6);
+    final job = figmaJob(status: 'IN_PROGRESS', reference: 'Live Bay #2');
+    return InspectionChecklist(job: job, items: items, completed: 3, total: 6);
   }
   return productChecklist();
 }
@@ -516,12 +527,17 @@ List<SyncOperation> _f2bOperations({required bool figma}) {
 /// which swaps in the test-only [F2bFigmaTestLocalizations] override.
 /// The F2-A [figmaLocalizationsDelegates] are not used here; F2-B chrome copy
 /// differs per screen (see [F2bFigmaStrings]).
-Widget f2bScreen(String id, {bool figma = true}) {
+Widget f2bScreen(
+  String id, {
+  bool figma = true,
+  ui.Image? wireframeImage,
+  ui.Image? evidenceImage,
+}) {
   switch (id) {
     case 'defect-detail':
       return DefectDetailView(
         job: figma
-            ? figmaJob(status: 'IN_PROGRESS', reference: 'JOB-5A0001')
+            ? figmaJob(status: 'IN_PROGRESS', reference: 'BAY 04')
             : productJobs.first,
         item: figma ? _f2bFigmaItem() : _f2bProductItem(),
         photos: const [],
@@ -533,16 +549,37 @@ Widget f2bScreen(String id, {bool figma = true}) {
         onSave: () {},
         onAddPhoto: () {},
         onClose: () {},
+        wireframeImage: wireframeImage,
+        evidenceImage: evidenceImage,
+        isFigma: figma,
+      );
+    case 'photo-annotation':
+      return PhotoAnnotationView(
+        photoImage: evidenceImage,
+        isFigma: figma,
       );
     case 'dense-mechanical':
+      F2bFigmaTestLocalizations.activeScreenId = 'dense-mechanical';
       return DenseMechanicalView(
         checklist: _f2bChecklist(figma: figma),
+        isFigma: figma,
         onResult: (_, _) {},
         onSaveItem: (_, _, _, _) async {},
         onOpenItem: (_) {},
         onContinue: () {},
         onBack: () {},
         onProfile: () {},
+      );
+    case 'tire-condition':
+      return TireConditionView(
+        job: figma
+            ? figmaJob(status: 'IN_PROGRESS', reference: 'JOB-5A0001')
+            : productJobs.first,
+        isFigma: figma,
+        onSave: () {},
+        onBack: () {},
+        onProfile: () {},
+        onSelectTire: (_) {},
       );
     case 'final-review':
       return FinalReviewView(

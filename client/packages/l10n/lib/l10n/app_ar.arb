@@ -569,5 +569,26 @@
   "statAccuracy": "٩٩٫٨٪",
   "statAccuracyLabel": "دقة الفحص والتشخيص",
   "statSyncSpeed": "فوري ومباشر",
-  "statSyncLabel": "مزامنة سريعة دون اتصال"
+  "statSyncLabel": "مزامنة سريعة دون اتصال",
+  "technicianExteriorInspection": "الفحص الخارجي",
+  "technicianDetectedCount": "{count, plural, =1{تم اكتشاف 1} other{تم اكتشاف {count}}}",
+  "@technicianDetectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "technicianExteriorStep2": "الخطوة 2: اضغط على المنطقة\nلتسجيل الضرر",
+  "technicianExteriorHint": "حدد الخدوش أو الصدمات أو تقشير الطلاء مباشرة على مخطط الهيكل.",
+  "technicianAnglePerspective": "زاوية الرؤية",
+  "technicianTapToRotate": "اضغط للتدوير 360°",
+  "technicianPerspectiveFront": "الأمام",
+  "technicianPerspectiveDriver": "السائق",
+  "technicianPerspectivePassenger": "الراكب",
+  "technicianPerspectiveRear": "الخلف",
+  "technicianConfirmExteriorMarkup": "تأكيد علامات الهيكل الخارجي",
+  "technicianNoDamageOnPanel": "لم يتم العثور على أضرار في هذا الجزء",
+  "technicianDriverSideView": "عرض جانب السائق",
+  "technicianWalkaroundInspection": "فحص جولة المركبة"
 }

@@ -1,0 +1,22 @@
+{
+  "id": "f2a1-exterior-wireframe-figma-text",
+  "batch": "f2a1-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/08_8._360_Exterior_Wireframe/8._360_Exterior_Wireframe@2x.png",
+  "crop": {
+    "x": 40,
+    "y": 14,
+    "width": 780,
+    "height": 1812
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 906,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2a1/exterior-wireframe/figma-text/render.png",
+  "output": "docs/ui/figma/fidelity/f2a1/exterior-wireframe/figma-text",
+  "expectedStrings": [],
+  "keyBoxes": [],
+  "keyBoxTolerance": 1,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

@@ -15,11 +15,25 @@ import 'package:technician_app/src/pages/sync_queue_page.dart';
 import 'package:technician_app/src/pages/technician_jobs_page.dart';
 import 'package:technician_app/src/pages/walk_in_job_page.dart';
 
+/// Notifies GoRouter to re-run `redirect` when auth state changes.
+///
+/// The router instance itself is created ONCE. Recreating GoRouter on every
+/// auth change (via `ref.watch`) disposes the current page, which wiped the
+/// sign-in form text and swallowed the error message on failed logins.
+class _AuthRefresh extends ChangeNotifier {
+  _AuthRefresh(Ref ref) {
+    ref.listen(authControllerProvider, (_, _) => notifyListeners());
+  }
+}
+
 final technicianRouterProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authControllerProvider);
+  final refresh = _AuthRefresh(ref);
+  ref.onDispose(refresh.dispose);
   return GoRouter(
     initialLocation: '/signin',
+    refreshListenable: refresh,
     redirect: (context, state) {
+      final auth = ref.read(authControllerProvider);
       if (auth.isLoading) {
         return null;
       }

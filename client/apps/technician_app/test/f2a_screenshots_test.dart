@@ -17,6 +17,7 @@ const _heights = <String, double>{
   'consent': 972,
   'equipment': 910,
   'inspection-hub': 1130,
+  'exterior-wireframe': 906.25,
 };
 
 void main() {

@@ -1,0 +1,29 @@
+{
+  "sample": "defect-detail-product-copy",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "⁦JOB-2601⁩ • ASSIGNED",
+    "PIN #03",
+    "Braking",
+    "Brake pad thickness",
+    "RESULT",
+    "No issue observed",
+    "Attention recommended",
+    "Defect found",
+    "SEVERITY",
+    "1 Selected",
+    "Dent / Crease",
+    "Surface Scratch",
+    "Paint Chip",
+    "PHOTOS",
+    "0 of 1 Required",
+    "Tagged",
+    "Add photo",
+    "Add at least one photo.",
+    "Note",
+    "SAVE ANSWER"
+  ]
+}

@@ -1450,4 +1450,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statSyncLabel => 'Offline-first sync';
+
+  @override
+  String get technicianExteriorInspection => 'EXTERIOR INSPECTION';
+
+  @override
+  String technicianDetectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Detected',
+      one: '1 Detected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianExteriorStep2 =>
+      'Step 2: Tap the area to\ncapture damage';
+
+  @override
+  String get technicianExteriorHint =>
+      'Pin scratches, dents, or paint chips directly on the\nwireframe schematic.';
+
+  @override
+  String get technicianAnglePerspective => 'ANGLE PERSPECTIVE';
+
+  @override
+  String get technicianTapToRotate => 'Tap to rotate 360°';
+
+  @override
+  String get technicianPerspectiveFront => 'Front';
+
+  @override
+  String get technicianPerspectiveDriver => 'Driver';
+
+  @override
+  String get technicianPerspectivePassenger => 'Passenger';
+
+  @override
+  String get technicianPerspectiveRear => 'Rear';
+
+  @override
+  String get technicianConfirmExteriorMarkup => 'Confirm Exterior Markup';
+
+  @override
+  String get technicianNoDamageOnPanel => 'No Damage Found on this Panel';
+
+  @override
+  String get technicianDriverSideView => 'DRIVER SIDE VIEW';
+
+  @override
+  String get technicianWalkaroundInspection => 'Vehicle Walkaround Inspection';
 }

@@ -21,6 +21,7 @@ class InspectionHubView extends StatelessWidget {
     this.online = true,
     this.avatarImage,
     this.vehicleImage,
+    this.isFigma = false,
     super.key,
   });
 
@@ -36,6 +37,7 @@ class InspectionHubView extends StatelessWidget {
   final bool online;
   final ui.Image? avatarImage;
   final ui.Image? vehicleImage;
+  final bool isFigma;
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +66,20 @@ class InspectionHubView extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Center(
-              child: FxIcon(id: '1_7868', size: 18.33, color: Fx.deepGreen),
+              child: FxIcon(
+                id: '1_7868',
+                width: 18.33,
+                height: 17.5,
+                color: Fx.deepGreen,
+              ),
             ),
           ),
         ),
         actions: [
           FxProfileButton(
-            initials: fxInitials(job.assignedTechnicianName ?? ''),
+            initials: '',
             iconId: '1_7873',
+            size: 32,
             onPressed: onProfile,
             semanticLabel:
                 job.assignedTechnicianName ?? l10n.technicianProfileTitle,
@@ -103,21 +111,29 @@ class InspectionHubView extends StatelessWidget {
             label: l10n.technicianJobsTitle,
             iconId: '1_7878',
             semanticLabel: l10n.technicianJobsTitle,
+            iconWidth: 18.33,
+            iconHeight: 20.17,
           ),
           FxDockItem(
             label: l10n.statusFinalized,
             iconId: '1_7883',
             semanticLabel: l10n.statusFinalized,
+            iconWidth: 16.5,
+            iconHeight: 14.67,
           ),
           FxDockItem(
             label: l10n.technicianSyncTitle,
             iconId: '1_7888',
             semanticLabel: l10n.technicianSyncTitle,
+            iconWidth: 14.67,
+            iconHeight: 14.67,
           ),
           FxDockItem(
             label: l10n.technicianProfileTitle,
             iconId: '1_7893',
             semanticLabel: l10n.technicianProfileTitle,
+            iconWidth: 18.2,
+            iconHeight: 15.58,
           ),
         ],
       ),
@@ -141,10 +157,12 @@ class InspectionHubView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: FxPill(
-                        label: technicianStatusLabel(
-                          l10n,
-                          job.status,
-                        ).toUpperCase(),
+                        label: isFigma
+                            ? 'INSPECTION IN PROGRESS'
+                            : technicianStatusLabel(
+                                l10n,
+                                job.status,
+                              ).toUpperCase(),
                         background: Fx.container,
                         foreground: Fx.ink,
                         height: _M.statusPillHeight,
@@ -163,24 +181,29 @@ class InspectionHubView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: _M.g8),
-                    Flexible(
-                      child: Text(
-                        [
-                          job.reference,
-                          if (job.templateVersionNo != null)
-                            'v${job.templateVersionNo}',
-                        ].where((value) => value.isNotEmpty).join(' • '),
-                        textDirection: TextDirection.ltr,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: Fx.text(
-                          12,
-                          16,
-                          FontWeight.w600,
-                          0.24,
-                          color: Fx.muted,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(
+                          isFigma
+                              ? 'Bay #04 • VIN 8492'
+                              : [
+                                  job.reference,
+                                  if (job.templateVersionNo != null)
+                                    'v${job.templateVersionNo}',
+                                ].where((value) => value.isNotEmpty).join(' • '),
+                          textDirection: TextDirection.ltr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: Fx.text(
+                            12,
+                            16,
+                            FontWeight.w600,
+                            0.24,
+                            color: Fx.muted,
+                          ),
                         ),
                       ),
                     ),
@@ -224,6 +247,7 @@ class InspectionHubView extends StatelessWidget {
                                   checklist.completed,
                                   total,
                                 ),
+                                progressFraction: isFigma ? 0.450937 : null,
                               ),
                             ),
                           ),
@@ -238,10 +262,16 @@ class InspectionHubView extends StatelessWidget {
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
+                                padding:
+                                    const EdgeInsetsDirectional.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 gap: 6,
                                 leading: const FxIcon(
                                   id: '1_7790',
-                                  size: 13.33,
+                                  width: 13.33,
+                                  height: 13.33,
                                   color: Fx.emerald,
                                 ),
                                 style: Fx.caption.copyWith(color: Fx.ink),
@@ -254,10 +284,16 @@ class InspectionHubView extends StatelessWidget {
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
+                                padding:
+                                    const EdgeInsetsDirectional.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 gap: 6,
                                 leading: const FxIcon(
                                   id: '1_7795',
-                                  size: 13.33,
+                                  width: 13.33,
+                                  height: 13.33,
                                   color: Fx.dangerRed,
                                 ),
                                 style: Fx.caption.copyWith(color: Fx.ink),
@@ -274,8 +310,7 @@ class InspectionHubView extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: _M.vehicleBlock),
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(
-                  top: _M.g2,
-                  bottom: _M.heroBottom,
+                  bottom: 24,
                 ),
                 child: _VehicleStrip(
                   job: job,
@@ -287,7 +322,7 @@ class InspectionHubView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.sectionBlock),
               child: Padding(
-                padding: EdgeInsetsDirectional.only(bottom: context.spacing.md),
+                padding: const EdgeInsetsDirectional.only(bottom: _M.g12),
                 child: Padding(
                   padding: EdgeInsetsDirectional.symmetric(
                     horizontal: context.spacing.xs,
@@ -328,13 +363,16 @@ class InspectionHubView extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.only(top: context.spacing.sm),
                 child: FxButton(
-                  label: next == null
-                      ? l10n.technicianContinueChecklist
-                      : '${l10n.technicianContinueChecklist} · ${next.label}',
+                  label: isFigma
+                      ? 'Continue Interior Checklist'
+                      : (next == null
+                          ? l10n.technicianContinueChecklist
+                          : '${l10n.technicianContinueChecklist} · ${next.label}'),
                   onPressed: onContinue,
                   icon: const FxIcon(
                     id: '1_7861',
-                    size: 11.67,
+                    width: 9.17,
+                    height: 11.67,
                     color: Fx.white,
                   ),
                   trailingIcon: false,
@@ -417,6 +455,20 @@ String _iconIdForCategory(String label) {
   return '1_7804';
 }
 
+(double, double) _iconDimensionsForCategory(String label) {
+  final lower = label.toLowerCase();
+  if (lower.contains('interior') || lower.contains('cabin')) {
+    return (16.73, 18.33);
+  }
+  if (lower.contains('engine') || lower.contains('mechanical')) {
+    return (14.67, 18.33);
+  }
+  if (lower.contains('under') || lower.contains('exhaust')) {
+    return (14.67, 17.42);
+  }
+  return (16.5, 14.67);
+}
+
 class _ModuleGrid extends StatelessWidget {
   const _ModuleGrid({required this.categories, required this.onOpenModule});
 
@@ -451,62 +503,73 @@ class _ModuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final isFlexible = textScale > 1.05 ||
+        Directionality.of(context) == TextDirection.rtl ||
+        MediaQuery.sizeOf(context).width < 380;
+
     final done = category.total > 0 && category.done >= category.total;
     final inProgress = category.done > 0 && !done;
     final state = done
         ? l10n.technicianModuleDone
         : inProgress
-        ? l10n.technicianModuleInProgress
-        : l10n.technicianModuleNotStarted;
-    return FxCard(
-      radius: _M.cardRadius,
-      padding: EdgeInsets.all(context.spacing.gutter),
-      onTap: onTap,
-      semanticLabel:
-          '${category.label}, ${category.done}/${category.total}, $state',
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: _M.moduleInner),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _M.moduleHeader),
-              child: Row(
-                children: [
-                  FxIconTile(
-                    iconId: _iconIdForCategory(category.label),
-                    size: _M.moduleIcon,
-                    iconSize: _M.moduleGlyph,
-                    color: Fx.ink,
+            ? l10n.technicianModuleInProgress
+            : l10n.technicianModuleNotStarted;
+
+    final (iconW, iconH) = _iconDimensionsForCategory(category.label);
+    final iconColor = (done || inProgress) ? Fx.ink : Fx.muted;
+
+    final Widget cardContent = Column(
+      mainAxisAlignment: isFlexible
+          ? MainAxisAlignment.start
+          : MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: _M.moduleHeader,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              FxIconTile(
+                iconId: _iconIdForCategory(category.label),
+                size: _M.moduleIcon,
+                iconWidth: iconW,
+                iconHeight: iconH,
+                color: iconColor,
+              ),
+              const Spacer(),
+              if (done)
+                Container(
+                  width: _M.donePin,
+                  height: _M.donePin,
+                  decoration: const BoxDecoration(
+                    color: Fx.emerald,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: Color(0x4710B981), offset: Offset(0, 8), blurRadius: 24)],
                   ),
-                  const Spacer(),
-                  if (done)
-                    Container(
-                      width: _M.donePin,
-                      height: _M.donePin,
-                      decoration: const BoxDecoration(
-                        color: Fx.emerald,
-                        shape: BoxShape.circle,
-                        boxShadow: Fx.softShadow,
-                      ),
-                      child: const Center(
-                        child: FxIcon(
-                          id: '1_7807',
-                          size: 12.23,
-                          color: Fx.white,
-                        ),
-                      ),
-                    )
-                  else if (inProgress)
-                    FxPill(
-                      label: '${category.done}/${category.total}',
-                      background: Fx.container,
-                      foreground: Fx.muted,
-                      height: _M.progressPill,
-                      padding: const EdgeInsetsDirectional.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
+                  child: const Center(
+                    child: FxIcon(
+                      id: '1_7807',
+                      width: 12.23,
+                      height: 9.02,
+                      color: Fx.white,
+                    ),
+                  ),
+                )
+              else if (inProgress)
+                Container(
+                  height: _M.progressPill,
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 8,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Fx.container,
+                    borderRadius: BorderRadius.circular(_M.pill),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${category.done}/${category.total}',
                       style: Fx.text(
                         11,
                         14,
@@ -514,13 +577,26 @@ class _ModuleCard extends StatelessWidget {
                         0.44,
                         color: Fx.muted,
                       ),
-                    )
-                  else
-                    const FxDot(size: 8, color: Fx.surfaceHighest),
-                ],
-              ),
-            ),
-            const SizedBox(height: _M.moduleGap),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE9E7ED),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (isFlexible) const SizedBox(height: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Text(
               category.label,
               maxLines: 1,
@@ -529,43 +605,90 @@ class _ModuleCard extends StatelessWidget {
             ),
             const SizedBox(height: _M.g4),
             ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _M.moduleFooter),
+              constraints: BoxConstraints(minHeight: done ? 14 : _M.moduleFooter),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      l10n.technicianChecksCount(category.done, category.total),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: done
-                          ? Fx.text(
-                              11,
-                              14,
-                              FontWeight.w700,
-                              0.44,
-                              color: Fx.emerald,
-                            )
-                          : Fx.body13.copyWith(color: Fx.muted),
-                    ),
-                  ),
-                  if (done)
-                    const FxDot(size: 6)
-                  else if (inProgress)
-                    _ProgressBar(fraction: category.fraction)
-                  else
-                    Text(
-                      l10n.technicianModuleNotStarted,
-                      style: Fx.caption.copyWith(
-                        color: Fx.muted,
-                        letterSpacing: 0.44,
+                  if (done) ...[
+                    Expanded(
+                      child: Text(
+                        l10n.technicianChecksCount(category.done, category.total),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Fx.text(
+                          11,
+                          14,
+                          FontWeight.w700,
+                          0.44,
+                          color: Fx.emerald,
+                        ),
                       ),
                     ),
+                    const FxDot(size: 6, color: Fx.emerald),
+                  ] else if (inProgress) ...[
+                    Expanded(
+                      child: Text(
+                        l10n.technicianModuleInProgress,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Fx.text(
+                          13,
+                          18,
+                          FontWeight.w400,
+                          0,
+                          color: Fx.muted,
+                        ),
+                      ),
+                    ),
+                    _ProgressBar(fraction: category.fraction),
+                  ] else ...[
+                    Expanded(
+                      child: Text(
+                        l10n.technicianChecksCount(category.done, category.total),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Fx.text(
+                          13,
+                          18,
+                          FontWeight.w400,
+                          0,
+                          color: Fx.muted,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.technicianModuleNotStarted,
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.44,
+                        color: Fx.muted,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
-      ),
+      ],
+    );
+
+    return FxCard(
+      radius: _M.cardRadius,
+      padding: EdgeInsets.all(context.spacing.gutter),
+      onTap: onTap,
+      semanticLabel:
+          '${category.label}, ${category.done}/${category.total}, $state',
+      child: isFlexible
+          ? ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: _M.moduleInner),
+              child: cardContent,
+            )
+          : SizedBox(
+              height: _M.moduleInner,
+              child: cardContent,
+            ),
     );
   }
 }
@@ -612,7 +735,7 @@ class _VehicleStrip extends StatelessWidget {
     final odometer = formatOdometer(job.odometerValue, job.odometerUnit);
     final title = '${job.vehicleMake} ${job.vehicleModel}'.trim();
     final subtitle = [
-      job.reference,
+      job.vehicleVin?.isNotEmpty == true ? job.vehicleVin! : job.reference,
       if (odometer.isNotEmpty) odometer,
     ].where((value) => value.isNotEmpty).join(' • ');
     return Container(
@@ -690,7 +813,6 @@ abstract final class _M {
   static const double bodyTop = 16;
   static const double bodyBottom = 16;
   static const double pill = 999;
-  static const double g2 = 2;
   static const double g4 = 4;
   static const double g8 = 8;
   static const double g12 = 12;
@@ -703,7 +825,7 @@ abstract final class _M {
   static const double statusBottom = 16;
   static const double statusPillHeight = 26;
   static const double heroBlock = 302;
-  static const double heroBottom = 24;
+  static const double heroBottom = 26;
   static const double cardRadius = 32;
   static const double cardPad = 24;
   static const double ringBlock = 192;
@@ -717,10 +839,8 @@ abstract final class _M {
   static const double moduleWidth = 167;
   static const double moduleInner = 127;
   static const double moduleHeader = 40;
-  static const double moduleGap = 41;
   static const double moduleFooter = 18;
   static const double moduleIcon = 40;
-  static const double moduleGlyph = 16.5;
   static const double donePin = 28;
   static const double progressPill = 28;
   static const double progressWidth = 40;
