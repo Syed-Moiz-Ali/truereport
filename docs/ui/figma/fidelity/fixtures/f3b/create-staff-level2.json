@@ -1,0 +1,30 @@
+{
+  "id": "f3b-create-staff-level2",
+  "batch": "f3b-create-staff",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/Workshop_admin_figma/screens/07_6._Add_Staff_-_Create_Account/6._Add_Staff_-_Create_Account@2x.png",
+  "crop": {
+    "x": 32,
+    "y": 84,
+    "width": 2560,
+    "height": 2048
+  },
+  "logicalWidth": 1280,
+  "logicalHeight": 1024,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f3b/create-staff-product/render.png",
+  "output": "docs/ui/figma/fidelity/f3b/create-staff-product",
+  "expectedStrings": [
+    "Create technician",
+    "Set the name, email and initial password. The technician signs in with these credentials.",
+    "Display name",
+    "Email",
+    "Temporary password",
+    "Technician",
+    "Role",
+    "Cancel",
+    "Create"
+  ],
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-admin-product.json",
+  "thresholdSsim": 0.98
+}

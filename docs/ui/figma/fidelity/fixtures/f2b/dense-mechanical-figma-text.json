@@ -1,0 +1,53 @@
+{
+  "id": "f2b-dense-mechanical-figma-text",
+  "batch": "f2b-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/11_11._Dense_Mechanical_List/11._Dense_Mechanical_List@2x.png",
+  "crop": {
+    "x": 40,
+    "y": 14,
+    "width": 780,
+    "height": 2160
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1080,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b/dense-mechanical/figma-text/render.png",
+  "output": "docs/ui/figma/fidelity/f2b/dense-mechanical/figma-text",
+  "expectedStrings": [
+    "INSPECTION ZONE 04",
+    "3 checks done / 6",
+    "JOB-5A0001",
+    "Engine Oil Level",
+    "Dipstick at optimal line.",
+    "Brake Fluid Level",
+    "Diagnostic Checklist",
+    "Review & Finalize"
+  ],
+  "keyBoxes": [
+    {
+      "key": "header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "card",
+      "x": 20,
+      "y": 132,
+      "width": 350,
+      "height": 88
+    },
+    {
+      "key": "cta",
+      "x": 20,
+      "y": 1004,
+      "width": 350,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

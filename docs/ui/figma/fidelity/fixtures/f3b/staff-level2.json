@@ -1,0 +1,39 @@
+{
+  "id": "f3b-staff-level2",
+  "batch": "f3b-staff",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/Workshop_admin_figma/screens/05_5._Workshop_Staff_Management/5._Workshop_Staff_Management@2x.png",
+  "crop": {
+    "x": 32,
+    "y": 0,
+    "width": 2560,
+    "height": 2096
+  },
+  "logicalWidth": 1280,
+  "logicalHeight": 1048,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f3b/staff-management-product/render.png",
+  "output": "docs/ui/figma/fidelity/f3b/staff-management-product",
+  "expectedStrings": [
+    "Workshop Staff",
+    "Search",
+    "Create",
+    "All (4)",
+    "Technicians (2)",
+    "Admins (2)",
+    "TA",
+    "Technician A",
+    "Technician · t***@test.local",
+    "TB",
+    "Technician B",
+    "Technician · tb***@test.local",
+    "AA",
+    "Admin A",
+    "Workshop Admin · a***@test.local",
+    "AB",
+    "Admin B",
+    "Workshop Admin · ab***@test.local"
+  ],
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-admin-product.json",
+  "thresholdSsim": 0.98
+}

@@ -1,0 +1,26 @@
+{
+  "id": "inspection-result-selector-en-light-1x",
+  "name": "Inspection result selector - Figma exact - EN, light, 1x",
+  "batch": "f1.1-component-samples",
+  "fixtureClass": "fidelity",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/09_9._Defect_Detail_&_Evidence/9._Defect_Detail_&_Evidence@2x.png",
+  "crop": { "x": 160, "y": 888, "width": 700, "height": 140 },
+  "logicalWidth": 350,
+  "logicalHeight": 70,
+  "dpr": 2,
+  "locale": "en",
+  "theme": "light",
+  "textScale": 1.0,
+  "render": "docs/ui/figma/fidelity/component-samples/inspection-result-selector-en-light-1x/render.png",
+  "output": "docs/ui/figma/fidelity/component-samples/inspection-result-selector-en-light-1x",
+  "expectedStrings": ["INSPECTION STATUS", "Pass", "Minor", "Major"],
+  "keyBoxes": [
+    { "key": "inspection-result-selector", "x": 0, "y": 0, "width": 350, "height": 70 }
+  ],
+  "keyBoxTolerance": 1,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "thresholdSsim": 0.98,
+  "owner": "fidelity-auditor",
+  "residualNotes": "Crop is the Figma Severity Pill-Shaped Toggle Group node bounding box (350 x 70 at logical 20,444). Figma's own sample labels Pass/Minor/Major are used in this test-only fixture; the product variant uses the approved six-result vocabulary with the three extra results in a secondary chip row."
+}

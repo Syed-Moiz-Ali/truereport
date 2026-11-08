@@ -1,0 +1,71 @@
+{
+  "id": "f2b3-final-review-level1",
+  "batch": "f2b3-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/12_13._Final_Review_(Missing_Items)/13._Final_Review_(Missing_Items)@2x.png",
+  "crop": {
+    "x": 40,
+    "y": 14,
+    "width": 780,
+    "height": 2016
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1008,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b3/final-review/render.png",
+  "output": "docs/ui/figma/fidelity/f2b3/final-review",
+  "expectedStrings": [
+    "STEP 4 OF 4 \u2022 VALIDATION",
+    "3 Action Items",
+    "Review Findings",
+    "Resolve outstanding compliance requirements\nbefore submitting the digital work order.",
+    "3 Mandatory Photos Missing",
+    "Customer sign-off & quality assurance\nmandate verified optical documentation\nfor critical fluid and wear sections.",
+    "1",
+    "2",
+    "3",
+    "Tap any item below to capture\ninstantly",
+    "MANDATORY RESOLUTION ITEMS",
+    "Brake Fluid",
+    "Chassis",
+    "Reservoir moisture gauge & test strip",
+    "Tread Photo",
+    "Front Left",
+    "3/32\" depth indicator macro verification",
+    "Signature",
+    "Required",
+    "Digital advisor & vehicle owner sign-off",
+    "28 Verified Data Points",
+    "Powertrain, OBD-II & exterior\nscans passed",
+    "91%\nComplete",
+    "Resolve to Continue",
+    "All 3 critical checklist items must be resolved to unlock\nclient sign-off.",
+    "Diagnostic Checklist"
+  ],
+  "keyBoxes": [
+    {
+      "key": "f2b3-header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "f2b3-banner",
+      "x": 20,
+      "y": 202,
+      "width": 350,
+      "height": 160
+    },
+    {
+      "key": "f2b3-continue",
+      "x": 20,
+      "y": 864,
+      "width": 350,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

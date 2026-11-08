@@ -1,0 +1,22 @@
+{
+  "id": "f2a1-assigned-jobs-product-copy",
+  "batch": "f2a1-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/02_2._Assigned_Jobs_Dashboard/2._Assigned_Jobs_Dashboard@2x.png",
+  "crop": {
+    "x": 60,
+    "y": 14,
+    "width": 780,
+    "height": 2004
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1002,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2a1/assigned-jobs/product-copy/render.png",
+  "output": "docs/ui/figma/fidelity/f2a1/assigned-jobs/product-copy",
+  "expectedStrings": [],
+  "keyBoxes": [],
+  "keyBoxTolerance": 1,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
+  "thresholdSsim": 0.98
+}

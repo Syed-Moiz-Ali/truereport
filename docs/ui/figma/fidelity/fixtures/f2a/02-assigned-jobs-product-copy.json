@@ -1,0 +1,43 @@
+{
+  "id": "02-assigned-jobs-product-copy",
+  "name": "F2-A 02-assigned-jobs - real product copy",
+  "batch": "f2a-technician-screens-1-7",
+  "fixtureClass": "product",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/02_2._Assigned_Jobs_Dashboard/2._Assigned_Jobs_Dashboard@2x.png",
+  "crop": {
+    "x": 60,
+    "y": 14,
+    "width": 780,
+    "height": 2004
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1002,
+  "dpr": 2,
+  "locale": "en",
+  "theme": "light",
+  "textScale": 1,
+  "render": "docs/ui/figma/fidelity/f2a/02-assigned-jobs/product-copy/render.png",
+  "output": "docs/ui/figma/fidelity/f2a/02-assigned-jobs/product-copy",
+  "expectedStrings": [
+    "Welcome back,",
+    "Layla Hassan",
+    "Pending check",
+    "In progress",
+    "Assigned today",
+    "2 in queue",
+    "Honda Accord",
+    "Toyota Camry",
+    "Walk-in job",
+    "Assigned jobs",
+    "Jobs",
+    "Sync",
+    "Profile"
+  ],
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
+  "thresholdSsim": 0.98,
+  "owner": "fidelity-auditor",
+  "residualNotes": "Real product copy and neutral test data. Removed: avatar photo (initials instead), SHIFT/BAY pill, LIVE SYNC badge, Scan New VIN Tag (replaced by existing Walk-in job), Fleet dock (product dock is Jobs/Sync/Profile), avg turnover and dashboard summary (no data). Counts are derived from the existing jobs list. Plates are not shown; search moved to the app bar. Job status chip moves below the title when large text would overflow. Dock labels differ; copy/removal differences are residuals."
+}

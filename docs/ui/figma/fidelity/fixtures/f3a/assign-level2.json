@@ -1,0 +1,33 @@
+{
+  "id": "f3a-assign-level2",
+  "batch": "f3a-assign-technician",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/Workshop_admin_figma/screens/04_4._Assign_Technician/4._Assign_Technician@2x.png",
+  "crop": {
+    "x": 32,
+    "y": 0,
+    "width": 2560,
+    "height": 2240
+  },
+  "logicalWidth": 1280,
+  "logicalHeight": 1120,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f3a/assign-technician-product/render.png",
+  "output": "docs/ui/figma/fidelity/f3a/assign-technician-product",
+  "expectedStrings": [
+    "Assign technician",
+    "Select an available technician",
+    "Toyota Camry",
+    "JOB-TEST0007 · Full inspection · Full inspection",
+    "Technician A",
+    "t***@test.local",
+    "Technician B",
+    "u***@test.local",
+    "Reason (optional)",
+    "Reason",
+    "Cancel",
+    "Confirm"
+  ],
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-admin-product.json",
+  "thresholdSsim": 0.98
+}

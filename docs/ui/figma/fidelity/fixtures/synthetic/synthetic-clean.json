@@ -1,0 +1,23 @@
+{
+  "batch": "synthetic",
+  "logicalWidth": 390,
+  "logicalHeight": 120,
+  "dpr": 2,
+  "renderer": "synthetic",
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "id": "synthetic-clean",
+  "name": "Synthetic clean pair (identical images)",
+  "reference": "docs/ui/figma/fidelity/synthetic/synthetic-clean/reference.png",
+  "render": "docs/ui/figma/fidelity/synthetic/synthetic-clean/render.png",
+  "output": "docs/ui/figma/fidelity/synthetic/synthetic-clean",
+  "expectedStrings": [
+    "Continue"
+  ],
+  "actualStrings": [
+    "Continue"
+  ],
+  "thresholdSsim": 0.98,
+  "residualNotes": "Reference and render are the same generated image; this validates the metric code path, not a UI."
+}

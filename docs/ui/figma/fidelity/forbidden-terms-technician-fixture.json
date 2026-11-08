@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "description": "F2-A figma-text fixtures: test-only Figma sample copy. Blocks only certification/score/compliance claims; internal technician fields (VIN, plate, phone) are allowed. Owner decision D6-a and P8.",
+  "caseInsensitive": true,
+  "terms": [
+    "certification",
+    "certified",
+    "certificate",
+    "certify",
+    "official certificate",
+    "score",
+    "condition score",
+    "pass rate",
+    "compliance",
+    "compliant",
+    "tamper-proof",
+    "tamper proof",
+    "ledger",
+    "blockchain",
+    "root ca",
+    "pki",
+    "iso 27001",
+    "iso 9001",
+    "iso 26262",
+    "iso/iec 17020"
+  ],
+  "patterns": []
+}

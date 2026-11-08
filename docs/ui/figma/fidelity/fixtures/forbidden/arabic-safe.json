@@ -1,0 +1,19 @@
+{
+  "batch": "lint",
+  "logicalWidth": 390,
+  "logicalHeight": 120,
+  "dpr": 2,
+  "renderer": "synthetic",
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms.json",
+  "id": "safe-arabic-result",
+  "name": "Safe Arabic result wording must pass",
+  "reference": "docs/ui/figma/fidelity/synthetic/synthetic-clean/reference.png",
+  "render": "docs/ui/figma/fidelity/synthetic/synthetic-clean/render.png",
+  "output": "docs/ui/figma/fidelity/lint/arabic-safe",
+  "expectedStrings": [],
+  "actualStrings": ["لا توجد ملاحظات", "يُنصح بالانتباه"],
+  "thresholdSsim": 0.98,
+  "residualNotes": "Positive fixture: no certification/score/PII terms."
+}

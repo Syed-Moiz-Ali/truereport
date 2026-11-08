@@ -1,0 +1,38 @@
+{
+  "id": "03-empty-state-figma-text",
+  "name": "F2-A 03-empty-state - Figma-text fixture",
+  "batch": "f2a-technician-screens-1-7",
+  "fixtureClass": "fidelity",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/03_3._Empty_State_Dashboard/3._Empty_State_Dashboard@2x.png",
+  "crop": {
+    "x": 60,
+    "y": 14,
+    "width": 780,
+    "height": 1768
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 883.75,
+  "dpr": 2,
+  "locale": "en",
+  "theme": "light",
+  "textScale": 1,
+  "render": "docs/ui/figma/fidelity/f2a/03-empty-state/figma-text/render.png",
+  "output": "docs/ui/figma/fidelity/f2a/03-empty-state/figma-text",
+  "expectedStrings": [
+    "Welcome back,",
+    "David Vance",
+    "0 in queue",
+    "You are all caught up",
+    "No pending inspections are assigned to you.",
+    "Refresh queue",
+    "Walk-in job",
+    "No changes waiting to sync"
+  ],
+  "keyBoxes": [],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-fixture.json",
+  "thresholdSsim": 0.98,
+  "owner": "fidelity-auditor",
+  "residualNotes": "Test-only Figma-like sample copy. Removed: SHIFT/Bay pills, TODAY SUMMARY, 14 Completed, 100% Pass Rate (no data; pass rate is a forbidden score), Synced just now (no receipt state). Sync line shows real pending count; Walk-in job action retained. Removed elements leave intentional empty space below the CTA."
+}

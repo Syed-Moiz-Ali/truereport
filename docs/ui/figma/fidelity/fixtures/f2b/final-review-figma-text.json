@@ -1,0 +1,55 @@
+{
+  "id": "f2b-final-review-figma-text",
+  "batch": "f2b-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/12_13._Final_Review_(Missing_Items)/13._Final_Review_(Missing_Items)@2x.png",
+  "crop": {
+    "x": 40,
+    "y": 14,
+    "width": 780,
+    "height": 2016
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1008,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b/final-review/figma-text/render.png",
+  "output": "docs/ui/figma/fidelity/f2b/final-review/figma-text",
+  "expectedStrings": [
+    "REVIEW & FINALIZE",
+    "3 Missing items",
+    "Review & Finalize",
+    "MISSING ITEMS",
+    "Brake Fluid",
+    "Tread Photo",
+    "Signature",
+    "28 / 31",
+    "Coverage",
+    "90%"
+  ],
+  "keyBoxes": [
+    {
+      "key": "header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "banner",
+      "x": 20,
+      "y": 360,
+      "width": 350,
+      "height": 88
+    },
+    {
+      "key": "continue",
+      "x": 20,
+      "y": 798,
+      "width": 350,
+      "height": 56
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-empty.json",
+  "thresholdSsim": 0.98
+}

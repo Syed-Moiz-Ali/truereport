@@ -1,0 +1,54 @@
+{
+  "id": "f2b-finalize-product-copy",
+  "batch": "f2b-screens",
+  "renderer": "flutter",
+  "reference": "docs/ui/figma-export/technision_figma/screens/15_14._Finalize_&_Approval_(Swipe)/14._Finalize_&_Approval_(Swipe)@2x.png",
+  "crop": {
+    "x": 76,
+    "y": 14,
+    "width": 780,
+    "height": 2463
+  },
+  "logicalWidth": 390,
+  "logicalHeight": 1232,
+  "dpr": 2,
+  "render": "docs/ui/figma/fidelity/f2b/finalize/product-copy/render.png",
+  "output": "docs/ui/figma/fidelity/f2b/finalize/product-copy",
+  "expectedStrings": [
+    "REVIEW AND FINALIZE",
+    "Review and finalize",
+    "2022 Honda Accord",
+    "VIN • 1HGCM82633A004352",
+    "A 12345",
+    "JOB-2601",
+    "Odometer: 48210 KM",
+    "Finalize",
+    "Checklist"
+  ],
+  "keyBoxes": [
+    {
+      "key": "header",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 64
+    },
+    {
+      "key": "summary",
+      "x": 20,
+      "y": 170,
+      "width": 350,
+      "height": 516
+    },
+    {
+      "key": "slide",
+      "x": 20,
+      "y": 1148,
+      "width": 350,
+      "height": 64
+    }
+  ],
+  "keyBoxTolerance": 2,
+  "forbiddenTermsFile": "docs/ui/figma/fidelity/forbidden-terms-technician-product.json",
+  "thresholdSsim": 0.98
+}
