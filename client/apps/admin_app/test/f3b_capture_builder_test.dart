@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/f3b_builder_fixture.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-B Step 3 screen 8 — Level 1 fidelity capture for Figma screen 8
 /// "Template Builder" (node `1:1882`, 1280 x 1251.5).
@@ -33,9 +34,8 @@ void main() {
 
   testWidgets('capture f3b builder level1', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3b/template-builder',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3b/template-builder');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

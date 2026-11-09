@@ -1,0 +1,16 @@
+{
+  "sample": "primary-button-en-light-1x",
+  "logicalSize": {
+    "width": 342.0,
+    "height": 56.0
+  },
+  "devicePixelRatio": 2.0,
+  "boxes": {
+    "primary-button": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 342.0,
+      "height": 56.0
+    }
+  }
+}

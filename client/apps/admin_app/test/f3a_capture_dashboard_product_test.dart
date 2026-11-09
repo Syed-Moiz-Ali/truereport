@@ -15,6 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
+import 'support/fidelity_output.dart';
+
 /// F3-A Level 2 screen 1 — product capture for Figma screen 1
 /// "Workshop Dashboard" (node `1:299`, 1280 x 1230.672).
 ///
@@ -170,9 +172,8 @@ void main() {
 
   testWidgets('capture f3a dashboard product', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/dashboard-product',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3a/dashboard-product');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

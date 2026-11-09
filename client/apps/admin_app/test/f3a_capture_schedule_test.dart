@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/f3a_schedule_fixture.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-A Step 4 screen 3 — Level 1 fidelity capture for Figma screen 3
 /// "Create / Schedule Job" (node `1:2`, 1280 x 1058).
@@ -34,9 +35,8 @@ void main() {
 
   testWidgets('capture f3a schedule level1', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/create-schedule',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3a/create-schedule');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

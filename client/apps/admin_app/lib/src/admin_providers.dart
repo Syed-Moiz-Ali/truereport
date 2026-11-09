@@ -11,6 +11,25 @@ final adminApiProvider = Provider<AdminApi>((ref) {
   );
 });
 
+/// Release guard (Step 2a): the Figma showcase views under `screens/f3a`
+/// and `screens/f3b` still carry fixture copy and unwired actions. They
+/// render only when this is true: debug/test builds, or release builds
+/// started with `--dart-define=ADMIN_FIGMA_SHOWCASE=true` (used by the
+/// fidelity capture tests). The default release build renders
+/// provider-driven states instead, so no sample-data screen is reachable
+/// in release. Each per-screen step removes its own guard row.
+final adminShowcaseProvider = Provider<bool>((ref) {
+  var debug = false;
+  assert(() {
+    debug = true;
+    return true;
+  }());
+  if (debug) {
+    return true;
+  }
+  return const bool.fromEnvironment('ADMIN_FIGMA_SHOWCASE');
+});
+
 final hierarchyProvider = FutureProvider.autoDispose
     .family<HierarchyResponse, String>((ref, key) {
       final parts = key.split('\u0001');

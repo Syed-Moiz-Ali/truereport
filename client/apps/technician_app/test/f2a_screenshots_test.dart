@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_views.dart';
+import 'support/fidelity_output.dart';
 
 const _heights = <String, double>{
   'login': 858,
@@ -59,8 +60,9 @@ void main() {
           final bytes = await tester.runAsync(
             () => image.toByteData(format: ui.ImageByteFormat.png),
           );
-          final out = Directory(
-            '${repoRoot().path}/docs/ui/figma/f2a-screenshots',
+          final out = fidelityOutputDir(
+            repoRoot(),
+            'figma/f2a-screenshots',
           )..createSync(recursive: true);
           File(
             '${out.path}/${id}_${locale.languageCode}_${scale}x.png',

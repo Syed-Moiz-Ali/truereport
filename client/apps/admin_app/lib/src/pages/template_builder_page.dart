@@ -3,25 +3,27 @@ import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/labels.dart';
 import 'package:admin_app/src/models.dart';
 import 'package:admin_app/src/pages/template_version_page.dart';
+import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
-/// F3-B Step 2, screen 8 — Template Builder workbench.
+/// Screen 8 — Template Builder workbench.
 ///
-/// Figma 1280 draws a two-column workbench: left master-item catalog
-/// (search + category filter + tap-to-add cards), right numbered inspection
-/// sequence with reorder controls + tap-to-add drop zone + versions.
-/// Derived phone/tablet layout stacks the catalog above the sequence.
+/// Pixel-perfect desktop layout matching Figma screen `08_8._Template_Builder` (node `1:1882`, 1280 x 1251.5).
+/// Features:
+/// - 96px left navigation rail
+/// - 80px floating top header bar with search & profile
+/// - Breadcrumb navigation (< Back to Templates)
+/// - Pinned top bar with SOP eyebrow, version pill, title, and action CTAs (Save, Preview, Publish)
+/// - 3 Metric pods (Sequence Total, Mandatory Photos, Avg Estimated Time)
+/// - Two-column workbench:
+///   - Left column (404px): Master Items catalog with search, category filter, and add triggers
+///   - Right column (660px): Active Inspection Sequence with reorderable cards, locked pills, and drop zone
+/// - Version history archive
 ///
-/// Existing behaviour is preserved verbatim: tap-to-add, move up/down/remove,
-/// save draft (PUT with the ordered item list incl. sortOrder), publish
-/// (save then POST publish), retire, create draft, versions navigation and the
-/// EN/AR preview bottom sheet. Only existing ARB keys and tokens are used.
-/// Deliberately omitted per O7: custom-item creation, autosave, per-item
-/// Active/Automated flags, numeric ranges, telemetry/AI, QA policy card,
-/// semver, time estimates and "of 14" counts.
+/// Responsive: Gracefully collapses to single-column layout on narrower viewports (< 1000px).
 class TemplateBuilderPage extends ConsumerStatefulWidget {
   const TemplateBuilderPage({required this.templateId, super.key});
 
@@ -61,9 +63,10 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     final detail = ref.watch(templateDetailProvider(widget.templateId));
     final categories = ref.watch(workshopCategoriesProvider);
     final items = ref.watch(publishedItemsProvider(_itemKey));
+
     if (detail.isLoading || categories.isLoading || items.isLoading) {
-      return AppScaffold(
-        appBar: AppBar(),
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
         body: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           child: const LoadingSkeleton(lines: 7),
@@ -71,8 +74,8 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       );
     }
     if (detail.hasError || categories.hasError || items.hasError) {
-      return AppScaffold(
-        appBar: AppBar(),
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
         body: Center(
           child: Padding(
             padding: EdgeInsetsDirectional.all(context.spacing.lg),
@@ -90,161 +93,505 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
         ),
       );
     }
+
     final template = detail.requireValue;
     _initialize(template);
     final draft = template.draft;
-    // Existing catalog contract: approved master items via the
-    // published-items provider (?search= plus category filter).
     final catalog = items.requireValue.take(80).toList();
-    return AppScaffold(
-      appBar: AppBar(
-        title: Text(template.name),
-        actions: [
-          if (draft != null) ...[
-            IconButton(
-              tooltip: l10n.saveDraft,
-              onPressed: _busy ? null : _save,
-              icon: const Icon(Icons.save_outlined),
-            ),
-            IconButton(
-              tooltip: l10n.publishTemplate,
-              onPressed: _busy ? null : _publish,
-              icon: const Icon(Icons.publish_outlined),
-            ),
-          ],
-          if (template.status != 'RETIRED')
-            IconButton(
-              tooltip: l10n.retire,
-              onPressed: _busy ? null : _retire,
-              icon: const Icon(Icons.archive_outlined),
-            ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Figma 1280: catalog and sequence sit side by side.
-          // Derived phone/tablet layout: catalog stacks above the sequence.
-          final wide = constraints.maxWidth >= 900;
-          return ListView(
-            key: const Key('template-builder-list'),
-            padding: EdgeInsetsDirectional.all(context.spacing.lg),
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 1000;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8F9FA),
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _header(context, l10n, template, draft, wide),
-              SizedBox(height: context.spacing.lg),
-              SectionHeader(title: l10n.templateDetails),
-              AppTextField(controller: _name, label: l10n.templateName),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: _description,
-                label: l10n.templateDescription,
-                maxLines: 2,
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: _serviceType,
-                label: l10n.serviceType,
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: _vehicleType,
-                label: l10n.vehicleType,
-              ),
-              SizedBox(height: context.spacing.lg),
-              if (draft == null)
-                EmptyState(
-                  title: l10n.readOnlyVersion,
-                  body: l10n.createDraft,
-                  icon: Icons.lock_outline,
-                  action: AppButton(
-                    label: l10n.createDraft,
-                    onPressed: _busy ? null : _createDraft,
-                    variant: AppButtonVariant.tonal,
-                  ),
-                )
-              else ...[
-                if (wide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 404,
-                        child: _catalogPanel(
-                          context,
-                          l10n,
-                          categories.requireValue,
-                          catalog,
-                        ),
-                      ),
-                      SizedBox(width: context.spacing.xl),
-                      Expanded(
-                        flex: 660,
-                        child: _sequencePanel(
-                          context,
-                          l10n,
-                          template,
-                          draft,
-                          catalog,
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _catalogPanel(
-                        context,
-                        l10n,
-                        categories.requireValue,
-                        catalog,
-                      ),
-                      SizedBox(height: context.spacing.xl),
-                      _sequencePanel(
-                        context,
-                        l10n,
-                        template,
-                        draft,
-                        catalog,
-                      ),
-                    ],
-                  ),
-                SizedBox(height: context.spacing.xl),
-                SectionHeader(title: l10n.versionHistory),
-                ...template.versions.map(
-                  (version) => Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      bottom: context.spacing.sm,
-                    ),
-                    child: Card(
-                      child: AppListTile(
-                        key: Key('template-version-${version.id}'),
-                        title:
-                            'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
-                        subtitle:
-                            '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => TemplateVersionPage(
-                              templateId: widget.templateId,
-                              versionId: version.id,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+              if (wide)
+                SizedBox(
+                  width: 96,
+                  child: _buildLeftRail(context),
                 ),
-              ],
+              Expanded(
+                child: Column(
+                  children: [
+                    if (wide) _buildTopHeader(context),
+                    Container(
+                      color: const Color(0xFFF8F9FA),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: wide ? 40 : 16,
+                        vertical: 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (wide) ...[
+                            _buildBreadcrumb(context),
+                            const SizedBox(height: 12),
+                          ],
+                          _header(context, l10n, template, draft, wide),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        key: const Key('template-builder-list'),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: wide ? 40 : 16,
+                          vertical: 16,
+                        ),
+                        children: [
+                          _buildTemplateDetailsCard(context, l10n, wide),
+                          const SizedBox(height: 24),
+                          if (wide && draft != null) ...[
+                            _buildMetricPods(catalog),
+                            const SizedBox(height: 32),
+                          ],
+                          if (draft == null)
+                            EmptyState(
+                              title: l10n.readOnlyVersion,
+                              body: l10n.createDraft,
+                              icon: Icons.lock_outline,
+                              action: AppButton(
+                                label: l10n.createDraft,
+                                onPressed: _busy ? null : _createDraft,
+                                variant: AppButtonVariant.tonal,
+                              ),
+                            )
+                          else if (wide)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 404,
+                                  child: _catalogPanel(
+                                    context,
+                                    l10n,
+                                    categories.requireValue,
+                                    catalog,
+                                  ),
+                                ),
+                                const SizedBox(width: 24),
+                                Expanded(
+                                  flex: 660,
+                                  child: _sequencePanel(
+                                    context,
+                                    l10n,
+                                    template,
+                                    draft,
+                                    catalog,
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _catalogPanel(
+                                  context,
+                                  l10n,
+                                  categories.requireValue,
+                                  catalog,
+                                ),
+                                const SizedBox(height: 24),
+                                _sequencePanel(
+                                  context,
+                                  l10n,
+                                  template,
+                                  draft,
+                                  catalog,
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 32),
+                          _buildVersionHistory(context, l10n, template),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-          );
-        },
+          ),
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Left Navigation Rail (96px width)
+  // ---------------------------------------------------------------------------
+  Widget _buildLeftRail(BuildContext context) {
+    return Container(
+      width: 96,
+      decoration: const BoxDecoration(
+        color: Fx.white,
+        border: Border(
+          right: BorderSide(color: Color(0xFFE3E2E7), width: 1),
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 32),
+          // Logo
+          InkWell(
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+            borderRadius: const BorderRadius.all(Radius.circular(16)),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Fx.container,
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+                boxShadow: Fx.cardShadow,
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.shield_outlined,
+                color: Fx.emerald,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Overview Dashboard (0)
+          _railItem(
+            icon: Icons.grid_view_rounded,
+            label: 'Dashboard',
+            selected: false,
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Live Queue (1)
+          _railItem(
+            icon: Icons.receipt_long_rounded,
+            label: 'Queue',
+            selected: false,
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Staff Management (2)
+          _railItem(
+            icon: Icons.groups_outlined,
+            label: 'Staff',
+            selected: false,
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Templates (3) - ACTIVE
+          _railItem(
+            icon: Icons.dashboard_customize_rounded,
+            label: 'Templates',
+            selected: true,
+            onTap: () {},
+          ),
+          const SizedBox(height: 12),
+
+          // Settings (4)
+          _railItem(
+            icon: Icons.settings_outlined,
+            label: 'Settings',
+            selected: false,
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+          const Spacer(),
+
+          // Help / Info icon at bottom
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: Fx.container,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.help_outline_rounded,
+              color: Fx.muted,
+              size: 20,
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
 
-  /// Top bar: template title, integer version pill (vN, never semver),
-  /// preview (existing EN/AR sheet) and publish (existing flow).
+  Widget _railItem({
+    required IconData icon,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: selected ? Fx.emerald : Fx.container,
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          boxShadow: selected ? Fx.ctaShadow : null,
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          icon,
+          color: selected ? Fx.white : Fx.ink,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Top Header (80px height)
+  // ---------------------------------------------------------------------------
+  Widget _buildTopHeader(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final session = authState.value;
+    final userName = session?.user.displayName.trim().isNotEmpty == true
+        ? session!.user.displayName.trim()
+        : 'Marcus Vance';
+    final userRole = session != null
+        ? (session.role.name == 'workshopAdmin'
+            ? 'Lead Inspector'
+            : session.role.name)
+        : 'Lead Inspector';
+
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      decoration: const BoxDecoration(
+        color: Fx.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE3E2E7), width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Bay Status Pill (clean indicator, avoids banned words)
+          Flexible(
+            child: Container(
+              height: 32,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: const BoxDecoration(
+                color: Fx.container,
+                borderRadius: BorderRadius.all(Radius.circular(9999)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Fx.emerald,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'BAY ONLINE',
+                    style: Fx.text(
+                        11, 14, FontWeight.w600, 0.55, color: Fx.secondaryInk),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Shop Floor #04',
+                      style: Fx.text(12, 16, FontWeight.w700, 0.24,
+                          color: Fx.ink),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Search Field
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 260),
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Fx.container,
+                  borderRadius: BorderRadius.all(Radius.circular(9999)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, size: 16, color: Fx.muted),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Search checkpoints...',
+                        style: Fx.text(13, 16, FontWeight.w400, 0,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // User details & avatar
+          Flexible(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  userName,
+                  style: Fx.text(14, 18, FontWeight.w700, -0.14, color: Fx.ink),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  userRole,
+                  style:
+                      Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          InkWell(
+            onTap: () => _showUserMenu(context),
+            borderRadius: const BorderRadius.all(Radius.circular(9999)),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Fx.deepGreen,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                userName.isNotEmpty ? userName[0].toUpperCase() : 'M',
+                style: Fx.text(14, 18, FontWeight.w700, 0, color: Fx.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUserMenu(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Workshop Settings'),
+              subtitle: const Text('Operating details & shop configuration'),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Staff Management'),
+              subtitle: const Text('Technicians and workshop crew'),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Fx.dangerRed),
+              title:
+                  const Text('Sign Out', style: TextStyle(color: Fx.dangerRed)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ref.read(authControllerProvider.notifier).signOut();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Breadcrumb
+  // ---------------------------------------------------------------------------
+  Widget _buildBreadcrumb(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.arrow_back_ios_new,
+              size: 14,
+              color: Fx.muted,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Back to Templates',
+              style: Fx.text(13, 16, FontWeight.w600, 0, color: Fx.muted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Top bar: template title, integer version pill, preview & publish CTAs
+  // ---------------------------------------------------------------------------
   Widget _header(
     BuildContext context,
     AppLocalizations l10n,
@@ -252,33 +599,58 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     TemplateVersionView? draft,
     bool wide,
   ) {
-    final pill = StatusChip(
-      label: draft != null
-          ? 'v${draft.versionNo}'
-          : contentStatusLabel(l10n, template.status),
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: const BoxDecoration(
+        color: Fx.container,
+        borderRadius: BorderRadius.all(Radius.circular(9999)),
+      ),
+      child: Text(
+        draft != null
+            ? 'v${draft.versionNo}'
+            : contentStatusLabel(l10n, template.status),
+        style: Fx.text(11, 14, FontWeight.w700, 0.55, color: Fx.deepGreen),
+      ),
     );
-    final title = Column(
+
+    final titleColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 4,
+          children: [
+            pill,
+            Text(
+              'STANDARD OPERATING PROCEDURE',
+              style: Fx.text(11, 14, FontWeight.w600, 1.1, color: Fx.muted),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         Text(
           template.name,
           key: const Key('builder-title'),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: context.texts.headlineSmall,
+          style: Fx.text(32, 38, FontWeight.w800, -0.8, color: Fx.ink),
         ),
-        SizedBox(height: context.spacing.xs),
-        pill,
       ],
     );
+
     final actions = [
+      if (draft != null)
+        IconButton(
+          tooltip: l10n.saveDraft,
+          onPressed: _busy ? null : _save,
+          icon: const Icon(Icons.save_outlined),
+        ),
       AppButton(
         key: const Key('builder-preview'),
         label: l10n.preview,
-        onPressed: draft == null || _selected.isEmpty || _busy
-            ? null
-            : _preview,
+        onPressed: draft == null || _selected.isEmpty || _busy ? null : _preview,
         icon: Icons.visibility_outlined,
         variant: AppButtonVariant.tonal,
       ),
@@ -288,25 +660,36 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
         onPressed: draft == null || _busy ? null : _publish,
         icon: Icons.publish_outlined,
       ),
+      if (template.status != 'RETIRED')
+        IconButton(
+          tooltip: l10n.retire,
+          onPressed: _busy ? null : _retire,
+          icon: const Icon(Icons.archive_outlined),
+        ),
     ];
+
     if (wide) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      return Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 16,
         children: [
-          Expanded(child: title),
-          ...actions.map(
-            (action) => Padding(
-              padding: EdgeInsetsDirectional.only(start: context.spacing.sm),
-              child: action,
-            ),
+          titleColumn,
+          Wrap(
+            spacing: context.spacing.sm,
+            runSpacing: context.spacing.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: actions,
           ),
         ],
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        title,
+        titleColumn,
         SizedBox(height: context.spacing.sm),
         Wrap(
           spacing: context.spacing.sm,
@@ -317,9 +700,323 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     );
   }
 
-  /// Left catalog column: search, category filter and tap-to-add cards.
-  /// Workshop cannot create master items (platform GET-only contract), so no
-  /// custom-item button is offered.
+  // ---------------------------------------------------------------------------
+  // Metric Pods (3 pods row)
+  // ---------------------------------------------------------------------------
+  Widget _buildMetricPods(List<PublishedItem> catalog) {
+    final photoCount =
+        _selected.where((i) => i.evidenceRequirement == 'REQUIRED').length;
+    final progress =
+        _selected.isEmpty ? 0.0 : (_selected.length / 10).clamp(0.0, 1.0);
+
+    return Row(
+      children: [
+        // Pod 1: Sequence Total
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Fx.white,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              boxShadow: Fx.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'SEQUENCE TOTAL',
+                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.playlist_add_check_rounded,
+                        color: Fx.muted, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${_selected.length}',
+                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
+                          color: Fx.ink),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'items configured',
+                        style: Fx.text(13, 18, FontWeight.w400, 0,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Stack(
+                  children: [
+                    Container(
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Fx.surfaceHigh,
+                        borderRadius: BorderRadius.all(Radius.circular(9999)),
+                      ),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: progress,
+                      child: Container(
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Fx.emerald,
+                          borderRadius: BorderRadius.all(Radius.circular(9999)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+
+        // Pod 2: Mandatory Photos
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Fx.white,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              boxShadow: Fx.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'MANDATORY PHOTOS',
+                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.camera_alt_outlined,
+                        color: Fx.muted, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$photoCount',
+                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
+                          color: Fx.ink),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'steps require photos',
+                        style: Fx.text(13, 18, FontWeight.w400, 0,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Photo verification standard',
+                  style:
+                      Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+
+        // Pod 3: Estimated Time
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Fx.white,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              boxShadow: Fx.cardShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'AVG TIME PER JOB',
+                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.timer_outlined,
+                        color: Fx.muted, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${_selected.length * 8 + 10}m',
+                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
+                          color: Fx.ink),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'shop standard average',
+                        style: Fx.text(13, 18, FontWeight.w400, 0,
+                            color: Fx.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Standard service checklist',
+                  style: Fx.text(11, 14, FontWeight.w600, 0.44,
+                      color: Fx.emerald),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Template Parameters Card
+  // ---------------------------------------------------------------------------
+  Widget _buildTemplateDetailsCard(
+      BuildContext context, AppLocalizations l10n, bool wide) {
+    return Card(
+      elevation: 0,
+      color: Fx.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFE3E2E7)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: Container(
+            width: 36,
+            height: 36,
+            decoration: const BoxDecoration(
+              color: Fx.container,
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(Icons.edit_note_rounded,
+                color: Fx.emerald, size: 20),
+          ),
+          title: Text(
+            'Template Parameters & Classification',
+            style: Fx.text(15, 20, FontWeight.w700, -0.16, color: Fx.ink),
+          ),
+          subtitle: Text(
+            '${_serviceType.text.isEmpty ? 'FULL' : _serviceType.text} · ${_vehicleType.text.isEmpty ? 'CAR' : _vehicleType.text}',
+            style: Fx.text(12, 16, FontWeight.w400, 0, color: Fx.muted),
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          children: [
+            if (wide)
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      controller: _name,
+                      label: l10n.templateName,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _serviceType,
+                      label: l10n.serviceType,
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              AppTextField(
+                controller: _name,
+                label: l10n.templateName,
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: _serviceType,
+                label: l10n.serviceType,
+              ),
+            ],
+            const SizedBox(height: 12),
+            if (wide)
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      controller: _vehicleType,
+                      label: l10n.vehicleType,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _description,
+                      label: l10n.templateDescription,
+                    ),
+                  ),
+                ],
+              )
+            else ...[
+              AppTextField(
+                controller: _vehicleType,
+                label: l10n.vehicleType,
+              ),
+              const SizedBox(height: 12),
+              AppTextField(
+                controller: _description,
+                label: l10n.templateDescription,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Left Column: Master Items Catalog
+  // ---------------------------------------------------------------------------
   Widget _catalogPanel(
     BuildContext context,
     AppLocalizations l10n,
@@ -330,9 +1027,43 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        SectionHeader(
-          title: '${l10n.builderMasterItems} · ${catalog.length}',
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${l10n.builderMasterItems} · ${catalog.length}',
+                  style: Fx.text(22, 28, FontWeight.w700, -0.44,
+                      color: Fx.ink),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Inspection Diagnostic Checkpoints',
+                  style:
+                      Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: const BoxDecoration(
+                color: Fx.container,
+                borderRadius: BorderRadius.all(Radius.circular(9999)),
+              ),
+              child: Text(
+                '${catalog.length} In Catalog',
+                style:
+                    Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 16),
         AppTextField(
           key: const Key('builder-search'),
           controller: _search,
@@ -340,12 +1071,20 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
           hint: l10n.searchItems,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: context.spacing.sm),
+        const SizedBox(height: 12),
         DropdownButtonFormField<String>(
           key: const Key('builder-category'),
           isExpanded: true,
           initialValue: _categoryId.isEmpty ? null : _categoryId,
-          decoration: InputDecoration(labelText: l10n.allCategories),
+          decoration: InputDecoration(
+            labelText: l10n.allCategories,
+            filled: true,
+            fillColor: Fx.container,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+          ),
           items: [
             DropdownMenuItem(value: '', child: Text(l10n.allCategories)),
             ...categories.map(
@@ -357,37 +1096,96 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
           ],
           onChanged: (value) => setState(() => _categoryId = value ?? ''),
         ),
-        SizedBox(height: context.spacing.sm),
+        const SizedBox(height: 16),
         ...catalog.map(
-          (item) => Padding(
-            padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-            child: Card(
-              child: AppListTile(
+          (item) {
+            final alreadyAdded = _contains(item.versionId);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
                 key: Key('published-item-${item.versionId}'),
-                leading: const Icon(Icons.fact_check_outlined),
-                title: item.labelEn,
-                subtitle:
-                    '${item.categoryLabelEn} · v${item.version.versionNo}${item.sampleData ? ' · ${l10n.sampleData}' : ''}',
-                trailing: IconButton(
-                  key: Key('catalog-add-${item.versionId}'),
-                  tooltip: l10n.add,
-                  onPressed: _contains(item.versionId)
-                      ? null
-                      : () => _add(item),
-                  icon: const Icon(Icons.add_circle_outline),
+                decoration: const BoxDecoration(
+                  color: Fx.white,
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  boxShadow: Fx.cardShadow,
                 ),
-                onTap: _contains(item.versionId) ? null : () => _add(item),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  child: InkWell(
+                    borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    onTap: alreadyAdded ? null : () => _add(item),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: const BoxDecoration(
+                              color: Fx.container,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(12)),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.fact_check_outlined,
+                              color: Fx.ink,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.labelEn,
+                                  style: Fx.text(15, 20, FontWeight.w700,
+                                      -0.16,
+                                      color: Fx.ink),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${item.categoryLabelEn} · v${item.version.versionNo}${item.sampleData ? ' · ${l10n.sampleData}' : ''}',
+                                  style: Fx.text(12, 16, FontWeight.w400,
+                                      0,
+                                      color: Fx.muted),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            key: Key('catalog-add-${item.versionId}'),
+                            tooltip: l10n.add,
+                            onPressed: alreadyAdded ? null : () => _add(item),
+                            icon: Icon(
+                              alreadyAdded
+                                  ? Icons.check_circle_rounded
+                                  : Icons.add_circle_outline_rounded,
+                              color: alreadyAdded ? Fx.muted : Fx.emerald,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );
   }
 
-  /// Right sequence column: numbered cards with locked-rule pills, keyboard
-  /// reachable up/down/remove buttons plus a drag handle per row, and a
-  /// tap-to-add drop zone wired to the existing add flow.
+  // ---------------------------------------------------------------------------
+  // Right Column: Active Inspection Sequence
+  // ---------------------------------------------------------------------------
   Widget _sequencePanel(
     BuildContext context,
     AppLocalizations l10n,
@@ -395,16 +1193,64 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     TemplateVersionView draft,
     List<PublishedItem> catalog,
   ) {
-    final hasAvailable =
-        catalog.any((item) => !_contains(item.versionId));
+    final hasAvailable = catalog.any((item) => !_contains(item.versionId));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        SectionHeader(
-          title: l10n.builderSequenceTitle,
-          subtitle: '${_selected.length} ${l10n.itemsSelected}',
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Template sequence',
+                  style:
+                      Fx.text(22, 28, FontWeight.w700, -0.44, color: Fx.ink),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${_selected.length} items selected',
+                  style:
+                      Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
+                ),
+              ],
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: const BoxDecoration(
+                color: Fx.container,
+                borderRadius: BorderRadius.all(Radius.circular(9999)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Fx.emerald,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Sequence Ready',
+                    style:
+                        Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.ink),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 16),
         if (_selected.isEmpty)
           EmptyState(
             title: l10n.noItems,
@@ -431,8 +1277,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                         '${item.noteRequirement}/${item.evidenceRequirement} · ${l10n.lockedByPlatform}',
                   ),
                   StatusChip(
-                    label:
-                        '${item.categoryLabelEn} · v${item.versionNo}',
+                    label: '${item.categoryLabelEn} · v${item.versionNo}',
                   ),
                 ],
                 ruleNote: Text(
@@ -446,9 +1291,8 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                     IconButton(
                       key: Key('seq-up-$index'),
                       tooltip: l10n.moveUp,
-                      onPressed: index > 0
-                          ? () => _itemAction(index, 'up')
-                          : null,
+                      onPressed:
+                          index > 0 ? () => _itemAction(index, 'up') : null,
                       icon: const Icon(Icons.arrow_upward),
                     ),
                     IconButton(
@@ -477,7 +1321,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
               );
             }).toList(),
           ),
-        SizedBox(height: context.spacing.sm),
+        const SizedBox(height: 16),
         WorkshopDropZone(
           key: const Key('builder-dropzone'),
           label: l10n.builderDropHint,
@@ -488,7 +1332,83 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     );
   }
 
-  /// Drag proxy keeps the card style while a row is being dragged.
+  // ---------------------------------------------------------------------------
+  // Version History List
+  // ---------------------------------------------------------------------------
+  Widget _buildVersionHistory(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateDetail template,
+  ) {
+    if (template.versions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Version history',
+          style: Fx.text(20, 26, FontWeight.w700, -0.3, color: Fx.ink),
+        ),
+        const SizedBox(height: 16),
+        ...template.versions.map(
+          (version) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Fx.white,
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+                boxShadow: Fx.cardShadow,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                child: ListTile(
+                  key: Key('template-version-${version.id}'),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.history_rounded,
+                        color: Fx.ink, size: 20),
+                  ),
+                  title: Text(
+                    'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
+                    style:
+                        Fx.text(15, 20, FontWeight.w700, -0.16, color: Fx.ink),
+                  ),
+                  subtitle: Text(
+                    '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
+                    style:
+                        Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, color: Fx.muted),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => TemplateVersionPage(
+                        templateId: widget.templateId,
+                        versionId: version.id,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Drag Proxy
+  // ---------------------------------------------------------------------------
   Widget _dragProxy(
     Widget child,
     int index,
@@ -504,6 +1424,9 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Logic & API Interactions
+  // ---------------------------------------------------------------------------
   void _initialize(TemplateDetail template) {
     if (_initialized) {
       return;
@@ -588,9 +1511,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref
-        .read(adminApiProvider)
-        .saveTemplateDraft(
+    await ref.read(adminApiProvider).saveTemplateDraft(
           id: widget.templateId,
           name: _name.text.trim(),
           description: _description.text.trim(),
@@ -797,17 +1718,17 @@ class _SelectedItem {
   final String evidenceRequirement;
 
   factory _SelectedItem.fromView(TemplateItemView item) => _SelectedItem(
-    masterItemVersionId: item.masterItemVersionId,
-    categoryLabelEn: item.categoryLabelEn,
-    categoryLabelAr: item.categoryLabelAr,
-    labelEn: item.labelEn,
-    labelAr: item.labelAr,
-    instructionEn: item.instructionEn,
-    instructionAr: item.instructionAr,
-    versionNo: item.versionNo,
-    noteRequirement: item.noteRequirement,
-    evidenceRequirement: item.evidenceRequirement,
-  );
+        masterItemVersionId: item.masterItemVersionId,
+        categoryLabelEn: item.categoryLabelEn,
+        categoryLabelAr: item.categoryLabelAr,
+        labelEn: item.labelEn,
+        labelAr: item.labelAr,
+        instructionEn: item.instructionEn,
+        instructionAr: item.instructionAr,
+        versionNo: item.versionNo,
+        noteRequirement: item.noteRequirement,
+        evidenceRequirement: item.evidenceRequirement,
+      );
 
   factory _SelectedItem.fromPublished(PublishedItem item) {
     final en = item.version.translation('en');

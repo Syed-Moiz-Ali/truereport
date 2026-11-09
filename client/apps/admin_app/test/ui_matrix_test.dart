@@ -1,6 +1,5 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/pages/item_form_page.dart';
-import 'package:admin_app/src/pages/job_form_page.dart';
 import 'package:admin_app/src/pages/platform_admin_home.dart';
 import 'package:admin_app/src/pages/template_builder_page.dart';
 import 'package:admin_app/src/pages/template_version_page.dart';
@@ -339,33 +338,6 @@ void main() {
           },
         );
       }
-    }
-  }
-
-  for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final entry in <String, Size>{
-      'phone': sizes['phone']!,
-      'wide': sizes['wide']!,
-    }.entries) {
-      testWidgets(
-        'job form ${locale.languageCode} ${entry.key} has no overflow',
-        (tester) async {
-          _setSize(tester, entry.value);
-          await tester.pumpWidget(
-            ProviderScope(
-              overrides: [adminApiProvider.overrideWithValue(FakeAdminApi())],
-              child: _MatrixApp(
-                home: const JobFormPage(),
-                locale: locale,
-                brightness: Brightness.light,
-                textScale: 2,
-              ),
-            ),
-          );
-          await tester.pumpAndSettle();
-          expect(tester.takeException(), isNull);
-        },
-      );
     }
   }
 

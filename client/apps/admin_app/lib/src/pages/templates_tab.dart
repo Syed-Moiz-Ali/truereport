@@ -1,5 +1,6 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/pages/template_builder_page.dart';
+import 'package:admin_app/src/screens/f3b/new_template_dialog.dart';
 import 'package:admin_app/src/screens/f3b/template_list_view.dart';
 import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
@@ -10,8 +11,10 @@ import 'package:l10n/l10n.dart';
 /// Screen 7 — Workshop Template List (Templates tab).
 ///
 /// Pixel-perfect desktop layout matching Figma spec `06_7._Workshop_Template_List`.
-/// Connects live data from `templatesProvider`, while gracefully displaying
-/// Figma reference templates and metrics when live data is empty.
+/// Connects live data from `templatesProvider`. The showcase view still
+/// carries Figma reference templates; the `adminShowcaseProvider` release
+/// guard keeps it out of release builds until the Template List step wires
+/// real data.
 class TemplatesTab extends ConsumerStatefulWidget {
   const TemplatesTab({super.key, this.onNavSelected});
 
@@ -43,78 +46,39 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
 
   Future<void> _onNewTemplate() async {
     final l10n = AppLocalizations.of(context);
-    final name = TextEditingController();
-    final description = TextEditingController();
-    final serviceType = TextEditingController(text: 'FULL');
-    final vehicleType = TextEditingController(text: 'CAR');
-    await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.newTemplate),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppTextField(controller: name, label: l10n.templateName),
-              SizedBox(height: ctx.spacing.sm),
-              AppTextField(
-                controller: description,
-                label: l10n.templateDescription,
-                maxLines: 2,
+    await NewTemplateDialog.show(
+      context,
+      onCreate: ({
+        required String name,
+        required String description,
+        required String serviceType,
+        required String vehicleType,
+      }) async {
+        try {
+          final template = await ref.read(adminApiProvider).createTemplate(
+                name: name,
+                description: description,
+                serviceType: serviceType,
+                vehicleType: vehicleType,
+              );
+          ref.invalidate(templatesProvider);
+          if (mounted) {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TemplateBuilderPage(templateId: template.id),
               ),
-              SizedBox(height: ctx.spacing.sm),
-              AppTextField(controller: serviceType, label: l10n.serviceType),
-              SizedBox(height: ctx.spacing.sm),
-              AppTextField(controller: vehicleType, label: l10n.vehicleType),
-            ],
-          ),
-        ),
-        actions: [
-          AppButton(
-            label: l10n.cancel,
-            onPressed: () => Navigator.of(ctx).pop(false),
-            variant: AppButtonVariant.text,
-          ),
-          AppButton(
-            label: l10n.create,
-            onPressed: () async {
-              try {
-                final template = await ref
-                    .read(adminApiProvider)
-                    .createTemplate(
-                      name: name.text.trim(),
-                      description: description.text.trim(),
-                      serviceType: serviceType.text.trim(),
-                      vehicleType: vehicleType.text.trim(),
-                    );
-                if (ctx.mounted) {
-                  Navigator.of(ctx).pop(true);
-                  ref.invalidate(templatesProvider);
-                }
-                if (mounted) {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          TemplateBuilderPage(templateId: template.id),
-                    ),
-                  );
-                  ref.invalidate(templatesProvider);
-                }
-              } on Object {
-                if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx)
-                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-                }
-              }
-            },
-          ),
-        ],
-      ),
+            );
+            ref.invalidate(templatesProvider);
+          }
+        } on Object {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.actionFailed)),
+            );
+          }
+        }
+      },
     );
-    name.dispose();
-    description.dispose();
-    serviceType.dispose();
-    vehicleType.dispose();
   }
 
   void _onEditTemplate(String templateId) {
@@ -139,6 +103,10 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
 
   @override
   Widget build(BuildContext context) {
+    // Release guard (Step 2a): the showcase view below still carries
+    // fixture copy. Until the Template List step wires it, release builds
+    // show a neutral empty state instead. This row is removed at that step.
+    final showcase = ref.watch(adminShowcaseProvider);
     final templatesAsync = ref.watch(templatesProvider);
     final authState = ref.watch(authControllerProvider);
     final session = authState.value;
@@ -149,6 +117,13 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
         : null;
 
     final templates = templatesAsync.value;
+
+    final l10n = AppLocalizations.of(context);
+    if (!showcase) {
+      return Center(
+        child: EmptyState(title: l10n.templatesTab, body: l10n.noResults),
+      );
+    }
 
     return WorkshopTemplateListView(
       selectedNavIndex: 3,

@@ -14,6 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
+import 'support/fidelity_output.dart';
+
 /// F3-B Level 2 screen 8 — product capture for Figma screen 8
 /// "Template Builder" (node `1:1882`, 1280 x 1251.5).
 ///
@@ -212,9 +214,8 @@ void main() {
 
   testWidgets('capture f3b builder product', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3b/template-builder-product',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3b/template-builder-product');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

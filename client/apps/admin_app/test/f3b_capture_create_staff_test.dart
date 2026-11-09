@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/f3b_create_staff_fixture.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-B Step 3 screen 6 — Level 1 fidelity capture for Figma screen 6
 /// "Add Staff / Create Account" (node `1:1642`, 1280 x 1024).
@@ -32,9 +33,7 @@ void main() {
 
   testWidgets('capture f3b create staff level1', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3b/create-staff',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f3b/create-staff');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

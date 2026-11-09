@@ -11,6 +11,7 @@ import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2b_views.dart';
+import 'support/fidelity_output.dart';
 
 // Level 1 fixture-builder for F2-B.3 Part 2, screen 11 dense-mechanical ONLY.
 // Test-only widget tree mirroring Figma node 1:8220 per
@@ -28,8 +29,9 @@ void main() {
 
   testWidgets('capture f2b3 dense-mechanical level1', (tester) async {
     final root = repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f2b3/dense-mechanical',
+    final outDir = fidelityOutputDir(
+      root,
+      'figma/fidelity/f2b3/dense-mechanical',
     );
     final previous = enableFidelityShadows();
     try {

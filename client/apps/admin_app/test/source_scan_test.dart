@@ -272,6 +272,11 @@ void main() {
       '/api/'
       'v1/auth/login',
     );
+    expect(
+      endpoints.workshopJobCounts,
+      '/api/'
+      'v1/workshop/jobs/counts',
+    );
     expect(endpoints.workshopHierarchy('w1'), contains('/workshops/w1/'));
     expect(
       endpoints.itemVersionTranslation('i1', 'v1', 'ar'),

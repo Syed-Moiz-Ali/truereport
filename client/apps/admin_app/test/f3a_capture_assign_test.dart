@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/f3a_assign_fixture.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-A Step 4 screen 4 — Level 1 fidelity capture for Figma screen 4
 /// "Assign Technician" (node `1:821`, 1280 x 1120).
@@ -33,9 +34,8 @@ void main() {
 
   testWidgets('capture f3a assign level1', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/assign-technician',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3a/assign-technician');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

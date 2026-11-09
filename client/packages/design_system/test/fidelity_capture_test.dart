@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fidelity_harness.dart';
+import 'support/fidelity_output.dart';
 
 /// Fidelity capture for the Figma-exact component variants.
 ///
@@ -26,8 +27,9 @@ void main() {
   for (final sample in _samples) {
     testWidgets('capture ${sample.id}', (tester) async {
       final root = _repoRoot();
-      final outDir = Directory(
-        '${root.path}/docs/ui/figma/fidelity/component-samples/${sample.id}',
+      final outDir = fidelityOutputDir(
+        root,
+        'figma/fidelity/component-samples/${sample.id}',
       );
       final previous = enableFidelityShadows();
       try {

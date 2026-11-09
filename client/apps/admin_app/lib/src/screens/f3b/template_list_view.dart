@@ -90,6 +90,63 @@ class _WorkshopTemplateListViewState extends State<WorkshopTemplateListView> {
     );
   }
 
+  void _showUserMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Workshop Settings & Profile'),
+              subtitle: const Text('Business details, bays, working hours & profile'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(4);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Staff Management'),
+              subtitle: const Text('Invite technicians, assign roles & permissions'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(2);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize_outlined),
+              title: const Text('Inspection Templates'),
+              subtitle: const Text('Service checklists and template builder'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(3);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Toggle Language (EN / AR)'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onToggleLocale?.call();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onSignOut?.call();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Figma 1:1623 rail 96 x 800.
   Widget _rail() {
     return Container(
@@ -122,68 +179,72 @@ class _WorkshopTemplateListViewState extends State<WorkshopTemplateListView> {
           ),
           Positioned(
             left: _M.twenty,
-            top: 128,
+            top: 112,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(0),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 0 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 0 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('dash', 18, 18),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 0,
+              icon: 'dash',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 0,
+              tooltip: 'Overview Dashboard',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 208,
+            top: 176,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(1),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 1 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 1 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('jobs', 18, 20),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 1,
+              icon: 'jobs',
+              iconWidth: 18,
+              iconHeight: 20,
+              isActive: widget.selectedNavIndex == 1,
+              tooltip: 'Live Job Queue',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 288,
+            top: 240,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(2),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 2 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 2 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('gear', 18, 18),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 2,
+              icon: 'staff',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 2,
+              tooltip: 'Staff Management',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 304,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 3,
+              icon: 'templates',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 3,
+              tooltip: 'Inspection Templates',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 368,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 4,
+              icon: 'gear',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 4,
+              tooltip: 'Workshop Settings & Profile',
             ),
           ),
           Positioned(
@@ -193,21 +254,70 @@ class _WorkshopTemplateListViewState extends State<WorkshopTemplateListView> {
             height: _M.forty,
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(3),
-                borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Fx.container,
-                    shape: BoxShape.circle,
+              child: Tooltip(
+                message: 'Profile & Workshop Settings',
+                child: InkWell(
+                  onTap: () => _showUserMenu(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: _svg('help', 18.33, 17.5),
                   ),
-                  alignment: Alignment.center,
-                  child: _svg('help', 18.33, 17.5),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _navButton({
+    required int index,
+    required String icon,
+    required double iconWidth,
+    required double iconHeight,
+    required bool isActive,
+    String? tooltip,
+  }) {
+    Widget iconWidget;
+    if (icon == 'staff') {
+      iconWidget = Icon(
+        Icons.groups_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else if (icon == 'templates') {
+      iconWidget = Icon(
+        Icons.dashboard_customize_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else {
+      iconWidget = _svg(icon, iconWidth, iconHeight);
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: InkWell(
+          onTap: () => widget.onNavSelected?.call(index),
+          borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isActive ? Fx.emerald : Fx.container,
+              borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+              boxShadow: isActive ? Fx.ctaShadow : null,
+            ),
+            alignment: Alignment.center,
+            child: iconWidget,
+          ),
+        ),
       ),
     );
   }
@@ -272,7 +382,7 @@ class _WorkshopTemplateListViewState extends State<WorkshopTemplateListView> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: widget.onSignOut,
+                    onTap: () => _showUserMenu(context),
                     borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
                     child: Container(
                       decoration: const BoxDecoration(

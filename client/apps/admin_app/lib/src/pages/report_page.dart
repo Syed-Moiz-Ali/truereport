@@ -1,6 +1,10 @@
 import 'package:admin_app/src/admin_providers.dart';
 import 'package:admin_app/src/models.dart';
+import 'package:admin_app/src/pages/pdf_preview_page.dart';
 import 'package:admin_app/src/report_pdf_saver.dart';
+import 'package:admin_app/src/screens/f3b/completed_report_view.dart';
+import 'package:admin_app/src/screens/f3b/deactivation_dialog.dart';
+import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,17 +72,20 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final report = ref.watch(reportProvider(widget.jobId));
+    final wide = MediaQuery.sizeOf(context).width >= AppBreakpoints.desktop;
     return AppScaffold(
-      appBar: AppBar(
-        title: Text(l10n.report),
-        actions: [
-          IconButton(
-            tooltip: l10n.cancel,
-            onPressed: () => ref.invalidate(reportProvider(widget.jobId)),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
+      appBar: wide
+          ? null
+          : AppBar(
+              title: Text(l10n.report),
+              actions: [
+                IconButton(
+                  tooltip: l10n.cancel,
+                  onPressed: () => ref.invalidate(reportProvider(widget.jobId)),
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
       body: report.when(
         loading: () => Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
@@ -95,12 +102,43 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             ),
           ),
         ),
-        data: (value) => _body(context, value),
+        data: (value) => _body(context, value, wide),
       ),
     );
   }
 
-  Widget _body(BuildContext context, ReportAdmin report) {
+  Widget _body(BuildContext context, ReportAdmin report, bool wide) {
+    if (wide) {
+      final auth = ref.watch(authControllerProvider).value;
+      return SingleChildScrollView(
+        child: Center(
+          child: CompletedReportView(
+            report: report,
+            userName: auth?.user.displayName,
+            userRole: auth != null
+                ? (auth.role.name == 'workshopAdmin'
+                    ? 'Lead Inspector'
+                    : auth.role.name)
+                : null,
+            onDownloadPdf: _busy ? null : _downloadPdf,
+            onPreviewPdf: () {
+              Navigator.of(context).push(
+                PrintReadyPdfPreviewPage.route(
+                  jobId: widget.jobId,
+                  initialReport: report,
+                ),
+              );
+            },
+            onResendWhatsApp: _busy ? null : _send,
+            onResendSms: _busy ? null : _send,
+            onDeactivateLink: (_) => _revoke(),
+            onNavSelected: (idx) {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      );
+    }
     final l10n = AppLocalizations.of(context);
     final ready = report.reportReady;
     return ListView(
@@ -577,6 +615,24 @@ class _ReportPageState extends ConsumerState<ReportPage> {
 
   Future<void> _revoke() async {
     final l10n = AppLocalizations.of(context);
+    final wide = MediaQuery.sizeOf(context).width >= AppBreakpoints.desktop;
+    if (wide) {
+      final reason = await ShareLinkDeactivationDialog.show(context);
+      if (reason == null || !mounted) {
+        return;
+      }
+      await _run(() async {
+        await ref
+            .read(adminApiProvider)
+            .revokeReportLink(widget.jobId, 'CUSTOMER_REQUEST', reason);
+        ref.invalidate(reportProvider(widget.jobId));
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(l10n.linkRevoked)));
+        }
+      });
+      return;
+    }
     var reason = 'PRIVACY';
     final note = TextEditingController();
     final confirmed = await showAppBottomSheet<bool>(

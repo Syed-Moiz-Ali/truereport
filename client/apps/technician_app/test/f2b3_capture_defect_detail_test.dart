@@ -12,6 +12,7 @@ import 'support/f2a_test_fonts.dart';
 import 'support/f2a_test_images.dart';
 import 'support/f2b3_defect_detail_fixture.dart';
 import 'support/f2b_views.dart';
+import 'support/fidelity_output.dart';
 
 /// F2-B.3 Part 2 — Level 1 fidelity capture for Figma screen 09
 /// (Defect Detail & Evidence).
@@ -37,8 +38,9 @@ void main() {
 
   testWidgets('capture f2b3 defect-detail level1', (tester) async {
     final root = repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f2b3/defect-detail',
+    final outDir = fidelityOutputDir(
+      root,
+      'figma/fidelity/f2b3/defect-detail',
     );
     final previous = enableFidelityShadows();
     try {

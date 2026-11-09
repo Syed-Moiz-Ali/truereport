@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/fidelity_output.dart';
+
 /// F3-A Step 4 screen 1 — Level 1 exact-structure fixture for Figma screen 1
 /// "Workshop Dashboard" (node `1:299`, 1280 x 1230.672).
 ///
@@ -1806,9 +1808,7 @@ void main() {
 
   testWidgets('capture f3a dashboard level1', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/dashboard',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f3a/dashboard');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir, root);

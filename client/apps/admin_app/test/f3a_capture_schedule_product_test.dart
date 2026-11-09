@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
 import 'support/fake_admin_api.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-A Level 2 — REAL product drawer vs Figma screen 3
 /// "Create / Schedule Job" (node `1:2`, 1280 x 1058).
@@ -45,9 +46,8 @@ void main() {
 
   testWidgets('capture f3a schedule level2 product', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/create-schedule-product',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3a/create-schedule-product');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

@@ -1,3 +1,4 @@
+// ignore_for_file: constant_identifier_names
 // Generated assets for Completed Report Viewer (Figma 09_9._Completed_Report_Viewer)
 abstract final class CompletedReportAssets {
   static const String Icon_1_2256 = r'''<svg width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg">

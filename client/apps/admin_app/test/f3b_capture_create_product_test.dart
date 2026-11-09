@@ -14,6 +14,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
+import 'support/fidelity_output.dart';
+
 /// F3-B Level 2 screen 6 — REAL product sheet vs Figma screen 6
 /// "Add Staff / Create Account" (node `1:1642`, 1280 x 1024).
 ///
@@ -51,9 +53,8 @@ void main() {
 
   testWidgets('capture f3b create staff level2 product', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3b/create-staff-product',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3b/create-staff-product');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

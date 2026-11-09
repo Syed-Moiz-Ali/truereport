@@ -12,6 +12,7 @@ import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_images.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_views.dart';
+import 'support/fidelity_output.dart';
 import 'support/figma_l10n_override.dart';
 
 void main() {
@@ -25,8 +26,9 @@ void main() {
     for (final variant in _variants) {
       testWidgets('capture $id ${variant.id}', (tester) async {
         final root = repoRoot();
-        final outDir = Directory(
-          '${root.path}/docs/ui/figma/fidelity/f2a1/$id/${variant.id}',
+        final outDir = fidelityOutputDir(
+          root,
+          'figma/fidelity/f2a1/$id/${variant.id}',
         );
         final previous = enableFidelityShadows();
         try {

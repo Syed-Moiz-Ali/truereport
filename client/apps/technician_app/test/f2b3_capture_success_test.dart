@@ -11,6 +11,7 @@ import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2b3_success_fixture.dart';
 import 'support/f2b_views.dart';
+import 'support/fidelity_output.dart';
 
 /// F2-B.3 Part 2 — Level 1 fidelity capture for Figma screen 16
 /// (Post-Finalization Success).
@@ -37,9 +38,7 @@ void main() {
 
   testWidgets('capture f2b3 success level1', (tester) async {
     final root = repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f2b3/success',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f2b3/success');
     final previous = enableFidelityShadows();
     try {
       await _render(tester, outDir);

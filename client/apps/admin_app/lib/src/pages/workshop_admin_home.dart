@@ -1,5 +1,6 @@
 import 'package:admin_app/src/pages/dashboard_tab.dart';
 import 'package:admin_app/src/pages/jobs_tab.dart';
+import 'package:admin_app/src/pages/settings_tab.dart';
 import 'package:admin_app/src/pages/staff_tab.dart';
 import 'package:admin_app/src/pages/templates_tab.dart';
 import 'package:auth/auth.dart';
@@ -16,13 +17,19 @@ class WorkshopAdminHomePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= AppBreakpoints.tablet;
           const tabs = TabBarView(
             physics: NeverScrollableScrollPhysics(),
-            children: [DashboardTab(), JobsTab(), StaffTab(), TemplatesTab()],
+            children: [
+              DashboardTab(),
+              JobsTab(),
+              StaffTab(),
+              TemplatesTab(),
+              SettingsTab(),
+            ],
           );
           if (wide) {
             return const Scaffold(
@@ -75,6 +82,11 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                   key: const Key('workshop-tab-templates'),
                   icon: const Icon(Icons.dashboard_customize_outlined),
                   text: l10n.templatesTab,
+                ),
+                const Tab(
+                  key: Key('workshop-tab-settings'),
+                  icon: Icon(Icons.settings_outlined),
+                  text: 'Settings',
                 ),
               ],
             ),

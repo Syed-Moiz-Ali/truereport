@@ -27,7 +27,7 @@ class WorkshopDashboardView extends StatelessWidget {
     this.onProfileTap,
     this.onSignOut,
     this.onToggleLocale,
-    this.counts,
+    required this.counts,
     this.recentJobs,
     this.userName,
     this.userRole,
@@ -42,7 +42,7 @@ class WorkshopDashboardView extends StatelessWidget {
   final VoidCallback? onProfileTap;
   final VoidCallback? onSignOut;
   final VoidCallback? onToggleLocale;
-  final JobCounts? counts;
+  final JobCounts counts;
   final List<WorkshopJob>? recentJobs;
   final String? userName;
   final String? userRole;
@@ -260,8 +260,7 @@ class WorkshopDashboardView extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 color: Fx.white,
-                borderRadius:
-                    BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x0F000000),
@@ -354,9 +353,9 @@ class WorkshopDashboardView extends StatelessWidget {
 
   // Figma `1:325`-`1:380` KPI row 1104 x 346.67.
   Widget _kpiRow(BuildContext context) {
-    final activeNum = counts?.inProgress.toString() ?? '12';
-    final pendingNum = counts?.readyToFinalize.toString() ?? '4';
-    final sentNum = counts?.finalized.toString() ?? '8';
+    final activeNum = counts.inProgress.toString();
+    final pendingNum = counts.readyToFinalize.toString();
+    final sentNum = counts.finalized.toString();
 
     return SizedBox(
       width: 1104,
@@ -467,8 +466,7 @@ class WorkshopDashboardView extends StatelessWidget {
                   height: _M.fortyEight,
                   decoration: const BoxDecoration(
                     color: Fx.container,
-                    borderRadius:
-                        BorderRadius.all(Radius.circular(_M.sixteen)),
+                    borderRadius: BorderRadius.all(Radius.circular(_M.sixteen)),
                   ),
                   alignment: Alignment.center,
                   child: _svg(icon, iconWidth, iconHeight),
@@ -524,8 +522,9 @@ class WorkshopDashboardView extends StatelessWidget {
                   height: _M.six,
                   decoration: const BoxDecoration(
                     color: Fx.container,
-                    borderRadius:
-                        BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(Fx.pillRadius),
+                    ),
                   ),
                 ),
                 Container(
@@ -757,7 +756,8 @@ class WorkshopDashboardView extends StatelessWidget {
                     titleWidth: 142.16,
                     vin: 'VIN \u2022 9J18',
                     vinWidth: 75.83,
-                    detail: 'Bay 04 \u2022 Full diagnostic pass complete '
+                    detail:
+                        'Bay 04 \u2022 Full diagnostic pass complete '
                         '(48/48 points checked)',
                     detailLines: 1,
                     pillWidth: 65.23,
@@ -793,7 +793,8 @@ class WorkshopDashboardView extends StatelessWidget {
                     titleWidth: 152.17,
                     vin: 'VIN \u2022 3E41',
                     vinWidth: 78.42,
-                    detail: 'Bay 02 \u2022 Secondary structural markup '
+                    detail:
+                        'Bay 02 \u2022 Secondary structural markup '
                         'awaiting lead\ninspector review',
                     detailLines: 2,
                     pillWidth: 105.83,
@@ -829,7 +830,8 @@ class WorkshopDashboardView extends StatelessWidget {
                     titleWidth: 179.88,
                     vin: 'VIN \u2022 7K89',
                     vinWidth: 80.69,
-                    detail: 'Bay 01 \u2022 Sign-off certificate compiled and '
+                    detail:
+                        'Bay 01 \u2022 Sign-off certificate compiled and '
                         'dispatched to fleet\nlead',
                     detailLines: 2,
                     pillWidth: 82.72,
@@ -1008,8 +1010,9 @@ class WorkshopDashboardView extends StatelessWidget {
                   height: pillHeight,
                   decoration: const BoxDecoration(
                     color: Fx.container,
-                    borderRadius:
-                        BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(Fx.pillRadius),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: _tMulti(
@@ -1223,8 +1226,7 @@ class WorkshopDashboardView extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 color: Fx.container,
-                borderRadius:
-                    BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
               ),
               child: Stack(
                 children: [
@@ -1327,8 +1329,9 @@ class WorkshopDashboardView extends StatelessWidget {
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Fx.container,
-                    borderRadius:
-                        BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(Fx.pillRadius),
+                    ),
                   ),
                   child: Stack(
                     children: [
@@ -1367,13 +1370,7 @@ class WorkshopDashboardView extends StatelessWidget {
                           'Shop Floor #04',
                           95.92,
                           _M.sixteen,
-                          Fx.text(
-                            12,
-                            16,
-                            FontWeight.w700,
-                            0.24,
-                            color: Fx.ink,
-                          ),
+                          Fx.text(12, 16, FontWeight.w700, 0.24, color: Fx.ink),
                         ),
                       ),
                     ],
@@ -1542,6 +1539,37 @@ class WorkshopDashboardView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Icon(Icons.settings_outlined, color: Color(0xFF10B981)),
+              title: const Text(
+                'Workshop Settings & Profile',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: const Text('Workshop profile, operating hours, and dispatch preferences'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onNavSelected?.call(4);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Workshop Staff Management'),
+              subtitle: const Text('View roster and manage technicians'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onNavSelected?.call(2);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize_outlined),
+              title: const Text('Inspection Templates'),
+              subtitle: const Text('Service checklists and template builder'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onNavSelected?.call(3);
+              },
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Icons.language),
               title: const Text('Toggle Language (EN / AR)'),
               onTap: () {
@@ -1551,7 +1579,10 @@ class WorkshopDashboardView extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Sign Out',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () {
                 Navigator.pop(ctx);
                 onSignOut?.call();
@@ -1579,8 +1610,7 @@ class WorkshopDashboardView extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 color: Fx.container,
-                borderRadius:
-                    BorderRadius.all(Radius.circular(_M.sixteen)),
+                borderRadius: BorderRadius.all(Radius.circular(_M.sixteen)),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x04000000),
@@ -1600,41 +1630,72 @@ class WorkshopDashboardView extends StatelessWidget {
           ),
           Positioned(
             left: _M.twenty,
-            top: 128,
+            top: 112,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 0,
               icon: 'dash',
               iconWidth: 18,
               iconHeight: 18,
               isActive: selectedNavIndex == 0,
+              tooltip: 'Overview Dashboard',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 208,
+            top: 176,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 1,
               icon: 'jobs',
               iconWidth: 18,
               iconHeight: 20,
               isActive: selectedNavIndex == 1,
+              tooltip: 'Live Job Queue',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 288,
+            top: 240,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 2,
-              icon: 'navset',
+              icon: 'staff',
               iconWidth: 18,
               iconHeight: 18,
               isActive: selectedNavIndex == 2,
+              tooltip: 'Staff Management',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 304,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 3,
+              icon: 'templates',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: selectedNavIndex == 3,
+              tooltip: 'Inspection Templates',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 368,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 4,
+              icon: 'navset',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: selectedNavIndex == 4,
+              tooltip: 'Workshop Settings & Profile',
             ),
           ),
           Positioned(
@@ -1644,16 +1705,19 @@ class WorkshopDashboardView extends StatelessWidget {
             height: _M.forty,
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: onSignOut ?? () => _showUserMenu(context),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Fx.container,
-                    shape: BoxShape.circle,
+              child: Tooltip(
+                message: 'Profile & Workshop Settings',
+                child: InkWell(
+                  onTap: onSignOut ?? () => _showUserMenu(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: _svg('setbot', 18.33, 17.5),
                   ),
-                  alignment: Alignment.center,
-                  child: _svg('setbot', 18.33, 17.5),
                 ),
               ),
             ),
@@ -1669,21 +1733,41 @@ class WorkshopDashboardView extends StatelessWidget {
     required double iconWidth,
     required double iconHeight,
     required bool isActive,
+    String? tooltip,
   }) {
+    Widget iconWidget;
+    if (icon == 'staff') {
+      iconWidget = Icon(
+        Icons.groups_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else if (icon == 'templates') {
+      iconWidget = Icon(
+        Icons.dashboard_customize_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else {
+      iconWidget = _svg(icon, iconWidth, iconHeight);
+    }
+
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onNavSelected?.call(index),
-        borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isActive ? Fx.emerald : Fx.container,
-            borderRadius:
-                const BorderRadius.all(Radius.circular(_M.sixteen)),
-            boxShadow: isActive ? Fx.ctaShadow : null,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: InkWell(
+          onTap: () => onNavSelected?.call(index),
+          borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isActive ? Fx.emerald : Fx.container,
+              borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+              boxShadow: isActive ? Fx.ctaShadow : null,
+            ),
+            alignment: Alignment.center,
+            child: iconWidget,
           ),
-          alignment: Alignment.center,
-          child: _svg(icon, iconWidth, iconHeight),
         ),
       ),
     );
@@ -1729,12 +1813,7 @@ class WorkshopDashboardView extends StatelessWidget {
     );
   }
 
-  Widget _tMulti(
-    String data,
-    double width,
-    int lines,
-    TextStyle style,
-  ) {
+  Widget _tMulti(String data, double width, int lines, TextStyle style) {
     final size = style.fontSize ?? 14;
     final dy = size == 11
         ? -1.0

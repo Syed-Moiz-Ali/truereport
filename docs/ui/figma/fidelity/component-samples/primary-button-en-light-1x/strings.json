@@ -1,0 +1,10 @@
+{
+  "sample": "primary-button-en-light-1x",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "Sign In"
+  ]
+}

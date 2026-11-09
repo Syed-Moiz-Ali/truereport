@@ -246,53 +246,77 @@ class _ScheduleJobBodyState extends ConsumerState<_ScheduleJobBody> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SectionHeader(title: l10n.jobDetails),
+              SectionHeader(
+                title: l10n.jobDetails,
+                subtitle: 'Customer & vehicle intake parameters',
+              ),
               AppTextField(
                 controller: _customerName,
                 label: l10n.customerName,
+                hint: 'e.g. Arthur Pendelton',
+                prefixIcon: const Icon(Icons.person_outline, size: 20),
                 validator: _required,
               ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: _customerPhone,
                 label: l10n.customerPhone,
+                hint: '+971 50 123 4567',
+                prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                 keyboardType: TextInputType.phone,
               ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: _customerEmail,
                 label: l10n.customerEmail,
+                hint: 'customer@domain.com',
+                prefixIcon: const Icon(Icons.email_outlined, size: 20),
                 keyboardType: TextInputType.emailAddress,
               ),
               SizedBox(height: context.spacing.lg),
               AppTextField(
                 controller: _vehicleMake,
                 label: l10n.vehicleMake,
+                hint: 'e.g. Audi',
+                prefixIcon: const Icon(Icons.directions_car_outlined, size: 20),
                 validator: _required,
               ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: _vehicleModel,
                 label: l10n.vehicleModel,
+                hint: 'e.g. RS6 Avant',
+                prefixIcon: const Icon(Icons.speed_outlined, size: 20),
                 validator: _required,
               ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: _vehicleYear,
                 label: l10n.vehicleYear,
+                hint: '2024',
+                prefixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: context.spacing.sm),
-              AppTextField(controller: _vehicleVin, label: l10n.vehicleVin),
+              AppTextField(
+                controller: _vehicleVin,
+                label: l10n.vehicleVin,
+                hint: '17-character VIN',
+                prefixIcon: const Icon(Icons.pin_outlined, size: 20),
+              ),
               SizedBox(height: context.spacing.sm),
               AppTextField(
                 controller: _vehiclePlate,
                 label: l10n.vehiclePlate,
+                hint: 'e.g. DXB A 12345',
+                prefixIcon: const Icon(Icons.badge_outlined, size: 20),
               ),
               SizedBox(height: context.spacing.lg),
               AppTextField(
                 controller: _scope,
                 label: l10n.scope,
+                hint: 'Describe inspection requirements or scope',
+                prefixIcon: const Icon(Icons.description_outlined, size: 20),
                 maxLines: 2,
                 validator: _required,
               ),
@@ -300,11 +324,18 @@ class _ScheduleJobBodyState extends ConsumerState<_ScheduleJobBody> {
               AppTextField(
                 controller: _scheduledAt,
                 label: l10n.scheduledAt,
+                hint: 'Select booking date & time',
                 readOnly: true,
                 focusNode: _scheduledAtFocus,
+                prefixIcon: const Icon(Icons.event_available_outlined, size: 20),
                 suffixIcon: const Icon(Icons.calendar_month_outlined),
               ),
               SizedBox(height: context.spacing.lg),
+              SectionHeader(
+                title: l10n.selectTemplate,
+                subtitle: 'Inspection protocol & checklist version',
+              ),
+              SizedBox(height: context.spacing.sm),
               for (final version in versions) ...[
                 WorkshopOptionCard<String>(
                   value: version.versionId,
@@ -324,7 +355,10 @@ class _ScheduleJobBodyState extends ConsumerState<_ScheduleJobBody> {
               DropdownButtonFormField<String>(
                 isExpanded: true,
                 initialValue: _templateVersionId,
-                decoration: InputDecoration(labelText: l10n.selectTemplate),
+                decoration: InputDecoration(
+                  labelText: l10n.selectTemplate,
+                  prefixIcon: const Icon(Icons.tune_outlined, size: 20),
+                ),
                 items: versions
                     .map(
                       (version) => DropdownMenuItem(

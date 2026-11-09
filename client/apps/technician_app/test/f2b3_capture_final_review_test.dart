@@ -11,6 +11,7 @@ import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
 import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2b_views.dart';
+import 'support/fidelity_output.dart';
 
 // F2-B.3 Part 2, screen 13 (Fig want exact Figma text (Level 1 is a fidelity fixture, not product
 // copy) instead of routing through product models. Chrome copy that exists in
@@ -876,8 +877,9 @@ void main() {
 
   testWidgets('capture f2b3 final-review level1', (tester) async {
     final root = repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f2b3/final-review',
+    final outDir = fidelityOutputDir(
+      root,
+      'figma/fidelity/f2b3/final-review',
     );
     final previous = enableFidelityShadows();
     try {

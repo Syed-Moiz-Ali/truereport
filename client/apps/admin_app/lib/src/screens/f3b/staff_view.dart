@@ -23,6 +23,7 @@ class WorkshopStaffView extends StatefulWidget {
     this.userName,
     this.userRole,
     this.staffList,
+    this.onStaffSelected,
   });
 
   final int selectedNavIndex;
@@ -35,6 +36,7 @@ class WorkshopStaffView extends StatefulWidget {
   final String? userName;
   final String? userRole;
   final List<StaffMember>? staffList;
+  final ValueChanged<StaffMember>? onStaffSelected;
 
   static const double width = 1280;
   static const double height = 1048;
@@ -127,6 +129,63 @@ class _WorkshopStaffViewState extends State<WorkshopStaffView> {
     );
   }
 
+  void _showUserMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Workshop Settings & Profile'),
+              subtitle: const Text('Business details, bays, working hours & profile'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(4);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Staff Management'),
+              subtitle: const Text('Invite technicians, assign roles & permissions'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(2);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize_outlined),
+              title: const Text('Inspection Templates'),
+              subtitle: const Text('Service checklists and template builder'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(3);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Toggle Language (EN / AR)'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onToggleLocale?.call();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onSignOut?.call();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Figma 1:1288 icon rail 96 x 1030.
   Widget _rail() {
     return Container(
@@ -159,68 +218,72 @@ class _WorkshopStaffViewState extends State<WorkshopStaffView> {
           ),
           Positioned(
             left: _M.twenty,
-            top: 128,
+            top: 112,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(0),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 0 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 0 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('dash', 18, 18),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 0,
+              icon: 'dash',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 0,
+              tooltip: 'Overview Dashboard',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 208,
+            top: 176,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(1),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 1 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 1 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('jobs', 18, 20),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 1,
+              icon: 'jobs',
+              iconWidth: 18,
+              iconHeight: 20,
+              isActive: widget.selectedNavIndex == 1,
+              tooltip: 'Live Job Queue',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 288,
+            top: 240,
             width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(2),
-                borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: widget.selectedNavIndex == 2 ? Fx.emerald : Fx.container,
-                    borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-                    boxShadow: widget.selectedNavIndex == 2 ? Fx.ctaShadow : null,
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg('gear', 18, 18),
-                ),
-              ),
+            height: 52,
+            child: _navButton(
+              index: 2,
+              icon: 'staff',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 2,
+              tooltip: 'Staff Management',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 304,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 3,
+              icon: 'templates',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 3,
+              tooltip: 'Inspection Templates',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 368,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 4,
+              icon: 'gear',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 4,
+              tooltip: 'Workshop Settings & Profile',
             ),
           ),
           Positioned(
@@ -230,21 +293,70 @@ class _WorkshopStaffViewState extends State<WorkshopStaffView> {
             height: _M.forty,
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: () => widget.onNavSelected?.call(3),
-                borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Fx.container,
-                    shape: BoxShape.circle,
+              child: Tooltip(
+                message: 'Profile & Workshop Settings',
+                child: InkWell(
+                  onTap: () => _showUserMenu(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: _svg('help', 18.33, 17.5),
                   ),
-                  alignment: Alignment.center,
-                  child: _svg('help', 18.33, 17.5),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _navButton({
+    required int index,
+    required String icon,
+    required double iconWidth,
+    required double iconHeight,
+    required bool isActive,
+    String? tooltip,
+  }) {
+    Widget iconWidget;
+    if (icon == 'staff') {
+      iconWidget = Icon(
+        Icons.groups_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else if (icon == 'templates') {
+      iconWidget = Icon(
+        Icons.dashboard_customize_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else {
+      iconWidget = _svg(icon, iconWidth, iconHeight);
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: InkWell(
+          onTap: () => widget.onNavSelected?.call(index),
+          borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isActive ? Fx.emerald : Fx.container,
+              borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+              boxShadow: isActive ? Fx.ctaShadow : null,
+            ),
+            alignment: Alignment.center,
+            child: iconWidget,
+          ),
+        ),
       ),
     );
   }
@@ -308,7 +420,7 @@ class _WorkshopStaffViewState extends State<WorkshopStaffView> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: widget.onSignOut,
+                    onTap: () => _showUserMenu(context),
                     borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
                     child: Container(
                       decoration: const BoxDecoration(
@@ -1019,90 +1131,114 @@ class _WorkshopStaffViewState extends State<WorkshopStaffView> {
         borderRadius: BorderRadius.all(Radius.circular(_M.twentyFour)),
         boxShadow: Fx.cardShadow,
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 28,
-            top: 28 + avatarTop,
-            width: _M.fiftySix,
-            height: _M.fiftySix,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: _M.fiftySix,
-                  height: _M.fiftySix,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE1DEEC),
-                    borderRadius: BorderRadius.all(Radius.circular(_M.sixteen)),
-                  ),
-                  alignment: Alignment.center,
-                  child: _svg(avatar, 23.33, 23.33),
-                ),
-                Positioned(
-                  left: 44,
-                  top: 44,
-                  width: _M.sixteen,
-                  height: _M.sixteen,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: toggleOn ? Fx.emerald : const Color(0xFFE3E2E7),
-                      border: Border.all(color: Fx.white, width: _M.two),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            final member = _buildStaffForCard(cardIndex, name, role);
+            widget.onStaffSelected?.call(member);
+          },
+          borderRadius: const BorderRadius.all(Radius.circular(_M.twentyFour)),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 28,
+                top: 28 + avatarTop,
+                width: _M.fiftySix,
+                height: _M.fiftySix,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: _M.fiftySix,
+                      height: _M.fiftySix,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE1DEEC),
+                        borderRadius: BorderRadius.all(Radius.circular(_M.sixteen)),
+                      ),
+                      alignment: Alignment.center,
+                      child: _svg(avatar, 23.33, 23.33),
                     ),
-                  ),
+                    Positioned(
+                      left: 44,
+                      top: 44,
+                      width: _M.sixteen,
+                      height: _M.sixteen,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: toggleOn ? Fx.emerald : const Color(0xFFE3E2E7),
+                          border: Border.all(color: Fx.white, width: _M.two),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                left: 100,
+                top: 28,
+                width: nameW,
+                height: _M.twentyFour,
+                child: _t(
+                  name,
+                  nameW,
+                  _M.twentyFour,
+                  Fx.text(18, 24, FontWeight.w700, -0.27, color: Fx.ink),
+                ),
+              ),
+              Positioned(
+                left: 100,
+                top: 54,
+                width: roleW,
+                height: roleH,
+                child: _tw(
+                  role,
+                  roleW,
+                  roleH,
+                  Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
+                  maxLines: roleLines,
+                ),
+              ),
+              Positioned(
+                left: 346.67 - 28 - 32,
+                top: 28,
+                width: _M.thirtyTwo,
+                height: _M.thirtyTwo,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _toggleOverrides[cardIndex] = !toggleOn;
+                    });
+                  },
+                  child: _toggle(toggleOn),
+                ),
+              ),
+              Positioned(
+                left: 28,
+                top: topH == 80.0 ? 132 : 114,
+                width: 290.67,
+                height: _M.thirty,
+                child: bottom,
+              ),
+            ],
           ),
-          Positioned(
-            left: 100,
-            top: 28,
-            width: nameW,
-            height: _M.twentyFour,
-            child: _t(
-              name,
-              nameW,
-              _M.twentyFour,
-              Fx.text(18, 24, FontWeight.w700, -0.27, color: Fx.ink),
-            ),
-          ),
-          Positioned(
-            left: 100,
-            top: 54,
-            width: roleW,
-            height: roleH,
-            child: _tw(
-              role,
-              roleW,
-              roleH,
-              Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
-              maxLines: roleLines,
-            ),
-          ),
-          Positioned(
-            left: 346.67 - 28 - 32,
-            top: 28,
-            width: _M.thirtyTwo,
-            height: _M.thirtyTwo,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _toggleOverrides[cardIndex] = !toggleOn;
-                });
-              },
-              child: _toggle(toggleOn),
-            ),
-          ),
-          Positioned(
-            left: 28,
-            top: topH == 80.0 ? 132 : 114,
-            width: 290.67,
-            height: _M.thirty,
-            child: bottom,
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  StaffMember _buildStaffForCard(int index, String name, String role) {
+    if (widget.staffList != null && widget.staffList!.length > index) {
+      return widget.staffList![index];
+    }
+    final emailName = name.toLowerCase().replaceAll(' ', '.');
+    return StaffMember(
+      userId: 'staff-$index',
+      displayName: name,
+      emailMasked: '$emailName@apexfleet.io',
+      role: role,
+      status: 'ACTIVE',
     );
   }
 

@@ -560,63 +560,99 @@ class _WorkshopQueueViewState extends State<WorkshopQueueView> {
         borderRadius: BorderRadius.all(Radius.circular(_M.twentyFour)),
         boxShadow: Fx.cardShadow,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(_M.thirtyTwo),
-        child: SizedBox(
-          width: 1040,
-          height: 86,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: data.leftWidth,
-                height: 86,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _thumb(imageKey),
-                    const SizedBox(width: _M.twenty),
-                    SizedBox(
-                      width: data.textWidth,
-                      height: 86,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _t(
-                            data.title,
-                            data.titleWidth,
-                            _M.twentyEight,
-                            Fx.heading22.copyWith(color: Fx.ink),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            final matchingJob = widget.jobs?.firstWhere(
+              (j) => j.id == 'job-${data.key}' || j.vehicleModel.contains(data.title),
+              orElse: () => _buildFallbackJob(data),
+            );
+            widget.onOpenJob?.call(matchingJob ?? _buildFallbackJob(data));
+          },
+          borderRadius: const BorderRadius.all(Radius.circular(_M.twentyFour)),
+          child: Padding(
+            padding: const EdgeInsets.all(_M.thirtyTwo),
+            child: SizedBox(
+              width: 1040,
+              height: 86,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: data.leftWidth,
+                    height: 86,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _thumb(imageKey),
+                        const SizedBox(width: _M.twenty),
+                        SizedBox(
+                          width: data.textWidth,
+                          height: 86,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _t(
+                                data.title,
+                                data.titleWidth,
+                                _M.twentyEight,
+                                Fx.heading22.copyWith(color: Fx.ink),
+                              ),
+                              const SizedBox(height: _M.twelve),
+                              _chip(data),
+                              const SizedBox(height: _M.six),
+                              _vinRow(data),
+                            ],
                           ),
-                          const SizedBox(height: _M.twelve),
-                          _chip(data),
-                          const SizedBox(height: _M.six),
-                          _vinRow(data),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: data.middleGap),
+                  SizedBox(
+                    width: data.middleWidth,
+                    height: _M.fortyEight,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _assignee(data),
+                        const SizedBox(width: _M.twentyFour),
+                        _metricBlock(data),
+                        const SizedBox(width: _M.twentyFour),
+                        _chevron(data),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: data.middleGap),
-              SizedBox(
-                width: data.middleWidth,
-                height: _M.fortyEight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _assignee(data),
-                    const SizedBox(width: _M.twentyFour),
-                    _metricBlock(data),
-                    const SizedBox(width: _M.twentyFour),
-                    _chevron(data),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  WorkshopJob _buildFallbackJob(_CardData data) {
+    return WorkshopJob(
+      id: 'job-${data.key}',
+      reference: 'JOB-2024-089${data.key}',
+      status: data.key == 1 ? 'IN_PROGRESS' : (data.key == 2 ? 'SCHEDULED' : (data.key == 3 ? 'IN_PROGRESS' : 'COMPLETED')),
+      templateVersionId: 'tmpl-100pt',
+      templateName: '100-Point Standard Check v2.0',
+      templateVersionNo: 2,
+      assignedTechnicianId: 'tech-${data.key}',
+      assignedTechnicianName: data.assignee,
+      scheduledAt: '2026-11-09T09:30:00',
+      customerName: 'Enterprise Holdings Fleet Operations',
+      customerPhone: '+1 (555) 019-2834',
+      customerEmail: 'fleet.dispatch@enterprise.corp',
+      vehicleMake: data.title.split(' ').first,
+      vehicleModel: data.title,
+      vehicleYear: 2024,
+      vehicleVin: 'WP0AB2A87LS29004${data.key}',
+      vehiclePlate: 'CA 8XYZ90${data.key}',
+      scope: 'Standard Fleet ANSI Tier-4 Pre-Delivery Audit',
     );
   }
 
@@ -1268,6 +1304,34 @@ class _WorkshopQueueViewState extends State<WorkshopQueueView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Workshop Settings & Profile'),
+              subtitle: const Text('Business details, bays, working hours & profile'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(4);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Staff Management'),
+              subtitle: const Text('Invite technicians, assign roles & permissions'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(2);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize_outlined),
+              title: const Text('Inspection Templates'),
+              subtitle: const Text('Service checklists and template builder'),
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onNavSelected?.call(3);
+              },
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Icons.language),
               title: const Text('Toggle Language (EN / AR)'),
               onTap: () {
@@ -1313,41 +1377,72 @@ class _WorkshopQueueViewState extends State<WorkshopQueueView> {
           ),
           Positioned(
             left: _M.twenty,
-            top: 128,
+            top: 112,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 0,
               icon: 'dash',
               iconWidth: 18,
               iconHeight: 18,
               isActive: widget.selectedNavIndex == 0,
+              tooltip: 'Overview Dashboard',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 208,
+            top: 176,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 1,
               icon: 'jobs',
               iconWidth: 18,
               iconHeight: 20,
               isActive: widget.selectedNavIndex == 1,
+              tooltip: 'Live Job Queue',
             ),
           ),
           Positioned(
             left: _M.twenty,
-            top: 288,
+            top: 240,
             width: _M.fiftySix,
-            height: _M.fiftySix,
+            height: 52,
             child: _navButton(
               index: 2,
-              icon: 'gear',
+              icon: 'staff',
               iconWidth: 18,
               iconHeight: 18,
               isActive: widget.selectedNavIndex == 2,
+              tooltip: 'Staff Management',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 304,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 3,
+              icon: 'templates',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 3,
+              tooltip: 'Inspection Templates',
+            ),
+          ),
+          Positioned(
+            left: _M.twenty,
+            top: 368,
+            width: _M.fiftySix,
+            height: 52,
+            child: _navButton(
+              index: 4,
+              icon: 'gear',
+              iconWidth: 18,
+              iconHeight: 18,
+              isActive: widget.selectedNavIndex == 4,
+              tooltip: 'Workshop Settings & Profile',
             ),
           ),
           Positioned(
@@ -1357,16 +1452,19 @@ class _WorkshopQueueViewState extends State<WorkshopQueueView> {
             height: _M.forty,
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: widget.onSignOut ?? () => _showUserMenu(context),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Fx.container,
-                    shape: BoxShape.circle,
+              child: Tooltip(
+                message: 'Profile & Workshop Settings',
+                child: InkWell(
+                  onTap: widget.onSignOut ?? () => _showUserMenu(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Fx.container,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: _svg('help', 18.33, 17.5),
                   ),
-                  alignment: Alignment.center,
-                  child: _svg('help', 18.33, 17.5),
                 ),
               ),
             ),
@@ -1382,21 +1480,42 @@ class _WorkshopQueueViewState extends State<WorkshopQueueView> {
     required double iconWidth,
     required double iconHeight,
     required bool isActive,
+    String? tooltip,
   }) {
+    Widget iconWidget;
+    if (icon == 'staff') {
+      iconWidget = Icon(
+        Icons.groups_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else if (icon == 'templates') {
+      iconWidget = Icon(
+        Icons.dashboard_customize_outlined,
+        size: 20,
+        color: isActive ? Colors.white : Fx.muted,
+      );
+    } else {
+      iconWidget = _svg(icon, iconWidth, iconHeight);
+    }
+
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: () => widget.onNavSelected?.call(index),
-        borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isActive ? Fx.emerald : Fx.container,
-            borderRadius:
-                const BorderRadius.all(Radius.circular(_M.sixteen)),
-            boxShadow: isActive ? Fx.ctaShadow : null,
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: InkWell(
+          onTap: () => widget.onNavSelected?.call(index),
+          borderRadius: const BorderRadius.all(Radius.circular(_M.sixteen)),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isActive ? Fx.emerald : Fx.container,
+              borderRadius:
+                  const BorderRadius.all(Radius.circular(_M.sixteen)),
+              boxShadow: isActive ? Fx.ctaShadow : null,
+            ),
+            alignment: Alignment.center,
+            child: iconWidget,
           ),
-          alignment: Alignment.center,
-          child: _svg(icon, iconWidth, iconHeight),
         ),
       ),
     );

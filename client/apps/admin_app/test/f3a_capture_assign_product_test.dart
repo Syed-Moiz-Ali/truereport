@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
 import 'support/fake_admin_api.dart';
+import 'support/fidelity_output.dart';
 
 /// F3-A Level 2 — REAL product dialog vs Figma screen 4
 /// "Assign Technician" (node `1:821`, 1280 x 1120).
@@ -46,9 +47,8 @@ void main() {
 
   testWidgets('capture f3a assign level2 product', (tester) async {
     final root = _repoRoot();
-    final outDir = Directory(
-      '${root.path}/docs/ui/figma/fidelity/f3a/assign-technician-product',
-    );
+    final outDir =
+        fidelityOutputDir(root, 'figma/fidelity/f3a/assign-technician-product');
     final previous = _enableFidelityShadows();
     try {
       await _render(tester, outDir);

@@ -22,6 +22,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 
+import 'support/fidelity_output.dart';
+
 const _shotCounts = JobCounts(
   draft: 10,
   scheduled: 24,
@@ -386,7 +388,7 @@ Future<void> _writeShotPng(WidgetTester tester, String fileName) async {
     throw StateError('PNG encoding returned no data for $fileName');
   }
   final root = _shotRepoRoot();
-  final outDir = Directory('${root.path}/docs/ui/figma/f3a-screenshots');
+  final outDir = fidelityOutputDir(root, 'figma/f3a-screenshots');
   outDir.createSync(recursive: true);
   File(
     '${outDir.path}/$fileName',

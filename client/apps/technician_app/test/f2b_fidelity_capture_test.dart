@@ -12,6 +12,7 @@ import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_test_images.dart';
 import 'support/f2b_views.dart';
+import 'support/fidelity_output.dart';
 
 /// F2-B fidelity capture (mirrors `f2a_fidelity_capture_test.dart`).
 ///
@@ -41,8 +42,9 @@ void main() {
     for (final variant in _variants) {
       testWidgets('capture $id ${variant.id}', (tester) async {
         final root = repoRoot();
-        final outDir = Directory(
-          '${root.path}/docs/ui/figma/fidelity/f2b/$id/${variant.id}',
+        final outDir = fidelityOutputDir(
+          root,
+          'figma/fidelity/f2b/$id/${variant.id}',
         );
         final previous = enableFidelityShadows();
         try {

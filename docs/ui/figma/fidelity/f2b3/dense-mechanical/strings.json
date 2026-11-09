@@ -1,0 +1,33 @@
+{
+  "sample": "f2b3-dense-mechanical-level1",
+  "locale": "en",
+  "direction": "ltr",
+  "theme": "light",
+  "textScale": 1,
+  "strings": [
+    "INSPECTION ZONE 04",
+    "3 of 6 checkpoints logged",
+    "Live Bay #2",
+    "Engine Oil Level",
+    "Dipstick at optimal line • 5W-30 synthetic",
+    "Coolant",
+    "Expansion reservoir inspection",
+    "ACTIVE",
+    "Normal",
+    "Low",
+    "Critical",
+    "Enter fluid level / notes",
+    "Take Photo",
+    "Brake Fluid Level",
+    "DOT 4 standard • Reservoir visual",
+    "Pass",
+    "Marginal",
+    "Fail",
+    "Transmission Fluid",
+    "Sealed system • Check overflow valve",
+    "Washer Fluid",
+    "Topped to max reservoir line",
+    "Diagnostic Checklist",
+    "Confirm Fluid Levels"
+  ]
+}

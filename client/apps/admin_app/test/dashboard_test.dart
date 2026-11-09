@@ -370,7 +370,7 @@ void main() {
     expect(find.text('23', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('dashboard counts error keeps the jobs list usable', (
+  testWidgets('dashboard counts error shows an error state, no numbers', (
     tester,
   ) async {
     _setSize(tester, const Size(1280, 800));
@@ -384,19 +384,17 @@ void main() {
     final l10n = AppLocalizations.of(
       tester.element(find.byType(WorkshopAdminHomePage)),
     );
-    await tester.dragUntilVisible(
-      find.text(l10n.genericError),
-      find.byType(CustomScrollView),
-      const Offset(0, -500),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text(l10n.genericError), findsOneWidget);
+    // Tab-level error state with a retry action (ARB copy only).
+    expect(find.byType(ErrorState), findsOneWidget);
+    expect(find.text(l10n.error), findsOneWidget);
     expect(find.text(l10n.retryAction), findsOneWidget);
-    expect(find.textContaining('JOB-TEST0001'), findsWidgets);
+    // No invented KPI numbers leak into the failure view.
+    expect(find.textContaining(RegExp(r'\d')), findsNothing);
 
     await tester.tap(find.text(l10n.retryAction).first);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+    expect(find.byType(ErrorState), findsOneWidget);
   });
 
   testWidgets('dashboard jobs error keeps the counts visible', (tester) async {
