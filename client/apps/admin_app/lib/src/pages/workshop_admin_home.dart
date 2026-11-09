@@ -20,6 +20,16 @@ class WorkshopAdminHomePage extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= AppBreakpoints.tablet;
+          const tabs = TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            children: [DashboardTab(), JobsTab(), StaffTab(), TemplatesTab()],
+          );
+          if (wide) {
+            return const Scaffold(
+              backgroundColor: Fx.white,
+              body: tabs,
+            );
+          }
           final appBar = AppBar(
             title: Text(l10n.workshopAdminTitle),
             actions: [
@@ -43,97 +53,33 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                 icon: const Icon(Icons.logout),
               ),
             ],
-            bottom: wide
-                ? null
-                : TabBar(
-                    isScrollable: true,
-                    tabs: [
-                      Tab(
-                        key: const Key('workshop-tab-overview'),
-                        icon: const Icon(Icons.dashboard_outlined),
-                        text: l10n.dashboardTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-jobs'),
-                        icon: const Icon(Icons.work_outline),
-                        text: l10n.jobsTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-staff'),
-                        icon: const Icon(Icons.groups_outlined),
-                        text: l10n.staffTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-templates'),
-                        icon: const Icon(Icons.dashboard_customize_outlined),
-                        text: l10n.templatesTab,
-                      ),
-                    ],
-                  ),
-          );
-          const tabs = TabBarView(
-            children: [DashboardTab(), JobsTab(), StaffTab(), TemplatesTab()],
-          );
-          if (!wide) {
-            return AppScaffold(appBar: appBar, body: tabs);
-          }
-          return AppScaffold(
-            appBar: appBar,
-            body: Row(
-              children: [
-                AnimatedBuilder(
-                  animation: DefaultTabController.of(context),
-                  builder: (context, _) {
-                    final controller = DefaultTabController.of(context);
-                    return NavigationRail(
-                      selectedIndex: controller.index,
-                      onDestinationSelected: controller.animateTo,
-                      labelType: NavigationRailLabelType.all,
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.dashboard_outlined),
-                          selectedIcon: const Icon(Icons.dashboard),
-                          label: Text(
-                            l10n.dashboardTab,
-                            key: const Key('workshop-tab-overview'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.work_outline),
-                          selectedIcon: const Icon(Icons.work),
-                          label: Text(
-                            l10n.jobsTab,
-                            key: const Key('workshop-tab-jobs'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.groups_outlined),
-                          selectedIcon: const Icon(Icons.groups),
-                          label: Text(
-                            l10n.staffTab,
-                            key: const Key('workshop-tab-staff'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.dashboard_customize_outlined),
-                          selectedIcon: const Icon(Icons.dashboard_customize),
-                          label: Text(
-                            l10n.templatesTab,
-                            key: const Key('workshop-tab-templates'),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+            bottom: TabBar(
+              isScrollable: true,
+              tabs: [
+                Tab(
+                  key: const Key('workshop-tab-overview'),
+                  icon: const Icon(Icons.dashboard_outlined),
+                  text: l10n.dashboardTab,
                 ),
-                VerticalDivider(
-                  width: context.spacing.xs,
-                  color: context.colors.outlineVariant,
+                Tab(
+                  key: const Key('workshop-tab-jobs'),
+                  icon: const Icon(Icons.work_outline),
+                  text: l10n.jobsTab,
                 ),
-                const Expanded(child: tabs),
+                Tab(
+                  key: const Key('workshop-tab-staff'),
+                  icon: const Icon(Icons.groups_outlined),
+                  text: l10n.staffTab,
+                ),
+                Tab(
+                  key: const Key('workshop-tab-templates'),
+                  icon: const Icon(Icons.dashboard_customize_outlined),
+                  text: l10n.templatesTab,
+                ),
               ],
             ),
           );
+          return AppScaffold(appBar: appBar, body: tabs);
         },
       ),
     );

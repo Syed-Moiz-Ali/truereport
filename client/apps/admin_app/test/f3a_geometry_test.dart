@@ -305,15 +305,15 @@ void main() {
         failures.add('$label style: no explicit style');
         return;
       }
-      const size = 16.0;
-      const lineHeight = 22.0;
-      const tracking = -0.16;
+      const size = 32.0;
+      const lineHeight = 38.0;
+      const tracking = -0.8;
       final deltas = <String>[];
       if (style.fontSize != size) {
         deltas.add('size ${style.fontSize} vs $size');
       }
-      if (style.fontWeight != FontWeight.w700) {
-        deltas.add('weight ${style.fontWeight} vs w700');
+      if (style.fontWeight != FontWeight.w800) {
+        deltas.add('weight ${style.fontWeight} vs w800');
       }
       final height = style.height;
       if (height == null || (height - lineHeight / size).abs() > 0.001) {
@@ -335,29 +335,29 @@ void main() {
       }
     }
 
-    // Header row: full-bleed floating header with the 80 dp product height.
+    // Header: 1184 x 80 at (96, 0).
     check(
       'header row',
-      find.byType(WorkshopHeader),
-      box(16, 16, 1248, 80),
+      find.byKey(const ValueKey('f3a-header')),
+      box(96, 0, 1184, 80),
     );
-    // Stat card row: five across at 240 wide + 12 gaps; the second card pins
-    // the row stride. Heights follow caption wrapping (120 vs 140).
+    // KPI Card 1: 346.666 x 346.66 at (136, 204).
     check(
-      'stat card active',
-      find.byKey(const Key('dashboard-stat-active')),
-      box(16, 140, 240, 120),
+      'kpi card 1',
+      find.byKey(const ValueKey('f3a-kpi-1')),
+      box(136, 204, 346.666, 346.66),
     );
+    // Lower activity card: 725.33 x 476 at (136, 614.67)
     check(
-      'stat card new-scheduled',
-      find.byKey(const Key('dashboard-stat-new-scheduled')),
-      box(268, 140, 240, 140),
+      'activity card',
+      find.byKey(const ValueKey('f3a-activity')),
+      box(136, 614.67, 725.33, 476),
     );
-    // Recent-jobs list: first product card below the section header.
+    // Lower telemetry card: 346.67 x 566 at (893.33, 614.67)
     check(
-      'first job card',
-      find.byKey(const Key('dashboard-job-job-1')),
-      box(16, 342, 1248, 154),
+      'telemetry card',
+      find.byKey(const ValueKey('f3a-telemetry')),
+      box(893.33, 614.67, 346.67, 566),
     );
     checkStyle('dashboard title', find.text('Overview'));
 
@@ -421,15 +421,15 @@ void main() {
         failures.add('$label style: no explicit style');
         return;
       }
-      const size = 16.0;
-      const lineHeight = 22.0;
-      const tracking = -0.16;
+      const size = 32.0;
+      const lineHeight = 38.0;
+      const tracking = -0.8;
       final deltas = <String>[];
       if (style.fontSize != size) {
         deltas.add('size ${style.fontSize} vs $size');
       }
-      if (style.fontWeight != FontWeight.w700) {
-        deltas.add('weight ${style.fontWeight} vs w700');
+      if (style.fontWeight != FontWeight.w800) {
+        deltas.add('weight ${style.fontWeight} vs w800');
       }
       final height = style.height;
       if (height == null || (height - lineHeight / size).abs() > 0.001) {
@@ -451,19 +451,31 @@ void main() {
       }
     }
 
-    // Queue header row: same floating product header as the dashboard.
+    // Queue header row: 1184 x 80 at (96, 0).
     check(
       'queue header',
-      find.byType(WorkshopHeader),
-      box(16, 16, 1248, 80),
+      find.byKey(const ValueKey('f3a-header')),
+      box(96, 0, 1184, 80),
     );
-    // First job card below the filter-chip row.
+    // First job card: 1104 x 150 at (136, 307).
     check(
       'first job card',
-      find.byKey(const Key('job-job-1')),
-      box(16, 176, 1248, 154),
+      find.byKey(const ValueKey('f3a-card-1')),
+      box(136, 307, 1104, 150),
     );
-    checkStyle('queue title', find.text('Job queue'));
+    // Filters: 542.1 x 48 at (136, 227).
+    check(
+      'queue filters',
+      find.byKey(const ValueKey('f3a-filters')),
+      box(136, 227, 542.1, 48),
+    );
+    // New job CTA: 157.14 x 56 at (1082.86, 131).
+    check(
+      'new job button',
+      find.byKey(const ValueKey('f3a-new-job')),
+      box(1082.86, 131, 157.14, 56),
+    );
+    checkStyle('queue title', find.text('Live Job Queue'));
 
     expect(
       failures,

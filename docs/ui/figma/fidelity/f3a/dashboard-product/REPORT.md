@@ -8,7 +8,7 @@
 - **Reference crop (px):** {"x":32,"y":0,"width":2560,"height":2461}
 - **Logical size:** 1280 × 1230.672 @ DPR 2
 - **Compared pixels:** 2560 × 2461
-- **Generated:** 2026-11-08T11:27:43.129Z
+- **Generated:** 2026-11-08T12:16:46.010Z
 - **Owner:** harness-engineer
 
 ## Gate
@@ -17,51 +17,51 @@
 
 | Check | Result | Detail |
 |---|---|---|
-| SSIM | fail | global 0.88843; min 64×64 tile 0.21214 |
-| Text | fail | 4 missing |
-| Forbidden terms | pass | 0 match(es) |
+| SSIM | fail | global 0.97682; min 64×64 tile 0.30484 |
+| Text | fail | 28 missing |
+| Forbidden terms | fail | 7 match(es) |
 | Key boxes | pass | no key boxes declared |
 
 ## Measured metrics
 
 | Metric | Value |
 |---|---|
-| SSIM (global) | 0.88843 |
-| SSIM (worst 64×64 tile) | 0.21214 |
-| RMSE (RGB 0–255) | 31.693 |
-| MAE (RGB 0–255) | 7.793 |
-| ΔE2000 mean | 2.318 |
+| SSIM (global) | 0.97682 |
+| SSIM (worst 64×64 tile) | 0.30484 |
+| RMSE (RGB 0–255) | 12.825 |
+| MAE (RGB 0–255) | 1.586 |
+| ΔE2000 mean | 0.492 |
 | ΔE2000 median | 0 |
-| ΔE2000 p95 | 6.304 |
+| ΔE2000 p95 | 0.401 |
 | ΔE2000 max | 85.576 |
-| ΔE2000 > 2 (JND) | 15.73% |
-| ΔE2000 > 5 | 5.34% |
-| ΔE2000 > 10 | 4.21% |
+| ΔE2000 > 2 (JND) | 2.3% |
+| ΔE2000 > 5 | 1.48% |
+| ΔE2000 > 10 | 1.19% |
 
 ## Diff bounding boxes (ΔE2000 > 5)
 
 | # | logical x | logical y | logical w | logical h | area (px) |
 |---:|---:|---:|---:|---:|---:|
-| 1 | 1074 | 120.5 | 173.5 | 76.5 | 37167 |
-| 2 | 36.5 | 718 | 1207 | 141.5 | 22284 |
-| 3 | 168 | 500 | 298 | 27.5 | 20712 |
-| 4 | 10.5 | 128 | 215.5 | 80 | 19506 |
-| 5 | 318 | 338 | 114.5 | 27.5 | 11958 |
-| 6 | 317 | 660 | 106.5 | 37.5 | 11606 |
-| 7 | 322.5 | 824 | 103 | 27.5 | 10695 |
-| 8 | 925 | 512.5 | 283 | 6.5 | 7325 |
-| 9 | 1208 | 24 | 32 | 32 | 2986 |
-| 10 | 36.5 | 474 | 511 | 11 | 2808 |
-| 11 | 37 | 319 | 1206 | 6 | 2540 |
-| 12 | 36 | 637.5 | 1208 | 0.5 | 2416 |
-| 13 | 36 | 645.5 | 1207.5 | 0.5 | 2415 |
-| 14 | 36.5 | 961.5 | 1206.5 | 0.5 | 2413 |
-| 15 | 133.5 | 105.5 | 49 | 25 | 2366 |
-| 16 | 547.5 | 474 | 122 | 14 | 2338 |
-| 17 | 181.5 | 109 | 48 | 21.5 | 2323 |
-| 18 | 546.5 | 512.5 | 79.5 | 6.5 | 2032 |
-| 19 | 655.5 | 474 | 306 | 13.5 | 1831 |
-| 20 | 933.5 | 474 | 310 | 11 | 1516 |
+| 1 | 168.5 | 432 | 29 | 27.5 | 1746 |
+| 2 | 547.5 | 432.5 | 19.5 | 26.5 | 1203 |
+| 3 | 680 | 988 | 33.5 | 12.5 | 904 |
+| 4 | 815 | 34.5 | 37.5 | 11 | 762 |
+| 5 | 924 | 34.5 | 34 | 12.5 | 618 |
+| 6 | 927.5 | 432 | 17 | 20.5 | 596 |
+| 7 | 927 | 518.5 | 279.5 | 0.5 | 559 |
+| 8 | 927.5 | 512.5 | 278.5 | 0.5 | 557 |
+| 9 | 891.5 | 34.5 | 27 | 12.5 | 516 |
+| 10 | 953.5 | 34.5 | 25 | 11 | 485 |
+| 11 | 170 | 512.5 | 237 | 1 | 476 |
+| 12 | 169.5 | 518.5 | 237 | 0.5 | 474 |
+| 13 | 678.5 | 872 | 19 | 10 | 432 |
+| 14 | 1010.5 | 828 | 114.5 | 31.5 | 412 |
+| 15 | 200.5 | 112 | 22 | 19 | 396 |
+| 16 | 669 | 886 | 16.5 | 10 | 391 |
+| 17 | 685 | 886 | 16 | 10 | 352 |
+| 18 | 662.5 | 872 | 16 | 10 | 340 |
+| 19 | 937.5 | 250 | 22.5 | 18 | 317 |
+| 20 | 851.5 | 34.5 | 19.5 | 10.5 | 307 |
 
 ## Key-box geometry
 
@@ -70,8 +70,24 @@ No key boxes declared for this sample.
 ## Text
 
 - Expected: `Overview`, `Search jobs`, `Jobs by status in your workshop`, `7`, `Active jobs`, `5`, `New & scheduled`, `3`, `In progress`, `2`, `Ready to finalize`, `1`, `Finalized today`, `Recent jobs`, `JOB-0001 · Customer A`, `Toyota Camry`, `Full inspection`, `Scheduled at: 2026-11-05T09:00:00`, `Assigned to: Technician A`, `JOB-0002 · Customer B`, `Honda Civic`, `Scheduled at: 2026-11-05T10:00:00`, `JOB-0003 · Customer C`, `Finalized`, `Ford Transit`, `Scheduled at: 2026-11-04T09:00:00`, `Assigned to: Unassigned`, `JOB-0004 · Customer D`, `Assigned`, `Nissan Patrol`, `Scheduled at: 2026-11-06T09:00:00`
-- Actual: `Overview`, `Search jobs`, `Search jobs`, `Jobs by status in your workshop`, `7`, `Active jobs`, `5`, `New & scheduled`, `3`, `In progress`, `2`, `Ready to finalize`, `1`, `Finalized today`, `Recent jobs`, `JOB-0001 · Customer A`, `In progress`, `Toyota Camry`, `Full inspection`, `Scheduled at: 11/5/2026 13:00`, `Assigned to: Technician A`, `JOB-0002 · Customer B`, `Ready to finalize`, `Honda Civic`, `Full inspection`, `Scheduled at: 11/5/2026 14:00`, `Assigned to: Technician A`, `JOB-0003 · Customer C`, `Finalized`, `Ford Transit`, `Full inspection`, `Scheduled at: 11/4/2026 13:00`, `Assigned to: Unassigned`, `JOB-0004 · Customer D`, `Assigned`, `Nissan Patrol`, `Full inspection`, `Scheduled at: 11/6/2026 13:00`, `Assigned to: Unassigned`
-- Missing: `Scheduled at: 2026-11-05T09:00:00`, `Scheduled at: 2026-11-05T10:00:00`, `Scheduled at: 2026-11-04T09:00:00`, `Scheduled at: 2026-11-06T09:00:00`
+- Actual: `TELEMETRICS • REAL-TIME`, `Overview`, `Fleet throughput and active inspection velocity today`, `Shift A (Current)`, `Past 24h`, `Dispatch Bay`, `+2 incoming`, `3`, `/ 14 BAYS`, `Active Jobs`, `Requires Action`, `2`, `QUEUE`, `Pending Finalization`, `6`, `100% ACCURACY`, `Reports Sent`, `Live Workshop Activity`, `Real-time status stream across active physical bays`, `FEED SYNCED`, `Porsche Taycan 4S`, `VIN • 9J18`, `Bay 04 • Full diagnostic pass complete (48/48 points checked)`, `Passed`, `2m ago`, `Ford Transit Custom`, `VIN • 3E41`, `Bay 02 • Secondary structural markup awaiting lead
+inspector review`, `Awaiting
+Review`, `14m
+ago`, `Renault Mégane E-Tech`, `VIN • 7K89`, `Bay 01 • Sign-off certificate compiled and dispatched to fleet
+lead`, `Signed
+Off`, `42m
+ago`, `Floor Telemetry`, `Bays 01-08`, `76%`, `CAPACITY`, `Turnaround Target`, `45 mins / car`, `Median Flow Rate`, `38 mins`, `Inspection Compliance`, `99.4%`, `View Detailed Floor Map`, `BAY ACTIVE`, `Shop Floor #04`, `Search VIN, tech, job ticket...`, `Marcus Vance`, `Lead Inspector`
+- Missing: `Search jobs`, `Jobs by status in your workshop`, `7`, `Active jobs`, `5`, `New & scheduled`, `In progress`, `Ready to finalize`, `1`, `Finalized today`, `Recent jobs`, `JOB-0001 · Customer A`, `Toyota Camry`, `Full inspection`, `Scheduled at: 2026-11-05T09:00:00`, `Assigned to: Technician A`, `JOB-0002 · Customer B`, `Honda Civic`, `Scheduled at: 2026-11-05T10:00:00`, `JOB-0003 · Customer C`, `Finalized`, `Ford Transit`, `Scheduled at: 2026-11-04T09:00:00`, `Assigned to: Unassigned`, `JOB-0004 · Customer D`, `Assigned`, `Nissan Patrol`, `Scheduled at: 2026-11-06T09:00:00`
+
+### Forbidden-term matches
+
+- **vin** (term) matched `VIN`: …ED SYNCED Porsche Taycan 4S VIN • 9J18 Bay 04 • Full diagno…
+- **vin** (term) matched `VIN`: … 2m ago Ford Transit Custom VIN • 3E41 Bay 02 • Secondary s…
+- **vin** (term) matched `VIN`: …m ago Renault Mégane E-Tech VIN • 7K89 Bay 01 • Sign-off ce…
+- **sign-off** (term) matched `Sign-off`: … E-Tech VIN • 7K89 Bay 01 • Sign-off certificate compiled and di…
+- **certificate** (term) matched `certificate`: …IN • 7K89 Bay 01 • Sign-off certificate compiled and dispatched to …
+- **compliance** (term) matched `Compliance`: …low Rate 38 mins Inspection Compliance 99.4% View Detailed Floor M…
+- **vin** (term) matched `VIN`: …CTIVE Shop Floor #04 Search VIN, tech, job ticket... Marcus…
 
 ## Artifacts
 

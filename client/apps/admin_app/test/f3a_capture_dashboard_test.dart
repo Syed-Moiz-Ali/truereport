@@ -721,6 +721,7 @@ class F3aDashboardFixture extends StatelessWidget {
                     rightGap: 12.01,
                     contentHeight: 48,
                     avatarTop: 0,
+                    textTop: 3,
                   ),
                 ),
                 Positioned(
@@ -756,6 +757,7 @@ class F3aDashboardFixture extends StatelessWidget {
                     rightGap: 11.99,
                     contentHeight: 60,
                     avatarTop: 6,
+                    textTop: 0,
                   ),
                 ),
                 Positioned(
@@ -791,6 +793,7 @@ class F3aDashboardFixture extends StatelessWidget {
                     rightGap: 12,
                     contentHeight: 60,
                     avatarTop: 6,
+                    textTop: 0,
                   ),
                 ),
               ],
@@ -829,6 +832,7 @@ class F3aDashboardFixture extends StatelessWidget {
     required double rightGap,
     required double contentHeight,
     required double avatarTop,
+    required double textTop,
   }) {
     return Container(
       decoration: const BoxDecoration(
@@ -867,7 +871,7 @@ class F3aDashboardFixture extends StatelessWidget {
                 ),
                 Positioned(
                   left: _M.sixtyFour,
-                  top: _M.zero,
+                  top: textTop,
                   width: textWidth,
                   height: contentHeight,
                   child: Stack(

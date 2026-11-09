@@ -309,9 +309,10 @@ Future<void> _render(WidgetTester tester, Directory outDir) async {
   expect(tester.takeException(), isNull);
 
   final boxFinders = <String, Finder>{
-    'header': find.byType(WorkshopHeader).first,
-    'stat-active': find.byKey(const Key('dashboard-stat-active')),
-    'job-1': find.byKey(const Key('dashboard-job-p1')),
+    'header': find.byKey(const ValueKey('f3a-header')),
+    'kpi-1': find.byKey(const ValueKey('f3a-kpi-1')),
+    'activity': find.byKey(const ValueKey('f3a-activity')),
+    'telemetry': find.byKey(const ValueKey('f3a-telemetry')),
   };
   final boxes = <String, dynamic>{};
   for (final entry in boxFinders.entries) {
