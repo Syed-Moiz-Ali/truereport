@@ -1,29 +1,77 @@
 /* TrueReport Public Report Interactive Features */
 
-function openLightbox(el) {
-  var dialog = document.getElementById('photo-lightbox');
-  var img = document.getElementById('lightbox-img');
-  var video = document.getElementById('lightbox-video');
-  var caption = document.getElementById('lightbox-caption');
-  var note = document.getElementById('lightbox-note');
-  if (!dialog || !img) return;
+var currentPartImg = '';
+var currentPartCaption = '';
+var currentPartNote = '';
 
-  if (video) {
-    video.pause();
-    video.style.display = 'none';
-  }
-  img.style.display = 'block';
+function openPartDialog(el) {
+  var dialog = document.getElementById('part-detail-dialog');
+  if (!dialog) return;
 
-  var imgSrc = el.getAttribute('data-img');
-  if (imgSrc) {
-    img.src = imgSrc;
+  var title = el.getAttribute('data-title') || '';
+  var cat = el.getAttribute('data-category') || '';
+  var status = el.getAttribute('data-status') || '';
+  var statusCode = el.getAttribute('data-status-code') || '';
+  var score = parseInt(el.getAttribute('data-score') || '100', 10);
+  var scoreText = el.getAttribute('data-score-text') || '';
+  var measured = el.getAttribute('data-measured') || '';
+  var standard = el.getAttribute('data-standard') || '';
+  var note = el.getAttribute('data-note') || '';
+  var img = el.getAttribute('data-img') || '';
+  var video = el.getAttribute('data-video') || '';
+  var videoCaption = el.getAttribute('data-video-caption') || '';
+
+  currentPartImg = img;
+  currentPartCaption = title + ' - ' + status;
+  currentPartNote = note;
+
+  var titleEl = document.getElementById('dialog-part-title');
+  var catEl = document.getElementById('dialog-part-cat');
+  var statusEl = document.getElementById('dialog-part-status');
+  var scoreEl = document.getElementById('dialog-part-score');
+  var measuredEl = document.getElementById('dialog-measured-spec');
+  var standardEl = document.getElementById('dialog-standard-spec');
+  var scoreFillEl = document.getElementById('dialog-score-fill');
+  var noteEl = document.getElementById('dialog-part-note');
+  var imgEl = document.getElementById('dialog-part-img');
+  var videoEl = document.getElementById('dialog-part-video');
+  var videoCapEl = document.getElementById('dialog-video-caption');
+
+  if (titleEl) titleEl.textContent = title;
+  if (catEl) catEl.textContent = cat;
+
+  if (statusEl) {
+    statusEl.textContent = status;
+    statusEl.className = 'badge ' + (statusCode === 'DEFECT_FOUND' ? 'danger' : (statusCode === 'ATTENTION_RECOMMENDED' ? 'warning' : 'success'));
   }
-  if (caption) {
-    caption.textContent = el.getAttribute('data-caption') || '';
+
+  if (scoreEl) {
+    scoreEl.textContent = scoreText;
+    scoreEl.className = 'dialog-score-pill ' + (score >= 90 ? 'score-high' : (score >= 70 ? 'score-mid' : 'score-low'));
   }
-  if (note) {
-    note.textContent = el.getAttribute('data-note') || '';
+
+  if (measuredEl) measuredEl.textContent = measured;
+  if (standardEl) standardEl.textContent = standard;
+
+  if (scoreFillEl) {
+    scoreFillEl.style.width = Math.max(10, Math.min(100, score)) + '%';
+    scoreFillEl.className = 'dialog-score-fill ' + (score >= 90 ? 'fill-green' : (score >= 70 ? 'fill-amber' : 'fill-red'));
   }
+
+  if (noteEl) noteEl.textContent = note;
+
+  if (imgEl) {
+    imgEl.src = img;
+    imgEl.alt = title;
+  }
+
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.src = video;
+    videoEl.load();
+  }
+
+  if (videoCapEl) videoCapEl.textContent = videoCaption;
 
   if (typeof dialog.showModal === 'function') {
     dialog.showModal();
@@ -33,32 +81,46 @@ function openLightbox(el) {
   document.body.classList.add('modal-open');
 }
 
-function openVideoLightbox(el) {
-  var dialog = document.getElementById('photo-lightbox');
-  var img = document.getElementById('lightbox-img');
-  var video = document.getElementById('lightbox-video');
-  var caption = document.getElementById('lightbox-caption');
-  var note = document.getElementById('lightbox-note');
+function closePartDialog() {
+  var dialog = document.getElementById('part-detail-dialog');
   if (!dialog) return;
 
-  if (img) {
-    img.style.display = 'none';
-  }
+  var video = document.getElementById('dialog-part-video');
   if (video) {
-    video.style.display = 'block';
-    var videoSrc = el.getAttribute('data-video');
-    if (videoSrc) {
-      video.src = videoSrc;
-      video.play().catch(function () {});
-    }
+    video.pause();
+    video.currentTime = 0;
   }
 
-  if (caption) {
-    caption.textContent = el.getAttribute('data-caption') || '';
+  if (typeof dialog.close === 'function') {
+    dialog.close();
+  } else {
+    dialog.removeAttribute('open');
   }
-  if (note) {
-    note.textContent = el.getAttribute('data-note') || '';
-  }
+  document.body.classList.remove('modal-open');
+}
+
+function openPhotoFromDialog() {
+  if (!currentPartImg) return;
+  openLightboxDirect(currentPartImg, currentPartCaption, currentPartNote);
+}
+
+function openLightbox(el) {
+  var imgSrc = el.getAttribute('data-img') || (el.querySelector('img') ? el.querySelector('img').src : '');
+  var caption = el.getAttribute('data-caption') || '';
+  var note = el.getAttribute('data-note') || '';
+  openLightboxDirect(imgSrc, caption, note);
+}
+
+function openLightboxDirect(imgSrc, caption, note) {
+  var dialog = document.getElementById('photo-lightbox');
+  var img = document.getElementById('lightbox-img');
+  var captionEl = document.getElementById('lightbox-caption');
+  var noteEl = document.getElementById('lightbox-note');
+  if (!dialog || !img) return;
+
+  img.src = imgSrc || '';
+  if (captionEl) captionEl.textContent = caption || '';
+  if (noteEl) noteEl.textContent = note || '';
 
   if (typeof dialog.showModal === 'function') {
     dialog.showModal();
@@ -71,11 +133,6 @@ function openVideoLightbox(el) {
 function closeLightbox() {
   var dialog = document.getElementById('photo-lightbox');
   if (!dialog) return;
-  var video = document.getElementById('lightbox-video');
-  if (video) {
-    video.pause();
-    video.currentTime = 0;
-  }
   if (typeof dialog.close === 'function') {
     dialog.close();
   } else {
@@ -84,31 +141,49 @@ function closeLightbox() {
   document.body.classList.remove('modal-open');
 }
 
-function toggleCheckItem(headEl) {
-  var itemCard = headEl.closest('.check-interactive-item');
-  if (!itemCard) return;
-  itemCard.classList.toggle('expanded');
-}
-
 document.addEventListener('DOMContentLoaded', function () {
-  // Visual Inspection Filter Tabs
-  var filterButtons = document.querySelectorAll('.visual-filter-bar .filter-chip');
-  var cards = document.querySelectorAll('.visual-part-card');
+  // One-Click Instant Checklist Filter (All, Passed, Attention, Failed)
+  var checkFilterButtons = document.querySelectorAll('[data-checklist-filter]');
+  var checkAccordions = document.querySelectorAll('.category-accordion');
 
-  filterButtons.forEach(function (btn) {
+  checkFilterButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      filterButtons.forEach(function (b) { b.classList.remove('active'); });
+      checkFilterButtons.forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      var filter = btn.getAttribute('data-filter');
+      var filter = btn.getAttribute('data-checklist-filter');
 
-      cards.forEach(function (card) {
-        var cardStatus = card.getAttribute('data-status');
-        if (filter === 'all' || cardStatus === filter) {
-          card.style.display = '';
+      var firstMatchedDefect = null;
+
+      checkAccordions.forEach(function (acc) {
+        var rows = acc.querySelectorAll('.check-row-item');
+        var visibleCount = 0;
+
+        rows.forEach(function (row) {
+          var res = row.getAttribute('data-result');
+          var matches = (filter === 'ALL' || res === filter);
+          if (matches) {
+            row.style.display = '';
+            visibleCount++;
+            if (filter === 'DEFECT_FOUND' && !firstMatchedDefect) {
+              firstMatchedDefect = row;
+            }
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        if (visibleCount > 0) {
+          acc.style.display = '';
+          acc.open = true;
         } else {
-          card.style.display = 'none';
+          acc.style.display = 'none';
         }
       });
+
+      // If user clicked Failed & Defects, auto-open the defect dialog directly!
+      if (filter === 'DEFECT_FOUND' && firstMatchedDefect) {
+        openPartDialog(firstMatchedDefect);
+      }
     });
   });
 
@@ -133,40 +208,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // One-Click Instant Checklist Filter (All, Passed, Attention, Failed)
-  var checkFilterButtons = document.querySelectorAll('[data-checklist-filter]');
-  var checkAccordions = document.querySelectorAll('.category-accordion');
+  // Visual Diagnostic Sector Filter Tabs
+  var diagFilterButtons = document.querySelectorAll('.visual-filter-bar .filter-chip');
+  var diagCards = document.querySelectorAll('.visual-part-card');
 
-  checkFilterButtons.forEach(function (btn) {
+  diagFilterButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      checkFilterButtons.forEach(function (b) { b.classList.remove('active'); });
+      diagFilterButtons.forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      var filter = btn.getAttribute('data-checklist-filter');
+      var filter = btn.getAttribute('data-filter');
 
-      checkAccordions.forEach(function (acc) {
-        var items = acc.querySelectorAll('.check-interactive-item');
-        var visibleCount = 0;
-
-        items.forEach(function (item) {
-          var res = item.getAttribute('data-result');
-          var matches = (filter === 'ALL' || res === filter);
-          if (matches) {
-            item.style.display = '';
-            visibleCount++;
-            // Automatically expand defect and attention items so details and evidence are immediately seen
-            if (filter === 'DEFECT_FOUND' || filter === 'ATTENTION_RECOMMENDED') {
-              item.classList.add('expanded');
-            }
-          } else {
-            item.style.display = 'none';
-          }
-        });
-
-        if (visibleCount > 0) {
-          acc.style.display = '';
-          acc.open = true;
+      diagCards.forEach(function (card) {
+        var cardStatus = card.getAttribute('data-status');
+        if (filter === 'all' || cardStatus === filter) {
+          card.style.display = '';
         } else {
-          acc.style.display = 'none';
+          card.style.display = 'none';
         }
       });
     });
@@ -185,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function () {
             var href = link.getAttribute('href');
             if (href === '#' + id) {
               link.classList.add('active');
-              // Auto scroll nav bar to keep active chip visible
               link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             } else {
               link.classList.remove('active');
@@ -200,21 +256,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Lightbox click-outside-to-close & Esc key
-  var dialog = document.getElementById('photo-lightbox');
-  if (dialog) {
-    dialog.addEventListener('click', function (e) {
-      if (e.target === dialog) {
+  // Dialog backdrop click-to-close & Esc handling
+  var partDialog = document.getElementById('part-detail-dialog');
+  if (partDialog) {
+    partDialog.addEventListener('click', function (e) {
+      if (e.target === partDialog) {
+        closePartDialog();
+      }
+    });
+    partDialog.addEventListener('cancel', function () {
+      closePartDialog();
+    });
+  }
+
+  var photoDialog = document.getElementById('photo-lightbox');
+  if (photoDialog) {
+    photoDialog.addEventListener('click', function (e) {
+      if (e.target === photoDialog) {
         closeLightbox();
       }
     });
-    dialog.addEventListener('cancel', function () {
-      var video = document.getElementById('lightbox-video');
-      if (video) {
-        video.pause();
-        video.currentTime = 0;
-      }
-      document.body.classList.remove('modal-open');
+    photoDialog.addEventListener('cancel', function () {
+      closeLightbox();
     });
   }
 });

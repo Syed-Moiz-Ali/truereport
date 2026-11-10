@@ -49,14 +49,12 @@
 <nav class="quick-nav-bar" th:attr="aria-label=${r.labels.overview}">
   <div class="container quick-nav-inner">
     <a href="#overview" class="nav-chip" th:text="${r.labels.overview}"></a>
-    <a href="#photos" class="nav-chip" th:text="${r.labels.photos}"></a>
+    <a href="#checklist" class="nav-chip nav-chip-highlight" th:text="${r.labels.findings}"></a>
     <a href="#systems" class="nav-chip" th:text="${r.labels.systemsSummary}"></a>
-    <a href="#services" class="nav-chip" th:text="${r.labels.scheduledServices}"></a>
     <a href="#wireframe" class="nav-chip" th:text="${r.labels.exteriorDamageMap}"></a>
     <a href="#tyres" class="nav-chip" th:text="${r.labels.tyresAndBrakes}"></a>
     <a href="#subsystems" class="nav-chip" th:text="${r.labels.visualDiagnosis}"></a>
-    <a href="#findings" class="nav-chip" th:text="${r.labels.keyFindings}"></a>
-    <a href="#checklist" class="nav-chip" th:text="${r.labels.findings}"></a>
+    <a href="#photos" class="nav-chip" th:text="${r.labels.photos}"></a>
     <a href="#verification" class="nav-chip" th:text="${r.labels.verification}"></a>
   </div>
 </nav>
@@ -143,6 +141,11 @@
             </div>
           </div>
         </div>
+        <!-- 5 Good · 1 Needs Service High-Impact Summary -->
+        <div class="category-summary-banner">
+          <span class="summary-check-icon" aria-hidden="true">🛡️</span>
+          <span class="summary-banner-text" th:text="${r.categoriesSummary.text}"></span>
+        </div>
         <div class="score-footer-note">
           <span class="coverage-fraction">
             <span th:text="${r.coverage.text}"></span>
@@ -154,7 +157,375 @@
     </div>
   </section>
 
-  <!-- Section 2: Official 10-Photo Inspection Gallery (Uniform Clean Grid) -->
+  <!-- Section 2: Main Inspection Findings & Checklist (With One-Click Filter, Scores, and On-Tap Dialogs) -->
+  <section id="checklist" class="checklist-section" aria-labelledby="checklist-title">
+    <div class="section-header">
+      <div>
+        <h2 id="checklist-title" th:text="${r.labels.findings}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.tapToToggleDetails}"></p>
+      </div>
+      <span class="section-tag" th:text="${r.totalEvaluated} + ' ' + ${r.labels.checksCompleted}"></span>
+    </div>
+
+    <!-- One-Click Instant Filter Bar: All (32), Passed (29), Attention (2), Failed (1) -->
+    <div class="checklist-quick-filter-bar" role="tablist">
+      <button type="button" class="filter-chip active" data-checklist-filter="ALL">
+        <span th:text="${r.labels.allChecks}"></span>
+        <span class="chip-count" th:text="${r.totalEvaluated}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-passed" data-checklist-filter="NO_ISSUE_OBSERVED">
+        <span th:text="${r.labels.filterPassed}"></span>
+        <span class="chip-count" th:text="${r.passedCount}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-attention" data-checklist-filter="ATTENTION_RECOMMENDED">
+        <span th:text="${r.labels.filterAttention}"></span>
+        <span class="chip-count" th:text="${r.attentionCount}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-failed" data-checklist-filter="DEFECT_FOUND">
+        <span th:text="${r.labels.filterFailed}"></span>
+        <span class="chip-count" th:text="${r.defectCount}"></span>
+      </button>
+    </div>
+
+    <!-- Category Accordions Stack -->
+    <div class="categories-accordion-stack">
+      <details th:each="category : ${r.categories}" class="card category-accordion" open
+               th:attr="data-cat-passed=${category.passedCount}, data-cat-attention=${category.attentionCount}, data-cat-defect=${category.defectCount}">
+        <summary class="category-summary">
+          <div class="category-summary-title">
+            <span class="accordion-arrow" aria-hidden="true">▾</span>
+            <strong th:text="${category.label}"></strong>
+          </div>
+          <div class="category-meta-chips">
+            <span class="score-badge" th:classappend="${category.score >= 90 ? 'score-high' : (category.score >= 70 ? 'score-mid' : 'score-low')}">
+              <span th:text="${r.labels.itemScore} + ': ' + ${category.scoreText}"></span>
+            </span>
+            <span class="tag-pill" th:text="${#lists.size(category.items)}"></span>
+          </div>
+        </summary>
+
+        <div class="category-items-container">
+          <div th:each="item : ${category.items}"
+               class="check-row-item"
+               th:attr="data-result=${item.resultCode}, data-title=${item.label}, data-category=${category.label}, data-status=${item.result}, data-status-code=${item.resultCode}, data-score=${item.score}, data-score-text=${item.scoreText}, data-measured=${item.measuredSpec}, data-standard=${item.standardSpec}, data-note=${item.note}, data-img=${item.partPhoto}, data-video=${item.videoUrl}, data-video-caption=${item.videoCaption}"
+               onclick="openPartDialog(this)"
+               role="button"
+               tabindex="0"
+               th:title="${r.labels.viewPartDetails}">
+
+            <div class="check-row-left">
+              <span class="check-bullet" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'bullet-defect' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'bullet-attention' : 'bullet-passed')}">
+                <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
+                <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
+                <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
+              </span>
+              <div class="check-title-block">
+                <strong class="check-item-label" th:text="${item.label}"></strong>
+                <span class="check-item-sub small muted" th:if="${item.instruction != ''}" th:text="${item.instruction}"></span>
+              </div>
+            </div>
+
+            <div class="check-row-right">
+              <span class="check-metric-pill" th:text="${item.diagnosticMetric}"></span>
+              <span class="check-score-pill" th:classappend="${item.score >= 90 ? 'score-high' : (item.score >= 70 ? 'score-mid' : 'score-low')}"
+                    th:text="${r.labels.itemScore} + ': ' + ${item.scoreText}"></span>
+              <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
+                    th:text="${item.result}"></span>
+              <span class="check-tap-indicator" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Section 3: Vehicle Systems Evaluation (AutoScore Summary Table) -->
+  <section id="systems" class="systems-section" aria-labelledby="systems-title">
+    <div class="section-header">
+      <div>
+        <h2 id="systems-title" th:text="${r.labels.systemsSummary}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.systemsSummarySubtitle}"></p>
+      </div>
+      <span class="section-tag" th:text="${#lists.size(r.inspectionSystems)} + ' ' + ${r.labels.subsystems}"></span>
+    </div>
+
+    <div class="card systems-table-card">
+      <div class="systems-grid">
+        <div th:each="sys : ${r.inspectionSystems}" class="system-item-box" th:classappend="${sys.status == 'ATTENTION' ? 'system-attention' : 'system-passed'}">
+          <div class="system-item-head">
+            <span class="system-icon" aria-hidden="true" th:text="${sys.icon}"></span>
+            <div class="system-info">
+              <h3 class="system-title" th:text="${sys.name}"></h3>
+              <span class="system-checks" th:text="${sys.total} + ' ' + ${r.labels.checksCount}"></span>
+            </div>
+          </div>
+          <div class="system-status-col">
+            <span class="badge" th:classappend="${sys.status == 'ATTENTION' ? 'warning' : 'success'}" th:text="${sys.statusLabel}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: 2D Vehicle Wireframe & Damage Map -->
+  <section id="wireframe" class="damage-map-section" aria-labelledby="wireframe-title">
+    <div class="section-header">
+      <h2 id="wireframe-title" th:text="${r.labels.exteriorDamageMap}"></h2>
+      <span class="section-tag" th:text="${r.labels.bodyCondition}"></span>
+    </div>
+    <div class="card wireframe-card">
+      <div class="wireframe-visual-container">
+        <!-- SVG 2D Car Wireframe Outline -->
+        <div class="wireframe-art">
+          <svg viewBox="0 0 800 320" class="car-wireframe-svg" role="img" th:attr="aria-label=${r.labels.exteriorDamageMap}">
+            <path d="M 120 220 L 160 220 A 45 45 0 0 1 250 220 L 550 220 A 45 45 0 0 1 640 220 L 720 220 C 740 220 760 200 760 170 C 760 145 745 135 710 130 L 660 125 L 560 65 C 540 50 510 45 450 45 L 290 45 C 240 45 200 65 170 110 L 100 135 C 70 145 50 160 50 185 C 50 210 80 220 120 220 Z" class="car-body-path"/>
+            <circle cx="205" cy="220" r="42" class="car-wheel-rim"/>
+            <circle cx="205" cy="220" r="24" class="car-wheel-hub"/>
+            <circle cx="595" cy="220" r="42" class="car-wheel-rim"/>
+            <circle cx="595" cy="220" r="24" class="car-wheel-hub"/>
+            <path d="M 290 60 L 440 60 L 440 125 L 210 125 Z" class="car-window"/>
+            <path d="M 455 60 L 545 60 C 560 60 575 75 585 90 L 635 125 L 455 125 Z" class="car-window"/>
+            <line x1="330" y1="125" x2="330" y2="215" class="car-panel-line"/>
+            <line x1="448" y1="60" x2="448" y2="218" class="car-panel-line"/>
+            <line x1="560" y1="125" x2="560" y2="215" class="car-panel-line"/>
+          </svg>
+        </div>
+        <!-- Status indicator panel legend -->
+        <div class="wireframe-legend">
+          <div class="legend-badge legend-green">
+            <span class="legend-dot"></span>
+            <span th:text="${r.labels.passed}"></span>
+          </div>
+          <div class="legend-badge legend-yellow">
+            <span class="legend-dot"></span>
+            <span th:text="${r.labels.attention}"></span>
+          </div>
+          <div class="legend-badge legend-red">
+            <span class="legend-dot"></span>
+            <span th:text="${r.labels.defects}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Tyres, Wheels & Axle Condition -->
+  <section id="tyres" class="tyres-section" aria-labelledby="tyres-title">
+    <div class="section-header">
+      <h2 id="tyres-title" th:text="${r.labels.tyresAndBrakes}"></h2>
+      <span class="section-tag" th:text="${r.labels.axle}"></span>
+    </div>
+    <div class="card tyres-card">
+      <div class="axle-schematic-grid">
+        <!-- Front Left -->
+        <div class="tire-wheel-box">
+          <div class="wheel-header">
+            <span class="wheel-icon" aria-hidden="true">🛞</span>
+            <span class="wheel-position" th:text="${r.labels.frontLeft}"></span>
+          </div>
+          <div class="tire-metrics">
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
+              <span class="metric-val" th:text="'7.2 mm'"></span>
+            </div>
+            <div class="tread-depth-bar"><div class="depth-fill" style="width: 85%;"></div></div>
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.pressure}"></span>
+              <span class="metric-val" th:text="'33 PSI'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Front Right -->
+        <div class="tire-wheel-box">
+          <div class="wheel-header">
+            <span class="wheel-icon" aria-hidden="true">🛞</span>
+            <span class="wheel-position" th:text="${r.labels.frontRight}"></span>
+          </div>
+          <div class="tire-metrics">
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
+              <span class="metric-val" th:text="'7.1 mm'"></span>
+            </div>
+            <div class="tread-depth-bar"><div class="depth-fill" style="width: 82%;"></div></div>
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.pressure}"></span>
+              <span class="metric-val" th:text="'33 PSI'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rear Left -->
+        <div class="tire-wheel-box">
+          <div class="wheel-header">
+            <span class="wheel-icon" aria-hidden="true">🛞</span>
+            <span class="wheel-position" th:text="${r.labels.rearLeft}"></span>
+          </div>
+          <div class="tire-metrics">
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
+              <span class="metric-val" th:text="'6.8 mm'"></span>
+            </div>
+            <div class="tread-depth-bar"><div class="depth-fill" style="width: 78%;"></div></div>
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.pressure}"></span>
+              <span class="metric-val" th:text="'34 PSI'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rear Right -->
+        <div class="tire-wheel-box">
+          <div class="wheel-header">
+            <span class="wheel-icon" aria-hidden="true">🛞</span>
+            <span class="wheel-position" th:text="${r.labels.rearRight}"></span>
+          </div>
+          <div class="tire-metrics">
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
+              <span class="metric-val" th:text="'6.9 mm'"></span>
+            </div>
+            <div class="tread-depth-bar"><div class="depth-fill" style="width: 80%;"></div></div>
+            <div class="metric-row">
+              <span class="metric-name" th:text="${r.labels.pressure}"></span>
+              <span class="metric-val" th:text="'34 PSI'"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Multi-Angle Visual Inspection & Diagnostic Systems -->
+  <section id="subsystems" class="visual-diagnosis-section" aria-labelledby="visual-diagnosis-title">
+    <div class="section-header">
+      <div>
+        <h2 id="visual-diagnosis-title" th:text="${r.labels.visualDiagnosis}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.visualDiagnosisSubtitle}"></p>
+      </div>
+      <span class="section-tag" th:text="${#lists.size(r.visualInspections)}"></span>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="visual-filter-bar" role="tablist">
+      <button type="button" class="filter-chip active" data-filter="all">
+        <span th:text="${r.labels.allParts}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.visualInspections)}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-filter="PASSED">
+        <span th:text="${r.labels.passed}"></span>
+        <span class="chip-count" th:text="${r.passedCount}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-filter="ATTENTION">
+        <span th:text="${r.labels.attention}"></span>
+        <span class="chip-count" th:text="${r.attentionCount}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-filter="DEFECT">
+        <span th:text="${r.labels.defects}"></span>
+        <span class="chip-count" th:text="${r.defectCount}"></span>
+      </button>
+    </div>
+
+    <!-- Multi-Angle Visual Cards Grid -->
+    <div class="visual-cards-grid">
+      <div th:each="card : ${r.visualInspections}" 
+           class="card visual-part-card" 
+           th:attr="data-status=${card.status}"
+           th:classappend="${card.status == 'DEFECT' ? 'has-defect' : (card.status == 'ATTENTION' ? 'has-attention' : 'has-passed')}">
+        
+        <div class="part-card-header">
+          <div class="part-zone-info">
+            <h3 class="part-zone-title" th:text="${card.zone}"></h3>
+            <span class="part-components-text" th:text="${card.components}"></span>
+          </div>
+          <span class="badge" 
+                th:classappend="${card.status == 'DEFECT' ? 'danger' : (card.status == 'ATTENTION' ? 'warning' : 'success')}"
+                th:text="${card.statusLabel}"></span>
+        </div>
+
+        <div class="part-photo-box" 
+             th:attr="data-img=${card.imageUrl}, data-caption=${card.zone} + ' - ' + ${card.statusLabel}, data-note=${card.note}" 
+             onclick="openLightbox(this)" 
+             tabindex="0" 
+             role="button" 
+             th:title="${r.labels.tapToEnlarge}">
+          <img loading="lazy" th:src="${card.imageUrl}" th:alt="${card.zone}" class="part-car-img" width="480" height="270">
+          
+          <div th:if="${card.isDamaged}" class="damage-pinpoint-marker">
+            <span class="damage-pulse-dot" aria-hidden="true"></span>
+            <span class="damage-marker-text" th:text="${card.damageMarker}"></span>
+          </div>
+
+          <div class="photo-inspect-overlay">
+            <span class="inspect-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+            </span>
+            <span class="inspect-hint" th:text="${r.labels.tapToEnlarge}"></span>
+          </div>
+        </div>
+
+        <div class="part-diagnosis-body">
+          <div class="diag-note-label">
+            <span class="diag-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </span>
+            <span th:text="${r.labels.technicianObservations}"></span>
+          </div>
+          <p class="diag-note-text" th:text="${card.note}"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Key Findings & Defects -->
+  <section id="findings" class="findings-section" aria-labelledby="findings-title">
+    <div class="section-header">
+      <h2 id="findings-title" th:text="${r.labels.keyFindings}"></h2>
+      <span class="section-tag" th:text="${#lists.size(r.keyFindings)}"></span>
+    </div>
+    <div th:if="${#lists.isEmpty(r.keyFindings)}" class="card empty-findings-card">
+      <div class="empty-icon" aria-hidden="true">✓</div>
+      <p class="empty-text" th:text="${r.labels.noKeyFindings}"></p>
+    </div>
+    <div class="findings-stack" th:if="${!#lists.isEmpty(r.keyFindings)}">
+      <div th:each="item : ${r.keyFindings}" class="card finding-card">
+        <div class="finding-header">
+          <div class="finding-title-group">
+            <h3 class="finding-title" th:text="${item.label}"></h3>
+            <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
+                  th:if="${item.severityCode != ''}" th:text="${item.severity}"></span>
+          </div>
+          <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
+                th:text="${item.result}"></span>
+        </div>
+        <p th:if="${item.note != ''}" class="technician-note" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}">
+          <span class="note-quote-mark" aria-hidden="true">“</span>
+          <span th:text="${item.note}"></span>
+        </p>
+        <p th:if="${item.reason != ''}" class="small muted" th:text="${r.labels.reason} + ': ' + ${item.reason}"></p>
+        <div class="finding-photos-row" th:if="${!#lists.isEmpty(item.photos)}">
+          <figure th:each="photo : ${item.photos}" class="finding-photo-figure">
+            <img loading="lazy" th:src="@{/r/{token}/photo/{id}(token=${token},id=${photo.id})}"
+                 th:alt="${photo.alt}" class="finding-img" width="400" height="260">
+            <figcaption th:text="${photo.caption}"></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Official Photo Showroom (Clean Categorized Grid: 12 Ext / 12 Int / 8 Mech) -->
   <section id="photos" class="gallery-section" aria-labelledby="photos-title">
     <div class="section-header">
       <div>
@@ -206,489 +577,7 @@
     </div>
   </section>
 
-  <!-- Section 3: Vehicle Systems Evaluation (AutoScore Summary Table) -->
-  <section id="systems" class="systems-section" aria-labelledby="systems-title">
-    <div class="section-header">
-      <div>
-        <h2 id="systems-title" th:text="${r.labels.systemsSummary}"></h2>
-        <p class="section-subtitle" th:text="${r.labels.systemsSummarySubtitle}"></p>
-      </div>
-      <span class="section-tag" th:text="${#lists.size(r.inspectionSystems)} + ' ' + ${r.labels.subsystems}"></span>
-    </div>
-
-    <div class="card systems-table-card">
-      <div class="systems-grid">
-        <div th:each="sys : ${r.inspectionSystems}" class="system-item-box" th:classappend="${sys.status == 'ATTENTION' ? 'system-attention' : 'system-passed'}">
-          <div class="system-item-head">
-            <span class="system-icon" aria-hidden="true" th:text="${sys.icon}"></span>
-            <div class="system-info">
-              <h3 class="system-title" th:text="${sys.name}"></h3>
-              <span class="system-checks" th:text="${sys.total} + ' ' + ${r.labels.checksCount}"></span>
-            </div>
-          </div>
-          <div class="system-status-col">
-            <span class="badge" th:classappend="${sys.status == 'ATTENTION' ? 'warning' : 'success'}" th:text="${sys.statusLabel}"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 4: Routine Services & Maintenance (4 Good, 1 Needs Service) -->
-  <section id="services" class="services-section" aria-labelledby="services-title">
-    <div class="section-header">
-      <div>
-        <h2 id="services-title" th:text="${r.labels.scheduledServices}"></h2>
-        <p class="section-subtitle" th:text="${r.servicesSummary.summaryText}"></p>
-      </div>
-      <span class="section-tag" th:text="${r.servicesSummary.goodCount} + ' ' + ${r.labels.servicesGood} + ' · ' + ${r.servicesSummary.needServiceCount} + ' ' + ${r.labels.servicesNeedService}"></span>
-    </div>
-
-    <div class="services-cards-grid">
-      <div th:each="srv : ${r.scheduledServices}"
-           class="card service-item-card"
-           th:classappend="${srv.status == 'NEED_SERVICE' ? 'service-need-attention' : 'service-healthy'}">
-        <div class="service-card-header">
-          <div class="service-icon-title">
-            <span class="service-icon" aria-hidden="true" th:text="${srv.icon}"></span>
-            <div>
-              <h3 class="service-title" th:text="${srv.title}"></h3>
-              <span class="service-interval-tag" th:text="${srv.interval}"></span>
-            </div>
-          </div>
-          <span class="badge" th:classappend="${srv.status == 'NEED_SERVICE' ? 'warning' : 'success'}"
-                th:text="${srv.statusLabel}"></span>
-        </div>
-        <div class="service-metric-row">
-          <span class="metric-label" th:text="${r.labels.measuredSpec}"></span>
-          <span class="metric-val" th:text="${srv.metric}"></span>
-        </div>
-        <div class="service-remaining-pill">
-          <span class="remaining-icon" aria-hidden="true">⏱</span>
-          <span th:text="${srv.remaining}"></span>
-        </div>
-        <p class="service-note-text" th:text="${srv.note}"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 3: 2D Vehicle Wireframe & Damage Map -->
-  <section id="wireframe" class="damage-map-section" aria-labelledby="wireframe-title">
-    <div class="section-header">
-      <h2 id="wireframe-title" th:text="${r.labels.exteriorDamageMap}"></h2>
-      <span class="section-tag" th:text="${r.labels.bodyCondition}"></span>
-    </div>
-    <div class="card wireframe-card">
-      <div class="wireframe-visual-container">
-        <!-- SVG 2D Car Wireframe Outline -->
-        <div class="wireframe-art">
-          <svg viewBox="0 0 800 320" class="car-wireframe-svg" role="img" th:attr="aria-label=${r.labels.exteriorDamageMap}">
-            <path d="M 120 220 L 160 220 A 45 45 0 0 1 250 220 L 550 220 A 45 45 0 0 1 640 220 L 720 220 C 740 220 760 200 760 170 C 760 145 745 135 710 130 L 660 125 L 560 65 C 540 50 510 45 450 45 L 290 45 C 240 45 200 65 170 110 L 100 135 C 70 145 50 160 50 185 C 50 210 80 220 120 220 Z" class="car-body-path"/>
-            <!-- Wheels -->
-            <circle cx="205" cy="220" r="42" class="car-wheel-rim"/>
-            <circle cx="205" cy="220" r="24" class="car-wheel-hub"/>
-            <circle cx="595" cy="220" r="42" class="car-wheel-rim"/>
-            <circle cx="595" cy="220" r="24" class="car-wheel-hub"/>
-            <!-- Windows -->
-            <path d="M 290 60 L 440 60 L 440 125 L 210 125 Z" class="car-window"/>
-            <path d="M 455 60 L 545 60 C 560 60 575 75 585 90 L 635 125 L 455 125 Z" class="car-window"/>
-            <!-- Doors & Panels -->
-            <line x1="330" y1="125" x2="330" y2="215" class="car-panel-line"/>
-            <line x1="448" y1="60" x2="448" y2="218" class="car-panel-line"/>
-            <line x1="560" y1="125" x2="560" y2="215" class="car-panel-line"/>
-          </svg>
-        </div>
-        <!-- Status indicator panel legend -->
-        <div class="wireframe-legend">
-          <div class="legend-badge legend-green">
-            <span class="legend-dot"></span>
-            <span th:text="${r.labels.passed}"></span>
-          </div>
-          <div class="legend-badge legend-yellow">
-            <span class="legend-dot"></span>
-            <span th:text="${r.labels.attention}"></span>
-          </div>
-          <div class="legend-badge legend-red">
-            <span class="legend-dot"></span>
-            <span th:text="${r.labels.defects}"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 3: Tyres, Wheels & Axle Condition -->
-  <section id="tyres" class="tyres-section" aria-labelledby="tyres-title">
-    <div class="section-header">
-      <h2 id="tyres-title" th:text="${r.labels.tyresAndBrakes}"></h2>
-      <span class="section-tag" th:text="${r.labels.axle}"></span>
-    </div>
-    <div class="card tyres-card">
-      <div class="axle-schematic-grid">
-        <!-- Front Axle -->
-        <div class="tire-wheel-box">
-          <div class="wheel-header">
-            <span class="wheel-icon" aria-hidden="true">🛞</span>
-            <span class="wheel-position" th:text="${r.labels.frontLeft}"></span>
-          </div>
-          <div class="tire-metrics">
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
-              <span class="metric-val" th:text="'7.2 mm'"></span>
-            </div>
-            <div class="tread-depth-bar"><div class="depth-fill" style="width: 85%;"></div></div>
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.pressure}"></span>
-              <span class="metric-val" th:text="'33 PSI'"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="tire-wheel-box">
-          <div class="wheel-header">
-            <span class="wheel-icon" aria-hidden="true">🛞</span>
-            <span class="wheel-position" th:text="${r.labels.frontRight}"></span>
-          </div>
-          <div class="tire-metrics">
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
-              <span class="metric-val" th:text="'7.1 mm'"></span>
-            </div>
-            <div class="tread-depth-bar"><div class="depth-fill" style="width: 82%;"></div></div>
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.pressure}"></span>
-              <span class="metric-val" th:text="'33 PSI'"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rear Axle -->
-        <div class="tire-wheel-box">
-          <div class="wheel-header">
-            <span class="wheel-icon" aria-hidden="true">🛞</span>
-            <span class="wheel-position" th:text="${r.labels.rearLeft}"></span>
-          </div>
-          <div class="tire-metrics">
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
-              <span class="metric-val" th:text="'6.8 mm'"></span>
-            </div>
-            <div class="tread-depth-bar"><div class="depth-fill" style="width: 78%;"></div></div>
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.pressure}"></span>
-              <span class="metric-val" th:text="'34 PSI'"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="tire-wheel-box">
-          <div class="wheel-header">
-            <span class="wheel-icon" aria-hidden="true">🛞</span>
-            <span class="wheel-position" th:text="${r.labels.rearRight}"></span>
-          </div>
-          <div class="tire-metrics">
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.treadDepth}"></span>
-              <span class="metric-val" th:text="'6.9 mm'"></span>
-            </div>
-            <div class="tread-depth-bar"><div class="depth-fill" style="width: 80%;"></div></div>
-            <div class="metric-row">
-              <span class="metric-name" th:text="${r.labels.pressure}"></span>
-              <span class="metric-val" th:text="'34 PSI'"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 4: Multi-Angle Visual Inspection & Diagnostic Systems -->
-  <section id="subsystems" class="visual-diagnosis-section" aria-labelledby="visual-diagnosis-title">
-    <div class="section-header">
-      <div>
-        <h2 id="visual-diagnosis-title" th:text="${r.labels.visualDiagnosis}"></h2>
-        <p class="section-subtitle" th:text="${r.labels.visualDiagnosisSubtitle}"></p>
-      </div>
-      <span class="section-tag" th:text="${#lists.size(r.visualInspections)}"></span>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="visual-filter-bar" role="tablist">
-      <button type="button" class="filter-chip active" data-filter="all">
-        <span th:text="${r.labels.allParts}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.visualInspections)}"></span>
-      </button>
-      <button type="button" class="filter-chip" data-filter="PASSED">
-        <span th:text="${r.labels.passed}"></span>
-        <span class="chip-count" th:text="${r.passedCount}"></span>
-      </button>
-      <button type="button" class="filter-chip" data-filter="ATTENTION">
-        <span th:text="${r.labels.attention}"></span>
-        <span class="chip-count" th:text="${r.attentionCount}"></span>
-      </button>
-      <button type="button" class="filter-chip" data-filter="DEFECT">
-        <span th:text="${r.labels.defects}"></span>
-        <span class="chip-count" th:text="${r.defectCount}"></span>
-      </button>
-    </div>
-
-    <!-- Multi-Angle Visual Cards Grid -->
-    <div class="visual-cards-grid">
-      <div th:each="card : ${r.visualInspections}" 
-           class="card visual-part-card" 
-           th:attr="data-status=${card.status}"
-           th:classappend="${card.status == 'DEFECT' ? 'has-defect' : (card.status == 'ATTENTION' ? 'has-attention' : 'has-passed')}">
-        
-        <!-- Part Card Header -->
-        <div class="part-card-header">
-          <div class="part-zone-info">
-            <h3 class="part-zone-title" th:text="${card.zone}"></h3>
-            <span class="part-components-text" th:text="${card.components}"></span>
-          </div>
-          <span class="badge" 
-                th:classappend="${card.status == 'DEFECT' ? 'danger' : (card.status == 'ATTENTION' ? 'warning' : 'success')}"
-                th:text="${card.statusLabel}"></span>
-        </div>
-
-        <!-- Part Photo & Damage Pinpoint -->
-        <div class="part-photo-box" 
-             th:attr="data-img=${card.imageUrl}, data-caption=${card.zone} + ' - ' + ${card.statusLabel}, data-note=${card.note}" 
-             onclick="openLightbox(this)" 
-             tabindex="0" 
-             role="button" 
-             th:title="${r.labels.tapToEnlarge}">
-          <img loading="lazy" th:src="${card.imageUrl}" th:alt="${card.zone}" class="part-car-img" width="480" height="270">
-          
-          <!-- Damage Badge Pinpoint if defect or attention -->
-          <div th:if="${card.isDamaged}" class="damage-pinpoint-marker">
-            <span class="damage-pulse-dot" aria-hidden="true"></span>
-            <span class="damage-marker-text" th:text="${card.damageMarker}"></span>
-          </div>
-
-          <div class="photo-inspect-overlay">
-            <span class="inspect-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                <line x1="11" y1="8" x2="11" y2="14"></line>
-                <line x1="8" y1="11" x2="14" y2="11"></line>
-              </svg>
-            </span>
-            <span class="inspect-hint" th:text="${r.labels.tapToEnlarge}"></span>
-          </div>
-        </div>
-
-        <!-- Technician Diagnosis Notes -->
-        <div class="part-diagnosis-body">
-          <div class="diag-note-label">
-            <span class="diag-icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-              </svg>
-            </span>
-            <span th:text="${r.labels.technicianObservations}"></span>
-          </div>
-          <p class="diag-note-text" th:text="${card.note}"></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 5: Key Findings & Defects -->
-  <section id="findings" class="findings-section" aria-labelledby="findings-title">
-    <div class="section-header">
-      <h2 id="findings-title" th:text="${r.labels.keyFindings}"></h2>
-      <span class="section-tag" th:text="${#lists.size(r.keyFindings)}"></span>
-    </div>
-    <div th:if="${#lists.isEmpty(r.keyFindings)}" class="card empty-findings-card">
-      <div class="empty-icon" aria-hidden="true">✓</div>
-      <p class="empty-text" th:text="${r.labels.noKeyFindings}"></p>
-    </div>
-    <div class="findings-stack" th:if="${!#lists.isEmpty(r.keyFindings)}">
-      <div th:each="item : ${r.keyFindings}" class="card finding-card">
-        <div class="finding-header">
-          <div class="finding-title-group">
-            <h3 class="finding-title" th:text="${item.label}"></h3>
-            <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
-                  th:if="${item.severityCode != ''}" th:text="${item.severity}"></span>
-          </div>
-          <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
-                th:text="${item.result}"></span>
-        </div>
-        <p th:if="${item.note != ''}" class="technician-note" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}">
-          <span class="note-quote-mark" aria-hidden="true">“</span>
-          <span th:text="${item.note}"></span>
-        </p>
-        <p th:if="${item.reason != ''}" class="small muted" th:text="${r.labels.reason} + ': ' + ${item.reason}"></p>
-        <!-- Defect Photo Evidence -->
-        <div class="finding-photos-row" th:if="${!#lists.isEmpty(item.photos)}">
-          <figure th:each="photo : ${item.photos}" class="finding-photo-figure">
-            <img loading="lazy" th:src="@{/r/{token}/photo/{id}(token=${token},id=${photo.id})}"
-                 th:alt="${photo.alt}" class="finding-img" width="400" height="260">
-            <figcaption th:text="${photo.caption}"></figcaption>
-          </figure>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 6: Full Checklist Breakdown by Category (With Scores, One-Click Filter, Photos & Video Proof) -->
-  <section id="checklist" class="checklist-section" aria-labelledby="checklist-title">
-    <div class="section-header">
-      <div>
-        <h2 id="checklist-title" th:text="${r.labels.findings}"></h2>
-        <p class="section-subtitle" th:text="${r.labels.tapToToggleDetails}"></p>
-      </div>
-      <span class="section-tag" th:text="${r.totalEvaluated} + ' ' + ${r.labels.checksCompleted}"></span>
-    </div>
-
-    <!-- One-Click Instant Filter Bar: All (32), Passed (29), Attention (2), Failed (1) -->
-    <div class="checklist-quick-filter-bar" role="tablist">
-      <button type="button" class="filter-chip active" data-checklist-filter="ALL">
-        <span th:text="${r.labels.allChecks}"></span>
-        <span class="chip-count" th:text="${r.totalEvaluated}"></span>
-      </button>
-      <button type="button" class="filter-chip filter-chip-passed" data-checklist-filter="NO_ISSUE_OBSERVED">
-        <span th:text="${r.labels.filterPassed}"></span>
-        <span class="chip-count" th:text="${r.passedCount}"></span>
-      </button>
-      <button type="button" class="filter-chip filter-chip-attention" data-checklist-filter="ATTENTION_RECOMMENDED">
-        <span th:text="${r.labels.filterAttention}"></span>
-        <span class="chip-count" th:text="${r.attentionCount}"></span>
-      </button>
-      <button type="button" class="filter-chip filter-chip-failed" data-checklist-filter="DEFECT_FOUND">
-        <span th:text="${r.labels.filterFailed}"></span>
-        <span class="chip-count" th:text="${r.defectCount}"></span>
-      </button>
-    </div>
-
-    <!-- Category Accordions Stack -->
-    <div class="categories-accordion-stack">
-      <details th:each="category : ${r.categories}" class="card category-accordion" open
-               th:attr="data-cat-passed=${category.passedCount}, data-cat-attention=${category.attentionCount}, data-cat-defect=${category.defectCount}">
-        <summary class="category-summary">
-          <div class="category-summary-title">
-            <span class="accordion-arrow" aria-hidden="true">▾</span>
-            <strong th:text="${category.label}"></strong>
-          </div>
-          <div class="category-meta-chips">
-            <span class="score-badge" th:classappend="${category.score >= 90 ? 'score-high' : (category.score >= 70 ? 'score-mid' : 'score-low')}">
-              <span th:text="${r.labels.itemScore} + ': ' + ${category.scoreText}"></span>
-            </span>
-            <span class="tag-pill" th:text="${#lists.size(category.items)}"></span>
-          </div>
-        </summary>
-
-        <div class="category-items-container">
-          <div th:each="item : ${category.items}"
-               class="check-interactive-item"
-               th:attr="data-result=${item.resultCode}"
-               th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'item-defect' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'item-attention' : 'item-passed')}">
-
-            <!-- Clickable Row Header -->
-            <div class="check-item-head" onclick="toggleCheckItem(this)" role="button" tabindex="0" th:title="${r.labels.tapToToggleDetails}">
-              <div class="check-item-left">
-                <span class="check-status-indicator" aria-hidden="true">
-                  <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
-                  <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
-                  <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
-                </span>
-                <div class="check-item-titles">
-                  <div class="item-name" th:text="${item.label}"></div>
-                  <div class="item-instruction small muted" th:if="${item.instruction != ''}" th:text="${item.instruction}"></div>
-                </div>
-              </div>
-              <div class="check-item-right">
-                <span class="diagnostic-pill" th:text="${item.diagnosticMetric}"></span>
-                <span class="item-score-chip" th:classappend="${item.score >= 90 ? 'score-high' : (item.score >= 70 ? 'score-mid' : 'score-low')}"
-                      th:text="${r.labels.itemScore} + ': ' + ${item.scoreText}"></span>
-                <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
-                      th:text="${item.result}"></span>
-                <span class="expand-chevron" aria-hidden="true">▾</span>
-              </div>
-            </div>
-
-            <!-- Tap/Click Expanded Detail Drawer -->
-            <div class="check-item-details-drawer">
-              <div class="drawer-inner-grid">
-                <!-- Left: Diagnostic Specifications & Verdict -->
-                <div class="drawer-specs-col">
-                  <div class="drawer-specs-box">
-                    <div class="drawer-spec-row">
-                      <span class="spec-label" th:text="${r.labels.measuredSpec}"></span>
-                      <strong class="spec-val" th:text="${item.measuredSpec}"></strong>
-                    </div>
-                    <div class="drawer-spec-row">
-                      <span class="spec-label" th:text="${r.labels.scope}"></span>
-                      <span class="spec-val" th:text="${item.standardSpec}"></span>
-                    </div>
-                    <div class="drawer-score-bar-wrap">
-                      <div class="drawer-score-label">
-                        <span th:text="${r.labels.itemScore}"></span>
-                        <strong th:text="${item.scoreText}"></strong>
-                      </div>
-                      <div class="score-track-bar">
-                        <div class="score-fill-bar" th:classappend="${item.score >= 90 ? 'fill-green' : (item.score >= 70 ? 'fill-amber' : 'fill-red')}"
-                             th:style="'width: ' + ${item.score} + '%;'"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Technician Observation Quote -->
-                  <div class="drawer-note-callout" th:if="${item.note != ''}">
-                    <div class="drawer-note-head">
-                      <span class="note-quote-mark" aria-hidden="true">“</span>
-                      <span class="small muted" th:text="${r.labels.technicianObservations}"></span>
-                    </div>
-                    <p class="drawer-note-text" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></p>
-                  </div>
-                </div>
-
-                <!-- Right: Part Photo & Video Proof Evidence -->
-                <div class="drawer-media-col">
-                  <!-- Part Photo -->
-                  <div class="drawer-media-card photo-card"
-                       th:attr="data-img=${item.partPhoto}, data-caption=${item.label} + ' - ' + ${item.result}, data-note=${item.note}"
-                       onclick="openLightbox(this)" tabindex="0" role="button" th:title="${r.labels.tapToEnlarge}">
-                    <div class="drawer-photo-wrap">
-                      <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="drawer-img" width="300" height="180">
-                      <div class="drawer-media-badge">
-                        <span class="badge-icon" aria-hidden="true">📷</span>
-                        <span th:text="${r.labels.photos}"></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Part Video Proof Card -->
-                  <div class="drawer-media-card video-card"
-                       th:attr="data-video=${item.videoUrl}, data-caption=${item.label} + ' - ' + ${item.videoCaption}, data-note=${item.note}"
-                       onclick="openVideoLightbox(this)" tabindex="0" role="button" th:title="${r.labels.playVideo}">
-                    <div class="drawer-photo-wrap">
-                      <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="drawer-img video-poster" width="300" height="180">
-                      <div class="video-play-overlay">
-                        <span class="play-btn-circle" aria-hidden="true">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-                        </span>
-                        <span class="video-duration-chip" th:text="${item.videoDuration}"></span>
-                      </div>
-                      <div class="drawer-media-badge video-badge">
-                        <span class="badge-icon" aria-hidden="true">🎥</span>
-                        <span th:text="${r.labels.videoProof}"></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <!-- Section 7: Unchecked / Excluded Items -->
+  <!-- Section 9: Unchecked / Excluded Items -->
   <section id="not-checked" class="not-checked-section" th:if="${!#lists.isEmpty(r.notChecked)}" aria-labelledby="not-checked-title">
     <div class="section-header">
       <h2 id="not-checked-title" th:text="${r.labels.notChecked}"></h2>
@@ -713,7 +602,7 @@
     </div>
   </section>
 
-  <!-- Section 8: Verification, SHA-256 Tamper Seal & Disclaimers -->
+  <!-- Section 10: Verification, SHA-256 Tamper Seal & Disclaimers -->
   <section id="verification" class="verification-section" aria-labelledby="verification-title">
     <div class="section-header">
       <h2 id="verification-title" th:text="${r.labels.verification}"></h2>
@@ -797,25 +686,118 @@
   </div>
 </footer>
 
-  <!-- Lightbox Modal for Photo Inspection -->
-  <dialog id="photo-lightbox" class="lightbox-dialog" aria-modal="true" aria-labelledby="lightbox-caption">
-    <div class="lightbox-content">
-      <button type="button" class="lightbox-close-btn" onclick="closeLightbox()" th:aria-label="${r.labels.close}">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div class="lightbox-image-wrap">
-        <img id="lightbox-img" src="" th:alt="${r.labels.photos}" class="lightbox-img">
-        <video id="lightbox-video" class="lightbox-video" controls playsinline style="display: none;"></video>
+<!-- On-Tap Dedicated Part Inspection Detail Dialog (Photos, Videos, Scores, Measured Specs) -->
+<dialog id="part-detail-dialog" class="part-detail-dialog" aria-modal="true" aria-labelledby="dialog-part-title">
+  <div class="dialog-content-box">
+    <button type="button" class="dialog-close-btn" onclick="closePartDialog()" th:aria-label="${r.labels.close}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="dialog-header">
+      <div class="dialog-header-text">
+        <span id="dialog-part-cat" class="dialog-category-badge"></span>
+        <h3 id="dialog-part-title" class="dialog-part-title"></h3>
       </div>
-      <div class="lightbox-details">
-        <h4 id="lightbox-caption" class="lightbox-title"></h4>
-        <p id="lightbox-note" class="lightbox-desc"></p>
+      <div class="dialog-badge-group">
+        <span id="dialog-part-score" class="dialog-score-pill"></span>
+        <span id="dialog-part-status" class="badge"></span>
       </div>
     </div>
-  </dialog>
+
+    <div class="dialog-body-grid">
+      <!-- Left: Diagnostic Specifications & Observations -->
+      <div class="dialog-info-pane">
+        <div class="dialog-spec-card">
+          <h4 class="dialog-section-heading" th:text="${r.labels.partDetails}"></h4>
+          <div class="spec-table-list">
+            <div class="spec-table-row">
+              <span class="spec-title" th:text="${r.labels.measuredSpec}"></span>
+              <strong id="dialog-measured-spec" class="spec-value-highlight"></strong>
+            </div>
+            <div class="spec-table-row">
+              <span class="spec-title" th:text="${r.labels.scope}"></span>
+              <span id="dialog-standard-spec" class="spec-value-standard"></span>
+            </div>
+            <div class="spec-table-row spec-score-row">
+              <span class="spec-title" th:text="${r.labels.diagnosticScore}"></span>
+              <div class="dialog-score-track">
+                <div id="dialog-score-fill" class="dialog-score-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog-note-card">
+          <div class="note-card-title">
+            <span class="quote-icon" aria-hidden="true">“</span>
+            <span th:text="${r.labels.technicianObservations}"></span>
+          </div>
+          <p id="dialog-part-note" class="dialog-note-text"></p>
+        </div>
+      </div>
+
+      <!-- Right: Photographic Evidence & Video Proof -->
+      <div class="dialog-media-pane">
+        <!-- Part Photo Card -->
+        <div class="media-proof-box">
+          <div class="media-proof-header">
+            <span aria-hidden="true">📷</span>
+            <span th:text="${r.labels.photos}"></span>
+          </div>
+          <div class="media-img-wrapper" onclick="openPhotoFromDialog()" tabindex="0" role="button" th:title="${r.labels.tapToEnlarge}">
+            <img id="dialog-part-img" src="" th:alt="${r.labels.photos}" class="dialog-preview-img">
+            <div class="media-zoom-overlay">
+              <span th:text="${r.labels.tapToEnlarge}"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Proof Player Card -->
+        <div class="media-proof-box">
+          <div class="media-proof-header">
+            <span aria-hidden="true">🎥</span>
+            <span th:text="${r.labels.videoProof}"></span>
+          </div>
+          <div class="media-video-wrapper">
+            <video id="dialog-part-video" controls playsinline class="dialog-proof-video" preload="metadata">
+              <source src="" type="video/mp4">
+            </video>
+            <div class="video-caption-strip">
+              <span class="video-badge-pill" th:text="${r.labels.videoProof}"></span>
+              <span id="dialog-video-caption" class="video-caption-label"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <button type="button" class="button button-ghost" onclick="closePartDialog()" th:text="${r.labels.closeDetails}"></button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Lightbox Modal for Photo Inspection -->
+<dialog id="photo-lightbox" class="lightbox-dialog" aria-modal="true" aria-labelledby="lightbox-caption">
+  <div class="lightbox-content">
+    <button type="button" class="lightbox-close-btn" onclick="closeLightbox()" th:aria-label="${r.labels.close}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div class="lightbox-image-wrap">
+      <img id="lightbox-img" src="" th:alt="${r.labels.photos}" class="lightbox-img">
+    </div>
+    <div class="lightbox-details">
+      <h4 id="lightbox-caption" class="lightbox-title"></h4>
+      <p id="lightbox-note" class="lightbox-desc"></p>
+    </div>
+  </div>
+</dialog>
 
 </body>
 </html>

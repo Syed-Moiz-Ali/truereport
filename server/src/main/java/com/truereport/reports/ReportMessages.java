@@ -49,7 +49,8 @@ public final class ReportMessages {
             "scheduledServices", "servicesGood", "servicesNeedService", "allChecks",
             "filterPassed", "filterAttention", "filterFailed", "itemScore",
             "videoProof", "playVideo", "partDetails", "measuredSpec",
-            "serviceRemaining", "tapToToggleDetails");
+            "serviceRemaining", "tapToToggleDetails", "viewPartDetails",
+            "closeDetails", "systemHealthSummary", "diagnosticScore");
 
     private ReportMessages() {
     }

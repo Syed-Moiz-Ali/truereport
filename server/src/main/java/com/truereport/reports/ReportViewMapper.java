@@ -69,15 +69,36 @@ public class ReportViewMapper {
         root.put("coverage", coverage(snapshot.coverage(), language));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, language));
         root.put("inspectionSystems", inspectionSystems(language));
-        root.put("scheduledServices", scheduledServices(language));
-        root.put("servicesSummary", servicesSummary(language));
+        List<Map<String, Object>> catList = categories(snapshot.categories(), byEvidence, language);
+        root.put("categories", catList);
+        int goodCats = 0;
+        int attentionCats = 0;
+        for (Map<String, Object> c : catList) {
+            int d = (int) c.get("defectCount");
+            int a = (int) c.get("attentionCount");
+            if (d > 0 || a > 0) {
+                attentionCats++;
+                c.put("categoryStatus", "ATTENTION");
+                c.put("categoryStatusLabel", ar ? "يتطلب صيانة" : "Needs Service");
+            } else {
+                goodCats++;
+                c.put("categoryStatus", "GOOD");
+                c.put("categoryStatusLabel", ar ? "سليم" : "Good");
+            }
+        }
+        Map<String, Object> catSummary = new LinkedHashMap<>();
+        catSummary.put("total", catList.size());
+        catSummary.put("goodCount", goodCats);
+        catSummary.put("attentionCount", attentionCats);
+        catSummary.put("text", ar ? (goodCats + " أنظمة بحالة سليمة • " + attentionCats + " نظام يتطلب صيانة")
+                                  : (goodCats + " Systems Good • " + attentionCats + " System Needs Service"));
+        root.put("categoriesSummary", catSummary);
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
         root.put("vehicleShowcase", showcase);
         root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
         root.put("showcaseInterior", showcase.stream().filter(i -> "interior".equals(i.get("category"))).toList());
         root.put("showcaseMechanical", showcase.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language));
-        root.put("categories", categories(snapshot.categories(), byEvidence, language));
         root.put("notChecked", notChecked(snapshot.notChecked(), language));
         root.put("limitations", limitations(ar));
         root.put("disclaimer", disclaimer(ar));
@@ -123,15 +144,35 @@ public class ReportViewMapper {
         root.put("coverage", coverage(snapshot.coverage(), "en"));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, "en"));
         root.put("inspectionSystems", inspectionSystems("en"));
-        root.put("scheduledServices", scheduledServices("en"));
-        root.put("servicesSummary", servicesSummary("en"));
+        List<Map<String, Object>> catListEn = categories(snapshot.categories(), byEvidence, true);
+        root.put("categories", catListEn);
+        int goodCatsEn = 0;
+        int attentionCatsEn = 0;
+        for (Map<String, Object> c : catListEn) {
+            int d = (int) c.get("defectCount");
+            int a = (int) c.get("attentionCount");
+            if (d > 0 || a > 0) {
+                attentionCatsEn++;
+                c.put("categoryStatus", "ATTENTION");
+                c.put("categoryStatusLabel", "Needs Service");
+            } else {
+                goodCatsEn++;
+                c.put("categoryStatus", "GOOD");
+                c.put("categoryStatusLabel", "Good");
+            }
+        }
+        Map<String, Object> catSummaryEn = new LinkedHashMap<>();
+        catSummaryEn.put("total", catListEn.size());
+        catSummaryEn.put("goodCount", goodCatsEn);
+        catSummaryEn.put("attentionCount", attentionCatsEn);
+        catSummaryEn.put("text", goodCatsEn + " Systems Good • " + attentionCatsEn + " System Needs Service");
+        root.put("categoriesSummary", catSummaryEn);
         List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
         root.put("vehicleShowcase", showcaseEn);
         root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
         root.put("showcaseInterior", showcaseEn.stream().filter(i -> "interior".equals(i.get("category"))).toList());
         root.put("showcaseMechanical", showcaseEn.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
-        root.put("categories", categories(snapshot.categories(), byEvidence, true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
         root.put("limitationsEn", limitations(false));
         root.put("limitationsAr", limitations(true));
@@ -833,88 +874,6 @@ public class ReportViewMapper {
                 "/report/assets/img/image-2-48b6858055.jpg",
                 ar ? "تم الفحص على الرافعة؛ قضبان الشاصيه مستقيمة 100% وخالية من أي ضربات سفلية أو تلحيم."
                    : "Inspected on hoist; chassis rails 100% straight with zero grounding impacts or rust."));
-
-        return list;
-    }
-
-    private Map<String, Object> servicesSummary(String language) {
-        boolean ar = "ar".equals(language);
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("goodCount", 4);
-        map.put("needServiceCount", 1);
-        map.put("totalCount", 5);
-        map.put("summaryText", ar ? "4 خدمات بحالة سليمة • خدمة واحدة تتطلب صيانة" : "4 Services in Good Condition • 1 Service Needs Service");
-        return map;
-    }
-
-    private List<Map<String, Object>> scheduledServices(String language) {
-        boolean ar = "ar".equals(language);
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        Map<String, Object> s1 = new LinkedHashMap<>();
-        s1.put("id", "srv-oil");
-        s1.put("icon", "🛢️");
-        s1.put("title", ar ? "زيت المحرك وفلتر الزيت الأصلي" : "Engine Oil & OEM Oil Filter");
-        s1.put("interval", ar ? "كل 10,000 كم" : "10,000 km Interval");
-        s1.put("remaining", ar ? "متبقي 7,500 كم (75%)" : "7,500 km remaining (75%)");
-        s1.put("status", "GOOD");
-        s1.put("statusLabel", ar ? "سليم" : "Good");
-        s1.put("note", ar ? "لزوجة الزيت ممتازة ولون ذهبي نقي بدون أي رواسب كربونية أو رغوة."
-                          : "Viscosity optimal, golden-amber clarity with zero carbon sludge or emulsification.");
-        s1.put("metric", ar ? "مستوى الزيت: 100% • لزوجة: 0W-20" : "Oil Level: 100% • Spec: 0W-20");
-        list.add(s1);
-
-        Map<String, Object> s2 = new LinkedHashMap<>();
-        s2.put("id", "srv-trans");
-        s2.put("icon", "⚙️");
-        s2.put("title", ar ? "زيت ناقل الحركة والدبل التفاضلي" : "Transmission & Transfer Case Fluids");
-        s2.put("interval", ar ? "كل 40,000 كم" : "40,000 km Interval");
-        s2.put("remaining", ar ? "متبقي 28,000 كم (70%)" : "28,000 km remaining (70%)");
-        s2.put("status", "GOOD");
-        s2.put("statusLabel", ar ? "سليم" : "Good");
-        s2.put("note", ar ? "زيت القير نظيف ورائحته طبيعية وخالٍ تماماً من برادة الحديد أو الشوائب."
-                          : "Clean red ATF fluid, normal odor with zero particulate contamination.");
-        s2.put("metric", ar ? "مستوى القير: مطابق للمصنع" : "Fluid Level: Factory Nominal");
-        list.add(s2);
-
-        Map<String, Object> s3 = new LinkedHashMap<>();
-        s3.put("id", "srv-coolant");
-        s3.put("icon", "🌡️");
-        s3.put("title", ar ? "سائل تبريد المحرك والبلف الحراري" : "Engine Coolant & Thermostat Loop");
-        s3.put("interval", ar ? "كل 50,000 كم" : "50,000 km Interval");
-        s3.put("remaining", ar ? "متبقي 35,000 كم (70%)" : "35,000 km remaining (70%)");
-        s3.put("status", "GOOD");
-        s3.put("statusLabel", ar ? "سليم" : "Good");
-        s3.put("note", ar ? "سائل التبريد الأصلي الوردي بنسبة 50/50 ودرجة تجمد -37 درجة مئوية."
-                          : "OEM 50/50 pink coolant concentration verified; freeze point protection to -37°C.");
-        s3.put("metric", ar ? "نقطة الغليان: 108°C • التركيز: 50%" : "Boiling Pt: 108°C • Glycol: 50%");
-        list.add(s3);
-
-        Map<String, Object> s4 = new LinkedHashMap<>();
-        s4.put("id", "srv-brake-fluid");
-        s4.put("icon", "🛑");
-        s4.put("title", ar ? "سائل الفرامل الهيدروليكي DOT4" : "Hydraulic Brake Fluid (DOT4)");
-        s4.put("interval", ar ? "كل سنتين" : "24 Months Interval");
-        s4.put("remaining", ar ? "متبقي 14 شهراً" : "14 months remaining");
-        s4.put("status", "GOOD");
-        s4.put("statusLabel", ar ? "سليم" : "Good");
-        s4.put("note", ar ? "نسبة الرطوبة 0.8% (المعيار أقل من 2%) ونقطة الغليان 245 درجة مئوية."
-                          : "Moisture content 0.8% (standard <2%); wet boiling point test passed at 245°C.");
-        s4.put("metric", ar ? "نسبة الرطوبة: 0.8% • الغليان: 245°C" : "Moisture: 0.8% • Boil Pt: 245°C");
-        list.add(s4);
-
-        Map<String, Object> s5 = new LinkedHashMap<>();
-        s5.put("id", "srv-brake-pads");
-        s5.put("icon", "🛞");
-        s5.put("title", ar ? "فحمات الفرامل وتدوير الإطارات" : "Brake Friction Pads & Tyre Rotation");
-        s5.put("interval", ar ? "كل 10,000 كم" : "10,000 km Interval");
-        s5.put("remaining", ar ? "يوصى بالصيانة قريباً (خلال 1,000 كم)" : "Service Due Soon (< 1,000 km)");
-        s5.put("status", "NEED_SERVICE");
-        s5.put("statusLabel", ar ? "تتطلب صيانة قريباً" : "Needs Service Soon");
-        s5.put("note", ar ? "ملاحظة: وجود احتكاك سطحي بجدار الإطار الخلفي الأيمن مع سماكة فحمات 4.2 مم. يوصى بالاستبدال خلال 1,000 كم."
-                          : "Note: Superficial 2mm curb scuff on rear-right sidewall; brake pad friction material at 4.2mm. Recommend replacement within 1,000 km.");
-        s5.put("metric", ar ? "سماكة الفحمات: 4.2 مم • احتكاك إطار" : "Pad Thickness: 4.2mm • Sidewall Scuff");
-        list.add(s5);
 
         return list;
     }
