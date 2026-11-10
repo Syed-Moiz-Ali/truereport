@@ -49,9 +49,9 @@
 <nav class="quick-nav-bar" th:attr="aria-label=${r.labels.overview}">
   <div class="container quick-nav-inner">
     <a href="#overview" class="nav-chip" th:text="${r.labels.overview}"></a>
+    <a href="#showcase" class="nav-chip" th:text="${r.labels.vehicleShowcase}"></a>
     <a href="#wireframe" class="nav-chip" th:text="${r.labels.exteriorDamageMap}"></a>
     <a href="#tyres" class="nav-chip" th:text="${r.labels.tyresAndBrakes}"></a>
-    <a href="#showcase" class="nav-chip" th:text="${r.labels.vehicleShowcase}"></a>
     <a href="#subsystems" class="nav-chip" th:text="${r.labels.subsystems}"></a>
     <a href="#findings" class="nav-chip" th:text="${r.labels.keyFindings}"></a>
     <a href="#evidence" class="nav-chip" th:if="${!#lists.isEmpty(r.keyFindings)}" th:text="${r.labels.evidenceGallery}"></a>
@@ -149,7 +149,110 @@
     </div>
   </section>
 
-  <!-- Section 2: 2D Vehicle Wireframe & Damage Map -->
+  <!-- Section 2: Vehicle Showcase & Pure Masonry Photo Gallery -->
+  <section id="showcase" class="showcase-section" aria-labelledby="showcase-title">
+    <div class="section-header">
+      <div>
+        <h2 id="showcase-title" th:text="${r.labels.vehicleShowcase}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.vehicleShowcaseSubtitle}"></p>
+      </div>
+      <span class="section-tag" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photosDocumented}"></span>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="showcase-filter-bar" role="tablist">
+      <button type="button" class="filter-chip showcase-filter-chip active" data-cat="all">
+        <span th:text="${r.labels.showcaseAll}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.vehicleShowcase)}"></span>
+      </button>
+      <button type="button" class="filter-chip showcase-filter-chip" data-cat="exterior">
+        <span th:text="${r.labels.showcaseExterior}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseExterior)}"></span>
+      </button>
+      <button type="button" class="filter-chip showcase-filter-chip" data-cat="interior">
+        <span th:text="${r.labels.showcaseInterior}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseInterior)}"></span>
+      </button>
+      <button type="button" class="filter-chip showcase-filter-chip" data-cat="mechanical">
+        <span th:text="${r.labels.showcaseMechanical}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseMechanical)}"></span>
+      </button>
+    </div>
+
+    <!-- Category Group 1: Exterior (Pure Masonry Image Grid) -->
+    <div class="showcase-category-group" data-cat="exterior">
+      <div class="showcase-cat-heading">
+        <h3 th:text="${r.labels.showcaseExterior}"></h3>
+        <span class="badge info" th:text="${#lists.size(r.showcaseExterior)} + ' ' + ${r.labels.photosDocumented}"></span>
+      </div>
+      <div class="masonry-gallery">
+        <div th:each="item : ${r.showcaseExterior}"
+             class="masonry-photo-item"
+             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
+             onclick="openLightbox(this)"
+             tabindex="0"
+             role="button"
+             th:title="${r.labels.tapToEnlarge}">
+          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
+          <div class="masonry-photo-overlay">
+            <span class="masonry-zoom-btn" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Group 2: Interior (Pure Masonry Image Grid) -->
+    <div class="showcase-category-group" data-cat="interior">
+      <div class="showcase-cat-heading">
+        <h3 th:text="${r.labels.showcaseInterior}"></h3>
+        <span class="badge info" th:text="${#lists.size(r.showcaseInterior)} + ' ' + ${r.labels.photosDocumented}"></span>
+      </div>
+      <div class="masonry-gallery">
+        <div th:each="item : ${r.showcaseInterior}"
+             class="masonry-photo-item"
+             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
+             onclick="openLightbox(this)"
+             tabindex="0"
+             role="button"
+             th:title="${r.labels.tapToEnlarge}">
+          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
+          <div class="masonry-photo-overlay">
+            <span class="masonry-zoom-btn" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Group 3: Mechanical (Pure Masonry Image Grid) -->
+    <div class="showcase-category-group" data-cat="mechanical">
+      <div class="showcase-cat-heading">
+        <h3 th:text="${r.labels.showcaseMechanical}"></h3>
+        <span class="badge info" th:text="${#lists.size(r.showcaseMechanical)} + ' ' + ${r.labels.photosDocumented}"></span>
+      </div>
+      <div class="masonry-gallery">
+        <div th:each="item : ${r.showcaseMechanical}"
+             class="masonry-photo-item"
+             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
+             onclick="openLightbox(this)"
+             tabindex="0"
+             role="button"
+             th:title="${r.labels.tapToEnlarge}">
+          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
+          <div class="masonry-photo-overlay">
+            <span class="masonry-zoom-btn" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: 2D Vehicle Wireframe & Damage Map -->
   <section id="wireframe" class="damage-map-section" aria-labelledby="wireframe-title">
     <div class="section-header">
       <h2 id="wireframe-title" th:text="${r.labels.exteriorDamageMap}"></h2>
@@ -274,89 +377,6 @@
               <span class="metric-val" th:text="'34 PSI'"></span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 3b: Vehicle Showcase & 360° Photo Gallery -->
-  <section id="showcase" class="showcase-section" aria-labelledby="showcase-title">
-    <div class="section-header">
-      <div>
-        <h2 id="showcase-title" th:text="${r.labels.vehicleShowcase}"></h2>
-        <p class="section-subtitle" th:text="${r.labels.vehicleShowcaseSubtitle}"></p>
-      </div>
-      <div class="showcase-header-badges">
-        <span class="section-tag" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photosDocumented}"></span>
-      </div>
-    </div>
-
-    <!-- Resale Value & Marketplace Assistant Banner -->
-    <div class="showcase-resale-banner">
-      <div class="resale-banner-content">
-        <div class="resale-banner-icon" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-          </svg>
-        </div>
-        <div class="resale-banner-text">
-          <strong class="resale-banner-title" th:text="${r.labels.resaleAdviceTitle}"></strong>
-          <p class="resale-banner-body" th:text="${r.labels.resaleAdviceBody}"></p>
-        </div>
-      </div>
-      <div class="resale-banner-badge">
-        <span class="badge success" th:text="${r.labels.marketplaceReady}"></span>
-      </div>
-    </div>
-
-    <!-- Filter Bar for Showcase -->
-    <div class="showcase-filter-bar" role="tablist">
-      <button type="button" class="filter-chip showcase-filter-chip active" data-cat="all">
-        <span th:text="${r.labels.showcaseAll}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.vehicleShowcase)}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="exterior">
-        <span th:text="${r.labels.showcaseExterior}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="interior">
-        <span th:text="${r.labels.showcaseInterior}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="mechanical">
-        <span th:text="${r.labels.showcaseMechanical}"></span>
-      </button>
-    </div>
-
-    <!-- Showcase Grid -->
-    <div class="showcase-grid">
-      <div th:each="item : ${r.vehicleShowcase}"
-           class="card showcase-item-card"
-           th:attr="data-cat=${item.category}">
-        <div class="showcase-media-box"
-             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' (' + ${item.categoryLabel} + ') - ' + ${item.condition}, data-note=${item.inspectNote}"
-             onclick="openLightbox(this)"
-             tabindex="0"
-             role="button"
-             th:title="${r.labels.tapToEnlarge}">
-          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="showcase-img" width="480" height="320">
-          <div class="showcase-badges-overlay">
-            <span class="badge info" th:text="${item.categoryLabel}"></span>
-            <span class="badge success" th:text="${item.condition}"></span>
-          </div>
-          <div class="photo-inspect-overlay">
-            <span class="inspect-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                <line x1="11" y1="8" x2="11" y2="14"></line>
-                <line x1="8" y1="11" x2="14" y2="11"></line>
-              </svg>
-            </span>
-            <span class="inspect-hint" th:text="${r.labels.viewFullPhoto}"></span>
-          </div>
-        </div>
-        <div class="showcase-details-box">
-          <h3 class="showcase-part-title" th:text="${item.title}"></h3>
-          <p class="showcase-part-desc" th:text="${item.details}"></p>
         </div>
       </div>
     </div>

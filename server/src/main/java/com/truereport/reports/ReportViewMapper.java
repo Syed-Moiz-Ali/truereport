@@ -68,7 +68,11 @@ public class ReportViewMapper {
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), language));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, language));
-        root.put("vehicleShowcase", vehicleShowcase(snapshot, byEvidence, language));
+        List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
+        root.put("vehicleShowcase", showcase);
+        root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
+        root.put("showcaseInterior", showcase.stream().filter(i -> "interior".equals(i.get("category"))).toList());
+        root.put("showcaseMechanical", showcase.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language));
         root.put("categories", categories(snapshot.categories(), byEvidence, language));
         root.put("notChecked", notChecked(snapshot.notChecked(), language));
@@ -115,7 +119,11 @@ public class ReportViewMapper {
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), "en"));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, "en"));
-        root.put("vehicleShowcase", vehicleShowcase(snapshot, byEvidence, "en"));
+        List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
+        root.put("vehicleShowcase", showcaseEn);
+        root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
+        root.put("showcaseInterior", showcaseEn.stream().filter(i -> "interior".equals(i.get("category"))).toList());
+        root.put("showcaseMechanical", showcaseEn.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
         root.put("categories", categories(snapshot.categories(), byEvidence, true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));

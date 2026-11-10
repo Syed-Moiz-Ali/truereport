@@ -290,34 +290,62 @@ header.report-header {
   align-items: center;
 }
 
-/* Quick Nav Bar */
+/* Quick Nav Bar - Sticky Header Navigation */
+html {
+  scroll-behavior: smooth;
+}
+
 .quick-nav-bar {
-  background: #FFFFFF;
-  border-bottom: 1px solid var(--outline);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.quick-nav-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .quick-nav-inner {
   display: flex;
   gap: 8px;
-  padding-block: 8px;
+  padding: 10px 0;
 }
 
 .nav-chip {
-  padding: 6px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
   border-radius: var(--radius-pill);
   color: var(--on-variant);
-  background: transparent;
-  transition: all 0.15s ease;
+  background: var(--surface-container);
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .nav-chip:hover {
-  background: var(--surface-container);
-  color: var(--on-surface);
+  background: #E6F3EC;
+  color: #006C49;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.nav-chip.active {
+  background: #006C49;
+  color: #FFFFFF;
+  border-color: #006C49;
+  box-shadow: 0 4px 14px rgba(0, 108, 73, 0.28);
 }
 
 /* Main Content Layout */
@@ -325,8 +353,9 @@ main {
   padding-block: 28px 80px;
 }
 
-section {
-  margin-bottom: 32px;
+main > section {
+  scroll-margin-top: 76px;
+  margin-bottom: 48px;
 }
 
 .section-header {
@@ -1539,71 +1568,16 @@ footer.report-footer {
   line-height: 1.55;
 }
 
-/* Vehicle Showcase & 360° Photo Gallery */
+/* Vehicle Showcase & Pure Masonry Photo Gallery */
 .showcase-section {
-  margin-top: 48px;
+  margin-top: 36px;
   margin-bottom: 48px;
-}
-
-.showcase-header-badges {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.showcase-resale-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.14) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.resale-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.resale-banner-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(16, 185, 129, 0.2);
-  color: #047857;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.resale-banner-title {
-  font-size: 1.02rem;
-  font-weight: 800;
-  color: #065F46;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.resale-banner-body {
-  font-size: 0.88rem;
-  color: #047857;
-  margin: 0;
-  line-height: 1.45;
-}
-
-.resale-banner-badge {
-  flex-shrink: 0;
 }
 
 .showcase-filter-bar {
   display: flex;
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
@@ -1613,79 +1587,109 @@ footer.report-footer {
   display: none;
 }
 
-.showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 20px;
+.showcase-category-group {
+  margin-bottom: 40px;
 }
 
-.showcase-item-card {
+.showcase-cat-heading {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0 !important;
-  border: 1px solid var(--outline);
-  border-radius: var(--radius-lg);
-  background: var(--surface-card);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--surface-container);
+  margin-bottom: 18px;
 }
 
-.showcase-item-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.08);
-  border-color: #10B981;
-}
-
-.showcase-media-box {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  background: #0B0F19;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.showcase-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.4s ease;
-}
-
-.showcase-media-box:hover .showcase-img {
-  transform: scale(1.05);
-}
-
-.showcase-badges-overlay {
-  position: absolute;
-  top: 12px;
-  inset-inline-start: 12px;
-  display: flex;
-  gap: 6px;
-  z-index: 2;
-  flex-wrap: wrap;
-}
-
-.showcase-details-box {
-  padding: 16px 18px 20px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.showcase-part-title {
-  margin: 0 0 6px;
-  font-size: 1.05rem;
-  font-weight: 700;
+.showcase-cat-heading h3 {
+  margin: 0;
+  font-size: 1.22rem;
+  font-weight: 800;
   color: var(--on-surface);
 }
 
-.showcase-part-desc {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--on-variant);
-  line-height: 1.45;
+/* Pure Photo Masonry Gallery (Zero text, pure image grid) */
+.masonry-gallery {
+  column-count: 3;
+  column-gap: 16px;
+}
+
+@media (max-width: 960px) {
+  .masonry-gallery {
+    column-count: 2;
+    column-gap: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .masonry-gallery {
+    column-count: 1;
+    column-gap: 0;
+  }
+}
+
+.masonry-photo-item {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0D1117;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+.masonry-photo-item:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  border-color: #10B981;
+}
+
+.masonry-photo-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.masonry-photo-item:hover .masonry-photo-img {
+  transform: scale(1.05);
+}
+
+.masonry-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.masonry-photo-item:hover .masonry-photo-overlay {
+  opacity: 1;
+}
+
+.masonry-zoom-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #006C49;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transform: scale(0.85);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.masonry-photo-item:hover .masonry-zoom-btn {
+  transform: scale(1);
 }
 
 /* Print Optimization (Matches Inspection.pdf Quality) */

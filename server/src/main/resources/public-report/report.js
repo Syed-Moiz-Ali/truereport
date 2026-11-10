@@ -59,9 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Showcase Filter Tabs
+  // Showcase Category Filter Tabs (Pure Masonry Groups)
   var showcaseButtons = document.querySelectorAll('.showcase-filter-chip');
-  var showcaseCards = document.querySelectorAll('.showcase-item-card');
+  var showcaseGroups = document.querySelectorAll('.showcase-category-group');
 
   showcaseButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -69,16 +69,44 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.classList.add('active');
       var cat = btn.getAttribute('data-cat');
 
-      showcaseCards.forEach(function (card) {
-        var cardCat = card.getAttribute('data-cat');
-        if (cat === 'all' || cardCat === cat) {
-          card.style.display = '';
+      showcaseGroups.forEach(function (group) {
+        var groupCat = group.getAttribute('data-cat');
+        if (cat === 'all' || groupCat === cat) {
+          group.style.display = '';
         } else {
-          card.style.display = 'none';
+          group.style.display = 'none';
         }
       });
     });
   });
+
+  // Sticky Nav Active Link ScrollSpy
+  var navLinks = document.querySelectorAll('.quick-nav-bar .nav-chip');
+  var mainSections = document.querySelectorAll('main > section[id]');
+
+  if (window.IntersectionObserver && navLinks.length > 0 && mainSections.length > 0) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.getAttribute('id');
+          navLinks.forEach(function (link) {
+            var href = link.getAttribute('href');
+            if (href === '#' + id) {
+              link.classList.add('active');
+              // Auto scroll nav bar to keep active chip visible
+              link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px' });
+
+    mainSections.forEach(function (sec) {
+      observer.observe(sec);
+    });
+  }
 
   // Lightbox click-outside-to-close & Esc key
   var dialog = document.getElementById('photo-lightbox');
