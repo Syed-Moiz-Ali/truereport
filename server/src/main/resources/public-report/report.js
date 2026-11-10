@@ -59,22 +59,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Showcase Category Filter Tabs (Pure Masonry Groups)
-  var showcaseButtons = document.querySelectorAll('.showcase-filter-chip');
-  var showcaseGroups = document.querySelectorAll('.showcase-category-group');
+  // Showcase Category Filter (Tabs: All, Exterior, Interior, Mechanical)
+  var galleryFilterButtons = document.querySelectorAll('[data-gallery-filter]');
+  var galleryCards = document.querySelectorAll('.gallery-photo-card');
 
-  showcaseButtons.forEach(function (btn) {
+  galleryFilterButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      showcaseButtons.forEach(function (b) { b.classList.remove('active'); });
+      galleryFilterButtons.forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      var cat = btn.getAttribute('data-cat');
+      var filter = btn.getAttribute('data-gallery-filter');
 
-      showcaseGroups.forEach(function (group) {
-        var groupCat = group.getAttribute('data-cat');
-        if (cat === 'all' || groupCat === cat) {
-          group.style.display = '';
+      galleryCards.forEach(function (card) {
+        var cardCat = card.getAttribute('data-category');
+        if (filter === 'all' || cardCat === filter) {
+          card.style.display = '';
         } else {
-          group.style.display = 'none';
+          card.style.display = 'none';
         }
       });
     });

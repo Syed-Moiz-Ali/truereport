@@ -172,12 +172,9 @@ button:focus-visible {
 
 /* Global Header */
 header.report-header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #FFFFFF;
   border-bottom: 1px solid var(--outline);
 }
 
@@ -1044,6 +1041,14 @@ details[open] .accordion-arrow {
   border-bottom: 0;
 }
 
+.checklist-table tbody tr:nth-child(even) {
+  background: rgba(248, 249, 252, 0.6);
+}
+
+.checklist-table tbody tr:hover {
+  background: #E8F8F2;
+}
+
 .item-name {
   font-weight: 600;
   color: var(--on-surface);
@@ -1590,17 +1595,32 @@ footer.report-footer {
   letter-spacing: -0.01em;
 }
 
-/* Official 10-Photo Inspection Gallery (Clean, Non-Scrambled Uniform Grid) */
+/* Official Vehicle Photo Showroom (Clean, Non-Scrambled Uniform Automotive Grid) */
 .gallery-section {
   margin-top: 36px;
   margin-bottom: 48px;
 }
 
+.gallery-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 22px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+
+.gallery-filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
 .uniform-gallery-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  margin-top: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-top: 8px;
 }
 
 @media (max-width: 1080px) {
@@ -1617,19 +1637,26 @@ footer.report-footer {
   }
 }
 
+@media (max-width: 420px) {
+  .uniform-gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 .gallery-photo-card {
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--surface-card);
   border: 1px solid var(--outline);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
 }
 
 .gallery-photo-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
   border-color: #10B981;
 }
 
@@ -1646,50 +1673,11 @@ footer.report-footer {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.35s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gallery-photo-card:hover .gallery-photo-img {
   transform: scale(1.06);
-}
-
-.gallery-photo-badge {
-  position: absolute;
-  top: 8px;
-  inset-inline-start: 8px;
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FFFFFF;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  z-index: 2;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.photo-index {
-  background: #10B981;
-  color: #FFFFFF;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 800;
-}
-
-.photo-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
 }
 
 .gallery-hover-overlay {
@@ -1700,9 +1688,9 @@ footer.report-footer {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.25s ease;
   z-index: 3;
 }
 
@@ -1711,17 +1699,17 @@ footer.report-footer {
 }
 
 .gallery-zoom-icon {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   color: #006C49;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transform: scale(0.9);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  transform: scale(0.85);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gallery-photo-card:hover .gallery-zoom-icon {
@@ -1730,9 +1718,9 @@ footer.report-footer {
 
 .gallery-zoom-label {
   color: #FFFFFF;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
 }
 
 /* Systems Summary Table (AutoScore Page 4 Style) */

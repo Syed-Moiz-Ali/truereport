@@ -163,24 +163,40 @@
       <span class="section-tag" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photosDocumented}"></span>
     </div>
 
-    <!-- Uniform 10-Photo Grid -->
+    <!-- Category Filter Tabs: All (32), Exterior (12), Interior (12), Mechanical (8) -->
+    <div class="gallery-filter-bar" role="tablist">
+      <button type="button" class="filter-chip active" data-gallery-filter="all">
+        <span th:text="${r.labels.showcaseAll}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.vehicleShowcase)}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-gallery-filter="exterior">
+        <span th:text="${r.labels.showcaseExterior}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseExterior)}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-gallery-filter="interior">
+        <span th:text="${r.labels.showcaseInterior}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseInterior)}"></span>
+      </button>
+      <button type="button" class="filter-chip" data-gallery-filter="mechanical">
+        <span th:text="${r.labels.showcaseMechanical}"></span>
+        <span class="chip-count" th:text="${#lists.size(r.showcaseMechanical)}"></span>
+      </button>
+    </div>
+
+    <!-- Uniform Clean Grid: No text on images, pure crisp visual showcase -->
     <div class="uniform-gallery-grid">
-      <div th:each="item, itemStat : ${r.vehicleShowcase}"
+      <div th:each="item : ${r.vehicleShowcase}"
            class="gallery-photo-card"
-           th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
+           th:attr="data-category=${item.category}, data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
            onclick="openLightbox(this)"
            tabindex="0"
            role="button"
            th:title="${r.labels.tapToEnlarge}">
         <div class="gallery-photo-wrap">
           <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="gallery-photo-img" width="480" height="300">
-          <div class="gallery-photo-badge">
-            <span class="photo-index" th:text="${itemStat.count}"></span>
-            <span class="photo-title" th:text="${item.title}"></span>
-          </div>
           <div class="gallery-hover-overlay">
             <span class="gallery-zoom-icon" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
             </span>
             <span class="gallery-zoom-label" th:text="${r.labels.tapToEnlarge}"></span>
           </div>
