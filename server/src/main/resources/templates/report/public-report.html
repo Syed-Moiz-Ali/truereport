@@ -49,12 +49,12 @@
 <nav class="quick-nav-bar" th:attr="aria-label=${r.labels.overview}">
   <div class="container quick-nav-inner">
     <a href="#overview" class="nav-chip" th:text="${r.labels.overview}"></a>
-    <a href="#showcase" class="nav-chip" th:text="${r.labels.vehicleShowcase}"></a>
+    <a href="#photos" class="nav-chip" th:text="${r.labels.photos}"></a>
+    <a href="#systems" class="nav-chip" th:text="${r.labels.systemsSummary}"></a>
     <a href="#wireframe" class="nav-chip" th:text="${r.labels.exteriorDamageMap}"></a>
     <a href="#tyres" class="nav-chip" th:text="${r.labels.tyresAndBrakes}"></a>
-    <a href="#subsystems" class="nav-chip" th:text="${r.labels.subsystems}"></a>
+    <a href="#subsystems" class="nav-chip" th:text="${r.labels.visualDiagnosis}"></a>
     <a href="#findings" class="nav-chip" th:text="${r.labels.keyFindings}"></a>
-    <a href="#evidence" class="nav-chip" th:if="${!#lists.isEmpty(r.keyFindings)}" th:text="${r.labels.evidenceGallery}"></a>
     <a href="#checklist" class="nav-chip" th:text="${r.labels.findings}"></a>
     <a href="#verification" class="nav-chip" th:text="${r.labels.verification}"></a>
   </div>
@@ -62,7 +62,7 @@
 
 <main id="main" class="container">
 
-  <!-- Section 1: Hero Overview & Overall Scorecard -->
+  <!-- Section 1: Hero Overview & Executive Decision -->
   <section id="overview" class="hero-section" aria-labelledby="hero-title">
     <div class="hero-grid">
       <!-- Left: Vehicle Identity Card -->
@@ -104,13 +104,17 @@
         </div>
       </div>
 
-      <!-- Right: Overall Condition Scorecard -->
+      <!-- Right: Overall Condition & Executive Decision Scorecard -->
       <div class="card hero-score-card">
         <div class="score-card-header">
-          <span class="score-badge-label" th:text="${r.labels.overallCondition}"></span>
+          <div class="decision-badge-wrap">
+            <span class="decision-title" th:text="${r.labels.finalDecision}"></span>
+            <span class="decision-status" th:text="${r.labels.approved}"></span>
+          </div>
           <span class="score-percentage-pill">
+            <span th:text="${r.labels.gradeLabel} + ': A ('"></span>
             <span th:text="${r.passRate}"></span>
-            <span aria-hidden="true">%</span>
+            <span aria-hidden="true">%)</span>
           </span>
         </div>
         <div class="score-metric-hero">
@@ -149,103 +153,64 @@
     </div>
   </section>
 
-  <!-- Section 2: Vehicle Showcase & Pure Masonry Photo Gallery -->
-  <section id="showcase" class="showcase-section" aria-labelledby="showcase-title">
+  <!-- Section 2: Official 10-Photo Inspection Gallery (Uniform Clean Grid) -->
+  <section id="photos" class="gallery-section" aria-labelledby="photos-title">
     <div class="section-header">
       <div>
-        <h2 id="showcase-title" th:text="${r.labels.vehicleShowcase}"></h2>
-        <p class="section-subtitle" th:text="${r.labels.vehicleShowcaseSubtitle}"></p>
+        <h2 id="photos-title" th:text="${r.labels.photos}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.gallerySubtitle}"></p>
       </div>
       <span class="section-tag" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photosDocumented}"></span>
     </div>
 
-    <!-- Category Filter Tabs -->
-    <div class="showcase-filter-bar" role="tablist">
-      <button type="button" class="filter-chip showcase-filter-chip active" data-cat="all">
-        <span th:text="${r.labels.showcaseAll}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.vehicleShowcase)}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="exterior">
-        <span th:text="${r.labels.showcaseExterior}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.showcaseExterior)}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="interior">
-        <span th:text="${r.labels.showcaseInterior}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.showcaseInterior)}"></span>
-      </button>
-      <button type="button" class="filter-chip showcase-filter-chip" data-cat="mechanical">
-        <span th:text="${r.labels.showcaseMechanical}"></span>
-        <span class="chip-count" th:text="${#lists.size(r.showcaseMechanical)}"></span>
-      </button>
-    </div>
-
-    <!-- Category Group 1: Exterior (Pure Masonry Image Grid) -->
-    <div class="showcase-category-group" data-cat="exterior">
-      <div class="showcase-cat-heading">
-        <h3 th:text="${r.labels.showcaseExterior}"></h3>
-        <span class="badge info" th:text="${#lists.size(r.showcaseExterior)} + ' ' + ${r.labels.photosDocumented}"></span>
-      </div>
-      <div class="masonry-gallery">
-        <div th:each="item : ${r.showcaseExterior}"
-             class="masonry-photo-item"
-             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
-             onclick="openLightbox(this)"
-             tabindex="0"
-             role="button"
-             th:title="${r.labels.tapToEnlarge}">
-          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
-          <div class="masonry-photo-overlay">
-            <span class="masonry-zoom-btn" aria-hidden="true">
+    <!-- Uniform 10-Photo Grid -->
+    <div class="uniform-gallery-grid">
+      <div th:each="item, itemStat : ${r.vehicleShowcase}"
+           class="gallery-photo-card"
+           th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
+           onclick="openLightbox(this)"
+           tabindex="0"
+           role="button"
+           th:title="${r.labels.tapToEnlarge}">
+        <div class="gallery-photo-wrap">
+          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="gallery-photo-img" width="480" height="300">
+          <div class="gallery-photo-badge">
+            <span class="photo-index" th:text="${itemStat.count}"></span>
+            <span class="photo-title" th:text="${item.title}"></span>
+          </div>
+          <div class="gallery-hover-overlay">
+            <span class="gallery-zoom-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
             </span>
+            <span class="gallery-zoom-label" th:text="${r.labels.tapToEnlarge}"></span>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Category Group 2: Interior (Pure Masonry Image Grid) -->
-    <div class="showcase-category-group" data-cat="interior">
-      <div class="showcase-cat-heading">
-        <h3 th:text="${r.labels.showcaseInterior}"></h3>
-        <span class="badge info" th:text="${#lists.size(r.showcaseInterior)} + ' ' + ${r.labels.photosDocumented}"></span>
+  <!-- Section 3: Vehicle Systems Evaluation (AutoScore Summary Table) -->
+  <section id="systems" class="systems-section" aria-labelledby="systems-title">
+    <div class="section-header">
+      <div>
+        <h2 id="systems-title" th:text="${r.labels.systemsSummary}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.systemsSummarySubtitle}"></p>
       </div>
-      <div class="masonry-gallery">
-        <div th:each="item : ${r.showcaseInterior}"
-             class="masonry-photo-item"
-             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
-             onclick="openLightbox(this)"
-             tabindex="0"
-             role="button"
-             th:title="${r.labels.tapToEnlarge}">
-          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
-          <div class="masonry-photo-overlay">
-            <span class="masonry-zoom-btn" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-            </span>
-          </div>
-        </div>
-      </div>
+      <span class="section-tag" th:text="${#lists.size(r.inspectionSystems)} + ' ' + ${r.labels.subsystems}"></span>
     </div>
 
-    <!-- Category Group 3: Mechanical (Pure Masonry Image Grid) -->
-    <div class="showcase-category-group" data-cat="mechanical">
-      <div class="showcase-cat-heading">
-        <h3 th:text="${r.labels.showcaseMechanical}"></h3>
-        <span class="badge info" th:text="${#lists.size(r.showcaseMechanical)} + ' ' + ${r.labels.photosDocumented}"></span>
-      </div>
-      <div class="masonry-gallery">
-        <div th:each="item : ${r.showcaseMechanical}"
-             class="masonry-photo-item"
-             th:attr="data-img=${item.imageUrl}, data-caption=${item.title} + ' - ' + ${item.details}, data-note=${item.inspectNote}"
-             onclick="openLightbox(this)"
-             tabindex="0"
-             role="button"
-             th:title="${r.labels.tapToEnlarge}">
-          <img loading="lazy" th:src="${item.imageUrl}" th:alt="${item.title}" class="masonry-photo-img">
-          <div class="masonry-photo-overlay">
-            <span class="masonry-zoom-btn" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-            </span>
+    <div class="card systems-table-card">
+      <div class="systems-grid">
+        <div th:each="sys : ${r.inspectionSystems}" class="system-item-box" th:classappend="${sys.status == 'ATTENTION' ? 'system-attention' : 'system-passed'}">
+          <div class="system-item-head">
+            <span class="system-icon" aria-hidden="true" th:text="${sys.icon}"></span>
+            <div class="system-info">
+              <h3 class="system-title" th:text="${sys.name}"></h3>
+              <span class="system-checks" th:text="${sys.total} + ' ' + ${r.labels.checksCount}"></span>
+            </div>
+          </div>
+          <div class="system-status-col">
+            <span class="badge" th:classappend="${sys.status == 'ATTENTION' ? 'warning' : 'success'}" th:text="${sys.statusLabel}"></span>
           </div>
         </div>
       </div>

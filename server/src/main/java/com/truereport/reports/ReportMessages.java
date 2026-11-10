@@ -41,7 +41,11 @@ public final class ReportMessages {
             "vehicleShowcase", "vehicleShowcaseSubtitle", "showcaseAll", "showcaseExterior",
             "showcaseInterior", "showcaseMechanical", "photosDocumented", "marketplaceReady",
             "verifiedCapture", "resaleAdviceTitle", "resaleAdviceBody", "viewFullPhoto",
-            "originalCondition", "exteriorBadge", "interiorBadge", "mechanicalBadge");
+            "originalCondition", "exteriorBadge", "interiorBadge", "mechanicalBadge",
+            "systemsSummary", "systemsSummarySubtitle", "systemName", "checksCount",
+            "status", "goodCondition", "exteriorSystem", "chassisSystem", "powertrainSystem",
+            "suspensionSystem", "electricalSystem", "acSystem", "brakingSystem", "roadTestSystem",
+            "finalDecision", "approved", "gradeLabel", "gallerySubtitle");
 
     private ReportMessages() {
     }

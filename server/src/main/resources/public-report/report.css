@@ -1568,128 +1568,260 @@ footer.report-footer {
   line-height: 1.55;
 }
 
-/* Vehicle Showcase & Pure Masonry Photo Gallery */
-.showcase-section {
+/* Executive Decision Styling */
+.decision-badge-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.decision-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-variant);
+}
+
+.decision-status {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #006C49;
+  letter-spacing: -0.01em;
+}
+
+/* Official 10-Photo Inspection Gallery (Clean, Non-Scrambled Uniform Grid) */
+.gallery-section {
   margin-top: 36px;
   margin-bottom: 48px;
 }
 
-.showcase-filter-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 28px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
+.uniform-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: 12px;
 }
 
-.showcase-filter-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.showcase-category-group {
-  margin-bottom: 40px;
-}
-
-.showcase-cat-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--surface-container);
-  margin-bottom: 18px;
-}
-
-.showcase-cat-heading h3 {
-  margin: 0;
-  font-size: 1.22rem;
-  font-weight: 800;
-  color: var(--on-surface);
-}
-
-/* Pure Photo Masonry Gallery (Zero text, pure image grid) */
-.masonry-gallery {
-  column-count: 3;
-  column-gap: 16px;
-}
-
-@media (max-width: 960px) {
-  .masonry-gallery {
-    column-count: 2;
-    column-gap: 12px;
+@media (max-width: 1080px) {
+  .uniform-gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
 }
 
-@media (max-width: 560px) {
-  .masonry-gallery {
-    column-count: 1;
-    column-gap: 0;
+@media (max-width: 680px) {
+  .uniform-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 
-.masonry-photo-item {
-  position: relative;
-  break-inside: avoid;
-  margin-bottom: 16px;
-  border-radius: 14px;
+.gallery-photo-card {
+  border-radius: 12px;
   overflow: hidden;
-  background: #0D1117;
+  background: var(--surface-card);
+  border: 1px solid var(--outline);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.masonry-photo-item:hover {
-  transform: translateY(-4px) scale(1.015);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+.gallery-photo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
   border-color: #10B981;
 }
 
-.masonry-photo-img {
+.gallery-photo-wrap {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
+  aspect-ratio: 16 / 10;
+  background: #0B0F19;
+  overflow: hidden;
+}
+
+.gallery-photo-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  display: block;
+  transition: transform 0.35s ease;
 }
 
-.masonry-photo-item:hover .masonry-photo-img {
-  transform: scale(1.05);
+.gallery-photo-card:hover .gallery-photo-img {
+  transform: scale(1.06);
 }
 
-.masonry-photo-overlay {
+.gallery-photo-badge {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.22);
+  top: 8px;
+  inset-inline-start: 8px;
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  pointer-events: none;
+  gap: 5px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-.masonry-photo-item:hover .masonry-photo-overlay {
+.photo-index {
+  background: #10B981;
+  color: #FFFFFF;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.photo-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.gallery-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+}
+
+.gallery-photo-card:hover .gallery-hover-overlay {
   opacity: 1;
 }
 
-.masonry-zoom-btn {
-  width: 44px;
-  height: 44px;
+.gallery-zoom-icon {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   color: #006C49;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  transform: scale(0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: scale(0.9);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.masonry-photo-item:hover .masonry-zoom-btn {
+.gallery-photo-card:hover .gallery-zoom-icon {
   transform: scale(1);
+}
+
+.gallery-zoom-label {
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Systems Summary Table (AutoScore Page 4 Style) */
+.systems-section {
+  margin-top: 36px;
+  margin-bottom: 48px;
+}
+
+.systems-table-card {
+  padding: 12px !important;
+  background: var(--surface-card);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-lg);
+}
+
+.systems-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 960px) {
+  .systems-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .systems-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.system-item-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--surface-container);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.system-item-box.system-passed {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.system-item-box.system-passed:hover {
+  background: #E8F8F2;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.system-item-box.system-attention {
+  background: #FFF9E6;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.system-item-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.system-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.system-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.system-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.system-checks {
+  font-size: 0.78rem;
+  color: var(--on-variant);
+}
+
+.system-status-col .badge {
+  font-size: 0.78rem;
+  padding: 4px 10px;
 }
 
 /* Print Optimization (Matches Inspection.pdf Quality) */

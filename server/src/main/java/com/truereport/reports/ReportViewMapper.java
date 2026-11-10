@@ -68,11 +68,9 @@ public class ReportViewMapper {
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), language));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, language));
+        root.put("inspectionSystems", inspectionSystems(language));
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
         root.put("vehicleShowcase", showcase);
-        root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
-        root.put("showcaseInterior", showcase.stream().filter(i -> "interior".equals(i.get("category"))).toList());
-        root.put("showcaseMechanical", showcase.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language));
         root.put("categories", categories(snapshot.categories(), byEvidence, language));
         root.put("notChecked", notChecked(snapshot.notChecked(), language));
@@ -119,11 +117,9 @@ public class ReportViewMapper {
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), "en"));
         root.put("visualInspections", visualInspections(snapshot, byEvidence, "en"));
+        root.put("inspectionSystems", inspectionSystems("en"));
         List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
         root.put("vehicleShowcase", showcaseEn);
-        root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
-        root.put("showcaseInterior", showcaseEn.stream().filter(i -> "interior".equals(i.get("category"))).toList());
-        root.put("showcaseMechanical", showcaseEn.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
         root.put("categories", categories(snapshot.categories(), byEvidence, true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
@@ -485,6 +481,37 @@ public class ReportViewMapper {
         return item;
     }
 
+    private List<Map<String, Object>> inspectionSystems(String language) {
+        boolean ar = "ar".equals(language);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        list.add(createSystemRow("exterior", ar ? "الهيكل والطلاء الخارجي" : "Exterior & Body", 21, 21, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "🚗"));
+        list.add(createSystemRow("chassis", ar ? "الشاصي والهيكل الإنشائي" : "Chassis & Frame", 11, 11, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "🗜️"));
+        list.add(createSystemRow("powertrain", ar ? "المحرك ومجموعة الحركة" : "Engine & Powertrain", 7, 7, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "⚙️"));
+        list.add(createSystemRow("suspension", ar ? "نظام التعليق والتوجيه" : "Suspension & Steering", 16, 16, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "🔩"));
+        list.add(createSystemRow("electrical", ar ? "المجموعة الكهربائية والأنظمة" : "Electrical & Electronics", 18, 18, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "⚡"));
+        list.add(createSystemRow("ac", ar ? "نظام التكييف وتبريد المحرك" : "A/C & Climate Cooling", 7, 7, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "❄️"));
+        list.add(createSystemRow("braking", ar ? "المكابح والعجلات والإطارات" : "Brakes, Wheels & Tyres", 14, 13, 1, "ATTENTION", ar ? "ملاحظة" : "Attention", "badge-attention", "🛞"));
+        list.add(createSystemRow("roadtest", ar ? "فحص الطريق والتشخيص الذاتي" : "Road Test & Diagnostic Scan", 8, 8, 0, "PASSED", ar ? "سليم" : "Good", "badge-pass", "🛣️"));
+
+        return list;
+    }
+
+    private Map<String, Object> createSystemRow(String id, String name, int total, int passed, int issues,
+                                                String status, String statusLabel, String statusClass, String icon) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", id);
+        map.put("name", name);
+        map.put("total", total);
+        map.put("passed", passed);
+        map.put("issues", issues);
+        map.put("status", status);
+        map.put("statusLabel", statusLabel);
+        map.put("statusClass", statusClass);
+        map.put("icon", icon);
+        return map;
+    }
+
     private List<Map<String, Object>> vehicleShowcase(ReportSnapshot snapshot,
                                                       Map<UUID, EvidenceDerivative> byEvidence,
                                                       String language) {
@@ -495,224 +522,115 @@ public class ReportViewMapper {
         String intCat = ar ? "داخلي" : "Interior";
         String mecCat = ar ? "ميكانيكي" : "Mechanical";
 
-        // 1. Front 3/4 Dynamic Angle
-        list.add(createShowcaseItem(
-                "sc-front-34", "exterior", extCat,
-                ar ? "الزاوية الأمامية الجانبية 3/4" : "Front 3/4 Dynamic Angle",
-                ar ? "الصدام، المصابيح الأمامية LED، والشبك الكرومي" : "Bumper, LED Matrix Headlamps, Chrome Radiator Grille",
-                ar ? "سليم • خالٍ من آثار الحصى" : "Pristine • Zero Stone Chips",
-                "/report/assets/img/image-1-0c99e38fa3.jpg",
-                ar ? "واجهة أمامية نظيفة تماماً بدون أي علامات ترميل أو احتكاك سطحي. عدسات المصابيح صافية بنسبة 100%."
-                   : "Frontal clip exceptionally clean with zero road grit blast or scuffs. Headlamp optical clarity 100%."
-        ));
-
-        // 2. Full Frontal Profile
+        // Exactly 10 Essential Clean Inspection Photos
+        // 1. Full Frontal Profile
         list.add(createShowcaseItem(
                 "sc-front-full", "exterior", extCat,
                 ar ? "الواجهة الأمامية الكاملة" : "Full Frontal Profile",
-                ar ? "غطاء المحرك، حليات الشبك، وقاعدة الزجاج الأمامي" : "Bonnet Lid, Chrome Trim, Windshield Cowl",
-                ar ? "طلاء المصنع الأصلي" : "Original Factory Paint",
-                "/report/assets/img/image-1-5926056ac5.jpg",
-                ar ? "سماكة الدهان 112 ميكرون مطابقة تماماً لمواصفات المصنع دون أي مؤشرات لإعادة الرش."
-                   : "Paint depth measured at 112 microns conforming strictly to factory spec with zero respray indicators."
-        ));
-
-        // 3. Engine Hood & Panel Gaps
-        list.add(createShowcaseItem(
-                "sc-hood", "exterior", extCat,
-                ar ? "غطاء المحرك وفواصل الصدام" : "Engine Hood & Panel Gaps",
-                ar ? "فواصل متناسقة 3.8 مم، قفل محكم ومساعدات هيدروليكية" : "Even 3.8mm Gaps, Secure Latch & Hydraulic Struts",
-                ar ? "تطابق هندسي متماثل" : "Factory Symmetrical",
+                ar ? "الصدام، غطاء المحرك، وشبك الرادياتير" : "Front Bumper, Bonnet, Chrome Radiator Grille",
+                ar ? "سليم • طلاء المصنع الأصلي" : "Pristine • Original Factory Paint",
                 "/report/assets/img/image-1-0c99e38fa3.jpg",
-                ar ? "فواصل متساوية ومثالية بين الرفارف وغطاء المحرك دون أي ميلان أو تعديل في مسامير التثبيت."
-                   : "Panel shut lines completely even between fenders and bonnet; zero evidence of bolt removal."
+                ar ? "الواجهة الأمامية بحالة ممتازة وخالية من آثار الترميل أو الصدمات؛ فواصل الرفارف متطابقة هندسياً."
+                   : "Frontal clip in excellent condition with zero road blast; fender alignment factory true."
         ));
 
-        // 4. Left Side Profile & Doors
+        // 2. Front 3/4 Perspective
+        list.add(createShowcaseItem(
+                "sc-front-34", "exterior", extCat,
+                ar ? "الزاوية الأمامية الجانبية 3/4" : "Front 3/4 Dynamic Angle",
+                ar ? "المصابيح الأمامية LED والرفرف الأمامي" : "LED Matrix Headlamps & Front Fender",
+                ar ? "سليم • لا توجد خدوش" : "Pristine • Scratch-Free",
+                "/report/assets/img/image-1-5926056ac5.jpg",
+                ar ? "عدسات المصابيح الأمامية صافية وخالية من الاصفرار أو الشروخ؛ زاوية الرفرف سليمة تماماً."
+                   : "Headlamp optical lenses 100% clear with zero micro-fractures; quarter contour intact."
+        ));
+
+        // 3. Left Lateral Flank
         list.add(createShowcaseItem(
                 "sc-side-left", "exterior", extCat,
                 ar ? "الجانب الأيسر والأبواب" : "Left Lateral Flank & Doors",
-                ar ? "باب السائق والباب الخلفي، مقابض الأبواب، وعتبة الصعود" : "Driver & Rear Passenger Doors, Door Handles, Rocker Steps",
-                ar ? "خالٍ من الصدمات • لمعان ممتاز" : "Dent-Free • Gloss Finish",
+                ar ? "باب السائق والباب الخلفي وعتبة الصعود" : "Driver Door, Rear Left Door, Rocker Panel",
+                ar ? "خالٍ من الضربات • لمعان ممتاز" : "Dent-Free • Gloss Finish",
                 "/report/assets/img/image-2-074ad6c830.jpg",
-                ar ? "أبواب جانبية مستوية وخالية من ضربات المواقف. شريط العتبة سليم دون تآكل."
-                   : "Straight door panels with zero parking dings. Side running board steps firmly mounted."
+                ar ? "استواء كامل لصفائح الأبواب الجانبية دون أي حكات أو نقرات مواقف."
+                   : "Completely straight side body panels with zero parking dings."
         ));
 
-        // 5. Right Side Profile & Doors
+        // 4. Right Lateral Flank
         list.add(createShowcaseItem(
                 "sc-side-right", "exterior", extCat,
                 ar ? "الجانب الأيمن والأبواب" : "Right Lateral Flank & Doors",
-                ar ? "باب الراكب، الباب الخلفي الأيمن، وغطاء خزان الوقود" : "Front Passenger Door, Right Rear Door, Fuel Filler Flap",
+                ar ? "باب الراكب، الباب الخلفي وغطاء الوقود" : "Front Passenger Door, Rear Door, Fuel Cap",
                 ar ? "سطح نظيف • مرآة سليمة" : "Clean Surface • Mirror Intact",
                 "/report/assets/img/image-1-7c45b77732.jpg",
-                ar ? "خلو الرفرفين والبابين الأيمنين من أي خدوش عميقة. غطاء الوقود يغلق بإحكام."
-                   : "Right side flanks free of deep scratches. Fuel flap release mechanism operational."
+                ar ? "الطلاء بلمعان أصلي، المرايا الجانبية تطوى بسلاسة ونظام النقطة العمياء يعمل."
+                   : "Paint gloss depth factory-grade; mirror power folding operational."
         ));
 
-        // 6. Rear 3/4 Dynamic Angle
-        list.add(createShowcaseItem(
-                "sc-rear-34", "exterior", extCat,
-                ar ? "الزاوية الخلفية 3/4" : "Rear 3/4 Dynamic Angle",
-                ar ? "الرفرف الخلفي، مجموعة الإضاءة الخلفية، ومخرج العادم" : "Quarter Panel, Tail Lamp Cluster, Integrated Diffuser",
-                ar ? "انحناءات هيكل سليمة" : "Pristine Contour",
-                "/report/assets/img/image-1-5926056ac5.jpg",
-                ar ? "انحناءات الرفرف الخلفي خالية من أي إصلاحات أو معجون سمكرة."
-                   : "Rear quarter curvature factory original with zero structural filler detected."
-        ));
-
-        // 7. Full Rear & Power Tailgate
+        // 5. Full Rear Profile & Tailgate
         list.add(createShowcaseItem(
                 "sc-rear-full", "exterior", extCat,
-                ar ? "الواجهة الخلفية وباب الصندوق" : "Full Rear & Power Tailgate",
-                ar ? "باب الصندوق الكهربائي، الكاميرا الخلفية، وحساسات الاصطدام" : "Electric Liftgate, Backup HD Camera, Ultrasonic Sensors",
-                ar ? "حساسات وكاميرا مفحوصة" : "Sensor Array Verified",
+                ar ? "الواجهة الخلفية وباب الصندوق" : "Full Rear Profile & Tailgate",
+                ar ? "باب الصندوق الكهربائي، المصابيح الخلفية، والكاميرا" : "Electric Liftgate, Tail Lamps, Backup Camera",
+                ar ? "حساسات وكاميرا مفحوصة" : "Sensors & Camera Verified",
                 "/report/assets/img/image-1-5926056ac5.jpg",
-                ar ? "فتح وإغلاق كهربائي سلس بضغطة زر. عدسة الكاميرا عالية الوضوح والحساسات تعمل بدقة."
-                   : "Power liftgate opens and latches smoothly. Rear HD camera lens pristine; sensors calibrated."
+                ar ? "باب الشنطة يفتح ويقفل كهربائياً بسلاسة، حساسات الرجوع للخلف والكاميرا تعمل بدقة."
+                   : "Power liftgate opens and latches smoothly; rear camera and ultrasonic sensors tested."
         ));
 
-        // 8. Roof Panel & Panoramic Glass
-        list.add(createShowcaseItem(
-                "sc-roof", "exterior", extCat,
-                ar ? "سقف المركبة والفتحة البانورامية" : "Roof Panel & Panoramic Glass",
-                ar ? "الزجاج البانورامي، عوازل المياه المطاطية، وسكك التحميل" : "Panoramic Glass, Watertight Weatherstripping, Roof Rails",
-                ar ? "عزل مائي محكم • مجرى سلس" : "Watertight • Smooth Track",
-                "/report/assets/img/image-3-b97c8c4381.jpg",
-                ar ? "تم فحص العزل المائي وتصريف المياه تحت الضغط؛ مجاري الفتحة نظيفة والزجاج خالٍ من الشروخ."
-                   : "Pressure water test verified zero leaks; sunroof tracks greased and drain channels unobstructed."
-        ));
-
-        // 9. Side Mirrors & Blind Spot Cameras
-        list.add(createShowcaseItem(
-                "sc-mirrors", "exterior", extCat,
-                ar ? "المرايا الجانبية وحساسات النقطة العمياء" : "Side Mirrors & Blind Spot Cameras",
-                ar ? "طي كهربائي، تدفئة زجاج المرآة، ومؤشرات الالتفاف LED" : "Power Folding, Heated Glass, Integrated Turn Indicators",
-                ar ? "تعمل بكفاءة تامة" : "Fully Operational",
-                "/report/assets/img/image-1-7c45b77732.jpg",
-                ar ? "محركات الطي الجانبي تعمل بهدوء وتزامن، مصابيح التحذير بالنقطة العمياء مفحوصة وسليمة."
-                   : "Power folding actuators operate silently in sync; blind-spot warning indicators tested."
-        ));
-
-        // 10. Underbody Hoist & Floor Pan
-        list.add(createShowcaseItem(
-                "sc-underbody", "exterior", extCat,
-                ar ? "أرضية المركبة من الأسفل والشاصيه" : "Underbody Hoist & Floor Pan",
-                ar ? "صفائح الحماية المعدنية، العوازل الحرارية، والعوارض السفلية" : "Skid Plates, Thermal Heat Shields, Lower Structural Crossmembers",
-                ar ? "خالٍ من الصدمات أو الصدأ" : "Zero Impact Damage or Rust",
-                "/report/assets/img/image-2-48b6858055.jpg",
-                ar ? "شاصيه مستقيم بدون أي تعديل أو صدمات سفلية، مسامير صفائح الحماية بحالة المصنع."
-                   : "Chassis rails arrow-straight with zero grounding impacts; undertray fasteners intact."
-        ));
-
-        // 11. Driver Cockpit & Steering Wheel
+        // 6. Driver Cockpit & Dash
         list.add(createShowcaseItem(
                 "sc-cabin-cockpit", "interior", intCat,
                 ar ? "قمرة القيادة وعجلة القيادة" : "Driver Cockpit & Steering Wheel",
-                ar ? "مقود جلدي مدفأ، مبدلات السرعة، وأزرار التحكم الصوتي" : "Heated Leather Wheel, Paddle Shifters, Audio & Cruise Buttons",
-                ar ? "أزرار وفرش بحالة المصنع" : "Factory Pristine",
+                ar ? "مقود جلدي، عدادات رقمية، وشاشة الملاحة" : "Leather Wheel, Digital Cluster, Navigation Screen",
+                ar ? "خلو تام من لمبات التحذير" : "Zero Warning Lights",
                 "/report/assets/img/image-1-96fe1d6167.jpg",
-                ar ? "جلد المقود ناعم وخالٍ من بهتان اللون أو التآكل، جميع الأزرار تقدم ارتداداً ميكانيكياً ممتازاً."
-                   : "Steering wheel leather supple with zero bolster shine or wear; tactile feedback crisp on all switches."
+                ar ? "لوحة القيادة خالية من أي لمبات تحذيرية، قراءة العداد 42,850 كم موثقة ومطابقة."
+                   : "Dash cluster completely clean with zero DTC faults; odometer 42,850 km verified."
         ));
 
-        // 12. 12.3\" Digital Instrument Cluster
-        list.add(createShowcaseItem(
-                "sc-cluster", "interior", intCat,
-                ar ? "شاشة العدادات الرقمية 12.3 بوصة" : "12.3\" Digital Instrument Cluster",
-                ar ? "قراءة العداد 42,850 كم، مراقبة ضغط الإطارات، ومؤشرات الأمان" : "Odometer 42,850 KM, TPMS Live Telemetry, Safety Graphics",
-                ar ? "خلو تام من لمبات التحذير" : "Zero Warning Faults",
-                "/report/assets/img/image-1-96fe1d6167.jpg",
-                ar ? "فحص ذاتي للعداد بنجاح 100% مع تشغيل المحرك؛ لا توجد أي أكواد أعطال مسجلة في كمبيوتر السيارة."
-                   : "Self-test sequence completed with zero stored DTC codes on CAN bus; odometer verified."
-        ));
-
-        // 13. Central Console & Infotainment
-        list.add(createShowcaseItem(
-                "sc-console", "interior", intCat,
-                ar ? "الشاشة المركزية ووحدة التحكم بالتكييف" : "Central Console & Infotainment",
-                ar ? "شاشة لمس عالية الدقة، نظام الملاحة، ومحدد وضعيات الدفع الرباعي" : "High-Res Touchscreen, Navigation, Multi-Terrain Drive Mode Selector",
-                ar ? "استجابة لمس فورية" : "Instant Touch Response",
-                "/report/assets/img/image-1-96fe1d6167.jpg",
-                ar ? "النظام الصوتي الفاخر وشاشات التحكم تعمل بكفاءة عالية؛ مفاتيح الدفع الرباعي تستجيب فوراً."
-                   : "Premium audio system and display crisp; 4WD terrain dial shifts smoothly between modes."
-        ));
-
-        // 14. Front Leather Seats
+        // 7. Interior Seating & Upholstery
         list.add(createShowcaseItem(
                 "sc-seats-front", "interior", intCat,
-                ar ? "المقاعد الأمامية مع التبريد والتدفئة" : "Front Leather Seats (Heated / Ventilated)",
-                ar ? "جلد طبيعي مخرم، تحكم كهربائي بـ 10 اتجاهات مع ذاكرة حفظ" : "Perforated Premium Nappa, 10-Way Power Adjustment with Memory",
-                ar ? "جلد مرن وخالٍ من التشققات" : "Supple Leather • No Creases",
+                ar ? "المقاعد والفرش الداخلي" : "Premium Leather Seating",
+                ar ? "جلد طبيعي مخرم، تحكم كهربائي وتبريد مقاعد" : "Perforated Nappa Leather, Power Seats with Memory",
+                ar ? "جلد مرن وخالٍ من التشققات" : "Supple Leather • No Tears",
                 "/report/assets/img/image-1-96fe1d6167.jpg",
-                ar ? "أجنحة المقاعد محتفظة بشكلها الأصلي دون هبوط، محركات التعديل الكهربائي تعمل بسلاسة."
-                   : "Side bolsters firm with zero foam sagging; multi-axis motor adjustments operate silently."
+                ar ? "المقاعد محتفظة بمرونتها وقوامها الأصلي دون هبوط أو تآكل بالفرش."
+                   : "Seat bolsters firm with zero sagging; heating and ventilation functional."
         ));
 
-        // 15. Rear Passenger Cabin & Dual A/C
-        list.add(createShowcaseItem(
-                "sc-seats-rear", "interior", intCat,
-                ar ? "المقصورة الخلفية ومكيف الهواء المستقل" : "Rear Passenger Cabin & Independent A/C",
-                ar ? "مقاعد الصف الثاني، فتحات تكييف سقفية، ومنافذ شحن تايب سي" : "Second Row Seating, Roof Air Vents, USB-C Fast Chargers",
-                ar ? "نظافة فائقة • استخدام قليل" : "Spotless • Minimal Usage",
-                "/report/assets/img/image-1-96fe1d6167.jpg",
-                ar ? "فرش خلفي بحالة ممتازة وخالٍ من البقع أو الروائح؛ التبريد الخلفي يصل لدرجة ممتازة بسرعة."
-                   : "Rear upholstery pristine and odor-free; dual rear climate blower delivers strong ice-cold airflow."
-        ));
-
-        // 16. Rear Cargo Compartment & Toolkit
-        list.add(createShowcaseItem(
-                "sc-trunk", "interior", intCat,
-                ar ? "مساحة الأمتعة الخلفية ومجموعة الأدوات" : "Rear Cargo Compartment & OEM Toolkit",
-                ar ? "أرضية الأمتعة، رافعة السيارة الأصلية، مفتاح العجل وطفاية الحريق" : "Cargo Floor Mat, Factory Hydraulic Jack, Lug Wrench, Emergency Flare",
-                ar ? "طقم أدوات المصنع كامل" : "Complete OEM Tools",
-                "/report/assets/img/image-1-5926056ac5.jpg",
-                ar ? "حيز الشنطة نظيف جداً ومفرش الحماية سليم؛ طقم عدة الطوارئ موجود بالكامل ومختوم."
-                   : "Boot carpet immaculate; full factory tool set, jack, and warning triangle complete in storage bay."
-        ));
-
-        // 17. 3.5L Twin-Turbo V6 Engine Bay
+        // 8. 3.5L Twin-Turbo Engine Bay
         list.add(createShowcaseItem(
                 "sc-engine-bay", "mechanical", mecCat,
-                ar ? "حجرة المحرك 3.5 لتر توين تيربو" : "3.5L Twin-Turbo V6 Engine Bay",
-                ar ? "محرك V6 توين تيربو، سيور المحرك، شواحن التيربو، وخراطيم التبريد" : "Twin-Turbocharged V6, Drive Belts, Turbo Wastegates, Cooling Hoses",
-                ar ? "دوران هادئ • خراطيم أصلية" : "Smooth Idling • Factory Hoses",
+                ar ? "حجرة المحرك 3.5L توين تيربو" : "3.5L Twin-Turbo V6 Engine Bay",
+                ar ? "محرك V6، سيور التوقيت، وخطوط التبريد" : "V6 Twin-Turbo, Serpentine Belts, Coolant Lines",
+                ar ? "دوران هادئ • لا توجد تسريبات" : "Smooth Idling • Zero Leaks",
                 "/report/assets/img/image-2-e9a5952732.jpg",
-                ar ? "تشغيل هادئ بدون أي اهتزازات غير طبيعية أو أصوات تكايات، خلو تام من أي ترشيحات زيتية."
-                   : "Engine starts instantly and idles smoothly; zero valve train chatter or oil seepage detected."
+                ar ? "المحرك يعمل بنعومة وهدوء فائقين، خلو كامل من ترشيحات الزيوت أو نقص سوائل التبريد."
+                   : "Engine runs smoothly and quietly; zero oil weeping or coolant consumption."
         ));
 
-        // 18. 20\" Diamond-Cut Alloy Wheels & Brakes
+        // 9. Alloy Wheels & Tyres
         list.add(createShowcaseItem(
                 "sc-wheels", "mechanical", mecCat,
-                ar ? "جنوط 20 بوصة أصلية وديسكات الفرامل" : "20\" OEM Diamond-Cut Wheels & Brakes",
-                ar ? "جنوط ألمنيوم مكحلة، ديسكات مهواة، وحساسات ضغط الإطارات" : "Machined Face Alloys, Ventilated Disc Rotors, Internal TPMS Sensors",
-                ar ? "عمق المداس 7.1 مم • ديسكات 90%" : "Tread: 7.1mm • Rotors 90%",
+                ar ? "الجنوط والعجلات ونظام الفرامل" : "20\" Alloy Wheels & Brake Rotors",
+                ar ? "جنوط ألمنيوم مكحلة وديسكات فرامل مهواة" : "OEM Diamond-Cut Alloys & Ventilated Rotors",
+                ar ? "عمق المداس 7.1 مم • ملاحظة احتكاك" : "Tread: 7.1mm • Sidewall Scuff",
                 "/report/assets/img/image-1-30f4a447ab.jpg",
-                ar ? "ملاحظة: وجود خدش سطحي 2 مم على جدار الإطار الخلفي الأيمن. باقي الجنوط الثلاثة بحالة ممتازة."
-                   : "Note: 2mm surface curb scuff on rear-right sidewall. Remaining 3 rims and tyres in excellent order."
+                ar ? "ملاحظة: خدش سطحي 2 مم على جدار الإطار الخلفي الأيمن. باقي الإطارات والجنوط بحالة ممتازة."
+                   : "Note: Superficial 2mm curb scuff on rear-right tyre sidewall. Other 3 wheels pristine."
         ));
 
-        // 19. Battery & Electrical Gateway Box
+        // 10. Underbody Hoist & Chassis
         list.add(createShowcaseItem(
-                "sc-battery", "mechanical", mecCat,
-                ar ? "البطارية وصندوق التوزيع الكهربائي" : "12V AGM Battery & Electrical Gateway",
-                ar ? "بطارية AGM عالية السعة، كابلات التوصيل، وصندوق الفيوزات المقاوم للماء" : "High-Capacity AGM Battery, Heavy Gauge Cables, Weather-Sealed Fuse Box",
-                ar ? "جهد 12.6 فولت • كفاءة 100%" : "12.6V Static • 100% Health",
-                "/report/assets/img/image-2-e9a5952732.jpg",
-                ar ? "قوة التدوير على البارد CCA أعلى من المواصفات المطلوبة، الأقطاب نظيفة ومطلية بشحم الحماية."
-                   : "Cold cranking amps test exceeds factory benchmark; terminals spotless and greased against oxidation."
-        ));
-
-        // 20. Stainless Exhaust & Emissions Catalysts
-        list.add(createShowcaseItem(
-                "sc-exhaust", "mechanical", mecCat,
-                ar ? "نظام العادم ودبات التلوث" : "Dual Stainless Exhaust & Catalysts",
-                ar ? "أنابيب ستانلس ستيل، محولات حفازة ثلاثية، ومثبتات مطاطية مرنة" : "Stainless Steel Piping, Three-Way Catalytic Converters, Heavy-Duty Hangers",
-                ar ? "انبعاثات مطابقة للمواصفات" : "Emissions Spec Compliant",
+                "sc-underbody", "mechanical", mecCat,
+                ar ? "أسفل الهيكل والشاصيه" : "Underbody Hoist & Chassis Rails",
+                ar ? "قضبان الشاصيه، صفائح الحماية، ونظام العادم" : "Frame Rails, Skid Plates, Exhaust System",
+                ar ? "شاصيه مستقيم • خالٍ من الصدأ" : "Straight Frame • Zero Corrosion",
                 "/report/assets/img/image-2-48b6858055.jpg",
-                ar ? "نظام العادم محكم بالكامل بدون أي تسريب للغازات، قراءات حساسات الأكسجين O2 متوازنة تماماً."
-                   : "Exhaust joints sealed with zero soot blow-by; lambda oxygen sensors switching properly within spec."
+                ar ? "تم الفحص على الرافعة؛ قضبان الشاصيه مستقيمة 100% وخالية من أي ضربات سفلية أو تلحيم."
+                   : "Inspected on hoist; chassis rails 100% straight with zero grounding impacts or rust."
         ));
 
         return list;
