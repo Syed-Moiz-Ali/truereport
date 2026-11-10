@@ -166,7 +166,7 @@ button:focus-visible {
 }
 
 .container {
-  width: min(100% - 32px, 1140px);
+  width: min(100% - 48px, 1680px);
   margin-inline: auto;
 }
 
@@ -2415,6 +2415,429 @@ footer.report-footer {
 .action-dialog-btn:hover,
 .card-inspect-btn:hover {
   transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Full Width Key Findings Grid & Interactive Cards
+   ========================================================================== */
+.key-findings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 22px;
+}
+
+@media (max-width: 600px) {
+  .key-findings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.key-finding-interactive-card {
+  padding: 22px;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--outline);
+  border-inline-start: 5px solid #EF4444;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.key-finding-interactive-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.12);
+  border-color: #EF4444;
+}
+
+.key-finding-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.key-finding-title-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.key-finding-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+.key-finding-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--on-surface);
+  line-height: 1.5;
+  background: var(--surface-low);
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.key-finding-specs-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.key-finding-media-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--outline);
+}
+
+.key-finding-thumb-wrap {
+  position: relative;
+  width: 140px;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0F172A;
+  flex-shrink: 0;
+}
+
+.key-finding-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-indicator-badge {
+  position: absolute;
+  bottom: 6px;
+  inset-inline-start: 6px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #FFFFFF;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.key-finding-cta-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #006C49;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.key-finding-interactive-card:hover .hint-arrow {
+  transform: translateX(4px);
+}
+
+/* ==========================================================================
+   Category Header Right Badges (4 Services Good · 1 Service Needs Service)
+   ========================================================================== */
+.category-findings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.category-header-right-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.services-health-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #DCFCE7;
+  color: #065F46;
+  border: 1px solid #86EFAC;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+}
+
+/* ==========================================================================
+   Modern Tyres & Brakes Quad Grid (No Black Boxes!)
+   ========================================================================== */
+.tyres-cards-quad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .tyres-cards-quad-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .tyres-cards-quad-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tyre-modern-card {
+  padding: 22px;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--outline);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tyre-modern-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.wheel-has-defect {
+  border-color: #FECACA;
+  border-top: 4px solid #EF4444;
+  background: #FFFDFD;
+}
+
+.wheel-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wheel-corner-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wheel-icon-bubble {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.alert-bubble {
+  background: #FEE2E2;
+}
+
+.corner-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+.tread-gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gauge-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.gauge-caption {
+  color: var(--on-variant);
+  font-weight: 600;
+}
+
+.gauge-value-text {
+  font-weight: 800;
+  color: #047857;
+  font-size: 1rem;
+}
+
+.text-danger {
+  color: #B91C1C !important;
+}
+
+.gauge-track {
+  height: 9px;
+  border-radius: 9999px;
+  background: #E2E8F0;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  height: 100%;
+  border-radius: 9999px;
+}
+
+.gauge-fill-good {
+  background: linear-gradient(90deg, #34D399, #10B981);
+}
+
+.gauge-fill-defect {
+  background: linear-gradient(90deg, #F87171, #EF4444);
+}
+
+.wheel-metrics-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--outline);
+}
+
+.wheel-matrix-box {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.matrix-lbl {
+  font-size: 0.72rem;
+  color: var(--on-variant);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.matrix-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+.wheel-defect-alert-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #B91C1C;
+  font-weight: 600;
+  line-height: 1.4;
+  background: #FEF2F2;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #FECACA;
+}
+
+.defect-alert-dot {
+  color: #EF4444;
+}
+
+/* ==========================================================================
+   True CSS Masonry Grid for Photo Showroom
+   ========================================================================== */
+.gallery-masonry-container {
+  column-count: 4;
+  column-gap: 20px;
+  margin-top: 16px;
+}
+
+@media (max-width: 1280px) {
+  .gallery-masonry-container {
+    column-count: 3;
+    column-gap: 16px;
+  }
+}
+
+@media (max-width: 820px) {
+  .gallery-masonry-container {
+    column-count: 2;
+    column-gap: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-masonry-container {
+    column-count: 1;
+    column-gap: 10px;
+  }
+}
+
+.gallery-masonry-card {
+  break-inside: avoid;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: #0B0F19;
+  border: 1px solid var(--outline);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.gallery-masonry-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+  border-color: #10B981;
+}
+
+.gallery-masonry-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.gallery-masonry-card:hover .gallery-masonry-img {
+  transform: scale(1.04);
+}
+
+.gallery-masonry-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.gallery-masonry-card:hover .gallery-masonry-overlay {
+  opacity: 1;
+}
+
+.gallery-zoom-icon {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #006C49;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-masonry-caption {
+  color: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 /* Print Optimization */

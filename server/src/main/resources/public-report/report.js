@@ -170,7 +170,7 @@ function closeLightbox() {
 
 // Global click event delegation - guarantees clicks work on every element!
 document.addEventListener('click', function (e) {
-  var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn');
+  var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card');
   if (partTrigger) {
     e.preventDefault();
     openPartDialog(partTrigger);
@@ -191,8 +191,8 @@ document.addEventListener('click', function (e) {
     return;
   }
 
-  var photoBox = e.target.closest('[data-action="open-lightbox"], .part-photo-box, .gallery-photo-card');
-  if (photoBox && !photoBox.closest('#part-detail-dialog')) {
+  var photoBox = e.target.closest('[data-action="open-lightbox"], .part-photo-box, .gallery-masonry-card, .gallery-photo-card');
+  if (photoBox && !photoBox.closest('#part-detail-dialog') && !photoBox.closest('.key-finding-interactive-card')) {
     e.preventDefault();
     openLightbox(photoBox);
     return;
@@ -206,7 +206,7 @@ document.addEventListener('keydown', function (e) {
     closeLightbox();
   } else if (e.key === 'Enter' || e.key === ' ') {
     var active = document.activeElement;
-    if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn')) {
+    if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card')) {
       e.preventDefault();
       openPartDialog(active);
     }
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Showcase Category Filter (Tabs: All, Exterior, Interior, Mechanical)
   var galleryFilterButtons = document.querySelectorAll('[data-gallery-filter]');
-  var galleryCards = document.querySelectorAll('.gallery-photo-card');
+  var galleryCards = document.querySelectorAll('.gallery-masonry-card, .gallery-photo-card');
 
   galleryFilterButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {

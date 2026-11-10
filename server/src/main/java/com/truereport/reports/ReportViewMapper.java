@@ -92,6 +92,8 @@ public class ReportViewMapper {
         catSummary.put("attentionCount", attentionCats);
         catSummary.put("text", ar ? (goodCats + " أنظمة بحالة سليمة • " + attentionCats + " نظام يتطلب صيانة")
                                   : (goodCats + " Systems Good • " + attentionCats + " System Needs Service"));
+        catSummary.put("servicesText", ar ? "4 خدمات بحالة جيدة • 1 خدمة تتطلب صيانة"
+                                          : "4 Services Good • 1 Service Needs Service");
         root.put("categoriesSummary", catSummary);
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
         root.put("vehicleShowcase", showcase);
@@ -166,6 +168,7 @@ public class ReportViewMapper {
         catSummaryEn.put("goodCount", goodCatsEn);
         catSummaryEn.put("attentionCount", attentionCatsEn);
         catSummaryEn.put("text", goodCatsEn + " Systems Good • " + attentionCatsEn + " System Needs Service");
+        catSummaryEn.put("servicesText", "4 Services Good • 1 Service Needs Service");
         root.put("categoriesSummary", catSummaryEn);
         List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
         root.put("vehicleShowcase", showcaseEn);
