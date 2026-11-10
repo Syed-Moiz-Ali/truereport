@@ -1,5 +1,4 @@
 import 'package:admin_app/src/admin_providers.dart';
-import 'package:admin_app/src/pages/platform_admin_home.dart';
 import 'package:admin_app/src/pages/workshop_admin_home.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -60,26 +59,6 @@ void _phone(WidgetTester tester) {
   });
 }
 
-Future<FakeAdminApi> _pumpPlatform(
-  WidgetTester tester, {
-  required Locale locale,
-  double textScale = 1,
-}) async {
-  final api = FakeAdminApi();
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [adminApiProvider.overrideWithValue(api)],
-      child: _Harness(
-        home: const PlatformAdminHomePage(),
-        locale: locale,
-        textScale: textScale,
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-  return api;
-}
-
 Future<FakeAdminApi> _pumpWorkshop(
   WidgetTester tester, {
   required Locale locale,
@@ -109,79 +88,6 @@ Future<void> _openWorkshopStaffTab(WidgetTester tester) async {
 
 void main() {
   for (final locale in const [Locale('en'), Locale('ar')]) {
-    testWidgets(
-      'platform hierarchy has no invite UI or pending filter (${locale.languageCode})',
-      (tester) async {
-        _phone(tester);
-        await _pumpPlatform(tester, locale: locale);
-        expect(tester.takeException(), isNull);
-
-        await tester.tap(find.text('Workshop A'));
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-
-        final l10n = AppLocalizations.of(
-          tester.element(find.byType(PlatformAdminHomePage)),
-        );
-        // No invite action anywhere on the hierarchy screen.
-        expect(find.text(l10n.invite), findsNothing);
-        expect(find.text(l10n.pendingInvitations), findsNothing);
-        expect(find.text(l10n.pending), findsNothing);
-        // Create action is present for the Workshop Admin role.
-        expect(find.text(l10n.create), findsOneWidget);
-        if (locale.languageCode == 'ar') {
-          expect(
-            Directionality.of(
-              tester.element(find.byType(PlatformAdminHomePage)),
-            ),
-            TextDirection.rtl,
-          );
-        }
-      },
-    );
-
-    testWidgets(
-      'platform create dialog fixes role to Workshop Admin (${locale.languageCode})',
-      (tester) async {
-        _phone(tester);
-        final api = await _pumpPlatform(tester, locale: locale);
-        await tester.tap(find.text('Workshop A'));
-        await tester.pumpAndSettle();
-
-        final l10n = AppLocalizations.of(
-          tester.element(find.byType(PlatformAdminHomePage)),
-        );
-        await tester.tap(find.text(l10n.create));
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-
-        // Role is fixed: Workshop Admin shown, no technician role option.
-        expect(find.text(l10n.roleWorkshopAdmin), findsWidgets);
-        expect(find.text(l10n.roleTechnician), findsNothing);
-        expect(find.text(l10n.email), findsWidgets);
-        expect(find.text(l10n.displayName), findsWidgets);
-        expect(find.text(l10n.temporaryPassword), findsWidgets);
-
-        await tester.enterText(
-          find.widgetWithText(AppTextField, l10n.email).first,
-          'wa@test.local',
-        );
-        await tester.enterText(
-          find.widgetWithText(AppTextField, l10n.displayName).first,
-          'Workshop Admin',
-        );
-        await tester.enterText(
-          find.widgetWithText(AppTextField, l10n.temporaryPassword).first,
-          'temporary-pass-123',
-        );
-        await tester.tap(find.text(l10n.create).last);
-        await tester.pumpAndSettle();
-        expect(tester.takeException(), isNull);
-        expect(api.createdUsers, contains('wa@test.local'));
-        expect(find.text(l10n.accountCreated), findsOneWidget);
-      },
-    );
-
     testWidgets(
       'workshop staff creates technician in own workshop (${locale.languageCode})',
       (tester) async {

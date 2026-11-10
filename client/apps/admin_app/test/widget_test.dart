@@ -1,3 +1,4 @@
+import 'package:admin_app/src/pages/workshop_login_page.dart';
 import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
@@ -73,5 +74,65 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('مدير المنصة'), findsOneWidget);
+  });
+
+  testWidgets('Workshop Admin login renders desktop split view without overflow', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('WORKSHOP OPERATIONS'), findsWidgets);
+    expect(find.text('Live Bay Telemetry & Queue'), findsOneWidget);
+    expect(find.text('Adaptive SOP Builder'), findsOneWidget);
+    expect(find.text('Cryptographic Audit Clearance'), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
+    expect(find.byKey(const Key('btn-fill-demo')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Workshop Admin quick fill demo sets workshop credentials', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
+    );
+    await tester.pumpAndSettle();
+
+    final demoBtn = find.byKey(const Key('btn-fill-demo'));
+    await tester.ensureVisible(demoBtn);
+    await tester.tap(demoBtn);
+    await tester.pumpAndSettle();
+
+    final emailField = tester.widget<TextFormField>(find.byKey(const Key('sign-in-email')));
+    final passField = tester.widget<TextFormField>(find.byKey(const Key('sign-in-password')));
+
+    expect(emailField.controller?.text, 'wa@test.local');
+    expect(passField.controller?.text, 'pass123');
+  });
+
+  testWidgets('Workshop Admin login renders mobile view without overflow', (tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(
+      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

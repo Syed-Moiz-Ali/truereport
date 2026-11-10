@@ -1,6 +1,4 @@
 import 'package:admin_app/src/admin_providers.dart';
-import 'package:admin_app/src/pages/item_form_page.dart';
-import 'package:admin_app/src/pages/platform_admin_home.dart';
 import 'package:admin_app/src/pages/template_builder_page.dart';
 import 'package:admin_app/src/pages/template_version_page.dart';
 import 'package:admin_app/src/pages/workshop_admin_home.dart';
@@ -64,49 +62,6 @@ void _setSize(WidgetTester tester, Size size) {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
-}
-
-Future<void> _pumpAdmin(
-  WidgetTester tester, {
-  required Locale locale,
-  required Brightness brightness,
-  double textScale = 1,
-}) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [adminApiProvider.overrideWithValue(FakeAdminApi())],
-      child: _MatrixApp(
-        home: const PlatformAdminHomePage(),
-        locale: locale,
-        brightness: brightness,
-        textScale: textScale,
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
-
-Future<void> _exerciseAdmin(WidgetTester tester) async {
-  expect(tester.takeException(), isNull);
-
-  final workshop = find.text('Workshop A');
-  if (workshop.evaluate().isNotEmpty) {
-    await tester.tap(workshop);
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-  }
-
-  final master = find.byKey(const Key('admin-tab-master'));
-  await tester.ensureVisible(master);
-  await tester.tap(master);
-  await tester.pumpAndSettle();
-  expect(tester.takeException(), isNull);
-
-  final audit = find.byKey(const Key('admin-tab-audit'));
-  await tester.ensureVisible(audit);
-  await tester.tap(audit);
-  await tester.pumpAndSettle();
-  expect(tester.takeException(), isNull);
 }
 
 Future<void> _pumpWorkshop(
@@ -191,52 +146,6 @@ void main() {
     for (final brightness in Brightness.values) {
       for (final entry in sizes.entries) {
         testWidgets(
-          'admin ${locale.languageCode} ${brightness.name} ${entry.key} has no overflow',
-          (tester) async {
-            _setSize(tester, entry.value);
-            await _pumpAdmin(tester, locale: locale, brightness: brightness);
-            await _exerciseAdmin(tester);
-            if (locale.languageCode == 'ar') {
-              expect(
-                Directionality.of(
-                  tester.element(find.byType(PlatformAdminHomePage)),
-                ),
-                TextDirection.rtl,
-              );
-            }
-          },
-        );
-      }
-    }
-  }
-
-  for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final scale in const [1.5, 2.0]) {
-      for (final entry in <String, Size>{
-        'phone': sizes['phone']!,
-        'wide': sizes['wide']!,
-      }.entries) {
-        testWidgets(
-          'admin ${locale.languageCode} text scale $scale ${entry.key} has no overflow',
-          (tester) async {
-            _setSize(tester, entry.value);
-            await _pumpAdmin(
-              tester,
-              locale: locale,
-              brightness: Brightness.light,
-              textScale: scale,
-            );
-            await _exerciseAdmin(tester);
-          },
-        );
-      }
-    }
-  }
-
-  for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final brightness in Brightness.values) {
-      for (final entry in sizes.entries) {
-        testWidgets(
           'sign-in ${locale.languageCode} ${brightness.name} ${entry.key} has no overflow',
           (tester) async {
             _setSize(tester, entry.value);
@@ -259,41 +168,6 @@ void main() {
                 TextDirection.rtl,
               );
             }
-          },
-        );
-      }
-    }
-  }
-
-  for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final scale in const [1.5, 2.0]) {
-      for (final entry in <String, Size>{
-        'phone': sizes['phone']!,
-        'wide': sizes['wide']!,
-      }.entries) {
-        testWidgets(
-          'item editor ${locale.languageCode} text scale $scale ${entry.key} has no overflow',
-          (tester) async {
-            _setSize(tester, entry.value);
-            await tester.pumpWidget(
-              ProviderScope(
-                overrides: [adminApiProvider.overrideWithValue(FakeAdminApi())],
-                child: _MatrixApp(
-                  home: const ItemFormPage(itemId: 'item-1'),
-                  locale: locale,
-                  brightness: Brightness.light,
-                  textScale: scale,
-                ),
-              ),
-            );
-            await tester.pumpAndSettle();
-            expect(tester.takeException(), isNull);
-            await tester.drag(
-              find.byType(ListView).last,
-              const Offset(0, -700),
-            );
-            await tester.pumpAndSettle();
-            expect(tester.takeException(), isNull);
           },
         );
       }

@@ -14,6 +14,7 @@ class ApiEndpoints {
   String get authLogout => '$_root/auth/logout';
 
   String get hierarchy => '$_root/platform/hierarchy';
+  String get platformWorkshops => '$_root/platform/workshops';
   String workshopHierarchy(String workshopId) =>
       '$_root/platform/workshops/$workshopId/hierarchy';
   String get platformUsers => '$_root/platform/users';
