@@ -431,7 +431,15 @@ public class ReportViewMapper {
                 ar ? "سماكة الطلاء 122 ميكرون (معيار المصنع الأصلي). استقامة فواصل غطاء المحرك متساوية (3.5 مم). خلو كامل من تشققات الصادم أو ضربات الحصى."
                    : "Original OEM paint thickness verified at 122µm. Hood alignment seams uniform (3.5mm). Complete absence of bumper fractures or stone chipping.",
                 false,
-                null
+                null,
+                98,
+                "98/100",
+                ar ? "سماكة الطلاء: 122 ميكرون • فواصل الهيكل: 3.5 مم" : "Paint Thickness: 122µm • Panel Gap: 3.5mm",
+                ar ? "معيار المصنع الأصلي: 105 - 140 ميكرون" : "Factory OEM: 105–140µm • Tolerance ±1.0mm",
+                ar ? "جهاز قياس الطلاء: 122 ميكرون (طلاء المصنع الأصلي)" : "Elcometer Paint Gauge: 122µm (Original OEM Finish)",
+                ar ? "الهيكل الخارجي" : "Exterior Body",
+                "/report/assets/video/inspection-front.mp4",
+                ar ? "فيديو فحص حزمة الإضاءة Matrix LED ورادار التوقف" : "HD Video Proof: Matrix LED beam & radar sensor functional test"
         ));
 
         // 2. Rear & Tailgate
@@ -446,7 +454,15 @@ public class ReportViewMapper {
                 ar ? "مساعدات الرفع الكهربائية للباب الخلفي بكامل ضغطها. عدسة كاميرا الرجوع واضحة ومعايرة، وحساسات الاصطفاف تستجيب فوراً."
                    : "Electric tailgate lift struts at full hydraulic pressure. Reverse camera lens crystal clear and calibrated; rear parking sensors fully responsive.",
                 false,
-                null
+                null,
+                96,
+                "96/100",
+                ar ? "ضغط مساعدات الرفع: 460 نيوتن • الكاميرا: معايرة" : "Lift Strut Pressure: 460N • Camera: 1080p Calibrated",
+                ar ? "معيار المصنع: 440 - 480 نيوتن" : "Factory OEM: 440–480N",
+                ar ? "حساسات الركن: استجابة فورية 0.1 ثانية" : "PDC Ultrasonic Sensors: 0.1s rapid response",
+                ar ? "الهيكل والكهرباء" : "Body & Electrical",
+                "/report/assets/video/inspection-rear.mp4",
+                ar ? "فيديو فحص حركة الباب الكهربائي التلقائي" : "HD Video Proof: Power tailgate auto-cycle test"
         ));
 
         // 3. Right Side Profile (Damage Observed)
@@ -461,7 +477,15 @@ public class ReportViewMapper {
                 ar ? "تم رصد خدش سطحي بطول 42 مم على الحافة السفلية لقوس العجلة الخلفية. طبقة الأساس (الأساس المعدني) سليمة تماماً وبدون أي اعوجاج في الصاج. يمكن معالجته عبر التلميع الدوار."
                    : "Superficial 42mm clearcoat scratch noted on the lower wheel arch lip. Primer intact, zero sheet metal deformation. Remediable via rotary machine compound polish.",
                 true,
-                ar ? "خدش سطحي 42 مم" : "Scratch: 42mm"
+                ar ? "خدش سطحي 42 مم" : "Scratch: 42mm",
+                80,
+                "80/100",
+                ar ? "عمق الخدش: 15 ميكرون (طبقة الورنيش) • الطول: 42 مم" : "Scratch Depth: 15µm clearcoat • Length: 42mm",
+                ar ? "معيار المصنع: خلو كامل من الخدوش السطحية" : "Factory Standard: 0 surface blemishes",
+                ar ? "جهاز قياس الطلاء: 118 ميكرون (طبقة الأساس سليمة بدون معجون)" : "Elcometer Paint Gauge: 118µm (Base primer intact, zero filler)",
+                ar ? "الهيكل والطلاء" : "Body & Paint",
+                "/report/assets/video/inspection-scratch.mp4",
+                ar ? "فيديو فحص الخدش السطحي تحت الإضاءة التفصيلية" : "HD Video Proof: High-intensity inspection of wheel arch scratch"
         ));
 
         // 4. Left Side Profile
@@ -476,7 +500,15 @@ public class ReportViewMapper {
                 ar ? "سماكة الطلاء منتظمة ومطابقة للمصنع عند 124 ميكرون. عوازل الزجاج مرنة والنوافذ تعمل بسلاسة مع تفعيل نظام الحماية من الانحصار."
                    : "Factory paint uniform at 124µm. Acoustic window seals supple, power windows raise/lower streak-free with anti-pinch safety mechanism engaged.",
                 false,
-                null
+                null,
+                98,
+                "98/100",
+                ar ? "سماكة الطلاء: 124 ميكرون • نظام مانع الانحصار: سليم" : "Paint Thickness: 124µm • Anti-pinch safety: Passed",
+                ar ? "معيار المصنع: 105 - 140 ميكرون" : "Factory OEM: 105–140µm",
+                ar ? "جهاز قياس الطلاء: 124 ميكرون (طلاء المصنع الأصلي)" : "Elcometer Paint Gauge: 124µm (Original OEM Finish)",
+                ar ? "الهيكل والطلاء" : "Body & Paint",
+                "/report/assets/video/inspection-left.mp4",
+                ar ? "فيديو فحص عوازل النوافذ والأبواب وسلاسة الفتح" : "HD Video Proof: Door latch & acoustic glass seal test"
         ));
 
         // 5. Interior Cockpit & Cabin
@@ -491,7 +523,15 @@ public class ReportViewMapper {
                 ar ? "خلو لوحة العدادات من أي لمبات تحذيرية. تبريد فتحات التكييف وصل إلى 5.8 درجة مئوية خلال 3 دقائق. المقاعد الجلدية بحالة ممتازة وخالية من التمزق أو التآكل."
                    : "Digital cluster free of any warning lights. Vent discharge temperature reached 5.8°C within 3 minutes. Nappa leather seats intact with zero tears or bolster sagging.",
                 false,
-                null
+                null,
+                96,
+                "96/100",
+                ar ? "تبريد المكيف: 5.8 مئوية • جهد البطارية: 12.6 فولت" : "A/C Vent Discharge: 5.8°C • Battery: 12.6V Resting",
+                ar ? "المعيار: أقل من 8.0 مئوية • البطارية > 12.4 فولت" : "Factory Standard: < 8.0°C • Battery > 12.4V",
+                ar ? "فحص الكمبيوتر OBD-II: خلو كامل من أكواد الأعطال (P0000)" : "OBD-II Computer Scan: 0 Fault Codes (P0000 System Normal)",
+                ar ? "المقصورة والكهرباء" : "Cabin & Electrical",
+                "/report/assets/video/inspection-interior.mp4",
+                ar ? "فيديو فحص تشغيل الشاشات والكونسول والتكييف" : "HD Video Proof: Digital cockpit & dual-zone AC cooling test"
         ));
 
         // 6. Engine Bay & Powertrain
@@ -506,7 +546,15 @@ public class ReportViewMapper {
                 ar ? "خلو أغطية الصمامات وتغذية التيربو من أي تسريب للزيت. سيور المحرك مرنة وخالية من التشققات. خزان التبريد ممتلئ بدرجة تجمد -35 مئوية."
                    : "Zero valve cover or turbo feed oil weeping. Serpentine drive belt ribs supple and crack-free. Coolant expansion reservoir full at -35°C freeze point.",
                 false,
-                null
+                null,
+                95,
+                "95/100",
+                ar ? "نقطة تجمد التبريد: -35 مئوية • ضغط التيربو: 1.2 بار" : "Coolant Freeze Point: -35°C • Boost Pressure: 1.2 Bar",
+                ar ? "المعيار: -30 مئوية أو أقل • خلو تام من التسريبات" : "Factory OEM: -30°C or colder • 0.0 ppm leaks",
+                ar ? "فحص تسريب السوائل: جاف 100% بدون أي تسريب" : "Fluid Spectrometry: 0.0 ppm seepage (Dry Powertrain)",
+                ar ? "المحرك ومجموعة الحركة" : "Engine & Powertrain",
+                "/report/assets/video/inspection-engine.mp4",
+                ar ? "فيديو فحص صوت المحرك وسلاسة الدوران عند سرعة الخمول" : "HD Video Proof: Idle stability & turbo boost pressure check"
         ));
 
         // 7. Wheels & Tyres (Defect Observed)
@@ -521,7 +569,15 @@ public class ReportViewMapper {
                 ar ? "رصد قطع سطحي بعمق 2 مم في جدار الإطار الخلفي الأيمن ناتج عن احتكاك بالرصيف. أسلاك الهيكل غير مكشوفة لكن يوصى باستبداله لسلامة القيادة السريعة."
                    : "Deep 2mm cosmetic gouge detected on the Rear Right tyre outer sidewall bead from curb contact. Cords not exposed, but replacement is required for high-speed highway driving.",
                 true,
-                ar ? "قطع جدار الإطار 2 مم" : "Bead Gouge: 2mm"
+                ar ? "قطع جدار الإطار 2 مم" : "Bead Gouge: 2mm",
+                40,
+                "40/100",
+                ar ? "عمق قطع الإطار: 2.0 مم • سماكة فحمات الفرامل: 2.1 مم" : "Sidewall Cut: 2.0mm • Brake Pad Thickness: 2.1mm",
+                ar ? "الحد الأدنى لسلامة الفحمات: 3.0 مم (الجديد: 10.0 مم)" : "Min Pad Threshold: 3.0mm (New: 10.0mm)",
+                ar ? "جهاز قياس السماكة البصري: تآكل حرج في بطانة الاحتكاك" : "Optical Caliper: Critical lining wear & sidewall gouge",
+                ar ? "الفرامل والإطارات" : "Brakes & Tyres",
+                "/report/assets/video/inspection-brakes-defect.mp4",
+                ar ? "فيديو فحص تآكل فحمات الفرامل وقطع جدار الإطار على الرافعة" : "HD Video Proof: Brake caliper lining wear & tire sidewall gouge"
         ));
 
         // 8. Underbody & Suspension
@@ -536,7 +592,15 @@ public class ReportViewMapper {
                 ar ? "قضبان الشاصيه مستقيمة وخالية من الصدمات أو الصدأ. المساعدات الهيدروليكية جافة تماماً والمفاصل الكروية محكمة وبدون فراغ تحت الحمل."
                    : "Chassis rails straight with zero off-road scrapes or structural corrosion. Dampers completely dry and ball joints tight with zero play under load.",
                 false,
-                null
+                null,
+                97,
+                "97/100",
+                ar ? "استقامة الشاصيه: انحراف 0.0 مم • المساعدات: جافة" : "Chassis Alignment: 0.0mm deviation • Dampers: Dry",
+                ar ? "معيار المصنع: تفاوت أقصى ±1.5 مم" : "Factory OEM: Max tolerance ±1.5mm",
+                ar ? "جهاز قياس الشاصيه الليزري ثلاثي الأبعاد: استقامة تامة 100%" : "3D Laser Frame Measurement: 100% Factory True",
+                ar ? "الشاصيه والتعليق" : "Chassis & Frame",
+                "/report/assets/video/inspection-underbody.mp4",
+                ar ? "فيديو فحص أرضية المركبة والمساعدات وقضبان الشاصيه" : "HD Video Proof: Underbody frame rails & suspension geometry check"
         ));
 
         return list;
@@ -545,7 +609,11 @@ public class ReportViewMapper {
     private Map<String, Object> createInspectionCard(String id, String zone, String components,
                                                      String status, String statusLabel, String statusClass,
                                                      String imageUrl, String note,
-                                                     boolean isDamaged, String damageMarker) {
+                                                     boolean isDamaged, String damageMarker,
+                                                     int score, String scoreText,
+                                                     String measuredSpec, String standardSpec,
+                                                     String diagnosticSensor, String category,
+                                                     String videoUrl, String videoCaption) {
         Map<String, Object> card = new LinkedHashMap<>();
         card.put("id", id);
         card.put("zone", zone);
@@ -557,6 +625,14 @@ public class ReportViewMapper {
         card.put("note", note);
         card.put("isDamaged", isDamaged);
         card.put("damageMarker", damageMarker);
+        card.put("score", score);
+        card.put("scoreText", scoreText);
+        card.put("measuredSpec", measuredSpec);
+        card.put("standardSpec", standardSpec);
+        card.put("diagnosticSensor", diagnosticSensor);
+        card.put("category", category);
+        card.put("videoUrl", videoUrl);
+        card.put("videoCaption", videoCaption);
         return card;
     }
 

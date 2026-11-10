@@ -10,10 +10,10 @@ function openPartDialog(el) {
 
   var title = el.getAttribute('data-title') || '';
   var cat = el.getAttribute('data-category') || '';
-  var status = el.getAttribute('data-status') || '';
+  var status = el.getAttribute('data-status') || el.getAttribute('data-status-label') || '';
   var statusCode = el.getAttribute('data-status-code') || '';
   var score = parseInt(el.getAttribute('data-score') || '100', 10);
-  var scoreText = el.getAttribute('data-score-text') || '';
+  var scoreText = el.getAttribute('data-score-text') || (score + '/100');
   var measured = el.getAttribute('data-measured') || '';
   var standard = el.getAttribute('data-standard') || '';
   var note = el.getAttribute('data-note') || '';
@@ -22,7 +22,7 @@ function openPartDialog(el) {
   var videoCaption = el.getAttribute('data-video-caption') || '';
 
   currentPartImg = img;
-  currentPartCaption = title + ' - ' + status;
+  currentPartCaption = title + (status ? ' - ' + status : '');
   currentPartNote = note;
 
   var titleEl = document.getElementById('dialog-part-title');
@@ -42,7 +42,7 @@ function openPartDialog(el) {
 
   if (statusEl) {
     statusEl.textContent = status;
-    statusEl.className = 'badge ' + (statusCode === 'DEFECT_FOUND' ? 'danger' : (statusCode === 'ATTENTION_RECOMMENDED' ? 'warning' : 'success'));
+    statusEl.className = 'badge ' + (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' ? 'danger' : (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION' ? 'warning' : 'success'));
   }
 
   if (scoreEl) {
@@ -61,21 +61,34 @@ function openPartDialog(el) {
   if (noteEl) noteEl.textContent = note;
 
   if (imgEl) {
-    imgEl.src = img;
+    imgEl.src = img || '';
     imgEl.alt = title;
   }
 
   if (videoEl) {
-    videoEl.pause();
-    videoEl.src = video;
-    videoEl.load();
+    try {
+      videoEl.pause();
+      if (video) {
+        videoEl.src = video;
+        videoEl.style.display = 'block';
+        videoEl.load();
+      } else {
+        videoEl.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn('Video load error', e);
+    }
   }
 
   if (videoCapEl) videoCapEl.textContent = videoCaption;
 
-  if (typeof dialog.showModal === 'function') {
-    dialog.showModal();
-  } else {
+  try {
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', 'true');
+    }
+  } catch (err) {
     dialog.setAttribute('open', 'true');
   }
   document.body.classList.add('modal-open');
@@ -87,13 +100,19 @@ function closePartDialog() {
 
   var video = document.getElementById('dialog-part-video');
   if (video) {
-    video.pause();
-    video.currentTime = 0;
+    try {
+      video.pause();
+      video.currentTime = 0;
+    } catch (e) {}
   }
 
-  if (typeof dialog.close === 'function') {
-    dialog.close();
-  } else {
+  try {
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+    } else {
+      dialog.removeAttribute('open');
+    }
+  } catch (err) {
     dialog.removeAttribute('open');
   }
   document.body.classList.remove('modal-open');
@@ -122,9 +141,13 @@ function openLightboxDirect(imgSrc, caption, note) {
   if (captionEl) captionEl.textContent = caption || '';
   if (noteEl) noteEl.textContent = note || '';
 
-  if (typeof dialog.showModal === 'function') {
-    dialog.showModal();
-  } else {
+  try {
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', 'true');
+    }
+  } catch (err) {
     dialog.setAttribute('open', 'true');
   }
   document.body.classList.add('modal-open');
@@ -133,13 +156,62 @@ function openLightboxDirect(imgSrc, caption, note) {
 function closeLightbox() {
   var dialog = document.getElementById('photo-lightbox');
   if (!dialog) return;
-  if (typeof dialog.close === 'function') {
-    dialog.close();
-  } else {
+  try {
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+    } else {
+      dialog.removeAttribute('open');
+    }
+  } catch (err) {
     dialog.removeAttribute('open');
   }
   document.body.classList.remove('modal-open');
 }
+
+// Global click event delegation - guarantees clicks work on every element!
+document.addEventListener('click', function (e) {
+  var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn');
+  if (partTrigger) {
+    e.preventDefault();
+    openPartDialog(partTrigger);
+    return;
+  }
+
+  var closeBtn = e.target.closest('[data-action="close-part-dialog"]') || e.target.closest('#part-detail-dialog .dialog-close-btn');
+  if (closeBtn) {
+    e.preventDefault();
+    closePartDialog();
+    return;
+  }
+
+  var lbClose = e.target.closest('[data-action="close-lightbox"]') || e.target.closest('#photo-lightbox .lightbox-close-btn');
+  if (lbClose) {
+    e.preventDefault();
+    closeLightbox();
+    return;
+  }
+
+  var photoBox = e.target.closest('[data-action="open-lightbox"], .part-photo-box, .gallery-photo-card');
+  if (photoBox && !photoBox.closest('#part-detail-dialog')) {
+    e.preventDefault();
+    openLightbox(photoBox);
+    return;
+  }
+});
+
+// Keyboard support: Enter / Space triggers active item, Escape closes modals
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    closePartDialog();
+    closeLightbox();
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    var active = document.activeElement;
+    if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn')) {
+      e.preventDefault();
+      openPartDialog(active);
+    }
+  }
+});
 
 document.addEventListener('DOMContentLoaded', function () {
   // One-Click Instant Checklist Filter (All, Passed, Attention, Failed)

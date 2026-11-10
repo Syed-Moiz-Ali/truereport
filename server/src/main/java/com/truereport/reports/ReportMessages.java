@@ -50,7 +50,9 @@ public final class ReportMessages {
             "filterPassed", "filterAttention", "filterFailed", "itemScore",
             "videoProof", "playVideo", "partDetails", "measuredSpec",
             "serviceRemaining", "tapToToggleDetails", "viewPartDetails",
-            "closeDetails", "systemHealthSummary", "diagnosticScore");
+            "closeDetails", "systemHealthSummary", "diagnosticScore",
+            "standardSpec", "diagnosticSensor", "technicianNotes",
+            "defectActionRequired", "diagnosticSystemsHub", "diagnosticSystemsHubSub");
 
     private ReportMessages() {
     }

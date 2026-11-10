@@ -2162,6 +2162,261 @@ footer.report-footer {
 .muted { color: var(--on-variant); }
 .small { font-size: 0.82rem; }
 
+/* Findings & Complete Diagnostics Hub */
+.findings-hub-section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.findings-summary-card {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%);
+  border: 1px solid #BBF7D0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+}
+
+.findings-scorecard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.scorecard-badge-col {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.scorecard-icon-pill {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #DCFCE7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.scorecard-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #065F46;
+  margin: 0;
+}
+
+.scorecard-desc {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+}
+
+.scorecard-metrics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.metric-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  min-width: 70px;
+}
+
+.metric-pill-pass {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+}
+
+.metric-pill-pass .metric-num { color: #047857; }
+
+.metric-pill-att {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+}
+
+.metric-pill-att .metric-num { color: #B45309; }
+
+.metric-pill-def {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.metric-pill-def .metric-num { color: #B91C1C; }
+
+.metric-num {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.metric-lbl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--on-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.findings-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.subgroup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--surface-low);
+  padding-bottom: 10px;
+}
+
+.subgroup-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subgroup-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+.subgroup-icon {
+  font-size: 1.2rem;
+}
+
+.finding-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--outline);
+}
+
+.finding-photos-mini {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.finding-mini-fig {
+  margin: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--outline);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.finding-mini-fig:hover {
+  transform: scale(1.05);
+}
+
+.finding-mini-img {
+  display: block;
+  object-fit: cover;
+  width: 90px;
+  height: 60px;
+}
+
+.finding-meta-specs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.spec-pill {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.spec-pill-measured {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+
+.spec-pill-std {
+  background: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
+
+.part-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.part-sensor-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 16px 4px;
+  padding: 6px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.sensor-indicator-dot {
+  color: #10B981;
+  font-size: 0.75rem;
+}
+
+.part-specs-row {
+  padding: 4px 16px 8px;
+  color: var(--on-variant);
+  font-weight: 500;
+}
+
+.part-card-footer {
+  padding: 12px 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--outline);
+  background: var(--surface-low);
+}
+
+.action-dialog-btn,
+.card-inspect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-dialog-btn:hover,
+.card-inspect-btn:hover {
+  transform: translateY(-2px);
+}
+
 /* Print Optimization */
 @media print {
   @page {
