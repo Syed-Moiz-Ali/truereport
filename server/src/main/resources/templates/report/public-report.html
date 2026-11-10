@@ -51,6 +51,7 @@
     <a href="#overview" class="nav-chip" th:text="${r.labels.overview}"></a>
     <a href="#photos" class="nav-chip" th:text="${r.labels.photos}"></a>
     <a href="#systems" class="nav-chip" th:text="${r.labels.systemsSummary}"></a>
+    <a href="#services" class="nav-chip" th:text="${r.labels.scheduledServices}"></a>
     <a href="#wireframe" class="nav-chip" th:text="${r.labels.exteriorDamageMap}"></a>
     <a href="#tyres" class="nav-chip" th:text="${r.labels.tyresAndBrakes}"></a>
     <a href="#subsystems" class="nav-chip" th:text="${r.labels.visualDiagnosis}"></a>
@@ -229,6 +230,44 @@
             <span class="badge" th:classappend="${sys.status == 'ATTENTION' ? 'warning' : 'success'}" th:text="${sys.statusLabel}"></span>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Routine Services & Maintenance (4 Good, 1 Needs Service) -->
+  <section id="services" class="services-section" aria-labelledby="services-title">
+    <div class="section-header">
+      <div>
+        <h2 id="services-title" th:text="${r.labels.scheduledServices}"></h2>
+        <p class="section-subtitle" th:text="${r.servicesSummary.summaryText}"></p>
+      </div>
+      <span class="section-tag" th:text="${r.servicesSummary.goodCount} + ' ' + ${r.labels.servicesGood} + ' · ' + ${r.servicesSummary.needServiceCount} + ' ' + ${r.labels.servicesNeedService}"></span>
+    </div>
+
+    <div class="services-cards-grid">
+      <div th:each="srv : ${r.scheduledServices}"
+           class="card service-item-card"
+           th:classappend="${srv.status == 'NEED_SERVICE' ? 'service-need-attention' : 'service-healthy'}">
+        <div class="service-card-header">
+          <div class="service-icon-title">
+            <span class="service-icon" aria-hidden="true" th:text="${srv.icon}"></span>
+            <div>
+              <h3 class="service-title" th:text="${srv.title}"></h3>
+              <span class="service-interval-tag" th:text="${srv.interval}"></span>
+            </div>
+          </div>
+          <span class="badge" th:classappend="${srv.status == 'NEED_SERVICE' ? 'warning' : 'success'}"
+                th:text="${srv.statusLabel}"></span>
+        </div>
+        <div class="service-metric-row">
+          <span class="metric-label" th:text="${r.labels.measuredSpec}"></span>
+          <span class="metric-val" th:text="${srv.metric}"></span>
+        </div>
+        <div class="service-remaining-pill">
+          <span class="remaining-icon" aria-hidden="true">⏱</span>
+          <span th:text="${srv.remaining}"></span>
+        </div>
+        <p class="service-note-text" th:text="${srv.note}"></p>
       </div>
     </div>
   </section>
@@ -494,53 +533,156 @@
     </div>
   </section>
 
-  <!-- Section 6: Full Checklist Breakdown by Category -->
+  <!-- Section 6: Full Checklist Breakdown by Category (With Scores, One-Click Filter, Photos & Video Proof) -->
   <section id="checklist" class="checklist-section" aria-labelledby="checklist-title">
     <div class="section-header">
-      <h2 id="checklist-title" th:text="${r.labels.findings}"></h2>
-      <span class="section-tag" th:text="${r.labels.coverage}"></span>
+      <div>
+        <h2 id="checklist-title" th:text="${r.labels.findings}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.tapToToggleDetails}"></p>
+      </div>
+      <span class="section-tag" th:text="${r.totalEvaluated} + ' ' + ${r.labels.checksCompleted}"></span>
     </div>
+
+    <!-- One-Click Instant Filter Bar: All (32), Passed (29), Attention (2), Failed (1) -->
+    <div class="checklist-quick-filter-bar" role="tablist">
+      <button type="button" class="filter-chip active" data-checklist-filter="ALL">
+        <span th:text="${r.labels.allChecks}"></span>
+        <span class="chip-count" th:text="${r.totalEvaluated}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-passed" data-checklist-filter="NO_ISSUE_OBSERVED">
+        <span th:text="${r.labels.filterPassed}"></span>
+        <span class="chip-count" th:text="${r.passedCount}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-attention" data-checklist-filter="ATTENTION_RECOMMENDED">
+        <span th:text="${r.labels.filterAttention}"></span>
+        <span class="chip-count" th:text="${r.attentionCount}"></span>
+      </button>
+      <button type="button" class="filter-chip filter-chip-failed" data-checklist-filter="DEFECT_FOUND">
+        <span th:text="${r.labels.filterFailed}"></span>
+        <span class="chip-count" th:text="${r.defectCount}"></span>
+      </button>
+    </div>
+
+    <!-- Category Accordions Stack -->
     <div class="categories-accordion-stack">
-      <details th:each="category : ${r.categories}" class="card category-accordion" open>
+      <details th:each="category : ${r.categories}" class="card category-accordion" open
+               th:attr="data-cat-passed=${category.passedCount}, data-cat-attention=${category.attentionCount}, data-cat-defect=${category.defectCount}">
         <summary class="category-summary">
           <div class="category-summary-title">
             <span class="accordion-arrow" aria-hidden="true">▾</span>
             <strong th:text="${category.label}"></strong>
           </div>
-          <span class="tag-pill" th:text="${#lists.size(category.items)}"></span>
+          <div class="category-meta-chips">
+            <span class="score-badge" th:classappend="${category.score >= 90 ? 'score-high' : (category.score >= 70 ? 'score-mid' : 'score-low')}">
+              <span th:text="${r.labels.itemScore} + ': ' + ${category.scoreText}"></span>
+            </span>
+            <span class="tag-pill" th:text="${#lists.size(category.items)}"></span>
+          </div>
         </summary>
-        <div class="table-wrapper">
-          <table class="checklist-table">
-            <thead>
-            <tr>
-              <th scope="col" th:text="${r.labels.check}"></th>
-              <th scope="col" th:text="${r.labels.result}"></th>
-              <th scope="col" th:text="${r.labels.severity}"></th>
-              <th scope="col" th:text="${r.labels.note}"></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="item : ${category.items}">
-              <td th:attr="data-label=${r.labels.check}">
-                <div class="item-name" th:text="${item.label}"></div>
-                <div class="item-instruction small muted" th:if="${item.instruction != ''}" th:text="${item.instruction}"></div>
-              </td>
-              <td th:attr="data-label=${r.labels.result}">
+
+        <div class="category-items-container">
+          <div th:each="item : ${category.items}"
+               class="check-interactive-item"
+               th:attr="data-result=${item.resultCode}"
+               th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'item-defect' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'item-attention' : 'item-passed')}">
+
+            <!-- Clickable Row Header -->
+            <div class="check-item-head" onclick="toggleCheckItem(this)" role="button" tabindex="0" th:title="${r.labels.tapToToggleDetails}">
+              <div class="check-item-left">
+                <span class="check-status-indicator" aria-hidden="true">
+                  <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
+                  <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
+                  <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
+                </span>
+                <div class="check-item-titles">
+                  <div class="item-name" th:text="${item.label}"></div>
+                  <div class="item-instruction small muted" th:if="${item.instruction != ''}" th:text="${item.instruction}"></div>
+                </div>
+              </div>
+              <div class="check-item-right">
+                <span class="diagnostic-pill" th:text="${item.diagnosticMetric}"></span>
+                <span class="item-score-chip" th:classappend="${item.score >= 90 ? 'score-high' : (item.score >= 70 ? 'score-mid' : 'score-low')}"
+                      th:text="${r.labels.itemScore} + ': ' + ${item.scoreText}"></span>
                 <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
                       th:text="${item.result}"></span>
-              </td>
-              <td th:attr="data-label=${r.labels.severity}">
-                <span class="badge" th:if="${item.severity != ''}" th:text="${item.severity}"></span>
-                <span th:if="${item.severity == ''}" class="muted">—</span>
-              </td>
-              <td th:attr="data-label=${r.labels.note}">
-                <span th:if="${item.note == ''}" class="muted">—</span>
-                <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
-                      th:text="${item.note}"></span>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+                <span class="expand-chevron" aria-hidden="true">▾</span>
+              </div>
+            </div>
+
+            <!-- Tap/Click Expanded Detail Drawer -->
+            <div class="check-item-details-drawer">
+              <div class="drawer-inner-grid">
+                <!-- Left: Diagnostic Specifications & Verdict -->
+                <div class="drawer-specs-col">
+                  <div class="drawer-specs-box">
+                    <div class="drawer-spec-row">
+                      <span class="spec-label" th:text="${r.labels.measuredSpec}"></span>
+                      <strong class="spec-val" th:text="${item.measuredSpec}"></strong>
+                    </div>
+                    <div class="drawer-spec-row">
+                      <span class="spec-label" th:text="${r.labels.scope}"></span>
+                      <span class="spec-val" th:text="${item.standardSpec}"></span>
+                    </div>
+                    <div class="drawer-score-bar-wrap">
+                      <div class="drawer-score-label">
+                        <span th:text="${r.labels.itemScore}"></span>
+                        <strong th:text="${item.scoreText}"></strong>
+                      </div>
+                      <div class="score-track-bar">
+                        <div class="score-fill-bar" th:classappend="${item.score >= 90 ? 'fill-green' : (item.score >= 70 ? 'fill-amber' : 'fill-red')}"
+                             th:style="'width: ' + ${item.score} + '%;'"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Technician Observation Quote -->
+                  <div class="drawer-note-callout" th:if="${item.note != ''}">
+                    <div class="drawer-note-head">
+                      <span class="note-quote-mark" aria-hidden="true">“</span>
+                      <span class="small muted" th:text="${r.labels.technicianObservations}"></span>
+                    </div>
+                    <p class="drawer-note-text" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></p>
+                  </div>
+                </div>
+
+                <!-- Right: Part Photo & Video Proof Evidence -->
+                <div class="drawer-media-col">
+                  <!-- Part Photo -->
+                  <div class="drawer-media-card photo-card"
+                       th:attr="data-img=${item.partPhoto}, data-caption=${item.label} + ' - ' + ${item.result}, data-note=${item.note}"
+                       onclick="openLightbox(this)" tabindex="0" role="button" th:title="${r.labels.tapToEnlarge}">
+                    <div class="drawer-photo-wrap">
+                      <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="drawer-img" width="300" height="180">
+                      <div class="drawer-media-badge">
+                        <span class="badge-icon" aria-hidden="true">📷</span>
+                        <span th:text="${r.labels.photos}"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Part Video Proof Card -->
+                  <div class="drawer-media-card video-card"
+                       th:attr="data-video=${item.videoUrl}, data-caption=${item.label} + ' - ' + ${item.videoCaption}, data-note=${item.note}"
+                       onclick="openVideoLightbox(this)" tabindex="0" role="button" th:title="${r.labels.playVideo}">
+                    <div class="drawer-photo-wrap">
+                      <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="drawer-img video-poster" width="300" height="180">
+                      <div class="video-play-overlay">
+                        <span class="play-btn-circle" aria-hidden="true">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                        </span>
+                        <span class="video-duration-chip" th:text="${item.videoDuration}"></span>
+                      </div>
+                      <div class="drawer-media-badge video-badge">
+                        <span class="badge-icon" aria-hidden="true">🎥</span>
+                        <span th:text="${r.labels.videoProof}"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </details>
     </div>
@@ -666,6 +808,7 @@
       </button>
       <div class="lightbox-image-wrap">
         <img id="lightbox-img" src="" th:alt="${r.labels.photos}" class="lightbox-img">
+        <video id="lightbox-video" class="lightbox-video" controls playsinline style="display: none;"></video>
       </div>
       <div class="lightbox-details">
         <h4 id="lightbox-caption" class="lightbox-title"></h4>

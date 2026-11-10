@@ -30,7 +30,7 @@ public class PublicReportHeadersFilter extends OncePerRequestFilter {
         response.setHeader("X-Frame-Options", "DENY");
         response.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
         response.setHeader("Content-Security-Policy",
-                "default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; "
+                "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' data: blob:; font-src 'self'; "
                         + "base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
         response.setHeader("Cache-Control", "no-store");
         response.setHeader("Pragma", "no-cache");

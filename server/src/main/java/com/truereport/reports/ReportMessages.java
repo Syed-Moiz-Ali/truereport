@@ -45,7 +45,11 @@ public final class ReportMessages {
             "systemsSummary", "systemsSummarySubtitle", "systemName", "checksCount",
             "status", "goodCondition", "exteriorSystem", "chassisSystem", "powertrainSystem",
             "suspensionSystem", "electricalSystem", "acSystem", "brakingSystem", "roadTestSystem",
-            "finalDecision", "approved", "gradeLabel", "gallerySubtitle");
+            "finalDecision", "approved", "gradeLabel", "gallerySubtitle",
+            "scheduledServices", "servicesGood", "servicesNeedService", "allChecks",
+            "filterPassed", "filterAttention", "filterFailed", "itemScore",
+            "videoProof", "playVideo", "partDetails", "measuredSpec",
+            "serviceRemaining", "tapToToggleDetails");
 
     private ReportMessages() {
     }
