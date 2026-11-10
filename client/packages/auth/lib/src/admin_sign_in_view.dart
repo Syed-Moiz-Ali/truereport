@@ -1,5 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:l10n/l10n.dart';
 
 enum AdminPortalType {
   workshop,
@@ -62,6 +63,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isWorkshop = widget.portalType == AdminPortalType.workshop;
 
     final portalBadge =
@@ -77,42 +79,42 @@ class _AdminSignInViewState extends State<AdminSignInView> {
         : 'Central command hub for multi-tenant workshop networks, master checkpoint libraries, standardized data catalogues, and regulatory audit archives.';
 
     final features = isWorkshop
-        ? const [
+        ? [
             AdminFeatureHighlight(
               icon: Icons.garage_rounded,
-              title: 'Live Bay Telemetry & Queue',
+              title: l10n.adminFeatureTelemetry,
               description:
                   'Real-time job sequencing, automated bay routing, and live technician throughput dispatch.',
             ),
             AdminFeatureHighlight(
               icon: Icons.assignment_turned_in_rounded,
-              title: 'Adaptive SOP Builder',
+              title: l10n.adminFeatureSop,
               description:
                   'Multi-version inspection templates with required photo evidence and strict severity policies.',
             ),
             AdminFeatureHighlight(
               icon: Icons.verified_rounded,
-              title: 'Cryptographic Audit Clearance',
+              title: l10n.adminFeatureAudit,
               description:
                   'Instant client-ready report generation with tamper-evident blockchain verification.',
             ),
           ]
-        : const [
+        : [
             AdminFeatureHighlight(
               icon: Icons.account_tree_rounded,
-              title: 'Multi-Tenant Workshop Hierarchy',
+              title: l10n.adminFeatureHierarchy,
               description:
                   'Sovereign workshop provisioning, staff tree management, and technician role assignment.',
             ),
             AdminFeatureHighlight(
               icon: Icons.menu_book_rounded,
-              title: 'Global Master Item Library',
+              title: l10n.adminFeatureCatalog,
               description:
                   'Centralized catalog of 200+ standardized diagnostic checkpoints with automated EN/AR translation.',
             ),
             AdminFeatureHighlight(
               icon: Icons.shield_rounded,
-              title: 'Immutable Security Ledger',
+              title: l10n.adminFeatureLedger,
               description:
                   'SOC-2 compliant chronological audit events logging all platform mutations and credential resets.',
             ),

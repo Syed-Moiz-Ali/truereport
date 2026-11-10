@@ -13,7 +13,7 @@ void main() {
     final root = _repoRoot();
     final files = <String>[
       'client/apps/technician_app/pubspec.yaml',
-      'client/apps/admin_app/pubspec.yaml',
+      'client/apps/workshop_admin_app/pubspec.yaml',
       'infra/docker-compose.prod.yml',
       'infra/nginx/nginx.conf',
       '.github/workflows/ci.yml',

@@ -1495,4 +1495,176 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get technicianWalkaroundInspection => 'فحص جولة المركبة';
+
+  @override
+  String get technicianDraw => 'رسم';
+
+  @override
+  String get technicianUndo => 'تراجع';
+
+  @override
+  String get technicianCrop => 'قص';
+
+  @override
+  String get technicianSavePhoto => 'حفظ الصورة';
+
+  @override
+  String get technicianVinEnding => 'نهاية رقم الهيكل';
+
+  @override
+  String get technicianItemsChecked => 'العناصر المفحوصة';
+
+  @override
+  String get technicianPdfSize => 'حجم الملف';
+
+  @override
+  String get technicianBackToJobList => 'العودة إلى قائمة المهام';
+
+  @override
+  String get technicianTireFl => 'أ م';
+
+  @override
+  String get technicianTireFr => 'أ ي';
+
+  @override
+  String get technicianTireRr => 'خ ي';
+
+  @override
+  String get technicianSaveAction => 'حفظ';
+
+  @override
+  String get adminFeatureTelemetry => 'قياسات ومسار الورشة المباشر';
+
+  @override
+  String get adminFeatureSop => 'منشئ الإجراءات التشغيلية التكيفي';
+
+  @override
+  String get adminFeatureAudit => 'التدقيق والاعتماد المشفر';
+
+  @override
+  String get adminFeatureHierarchy => 'هيكل الورش متعددة المستأجرين';
+
+  @override
+  String get adminFeatureCatalog => 'مكتبة بنود الفحص الرئيسية العالمية';
+
+  @override
+  String get adminFeatureLedger => 'سجل أمان غير قابل للتعديل';
+
+  @override
+  String get masterLibrary => 'مكتبة الفحص الرئيسية';
+
+  @override
+  String get dataCatalogues => 'كتالوجات البيانات';
+
+  @override
+  String get auditLog => 'سجل التدقيق';
+
+  @override
+  String get settings => 'الإعدادات';
+
+  @override
+  String get vehicleMakes => 'ماركات المركبات';
+
+  @override
+  String get defectSeverities => 'مستويات خطورة العيوب';
+
+  @override
+  String get notCheckedReasons => 'أسباب عدم الفحص';
+
+  @override
+  String get fuelPowertrainTypes => 'أنواع الوقود ونظام الحركة';
+
+  @override
+  String get fluidSpecifications => 'مواصفات السوائل';
+
+  @override
+  String get done => 'تم';
+
+  @override
+  String get totalJobs => 'إجمالي المهام';
+
+  @override
+  String get workshopAdminName => 'اسم مسؤول الورشة';
+
+  @override
+  String get contactPhone => 'هاتف التواصل';
+
+  @override
+  String get technicianDispatchClearance => 'تصريح توجيه الفني';
+
+  @override
+  String get diagnosticOverrideAuthority => 'صلاحية تجاوز التشخيص';
+
+  @override
+  String get telemetryIngestionKey => 'مفتاح استيعاب القياس عن بُعد';
+
+  @override
+  String get registerWorkshop => 'تسجيل ورشة';
+
+  @override
+  String get detailsAndSettings => 'التفاصيل والإعدادات';
+
+  @override
+  String get registerAndProvision => 'تسجيل وتجهيز';
+
+  @override
+  String get preferencesReset =>
+      'تمت إعادة ضبط التفضيلات إلى القيم الافتراضية.';
+
+  @override
+  String get preferencesSaved => 'تم حفظ تفضيلات المنصة وتعميمها على العقد!';
+
+  @override
+  String get enableArabicRtl => 'تفعيل الواجهة العربية (RTL)';
+
+  @override
+  String get enableArabicRtlDesc =>
+      'عكس إحداثيات التخطيط ونماذج الفحص تلقائياً';
+
+  @override
+  String get enableSpanish => 'تفعيل دعم اللغة الإسبانية';
+
+  @override
+  String get enableSpanishDesc => 'المعيار الإقليمي للورشة';
+
+  @override
+  String get enableFrench => 'تفعيل دعم اللغة الفرنسية';
+
+  @override
+  String get enableFrenchDesc => 'قوائم فحص الأسطول الأوروبي';
+
+  @override
+  String get enforce2fa => 'فرض المصادقة الثنائية (TOTP) لجميع المسؤولين';
+
+  @override
+  String get enforce2faDesc => 'مفتاح أمان إلزامي أو تطبيق مصادقة';
+
+  @override
+  String get ipWhitelist => 'القائمة البيضاء لعناوين IP';
+
+  @override
+  String get ipWhitelistDesc =>
+      'قصر الوصول إلى لوحة التحكم على شبكات VPN التشخيصية';
+
+  @override
+  String get subsystem => 'النظام الفرعي';
+
+  @override
+  String get measurementMetric => 'مقياس القياس';
+
+  @override
+  String get masterCheckpointSaved =>
+      'تم حفظ مواصفة نقطة الفحص الرئيسية وتعميمها.';
+
+  @override
+  String get fifteenMinutes => '15 دقيقة';
+
+  @override
+  String get thirtyMinutes => '30 دقيقة';
+
+  @override
+  String get oneHour => 'ساعة واحدة';
+
+  @override
+  String get fourHours => '4 ساعات';
 }

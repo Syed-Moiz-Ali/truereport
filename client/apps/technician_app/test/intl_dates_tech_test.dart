@@ -5,11 +5,11 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
-import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart';
-import 'package:technician_app/src/screens/f2b/f2b_intl.dart';
-import 'package:technician_app/src/screens/f2b/final_review_view.dart';
-import 'package:technician_app/src/screens/f2b/finalize_view.dart';
-import 'package:technician_app/src/screens/f2b/offline_sync_view.dart';
+import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart';
+import 'package:technician_app/src/shared/technician_intl.dart';
+import 'package:technician_app/src/features/review/final_review_view.dart';
+import 'package:technician_app/src/features/review/finalize_view.dart';
+import 'package:technician_app/src/features/sync/offline_sync_view.dart';
 
 import 'support/f2a_fixture_data.dart';
 import 'support/f2a_test_fonts.dart';

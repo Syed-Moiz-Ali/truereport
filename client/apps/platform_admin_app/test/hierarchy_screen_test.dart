@@ -6,9 +6,9 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/components/platform_header.dart';
 import 'package:platform_admin_app/src/components/platform_sidebar.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/hierarchy/hierarchy_screen.dart';
-import 'package:platform_admin_app/src/screens/hierarchy/staff_board.dart';
-import 'package:platform_admin_app/src/screens/hierarchy/tree_node_navigator.dart';
+import 'package:platform_admin_app/src/features/hierarchy/hierarchy_screen.dart';
+import 'package:platform_admin_app/src/features/hierarchy/staff_board.dart';
+import 'package:platform_admin_app/src/features/hierarchy/tree_node_navigator.dart';
 import 'support/fake_platform_api.dart';
 
 Widget _buildTestApp({
@@ -98,7 +98,7 @@ void main() {
     expect(find.text('Supervisors'), findsOneWidget);
 
     // Staff profiles
-    expect(find.text('David Vance'), findsOneWidget);
+    expect(find.text('David Miller'), findsOneWidget);
     expect(find.text('Lead Inspector'), findsOneWidget);
     expect(find.text('Bay 01-04'), findsOneWidget);
     expect(find.text('Level 3 Master'), findsOneWidget);
@@ -111,7 +111,7 @@ void main() {
     expect(find.text('Sarah Jenkins'), findsOneWidget);
     expect(find.text('Shop Floor Supervisor'), findsOneWidget);
     expect(find.text('Floor Command'), findsOneWidget);
-    expect(find.text('ISO-9001 Lead'), findsOneWidget);
+    expect(find.text('Lead Quality Certified'), findsOneWidget);
 
     expect(find.text('Elena Rostova'), findsOneWidget);
     expect(find.text('Optics & Sensor Calibration'), findsOneWidget);
@@ -148,13 +148,13 @@ void main() {
 
     // Only Marcus Vance should match
     expect(find.text('Marcus Vance'), findsOneWidget);
-    expect(find.text('David Vance'), findsNothing);
+    expect(find.text('David Miller'), findsNothing);
     expect(find.text('Sarah Jenkins'), findsNothing);
 
     // Tap "All (14)" tag to restore
     await tester.tap(find.text('All (14)'));
     await tester.pumpAndSettle();
-    expect(find.text('David Vance'), findsOneWidget);
+    expect(find.text('David Miller'), findsOneWidget);
     expect(find.text('Marcus Vance'), findsOneWidget);
   });
 

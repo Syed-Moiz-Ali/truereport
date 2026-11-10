@@ -6,14 +6,14 @@ import 'package:l10n/l10n.dart';
 import 'package:l10n/l10n/gen/app_localizations_en.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
-import 'package:technician_app/src/screens/f2b/defect_detail_view.dart';
-import 'package:technician_app/src/screens/f2b/dense_mechanical_view.dart';
-import 'package:technician_app/src/screens/f2b/final_review_view.dart';
-import 'package:technician_app/src/screens/f2b/finalize_view.dart';
-import 'package:technician_app/src/screens/f2b/offline_sync_view.dart';
-import 'package:technician_app/src/screens/f2b/photo_annotation_view.dart';
-import 'package:technician_app/src/screens/f2b/success_view.dart';
-import 'package:technician_app/src/screens/f2b/tire_condition_view.dart';
+import 'package:technician_app/src/features/inspection/defect_detail_view.dart';
+import 'package:technician_app/src/features/inspection/dense_mechanical_view.dart';
+import 'package:technician_app/src/features/review/final_review_view.dart';
+import 'package:technician_app/src/features/review/finalize_view.dart';
+import 'package:technician_app/src/features/sync/offline_sync_view.dart';
+import 'package:technician_app/src/features/inspection/photo_annotation_view.dart';
+import 'package:technician_app/src/features/review/success_view.dart';
+import 'package:technician_app/src/features/inspection/tire_condition_view.dart';
 
 import 'f2a_fixture_data.dart';
 import 'figma_l10n_override.dart';
@@ -112,8 +112,8 @@ class F2bFigmaTestLocalizations extends AppLocalizationsEn {
   String get reviewAndFinalize => activeScreenId == 'dense-mechanical'
       ? F2bFigmaStrings.confirmFluidLevels
       : activeScreenId == 'final-review'
-          ? F2bFigmaStrings.reviewFindings
-          : F2bFigmaStrings.reviewFinalizeTitle;
+      ? F2bFigmaStrings.reviewFindings
+      : F2bFigmaStrings.reviewFinalizeTitle;
 
   @override
   String get finalize => F2bFigmaStrings.finalizeAction;
@@ -561,18 +561,17 @@ Widget f2bScreen(
         onClose: () {},
         wireframeImage: wireframeImage,
         evidenceImage: evidenceImage,
-        isFigma: figma,
       );
     case 'photo-annotation':
       return PhotoAnnotationView(
+        title: figma ? 'Damage Markup Studio' : null,
+        itemName: figma ? 'Front Bumper Inspection' : null,
         photoImage: evidenceImage,
-        isFigma: figma,
       );
     case 'dense-mechanical':
       F2bFigmaTestLocalizations.activeScreenId = 'dense-mechanical';
       return DenseMechanicalView(
         checklist: _f2bChecklist(figma: figma),
-        isFigma: figma,
         onResult: (_, _) {},
         onSaveItem: (_, _, _, _) async {},
         onOpenItem: (_) {},
@@ -585,7 +584,6 @@ Widget f2bScreen(
         job: figma
             ? figmaJob(status: 'IN_PROGRESS', reference: 'JOB-5A0001')
             : productJobs.first,
-        isFigma: figma,
         onSave: () {},
         onBack: () {},
         onProfile: () {},
@@ -602,7 +600,6 @@ Widget f2bScreen(
               )
             : productJobs.first,
         review: _f2bReview(figma: figma),
-        isFigma: figma,
         onOpenIssue: (_) {},
         onContinue: () {},
         onBack: () {},
@@ -631,7 +628,6 @@ Widget f2bScreen(
           warnings: const [],
         ),
         checklist: checklist,
-        isFigma: figma,
         vehicleImage: vehicleImage,
         avatarImage: avatarImage,
         onFinalize: () async {},
@@ -644,7 +640,6 @@ Widget f2bScreen(
         operations: ops,
         pendingCount: ops.length,
         online: false,
-        isFigma: figma,
         onRetry: () {},
         onBack: () {},
         onProfile: () {},
@@ -652,7 +647,6 @@ Widget f2bScreen(
     case 'success':
       final checklist = _f2bChecklist(figma: figma);
       return SuccessView(
-        isFigma: figma,
         job: figma
             ? figmaJob(
                 status: 'FINALIZED',
@@ -667,8 +661,7 @@ Widget f2bScreen(
                 templateVersionId: productJobs.first.templateVersionId,
                 templateName: productJobs.first.templateName,
                 templateVersionNo: productJobs.first.templateVersionNo,
-                assignedTechnicianId:
-                    productJobs.first.assignedTechnicianId,
+                assignedTechnicianId: productJobs.first.assignedTechnicianId,
                 assignedTechnicianName:
                     productJobs.first.assignedTechnicianName,
                 scheduledAt: productJobs.first.scheduledAt,

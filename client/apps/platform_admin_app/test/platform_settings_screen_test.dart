@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/settings/platform_settings_screen.dart';
+import 'package:platform_admin_app/src/features/settings/platform_settings_screen.dart';
 
 class _TestLocaleNotifier extends LocaleNotifier {
   _TestLocaleNotifier(this._initial);

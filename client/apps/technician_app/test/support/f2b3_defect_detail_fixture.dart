@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
+import 'package:technician_app/src/shared/technician_kit.dart';
 
 /// F2-B.3 Part 2 — Level 1 exact-structure fixture for Figma screen 09
 /// "Defect Detail & Evidence" (node `1:8021`, 390 x 1031.67).

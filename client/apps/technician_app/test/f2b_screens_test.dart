@@ -5,7 +5,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
+import 'package:technician_app/src/shared/technician_kit.dart';
 
 import 'support/f2a_test_fonts.dart';
 import 'support/f2b_views.dart';
@@ -171,7 +171,7 @@ void main() {
 
   test('slide control duration is documented (reduce-motion gap)', () {
     // F2-B.1 L8 slot-sheet: the slide thumb uses a hardcoded
-    // `Duration(milliseconds: 120)` in lib/src/screens/f2b/f2b_kit.dart
+    // `Duration(milliseconds: 120)` in lib/src/shared/technician_kit.dart
     // (AnimatedPositioned) instead of ReduceMotion.duration. Screens still
     // render with disableAnimations:true (see reduce-motion tests above), but
     // the thumb snap-back animation is NOT reduced. lib/ cannot be edited by
@@ -180,7 +180,7 @@ void main() {
     var dir = Directory.current;
     for (var i = 0; i < 12; i++) {
       final candidate = File(
-        '${dir.path}/lib/src/screens/f2b/f2b_kit.dart',
+        '${dir.path}/lib/src/shared/technician_kit.dart',
       );
       if (candidate.existsSync()) {
         final source = candidate.readAsStringSync();
@@ -203,7 +203,7 @@ void main() {
       if (parent.path == dir.path) break;
       dir = parent;
     }
-    fail('could not locate lib/src/screens/f2b/f2b_kit.dart');
+    fail('could not locate lib/src/shared/technician_kit.dart');
   });
 
   testWidgets('product fixtures contain no forbidden terms', (tester) async {

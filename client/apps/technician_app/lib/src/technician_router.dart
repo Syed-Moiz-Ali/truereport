@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/pages/assessment_page.dart';
-import 'package:technician_app/src/pages/checklist_page.dart';
-import 'package:technician_app/src/pages/finalized_page.dart';
-import 'package:technician_app/src/pages/inspection_hub_page.dart';
-import 'package:technician_app/src/pages/job_detail_page.dart';
-import 'package:technician_app/src/pages/review_page.dart';
-import 'package:technician_app/src/pages/sync_queue_page.dart';
-import 'package:technician_app/src/pages/technician_jobs_page.dart';
-import 'package:technician_app/src/pages/walk_in_job_page.dart';
+import 'package:technician_app/src/features/inspection/assessment_page.dart';
+import 'package:technician_app/src/features/inspection/checklist_page.dart';
+import 'package:technician_app/src/features/review/finalized_page.dart';
+import 'package:technician_app/src/features/inspection/inspection_hub_page.dart';
+import 'package:technician_app/src/features/jobs/job_detail_page.dart';
+import 'package:technician_app/src/features/review/review_page.dart';
+import 'package:technician_app/src/features/sync/sync_queue_page.dart';
+import 'package:technician_app/src/features/jobs/technician_jobs_page.dart';
+import 'package:technician_app/src/features/jobs/walk_in_job_page.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 ///

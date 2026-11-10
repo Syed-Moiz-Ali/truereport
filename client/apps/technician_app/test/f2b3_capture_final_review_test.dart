@@ -6,7 +6,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
+import 'package:technician_app/src/shared/technician_kit.dart';
 
 import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_fonts.dart';

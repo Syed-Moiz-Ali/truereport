@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
-import 'package:platform_admin_app/src/screens/auth/platform_login_page.dart';
+import 'package:platform_admin_app/src/features/auth/platform_login_page.dart';
 
 Widget _buildLoginApp({
   Locale locale = const Locale('en'),

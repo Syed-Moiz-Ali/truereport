@@ -141,7 +141,8 @@ class MasterInspectionItem {
   const MasterInspectionItem({
     required this.id,
     required this.code,
-    required this.title,
+    String? name,
+    String? title,
     required this.description,
     required this.category,
     required this.requirementLevel,
@@ -150,11 +151,12 @@ class MasterInspectionItem {
     this.requiresDualSignoff = false,
     this.telemetryLinked = false,
     this.translations = const {},
-  });
+  }) : name = name ?? title ?? '';
 
   final String id;
   final String code;
-  final String title;
+  final String name;
+  String get title => name;
   final String description;
   final String category;
   final String requirementLevel; // 'Mandatory', 'Standard', 'High Voltage Cert', 'Structural'
@@ -168,7 +170,7 @@ class MasterInspectionItem {
     return MasterInspectionItem(
       id: json['id'] as String? ?? '',
       code: json['code'] as String? ?? '',
-      title: json['title'] as String? ?? '',
+      name: json['title'] as String? ?? json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       category: json['category'] as String? ?? 'General',
       requirementLevel: json['requirementLevel'] as String? ?? 'Standard',
@@ -185,7 +187,7 @@ class MasterInspectionItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'code': code,
-    'title': title,
+    'title': name,
     'description': description,
     'category': category,
     'requirementLevel': requirementLevel,
@@ -201,7 +203,7 @@ const sampleMasterInspectionItems = <MasterInspectionItem>[
   MasterInspectionItem(
     id: 'item-1',
     code: 'CHK-BRK-001',
-    title: 'Brake Pad Thickness & Disc Runout',
+    name: 'Brake Pad Thickness & Disc Runout',
     description: 'Micrometer disc thickness variance check and rotor',
     category: 'Brakes & Calipers',
     requirementLevel: 'Mandatory',
@@ -211,7 +213,7 @@ const sampleMasterInspectionItems = <MasterInspectionItem>[
   MasterInspectionItem(
     id: 'item-2',
     code: 'CHK-PWR-014',
-    title: 'Engine Oil Level & Viscosity Grade',
+    name: 'Engine Oil Level & Viscosity Grade',
     description: 'Spectrometric optical degradation check and…',
     category: 'Powertrain',
     requirementLevel: 'Standard',
@@ -221,7 +223,7 @@ const sampleMasterInspectionItems = <MasterInspectionItem>[
   MasterInspectionItem(
     id: 'item-3',
     code: 'CHK-TIR-004',
-    title: 'Tread Depth All Axles',
+    name: 'Tread Depth All Axles',
     description: 'Inner, center, and outer circumferential groove…',
     category: 'Tires & Axles',
     requirementLevel: 'Mandatory',
@@ -231,7 +233,7 @@ const sampleMasterInspectionItems = <MasterInspectionItem>[
   MasterInspectionItem(
     id: 'item-4',
     code: 'CHK-EV-082',
-    title: 'High-Voltage Battery Insulation',
+    name: 'High-Voltage Battery Insulation',
     description: '1000V DC megohmmeter chassis isolation…',
     category: 'Powertrain',
     requirementLevel: 'High Voltage Cert',
@@ -241,7 +243,7 @@ const sampleMasterInspectionItems = <MasterInspectionItem>[
   MasterInspectionItem(
     id: 'item-5',
     code: 'CHK-CHS-019',
-    title: 'Chassis Subframe Torque & Bushing Play',
+    name: 'Chassis Subframe Torque & Bushing Play',
     description: 'Hydraulic pry bar elastomeric tear scan and…',
     category: 'Chassis Integrity',
     requirementLevel: 'Structural',

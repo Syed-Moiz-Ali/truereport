@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/master_library/master_item_editor_screen.dart';
+import 'package:platform_admin_app/src/features/master_library/master_item_editor_screen.dart';
 
 import 'support/fake_platform_api.dart';
 

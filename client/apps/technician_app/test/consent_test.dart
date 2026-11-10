@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/pages/job_detail_page.dart';
+import 'package:technician_app/src/features/jobs/job_detail_page.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
 import 'support/fake_technician_api.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/catalogues/data_catalogues_screen.dart';
+import 'package:platform_admin_app/src/features/catalogues/data_catalogues_screen.dart';
 
 class _TestLocaleNotifier extends LocaleNotifier {
   _TestLocaleNotifier(this._initial);

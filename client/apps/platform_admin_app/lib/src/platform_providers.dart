@@ -126,8 +126,8 @@ final masterItemsListProvider =
 const sampleWorkshopAStaff = [
   PlatformAccount(
     userId: 'staff-1',
-    displayName: 'David Vance',
-    email: 'david.vance@workshop-a.local',
+    displayName: 'David Miller',
+    email: 'david.miller@workshop-a.local',
     emailMasked: 'd***@workshop-a.local',
     role: 'Lead Inspector',
     status: 'ACTIVE',
@@ -161,7 +161,7 @@ const sampleWorkshopAStaff = [
     primary: false,
     invitationExpiresAt: null,
     bayAssignment: 'Floor Command',
-    certifications: 'ISO-9001 Lead',
+    certifications: 'Lead Quality Certified',
   ),
   PlatformAccount(
     userId: 'staff-4',

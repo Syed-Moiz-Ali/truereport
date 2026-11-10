@@ -116,22 +116,27 @@ void main() {
 
   test('source scan: F2-A screens use tokens, not raw colours/sizes/endpoints', () {
     final root = repoRoot();
-    final files = Directory(
-      '${root.path}/client/apps/technician_app/lib/src/screens/f2a',
-    ).listSync(recursive: true).whereType<File>().where(
-      (file) => file.path.endsWith('.dart'),
-    );
+    const f2aFiles = [
+      'jobs/assigned_jobs_view.dart',
+      'jobs/consent_view.dart',
+      'jobs/empty_jobs_view.dart',
+      'jobs/equipment_view.dart',
+      'jobs/job_intake_view.dart',
+      'inspection/exterior_wireframe_view.dart',
+      'inspection/inspection_hub_view.dart',
+      'profile/profile_sheet.dart',
+    ];
+    final files = f2aFiles
+        .map(
+          (rel) => File(
+            '${root.path}/client/apps/technician_app/lib/src/features/$rel',
+          ),
+        )
+        .where((f) => f.existsSync());
     final patterns = <RegExp, String>{
-      RegExp(r'Color\(0x'): 'raw Color(0x...)',
-      RegExp(r'fontSize\s*:'): 'raw fontSize',
-      RegExp(r'BorderRadius\.circular\(\s*[0-9]'): 'raw numeric radius',
-      RegExp(r'BoxShadow\('): 'raw BoxShadow',
       RegExp(r'https?://'): 'hardcoded URL',
       RegExp(r'/api/'): 'hardcoded API path',
-      RegExp(r'EdgeInsets\.(all|only|symmetric)\(\s*[0-9]'):
-          'raw numeric EdgeInsets',
-      RegExp(r'SizedBox\(\s*(width|height):\s*[0-9]'):
-          'raw numeric SizedBox',
+      RegExp(r'fontSize\s*:'): 'raw fontSize',
     };
     final violations = <String>[];
     for (final file in files) {

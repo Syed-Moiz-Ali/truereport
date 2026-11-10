@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/audit/audit_log_screen.dart';
+import 'package:platform_admin_app/src/features/audit/audit_log_screen.dart';
 
 class _TestLocaleNotifier extends LocaleNotifier {
   _TestLocaleNotifier(this._initial);
@@ -22,6 +23,8 @@ Widget _buildTestApp({
     ],
     child: MaterialApp(
       locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(
           size: screenSize,
@@ -67,7 +70,7 @@ void main() {
       expect(find.text('Security Action'), findsOneWidget);
       expect(find.text('Workshop Node Created: Apex Fleet Central'), findsOneWidget);
       expect(find.text('Node Provisioned'), findsOneWidget);
-      expect(find.text('Admin Role Granted to David Vance'), findsOneWidget);
+      expect(find.text('Admin Role Granted to Operations Specialist'), findsOneWidget);
       expect(find.text('RBAC Updated'), findsOneWidget);
       expect(find.text('Master Checklist Schema Modified: Brake Wear'), findsOneWidget);
       expect(find.text('Catalog Versioned'), findsOneWidget);
@@ -91,7 +94,7 @@ void main() {
 
       expect(find.text('Public Share Link Deactivated'), findsOneWidget);
       expect(find.text('Workshop Node Created: Apex Fleet Central'), findsNothing);
-      expect(find.text('Admin Role Granted to David Vance'), findsNothing);
+      expect(find.text('Admin Role Granted to Operations Specialist'), findsNothing);
     });
 
     testWidgets('filtering by search input narrows matching events',

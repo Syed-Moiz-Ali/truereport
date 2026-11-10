@@ -29,7 +29,7 @@ jobs:
         working-directory: client/apps/technician_app
         run: flutter test
       - name: Admin widget tests
-        working-directory: client/apps/admin_app
+        working-directory: client/apps/workshop_admin_app
         run: flutter test
 
   java:

@@ -40,7 +40,10 @@ List<Directory> _libDirs(Directory root) {
       '${root.path}${separator}apps${separator}technician_app${separator}lib',
     ),
     Directory(
-      '${root.path}${separator}apps${separator}admin_app${separator}lib',
+      '${root.path}${separator}apps${separator}workshop_admin_app${separator}lib',
+    ),
+    Directory(
+      '${root.path}${separator}apps${separator}platform_admin_app${separator}lib',
     ),
     Directory(
       '${root.path}${separator}packages${separator}auth${separator}lib',

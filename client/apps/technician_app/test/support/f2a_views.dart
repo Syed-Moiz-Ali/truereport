@@ -2,16 +2,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/screens/f2a/assigned_jobs_view.dart'
+import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart'
     hide EmptyJobsView;
-import 'package:technician_app/src/screens/f2a/empty_state/empty_jobs_view.dart';
-import 'package:technician_app/src/screens/f2a/login_view.dart';
-import 'package:technician_app/src/screens/f2a/consent_view.dart';
+import 'package:technician_app/src/features/jobs/empty_jobs_view.dart';
+import 'package:auth/auth.dart';
+import 'package:technician_app/src/features/jobs/consent_view.dart';
 import 'package:technician_app/src/models.dart';
-import 'package:technician_app/src/screens/f2a/equipment_view.dart';
-import 'package:technician_app/src/screens/f2a/inspection_hub_view.dart';
-import 'package:technician_app/src/screens/f2a/exterior_wireframe_view.dart';
-import 'package:technician_app/src/screens/f2a/job_intake_view.dart';
+import 'package:technician_app/src/features/jobs/equipment_view.dart';
+import 'package:technician_app/src/features/inspection/inspection_hub_view.dart';
+import 'package:technician_app/src/features/inspection/exterior_wireframe_view.dart';
+import 'package:technician_app/src/features/jobs/job_intake_view.dart';
 
 import 'f2a_fixture_data.dart';
 import 'figma_l10n_override.dart';
@@ -42,7 +42,7 @@ Widget f2aScreen(
 }) {
   switch (id) {
     case 'login':
-      return LoginView(
+      return SignInView(
         emailController: TextEditingController(),
         passwordController: TextEditingController(),
         codeController: TextEditingController(),
@@ -106,7 +106,6 @@ Widget f2aScreen(
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Vehicle Walkaround Inspection' : null,
-        isFigma: figma,
       );
     case 'equipment':
       return EquipmentView(
@@ -148,7 +147,6 @@ Widget f2aScreen(
         onBack: () {},
         onProfile: () {},
         title: figma ? 'Diagnostic Checklist' : null,
-        isFigma: figma,
       );
     case 'inspection-hub':
       final checklist = figma ? figmaChecklist() : productChecklist();
@@ -162,14 +160,12 @@ Widget f2aScreen(
         onProfile: () {},
         avatarImage: avatarImage,
         vehicleImage: vehicleImage,
-        isFigma: figma,
       );
     case 'exterior-wireframe':
       return ExteriorWireframeView(
         onBack: () {},
         onProfile: () {},
         avatarImage: avatarImage,
-        isFigma: figma,
       );
     default:
       throw ArgumentError('Unknown F2-A screen: $id');

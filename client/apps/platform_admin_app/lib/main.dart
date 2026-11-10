@@ -23,7 +23,9 @@ class PlatformAdminApp extends ConsumerWidget {
     final router = ref.watch(platformRouterProvider);
 
     return MaterialApp.router(
-      title: 'TrueReport Platform Admin',
+      onGenerateTitle: (context) =>
+          Localizations.of<AppLocalizations>(context, AppLocalizations)?.platformAdminTitle ??
+          'Platform Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       locale: locale,

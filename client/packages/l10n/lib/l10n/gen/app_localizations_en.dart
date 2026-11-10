@@ -1502,4 +1502,178 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get technicianWalkaroundInspection => 'Vehicle Walkaround Inspection';
+
+  @override
+  String get technicianDraw => 'Draw';
+
+  @override
+  String get technicianUndo => 'Undo';
+
+  @override
+  String get technicianCrop => 'Crop';
+
+  @override
+  String get technicianSavePhoto => 'Save Photo';
+
+  @override
+  String get technicianVinEnding => 'VIN ENDING';
+
+  @override
+  String get technicianItemsChecked => 'ITEMS CHECKED';
+
+  @override
+  String get technicianPdfSize => 'PDF SIZE';
+
+  @override
+  String get technicianBackToJobList => 'Back to Job List';
+
+  @override
+  String get technicianTireFl => 'FL';
+
+  @override
+  String get technicianTireFr => 'FR';
+
+  @override
+  String get technicianTireRr => 'RR';
+
+  @override
+  String get technicianSaveAction => 'SAVE';
+
+  @override
+  String get adminFeatureTelemetry => 'Live Bay Telemetry & Queue';
+
+  @override
+  String get adminFeatureSop => 'Adaptive SOP Builder';
+
+  @override
+  String get adminFeatureAudit => 'Cryptographic Audit Clearance';
+
+  @override
+  String get adminFeatureHierarchy => 'Multi-Tenant Workshop Hierarchy';
+
+  @override
+  String get adminFeatureCatalog => 'Global Master Item Library';
+
+  @override
+  String get adminFeatureLedger => 'Immutable Security Ledger';
+
+  @override
+  String get masterLibrary => 'Master Library';
+
+  @override
+  String get dataCatalogues => 'Data Catalogues';
+
+  @override
+  String get auditLog => 'Audit Log';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get vehicleMakes => 'Vehicle Makes';
+
+  @override
+  String get defectSeverities => 'Defect Severities';
+
+  @override
+  String get notCheckedReasons => 'Not-Checked Reasons';
+
+  @override
+  String get fuelPowertrainTypes => 'Fuel & Powertrain Types';
+
+  @override
+  String get fluidSpecifications => 'Fluid Specifications';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get totalJobs => 'Total Jobs';
+
+  @override
+  String get workshopAdminName => 'Workshop Admin Name';
+
+  @override
+  String get contactPhone => 'Contact Phone';
+
+  @override
+  String get technicianDispatchClearance => 'Technician Dispatch Clearance';
+
+  @override
+  String get diagnosticOverrideAuthority => 'Diagnostic Override Authority';
+
+  @override
+  String get telemetryIngestionKey => 'Telemetry Ingestion Key';
+
+  @override
+  String get registerWorkshop => 'Register Workshop';
+
+  @override
+  String get detailsAndSettings => 'Details & Settings';
+
+  @override
+  String get registerAndProvision => 'Register & Provision';
+
+  @override
+  String get preferencesReset => 'Preferences reset to default values.';
+
+  @override
+  String get preferencesSaved =>
+      'Platform preferences saved and propagated to edge nodes!';
+
+  @override
+  String get enableArabicRtl => 'Enable Arabic (RTL) Localization';
+
+  @override
+  String get enableArabicRtlDesc =>
+      'Auto-reverses layout coordinates and inspector forms';
+
+  @override
+  String get enableSpanish => 'Enable Spanish Support';
+
+  @override
+  String get enableSpanishDesc => 'Workshop regional standard (es-MX / es-ES)';
+
+  @override
+  String get enableFrench => 'Enable French Support';
+
+  @override
+  String get enableFrenchDesc =>
+      'Quebec & European fleet inspection checklists';
+
+  @override
+  String get enforce2fa => 'Enforce 2FA (TOTP) for All Admins';
+
+  @override
+  String get enforce2faDesc =>
+      'Mandatory hardware security key or authenticator app';
+
+  @override
+  String get ipWhitelist => 'IP Restriction Whitelist';
+
+  @override
+  String get ipWhitelistDesc =>
+      'Limit console access strictly to corporate diagnostic VPNs';
+
+  @override
+  String get subsystem => 'SUBSYSTEM';
+
+  @override
+  String get measurementMetric => 'MEASUREMENT METRIC';
+
+  @override
+  String get masterCheckpointSaved =>
+      'Master checkpoint specification saved and broadcasted.';
+
+  @override
+  String get fifteenMinutes => '15 Minutes';
+
+  @override
+  String get thirtyMinutes => '30 Minutes';
+
+  @override
+  String get oneHour => '1 Hour';
+
+  @override
+  String get fourHours => '4 Hours';
 }

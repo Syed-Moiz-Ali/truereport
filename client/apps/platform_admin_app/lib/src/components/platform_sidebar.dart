@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 import '../platform_theme.dart';
 
 class PlatformSidebar extends StatelessWidget {
@@ -22,6 +23,13 @@ class PlatformSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final workshopsLabel = l10n?.workshops ?? 'Workshops';
+    final masterLibraryLabel = l10n?.masterLibrary ?? 'Master Library';
+    final dataCataloguesLabel = l10n?.dataCatalogues ?? 'Data Catalogues';
+    final equipmentLabel = l10n?.equipment ?? 'Equipment';
+    final settingsLabel = l10n?.settings ?? 'Settings';
+    final auditLogLabel = l10n?.auditLog ?? 'Audit Log';
     return Container(
       width: 256,
       decoration: const BoxDecoration(
@@ -100,7 +108,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-workshops'),
                   icon: Icons.apartment_rounded,
-                  label: 'Workshops',
+                  label: workshopsLabel,
                   isActive: currentRoute == '/' || currentRoute.startsWith('/workshops'),
                   onTap: () => _navigate(context, '/workshops'),
                 ),
@@ -108,7 +116,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-master-library'),
                   icon: Icons.menu_book_rounded,
-                  label: 'Master Library',
+                  label: masterLibraryLabel,
                   isActive: currentRoute.startsWith('/master-library'),
                   onTap: () => _navigate(context, '/master-library'),
                 ),
@@ -116,7 +124,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-data-catalogues'),
                   icon: Icons.folder_open_rounded,
-                  label: 'Data Catalogues',
+                  label: dataCataloguesLabel,
                   isActive: currentRoute.startsWith('/data-catalogues'),
                   onTap: () => _navigate(context, '/data-catalogues'),
                 ),
@@ -124,7 +132,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-equipment'),
                   icon: Icons.construction_rounded,
-                  label: 'Equipment',
+                  label: equipmentLabel,
                   isActive: currentRoute.startsWith('/equipment'),
                   onTap: () => _navigate(context, '/equipment'),
                 ),
@@ -132,7 +140,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-settings'),
                   icon: Icons.settings_outlined,
-                  label: 'Settings',
+                  label: settingsLabel,
                   isActive: currentRoute.startsWith('/settings'),
                   onTap: () => _navigate(context, '/settings'),
                 ),
@@ -140,7 +148,7 @@ class PlatformSidebar extends StatelessWidget {
                 _NavItem(
                   key: const Key('nav-audit-log'),
                   icon: Icons.verified_user_outlined,
-                  label: 'Audit Log',
+                  label: auditLogLabel,
                   isActive: currentRoute.startsWith('/audit-log'),
                   onTap: () => _navigate(context, '/audit-log'),
                 ),

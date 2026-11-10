@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'platform_providers.dart';
-import 'screens/auth/platform_login_page.dart';
-import 'screens/audit/audit_log_screen.dart';
-import 'screens/catalogues/data_catalogues_screen.dart';
-import 'screens/equipment/equipment_library_screen.dart';
-import 'screens/hierarchy/hierarchy_screen.dart';
-import 'screens/hierarchy/register_workshop_screen.dart';
-import 'screens/hierarchy/workshop_details_screen.dart';
-import 'screens/master_library/master_item_editor_screen.dart';
-import 'screens/master_library/master_library_screen.dart';
-import 'screens/settings/platform_settings_screen.dart';
+import 'features/auth/platform_login_page.dart';
+import 'features/audit/audit_log_screen.dart';
+import 'features/catalogues/data_catalogues_screen.dart';
+import 'features/equipment/equipment_library_screen.dart';
+import 'features/hierarchy/hierarchy_screen.dart';
+import 'features/hierarchy/register_workshop_screen.dart';
+import 'features/hierarchy/workshop_details_screen.dart';
+import 'features/master_library/master_item_editor_screen.dart';
+import 'features/master_library/master_library_screen.dart';
+import 'features/settings/platform_settings_screen.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 class _AuthRefresh extends ChangeNotifier {

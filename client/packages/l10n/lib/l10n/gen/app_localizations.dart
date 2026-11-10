@@ -2959,6 +2959,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vehicle Walkaround Inspection'**
   String get technicianWalkaroundInspection;
+
+  /// No description provided for @technicianDraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get technicianDraw;
+
+  /// No description provided for @technicianUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get technicianUndo;
+
+  /// No description provided for @technicianCrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get technicianCrop;
+
+  /// No description provided for @technicianSavePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Photo'**
+  String get technicianSavePhoto;
+
+  /// No description provided for @technicianVinEnding.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN ENDING'**
+  String get technicianVinEnding;
+
+  /// No description provided for @technicianItemsChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'ITEMS CHECKED'**
+  String get technicianItemsChecked;
+
+  /// No description provided for @technicianPdfSize.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF SIZE'**
+  String get technicianPdfSize;
+
+  /// No description provided for @technicianBackToJobList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Job List'**
+  String get technicianBackToJobList;
+
+  /// No description provided for @technicianTireFl.
+  ///
+  /// In en, this message translates to:
+  /// **'FL'**
+  String get technicianTireFl;
+
+  /// No description provided for @technicianTireFr.
+  ///
+  /// In en, this message translates to:
+  /// **'FR'**
+  String get technicianTireFr;
+
+  /// No description provided for @technicianTireRr.
+  ///
+  /// In en, this message translates to:
+  /// **'RR'**
+  String get technicianTireRr;
+
+  /// No description provided for @technicianSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE'**
+  String get technicianSaveAction;
+
+  /// No description provided for @adminFeatureTelemetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Bay Telemetry & Queue'**
+  String get adminFeatureTelemetry;
+
+  /// No description provided for @adminFeatureSop.
+  ///
+  /// In en, this message translates to:
+  /// **'Adaptive SOP Builder'**
+  String get adminFeatureSop;
+
+  /// No description provided for @adminFeatureAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Cryptographic Audit Clearance'**
+  String get adminFeatureAudit;
+
+  /// No description provided for @adminFeatureHierarchy.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Tenant Workshop Hierarchy'**
+  String get adminFeatureHierarchy;
+
+  /// No description provided for @adminFeatureCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Global Master Item Library'**
+  String get adminFeatureCatalog;
+
+  /// No description provided for @adminFeatureLedger.
+  ///
+  /// In en, this message translates to:
+  /// **'Immutable Security Ledger'**
+  String get adminFeatureLedger;
+
+  /// No description provided for @masterLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Library'**
+  String get masterLibrary;
+
+  /// No description provided for @dataCatalogues.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Catalogues'**
+  String get dataCatalogues;
+
+  /// No description provided for @auditLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Log'**
+  String get auditLog;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @vehicleMakes.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Makes'**
+  String get vehicleMakes;
+
+  /// No description provided for @defectSeverities.
+  ///
+  /// In en, this message translates to:
+  /// **'Defect Severities'**
+  String get defectSeverities;
+
+  /// No description provided for @notCheckedReasons.
+  ///
+  /// In en, this message translates to:
+  /// **'Not-Checked Reasons'**
+  String get notCheckedReasons;
+
+  /// No description provided for @fuelPowertrainTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel & Powertrain Types'**
+  String get fuelPowertrainTypes;
+
+  /// No description provided for @fluidSpecifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluid Specifications'**
+  String get fluidSpecifications;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @totalJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Jobs'**
+  String get totalJobs;
+
+  /// No description provided for @workshopAdminName.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop Admin Name'**
+  String get workshopAdminName;
+
+  /// No description provided for @contactPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Phone'**
+  String get contactPhone;
+
+  /// No description provided for @technicianDispatchClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician Dispatch Clearance'**
+  String get technicianDispatchClearance;
+
+  /// No description provided for @diagnosticOverrideAuthority.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostic Override Authority'**
+  String get diagnosticOverrideAuthority;
+
+  /// No description provided for @telemetryIngestionKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Telemetry Ingestion Key'**
+  String get telemetryIngestionKey;
+
+  /// No description provided for @registerWorkshop.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Workshop'**
+  String get registerWorkshop;
+
+  /// No description provided for @detailsAndSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Details & Settings'**
+  String get detailsAndSettings;
+
+  /// No description provided for @registerAndProvision.
+  ///
+  /// In en, this message translates to:
+  /// **'Register & Provision'**
+  String get registerAndProvision;
+
+  /// No description provided for @preferencesReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences reset to default values.'**
+  String get preferencesReset;
+
+  /// No description provided for @preferencesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform preferences saved and propagated to edge nodes!'**
+  String get preferencesSaved;
+
+  /// No description provided for @enableArabicRtl.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Arabic (RTL) Localization'**
+  String get enableArabicRtl;
+
+  /// No description provided for @enableArabicRtlDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-reverses layout coordinates and inspector forms'**
+  String get enableArabicRtlDesc;
+
+  /// No description provided for @enableSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Spanish Support'**
+  String get enableSpanish;
+
+  /// No description provided for @enableSpanishDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop regional standard (es-MX / es-ES)'**
+  String get enableSpanishDesc;
+
+  /// No description provided for @enableFrench.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable French Support'**
+  String get enableFrench;
+
+  /// No description provided for @enableFrenchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Quebec & European fleet inspection checklists'**
+  String get enableFrenchDesc;
+
+  /// No description provided for @enforce2fa.
+  ///
+  /// In en, this message translates to:
+  /// **'Enforce 2FA (TOTP) for All Admins'**
+  String get enforce2fa;
+
+  /// No description provided for @enforce2faDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mandatory hardware security key or authenticator app'**
+  String get enforce2faDesc;
+
+  /// No description provided for @ipWhitelist.
+  ///
+  /// In en, this message translates to:
+  /// **'IP Restriction Whitelist'**
+  String get ipWhitelist;
+
+  /// No description provided for @ipWhitelistDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit console access strictly to corporate diagnostic VPNs'**
+  String get ipWhitelistDesc;
+
+  /// No description provided for @subsystem.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBSYSTEM'**
+  String get subsystem;
+
+  /// No description provided for @measurementMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'MEASUREMENT METRIC'**
+  String get measurementMetric;
+
+  /// No description provided for @masterCheckpointSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Master checkpoint specification saved and broadcasted.'**
+  String get masterCheckpointSaved;
+
+  /// No description provided for @fifteenMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'15 Minutes'**
+  String get fifteenMinutes;
+
+  /// No description provided for @thirtyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'30 Minutes'**
+  String get thirtyMinutes;
+
+  /// No description provided for @oneHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Hour'**
+  String get oneHour;
+
+  /// No description provided for @fourHours.
+  ///
+  /// In en, this message translates to:
+  /// **'4 Hours'**
+  String get fourHours;
 }
 
 class _AppLocalizationsDelegate

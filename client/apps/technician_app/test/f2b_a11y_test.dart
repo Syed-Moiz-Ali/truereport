@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 import 'package:l10n/l10n/gen/app_localizations_en.dart';
-import 'package:technician_app/src/screens/f2b/f2b_kit.dart';
+import 'package:technician_app/src/shared/technician_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
 import 'support/f2a_test_fonts.dart';

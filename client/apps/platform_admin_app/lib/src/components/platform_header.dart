@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 import '../platform_providers.dart';
 import '../platform_theme.dart';
 
@@ -227,6 +228,14 @@ class PlatformHeader extends ConsumerWidget {
   }
 
   void _openMobileNav(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final platformTitle = l10n?.platformAdminTitle ?? 'Platform Navigation';
+    final workshopsLabel = l10n?.workshops ?? 'Workshops';
+    final masterLibraryLabel = l10n?.masterLibrary ?? 'Master Library';
+    final dataCataloguesLabel = l10n?.dataCatalogues ?? 'Data Catalogues';
+    final equipmentLabel = l10n?.equipment ?? 'Equipment';
+    final settingsLabel = l10n?.settings ?? 'Settings';
+    final auditLogLabel = l10n?.auditLog ?? 'Audit Log';
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: PtTheme.white,
@@ -245,7 +254,7 @@ class PlatformHeader extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Platform Navigation',
+                      platformTitle,
                       style: PtTheme.font(
                         16,
                         lineHeight: 22,
@@ -264,42 +273,42 @@ class PlatformHeader extends ConsumerWidget {
                   ctx,
                   key: const Key('mobile-nav-workshops'),
                   icon: Icons.apartment_rounded,
-                  label: 'Workshops',
+                  label: workshopsLabel,
                   route: '/workshops',
                 ),
                 _buildMobileNavItem(
                   ctx,
                   key: const Key('mobile-nav-master-library'),
                   icon: Icons.menu_book_rounded,
-                  label: 'Master Library',
+                  label: masterLibraryLabel,
                   route: '/master-library',
                 ),
                 _buildMobileNavItem(
                   ctx,
                   key: const Key('mobile-nav-data-catalogues'),
                   icon: Icons.folder_open_rounded,
-                  label: 'Data Catalogues',
+                  label: dataCataloguesLabel,
                   route: '/data-catalogues',
                 ),
                 _buildMobileNavItem(
                   ctx,
                   key: const Key('mobile-nav-equipment'),
                   icon: Icons.construction_rounded,
-                  label: 'Equipment',
+                  label: equipmentLabel,
                   route: '/equipment',
                 ),
                 _buildMobileNavItem(
                   ctx,
                   key: const Key('mobile-nav-settings'),
                   icon: Icons.settings_outlined,
-                  label: 'Settings',
+                  label: settingsLabel,
                   route: '/settings',
                 ),
                 _buildMobileNavItem(
                   ctx,
                   key: const Key('mobile-nav-audit-log'),
                   icon: Icons.verified_user_outlined,
-                  label: 'Audit Log',
+                  label: auditLogLabel,
                   route: '/audit-log',
                 ),
               ],

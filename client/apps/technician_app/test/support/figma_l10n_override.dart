@@ -31,7 +31,7 @@ abstract final class FigmaTestStrings {
   static const isoSecurity = 'ISO 27001 Certified Fleet Security';
 
   // Queue chrome.
-  static const shiftAndBay = 'SHIFT 1 • BAY A';
+  static const shiftAndBay = 'SHIFT 1 â€¢ BAY A';
   static const onlineSync = 'LIVE\nSYNC';
   static const intakeTab = 'Intake';
   static const fleetTab = 'Fleet';
@@ -57,7 +57,7 @@ abstract final class FigmaTestStrings {
   static const startInspection = 'Start Inspection';
 
   // Consent.
-  static const consentSteps = 'STEP 4 OF 4 • FINAL SIGN-OFF';
+  static const consentSteps = 'STEP 4 OF 4 \u2022 FINAL SIGN-OFF';
   static const authorizations = 'Authorizations';
   static const consentIntro = 'Review compliance permissions and provide\ncustomer digital sign-off.';
   static const allowPdf = 'Allow PDF sharing';
@@ -127,16 +127,22 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
   @override
   String get technicianSecurityLine => FigmaTestStrings.isoSecurity;
 
-  // The Figma mock's language switch shows "عربي"; product copy uses the
-  // localized "العربية" (l10n.languageArabic).
+  // The Figma mock's language switch shows "Ø¹Ø±Ø¨ÙŠ"; product copy uses the
+  // localized "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©" (l10n.languageArabic).
   @override
-  String get languageArabic => 'عربي';
+  String get languageArabic => 'Ø¹Ø±Ø¨ÙŠ';
 
   @override
   String technicianShiftToday(int count) => FigmaTestStrings.shiftAndBay;
 
   @override
   String get technicianOnlineSync => FigmaTestStrings.onlineSync;
+
+  @override
+  String get technicianJobIntake => 'INTAKE PHASE';
+
+  @override
+  String get statusAssigned => 'Ready for Check';
 
   @override
   String get technicianJobsTitle => FigmaTestStrings.intakeTab;
@@ -279,6 +285,9 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
   @override
   String technicianChecksCount(int done, int total) =>
       FigmaTestStrings.checksDone(done, total);
+
+  @override
+  String get defectFound => 'Front Left Door Dent';
 }
 
 /// [LocalizationsDelegate] serving [FigmaTestLocalizations] for English.

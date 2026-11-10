@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/screens/equipment/equipment_library_screen.dart';
+import 'package:platform_admin_app/src/features/equipment/equipment_library_screen.dart';
 
 class _TestLocaleNotifier extends LocaleNotifier {
   _TestLocaleNotifier(this._initial);
@@ -61,11 +61,11 @@ void main() {
       // Tool Cards
       expect(find.text('OBD2 Scanner'), findsOneWidget);
       expect(find.text('Signal Locked'), findsOneWidget);
-      expect(find.text('Digital Tire Depth Gauge'), findsOneWidget);
+      expect(find.text('Digital Tread Measurement Tool'), findsOneWidget);
       expect(find.text('ISO Certified'), findsOneWidget);
-      expect(find.text('Precision Torque Wrench'), findsOneWidget);
+      expect(find.text('Precision Fastener Torque Tool'), findsOneWidget);
       expect(find.text('Auto Zeroing'), findsOneWidget);
-      expect(find.text('Paint Depth Gauge (Fe/NFe)'), findsOneWidget);
+      expect(find.text('Surface Coating Thickness Probe'), findsOneWidget);
       expect(find.text('Magnetic Eddy'), findsOneWidget);
       expect(find.text('EV High-Voltage Analyzer'), findsOneWidget);
       expect(find.text('CAT IV 1000V'), findsOneWidget);
@@ -92,9 +92,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('OBD2 Scanner'), findsOneWidget);
-      expect(find.text('Digital Tire Depth Gauge'), findsOneWidget);
-      expect(find.text('Precision Torque Wrench'), findsOneWidget);
-      expect(find.text('Paint Depth Gauge (Fe/NFe)'), findsOneWidget);
+      expect(find.text('Digital Tread Measurement Tool'), findsOneWidget);
+      expect(find.text('Precision Fastener Torque Tool'), findsOneWidget);
+      expect(find.text('Surface Coating Thickness Probe'), findsOneWidget);
       // EV Analyzer is not calibrated in mock
       expect(find.text('EV High-Voltage Analyzer'), findsNothing);
     });
