@@ -72,7 +72,6 @@ class FinalizeView extends StatelessWidget {
       backgroundColor: Fx.white,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final isCompact = constraints.maxHeight < 1200;
           final content = SizedBox(
             width: constraints.maxWidth,
             child: Column(
@@ -102,19 +101,15 @@ class FinalizeView extends StatelessWidget {
 
           return Stack(
             children: [
-              if (isCompact)
-                SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  child: content,
-                )
-              else
-                content,
+              SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.zero,
+                child: content,
+              ),
               PositionedDirectional(
                 start: 0,
                 end: 0,
-                top: isCompact ? null : 1126.63,
-                bottom: isCompact ? 0 : null,
+                bottom: 0,
                 height: 104,
                 child: _Dock(
                   enabled: review.ready && !busy,

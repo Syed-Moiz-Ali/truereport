@@ -17,7 +17,8 @@ public class PublicReportHeadersFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/r/");
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/r/") && !uri.startsWith("/report/");
     }
 
     @Override

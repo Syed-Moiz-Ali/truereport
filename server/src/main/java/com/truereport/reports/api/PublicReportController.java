@@ -29,7 +29,7 @@ public class PublicReportController {
         this.service = service;
     }
 
-    @GetMapping("/r/unavailable")
+    @GetMapping({"/r/unavailable", "/report/unavailable"})
     public ModelAndView unavailable(@RequestParam(defaultValue = "en") String lang) {
         String language = "ar".equals(lang) ? "ar" : "en";
         Map<String, Object> model = new LinkedHashMap<>();
@@ -39,7 +39,7 @@ public class PublicReportController {
         return new ModelAndView("report/unavailable", model);
     }
 
-    @GetMapping("/r/{token}")
+    @GetMapping({"/r/{token}", "/report/{token}"})
     public ModelAndView page(@PathVariable String token,
                              @RequestParam(defaultValue = "en") String lang,
                              HttpServletResponse response) {
@@ -61,7 +61,7 @@ public class PublicReportController {
         return new ModelAndView("report/unavailable", model);
     }
 
-    @GetMapping("/r/{token}/photo/{derivativeId}")
+    @GetMapping({"/r/{token}/photo/{derivativeId}", "/report/{token}/photo/{derivativeId}"})
     public ResponseEntity<byte[]> photo(@PathVariable String token, @PathVariable UUID derivativeId) {
         return service.photo(token, derivativeId)
                 .map(photo -> ResponseEntity.ok()
@@ -71,7 +71,7 @@ public class PublicReportController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/r/{token}/pdf")
+    @GetMapping({"/r/{token}/pdf", "/report/{token}/pdf"})
     public ResponseEntity<byte[]> pdf(@PathVariable String token) {
         return service.pdf(token)
                 .map(bytes -> ResponseEntity.ok()

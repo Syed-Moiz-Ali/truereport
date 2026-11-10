@@ -364,8 +364,9 @@ class _TypographyMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = 'Inspection Finalized';
-    final subtitle =  'Report #${job.reference} has been locked and uploaded.';
+    final l10n = AppLocalizations.of(context);
+    final title = l10n.finalizedSuccessfully;
+    final subtitle = '${l10n.report} #${job.reference} - ${l10n.finalized}';
 
     return Column(
       children: [

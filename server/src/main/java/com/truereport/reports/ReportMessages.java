@@ -28,7 +28,20 @@ public final class ReportMessages {
             "reportHash", "downloadPdf", "language", "english", "arabic", "notCertified",
             "evidenceCaption", "originalNote", "noTranslation", "reportDetails", "page",
             "unavailableTitle", "unavailableBody", "temporaryTitle", "temporaryBody",
-            "revocationNotice", "vin", "check", "notApplicable", "notCompleted");
+            "revocationNotice", "vin", "check", "notApplicable", "notCompleted",
+            "liveReport", "overallCondition", "passed", "attention", "defects",
+            "overview", "exteriorDamageMap", "tyresAndBrakes", "subsystems",
+            "evidenceGallery", "verification", "treadDepth", "pressure", "axle",
+            "frontLeft", "frontRight", "rearLeft", "rearRight", "bodyCondition",
+            "tamperProof", "verifiedBy", "viewFullSize", "viewPhoto", "close",
+            "inspected", "passRateLabel", "officialInspection",
+            "visualDiagnosis", "visualDiagnosisSubtitle", "allParts", "damageDetected",
+            "noDamageObserved", "cosmeticAttention", "actionRequired", "tapToEnlarge",
+            "technicianObservations", "componentsChecked", "damageLocation",
+            "vehicleShowcase", "vehicleShowcaseSubtitle", "showcaseAll", "showcaseExterior",
+            "showcaseInterior", "showcaseMechanical", "photosDocumented", "marketplaceReady",
+            "verifiedCapture", "resaleAdviceTitle", "resaleAdviceBody", "viewFullPhoto",
+            "originalCondition", "exteriorBadge", "interiorBadge", "mechanicalBadge");
 
     private ReportMessages() {
     }

@@ -9,7 +9,7 @@ public class PublicReportAssetsConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/r/assets/**")
+        registry.addResourceHandler("/r/assets/**", "/report/assets/**")
                 .addResourceLocations("classpath:/public-report/");
     }
 }

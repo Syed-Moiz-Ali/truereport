@@ -410,15 +410,9 @@ class _Sheet extends StatelessWidget {
             evidenceImage: evidenceImage,
           ),
           const SizedBox(height: 23.5),
-          _NoteRow(
-            noteController: noteController,
-          ),
+          _NoteRow(noteController: noteController),
           const SizedBox(height: 24),
-          _SaveBlock(
-            onSave: onSave,
-            busy: busy,
-            finalized: finalized,
-          ),
+          _SaveBlock(onSave: onSave, busy: busy, finalized: finalized),
         ],
       ),
     );
@@ -716,7 +710,9 @@ class _ClassificationBlock extends StatelessWidget {
                         button: true,
                         label: severityLabel(l10n, 'MODERATE'),
                         child: GestureDetector(
-                          onTap: finalized ? null : () => onSeverity('MODERATE'),
+                          onTap: finalized
+                              ? null
+                              : () => onSeverity('MODERATE'),
                           child: Container(
                             height: 32,
                             padding: const EdgeInsets.symmetric(
@@ -896,11 +892,7 @@ class _EvidenceBlock extends StatelessWidget {
 }
 
 class _FilledTile extends StatelessWidget {
-  const _FilledTile({
-    this.image,
-    this.photo,
-    this.onTap,
-  });
+  const _FilledTile({this.image, this.photo, this.onTap});
 
   final ui.Image? image;
   final LocalEvidence? photo;
@@ -952,11 +944,7 @@ class _FilledTile extends StatelessWidget {
                   child: Container(
                     color: Fx.whiteE5,
                     alignment: Alignment.center,
-                    child: const FxIcon(
-                      id: '1_8107',
-                      size: 12,
-                      color: Fx.ink,
-                    ),
+                    child: const FxIcon(id: '1_8107', size: 12, color: Fx.ink),
                   ),
                 ),
               ),
@@ -968,13 +956,13 @@ class _FilledTile extends StatelessWidget {
             child: Container(
               height: 18,
               decoration: const BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
                 boxShadow: Fx.pillShadow,
               ),
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(Fx.pillRadius),
+                ),
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                   child: Container(
@@ -1018,10 +1006,7 @@ class _FilledTile extends StatelessWidget {
 }
 
 class _EmptyTile extends StatelessWidget {
-  const _EmptyTile({
-    this.onTap,
-    this.busy = false,
-  });
+  const _EmptyTile({this.onTap, this.busy = false});
 
   final VoidCallback? onTap;
   final bool busy;
@@ -1074,14 +1059,14 @@ class _EmptyTile extends StatelessWidget {
 }
 
 class _NoteRow extends StatelessWidget {
-  const _NoteRow({
-    required this.noteController,
-  });
+  const _NoteRow({required this.noteController});
 
   final TextEditingController noteController;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+
     return Container(
       height: 56.67,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1101,14 +1086,14 @@ class _NoteRow extends StatelessWidget {
             child: TextField(
               controller: noteController,
               style: Fx.body13.copyWith(color: Fx.ink),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      hintText: l10n.note,
-                      hintStyle: Fx.body13.copyWith(color: Fx.muted),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                hintText: l10n!.note,
+                hintStyle: Fx.body13.copyWith(color: Fx.muted),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Container(
@@ -1145,11 +1130,7 @@ class _SaveBlock extends StatelessWidget {
         label: l10n.saveAnswer.toUpperCase(),
         labelStyle: Fx.text(14, 18, FontWeight.w700, 0.7, color: Fx.white),
         onPressed: busy || finalized ? null : onSave,
-        icon: const FxIcon(
-          id: '1_8134',
-          size: 13.58,
-          color: Fx.white,
-        ),
+        icon: const FxIcon(id: '1_8134', size: 13.58, color: Fx.white),
       ),
     );
   }

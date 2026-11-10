@@ -26,8 +26,10 @@ public class PublicReportRateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/r/")
-                || request.getRequestURI().startsWith("/r/assets/");
+        String uri = request.getRequestURI();
+        boolean isPublicReport = uri.startsWith("/r/") || uri.startsWith("/report/");
+        boolean isAsset = uri.startsWith("/r/assets/") || uri.startsWith("/report/assets/");
+        return !isPublicReport || isAsset;
     }
 
     @Override
