@@ -2433,23 +2433,22 @@ footer.report-footer {
 }
 
 .key-finding-interactive-card {
-  padding: 22px;
-  border-radius: 16px;
-  background: #FFFFFF;
-  border: 1px solid var(--outline);
-  border-inline-start: 5px solid #EF4444;
+  padding: 24px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F8 100%);
+  border: 1px solid rgba(239, 68, 68, 0.25);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  gap: 16px;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .key-finding-interactive-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.12);
-  border-color: #EF4444;
+  box-shadow: 0 14px 32px rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.6);
 }
 
 .key-finding-top {
@@ -2598,22 +2597,74 @@ footer.report-footer {
   border-radius: 16px;
   background: #FFFFFF;
   border: 1px solid var(--outline);
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 
 .tyre-modern-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 108, 73, 0.12);
+  border-color: #006C49;
+}
+
+.wheel-has-attention {
+  border-color: #FCD34D;
+  background: #FFFDF9;
+  border-top: 4px solid #F59E0B;
+}
+
+.wheel-has-attention:hover {
+  border-color: #F59E0B;
+  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.18);
 }
 
 .wheel-has-defect {
   border-color: #FECACA;
   border-top: 4px solid #EF4444;
   background: #FFFDFD;
+}
+
+.wheel-has-defect:hover {
+  border-color: #EF4444;
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.18);
+}
+
+.gauge-fill-attention {
+  background: linear-gradient(90deg, #FBBF24, #F59E0B);
+}
+
+.wheel-tap-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px dashed var(--outline);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #006C49;
+  margin-top: auto;
+}
+
+.wheel-tap-arrow {
+  transition: transform 0.2s ease;
+}
+
+.tyre-modern-card:hover .wheel-tap-arrow {
+  transform: translateX(4px);
+}
+
+.corner-code-badge {
+  font-family: monospace;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #E2E8F0;
+  color: #334155;
+  margin-inline-start: 6px;
 }
 
 .wheel-card-header {
@@ -2742,6 +2793,255 @@ footer.report-footer {
 
 .defect-alert-dot {
   color: #EF4444;
+}
+
+/* ==========================================================================
+   Interactive Exterior Damage Map Zones
+   ========================================================================== */
+.zone-svg-hotspot {
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  outline: none;
+}
+
+.zone-svg-hotspot:hover,
+.zone-svg-hotspot.is-active-pin {
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+  transform: scale(1.15);
+}
+
+.zone-svg-hotspot.damage-marker-group:hover,
+.zone-svg-hotspot.damage-marker-group.is-active-pin {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.9));
+}
+
+.hotspot-base {
+  fill: #10B981;
+  stroke: #FFFFFF;
+  stroke-width: 2.5;
+  transition: fill 0.2s ease;
+}
+
+.zone-svg-hotspot:hover .hotspot-base,
+.zone-svg-hotspot.is-active-pin .hotspot-base {
+  fill: #059669;
+}
+
+.hotspot-text {
+  fill: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace;
+  pointer-events: none;
+}
+
+.damage-zone-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--outline);
+}
+
+.damage-zone-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--outline);
+  background: #F8FAFC;
+  color: var(--on-surface);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.damage-zone-btn:hover {
+  border-color: #006C49;
+  background: #F0FDF4;
+}
+
+.damage-zone-btn.active {
+  background: #006C49;
+  color: #FFFFFF;
+  border-color: #006C49;
+  box-shadow: 0 4px 12px rgba(0, 108, 73, 0.25);
+}
+
+.damage-zone-btn.has-defect.active {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.zone-code-tag {
+  font-family: monospace;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.damage-zone-btn.active .zone-code-tag {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.zone-status-mini-dot {
+  font-size: 0.75rem;
+}
+
+.mini-dot-clean {
+  color: #10B981;
+}
+
+.damage-zone-btn.active .mini-dot-clean {
+  color: #A7F3D0;
+}
+
+.mini-dot-defect {
+  color: #EF4444;
+}
+
+.damage-zone-btn.active .mini-dot-defect {
+  color: #FECACA;
+}
+
+.damage-zones-panel-container {
+  margin-top: 18px;
+}
+
+.damage-zone-detail-panel {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 14px;
+  background: #F8FAFC;
+  border: 1px solid var(--outline);
+  animation: fadeInZone 0.22s ease-out;
+}
+
+.damage-zone-detail-panel.active {
+  display: flex;
+}
+
+@keyframes fadeInZone {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.zone-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.zone-panel-title-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zone-panel-icon {
+  font-size: 1.6rem;
+}
+
+.zone-panel-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--on-surface);
+}
+
+.zone-panel-code-sub {
+  font-size: 0.8rem;
+  color: var(--on-variant);
+  font-weight: 600;
+}
+
+.zone-panel-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.zone-metric-card {
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid var(--outline);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zone-metric-label {
+  font-size: 0.75rem;
+  color: var(--on-variant);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.zone-metric-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+.zone-panel-assessment {
+  padding: 16px 18px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.assessment-clean {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
+
+.assessment-defect {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+}
+
+.assessment-text {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.zone-inspect-dialog-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.zone-inspect-dialog-btn:hover {
+  background: #B91C1C;
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================

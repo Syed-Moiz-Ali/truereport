@@ -92,9 +92,17 @@ public class ReportViewMapper {
         catSummary.put("attentionCount", attentionCats);
         catSummary.put("text", ar ? (goodCats + " أنظمة بحالة سليمة • " + attentionCats + " نظام يتطلب صيانة")
                                   : (goodCats + " Systems Good • " + attentionCats + " System Needs Service"));
-        catSummary.put("servicesText", ar ? "4 خدمات بحالة جيدة • 1 خدمة تتطلب صيانة"
-                                          : "4 Services Good • 1 Service Needs Service");
+        String passCatEn = goodCats + (goodCats == 1 ? " Category Passed" : " Categories Passed");
+        String attnCatEn = attentionCats + (attentionCats == 1 ? " Category Needs Attention" : " Categories Need Attention");
+        String passCatAr = goodCats + " فئات اجتازت الفحص";
+        String attnCatAr = attentionCats + (attentionCats == 1 ? " فئة تتطلب انتباه" : " فئات تتطلب انتباه");
+        catSummary.put("checklistSummaryText", ar ? (passCatAr + " • " + attnCatAr)
+                                                  : (passCatEn + " • " + attnCatEn));
+        catSummary.put("servicesText", ar ? (passCatAr + " • " + attnCatAr)
+                                          : (passCatEn + " • " + attnCatEn));
         root.put("categoriesSummary", catSummary);
+        root.put("tyreAssemblies", tyreAssemblies(language));
+        root.put("damageZones", damageZones(language));
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
         root.put("vehicleShowcase", showcase);
         root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
@@ -168,8 +176,13 @@ public class ReportViewMapper {
         catSummaryEn.put("goodCount", goodCatsEn);
         catSummaryEn.put("attentionCount", attentionCatsEn);
         catSummaryEn.put("text", goodCatsEn + " Systems Good • " + attentionCatsEn + " System Needs Service");
-        catSummaryEn.put("servicesText", "4 Services Good • 1 Service Needs Service");
+        String passCatPrint = goodCatsEn + (goodCatsEn == 1 ? " Category Passed" : " Categories Passed");
+        String attnCatPrint = attentionCatsEn + (attentionCatsEn == 1 ? " Category Needs Attention" : " Categories Need Attention");
+        catSummaryEn.put("checklistSummaryText", passCatPrint + " • " + attnCatPrint);
+        catSummaryEn.put("servicesText", passCatPrint + " • " + attnCatPrint);
         root.put("categoriesSummary", catSummaryEn);
+        root.put("tyreAssemblies", tyreAssemblies("en"));
+        root.put("damageZones", damageZones("en"));
         List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
         root.put("vehicleShowcase", showcaseEn);
         root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
@@ -1015,5 +1028,264 @@ public class ReportViewMapper {
             return "/report/assets/img/image-1-96fe1d6167.jpg";
         }
         return "/report/assets/img/image-1-0c99e38fa3.jpg";
+    }
+
+    private List<Map<String, Object>> tyreAssemblies(String language) {
+        boolean ar = "ar".equals(language);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        Map<String, Object> fl = new LinkedHashMap<>();
+        fl.put("id", "tyre-fl");
+        fl.put("posCode", "FL");
+        fl.put("position", ar ? "الأمامية يسار" : "Front Left");
+        fl.put("title", ar ? "الإطار والمكابح الأمامية يسار" : "Front Left Wheel & Brake");
+        fl.put("category", ar ? "المكابح والإطارات" : "Brakes & Tyres");
+        fl.put("status", "PASSED");
+        fl.put("statusLabel", ar ? "سليم" : "Passed");
+        fl.put("statusClass", "badge-pass");
+        fl.put("score", 96);
+        fl.put("scoreText", "96/100");
+        fl.put("treadDepth", "6.2 mm");
+        fl.put("pressure", "34 PSI");
+        fl.put("brakePad", "7.5 mm");
+        fl.put("measuredSpec", ar ? "عمق المداس: 6.2 مم • الضغط: 34 PSI • سماكة الفحمات: 7.5 مم"
+                                  : "Tread: 6.2mm • Pressure: 34 PSI • Brake Pad: 7.5mm");
+        fl.put("standardSpec", ar ? "الحد الأدنى للمداس: 3.0 مم • الضغط الموصى به: 34 PSI • فحمات: 3.0 مم"
+                                  : "Min Tread: 3.0mm • Rec Pressure: 34 PSI • Min Pad: 3.0mm");
+        fl.put("diagnosticSensor", ar ? "جهاز قياس رقمي دقيق لعمق المداس وسماكة الفحمات"
+                                      : "Digital Laser Depth Gauge & Micrometer");
+        fl.put("technicianNote", ar ? "إطار ميشلان بايلوت سبورت 4S بحالة ممتازة وتآكل متساوي منتظم. سطح الهوب ناعم بدون حزوز، ومكابس الكليبر تعمل بسلاسة تامة."
+                                    : "Michelin Pilot Sport 4S in excellent condition with even tread wear. Brake rotor face smooth, caliper slide pins responsive and clean.");
+        fl.put("imageUrl", "/report/assets/img/image-1-30f4a447ab.jpg");
+        fl.put("videoUrl", "/report/assets/video/inspection-brakes.mp4");
+        fl.put("videoCaption", ar ? "فيديو فحص سماكة الفحمات وعمق مداس الإطار بمقياس رقمي"
+                                  : "HD Video Proof: Digital micrometer tread & brake caliper inspection");
+        list.add(fl);
+
+        Map<String, Object> fr = new LinkedHashMap<>();
+        fr.put("id", "tyre-fr");
+        fr.put("posCode", "FR");
+        fr.put("position", ar ? "الأمامية يمين" : "Front Right");
+        fr.put("title", ar ? "الإطار والمكابح الأمامية يمين" : "Front Right Wheel & Brake");
+        fr.put("category", ar ? "المكابح والإطارات" : "Brakes & Tyres");
+        fr.put("status", "PASSED");
+        fr.put("statusLabel", ar ? "سليم" : "Passed");
+        fr.put("statusClass", "badge-pass");
+        fr.put("score", 95);
+        fr.put("scoreText", "95/100");
+        fr.put("treadDepth", "6.1 mm");
+        fr.put("pressure", "34 PSI");
+        fr.put("brakePad", "7.2 mm");
+        fr.put("measuredSpec", ar ? "عمق المداس: 6.1 مم • الضغط: 34 PSI • سماكة الفحمات: 7.2 مم"
+                                  : "Tread: 6.1mm • Pressure: 34 PSI • Brake Pad: 7.2mm");
+        fr.put("standardSpec", ar ? "الحد الأدنى للمداس: 3.0 مم • الضغط الموصى به: 34 PSI • فحمات: 3.0 مم"
+                                  : "Min Tread: 3.0mm • Rec Pressure: 34 PSI • Min Pad: 3.0mm");
+        fr.put("diagnosticSensor", ar ? "جهاز قياس رقمي دقيق لعمق المداس وسماكة الفحمات"
+                                      : "Digital Laser Depth Gauge & Micrometer");
+        fr.put("technicianNote", ar ? "تآكل مداس متوازن، سلامة الهيكل الجانبي للإطار من الانتفاخات أو الشقوق. أداء هيدروليكي ممتاز لمنظومة الفرملة."
+                                    : "Even tread wear pattern across full tyre width. Sidewall intact without bulges or cuts. Hydraulic brake pressure within spec.");
+        fr.put("imageUrl", "/report/assets/img/image-1-0c99e38fa3.jpg");
+        fr.put("videoUrl", "/report/assets/video/inspection-brakes.mp4");
+        fr.put("videoCaption", ar ? "فيديو فحص سماكة الفحمات وعمق مداس الإطار بمقياس رقمي"
+                                  : "HD Video Proof: Digital micrometer tread & brake caliper inspection");
+        list.add(fr);
+
+        Map<String, Object> rl = new LinkedHashMap<>();
+        rl.put("id", "tyre-rl");
+        rl.put("posCode", "RL");
+        rl.put("position", ar ? "الخلفية يسار" : "Rear Left");
+        rl.put("title", ar ? "الإطار والمكابح الخلفية يسار" : "Rear Left Wheel & Brake");
+        rl.put("category", ar ? "المكابح والإطارات" : "Brakes & Tyres");
+        rl.put("status", "PASSED");
+        rl.put("statusLabel", ar ? "سليم" : "Passed");
+        rl.put("statusClass", "badge-pass");
+        rl.put("score", 96);
+        rl.put("scoreText", "96/100");
+        rl.put("treadDepth", "6.4 mm");
+        rl.put("pressure", "35 PSI");
+        rl.put("brakePad", "7.6 mm");
+        rl.put("measuredSpec", ar ? "عمق المداس: 6.4 مم • الضغط: 35 PSI • سماكة الفحمات: 7.6 مم"
+                                  : "Tread: 6.4mm • Pressure: 35 PSI • Brake Pad: 7.6mm");
+        rl.put("standardSpec", ar ? "الحد الأدنى للمداس: 3.0 مم • الضغط الموصى به: 35 PSI • فحمات: 3.0 مم"
+                                  : "Min Tread: 3.0mm • Rec Pressure: 35 PSI • Min Pad: 3.0mm");
+        rl.put("diagnosticSensor", ar ? "جهاز قياس رقمي دقيق لعمق المداس وسماكة الفحمات"
+                                      : "Digital Laser Depth Gauge & Micrometer");
+        rl.put("technicianNote", ar ? "سماكة الفحمات مطابقة للمواصفات الممتازة. هوب الفرامل متجانس وخالي من التموجات، ونظام الجلنط الإلكتروني يستجيب فوراً."
+                                    : "Brake pad thickness well above minimum safe limits. Rotor surface flat and true, electronic parking brake actuator holds firm.");
+        rl.put("imageUrl", "/report/assets/img/image-1-30f4a447ab.jpg");
+        rl.put("videoUrl", "/report/assets/video/inspection-brakes.mp4");
+        rl.put("videoCaption", ar ? "فيديو فحص سماكة الفحمات وعمق مداس الإطار بمقياس رقمي"
+                                  : "HD Video Proof: Digital micrometer tread & brake caliper inspection");
+        list.add(rl);
+
+        Map<String, Object> rr = new LinkedHashMap<>();
+        rr.put("id", "tyre-rr");
+        rr.put("posCode", "RR");
+        rr.put("position", ar ? "الخلفية يمين" : "Rear Right");
+        rr.put("title", ar ? "الإطار والمكابح الخلفية يمين" : "Rear Right Wheel & Brake");
+        rr.put("category", ar ? "المكابح والإطارات" : "Brakes & Tyres");
+        rr.put("status", "ATTENTION");
+        rr.put("statusLabel", ar ? "يتطلب صيانة" : "Needs Service");
+        rr.put("statusClass", "badge-attention");
+        rr.put("score", 76);
+        rr.put("scoreText", "76/100");
+        rr.put("treadDepth", "5.8 mm");
+        rr.put("pressure", "35 PSI");
+        rr.put("brakePad", "3.1 mm");
+        rr.put("measuredSpec", ar ? "عمق المداس: 5.8 مم • الضغط: 35 PSI • سماكة الفحمات: 3.1 مم (مستهلكة)"
+                                  : "Tread: 5.8mm • Pressure: 35 PSI • Brake Pad: 3.1mm (Worn)");
+        rr.put("standardSpec", ar ? "الحد الأدنى للسلامة: 3.0 مم • استبدال موصى به قبل 2,000 كم"
+                                  : "Safety Minimum: 3.0mm • Replacement advised within 2,000 km");
+        rr.put("diagnosticSensor", ar ? "جهاز قياس رقمي دقيق لعمق المداس وسماكة الفحمات"
+                                      : "Digital Laser Depth Gauge & Micrometer");
+        rr.put("technicianNote", ar ? "سماكة فحمات الفرامل الخلفية يمين انخفضت إلى 3.1 مم واقتربت من الحد الأدنى الحرج (3.0 مم). يوصى باستبدال فحمات المحور الخلفي خلال 2,000 كم."
+                                    : "Rear right brake pad has worn to 3.1mm, approaching the 3.0mm critical service limit. Recommend rear axle pad replacement within 2,000 km.");
+        rr.put("imageUrl", "/report/assets/img/image-1-30f4a447ab.jpg");
+        rr.put("videoUrl", "/report/assets/video/inspection-brakes.mp4");
+        rr.put("videoCaption", ar ? "فيديو فحص سماكة الفحمات وعمق مداس الإطار بمقياس رقمي"
+                                  : "HD Video Proof: Digital micrometer tread & brake caliper inspection");
+        list.add(rr);
+
+        return list;
+    }
+
+    private List<Map<String, Object>> damageZones(String language) {
+        boolean ar = "ar".equals(language);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        list.add(createDamageZone(
+                "front-bumper",
+                "FB",
+                ar ? "الصدام الأمامي والشبك" : "Front Bumper & Grille",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "115 µm",
+                ar ? "سماكة طلاء المصنع مؤكدة (112-118 ميكرون). خالي من الخدوش أو الترمل أو رشات الصبغ."
+                   : "Original factory paint thickness verified (112-118 µm). Zero stone chips, scratches or repaints.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        list.add(createDamageZone(
+                "hood",
+                "HD",
+                ar ? "غطاء المحرك (الكبوت)" : "Hood (Bonnet)",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "118 µm",
+                ar ? "سماكة الطلاء 118 ميكرون متطابقة تماماً مع المصنع. مسامير التثبيت الأصلية لم تفك وخالي من التعديل."
+                   : "Factory paint depth 118 µm. Uniform reflection, original seam sealant along edges, bolts untooled.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        list.add(createDamageZone(
+                "windshield-roof",
+                "RF",
+                ar ? "السقف والزجاج الأمامي" : "Roof & Windshield Glass",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "110 µm",
+                ar ? "زجاج وكالة أصلي مدموغ بشعار الشركة. سقف خالي من ضربات البرد أو بهتان طبقة اللمعان."
+                   : "Original OEM stamped glass. Roof panel free of hail dents, sun fading or clearcoat oxidation.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        list.add(createDamageZone(
+                "left-profile",
+                "LS",
+                ar ? "الأبواب والرفارف الجانبية يسار" : "Left Profile (Doors & Fender)",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "114 µm",
+                ar ? "الأبواب والرفرف الأيسر متناسقة بالكامل بسماكة 110-118 ميكرون. فواصل الأبواب متناسقة بالمليمتر."
+                   : "Both left doors and front fender show consistent paint depth (110-118 µm). Perfect panel gap alignment.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        list.add(createDamageZone(
+                "right-profile",
+                "RS",
+                ar ? "الباب والرفرف الأمامي يمين" : "Right Front Door & Fender",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "116 µm",
+                ar ? "باب الراكب والرفرف الأمامي الأيمن بحالة الوكالة. خالي من أي رش تجميلي أو تعديل."
+                   : "Front passenger door and right front fender in original factory state. No signs of blending or respray.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        list.add(createDamageZone(
+                "rear-right-arch",
+                "RR-ARCH",
+                ar ? "الرفرف الخلفي الأيمن / قوس العجلة" : "Rear Right Quarter Panel / Arch",
+                true,
+                "DEFECT_FOUND",
+                ar ? "خدش سطحي: 42 مم" : "Cosmetic Scratch: 42mm",
+                "badge-defect",
+                "116 µm (OEM)",
+                ar ? "خدش سطحي تجميلي بطول 42 مم في القوس السفلي. لم يصل لطبقة الأساس والصاج سليم تماماً بدون صدمة أو معجون."
+                   : "Cosmetic clearcoat scratch 42mm in length on lower curve of wheel arch. Primer intact, zero sheet metal deformation. Paint is 100% factory original.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                "/report/assets/video/inspection-scratch.mp4",
+                ar ? "فيديو مقرب 4K: قياس عمق الخدش وفحص جهاز قياس سماكة الطلاء"
+                   : "Macro 4K Video: 42mm scratch depth & paint gauge inspection"
+        ));
+
+        list.add(createDamageZone(
+                "rear-tailgate",
+                "RB",
+                ar ? "الشنطة والصدام الخلفي" : "Rear Tailgate & Bumper",
+                false,
+                "PASSED",
+                ar ? "حالة المصنع الأصلية" : "Original Factory Condition",
+                "badge-pass",
+                "115 µm",
+                ar ? "حساسات الصدام الخلفي سليمة، كاميرا الرجوع نقية، ومساعدات فتح الشنطة الكهربائية تعمل بسلاسة."
+                   : "Rear bumper sensors intact, reverse camera crystal clear, tailgate latch & electronic struts smooth.",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                null,
+                null
+        ));
+
+        return list;
+    }
+
+    private Map<String, Object> createDamageZone(String id, String code, String title, boolean isDamaged,
+                                                 String status, String statusLabel, String statusClass,
+                                                 String paintThickness, String note, String imageUrl,
+                                                 String videoUrl, String videoCaption) {
+        Map<String, Object> zone = new LinkedHashMap<>();
+        zone.put("id", id);
+        zone.put("code", code);
+        zone.put("title", title);
+        zone.put("isDamaged", isDamaged);
+        zone.put("status", status);
+        zone.put("statusLabel", statusLabel);
+        zone.put("statusClass", statusClass);
+        zone.put("paintThickness", paintThickness);
+        zone.put("note", note);
+        zone.put("imageUrl", imageUrl);
+        zone.put("videoUrl", videoUrl);
+        zone.put("videoCaption", videoCaption);
+        return zone;
     }
 }

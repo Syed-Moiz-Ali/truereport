@@ -170,7 +170,7 @@ function closeLightbox() {
 
 // Global click event delegation - guarantees clicks work on every element!
 document.addEventListener('click', function (e) {
-  var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card');
+  var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card, .tyre-modern-card');
   if (partTrigger) {
     e.preventDefault();
     openPartDialog(partTrigger);
@@ -206,7 +206,7 @@ document.addEventListener('keydown', function (e) {
     closeLightbox();
   } else if (e.key === 'Enter' || e.key === ' ') {
     var active = document.activeElement;
-    if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card')) {
+    if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card, .tyre-modern-card')) {
       e.preventDefault();
       openPartDialog(active);
     }
@@ -298,6 +298,61 @@ document.addEventListener('DOMContentLoaded', function () {
           card.style.display = 'none';
         }
       });
+    });
+  });
+
+  // Interactive Exterior Damage Map Zone Switcher
+  function selectDamageZone(zoneId) {
+    if (!zoneId) return;
+    var allZoneBtns = document.querySelectorAll('.damage-zone-btn');
+    var allHotspots = document.querySelectorAll('.zone-svg-hotspot');
+    var allPanels = document.querySelectorAll('.damage-zone-detail-panel');
+
+    allZoneBtns.forEach(function (btn) {
+      if (btn.getAttribute('data-zone-id') === zoneId) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    allHotspots.forEach(function (spot) {
+      if (spot.getAttribute('data-zone-target') === zoneId) {
+        spot.classList.add('is-active-pin');
+      } else {
+        spot.classList.remove('is-active-pin');
+      }
+    });
+
+    allPanels.forEach(function (panel) {
+      if (panel.getAttribute('data-zone-panel') === zoneId) {
+        panel.classList.add('active');
+      } else {
+        panel.classList.remove('active');
+      }
+    });
+  }
+
+  var damageZoneBtns = document.querySelectorAll('.damage-zone-btn');
+  damageZoneBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var zoneId = btn.getAttribute('data-zone-id');
+      selectDamageZone(zoneId);
+    });
+  });
+
+  var damageHotspots = document.querySelectorAll('.zone-svg-hotspot');
+  damageHotspots.forEach(function (spot) {
+    spot.addEventListener('click', function () {
+      var zoneId = spot.getAttribute('data-zone-target');
+      selectDamageZone(zoneId);
+    });
+    spot.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        var zoneId = spot.getAttribute('data-zone-target');
+        selectDamageZone(zoneId);
+      }
     });
   });
 

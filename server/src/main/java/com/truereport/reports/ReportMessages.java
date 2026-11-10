@@ -52,7 +52,10 @@ public final class ReportMessages {
             "serviceRemaining", "tapToToggleDetails", "viewPartDetails",
             "closeDetails", "systemHealthSummary", "diagnosticScore",
             "standardSpec", "diagnosticSensor", "technicianNotes",
-            "defectActionRequired", "diagnosticSystemsHub", "diagnosticSystemsHubSub");
+            "defectActionRequired", "diagnosticSystemsHub", "diagnosticSystemsHubSub",
+            "inspectionCriteria", "inspectionCriteriaSubtitle", "cleanCondition",
+            "noDamageNote", "tapPanelToInspect", "paintThickness", "zoneInspection",
+            "inspectZoneProof", "allPanelsChecked");
 
     private ReportMessages() {
     }

@@ -219,12 +219,12 @@
     <div class="findings-subgroup">
       <div class="subgroup-header category-findings-header">
         <div>
-          <h3 class="subgroup-title" th:text="${r.labels.findings}"></h3>
-          <p class="section-subtitle" th:text="${r.labels.tapToToggleDetails}"></p>
+          <h3 class="subgroup-title" th:text="${r.labels.inspectionCriteria}"></h3>
+          <p class="section-subtitle" th:text="${r.labels.inspectionCriteriaSubtitle}"></p>
         </div>
-        <!-- Right side: 4 Services Good · 1 Service Needs Service & Score Summary -->
+        <!-- Right side: 5 Categories Passed • 1 Category Needs Attention & Score Summary -->
         <div class="category-header-right-badges">
-          <span class="services-health-pill" th:text="${r.categoriesSummary.servicesText}"></span>
+          <span class="services-health-pill" th:text="${r.categoriesSummary.checklistSummaryText}"></span>
           <span class="section-tag" th:text="${r.totalEvaluated} + ' ' + ${r.labels.checksCompleted}"></span>
         </div>
       </div>
@@ -258,8 +258,10 @@
               <span class="accordion-arrow" aria-hidden="true">▾</span>
               <strong th:text="${category.label}"></strong>
             </div>
-            <!-- Right side of category: Health score and service status -->
+            <!-- Right side of category: Status badge, health score, and count -->
             <div class="category-meta-chips">
+              <span class="badge" th:classappend="${category.categoryStatus == 'GOOD' ? 'success' : (category.defectCount > 0 ? 'danger' : 'warning')}"
+                    th:text="${category.categoryStatusLabel}"></span>
               <span class="score-badge" th:classappend="${category.score >= 90 ? 'score-high' : (category.score >= 70 ? 'score-mid' : 'score-low')}">
                 <span th:text="${r.labels.itemScore} + ': ' + ${category.scoreText}"></span>
               </span>
@@ -310,12 +312,16 @@
   <!-- Section 3: 2D Vehicle Wireframe & Damage Map -->
   <section id="wireframe" class="damage-map-section" aria-labelledby="wireframe-title">
     <div class="section-header">
-      <h2 id="wireframe-title" th:text="${r.labels.exteriorDamageMap}"></h2>
-      <span class="section-tag" th:text="${r.labels.bodyCondition}"></span>
+      <div>
+        <h2 id="wireframe-title" th:text="${r.labels.exteriorDamageMap}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.tapPanelToInspect}"></p>
+      </div>
+      <span class="section-tag" th:text="${r.labels.allPanelsChecked}"></span>
     </div>
+
     <div class="card wireframe-card">
       <div class="wireframe-visual-container">
-        <!-- SVG 2D Car Wireframe Outline -->
+        <!-- SVG 2D Car Wireframe Outline with Interactive Hotspot Pins -->
         <div class="wireframe-art">
           <svg viewBox="0 0 800 320" class="car-wireframe-svg" role="img" th:attr="aria-label=${r.labels.exteriorDamageMap}">
             <path d="M 120 220 L 160 220 A 45 45 0 0 1 250 220 L 550 220 A 45 45 0 0 1 640 220 L 720 220 C 740 220 760 200 760 170 C 760 145 745 135 710 130 L 660 125 L 560 65 C 540 50 510 45 450 45 L 290 45 C 240 45 200 65 170 110 L 100 135 C 70 145 50 160 50 185 C 50 210 80 220 120 220 Z" class="car-body-path"/>
@@ -327,166 +333,181 @@
             <line x1="435" y1="125" x2="435" y2="215" class="car-door-seam"/>
             <rect x="410" y="135" width="22" height="6" rx="3" class="car-door-handle"/>
             <rect x="255" y="135" width="22" height="6" rx="3" class="car-door-handle"/>
-            <!-- Pinpoint Badge: Scratch on Rear Right Wheel Arch -->
-            <g class="damage-marker-group" transform="translate(615, 175)">
-              <circle cx="0" cy="0" r="16" class="pin-radar-pulse"/>
-              <circle cx="0" cy="0" r="9" class="pin-solid-dot"/>
-              <text x="0" y="4" text-anchor="middle" class="pin-icon-char">!</text>
+
+            <!-- Interactive Hotspot Pins for Each Zone -->
+            <!-- Front Bumper -->
+            <g class="zone-svg-hotspot" data-zone-target="front-bumper" transform="translate(85, 175)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'FB'"></text>
+            </g>
+            <!-- Hood -->
+            <g class="zone-svg-hotspot" data-zone-target="hood" transform="translate(195, 105)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'HD'"></text>
+            </g>
+            <!-- Windshield / Roof -->
+            <g class="zone-svg-hotspot" data-zone-target="windshield-roof" transform="translate(370, 50)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'RF'"></text>
+            </g>
+            <!-- Left Side / Doors -->
+            <g class="zone-svg-hotspot" data-zone-target="left-profile" transform="translate(360, 165)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'LS'"></text>
+            </g>
+            <!-- Right Side / Fender -->
+            <g class="zone-svg-hotspot" data-zone-target="right-profile" transform="translate(500, 165)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'RS'"></text>
+            </g>
+            <!-- Pinpoint Badge: Scratch on Rear Right Wheel Arch (Damaged Flag) -->
+            <g class="zone-svg-hotspot damage-marker-group is-active-pin" data-zone-target="rear-right-arch" transform="translate(615, 175)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="18" class="pin-radar-pulse"/>
+              <circle cx="0" cy="0" r="11" class="pin-solid-dot"/>
+              <text x="0" y="4" text-anchor="middle" class="pin-icon-char" th:text="'!'"></text>
+            </g>
+            <!-- Rear Tailgate -->
+            <g class="zone-svg-hotspot" data-zone-target="rear-tailgate" transform="translate(735, 170)" tabindex="0" role="button">
+              <circle cx="0" cy="0" r="14" class="hotspot-base hotspot-clean"/>
+              <text x="0" y="4" text-anchor="middle" class="hotspot-text" th:text="'RB'"></text>
             </g>
           </svg>
         </div>
       </div>
-      <!-- Damage Observation Banner -->
-      <div class="damage-detail-strip">
-        <div class="damage-flag-badge">
-          <span class="dot-warning" aria-hidden="true"></span>
-          <span th:text="${r.labels.cosmeticAttention}"></span>
-        </div>
-        <p class="damage-flag-text" th:text="${r.visualInspections[2].note}"></p>
+
+      <!-- Interactive Zone Buttons Navigation Bar -->
+      <div class="damage-zone-bar" role="tablist">
+        <button th:each="zone : ${r.damageZones}"
+                type="button"
+                class="damage-zone-btn"
+                th:classappend="${zone.isDamaged ? 'has-defect active' : ''}"
+                th:attr="data-zone-id=${zone.id}">
+          <span class="zone-code-tag" th:text="${zone.code}"></span>
+          <span class="zone-name-text" th:text="${zone.title}"></span>
+          <span class="zone-status-mini-dot" th:classappend="${zone.isDamaged ? 'mini-dot-defect' : 'mini-dot-clean'}" aria-hidden="true" th:text="'●'"></span>
+        </button>
       </div>
+
+      <!-- Detail Overlay / Panel for the Selected Zone -->
+      <div class="damage-zones-panel-container">
+        <div th:each="zone : ${r.damageZones}"
+             class="damage-zone-detail-panel"
+             th:classappend="${zone.isDamaged ? 'active' : ''}"
+             th:attr="data-zone-panel=${zone.id}">
+
+          <div class="zone-panel-header">
+            <div class="zone-panel-title-block">
+              <span class="zone-panel-icon" th:if="${!zone.isDamaged}" aria-hidden="true" th:text="'🛡️'"></span>
+              <span class="zone-panel-icon icon-alert" th:if="${zone.isDamaged}" aria-hidden="true" th:text="'⚠️'"></span>
+              <div>
+                <h3 class="zone-panel-title" th:text="${zone.title}"></h3>
+                <span class="zone-panel-code-sub" th:text="${r.labels.zoneInspection}"></span>
+              </div>
+            </div>
+            <div class="zone-panel-status-group">
+              <span class="badge" th:classappend="${zone.isDamaged ? 'danger' : 'success'}" th:text="${zone.statusLabel}"></span>
+            </div>
+          </div>
+
+          <div class="zone-panel-metrics">
+            <div class="zone-metric-card">
+              <span class="zone-metric-label" th:text="${r.labels.paintThickness}"></span>
+              <strong class="zone-metric-val" th:text="${zone.paintThickness}"></strong>
+            </div>
+            <div class="zone-metric-card">
+              <span class="zone-metric-label" th:text="${r.labels.bodyCondition}"></span>
+              <strong class="zone-metric-val" th:text="${zone.isDamaged ? r.labels.cosmeticAttention : r.labels.cleanCondition}"></strong>
+            </div>
+          </div>
+
+          <div class="zone-panel-assessment" th:classappend="${zone.isDamaged ? 'assessment-defect' : 'assessment-clean'}">
+            <div class="assessment-content">
+              <p class="assessment-text" th:text="${zone.note}"></p>
+            </div>
+            <!-- If damaged, interactive action to inspect full video & photo proof in dialog -->
+            <div class="assessment-action" th:if="${zone.isDamaged}">
+              <button type="button"
+                      class="btn btn-outline zone-inspect-dialog-btn"
+                      data-action="open-part-dialog"
+                      th:attr="data-title=${zone.title}, data-category=${r.labels.bodyCondition}, data-status=${zone.statusLabel}, data-status-code=${zone.status}, data-score=82, data-score-text='82/100', data-measured=${zone.paintThickness} + ' • 42mm scratch', data-standard=${r.labels.cleanCondition}, data-diagnostic-sensor='Elcometer 456 Paint Gauge & Optical Lens', data-note=${zone.note}, data-img=${zone.imageUrl}, data-video=${zone.videoUrl}, data-video-caption=${zone.videoCaption}">
+                <span aria-hidden="true" th:text="'▶'"></span>
+                <span th:text="${r.labels.inspectZoneProof}"></span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </section>
 
-  <!-- Section 4: Modern Tyres & Braking Systems Analysis (Clean 4-Wheel Cards Grid, No Black Boxes!) -->
+  <!-- Section 4: Modern Tyres & Braking Systems Analysis (Clean 4-Wheel Cards Grid with Interactive Dialog) -->
   <section id="tyres" class="tyres-section" aria-labelledby="tyres-title">
     <div class="section-header">
-      <h2 id="tyres-title" th:text="${r.labels.tyresAndBrakes}"></h2>
+      <div>
+        <h2 id="tyres-title" th:text="${r.labels.tyresAndBrakes}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.tapToToggleDetails}"></p>
+      </div>
       <span class="section-tag" th:text="${r.labels.brakingSystem}"></span>
     </div>
 
-    <!-- 4 Wheels Clean Cards Grid -->
+    <!-- 4 Wheels Clean Cards Grid (All Clickable for Full Spec & Video Dialog) -->
     <div class="tyres-cards-quad-grid">
-      <!-- Front Left Wheel Card -->
-      <div class="card tyre-modern-card">
+      <div th:each="tyre : ${r.tyreAssemblies}"
+           class="card tyre-modern-card"
+           th:classappend="${tyre.status == 'DEFECT_FOUND' ? 'wheel-has-defect' : (tyre.status == 'ATTENTION' ? 'wheel-has-attention' : '')}"
+           data-action="open-part-dialog"
+           role="button"
+           tabindex="0"
+           th:attr="data-title=${tyre.title}, data-category=${tyre.category}, data-status=${tyre.statusLabel}, data-status-code=${tyre.status}, data-score=${tyre.score}, data-score-text=${tyre.scoreText}, data-measured=${tyre.measuredSpec}, data-standard=${tyre.standardSpec}, data-diagnostic-sensor=${tyre.diagnosticSensor}, data-note=${tyre.technicianNote}, data-img=${tyre.imageUrl}, data-video=${tyre.videoUrl}, data-video-caption=${tyre.videoCaption}"
+           th:title="${r.labels.tapToToggleDetails}">
+
         <div class="wheel-card-header">
           <div class="wheel-corner-identity">
-            <span class="wheel-icon-bubble" aria-hidden="true">🛞</span>
-            <strong class="corner-title" th:text="${r.labels.frontLeft}"></strong>
+            <span class="wheel-icon-bubble" th:classappend="${tyre.status == 'ATTENTION' || tyre.status == 'DEFECT_FOUND' ? 'alert-bubble' : ''}" aria-hidden="true" th:text="'🛞'"></span>
+            <div>
+              <strong class="corner-title" th:text="${tyre.position}"></strong>
+              <span class="corner-code-badge" th:text="${tyre.posCode}"></span>
+            </div>
           </div>
-          <span class="badge success" th:text="${r.labels.passed}"></span>
+          <span class="badge" th:classappend="${tyre.status == 'PASSED' ? 'success' : (tyre.status == 'ATTENTION' ? 'warning' : 'danger')}"
+                th:text="${tyre.statusLabel}"></span>
         </div>
 
         <div class="tread-gauge-container">
           <div class="gauge-label-row">
             <span class="gauge-caption" th:text="${r.labels.treadDepth}"></span>
-            <strong class="gauge-value-text" th:text="'6.2 mm'"></strong>
+            <strong class="gauge-value-text" th:text="${tyre.treadDepth}"></strong>
           </div>
           <div class="gauge-track">
-            <div class="gauge-fill gauge-fill-good" style="width: 78%;"></div>
+            <div class="gauge-fill"
+                 th:classappend="${tyre.status == 'PASSED' ? 'gauge-fill-good' : (tyre.status == 'ATTENTION' ? 'gauge-fill-attention' : 'gauge-fill-defect')}"
+                 th:style="'width: ' + ${tyre.score} + '%;'"></div>
           </div>
         </div>
 
         <div class="wheel-metrics-matrix">
           <div class="wheel-matrix-box">
             <span class="matrix-lbl" th:text="${r.labels.pressure}"></span>
-            <strong class="matrix-val" th:text="'34 PSI'"></strong>
+            <strong class="matrix-val" th:text="${tyre.pressure}"></strong>
           </div>
           <div class="wheel-matrix-box">
             <span class="matrix-lbl" th:text="${r.labels.partDetails}"></span>
-            <strong class="matrix-val" th:text="'7.5 mm'"></strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Front Right Wheel Card -->
-      <div class="card tyre-modern-card">
-        <div class="wheel-card-header">
-          <div class="wheel-corner-identity">
-            <span class="wheel-icon-bubble" aria-hidden="true">🛞</span>
-            <strong class="corner-title" th:text="${r.labels.frontRight}"></strong>
-          </div>
-          <span class="badge success" th:text="${r.labels.passed}"></span>
-        </div>
-
-        <div class="tread-gauge-container">
-          <div class="gauge-label-row">
-            <span class="gauge-caption" th:text="${r.labels.treadDepth}"></span>
-            <strong class="gauge-value-text" th:text="'6.0 mm'"></strong>
-          </div>
-          <div class="gauge-track">
-            <div class="gauge-fill gauge-fill-good" style="width: 75%;"></div>
+            <strong class="matrix-val" th:classappend="${tyre.status == 'ATTENTION' ? 'text-warning' : ''}" th:text="${tyre.brakePad}"></strong>
           </div>
         </div>
 
-        <div class="wheel-metrics-matrix">
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.pressure}"></span>
-            <strong class="matrix-val" th:text="'34 PSI'"></strong>
-          </div>
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.partDetails}"></span>
-            <strong class="matrix-val" th:text="'7.5 mm'"></strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rear Left Wheel Card -->
-      <div class="card tyre-modern-card">
-        <div class="wheel-card-header">
-          <div class="wheel-corner-identity">
-            <span class="wheel-icon-bubble" aria-hidden="true">🛞</span>
-            <strong class="corner-title" th:text="${r.labels.rearLeft}"></strong>
-          </div>
-          <span class="badge success" th:text="${r.labels.passed}"></span>
+        <div class="wheel-defect-alert-bar" th:if="${tyre.status == 'ATTENTION' || tyre.status == 'DEFECT_FOUND'}">
+          <span class="defect-alert-dot" aria-hidden="true" th:text="'●'"></span>
+          <span th:text="${tyre.technicianNote}"></span>
         </div>
 
-        <div class="tread-gauge-container">
-          <div class="gauge-label-row">
-            <span class="gauge-caption" th:text="${r.labels.treadDepth}"></span>
-            <strong class="gauge-value-text" th:text="'5.8 mm'"></strong>
-          </div>
-          <div class="gauge-track">
-            <div class="gauge-fill gauge-fill-good" style="width: 72%;"></div>
-          </div>
+        <div class="wheel-tap-cta">
+          <span class="wheel-tap-text" th:text="${r.labels.viewPartDetails}"></span>
+          <span class="wheel-tap-arrow" aria-hidden="true" th:text="'→'"></span>
         </div>
 
-        <div class="wheel-metrics-matrix">
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.pressure}"></span>
-            <strong class="matrix-val" th:text="'36 PSI'"></strong>
-          </div>
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.partDetails}"></span>
-            <strong class="matrix-val" th:text="'6.8 mm'"></strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rear Right Wheel Card (Defect Flagged) -->
-      <div class="card tyre-modern-card wheel-has-defect">
-        <div class="wheel-card-header">
-          <div class="wheel-corner-identity">
-            <span class="wheel-icon-bubble alert-bubble" aria-hidden="true">⚠️</span>
-            <strong class="corner-title" th:text="${r.labels.rearRight}"></strong>
-          </div>
-          <span class="badge danger" th:text="${r.labels.defects}"></span>
-        </div>
-
-        <div class="tread-gauge-container">
-          <div class="gauge-label-row">
-            <span class="gauge-caption" th:text="${r.labels.treadDepth}"></span>
-            <strong class="gauge-value-text text-danger" th:text="'5.5 mm'"></strong>
-          </div>
-          <div class="gauge-track">
-            <div class="gauge-fill gauge-fill-defect" style="width: 68%;"></div>
-          </div>
-        </div>
-
-        <div class="wheel-metrics-matrix">
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.pressure}"></span>
-            <strong class="matrix-val" th:text="'35 PSI'"></strong>
-          </div>
-          <div class="wheel-matrix-box">
-            <span class="matrix-lbl" th:text="${r.labels.partDetails}"></span>
-            <strong class="matrix-val text-danger" th:text="'6.8 mm'"></strong>
-          </div>
-        </div>
-
-        <div class="wheel-defect-alert-bar">
-          <span class="defect-alert-dot" aria-hidden="true">●</span>
-          <span th:text="${r.visualInspections[6].note}"></span>
-        </div>
       </div>
     </div>
   </section>
