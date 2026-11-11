@@ -701,14 +701,19 @@
   <!-- Section 7: Verification & Security Integrity -->
   <section id="verification" class="verification-section" aria-labelledby="verification-title">
     <div class="section-header">
-      <h2 id="verification-title" th:text="${r.labels.verification}"></h2>
+      <div>
+        <h2 id="verification-title" th:text="${r.labels.verification}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.limitations}"></p>
+      </div>
       <span class="section-tag" th:text="${r.labels.tamperProof}"></span>
     </div>
     <div class="card verification-card">
       <div class="verification-grid">
         <div class="ver-col">
           <div class="ver-badge">
-            <span class="ver-check" aria-hidden="true">✓</span>
+            <span class="ver-check" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            </span>
             <div>
               <strong th:text="${r.labels.tamperProof}"></strong>
               <p class="small muted" th:text="${r.labels.verifiedBy} + ' ' + ${r.workshop.name}"></p>
@@ -716,15 +721,56 @@
           </div>
         </div>
         <div class="ver-col hash-col">
-          <span class="spec-label" th:text="${r.labels.reportHash}"></span>
-          <code class="hash-code ltr" th:text="${r.verificationHash}"></code>
+          <div class="hash-header">
+            <span class="spec-label" th:text="${r.labels.reportHash}"></span>
+            <button type="button" class="spec-copy-btn" data-copy-target="#report-hash-val" th:attr="aria-label=${r.labels.reportHash}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            </button>
+          </div>
+          <code id="report-hash-val" class="hash-code ltr" th:text="${r.verificationHash}"></code>
         </div>
       </div>
+
+      <div class="verification-actions" th:if="${r.pdfDownloadEnabled}">
+        <a class="button button-primary ver-action-btn" th:href="@{/r/{token}/pdf(token=${token})}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span th:text="${r.labels.downloadPdf}"></span>
+        </a>
+      </div>
+
       <div class="disclaimer-strip">
         <p class="disclaimer-text" th:text="${r.disclaimer}"></p>
       </div>
     </div>
   </section>
+
+</main>
+
+<!-- Mobile Sticky Action Dock (< 768px) -->
+<aside class="mobile-dock" th:attr="aria-label=${r.labels.overview}">
+  <div class="mobile-dock-inner">
+    <a class="button button-primary mobile-dock-btn" th:if="${r.pdfDownloadEnabled}"
+       th:href="@{/r/{token}/pdf(token=${token})}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span th:text="${r.labels.downloadPdf}"></span>
+    </a>
+    <button type="button" class="button button-secondary mobile-dock-icon-btn" id="mobileShareBtn" th:attr="aria-label=${r.labels.shareReport}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    </button>
+  </div>
+</aside>
+
+<!-- Global Footer -->
+<footer class="report-footer">
+  <div class="container footer-content">
+    <div class="footer-brand">TrueReport</div>
+    <div class="footer-details">
+      <span th:text="${r.reportNumber} + ' · ' + ${r.labels.version} + ' ' + ${r.version}"></span>
+      <span aria-hidden="true" th:text="' · '"></span>
+      <span th:text="${r.workshop.name}"></span>
+    </div>
+  </div>
+</footer>
 
 </main>
 

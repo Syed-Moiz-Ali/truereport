@@ -569,10 +569,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Report Share Button (Web Share API or Clipboard Copy)
-  var shareBtn = document.getElementById('reportShareBtn');
-  if (shareBtn) {
-    shareBtn.addEventListener('click', function () {
+  // Report Share Buttons (Web Share API or Clipboard Copy)
+  var shareBtns = document.querySelectorAll('#reportShareBtn, #mobileShareBtn');
+  shareBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (navigator.share) {
         navigator.share({
           title: document.title,
@@ -580,14 +580,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }).catch(function () {});
       } else if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(window.location.href).then(function () {
-          shareBtn.classList.add('copied');
+          btn.classList.add('copied');
           setTimeout(function () {
-            shareBtn.classList.remove('copied');
+            btn.classList.remove('copied');
           }, 2000);
         }).catch(function () {});
       }
     });
-  }
+  });
 
   // Sticky header shadow on scroll
   var header = document.querySelector('.report-header');
