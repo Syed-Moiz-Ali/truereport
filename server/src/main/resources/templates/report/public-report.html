@@ -366,9 +366,9 @@
         </button>
       </div>
 
-      <!-- Category Accordions Stack -->
+      <!-- Category Accordions Stack (Collapsed by default, auto-expanded on filter or hero click) -->
       <div class="categories-accordion-stack">
-        <details th:each="category, categoryStat : ${r.categories}" class="card category-accordion" open
+        <details th:each="category, categoryStat : ${r.categories}" class="card category-accordion"
                  th:id="'cat-accordion-' + ${categoryStat.index}"
                  th:attr="data-cat-passed=${category.passedCount}, data-cat-attention=${category.attentionCount}, data-cat-defect=${category.defectCount}">
           <summary class="category-summary">

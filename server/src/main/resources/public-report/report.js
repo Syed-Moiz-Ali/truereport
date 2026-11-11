@@ -296,8 +296,6 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.classList.add('active');
       var filter = btn.getAttribute('data-checklist-filter');
 
-      var firstMatchedDefect = null;
-
       checkAccordions.forEach(function (acc) {
         var rows = acc.querySelectorAll('.check-row-item');
         var visibleCount = 0;
@@ -308,9 +306,6 @@ document.addEventListener('DOMContentLoaded', function () {
           if (matches) {
             row.style.display = '';
             visibleCount++;
-            if (filter === 'DEFECT_FOUND' && !firstMatchedDefect) {
-              firstMatchedDefect = row;
-            }
           } else {
             row.style.display = 'none';
           }
@@ -318,16 +313,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (visibleCount > 0) {
           acc.style.display = '';
-          acc.open = true;
+          if (filter !== 'ALL') {
+            acc.open = true;
+          }
         } else {
           acc.style.display = 'none';
         }
       });
-
-      // If user clicked Failed & Defects, auto-open the defect dialog directly!
-      if (filter === 'DEFECT_FOUND' && firstMatchedDefect) {
-        openPartDialog(firstMatchedDefect);
-      }
     });
   });
 
@@ -432,9 +424,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Sticky Nav Active Link ScrollSpy
+  // Sticky Nav Active Link ScrollSpy & Smooth Scroll
   var navLinks = document.querySelectorAll('.report-nav .report-nav-chip, .quick-nav-bar .nav-chip, .report-sticky-nav .sticky-nav-pill');
   var mainSections = document.querySelectorAll('main > section[id]');
+
+  // Smooth scroll to target section when clicking nav chip
+  navLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        var targetSection = document.querySelector(href);
+        if (targetSection) {
+          e.preventDefault();
+          targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
 
   if (window.IntersectionObserver && navLinks.length > 0 && mainSections.length > 0) {
     var observer = new IntersectionObserver(function (entries) {
@@ -445,7 +451,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var href = link.getAttribute('href');
             if (href === '#' + id) {
               link.classList.add('active');
-              link.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+              // Horizontally scroll the nav bar ONLY without moving the window!
+              var navBar = link.closest('.quick-nav-bar');
+              if (navBar) {
+                var targetLeft = link.offsetLeft - (navBar.clientWidth / 2) + (link.clientWidth / 2);
+                navBar.scrollTo({ left: targetLeft, behavior: 'smooth' });
+              }
             } else {
               link.classList.remove('active');
             }
