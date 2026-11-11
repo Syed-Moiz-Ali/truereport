@@ -513,8 +513,8 @@
 
           <div class="zone-panel-header">
             <div class="zone-panel-title-block">
-              <span class="zone-panel-icon" th:if="${!zone.isDamaged}" aria-hidden="true" th:text="'🛡️'"></span>
-              <span class="zone-panel-icon icon-alert" th:if="${zone.isDamaged}" aria-hidden="true" th:text="'⚠️'"></span>
+              <svg th:if="${!zone.isDamaged}" class="ui-icon icon-success" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <svg th:if="${zone.isDamaged}" class="ui-icon icon-alert" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <div>
                 <h3 class="zone-panel-title" th:text="${zone.title}"></h3>
                 <span class="zone-panel-code-sub" th:text="${r.labels.zoneInspection}"></span>
@@ -581,7 +581,9 @@
 
         <div class="wheel-card-header">
           <div class="wheel-corner-identity">
-            <span class="wheel-icon-bubble" th:classappend="${tyre.status == 'ATTENTION' || tyre.status == 'DEFECT_FOUND' ? 'alert-bubble' : ''}" aria-hidden="true" th:text="'🛞'"></span>
+            <span class="wheel-icon-bubble" th:classappend="${tyre.status == 'ATTENTION' || tyre.status == 'DEFECT_FOUND' ? 'alert-bubble' : ''}" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+            </span>
             <div>
               <strong class="corner-title" th:text="${tyre.position}"></strong>
               <span class="corner-code-badge" th:text="${tyre.posCode}"></span>
@@ -621,7 +623,7 @@
 
         <div class="wheel-tap-cta">
           <span class="wheel-tap-text" th:text="${r.labels.viewPartDetails}"></span>
-          <span class="wheel-tap-arrow" aria-hidden="true" th:text="'→'"></span>
+          <span class="wheel-tap-arrow" aria-hidden="true" th:text="'›'"></span>
         </div>
 
       </div>

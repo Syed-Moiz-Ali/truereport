@@ -3700,6 +3700,7 @@ html[dir="rtl"] .key-finding-interactive-card:hover .key-finding-cta-hint .hint-
   font-weight: 800;
   color: #047857;
   font-size: 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .text-danger {
@@ -3752,6 +3753,7 @@ html[dir="rtl"] .key-finding-interactive-card:hover .key-finding-cta-hint .hint-
   font-size: 1rem;
   font-weight: 800;
   color: var(--on-surface);
+  font-variant-numeric: tabular-nums;
 }
 
 .wheel-defect-alert-bar {
@@ -4033,6 +4035,18 @@ html[dir="rtl"] .key-finding-interactive-card:hover .key-finding-cta-hint .hint-
 .zone-inspect-dialog-btn:hover {
   background: #B91C1C;
   transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .tyre-modern-card {
+    padding: 16px;
+  }
+  .damage-zone-detail-panel {
+    padding: 16px;
+  }
+  .zone-panel-metrics {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ==========================================================================
