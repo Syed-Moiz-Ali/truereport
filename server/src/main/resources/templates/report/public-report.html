@@ -2,7 +2,7 @@
 <html th:lang="${r.lang}" th:dir="${r.dir}">
 <head>
   <meta charset="utf-8">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="light dark">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="referrer" content="no-referrer">
@@ -11,6 +11,9 @@
   <meta property="og:description" th:content="${r.labels.neutralDescription}">
   <meta property="og:type" content="article">
   <title th:text="${r.labels.title}"></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/r/assets/report.css}">
   <script defer th:src="@{/r/assets/report.js}"></script>
 </head>

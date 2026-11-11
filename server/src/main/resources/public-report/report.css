@@ -64,57 +64,206 @@
 }
 
 :root {
-  color-scheme: light;
+  /* Specification Design Tokens */
+  --bg: #F7F8FA;
   --surface: #FFFFFF;
-  --surface-card: #FFFFFF;
-  --surface-low: #F8F9FC;
-  --surface-container: #F1F3F9;
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E2E8F0;
+  --pass: #16A34A;
+  --pass-bg: #DCFCE7;
+  --pass-text: #166534;
+  --warn: #B45309;
+  --warn-bg: #FEF3C7;
+  --warn-text: #92400E;
+  --fail: #DC2626;
+  --fail-bg: #FEE2E2;
+  --fail-text: #991B1B;
+  --brand: #2563EB;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 12px rgba(15, 23, 42, .06);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 32px;
+
+  /* Font Families */
+  --font-latin: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Backward Compatibility Bridges */
+  --surface-card: var(--surface);
+  --surface-low: var(--bg);
+  --surface-container: var(--bg);
   --surface-high: #EAEBF2;
-  --outline: #E2E4ED;
-  --outline-subtle: #F0F1F6;
-  --primary: #006C49;
-  --primary-emerald: #10B981;
-  --primary-hover: #005036;
-  --on-surface: #111827;
-  --on-variant: #6B7280;
-  --success: #006C49;
-  --success-bg: #E8F8F2;
-  --warning: #B45309;
-  --warning-bg: #FEF3C7;
-  --danger: #B91C1C;
-  --danger-bg: #FEE2E2;
-  --critical: #7F1D1D;
-  --critical-bg: #F7DADA;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 8px 24px -4px rgba(18, 19, 22, 0.05), 0 2px 6px -1px rgba(18, 19, 22, 0.02);
-  --shadow-dialog: 0 24px 48px -12px rgba(0, 0, 0, 0.25);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  --outline: var(--border);
+  --outline-subtle: var(--border);
+  --primary: var(--pass-text);
+  --primary-emerald: var(--pass);
+  --primary-hover: #15803D;
+  --on-surface: var(--text);
+  --on-variant: var(--muted);
+  --success: var(--pass);
+  --success-bg: var(--pass-bg);
+  --warning: var(--warn);
+  --warning-bg: var(--warn-bg);
+  --danger: var(--fail);
+  --danger-bg: var(--fail-bg);
+  --critical: var(--fail);
+  --critical-bg: var(--fail-bg);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: 16px;
   --radius-pill: 9999px;
-  --font-latin: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --font-arabic: "Noto Sans Arabic", "Plus Jakarta Sans", system-ui, sans-serif;
+  --shadow-sm: var(--shadow);
+  --shadow-card: var(--shadow);
+  --shadow-dialog: 0 20px 40px -10px rgba(15, 23, 42, 0.25);
 }
 
-* {
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0B0F17;
+    --surface: #1E293B;
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+    --border: #334155;
+    --pass: #22C55E;
+    --pass-bg: rgba(34, 197, 94, 0.16);
+    --pass-text: #86EFAC;
+    --warn: #F59E0B;
+    --warn-bg: rgba(245, 158, 11, 0.16);
+    --warn-text: #FDE68A;
+    --fail: #EF4444;
+    --fail-bg: rgba(239, 68, 68, 0.16);
+    --fail-text: #FCA5A5;
+    --brand: #3B82F6;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 6px 18px rgba(0, 0, 0, .45);
+
+    /* Dark Mode Bridges */
+    --surface-card: #1E293B;
+    --surface-low: #0B0F17;
+    --surface-container: #1E293B;
+    --surface-high: #334155;
+    --outline: #334155;
+    --outline-subtle: #1E293B;
+    --on-surface: #F8FAFC;
+    --on-variant: #94A3B8;
+  }
+}
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  color-scheme: light;
-  background: var(--surface-low);
+  color-scheme: light dark;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-latin);
   scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+html[lang="ar"],
+[dir="rtl"] {
+  font-family: var(--font-arabic);
 }
 
 body {
   margin: 0;
-  color: var(--on-surface);
-  background: var(--surface-low);
-  font-family: var(--font-latin);
-  font-size: 15px;
-  line-height: 1.55;
-  -webkit-text-size-adjust: 100%;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Page Layout Primitives */
+.container,
+.full-width-layout {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .container,
+  .full-width-layout {
+    padding-inline: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container,
+  .full-width-layout {
+    padding-inline: 32px;
+  }
+}
+
+/* Tabular Numerals for Measurements & Stats */
+.tabular-nums,
+.metric-value,
+.stat-count,
+.spec-value,
+.badge-count,
+.score-large-number,
+.photo-count-pill,
+[data-score],
+[data-measured] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Inline SVG Icon Primitives: Lucide style, 20px, stroke 1.75 */
+.ui-icon,
+.icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.75;
+  stroke: currentColor;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.icon-lg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.75;
 }
 
 [lang="ar"], [dir="rtl"] {
