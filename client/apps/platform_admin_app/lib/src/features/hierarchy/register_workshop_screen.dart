@@ -125,8 +125,7 @@ class _RegisterWorkshopScreenState
         );
       }
 
-      // Add to local state so tree navigator & dropdowns immediately reflect it
-      ref.read(localWorkshopsProvider.notifier).addWorkshop(newWorkshop);
+      ref.invalidate(hierarchyStateProvider);
       ref.read(selectedWorkshopIdProvider.notifier).select(newWorkshop.id);
 
       if (mounted) {

@@ -1,13 +1,23 @@
 package com.truereport.masterdata.api;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
+
 public record CategoryRequest(
-        @NotBlank @Size(max = 80) String slug,
-        @NotBlank @Size(max = 200) String labelEn,
-        @NotBlank @Size(max = 200) String labelAr,
+        @Size(max = 80) String slug,
+        @Size(max = 200) String labelEn,
+        @Size(max = 200) String labelAr,
         Integer sortOrder,
-        String status
+        String status,
+        @Size(max = 80) String code,
+        @Size(max = 200) String nameEn,
+        @Size(max = 200) String nameAr,
+        BigDecimal weightPercentage,
+        Boolean active
 ) {
+    public CategoryRequest(String slug, String labelEn, String labelAr, Integer sortOrder,
+                           String status) {
+        this(slug, labelEn, labelAr, sortOrder, status, null, null, null, null, null);
+    }
 }

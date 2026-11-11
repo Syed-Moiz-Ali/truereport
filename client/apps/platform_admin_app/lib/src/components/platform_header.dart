@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+
 import '../platform_providers.dart';
 import '../platform_theme.dart';
 
 class PlatformHeader extends ConsumerWidget {
-  const PlatformHeader({
-    super.key,
-    this.onSearchChanged,
-  });
+  const PlatformHeader({super.key, this.onSearchChanged});
 
   final ValueChanged<String>? onSearchChanged;
 
@@ -22,13 +20,14 @@ class PlatformHeader extends ConsumerWidget {
         final isCompact = constraints.maxWidth < 620;
 
         return Container(
-          height: 64,
-          padding: EdgeInsets.symmetric(horizontal: isCompact ? 14 : 24),
+          constraints: const BoxConstraints(minHeight: 56, maxHeight: 80),
+          padding: EdgeInsets.symmetric(
+            horizontal: isCompact ? 14 : 24,
+            vertical: 8,
+          ),
           decoration: const BoxDecoration(
             color: PtTheme.white,
-            border: Border(
-              bottom: BorderSide(color: PtTheme.border, width: 1),
-            ),
+            border: Border(bottom: BorderSide(color: PtTheme.border, width: 1)),
           ),
           child: Row(
             children: [
@@ -41,8 +40,10 @@ class PlatformHeader extends ConsumerWidget {
                     color: PtTheme.ink,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   onPressed: () => _openMobileNav(context),
                 ),
                 const SizedBox(width: 8),
@@ -55,7 +56,7 @@ class PlatformHeader extends ConsumerWidget {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: Container(
-                      height: 38,
+                      constraints: const BoxConstraints(minHeight: 38),
                       decoration: BoxDecoration(
                         color: PtTheme.canvas,
                         borderRadius: BorderRadius.circular(9999),
@@ -70,9 +71,7 @@ class PlatformHeader extends ConsumerWidget {
                           color: PtTheme.ink,
                         ),
                         decoration: InputDecoration(
-                          hintText: isCompact
-                              ? 'Search...'
-                              : 'Search platform assets, specs, workshop nodes...',
+                          hintText: isCompact ? 'Search...' : 'Search platform assets, specs, workshop nodes...',
                           hintStyle: PtTheme.font(
                             13,
                             lineHeight: 18,
@@ -132,8 +131,17 @@ class PlatformHeader extends ConsumerWidget {
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () =>
-                      ref.read(platformLocaleProvider.notifier).toggleLocale(),
+                  onTap: () {
+                    final next =
+                        ref.read(platformLocaleProvider).languageCode == 'en'
+                        ? 'ar'
+                        : 'en';
+                    ref.read(platformLocaleProvider.notifier).toggle();
+                    ref
+                        .read(platformConfigApiProvider)
+                        .setMeLanguage(next)
+                        .then((_) {}, onError: (_) {});
+                  },
                   child: Center(
                     child: Text(
                       currentLocale.languageCode.toUpperCase(),
@@ -198,7 +206,9 @@ class PlatformHeader extends ConsumerWidget {
                               color: PtTheme.deepGreen.withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: PtTheme.deepGreen.withValues(alpha: 0.24),
+                                color: PtTheme.deepGreen.withValues(
+                                  alpha: 0.24,
+                                ),
                                 width: 1.5,
                               ),
                             ),
@@ -338,7 +348,11 @@ class PlatformHeader extends ConsumerWidget {
           color: PtTheme.ink,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, size: 18, color: PtTheme.muted),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        size: 18,
+        color: PtTheme.muted,
+      ),
       onTap: () {
         Navigator.of(ctx).pop();
         ctx.go(route);

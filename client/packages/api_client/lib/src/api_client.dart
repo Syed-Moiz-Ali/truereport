@@ -42,6 +42,9 @@ class ApiClient {
 
   String? accessToken;
 
+  /// BCP-47 language code sent as `Accept-Language` on every request.
+  String? acceptLanguage;
+
   Dio get raw => _dio;
 
   Future<Map<String, dynamic>> post(
@@ -171,11 +174,16 @@ class ApiClient {
   }
 
   Map<String, String> _authHeaders() {
+    final headers = <String, String>{};
     final token = accessToken;
-    if (token == null || token.isEmpty) {
-      return const <String, String>{};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
     }
-    return <String, String>{'Authorization': 'Bearer $token'};
+    final language = acceptLanguage;
+    if (language != null && language.isNotEmpty) {
+      headers['Accept-Language'] = language;
+    }
+    return headers;
   }
 
   AppFailure _toFailure(DioException error) {

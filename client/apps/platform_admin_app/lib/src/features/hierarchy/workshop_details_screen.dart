@@ -81,7 +81,7 @@ class _WorkshopDetailsScreenState extends ConsumerState<WorkshopDetailsScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 880;
-    final workshops = ref.watch(localWorkshopsProvider);
+    final workshops = ref.watch(hierarchyStateProvider).value?.workshops ?? const <HierarchyWorkshop>[];
     final activeWorkshop = workshops.firstWhere(
       (w) => w.id == _selectedWorkshopId,
       orElse: () => workshops.isNotEmpty
@@ -156,7 +156,8 @@ class _WorkshopDetailsScreenState extends ConsumerState<WorkshopDetailsScreen> {
                                   children: [
                                     // Left clean tree pane
                                     SizedBox(
-                                      width: 240,
+                                      width: (MediaQuery.sizeOf(context).width * 0.2)
+                                          .clamp(200.0, 280.0),
                                       child: _buildLeftPane(
                                           workshops, activeWorkshop),
                                     ),

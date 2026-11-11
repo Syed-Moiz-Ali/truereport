@@ -74,7 +74,7 @@ class _HierarchyScreenState extends ConsumerState<HierarchyScreen> {
                                       status: 'ACTIVE',
                                       memberCount: 14,
                                       admins: [],
-                                      technicians: sampleWorkshopAStaff,
+                                      technicians: [],
                                       pendingInvitations: [],
                                     ),
                             );

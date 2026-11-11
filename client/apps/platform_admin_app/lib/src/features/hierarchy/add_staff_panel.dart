@@ -133,7 +133,7 @@ class _AddStaffSlideOutPanelState extends ConsumerState<AddStaffSlideOutPanel> {
   @override
   Widget build(BuildContext context) {
     final hierarchyAsync = ref.watch(hierarchyStateProvider);
-    final workshops = hierarchyAsync.value?.workshops ?? sampleWorkshops;
+    final workshops = hierarchyAsync.value?.workshops ?? const <HierarchyWorkshop>[];
     final screenWidth = MediaQuery.sizeOf(context).width;
     final panelWidth = screenWidth < 460 ? screenWidth : 440.0;
     final isCompact = screenWidth < 460;

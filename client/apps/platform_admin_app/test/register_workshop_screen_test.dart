@@ -37,7 +37,7 @@ Widget _buildTestApp({
   );
 }
 
-class _TestLocaleNotifier extends LocaleNotifier {
+class _TestLocaleNotifier extends LocaleController {
   _TestLocaleNotifier(this._initial);
   final Locale _initial;
 

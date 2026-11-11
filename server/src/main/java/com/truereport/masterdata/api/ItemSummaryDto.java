@@ -13,6 +13,16 @@ public record ItemSummaryDto(
         String labelEn,
         String labelAr,
         boolean sampleData,
-        String updatedAt
+        String updatedAt,
+        String measurementUnit,
+        String sensorTool,
+        String standardSpecEn,
+        String standardSpecAr,
+        boolean safetyCritical,
+        boolean multiPoint,
+        Integer maxTyreAgeYears,
+        boolean allowFreeTextNote,
+        int sortOrder,
+        String guideImageId
 ) {
 }

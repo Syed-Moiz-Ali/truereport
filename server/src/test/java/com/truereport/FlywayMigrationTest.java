@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("18");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("104");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -44,6 +44,15 @@ class FlywayMigrationTest {
         assertThat(tableExists(url, "assessments")).isTrue();
         assertThat(tableExists(url, "inspection_final_snapshots")).isTrue();
         assertThat(tableExists(url, "evidence_assets")).isTrue();
+        assertThat(tableExists(url, "platform_languages")).isTrue();
+        assertThat(tableExists(url, "platform_categories")).isTrue();
+        assertThat(tableExists(url, "platform_items")).isTrue();
+        assertThat(tableExists(url, "platform_item_versions")).isTrue();
+        assertThat(tableExists(url, "platform_guide_images")).isTrue();
+        assertThat(tableExists(url, "platform_template_versions")).isTrue();
+        assertThat(tableExists(url, "platform_scoring_rules")).isTrue();
+        assertThat(tableExists(url, "platform_document_types")).isTrue();
+        assertThat(tableExists(url, "platform_outbox_events")).isTrue();
     }
 
     private boolean tableExists(String url, String table) throws Exception {

@@ -23,6 +23,25 @@ public record ItemCreateRequest(
         String evidenceRequirement,
         Integer minPhotos,
         List<UUID> equipmentIds,
-        UUID guideImageId
+        UUID guideImageId,
+        String measurementUnit,
+        String sensorTool,
+        String standardSpecEn,
+        String standardSpecAr,
+        Boolean safetyCritical,
+        Boolean multiPoint,
+        Integer maxTyreAgeYears,
+        Boolean allowFreeTextNote,
+        Integer sortOrder
 ) {
+    public ItemCreateRequest(String stableCode, UUID categoryId, String labelEn, String labelAr,
+                             String instructionEn, String instructionAr, boolean sampleData,
+                             List<String> resultOptions, String severityPolicy, String applicability,
+                             List<String> reasonCodes, String noteRequirement, String evidenceRequirement,
+                             Integer minPhotos, List<UUID> equipmentIds, UUID guideImageId) {
+        this(stableCode, categoryId, labelEn, labelAr, instructionEn, instructionAr, sampleData,
+                resultOptions, severityPolicy, applicability, reasonCodes, noteRequirement,
+                evidenceRequirement, minPhotos, equipmentIds, guideImageId,
+                null, null, null, null, null, null, null, null, null);
+    }
 }

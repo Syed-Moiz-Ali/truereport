@@ -37,7 +37,8 @@ class SecurityEndpointInventoryIT extends IntegrationTestBase {
     private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/2fa/verify",
             "/api/v1/auth/password/",
-            "/api/v1/delivery/webhooks/", "/actuator/", "/r/", "/report/"
+            "/api/v1/delivery/webhooks/", "/actuator/", "/r/", "/report/",
+            "/api/v1/i18n/languages"
     );
 
     @Test

@@ -12,6 +12,14 @@ import 'features/hierarchy/register_workshop_screen.dart';
 import 'features/hierarchy/workshop_details_screen.dart';
 import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
+import 'features/master_library/categories_screen.dart';
+import 'features/master_library/option_sets_screen.dart';
+import 'features/templates/templates_screen.dart';
+import 'features/templates/template_builder_screen.dart';
+import 'features/scoring/scoring_screen.dart';
+import 'features/documents/document_types_screen.dart';
+import 'features/languages/languages_screen.dart';
+import 'features/governance/config_health_screen.dart';
 import 'features/settings/platform_settings_screen.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
@@ -72,7 +80,43 @@ List<RouteBase> _buildRoutes() {
             itemId: state.pathParameters['id'],
           ),
         ),
+        GoRoute(
+          path: 'categories',
+          builder: (context, state) => const CategoriesScreen(),
+        ),
+        GoRoute(
+          path: 'option-sets',
+          builder: (context, state) => const OptionSetsScreen(),
+        ),
       ],
+    ),
+    GoRoute(
+      path: '/templates',
+      builder: (context, state) => const TemplatesScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (context, state) => TemplateBuilderScreen(
+            templateId: state.pathParameters['id']!,
+          ),
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/scoring',
+      builder: (context, state) => const ScoringScreen(),
+    ),
+    GoRoute(
+      path: '/document-types',
+      builder: (context, state) => const DocumentTypesScreen(),
+    ),
+    GoRoute(
+      path: '/languages',
+      builder: (context, state) => const LanguagesScreen(),
+    ),
+    GoRoute(
+      path: '/config-health',
+      builder: (context, state) => const ConfigHealthScreen(),
     ),
     GoRoute(
       path: '/data-catalogues',

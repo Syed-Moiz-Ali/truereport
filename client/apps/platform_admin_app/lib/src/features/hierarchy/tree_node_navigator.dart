@@ -23,7 +23,7 @@ class TreeNodeNavigator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      width: 300,
+      width: (MediaQuery.sizeOf(context).width * 0.3).clamp(300.0, 340.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

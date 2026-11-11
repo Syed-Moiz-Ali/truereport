@@ -24,9 +24,7 @@ class StaffBoard extends ConsumerWidget {
     final selectedFilter = ref.watch(staffRoleFilterProvider);
 
     // Filter staff according to search query and role filter
-    final allStaff = workshop.technicians.isNotEmpty
-        ? workshop.technicians
-        : sampleWorkshopAStaff;
+    final allStaff = workshop.technicians;
 
     final filteredStaff = allStaff.where((staff) {
       if (searchQuery.isNotEmpty) {

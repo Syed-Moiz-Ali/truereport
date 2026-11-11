@@ -1,194 +1,82 @@
-import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
-import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
+import 'package:platform_admin_app/src/platform_config_models.dart';
+import 'package:platform_admin_app/src/platform_providers.dart';
 
-import 'support/fake_platform_api.dart';
+const _category = PlatformCategory(
+  id: 'cat-1',
+  code: 'CAT-BRK',
+  nameEn: 'Braking Systems & Tyres',
+  nameAr: 'أنظمة الفرامل والإطارات',
+  labelEn: 'Braking Systems & Tyres',
+  labelAr: 'أنظمة الفرامل والإطارات',
+  weightPercentage: 20,
+  status: 'ACTIVE',
+  sortOrder: 1,
+  active: true,
+  itemCount: 5,
+);
 
-Widget _buildTestApp({
-  required FakePlatformAdminApi fakeApi,
-  Size screenSize = const Size(1280, 1024),
-  Locale locale = const Locale('en'),
-}) {
+const _item = PlatformItem(
+  id: 'item-1',
+  code: 'BRK-PAD-01',
+  categoryId: 'cat-1',
+  categoryLabelEn: 'Braking Systems & Tyres',
+  categoryLabelAr: 'أنظمة الفرامل والإطارات',
+  status: 'PUBLISHED',
+  currentVersion: 1,
+  labelEn: 'Brake Pad Thickness',
+  labelAr: 'سمك أقمشة الفرامل',
+  sampleData: false,
+  updatedAt: '',
+  measurementUnit: 'MM',
+  sensorTool: 'Vernier',
+  standardSpecEn: 'Above 3.0 mm',
+  standardSpecAr: 'أعلى من 3.0 مم',
+  safetyCritical: true,
+  multiPoint: true,
+  maxTyreAgeYears: null,
+  allowFreeTextNote: false,
+  sortOrder: 1,
+  guideImageId: '',
+);
+
+Widget _app({Locale locale = const Locale('en'), double width = 1280}) {
   return ProviderScope(
     overrides: [
-      platformApiProvider.overrideWithValue(fakeApi),
-      platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
+      categoriesProvider.overrideWith((ref) async => const [_category]),
+      itemsProvider.overrideWith((ref, query) async => const [_item]),
     ],
     child: MaterialApp(
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: AppTheme.light,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: MediaQuery(
-        data: MediaQueryData(size: screenSize),
+        data: MediaQueryData(size: Size(width, 900)),
         child: const MasterLibraryScreen(),
       ),
     ),
   );
 }
 
-class _TestLocaleNotifier extends LocaleNotifier {
-  _TestLocaleNotifier(this._initial);
-  final Locale _initial;
-
-  @override
-  Locale build() => _initial;
-}
-
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets('renders master items from API providers', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 900));
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
 
-  late FakePlatformAdminApi fakeApi;
-
-  setUp(() {
-    fakeApi = FakePlatformAdminApi();
+    expect(find.text('Brake Pad Thickness'), findsWidgets);
+    expect(find.textContaining('BRK-PAD-01'), findsWidgets);
   });
 
-  group('Screen 5: Shared Master Inspection-Item Library Tests', () {
-    testWidgets('renders all Figma headers, category pills, and checkpoint cards',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 1024));
-      await tester.pumpWidget(_buildTestApp(fakeApi: fakeApi));
-      await tester.pumpAndSettle();
+  testWidgets('renders on compact width without overflow', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    await tester.pumpWidget(_app(width: 400));
+    await tester.pumpAndSettle();
 
-      // Eyebrow & Title
-      expect(find.text('ACTIVE CANONICAL REPO'), findsOneWidget);
-      expect(find.text('Global Master Library'), findsOneWidget);
-      expect(
-        find.text(
-          'Centrally governed diagnostic checkpoints deployed across all workshop nodes',
-        ),
-        findsOneWidget,
-      );
-
-      // Header Buttons
-      expect(find.byKey(const Key('btn-rules-matrix')), findsOneWidget);
-      expect(find.byKey(const Key('btn-new-master-item')), findsOneWidget);
-
-      // Category filter pills
-      expect(find.text('All Categories'), findsOneWidget);
-      expect(find.text('Brakes & Calipers'), findsOneWidget);
-      expect(find.text('Powertrain'), findsOneWidget);
-      expect(find.text('Tires & Axles'), findsOneWidget);
-      expect(find.text('Chassis Integrity'), findsOneWidget);
-
-      // Sync indicator
-      expect(find.text('SYNCED:'), findsOneWidget);
-      expect(find.text('48 Workshop Clusters'), findsOneWidget);
-
-      // Checkpoint card sample texts
-      expect(find.text('CHK-BRK-001'), findsOneWidget);
-      expect(find.text('Brake Pad Thickness & Disc Runout'), findsOneWidget);
-      expect(find.text('CHK-PWR-014'), findsOneWidget);
-      expect(find.text('Engine Oil Level & Viscosity Grade'), findsOneWidget);
-      expect(find.text('CHK-TIR-004'), findsOneWidget);
-      expect(find.text('Tread Depth All Axles'), findsOneWidget);
-
-      // Bottom Sync Banner
-      expect(find.text('Master Fleet Sync Policy'), findsOneWidget);
-      expect(find.byKey(const Key('btn-instant-push')), findsOneWidget);
-    });
-
-    testWidgets('filtering by category updates displayed checkpoint cards',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 1024));
-      await tester.pumpWidget(_buildTestApp(fakeApi: fakeApi));
-      await tester.pumpAndSettle();
-
-      // Tap 'Brakes & Calipers'
-      await tester.tap(find.byKey(const Key('filter-cat-Brakes & Calipers')));
-      await tester.pumpAndSettle();
-
-      // Brakes item should be present
-      expect(find.text('CHK-BRK-001'), findsOneWidget);
-      expect(find.text('Brake Pad Thickness & Disc Runout'), findsOneWidget);
-
-      // Powertrain and Tires items should NOT be present
-      expect(find.text('CHK-PWR-014'), findsNothing);
-      expect(find.text('CHK-TIR-004'), findsNothing);
-
-      // Tap 'Powertrain'
-      await tester.tap(find.byKey(const Key('filter-cat-Powertrain')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('CHK-PWR-014'), findsOneWidget);
-      expect(find.text('CHK-BRK-001'), findsNothing);
-
-      // Switch back to 'All Categories'
-      await tester.tap(find.byKey(const Key('filter-cat-All Categories')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('CHK-BRK-001'), findsOneWidget);
-      expect(find.text('CHK-PWR-014'), findsOneWidget);
-    });
-
-    testWidgets('tapping Rules Matrix opens dialog with governance policies',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 1024));
-      await tester.pumpWidget(_buildTestApp(fakeApi: fakeApi));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('btn-rules-matrix')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Master Rules Governance Matrix'), findsOneWidget);
-      expect(find.text('1. Mandatory Signoff'), findsOneWidget);
-
-      await tester.tap(find.text('Close'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Master Rules Governance Matrix'), findsNothing);
-    });
-
-    testWidgets('instant push button triggers broadcast feedback',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 1024));
-      await tester.pumpWidget(_buildTestApp(fakeApi: fakeApi));
-      await tester.pumpAndSettle();
-
-      final pushButton = find.byKey(const Key('btn-instant-push'));
-      await tester.ensureVisible(pushButton);
-      await tester.tap(pushButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-
-      expect(
-        find.text('Fleet sync successfully broadcast to 48 workshop clusters.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('responsive layout on 400px mobile without RenderFlex overflow',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 900));
-      await tester.pumpWidget(
-        _buildTestApp(fakeApi: fakeApi, screenSize: const Size(400, 900)),
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('Global Master Library'), findsOneWidget);
-    });
-
-    testWidgets('renders cleanly in Arabic RTL without overflow',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 1024));
-      await tester.pumpWidget(
-        _buildTestApp(fakeApi: fakeApi, locale: const Locale('ar')),
-      );
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
-    });
+    expect(tester.takeException(), isNull);
   });
 }

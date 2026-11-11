@@ -43,6 +43,7 @@ public class PublicReportService {
     private final ReportViewMapper viewMapper;
     private final ObjectStorage storage;
     private final ReportTokenService tokenService;
+    private final ReportPdfService pdfService;
 
     public PublicReportService(PublicShareLinkRepository links,
                                ReportRepository reports,
@@ -52,7 +53,8 @@ public class PublicReportService {
                                EvidenceDerivativeRepository derivatives,
                                ReportViewMapper viewMapper,
                                ObjectStorage storage,
-                               ReportTokenService tokenService) {
+                               ReportTokenService tokenService,
+                               ReportPdfService pdfService) {
         this.links = links;
         this.reports = reports;
         this.versions = versions;
@@ -62,6 +64,7 @@ public class PublicReportService {
         this.viewMapper = viewMapper;
         this.storage = storage;
         this.tokenService = tokenService;
+        this.pdfService = pdfService;
     }
 
     @Transactional(readOnly = true)
@@ -118,12 +121,26 @@ public class PublicReportService {
         if (resolution.status() != Status.ACTIVE || !resolution.resolved().link().isPdfDownloadEnabled()) {
             return Optional.empty();
         }
+        // 1. Try to serve a pre-generated PDF artifact (the happy path in production).
         ReportArtifact artifact = artifacts.findByReportVersionIdAndKind(
                 resolution.resolved().version().getId(), "PDF").orElse(null);
-        if (artifact == null) {
+        if (artifact != null) {
+            return Optional.of(storage.get(artifact.getStorageKey()));
+        }
+        // 2. No stored artifact — render on-demand using Chromium so the download
+        //    button always works in local/dev environments where the background
+        //    generation worker never ran or object-storage is not configured.
+        try {
+            List<EvidenceDerivative> publicDerivatives =
+                    derivatives.findByReportVersionIdOrderByCreatedAtAsc(
+                            resolution.resolved().version().getId());
+            byte[] pdf = pdfService.render(resolution.resolved().version(), publicDerivatives);
+            return Optional.of(pdf);
+        } catch (Exception e) {
+            // Log and fall through; caller will get a 404.
+            System.err.println("[TrueReport] On-demand PDF render failed: " + e.getMessage());
             return Optional.empty();
         }
-        return Optional.of(storage.get(artifact.getStorageKey()));
     }
 
     public static HttpStatus statusFor(Status status) {

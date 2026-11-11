@@ -170,7 +170,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noResults => 'No results';
 
   @override
-  String get loading => 'Loading…';
+  String get loading => 'Loading';
 
   @override
   String get error => 'Something went wrong';
@@ -221,10 +221,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get slug => 'Slug';
 
   @override
-  String get labelEn => 'English label';
+  String get labelEn => 'Label (English)';
 
   @override
-  String get labelAr => 'Arabic label';
+  String get labelAr => 'Label (Arabic)';
 
   @override
   String get instructionEn => 'English instruction';
@@ -251,7 +251,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evidenceRequirement => 'Evidence requirement';
 
   @override
-  String get minPhotos => 'Minimum photos';
+  String get minPhotos => 'Min photos';
 
   @override
   String get equipment => 'Equipment';
@@ -275,7 +275,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retired => 'Retired';
 
   @override
-  String get createDraft => 'Create new draft';
+  String get createDraft => 'Create draft';
 
   @override
   String get saveDraft => 'Save draft';
@@ -538,7 +538,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Platform Admin creates workshop accounts. Workshop Admins can review staff and assign jobs.';
 
   @override
-  String get templates => 'Templates';
+  String get templates => 'Global templates';
 
   @override
   String get newTemplate => 'New template';
@@ -705,7 +705,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get major => 'Major';
 
   @override
-  String get safetyCritical => 'Safety-critical';
+  String get safetyCritical => 'Safety critical';
 
   @override
   String get saveAnswer => 'Save answer';
@@ -1676,4 +1676,340 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fourHours => '4 Hours';
+
+  @override
+  String get navTemplates => 'Templates';
+
+  @override
+  String get navScoring => 'Scoring';
+
+  @override
+  String get navDocumentTypes => 'Document Types';
+
+  @override
+  String get navLanguages => 'Languages';
+
+  @override
+  String get navConfigHealth => 'Config Health';
+
+  @override
+  String get masterLibraryTitle => 'Global Master Library';
+
+  @override
+  String get masterLibrarySubtitle =>
+      'Centrally governed inspection configuration for every workshop';
+
+  @override
+  String get seedDefaultChecklist => 'Load default checklist';
+
+  @override
+  String seedSuccess(Object created, Object skipped) {
+    return 'Seed completed: $created created, $skipped skipped';
+  }
+
+  @override
+  String get seedFailed => 'Seed failed';
+
+  @override
+  String get categoriesTab => 'Categories';
+
+  @override
+  String get itemsTab => 'Items';
+
+  @override
+  String get optionSetsTab => 'Option sets';
+
+  @override
+  String get categoryManagement => 'Category management';
+
+  @override
+  String get addCategory => 'Add category';
+
+  @override
+  String get editCategory => 'Edit category';
+
+  @override
+  String get categoryCode => 'Category code';
+
+  @override
+  String get categoryWeight => 'Weight %';
+
+  @override
+  String get categoryOrder => 'Order';
+
+  @override
+  String get weightTotal => 'Weight total';
+
+  @override
+  String get weightsValid => 'Active weights sum to 100';
+
+  @override
+  String get weightsInvalid => 'Active weights must sum to 100';
+
+  @override
+  String get retireCategory => 'Retire category';
+
+  @override
+  String get retireConfirm =>
+      'Retire this record? Referenced records cannot be deleted, only retired.';
+
+  @override
+  String get reorder => 'Reorder';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get itemEditor => 'Item editor';
+
+  @override
+  String get basics => 'Basics';
+
+  @override
+  String get englishContent => 'English';
+
+  @override
+  String get arabicContent => 'Arabic';
+
+  @override
+  String get scoreBands => 'Score bands';
+
+  @override
+  String get evidenceRules => 'Evidence rules';
+
+  @override
+  String get issueFields => 'Issue fields';
+
+  @override
+  String get measurementBands => 'Measurement bands';
+
+  @override
+  String get itemCode => 'Item code';
+
+  @override
+  String get measurementUnit => 'Measurement unit';
+
+  @override
+  String get sensorTool => 'Sensor / tool';
+
+  @override
+  String get standardSpecEn => 'Standard spec (English)';
+
+  @override
+  String get standardSpecAr => 'Standard spec (Arabic)';
+
+  @override
+  String get multiPoint => 'Multi-point item';
+
+  @override
+  String get maxTyreAge => 'Max tyre age (years)';
+
+  @override
+  String get allowFreeText => 'Allow free-text note';
+
+  @override
+  String get minVideos => 'Min videos';
+
+  @override
+  String get minNotes => 'Min note characters';
+
+  @override
+  String get requiredEvidenceType => 'Required evidence type';
+
+  @override
+  String get defaultScore => 'Default score';
+
+  @override
+  String get minScore => 'Min score';
+
+  @override
+  String get maxScore => 'Max score';
+
+  @override
+  String get criteriaEn => 'Criteria (English)';
+
+  @override
+  String get criteriaAr => 'Criteria (Arabic)';
+
+  @override
+  String get fieldCode => 'Field code';
+
+  @override
+  String get inputType => 'Input type';
+
+  @override
+  String get optionSet => 'Option set';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get dependsOn => 'Depends on';
+
+  @override
+  String get allowMultiple => 'Allow multiple';
+
+  @override
+  String get decimalPlaces => 'Decimal places';
+
+  @override
+  String get publishItem => 'Publish item';
+
+  @override
+  String get itemPublished => 'Item version published';
+
+  @override
+  String get versionImmutable =>
+      'Published versions are immutable. Create a draft to edit.';
+
+  @override
+  String get addItem => 'Add item';
+
+  @override
+  String get itemCreated => 'Item created';
+
+  @override
+  String get createTemplate => 'Create template';
+
+  @override
+  String get templateCode => 'Template code';
+
+  @override
+  String get templateNameEn => 'Template name (English)';
+
+  @override
+  String get templateNameAr => 'Template name (Arabic)';
+
+  @override
+  String get templateDescriptionEn => 'Description (English)';
+
+  @override
+  String get templateDescriptionAr => 'Description (Arabic)';
+
+  @override
+  String get templateBuilder => 'Template builder';
+
+  @override
+  String get weightPreview => 'Weight preview';
+
+  @override
+  String get normalizedWeight => 'Normalized weight';
+
+  @override
+  String get approveTemplate => 'Approve';
+
+  @override
+  String get rejectTemplate => 'Reject';
+
+  @override
+  String get pendingApproval => 'Pending approval';
+
+  @override
+  String get scoringRules => 'Scoring rules';
+
+  @override
+  String get categoryWeightMode => 'Category weight mode';
+
+  @override
+  String get safetyCap => 'Safety cap';
+
+  @override
+  String get capGrade => 'Cap grade';
+
+  @override
+  String get gradeBoundaries => 'Grade boundaries';
+
+  @override
+  String get grade => 'Grade';
+
+  @override
+  String get addGrade => 'Add grade';
+
+  @override
+  String get coverageValid => 'Grade boundaries cover 0-100';
+
+  @override
+  String get coverageInvalid =>
+      'Grade boundaries must cover 0-100 without gaps';
+
+  @override
+  String get proposeChange => 'Propose change';
+
+  @override
+  String get approveChange => 'Approve change';
+
+  @override
+  String get documentTypes => 'Report document types';
+
+  @override
+  String get addDocumentType => 'Add document type';
+
+  @override
+  String get documentTypeCode => 'Document type code';
+
+  @override
+  String get languageRegistry => 'Language registry';
+
+  @override
+  String get addLanguage => 'Add language';
+
+  @override
+  String get languageCode => 'Language code';
+
+  @override
+  String get nativeName => 'Native name';
+
+  @override
+  String get direction => 'Direction';
+
+  @override
+  String get defaultLanguage => 'Default language';
+
+  @override
+  String get translationCoverage => 'Translation coverage';
+
+  @override
+  String get missingTranslations => 'Missing translations';
+
+  @override
+  String get configHealth => 'Configuration health';
+
+  @override
+  String get healthy => 'Healthy';
+
+  @override
+  String get unhealthy => 'Issues found';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get impactAnalysis => 'Impact analysis';
+
+  @override
+  String get affectedTemplates => 'Affected templates';
+
+  @override
+  String get affectedItems => 'Affected items';
+
+  @override
+  String get affectedJobs => 'Affected jobs';
+
+  @override
+  String get blocked => 'Blocked';
+
+  @override
+  String get notBlocked => 'Not blocked';
+
+  @override
+  String get configReleases => 'Config releases';
+
+  @override
+  String get createRelease => 'Create release';
+
+  @override
+  String get noData => 'No data yet';
+
+  @override
+  String get retry => 'Retry';
 }

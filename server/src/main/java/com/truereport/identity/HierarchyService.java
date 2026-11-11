@@ -24,6 +24,7 @@ import com.truereport.identity.api.HierarchyWorkshopDto;
 import com.truereport.identity.api.PlatformAccountDto;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,7 @@ public class HierarchyService {
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final JdbcTemplate jdbc;
 
     public HierarchyService(WorkshopRepository workshops,
                             WorkshopMembershipRepository memberships,
@@ -64,7 +66,8 @@ public class HierarchyService {
                             AuditEventRepository auditEvents,
                             AuditService auditService,
                             PasswordEncoder passwordEncoder,
-                            ObjectMapper objectMapper) {
+                            ObjectMapper objectMapper,
+                            JdbcTemplate jdbc) {
         this.workshops = workshops;
         this.memberships = memberships;
         this.users = users;
@@ -74,6 +77,7 @@ public class HierarchyService {
         this.auditService = auditService;
         this.passwordEncoder = passwordEncoder;
         this.objectMapper = objectMapper;
+        this.jdbc = jdbc;
     }
 
     @Transactional(readOnly = true)
@@ -328,10 +332,34 @@ public class HierarchyService {
     @Transactional(readOnly = true)
     public List<AuditEventDto> auditEvents(int limit) {
         int bounded = Math.max(1, Math.min(limit, 200));
-        return auditEvents.findTop100ByOrderByOccurredAtDesc().stream()
+        List<AuditEventDto> merged = new ArrayList<>();
+        auditEvents.findTop100ByOrderByOccurredAtDesc().stream()
                 .limit(bounded)
                 .map(this::toAuditDto)
-                .toList();
+                .forEach(merged::add);
+        merged.addAll(platformAuditEvents(bounded));
+        merged.sort((left, right) -> right.occurredAt().compareTo(left.occurredAt()));
+        return merged.stream().limit(bounded).toList();
+    }
+
+    private List<AuditEventDto> platformAuditEvents(int limit) {
+        return jdbc.query("""
+                SELECT id, actor_user_id, actor_role, action_code, entity_type, entity_id,
+                       occurred_at, reason, after_json
+                FROM platform_audit_events ORDER BY occurred_at DESC
+                """, (rs, i) -> new AuditEventDto(
+                UUID.fromString(rs.getString("id")),
+                null,
+                rs.getString("actor_user_id") == null
+                        ? null : UUID.fromString(rs.getString("actor_user_id")),
+                rs.getString("actor_role"),
+                rs.getString("action_code"),
+                rs.getString("entity_type"),
+                rs.getString("entity_id") == null
+                        ? null : UUID.fromString(rs.getString("entity_id")),
+                rs.getObject("occurred_at", LocalDateTime.class).toString(),
+                rs.getString("reason"),
+                rs.getString("after_json")));
     }
 
     private HierarchyWorkshopDto buildWorkshop(Workshop workshop, String filter) {

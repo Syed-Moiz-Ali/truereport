@@ -153,7 +153,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get versions => 'الإصدارات';
 
   @override
-  String get category => 'الفئة';
+  String get category => 'التصنيف';
 
   @override
   String get categories => 'الفئات';
@@ -171,7 +171,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noResults => 'لا توجد نتائج';
 
   @override
-  String get loading => 'جارٍ التحميل…';
+  String get loading => 'جار التحميل';
 
   @override
   String get error => 'حدث خطأ';
@@ -213,19 +213,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entity => 'الكيان';
 
   @override
-  String get categoryNameEn => 'اسم الفئة (الإنجليزية)';
+  String get categoryNameEn => 'اسم التصنيف (الإنجليزية)';
 
   @override
-  String get categoryNameAr => 'اسم الفئة (العربية)';
+  String get categoryNameAr => 'اسم التصنيف (العربية)';
 
   @override
   String get slug => 'المعرّف';
 
   @override
-  String get labelEn => 'التسمية الإنجليزية';
+  String get labelEn => 'التسمية (الإنجليزية)';
 
   @override
-  String get labelAr => 'التسمية العربية';
+  String get labelAr => 'التسمية (العربية)';
 
   @override
   String get instructionEn => 'التعليمات الإنجليزية';
@@ -261,7 +261,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reasons => 'الأسباب';
 
   @override
-  String get guideImage => 'صورة إرشادية';
+  String get guideImage => 'صورة الدليل';
 
   @override
   String get sampleData => 'بيانات تجريبية مؤقتة';
@@ -276,7 +276,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retired => 'موقوف';
 
   @override
-  String get createDraft => 'إنشاء مسودة جديدة';
+  String get createDraft => 'إنشاء مسودة';
 
   @override
   String get saveDraft => 'حفظ المسودة';
@@ -538,7 +538,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ينشئ مدير المنصة حسابات الورشة. يمكن لمدير الورشة مراجعة الموظفين وإسناد المهام.';
 
   @override
-  String get templates => 'القوالب';
+  String get templates => 'القوالب العالمية';
 
   @override
   String get newTemplate => 'قالب جديد';
@@ -1667,4 +1667,338 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fourHours => '4 ساعات';
+
+  @override
+  String get navTemplates => 'القوالب';
+
+  @override
+  String get navScoring => 'التقييم';
+
+  @override
+  String get navDocumentTypes => 'أنواع المستندات';
+
+  @override
+  String get navLanguages => 'اللغات';
+
+  @override
+  String get navConfigHealth => 'صحة الإعدادات';
+
+  @override
+  String get masterLibraryTitle => 'المكتبة الرئيسية';
+
+  @override
+  String get masterLibrarySubtitle => 'إعدادات الفحص المركزية لجميع الورش';
+
+  @override
+  String get seedDefaultChecklist => 'تحميل قائمة التحقق الافتراضية';
+
+  @override
+  String seedSuccess(Object created, Object skipped) {
+    return 'اكتمل التحميل: $created جديد، $skipped تم تجاوزه';
+  }
+
+  @override
+  String get seedFailed => 'فشل تحميل البيانات';
+
+  @override
+  String get categoriesTab => 'التصنيفات';
+
+  @override
+  String get itemsTab => 'العناصر';
+
+  @override
+  String get optionSetsTab => 'مجموعات الخيارات';
+
+  @override
+  String get categoryManagement => 'إدارة التصنيفات';
+
+  @override
+  String get addCategory => 'إضافة تصنيف';
+
+  @override
+  String get editCategory => 'تعديل التصنيف';
+
+  @override
+  String get categoryCode => 'رمز التصنيف';
+
+  @override
+  String get categoryWeight => 'الوزن %';
+
+  @override
+  String get categoryOrder => 'الترتيب';
+
+  @override
+  String get weightTotal => 'مجموع الأوزان';
+
+  @override
+  String get weightsValid => 'الأوزان النشطة تساوي 100';
+
+  @override
+  String get weightsInvalid => 'يجب أن تساوي الأوزان النشطة 100';
+
+  @override
+  String get retireCategory => 'إيقاف التصنيف';
+
+  @override
+  String get retireConfirm =>
+      'هل تريد إيقاف هذا السجل؟ لا يمكن حذف السجلات المستخدمة، بل إيقافها فقط.';
+
+  @override
+  String get reorder => 'إعادة الترتيب';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get itemEditor => 'محرر العنصر';
+
+  @override
+  String get basics => 'الأساسيات';
+
+  @override
+  String get englishContent => 'الإنجليزية';
+
+  @override
+  String get arabicContent => 'العربية';
+
+  @override
+  String get scoreBands => 'نطاقات الدرجات';
+
+  @override
+  String get evidenceRules => 'قواعد الأدلة';
+
+  @override
+  String get issueFields => 'حقول العطل';
+
+  @override
+  String get measurementBands => 'نطاقات القياس';
+
+  @override
+  String get itemCode => 'رمز العنصر';
+
+  @override
+  String get measurementUnit => 'وحدة القياس';
+
+  @override
+  String get sensorTool => 'الحساس / الأداة';
+
+  @override
+  String get standardSpecEn => 'المواصفة القياسية (الإنجليزية)';
+
+  @override
+  String get standardSpecAr => 'المواصفة القياسية (العربية)';
+
+  @override
+  String get multiPoint => 'عنصر متعدد النقاط';
+
+  @override
+  String get maxTyreAge => 'أقصى عمر للإطار (سنوات)';
+
+  @override
+  String get allowFreeText => 'السماح بملاحظة نصية';
+
+  @override
+  String get minVideos => 'الحد الأدنى للفيديو';
+
+  @override
+  String get minNotes => 'الحد الأدنى لأحرف الملاحظة';
+
+  @override
+  String get requiredEvidenceType => 'نوع الدليل المطلوب';
+
+  @override
+  String get defaultScore => 'الدرجة الافتراضية';
+
+  @override
+  String get minScore => 'الحد الأدنى للدرجة';
+
+  @override
+  String get maxScore => 'الحد الأعلى للدرجة';
+
+  @override
+  String get criteriaEn => 'المعايير (الإنجليزية)';
+
+  @override
+  String get criteriaAr => 'المعايير (العربية)';
+
+  @override
+  String get fieldCode => 'رمز الحقل';
+
+  @override
+  String get inputType => 'نوع الإدخال';
+
+  @override
+  String get optionSet => 'مجموعة الخيارات';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get dependsOn => 'يعتمد على';
+
+  @override
+  String get allowMultiple => 'السماح بتعدد القيم';
+
+  @override
+  String get decimalPlaces => 'المنازل العشرية';
+
+  @override
+  String get publishItem => 'نشر العنصر';
+
+  @override
+  String get itemPublished => 'تم نشر إصدار العنصر';
+
+  @override
+  String get versionImmutable =>
+      'الإصدارات المنشورة غير قابلة للتعديل. أنشئ مسودة للتعديل.';
+
+  @override
+  String get addItem => 'إضافة عنصر';
+
+  @override
+  String get itemCreated => 'تم إنشاء العنصر';
+
+  @override
+  String get createTemplate => 'إنشاء قالب';
+
+  @override
+  String get templateCode => 'رمز القالب';
+
+  @override
+  String get templateNameEn => 'اسم القالب (الإنجليزية)';
+
+  @override
+  String get templateNameAr => 'اسم القالب (العربية)';
+
+  @override
+  String get templateDescriptionEn => 'الوصف (الإنجليزية)';
+
+  @override
+  String get templateDescriptionAr => 'الوصف (العربية)';
+
+  @override
+  String get templateBuilder => 'منشئ القالب';
+
+  @override
+  String get weightPreview => 'معاينة الأوزان';
+
+  @override
+  String get normalizedWeight => 'الوزن المعاد توزيعه';
+
+  @override
+  String get approveTemplate => 'اعتماد';
+
+  @override
+  String get rejectTemplate => 'رفض';
+
+  @override
+  String get pendingApproval => 'بانتظار الاعتماد';
+
+  @override
+  String get scoringRules => 'قواعد التقييم';
+
+  @override
+  String get categoryWeightMode => 'وضع أوزان التصنيف';
+
+  @override
+  String get safetyCap => 'حد السلامة';
+
+  @override
+  String get capGrade => 'حد التقدير';
+
+  @override
+  String get gradeBoundaries => 'حدود التقديرات';
+
+  @override
+  String get grade => 'التقدير';
+
+  @override
+  String get addGrade => 'إضافة تقدير';
+
+  @override
+  String get coverageValid => 'حدود التقديرات تغطي 0-100';
+
+  @override
+  String get coverageInvalid => 'يجب أن تغطي حدود التقديرات 0-100 دون فراغات';
+
+  @override
+  String get proposeChange => 'اقتراح تغيير';
+
+  @override
+  String get approveChange => 'اعتماد التغيير';
+
+  @override
+  String get documentTypes => 'أنواع مستندات التقرير';
+
+  @override
+  String get addDocumentType => 'إضافة نوع مستند';
+
+  @override
+  String get documentTypeCode => 'رمز نوع المستند';
+
+  @override
+  String get languageRegistry => 'سجل اللغات';
+
+  @override
+  String get addLanguage => 'إضافة لغة';
+
+  @override
+  String get languageCode => 'رمز اللغة';
+
+  @override
+  String get nativeName => 'الاسم الأصلي';
+
+  @override
+  String get direction => 'الاتجاه';
+
+  @override
+  String get defaultLanguage => 'اللغة الافتراضية';
+
+  @override
+  String get translationCoverage => 'تغطية الترجمة';
+
+  @override
+  String get missingTranslations => 'الترجمات الناقصة';
+
+  @override
+  String get configHealth => 'صحة الإعدادات';
+
+  @override
+  String get healthy => 'سليم';
+
+  @override
+  String get unhealthy => 'توجد مشكلات';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get impactAnalysis => 'تحليل الأثر';
+
+  @override
+  String get affectedTemplates => 'القوالب المتأثرة';
+
+  @override
+  String get affectedItems => 'العناصر المتأثرة';
+
+  @override
+  String get affectedJobs => 'المهام المتأثرة';
+
+  @override
+  String get blocked => 'محظور';
+
+  @override
+  String get notBlocked => 'غير محظور';
+
+  @override
+  String get configReleases => 'إصدارات الإعدادات';
+
+  @override
+  String get createRelease => 'إنشاء إصدار';
+
+  @override
+  String get noData => 'لا توجد بيانات بعد';
+
+  @override
+  String get retry => 'إعادة المحاولة';
 }

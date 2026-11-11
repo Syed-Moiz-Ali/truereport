@@ -6,7 +6,7 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/features/settings/platform_settings_screen.dart';
 
-class _TestLocaleNotifier extends LocaleNotifier {
+class _TestLocaleNotifier extends LocaleController {
   _TestLocaleNotifier(this._initial);
   final Locale _initial;
 

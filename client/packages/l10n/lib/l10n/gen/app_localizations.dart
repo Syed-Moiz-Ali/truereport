@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:
-  /// **'Loading…'**
+  /// **'Loading'**
   String get loading;
 
   /// No description provided for @error.
@@ -521,13 +521,13 @@ abstract class AppLocalizations {
   /// No description provided for @labelEn.
   ///
   /// In en, this message translates to:
-  /// **'English label'**
+  /// **'Label (English)'**
   String get labelEn;
 
   /// No description provided for @labelAr.
   ///
   /// In en, this message translates to:
-  /// **'Arabic label'**
+  /// **'Label (Arabic)'**
   String get labelAr;
 
   /// No description provided for @instructionEn.
@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @minPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Minimum photos'**
+  /// **'Min photos'**
   String get minPhotos;
 
   /// No description provided for @equipment.
@@ -629,7 +629,7 @@ abstract class AppLocalizations {
   /// No description provided for @createDraft.
   ///
   /// In en, this message translates to:
-  /// **'Create new draft'**
+  /// **'Create draft'**
   String get createDraft;
 
   /// No description provided for @saveDraft.
@@ -1145,7 +1145,7 @@ abstract class AppLocalizations {
   /// No description provided for @templates.
   ///
   /// In en, this message translates to:
-  /// **'Templates'**
+  /// **'Global templates'**
   String get templates;
 
   /// No description provided for @newTemplate.
@@ -1475,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetyCritical.
   ///
   /// In en, this message translates to:
-  /// **'Safety-critical'**
+  /// **'Safety critical'**
   String get safetyCritical;
 
   /// No description provided for @saveAnswer.
@@ -3295,6 +3295,666 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'4 Hours'**
   String get fourHours;
+
+  /// No description provided for @navTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get navTemplates;
+
+  /// No description provided for @navScoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring'**
+  String get navScoring;
+
+  /// No description provided for @navDocumentTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Types'**
+  String get navDocumentTypes;
+
+  /// No description provided for @navLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get navLanguages;
+
+  /// No description provided for @navConfigHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Config Health'**
+  String get navConfigHealth;
+
+  /// No description provided for @masterLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Global Master Library'**
+  String get masterLibraryTitle;
+
+  /// No description provided for @masterLibrarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Centrally governed inspection configuration for every workshop'**
+  String get masterLibrarySubtitle;
+
+  /// No description provided for @seedDefaultChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Load default checklist'**
+  String get seedDefaultChecklist;
+
+  /// No description provided for @seedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed completed: {created} created, {skipped} skipped'**
+  String seedSuccess(Object created, Object skipped);
+
+  /// No description provided for @seedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed failed'**
+  String get seedFailed;
+
+  /// No description provided for @categoriesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categoriesTab;
+
+  /// No description provided for @itemsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get itemsTab;
+
+  /// No description provided for @optionSetsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Option sets'**
+  String get optionSetsTab;
+
+  /// No description provided for @categoryManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Category management'**
+  String get categoryManagement;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get addCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get editCategory;
+
+  /// No description provided for @categoryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Category code'**
+  String get categoryCode;
+
+  /// No description provided for @categoryWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight %'**
+  String get categoryWeight;
+
+  /// No description provided for @categoryOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get categoryOrder;
+
+  /// No description provided for @weightTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight total'**
+  String get weightTotal;
+
+  /// No description provided for @weightsValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Active weights sum to 100'**
+  String get weightsValid;
+
+  /// No description provided for @weightsInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Active weights must sum to 100'**
+  String get weightsInvalid;
+
+  /// No description provided for @retireCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire category'**
+  String get retireCategory;
+
+  /// No description provided for @retireConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire this record? Referenced records cannot be deleted, only retired.'**
+  String get retireConfirm;
+
+  /// No description provided for @reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get reorder;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @itemEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Item editor'**
+  String get itemEditor;
+
+  /// No description provided for @basics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get basics;
+
+  /// No description provided for @englishContent.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get englishContent;
+
+  /// No description provided for @arabicContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabicContent;
+
+  /// No description provided for @scoreBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Score bands'**
+  String get scoreBands;
+
+  /// No description provided for @evidenceRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence rules'**
+  String get evidenceRules;
+
+  /// No description provided for @issueFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue fields'**
+  String get issueFields;
+
+  /// No description provided for @measurementBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement bands'**
+  String get measurementBands;
+
+  /// No description provided for @itemCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Item code'**
+  String get itemCode;
+
+  /// No description provided for @measurementUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement unit'**
+  String get measurementUnit;
+
+  /// No description provided for @sensorTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor / tool'**
+  String get sensorTool;
+
+  /// No description provided for @standardSpecEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard spec (English)'**
+  String get standardSpecEn;
+
+  /// No description provided for @standardSpecAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard spec (Arabic)'**
+  String get standardSpecAr;
+
+  /// No description provided for @multiPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-point item'**
+  String get multiPoint;
+
+  /// No description provided for @maxTyreAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Max tyre age (years)'**
+  String get maxTyreAge;
+
+  /// No description provided for @allowFreeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow free-text note'**
+  String get allowFreeText;
+
+  /// No description provided for @minVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Min videos'**
+  String get minVideos;
+
+  /// No description provided for @minNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Min note characters'**
+  String get minNotes;
+
+  /// No description provided for @requiredEvidenceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Required evidence type'**
+  String get requiredEvidenceType;
+
+  /// No description provided for @defaultScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Default score'**
+  String get defaultScore;
+
+  /// No description provided for @minScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Min score'**
+  String get minScore;
+
+  /// No description provided for @maxScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Max score'**
+  String get maxScore;
+
+  /// No description provided for @criteriaEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria (English)'**
+  String get criteriaEn;
+
+  /// No description provided for @criteriaAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria (Arabic)'**
+  String get criteriaAr;
+
+  /// No description provided for @fieldCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Field code'**
+  String get fieldCode;
+
+  /// No description provided for @inputType.
+  ///
+  /// In en, this message translates to:
+  /// **'Input type'**
+  String get inputType;
+
+  /// No description provided for @optionSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Option set'**
+  String get optionSet;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @dependsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Depends on'**
+  String get dependsOn;
+
+  /// No description provided for @allowMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow multiple'**
+  String get allowMultiple;
+
+  /// No description provided for @decimalPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal places'**
+  String get decimalPlaces;
+
+  /// No description provided for @publishItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish item'**
+  String get publishItem;
+
+  /// No description provided for @itemPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Item version published'**
+  String get itemPublished;
+
+  /// No description provided for @versionImmutable.
+  ///
+  /// In en, this message translates to:
+  /// **'Published versions are immutable. Create a draft to edit.'**
+  String get versionImmutable;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get addItem;
+
+  /// No description provided for @itemCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Item created'**
+  String get itemCreated;
+
+  /// No description provided for @createTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create template'**
+  String get createTemplate;
+
+  /// No description provided for @templateCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Template code'**
+  String get templateCode;
+
+  /// No description provided for @templateNameEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name (English)'**
+  String get templateNameEn;
+
+  /// No description provided for @templateNameAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name (Arabic)'**
+  String get templateNameAr;
+
+  /// No description provided for @templateDescriptionEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (English)'**
+  String get templateDescriptionEn;
+
+  /// No description provided for @templateDescriptionAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Arabic)'**
+  String get templateDescriptionAr;
+
+  /// No description provided for @templateBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Template builder'**
+  String get templateBuilder;
+
+  /// No description provided for @weightPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preview'**
+  String get weightPreview;
+
+  /// No description provided for @normalizedWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Normalized weight'**
+  String get normalizedWeight;
+
+  /// No description provided for @approveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approveTemplate;
+
+  /// No description provided for @rejectTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get rejectTemplate;
+
+  /// No description provided for @pendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get pendingApproval;
+
+  /// No description provided for @scoringRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring rules'**
+  String get scoringRules;
+
+  /// No description provided for @categoryWeightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Category weight mode'**
+  String get categoryWeightMode;
+
+  /// No description provided for @safetyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap'**
+  String get safetyCap;
+
+  /// No description provided for @capGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Cap grade'**
+  String get capGrade;
+
+  /// No description provided for @gradeBoundaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries'**
+  String get gradeBoundaries;
+
+  /// No description provided for @grade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get grade;
+
+  /// No description provided for @addGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Add grade'**
+  String get addGrade;
+
+  /// No description provided for @coverageValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries cover 0-100'**
+  String get coverageValid;
+
+  /// No description provided for @coverageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries must cover 0-100 without gaps'**
+  String get coverageInvalid;
+
+  /// No description provided for @proposeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose change'**
+  String get proposeChange;
+
+  /// No description provided for @approveChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve change'**
+  String get approveChange;
+
+  /// No description provided for @documentTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Report document types'**
+  String get documentTypes;
+
+  /// No description provided for @addDocumentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document type'**
+  String get addDocumentType;
+
+  /// No description provided for @documentTypeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Document type code'**
+  String get documentTypeCode;
+
+  /// No description provided for @languageRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Language registry'**
+  String get languageRegistry;
+
+  /// No description provided for @addLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add language'**
+  String get addLanguage;
+
+  /// No description provided for @languageCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Language code'**
+  String get languageCode;
+
+  /// No description provided for @nativeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Native name'**
+  String get nativeName;
+
+  /// No description provided for @direction.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get direction;
+
+  /// No description provided for @defaultLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Default language'**
+  String get defaultLanguage;
+
+  /// No description provided for @translationCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation coverage'**
+  String get translationCoverage;
+
+  /// No description provided for @missingTranslations.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing translations'**
+  String get missingTranslations;
+
+  /// No description provided for @configHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration health'**
+  String get configHealth;
+
+  /// No description provided for @healthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get healthy;
+
+  /// No description provided for @unhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues found'**
+  String get unhealthy;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @impactAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact analysis'**
+  String get impactAnalysis;
+
+  /// No description provided for @affectedTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected templates'**
+  String get affectedTemplates;
+
+  /// No description provided for @affectedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected items'**
+  String get affectedItems;
+
+  /// No description provided for @affectedJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected jobs'**
+  String get affectedJobs;
+
+  /// No description provided for @blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blocked;
+
+  /// No description provided for @notBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not blocked'**
+  String get notBlocked;
+
+  /// No description provided for @configReleases.
+  ///
+  /// In en, this message translates to:
+  /// **'Config releases'**
+  String get configReleases;
+
+  /// No description provided for @createRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Create release'**
+  String get createRelease;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get noData;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

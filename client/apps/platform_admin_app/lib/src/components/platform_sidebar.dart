@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+
 import '../platform_theme.dart';
 
 class PlatformSidebar extends StatelessWidget {
@@ -30,13 +31,18 @@ class PlatformSidebar extends StatelessWidget {
     final equipmentLabel = l10n?.equipment ?? 'Equipment';
     final settingsLabel = l10n?.settings ?? 'Settings';
     final auditLogLabel = l10n?.auditLog ?? 'Audit Log';
+    final templatesLabel = l10n?.navTemplates ?? 'Templates';
+    final scoringLabel = l10n?.navScoring ?? 'Scoring';
+    final documentTypesLabel = l10n?.navDocumentTypes ?? 'Document Types';
+    final languagesLabel = l10n?.navLanguages ?? 'Languages';
+    final configHealthLabel = l10n?.navConfigHealth ?? 'Config Health';
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final sidebarWidth = (screenWidth * 0.2).clamp(256.0, 280.0);
     return Container(
-      width: 256,
+      width: sidebarWidth,
       decoration: const BoxDecoration(
         color: PtTheme.white,
-        border: Border(
-          right: BorderSide(color: PtTheme.border, width: 1),
-        ),
+        border: Border(right: BorderSide(color: PtTheme.border, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,32 +75,38 @@ class PlatformSidebar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'CoreOS',
-                      style: PtTheme.font(
-                        16,
-                        lineHeight: 16,
-                        weight: FontWeight.w700,
-                        color: PtTheme.ink,
-                        tracking: -0.4,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'CoreOS',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: PtTheme.font(
+                          16,
+                          lineHeight: 16,
+                          weight: FontWeight.w700,
+                          color: PtTheme.ink,
+                          tracking: -0.4,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Platform Admin',
-                      style: PtTheme.font(
-                        11,
-                        lineHeight: 14,
-                        weight: FontWeight.w600,
-                        color: PtTheme.muted,
-                        tracking: 0.44,
+                      const SizedBox(height: 2),
+                      Text(
+                        'Platform Admin',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: PtTheme.font(
+                          11,
+                          lineHeight: 14,
+                          weight: FontWeight.w600,
+                          color: PtTheme.muted,
+                          tracking: 0.44,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -109,7 +121,9 @@ class PlatformSidebar extends StatelessWidget {
                   key: const Key('nav-workshops'),
                   icon: Icons.apartment_rounded,
                   label: workshopsLabel,
-                  isActive: currentRoute == '/' || currentRoute.startsWith('/workshops'),
+                  isActive:
+                      currentRoute == '/' ||
+                      currentRoute.startsWith('/workshops'),
                   onTap: () => _navigate(context, '/workshops'),
                 ),
                 const SizedBox(height: 4),
@@ -119,6 +133,46 @@ class PlatformSidebar extends StatelessWidget {
                   label: masterLibraryLabel,
                   isActive: currentRoute.startsWith('/master-library'),
                   onTap: () => _navigate(context, '/master-library'),
+                ),
+                const SizedBox(height: 4),
+                _NavItem(
+                  key: const Key('nav-templates'),
+                  icon: Icons.dashboard_customize_outlined,
+                  label: templatesLabel,
+                  isActive: currentRoute.startsWith('/templates'),
+                  onTap: () => _navigate(context, '/templates'),
+                ),
+                const SizedBox(height: 4),
+                _NavItem(
+                  key: const Key('nav-scoring'),
+                  icon: Icons.insights_rounded,
+                  label: scoringLabel,
+                  isActive: currentRoute.startsWith('/scoring'),
+                  onTap: () => _navigate(context, '/scoring'),
+                ),
+                const SizedBox(height: 4),
+                _NavItem(
+                  key: const Key('nav-document-types'),
+                  icon: Icons.description_outlined,
+                  label: documentTypesLabel,
+                  isActive: currentRoute.startsWith('/document-types'),
+                  onTap: () => _navigate(context, '/document-types'),
+                ),
+                const SizedBox(height: 4),
+                _NavItem(
+                  key: const Key('nav-languages'),
+                  icon: Icons.translate_rounded,
+                  label: languagesLabel,
+                  isActive: currentRoute.startsWith('/languages'),
+                  onTap: () => _navigate(context, '/languages'),
+                ),
+                const SizedBox(height: 4),
+                _NavItem(
+                  key: const Key('nav-config-health'),
+                  icon: Icons.health_and_safety_outlined,
+                  label: configHealthLabel,
+                  isActive: currentRoute.startsWith('/config-health'),
+                  onTap: () => _navigate(context, '/config-health'),
                 ),
                 const SizedBox(height: 4),
                 _NavItem(
@@ -160,12 +214,14 @@ class PlatformSidebar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Container(
-              height: 46,
+              constraints: const BoxConstraints(minHeight: 46),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: PtTheme.canvas,
                 borderRadius: BorderRadius.circular(9999),
-                border: Border.all(color: PtTheme.border.withValues(alpha: 0.7)),
+                border: Border.all(
+                  color: PtTheme.border.withValues(alpha: 0.7),
+                ),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x04000000),
@@ -183,10 +239,7 @@ class PlatformSidebar extends StatelessWidget {
                       color: PtTheme.emerald,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(
-                          color: Color(0x8010B981),
-                          blurRadius: 8,
-                        ),
+                        BoxShadow(color: Color(0x8010B981), blurRadius: 8),
                       ],
                     ),
                   ),
@@ -245,8 +298,7 @@ class _NavItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(8),

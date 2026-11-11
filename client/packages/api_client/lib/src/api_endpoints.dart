@@ -140,4 +140,99 @@ class ApiEndpoints {
       '$_root/workshop/templates/$id/versions/$versionId';
   String workshopTemplatePreview(String id) =>
       '$_root/workshop/templates/$id/preview';
+
+  // ---------------------------------------------------------------- i18n
+  String get i18nLanguages => '$_root/i18n/languages';
+  String get i18nMe => '$_root/i18n/me';
+  String get platformLanguages => '$_root/platform/i18n/languages';
+  String platformLanguage(String code) =>
+      '$_root/platform/i18n/languages/$code';
+  String platformLanguageActivate(String code) =>
+      '$_root/platform/i18n/languages/$code/activate';
+  String platformLanguageDeactivate(String code) =>
+      '$_root/platform/i18n/languages/$code/deactivate';
+  String get platformLanguagesReorder =>
+      '$_root/platform/i18n/languages/reorder';
+  String get platformLanguagesDefault =>
+      '$_root/platform/i18n/languages/default';
+  String get platformLanguageCoverage => '$_root/platform/i18n/coverage';
+
+  // ------------------------------------------------------- master config
+  String get categoryWeightCheck =>
+      '$_root/platform/master/categories/weight-check';
+  String get categoriesReorder => '$_root/platform/master/categories/reorder';
+  String get itemsReorder => '$_root/platform/master/items/reorder';
+  String itemDraft(String itemId) =>
+      '$_root/platform/master/items/$itemId/draft';
+  String itemMetadata(String itemId) =>
+      '$_root/platform/master/items/$itemId/metadata';
+  String itemVersionConfig(String itemId, String versionId) =>
+      '$_root/platform/master/items/$itemId/versions/$versionId/config';
+  String itemVersionBands(String itemId, String versionId) =>
+      '$_root/platform/master/items/$itemId/versions/$versionId/bands';
+  String itemVersionEvidenceRules(String itemId, String versionId) =>
+      '$_root/platform/master/items/$itemId/versions/$versionId/evidence-rules';
+  String itemVersionIssueFields(String itemId, String versionId) =>
+      '$_root/platform/master/items/$itemId/versions/$versionId/issue-fields';
+  String itemVersionMeasurementBands(String itemId, String versionId) =>
+      '$_root/platform/master/items/$itemId/versions/$versionId/measurement-bands';
+
+  String get optionSets => '$_root/platform/master/option-sets';
+  String optionSet(String id) => '$_root/platform/master/option-sets/$id';
+  String retireOptionSet(String id) =>
+      '$_root/platform/master/option-sets/$id/retire';
+  String optionSetValues(String id) =>
+      '$_root/platform/master/option-sets/$id/values';
+  String optionSetValue(String id, String valueId) =>
+      '$_root/platform/master/option-sets/$id/values/$valueId';
+  String retireOptionSetValue(String id, String valueId) =>
+      '$_root/platform/master/option-sets/$id/values/$valueId/retire';
+  String reorderOptionSetValues(String id) =>
+      '$_root/platform/master/option-sets/$id/values/reorder';
+
+  String get masterTemplates => '$_root/platform/master/templates';
+  String masterTemplate(String id) => '$_root/platform/master/templates/$id';
+  String masterTemplateVersions(String id) =>
+      '$_root/platform/master/templates/$id/versions';
+  String masterTemplateVersionItems(String id, String versionId) =>
+      '$_root/platform/master/templates/$id/versions/$versionId/items';
+  String masterTemplateWeightPreview(String id, String versionId) =>
+      '$_root/platform/master/templates/$id/versions/$versionId/weight-preview';
+  String publishMasterTemplate(String id, String versionId) =>
+      '$_root/platform/master/templates/$id/versions/$versionId/publish';
+  String approveMasterTemplate(String id, String versionId) =>
+      '$_root/platform/master/templates/$id/versions/$versionId/approve';
+  String rejectMasterTemplate(String id, String versionId) =>
+      '$_root/platform/master/templates/$id/versions/$versionId/reject';
+  String retireMasterTemplate(String id) =>
+      '$_root/platform/master/templates/$id/retire';
+
+  String get scoringRules => '$_root/platform/scoring-rules';
+  String scoringRule(String id) => '$_root/platform/scoring-rules/$id';
+  String approveScoringRule(String id) =>
+      '$_root/platform/scoring-rules/$id/approve';
+  String rejectScoringRule(String id) =>
+      '$_root/platform/scoring-rules/$id/reject';
+  String gradeBoundaries(String id) =>
+      '$_root/platform/scoring-rules/$id/grade-boundaries';
+  String approveGradeBoundaries(String id) =>
+      '$_root/platform/scoring-rules/$id/grade-boundaries/approve';
+
+  String get reportDocumentTypes => '$_root/platform/document-types';
+  String reportDocumentType(String id) =>
+      '$_root/platform/document-types/$id';
+  String retireReportDocumentType(String id) =>
+      '$_root/platform/document-types/$id/retire';
+  String get reportDocumentTypesReorder =>
+      '$_root/platform/document-types/reorder';
+
+  String get seedDefaultChecklist => '$_root/platform/seed/default-checklist';
+  String get configHealth => '$_root/platform/config-health';
+  String configHealthEntity(String entityType) =>
+      '$_root/platform/config-health/$entityType';
+  String impactAnalysis(String entityType, String id) =>
+      '$_root/platform/master/$entityType/$id/impact';
+  String get configReleases => '$_root/platform/releases';
+  String configReleaseTransition(String id, String action) =>
+      '$_root/platform/releases/$id/$action';
 }
