@@ -288,6 +288,7 @@ public class ReportViewMapper {
     private List<Map<String, Object>> categories(List<ReportSnapshot.Category> categories,
                                                  Map<UUID, EvidenceDerivative> derivatives,
                                                  String language, boolean bilingual) {
+        boolean ar = "ar".equals(language);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ReportSnapshot.Category category : categories) {
             Map<String, Object> map = new LinkedHashMap<>();
@@ -315,6 +316,11 @@ public class ReportViewMapper {
             map.put("passedCount", catPassed);
             map.put("attentionCount", catAttention);
             map.put("defectCount", catDefect);
+            String catStatus = catDefect > 0 ? "DEFECT" : (catAttention > 0 ? "ATTENTION" : "GOOD");
+            String catStatusLabel = catDefect > 0 ? (ar ? "فاشل (FAIL)" : "FAIL") : (catAttention > 0 ? (ar ? "تنبيه (ATTENTION)" : "ATTENTION") : (ar ? "ناجح (PASS)" : "PASS"));
+            map.put("categoryStatus", catStatus);
+            map.put("categoryStatusLabel", catStatusLabel);
+            map.put("statusBadge", catStatusLabel);
             result.add(map);
         }
         return result;
@@ -344,6 +350,9 @@ public class ReportViewMapper {
             map.put("result", ReportMessages.result(language, item.resultCode()));
             map.put("resultEn", ReportMessages.result("en", item.resultCode()));
             map.put("resultAr", ReportMessages.result("ar", item.resultCode()));
+            String passFail = "DEFECT_FOUND".equals(item.resultCode()) ? (ar ? "فاشل (FAIL)" : "FAIL") :
+                              ("ATTENTION_RECOMMENDED".equals(item.resultCode()) ? (ar ? "تنبيه (ATTENTION)" : "ATTENTION") : (ar ? "ناجح (PASS)" : "PASS"));
+            map.put("passFailStatus", passFail);
             map.put("severityCode", item.severityCode());
             map.put("severity", ReportMessages.severity(language, item.severityCode()));
             map.put("severityEn", ReportMessages.severity("en", item.severityCode()));
