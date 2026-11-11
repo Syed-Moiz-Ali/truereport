@@ -25,10 +25,6 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </div>
       <div class="brand">TrueReport</div>
-      <div class="live-pill">
-        <span class="live-dot" aria-hidden="true"></span>
-        <span th:text="${r.labels.liveReport}"></span>
-      </div>
       <span class="header-token-badge ltr" th:text="${token != null ? token : r.reportNumber}"></span>
     </div>
     <div class="header-actions">
@@ -163,19 +159,15 @@
         <div class="score-card-header">
           <div class="decision-badge-wrap">
             <span class="decision-title" th:text="${r.labels.finalDecision}"></span>
-            <span class="decision-status decision-status-approved">
-              <span class="decision-icon" aria-hidden="true" th:text="'✓'"></span>
-              <span th:text="${r.labels.approved}"></span>
-            </span>
           </div>
         </div>
 
-        <!-- Center Stage: SVG Metric Ring (96px mobile / 128px desktop) + Verdict -->
+        <!-- Center Stage: SVG Metric Ring (Column Layout) + Verdict -->
         <div class="score-ring-row">
           <div class="score-ring-wrapper">
             <svg class="score-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
-              <circle class="score-ring-track" cx="60" cy="60" r="50" stroke-width="10" />
-              <circle class="score-ring-fill" cx="60" cy="60" r="50" stroke-width="10" stroke-linecap="round"
+              <circle class="score-ring-track" cx="60" cy="60" r="50" stroke-width="9" />
+              <circle class="score-ring-fill" cx="60" cy="60" r="50" stroke-width="9" stroke-linecap="round"
                       th:style="'--score-val: ' + ${r.passRate} + ';'" />
             </svg>
             <div class="score-ring-inner">
@@ -196,7 +188,7 @@
           </div>
         </div>
 
-        <!-- Details Below: Passed, Attention, Defects & Checklist Breakdown -->
+        <!-- Details Below: Passed, Attention, Defects Cards -->
         <div class="odometer-details-section">
           <!-- 3 Condition Cards in a Row -->
           <div class="score-condition-cards-grid">
@@ -221,26 +213,6 @@
               </div>
               <strong class="stat-count" th:text="${r.defectCount}"></strong>
             </div>
-          </div>
-
-          <!-- Category Bars: 8px rounded bar colored by status, sorted worst first via CSS order -->
-          <div class="score-category-bars-list">
-            <a th:each="category, catStat : ${r.categories}"
-               th:href="'#cat-accordion-' + ${catStat.index}"
-               class="score-cat-bar-item"
-               th:attr="data-status=${category.categoryStatus}">
-              <div class="score-cat-bar-header">
-                <span class="score-cat-name" th:text="${category.label}"></span>
-                <div class="score-cat-right">
-                  <span class="score-cat-val" th:text="${category.scoreText}"></span>
-                  <span class="score-cat-badge" th:classappend="${category.categoryStatus == 'DEFECT' ? 'badge-fail' : (category.categoryStatus == 'ATTENTION' ? 'badge-attention' : 'badge-pass')}" th:text="${category.categoryStatusLabel}"></span>
-                </div>
-              </div>
-              <div class="score-cat-bar-track">
-                <div class="score-cat-bar-fill" th:style="'width: ' + ${category.score} + '%;'"
-                     th:classappend="${category.categoryStatus == 'DEFECT' ? 'fill-fail' : (category.categoryStatus == 'ATTENTION' ? 'fill-warn' : 'fill-pass')}"></div>
-              </div>
-            </a>
           </div>
 
           <!-- Coverage Progress Bar & Summary -->
