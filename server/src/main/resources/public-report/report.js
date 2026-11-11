@@ -155,11 +155,69 @@ function openPhotoFromDialog() {
   openLightboxDirect(currentPartImg, currentPartCaption, currentPartNote);
 }
 
+var currentGalleryIndex = 0;
+var activeGalleryCards = [];
+
+function updateActiveGalleryCards() {
+  var allCards = Array.from(document.querySelectorAll('.gallery-masonry-card'));
+  activeGalleryCards = allCards.filter(function (card) {
+    return card.style.display !== 'none';
+  });
+}
+
+function showGalleryImageAtIndex(index) {
+  if (!activeGalleryCards.length) updateActiveGalleryCards();
+  if (!activeGalleryCards.length) return;
+
+  if (index < 0) {
+    index = activeGalleryCards.length - 1;
+  } else if (index >= activeGalleryCards.length) {
+    index = 0;
+  }
+  currentGalleryIndex = index;
+
+  var card = activeGalleryCards[currentGalleryIndex];
+  var imgSrc = card.getAttribute('data-img') || (card.querySelector('img') ? card.querySelector('img').src : '');
+  var caption = card.getAttribute('data-caption') || '';
+  var note = card.getAttribute('data-note') || '';
+
+  var img = document.getElementById('lightbox-img');
+  var captionEl = document.getElementById('lightbox-caption');
+  var noteEl = document.getElementById('lightbox-note');
+  var currentNumEl = document.getElementById('lightbox-counter-current');
+  var totalNumEl = document.getElementById('lightbox-counter-total');
+
+  if (img) img.src = imgSrc || '';
+  if (captionEl) captionEl.textContent = caption || '';
+  if (noteEl) noteEl.textContent = note || '';
+  if (currentNumEl) currentNumEl.textContent = String(currentGalleryIndex + 1);
+  if (totalNumEl) totalNumEl.textContent = String(activeGalleryCards.length);
+}
+
 function openLightbox(el) {
-  var imgSrc = el.getAttribute('data-img') || (el.querySelector('img') ? el.querySelector('img').src : '');
-  var caption = el.getAttribute('data-caption') || '';
-  var note = el.getAttribute('data-note') || '';
-  openLightboxDirect(imgSrc, caption, note);
+  updateActiveGalleryCards();
+  var idx = activeGalleryCards.indexOf(el);
+  if (idx !== -1) {
+    showGalleryImageAtIndex(idx);
+    var dialog = document.getElementById('photo-lightbox');
+    if (dialog) {
+      try {
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute('open', 'true');
+        }
+      } catch (err) {
+        dialog.setAttribute('open', 'true');
+      }
+      document.body.classList.add('modal-open');
+    }
+  } else {
+    var imgSrc = el.getAttribute('data-img') || (el.querySelector('img') ? el.querySelector('img').src : '');
+    var caption = el.getAttribute('data-caption') || '';
+    var note = el.getAttribute('data-note') || '';
+    openLightboxDirect(imgSrc, caption, note);
+  }
 }
 
 function openLightboxDirect(imgSrc, caption, note) {
@@ -167,11 +225,15 @@ function openLightboxDirect(imgSrc, caption, note) {
   var img = document.getElementById('lightbox-img');
   var captionEl = document.getElementById('lightbox-caption');
   var noteEl = document.getElementById('lightbox-note');
+  var currentNumEl = document.getElementById('lightbox-counter-current');
+  var totalNumEl = document.getElementById('lightbox-counter-total');
   if (!dialog || !img) return;
 
   img.src = imgSrc || '';
   if (captionEl) captionEl.textContent = caption || '';
   if (noteEl) noteEl.textContent = note || '';
+  if (currentNumEl) currentNumEl.textContent = '1';
+  if (totalNumEl) totalNumEl.textContent = '1';
 
   try {
     if (typeof dialog.showModal === 'function') {
@@ -243,6 +305,26 @@ document.addEventListener('click', function (e) {
     return;
   }
 
+  var lbPrev = e.target.closest('[data-action="lightbox-prev"]');
+  if (lbPrev) {
+    e.preventDefault();
+    showGalleryImageAtIndex(currentGalleryIndex - 1);
+    return;
+  }
+
+  var lbNext = e.target.closest('[data-action="lightbox-next"]');
+  if (lbNext) {
+    e.preventDefault();
+    showGalleryImageAtIndex(currentGalleryIndex + 1);
+    return;
+  }
+
+  var lbDialog = document.getElementById('photo-lightbox');
+  if (e.target === lbDialog) {
+    closeLightbox();
+    return;
+  }
+
   var photoBox = e.target.closest('[data-action="open-lightbox"], .part-photo-box, .gallery-masonry-card, .gallery-photo-card');
   if (photoBox && !photoBox.closest('#part-detail-dialog') && !photoBox.closest('.key-finding-interactive-card')) {
     e.preventDefault();
@@ -251,16 +333,31 @@ document.addEventListener('click', function (e) {
   }
 });
 
-// Keyboard support: Enter / Space triggers active item, Escape closes modals
+// Keyboard support: Enter / Space triggers active item, Escape closes modals, Arrow keys browse lightbox
 document.addEventListener('keydown', function (e) {
+  var lbDialog = document.getElementById('photo-lightbox');
+  var isLbOpen = lbDialog && (lbDialog.open || lbDialog.hasAttribute('open'));
+
   if (e.key === 'Escape') {
     closePartDialog();
     closeLightbox();
+    if (typeof closeScoringModal === 'function') closeScoringModal();
+  } else if (isLbOpen && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+    e.preventDefault();
+    var isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+    if ((e.key === 'ArrowRight' && !isRtl) || (e.key === 'ArrowLeft' && isRtl)) {
+      showGalleryImageAtIndex(currentGalleryIndex + 1);
+    } else {
+      showGalleryImageAtIndex(currentGalleryIndex - 1);
+    }
   } else if (e.key === 'Enter' || e.key === ' ') {
     var active = document.activeElement;
     if (active && active.matches('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card, .tyre-modern-card')) {
       e.preventDefault();
       openPartDialog(active);
+    } else if (active && active.matches('.gallery-masonry-card, .gallery-photo-card')) {
+      e.preventDefault();
+      openLightbox(active);
     }
   }
 });
@@ -345,8 +442,10 @@ document.addEventListener('DOMContentLoaded', function () {
           card.style.display = 'none';
         }
       });
+      updateActiveGalleryCards();
     });
   });
+  updateActiveGalleryCards();
 
   // Visual Diagnostic Sector Filter Tabs
   var diagFilterButtons = document.querySelectorAll('.visual-filter-bar .filter-chip');

@@ -794,7 +794,7 @@
         <!-- Part Photo Card -->
         <div class="media-proof-box">
           <div class="media-proof-header">
-            <span aria-hidden="true">📷</span>
+            <svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             <span th:text="${r.labels.photos}"></span>
           </div>
           <div class="media-img-wrapper" onclick="openPhotoFromDialog()" tabindex="0" role="button" th:title="${r.labels.tapToEnlarge}">
@@ -808,7 +808,7 @@
         <!-- Video Proof Player Card -->
         <div class="media-proof-box">
           <div class="media-proof-header">
-            <span aria-hidden="true">🎥</span>
+            <svg class="ui-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
             <span th:text="${r.labels.videoProof}"></span>
           </div>
           <div class="media-video-wrapper">
@@ -833,14 +833,31 @@
 <!-- Lightbox Modal for Photo Inspection -->
 <dialog id="photo-lightbox" class="lightbox-dialog" aria-modal="true" aria-labelledby="lightbox-caption">
   <div class="lightbox-content">
-    <button type="button" class="lightbox-close-btn" data-action="close-lightbox" th:aria-label="${r.labels.close}">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
+    <div class="lightbox-header-bar">
+      <div class="lightbox-counter-pill">
+        <span id="lightbox-counter-current" th:text="'1'"></span>
+        <span aria-hidden="true" th:text="' / '"></span>
+        <span id="lightbox-counter-total" th:text="'38'"></span>
+      </div>
+      <button type="button" class="lightbox-close-btn" data-action="close-lightbox" th:aria-label="${r.labels.close}">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
     <div class="lightbox-image-wrap">
+      <button type="button" class="lightbox-nav-btn lightbox-prev-btn" data-action="lightbox-prev" th:aria-label="${r.labels.photos}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
       <img id="lightbox-img" src="" th:alt="${r.labels.photos}" class="lightbox-img">
+      <button type="button" class="lightbox-nav-btn lightbox-next-btn" data-action="lightbox-next" th:aria-label="${r.labels.photos}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
     <div class="lightbox-details">
       <h4 id="lightbox-caption" class="lightbox-title"></h4>
