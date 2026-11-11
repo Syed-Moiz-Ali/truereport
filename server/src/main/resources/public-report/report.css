@@ -105,7 +105,9 @@ html {
   color-scheme: light;
   background: var(--surface-low);
   scroll-behavior: smooth;
-  overflow-x: clip;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 body {
@@ -116,7 +118,9 @@ body {
   font-size: 15px;
   line-height: 1.55;
   -webkit-text-size-adjust: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 [lang="ar"], [dir="rtl"] {
@@ -377,6 +381,8 @@ header.report-header.scrolled {
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  max-width: 100vw;
+  width: 100%;
 }
 
 .quick-nav-bar::-webkit-scrollbar {
@@ -387,6 +393,8 @@ header.report-header.scrolled {
   display: flex;
   gap: 8px;
   padding: 10px 0;
+  width: max-content;
+  max-width: none;
 }
 
 .nav-chip {
@@ -665,7 +673,52 @@ h2 {
   text-overflow: ellipsis;
 }
 
-/* Spacious Specifications Matrix (Full breathing room, never cuts or wraps to 2 lines!) */
+/* Vehicle Snapshot Collapsible (Mobile) / Expanded (Desktop) */
+.vehicle-snapshot-details {
+  border: 1px solid var(--outline-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-low);
+  overflow: hidden;
+}
+
+.vehicle-snapshot-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--on-surface);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.vehicle-snapshot-summary::-webkit-details-marker {
+  display: none;
+}
+
+.snapshot-toggle-icon {
+  transition: transform 0.2s ease;
+  font-size: 0.85rem;
+  color: var(--on-variant);
+}
+
+.vehicle-snapshot-details[open] .snapshot-toggle-icon {
+  transform: rotate(180deg);
+}
+
+@media (min-width: 1024px) {
+  .vehicle-snapshot-summary {
+    display: none;
+  }
+  .vehicle-snapshot-details {
+    border: none;
+    background: transparent;
+  }
+}
+
+/* Spacious Specifications Matrix */
 .vehicle-specs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -703,6 +756,44 @@ h2 {
   white-space: nowrap;
 }
 
+.spec-val-copy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.spec-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--on-variant);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.spec-copy-btn:hover {
+  color: var(--primary, #006C49);
+  background: rgba(0, 108, 73, 0.08);
+}
+
+.spec-copy-btn.copied {
+  color: #16A34A;
+}
+
+.spec-copy-btn .icon-sm {
+  width: 14px;
+  height: 14px;
+}
+
 .spec-value {
   font-size: 0.92rem;
   font-weight: 700;
@@ -711,6 +802,7 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Executive Condition Scorecard (MASSIVE, HIGH-IMPACT & ANIMATED) */
@@ -1312,6 +1404,50 @@ h2 {
   color: var(--critical);
 }
 
+/* Responsive overrides for Hero & Overview on mobile */
+@media (max-width: 640px) {
+  .card,
+  .hero-vehicle-card,
+  .hero-score-card {
+    padding: 16px;
+    border-radius: var(--radius-lg);
+  }
+  .score-condition-cards-grid {
+    gap: 6px;
+  }
+  .condition-stat-card {
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+  }
+  .stat-name {
+    font-size: 0.65rem;
+  }
+  .stat-count {
+    font-size: 1.15rem;
+  }
+  .score-ring-row {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  .score-verdict-title {
+    justify-content: center;
+  }
+  .how-scoring-btn {
+    justify-content: center;
+  }
+  .photo-banner-strip {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .banner-stat-lbl {
+    font-size: 0.65rem;
+  }
+  .banner-stat-val {
+    font-size: 0.85rem;
+  }
+}
+
 /* ==========================================================================
    Section 2: The Main Inspection Findings & Checklist
    ========================================================================== */
@@ -1327,6 +1463,9 @@ h2 {
   margin-top: 14px;
   margin-bottom: 22px;
   overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 6px;
   scrollbar-width: none;
 }
@@ -2487,6 +2626,9 @@ details[open] .accordion-arrow {
   margin-top: 14px;
   margin-bottom: 22px;
   overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 6px;
   scrollbar-width: none;
 }
@@ -3150,85 +3292,129 @@ footer.report-footer {
    ========================================================================== */
 .key-findings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
-  gap: 22px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 768px) {
   .key-findings-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
   }
 }
 
 .key-finding-interactive-card {
-  padding: 24px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8F8 100%);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 18px 20px;
+  border-radius: var(--radius-lg, 14px);
+  background: #FFFFFF;
+  border: 1px solid var(--outline-subtle);
+  border-inline-start: 4px solid var(--danger);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.key-finding-interactive-card.finding-defect {
+  border-inline-start: 4px solid var(--danger);
+  order: 1;
+}
+
+.key-finding-interactive-card.finding-attention {
+  border-inline-start: 4px solid var(--warning);
+  order: 2;
 }
 
 .key-finding-interactive-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .key-finding-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.key-finding-title-group {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
+.key-finding-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.key-finding-cat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--on-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .key-finding-title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--on-surface);
+  line-height: 1.35;
 }
 
 .key-finding-note {
   margin: 0;
-  font-size: 0.92rem;
-  color: var(--on-surface);
-  line-height: 1.5;
+  font-size: 0.88rem;
+  color: var(--on-variant);
+  line-height: 1.45;
   background: var(--surface-low);
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 8px);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .key-finding-specs-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+}
+
+.key-finding-specs-strip .spec-pill {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface-low);
+  color: var(--on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.key-finding-specs-strip .spec-pill-measured {
+  border-inline-start: 2px solid var(--danger);
+}
+
+.key-finding-specs-strip .spec-pill-std {
+  border-inline-start: 2px solid var(--outline);
+  color: var(--on-variant);
 }
 
 .key-finding-media-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--outline);
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--outline-subtle);
 }
 
 .key-finding-thumb-wrap {
   position: relative;
-  width: 140px;
-  height: 90px;
-  border-radius: 10px;
+  width: 104px;
+  height: 68px;
+  border-radius: 8px;
   overflow: hidden;
   background: #0F172A;
   flex-shrink: 0;
@@ -3238,34 +3424,60 @@ footer.report-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .video-indicator-badge {
   position: absolute;
-  bottom: 6px;
-  inset-inline-start: 6px;
-  background: rgba(0, 0, 0, 0.85);
+  bottom: 4px;
+  inset-inline-start: 4px;
+  background: rgba(15, 23, 42, 0.85);
   color: #FFFFFF;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  line-height: 1;
 }
 
 .key-finding-cta-hint {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: #006C49;
+  gap: 4px;
+  color: var(--primary, #006C49);
   font-size: 0.85rem;
   font-weight: 700;
 }
 
-.key-finding-interactive-card:hover .hint-arrow {
-  transform: translateX(4px);
+.key-finding-interactive-card:hover .key-finding-cta-hint .hint-arrow {
+  transform: translateX(3px);
+}
+
+html[dir="rtl"] .key-finding-interactive-card:hover .key-finding-cta-hint .hint-arrow {
+  transform: translateX(-3px);
+}
+
+.key-findings-empty-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  border-radius: var(--radius-lg, 12px);
+  color: #166534;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.key-findings-empty-card .icon-success {
+  width: 22px;
+  height: 22px;
+  color: #16A34A;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================

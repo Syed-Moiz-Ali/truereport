@@ -118,37 +118,44 @@
           </div>
         </div>
 
-        <!-- Spacious Specifications Matrix (Full breathing room, never cuts or wraps to 2 lines!) -->
-        <div class="vehicle-specs-grid">
-          <div class="spec-item" th:title="${r.vehicle.vinMasked}">
-            <span class="spec-label" th:text="${r.labels.vin}"></span>
-            <span class="spec-value ltr" th:text="${r.vehicle.vinMasked}"></span>
+        <!-- Spacious Specifications Matrix (Collapsible on mobile, open on desktop) -->
+        <details class="vehicle-snapshot-details" open>
+          <summary class="vehicle-snapshot-summary">
+            <span class="snapshot-summary-title" th:text="${r.labels.vehicle}"></span>
+            <span class="snapshot-toggle-icon" aria-hidden="true" th:text="'▾'"></span>
+          </summary>
+          <div class="vehicle-specs-grid">
+            <div class="spec-item" th:title="${r.vehicle.vinMasked}">
+              <span class="spec-label" th:text="${r.labels.vin}"></span>
+              <div class="spec-val-copy-row">
+                <span class="spec-value ltr" id="vinValue" th:text="${r.vehicle.vinMasked}"></span>
+                <button type="button" class="spec-copy-btn" data-copy-target="#vinValue" th:attr="aria-label=${r.labels.vin}">
+                  <svg class="ui-icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="spec-item" th:title="${r.vehicle.drivetrain}">
+              <span class="spec-label" th:text="${r.labels.drivetrain}"></span>
+              <span class="spec-value" th:text="${r.vehicle.drivetrain}"></span>
+            </div>
+            <div class="spec-item" th:title="${r.vehicle.engineSize}">
+              <span class="spec-label" th:text="${r.labels.engineSize}"></span>
+              <span class="spec-value" th:text="${r.vehicle.engineSize}"></span>
+            </div>
+            <div class="spec-item" th:title="${r.inspection.dateTime}">
+              <span class="spec-label" th:text="${r.labels.inspection}"></span>
+              <span class="spec-value" th:text="${r.inspection.dateTime}"></span>
+            </div>
+            <div class="spec-item" th:title="${r.workshop.name}">
+              <span class="spec-label" th:text="${r.labels.workshop}"></span>
+              <span class="spec-value" th:text="${r.workshop.name}"></span>
+            </div>
+            <div class="spec-item" th:title="${r.technician.displayName}">
+              <span class="spec-label" th:text="${r.labels.technician}"></span>
+              <span class="spec-value" th:text="${r.technician.displayName}"></span>
+            </div>
           </div>
-          <div class="spec-item" th:title="${r.vehicle.drivetrain}">
-            <span class="spec-label" th:text="${r.labels.drivetrain}"></span>
-            <span class="spec-value" th:text="${r.vehicle.drivetrain}"></span>
-          </div>
-          <div class="spec-item" th:title="${r.vehicle.engineSize}">
-            <span class="spec-label" th:text="${r.labels.engineSize}"></span>
-            <span class="spec-value" th:text="${r.vehicle.engineSize}"></span>
-          </div>
-          <div class="spec-item" th:title="${r.inspection.dateTime}">
-            <span class="spec-label" th:text="${r.labels.inspection}"></span>
-            <span class="spec-value" th:text="${r.inspection.dateTime}"></span>
-          </div>
-          <div class="spec-item" th:title="${r.workshop.name}">
-            <span class="spec-label" th:text="${r.labels.workshop}"></span>
-            <span class="spec-value" th:text="${r.workshop.name}"></span>
-          </div>
-          <div class="spec-item" th:title="${r.technician.displayName}">
-            <span class="spec-label" th:text="${r.labels.technician}"></span>
-            <span class="spec-value" th:text="${r.technician.displayName}"></span>
-          </div>
-          <div class="spec-item" th:title="${r.inspection.templateVersion}">
-            <span class="spec-label" th:text="${r.labels.template}"></span>
-            <span class="spec-value" th:text="${r.inspection.templateVersion}"></span>
-          </div>
-        </div>
+        </details>
       </div>
 
       <!-- Right: Overall Condition & Executive Decision Scorecard -->
@@ -259,18 +266,19 @@
   <section id="findings" class="findings-hub-section" aria-labelledby="findings-title">
 
     <!-- Sub-Section A: Critical Key Findings (Interactive Defect Cards with Integrated Photo & Video) -->
-    <div class="findings-subgroup" th:if="${!#lists.isEmpty(r.keyFindings)}">
+    <div class="findings-subgroup">
       <div class="subgroup-header">
         <div class="subgroup-title-wrap">
-          <span class="subgroup-icon alert-icon" aria-hidden="true">⚠️</span>
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <h2 id="findings-title" class="subgroup-title" th:text="${r.labels.keyFindings}"></h2>
         </div>
-        <span class="badge danger" th:text="${r.labels.defectActionRequired}"></span>
+        <span class="badge danger" th:if="${!#lists.isEmpty(r.keyFindings)}" th:text="${r.labels.defectActionRequired}"></span>
       </div>
 
-      <div class="key-findings-grid">
+      <div class="key-findings-grid" th:if="${!#lists.isEmpty(r.keyFindings)}">
         <div th:each="item : ${r.keyFindings}"
              class="card key-finding-interactive-card"
+             th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'finding-defect' : 'finding-attention'}"
              data-action="open-part-dialog"
              role="button"
              tabindex="0"
@@ -278,40 +286,49 @@
              th:title="${r.labels.tapToToggleDetails}">
 
           <div class="key-finding-top">
-            <div class="key-finding-title-group">
-              <strong class="key-finding-title" th:text="${item.label}"></strong>
-              <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
-                    th:if="${item.severityCode != ''}" th:text="${item.severity}"></span>
+            <div class="key-finding-badges-row">
+              <span class="badge"
+                    th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : 'warning'}"
+                    th:text="${item.result}"></span>
+              <span class="badge"
+                    th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
+                    th:if="${item.severityCode != null and item.severityCode != ''}"
+                    th:text="${item.severity}"></span>
             </div>
-            <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'danger' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'warning' : 'success')}"
-                  th:text="${item.result}"></span>
+            <span class="key-finding-cat-label" th:text="${r.labels.brakingSystem}"></span>
           </div>
 
-          <p th:if="${item.note != ''}" class="key-finding-note" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}">
-            <span class="note-quote-mark" aria-hidden="true">“</span>
+          <strong class="key-finding-title" th:text="${item.label}"></strong>
+
+          <p th:if="${item.note != null and item.note != ''}" class="key-finding-note" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}">
             <span th:text="${item.note}"></span>
           </p>
 
-          <div class="key-finding-specs-strip" th:if="${item.measuredSpec != ''}">
+          <div class="key-finding-specs-strip" th:if="${item.measuredSpec != null and item.measuredSpec != ''}">
             <span class="spec-pill spec-pill-measured" th:text="${r.labels.measuredSpec} + ': ' + ${item.measuredSpec}"></span>
-            <span class="spec-pill spec-pill-std" th:text="${r.labels.standardSpec} + ': ' + ${item.standardSpec}"></span>
+            <span class="spec-pill spec-pill-std" th:if="${item.standardSpec != null and item.standardSpec != ''}" th:text="${r.labels.standardSpec} + ': ' + ${item.standardSpec}"></span>
           </div>
 
           <div class="key-finding-media-strip">
-            <div class="key-finding-thumb-wrap">
-              <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="key-finding-thumb" width="140" height="90">
-              <span class="video-indicator-badge">
-                <span aria-hidden="true">▶</span>
-                <span th:text="${r.labels.videoProof}"></span>
+            <div class="key-finding-thumb-wrap" th:if="${item.partPhoto != null and item.partPhoto != ''}">
+              <img loading="lazy" th:src="${item.partPhoto}" th:alt="${item.label}" class="key-finding-thumb" width="110" height="74">
+              <span class="video-indicator-badge" th:if="${item.hasVideo}">
+                <span aria-hidden="true" th:text="'▶'"></span>
+                <span th:text="${item.videoDuration}"></span>
               </span>
             </div>
             <div class="key-finding-cta-hint">
-              <span class="hint-tap-text" th:text="${r.labels.tapToToggleDetails}"></span>
-              <span class="hint-arrow" aria-hidden="true">→</span>
+              <span class="hint-tap-text" th:text="${r.labels.viewPartDetails}"></span>
+              <span class="hint-arrow" aria-hidden="true" th:text="'›'"></span>
             </div>
           </div>
 
         </div>
+      </div>
+
+      <div class="key-findings-empty-card" th:if="${#lists.isEmpty(r.keyFindings)}">
+        <svg class="ui-icon icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="empty-text" th:text="${r.labels.noKeyFindings}"></span>
       </div>
     </div>
 

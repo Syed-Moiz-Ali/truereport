@@ -200,8 +200,28 @@ function closeLightbox() {
   document.body.classList.remove('modal-open');
 }
 
-// Global click event delegation - guarantees clicks work on every element!
 document.addEventListener('click', function (e) {
+  var copyBtn = e.target.closest('[data-copy-target]');
+  if (copyBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    var sel = copyBtn.getAttribute('data-copy-target');
+    var targetEl = sel ? document.querySelector(sel) : null;
+    if (targetEl) {
+      var text = targetEl.textContent ? targetEl.textContent.trim() : '';
+      if (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function () {});
+        }
+        copyBtn.classList.add('copied');
+        setTimeout(function () {
+          copyBtn.classList.remove('copied');
+        }, 1800);
+      }
+    }
+    return;
+  }
+
   var partTrigger = e.target.closest('[data-action="open-part-dialog"], .check-row-item, .card-inspect-btn, .action-dialog-btn, .key-finding-interactive-card, .tyre-modern-card');
   if (partTrigger) {
     e.preventDefault();
