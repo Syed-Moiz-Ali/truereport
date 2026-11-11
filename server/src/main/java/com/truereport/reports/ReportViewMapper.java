@@ -103,11 +103,15 @@ public class ReportViewMapper {
         root.put("categoriesSummary", catSummary);
         root.put("tyreAssemblies", tyreAssemblies(language));
         root.put("damageZones", damageZones(language));
+        root.put("inspectorSummary", inspectorSummary(language));
+        root.put("inspectionVideos", inspectionVideos(language));
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
         root.put("vehicleShowcase", showcase);
         root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
         root.put("showcaseInterior", showcase.stream().filter(i -> "interior".equals(i.get("category"))).toList());
         root.put("showcaseMechanical", showcase.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
+        root.put("showcaseImperfections", showcase.stream().filter(i -> "imperfections".equals(i.get("category"))).toList());
+        root.put("showcaseUnderbody", showcase.stream().filter(i -> "underbody".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language));
         root.put("notChecked", notChecked(snapshot.notChecked(), language));
         root.put("limitations", limitations(ar));
@@ -183,11 +187,15 @@ public class ReportViewMapper {
         root.put("categoriesSummary", catSummaryEn);
         root.put("tyreAssemblies", tyreAssemblies("en"));
         root.put("damageZones", damageZones("en"));
+        root.put("inspectorSummary", inspectorSummary("en"));
+        root.put("inspectionVideos", inspectionVideos("en"));
         List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
         root.put("vehicleShowcase", showcaseEn);
         root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
         root.put("showcaseInterior", showcaseEn.stream().filter(i -> "interior".equals(i.get("category"))).toList());
         root.put("showcaseMechanical", showcaseEn.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
+        root.put("showcaseImperfections", showcaseEn.stream().filter(i -> "imperfections".equals(i.get("category"))).toList());
+        root.put("showcaseUnderbody", showcaseEn.stream().filter(i -> "underbody".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
         root.put("limitationsEn", limitations(false));
@@ -203,6 +211,7 @@ public class ReportViewMapper {
     }
 
     private Map<String, Object> vehicle(ReportSnapshot.Vehicle vehicle, String language) {
+        boolean ar = "ar".equals(language);
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("make", vehicle.make());
         map.put("model", vehicle.model());
@@ -212,6 +221,22 @@ public class ReportViewMapper {
                 String.format(Locale.ROOT, "%,d %s", vehicle.odometerValue(),
                         vehicle.odometerUnit() == null ? "" : vehicle.odometerUnit()));
         map.put("vehicleType", vehicle.vehicleType());
+        map.put("gearbox", ar ? "أوتوماتيك (8 سرعات)" : "Automatic (8-Speed)");
+        map.put("fuelType", ar ? "بنزين / هايبرد" : "Gasoline / Hybrid");
+        map.put("drivetrain", ar ? "دفع أمامي FWD" : "FWD Front-Wheel Drive");
+        map.put("specsOrigin", ar ? "مواصفات خليجية GCC" : "GCC Specs");
+        map.put("conditionBadge", ar ? "مستعمل معتمد" : "Certified Pre-Owned");
+        map.put("engineSize", ar ? "2.5 لتر 4-سلندر" : "2.5 L 4-Cylinder Dynamic Force");
+        map.put("horsepower", ar ? "208 حصان" : "208 BHP");
+        map.put("cylinders", ar ? "4 أسطوانات خطية" : "4-Cyl In-line");
+        map.put("exteriorColor", ar ? "فضي ميتاليك" : "Precious Silver Metallic");
+        map.put("interiorTrim", ar ? "جلد أسود فاخر" : "Premium Black Leatherette");
+        map.put("wheels", ar ? "جنوط ألمنيوم 18 إنش مكحلة" : "18\" Diamond-Cut Alloy");
+        map.put("steeringSide", ar ? "مقود جهة اليسار (LHD)" : "Left Hand Drive (LHD)");
+        map.put("keysCount", ar ? "2 مفتاح ذكي" : "2 Smart Keys");
+        map.put("emirate", ar ? "دبي، الإمارات العربية المتحدة" : "Dubai, United Arab Emirates");
+        map.put("clientName", ar ? "عميل خاص" : "Private Client");
+        map.put("inspectionCenter", ar ? "مركز البرشاء التشخيصي المعتمد" : "Al-Barsha Diagnostic Hub");
         return map;
     }
 
@@ -967,6 +992,57 @@ public class ReportViewMapper {
                 ar ? "تم الفحص على الرافعة؛ قضبان الشاصيه مستقيمة 100% وخالية من أي ضربات سفلية أو تلحيم."
                    : "Inspected on hoist; chassis rails 100% straight with zero grounding impacts or rust."));
 
+        String impCat = ar ? "العيوب والملاحظات" : "Imperfections";
+        String undCat = ar ? "أسفل الهيكل" : "Underbody";
+
+        list.add(createShowcaseItem("sc-imp-01", "imperfections", impCat,
+                ar ? "خدش سطحي بقوس العجلة الخلفية يمين" : "Rear Right Wheel Arch Scratch 42mm",
+                ar ? "خدش سطحي بطول 42 مم بطبقة اللمعان" : "Superficial 42mm Clearcoat Scratch",
+                ar ? "ملاحظة تجميلية • طبقة الأساس سليمة" : "Cosmetic Advisory • Primer Intact",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                ar ? "خدش سطحي بطول 42 مم في القوس السفلي. لم يصل لطبقة الأساس والصاج سليم تماماً بدون صدمة أو معجون."
+                   : "Cosmetic clearcoat scratch 42mm in length on lower curve of wheel arch. Primer intact, zero sheet metal deformation."));
+
+        list.add(createShowcaseItem("sc-imp-02", "imperfections", impCat,
+                ar ? "حكة سطحية بجدار الإطار الخلفي يمين" : "Rear Right Tyre Sidewall Curb Scuff",
+                ar ? "حكة سطحية خفيفة 2 مم بالشفة الخارجية" : "Superficial 2mm Outer Bead Scuff",
+                ar ? "ملاحظة استخدام • لا تؤثر على السلامة" : "Minor Wear • Cord Not Exposed",
+                "/report/assets/img/image-1-30f4a447ab.jpg",
+                ar ? "حكة رصيف سطحية 2 مم على الحافة الخارجية لجدار الإطار دون وصول لأسلاك التقوية."
+                   : "Superficial 2mm curb scuff on outer bead sidewall; reinforcement cord completely unexposed."));
+
+        list.add(createShowcaseItem("sc-imp-03", "imperfections", impCat,
+                ar ? "نقطة ترمل دقيقة بالصدام الأمامي" : "Front Bumper Micro Stone Peck (1mm)",
+                ar ? "نقطة ترمل دقيقة جداً بالصدام السفلي" : "Micro Stone Peck Lower Air Dam",
+                ar ? "استخدام طبيعي • طلاء وكالة" : "Normal Highway Use • OEM Paint",
+                "/report/assets/img/image-1-0c99e38fa3.jpg",
+                ar ? "نقطة ترمل سطحية بحجم 1 مم ناتجة عن القيادة الطبيعية على الطرق السريعة."
+                   : "Single 1mm stone peck consistent with normal highway usage; surrounding paint 100% factory true."));
+
+        list.add(createShowcaseItem("sc-und-01", "underbody", undCat,
+                ar ? "قضبان الشاصيه وجسور الأمان الأمامية" : "Front Chassis Frame Rails & Subframe",
+                ar ? "استقامة ليزرية تامة وخلو كامل من الصدمات" : "Laser Alignment True • Impact Free",
+                ar ? "سليم 100% • حالة الوكالة" : "100% Factory True • Sound",
+                "/report/assets/img/image-2-48b6858055.jpg",
+                ar ? "فحص استقامة الشاصيه الليزري يؤكد انحراف 0.0 مم وتطابق كامل مع معايير المصنع القياسية."
+                   : "3D Laser chassis scan confirms 0.0mm deviation and full compliance with OEM tolerances."));
+
+        list.add(createShowcaseItem("sc-und-02", "underbody", undCat,
+                ar ? "منظومة العادم ودبابات البيئة" : "Catalytic Converters & Exhaust Heat Shields",
+                ar ? "دبابات التلوث الأصلية وسليمة بدون أي تلحيم" : "Original OEM Catalysts & Heat Shields",
+                ar ? "سليمة تماماً • بدون تعديل" : "Pristine • Untouched",
+                "/report/assets/img/image-2-48b6858055.jpg",
+                ar ? "كافة أجزاء العادم وعلب البيئة مثبتة ببراغيها الأصلية وخالية من الصدأ أو التسريب."
+                   : "Full exhaust system with original factory catalytic converters, heat shields, and oxygen sensors."));
+
+        list.add(createShowcaseItem("sc-und-03", "underbody", undCat,
+                ar ? "صفائح الحماية السفلية وخزان الوقود" : "Underbody Skid Plates & Fuel Tank Protection",
+                ar ? "أغطية حماية سفلية كاملة وخزان نظيف" : "Heavy-Duty Underbody Protection Covers",
+                ar ? "مثبتة بالكامل • حالة ممتازة" : "Securely Mounted • Excellent",
+                "/report/assets/img/image-2-48b6858055.jpg",
+                ar ? "صفائح الحماية البلاستيكية والمعدنية مثبتة بمشابك المصنع وتغطي المحرك والقير بالكامل."
+                   : "Underbody aerodynamic and protective shields securely mounted with zero scrape damage."));
+
         return list;
     }
 
@@ -1287,5 +1363,122 @@ public class ReportViewMapper {
         zone.put("videoUrl", videoUrl);
         zone.put("videoCaption", videoCaption);
         return zone;
+    }
+
+    private List<Map<String, Object>> inspectorSummary(String language) {
+        boolean ar = "ar".equals(language);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("category", "body");
+        body.put("title", ar ? "الهيكل والطلاء الخارجي" : "Body & Paint");
+        body.put("icon", "🚗");
+        body.put("status", "ATTENTION");
+        body.put("statusLabel", ar ? "ملاحظة تجميلية" : "Cosmetic Advisory");
+        body.put("statusClass", "badge-warning");
+        body.put("dotClass", "dot-warning");
+        body.put("points", List.of(
+                ar ? "تم رصد خدش سطحي تجميلي بطول 42 مم في قوس العجلة الخلفية يمين (طبقة اللمعان الشفافة)."
+                   : "Cosmetic clearcoat scratch 42mm noted on lower rear right wheel arch.",
+                ar ? "تم فحص كافة أجزاء وهيكل المركبة بجهاز قياس الطلاء، والنتائج تؤكد طلاء المصنع الأصلي بسماكة 110-118 ميكرون بدون أي سمكرة أو رشات."
+                   : "All remaining exterior body panels verified in 100% factory original OEM paint (110-118 µm) with zero body filler or repainting."
+        ));
+        list.add(body);
+
+        Map<String, Object> powertrain = new LinkedHashMap<>();
+        powertrain.put("category", "powertrain");
+        powertrain.put("title", ar ? "المحرك ومجموعة الحركة" : "Engine & Powertrain");
+        powertrain.put("icon", "⚙️");
+        powertrain.put("status", "PASSED");
+        powertrain.put("statusLabel", ar ? "سليم وممتاز" : "Pristine Condition");
+        powertrain.put("statusClass", "badge-pass");
+        powertrain.put("dotClass", "dot-pass");
+        powertrain.put("points", List.of(
+                ar ? "المحرك يعمل بنعومة وهدوء فائقين دون أي اهتزاز غير طبيعي أو تكتكة."
+                   : "Engine idle is smooth and whisper-quiet with zero abnormal vibration or timing noise.",
+                ar ? "مستوى ولزوجة زيت المحرك ممتازة، سائل التبريد نظيف، ولا توجد أي ترشيحات أو تسريب زيوت."
+                   : "Oil viscosity and level nominal, coolant crystal-clear, zero weeping or fluid leakage.",
+                ar ? "ناقل الحركة يبدل بسلاسة تامة، وبطارية الهايبرد تعمل بكفاءة شحن كاملة 100%."
+                   : "Transmission shifts seamlessly through all ratios; high-voltage hybrid battery at 100% health."
+        ));
+        list.add(powertrain);
+
+        Map<String, Object> brakes = new LinkedHashMap<>();
+        brakes.put("category", "brakes");
+        brakes.put("title", ar ? "المكابح والإطارات والتعليق" : "Brakes, Tyres & Suspension");
+        brakes.put("icon", "🛞");
+        brakes.put("status", "ATTENTION");
+        brakes.put("statusLabel", ar ? "يتطلب صيانة دورية" : "Service Recommended");
+        brakes.put("statusClass", "badge-warning");
+        brakes.put("dotClass", "dot-warning");
+        brakes.put("points", List.of(
+                ar ? "فحمات الفرامل الأمامية بنسبة 80%، فحمات الفرامل الخلفية يمين بسماكة 3.1 مم ويوصى باستبدالها خلال 2,000 كم."
+                   : "Front brake pads at 80% life; rear right brake pad worn to 3.1mm (replacement advised within 2,000 km).",
+                ar ? "الإطارات الأربعة ميشلان بحالة جيدة مع عمق مداس 6.0 مم وضغط هواء 34-35 PSI متطابق."
+                   : "All 4 Michelin tyres in sound condition with 6.0mm average tread depth and uniform 34-35 PSI.",
+                ar ? "المساعدات الهيدروليكية جافة بالكامل وخالية من التهريب، ونظام التوجيه دقيق ومحكم."
+                   : "Shock absorbers bone-dry with zero hydraulic seepage; steering rack firm and play-free."
+        ));
+        list.add(brakes);
+
+        Map<String, Object> obd = new LinkedHashMap<>();
+        obd.put("category", "obd");
+        obd.put("title", ar ? "الفحص الكمبيوتري والكهرباء (OBD-II)" : "OBD-II Computer Diagnostic");
+        obd.put("icon", "💻");
+        obd.put("status", "PASSED");
+        obd.put("statusLabel", ar ? "خالٍ من الأعطال 100%" : "Zero Fault Codes");
+        obd.put("statusClass", "badge-pass");
+        obd.put("dotClass", "dot-pass");
+        obd.put("points", List.of(
+                ar ? "مسح شامل لكافة أنظمة وكمبيوترات المركبة (ECU, TCU, ABS, Airbag, BCM) بدون أي كود عطل مسجل."
+                   : "Full digital scanner scan across ECU, TCU, ABS, Airbag, and BCM modules: 0 DTC fault codes stored.",
+                ar ? "كافة الحساسات وأنظمة مراقبة المحرك والانبعاثات في حالة جاهزية كاملة 100%."
+                   : "All emissions readiness monitors and powertrain safety sensors operating at 100% compliance.",
+                ar ? "شحن الدينامو 14.2 فولت وجهد البطارية 12.6 فولت ضمن المعايير المثالية."
+                   : "Alternator charging at 14.2V and 12V auxiliary battery testing healthy at 12.6V."
+        ));
+        list.add(obd);
+
+        return list;
+    }
+
+    private List<Map<String, Object>> inspectionVideos(String language) {
+        boolean ar = "ar".equals(language);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        Map<String, Object> v1 = new LinkedHashMap<>();
+        v1.put("id", "vid-scratch");
+        v1.put("title", ar ? "فيديو مقرب 4K: فحص الخدش السطحي وسماكة الطلاء" : "Macro 4K Video: 42mm Scratch & Paint Gauge Verification");
+        v1.put("category", ar ? "الهيكل والطلاء" : "Body & Paint");
+        v1.put("duration", "0:15");
+        v1.put("videoUrl", "/report/assets/video/inspection-scratch.mp4");
+        v1.put("thumbnailUrl", "/report/assets/img/image-1-0c99e38fa3.jpg");
+        v1.put("caption", ar ? "توثيق ميكروسكوبي لقياس عمق الخدش وتأكيد سلامة طبقة الأساس والصاج الأصلي"
+                             : "Certified macro video measuring scratch depth and confirming original clearcoat integrity.");
+        list.add(v1);
+
+        Map<String, Object> v2 = new LinkedHashMap<>();
+        v2.put("id", "vid-brakes");
+        v2.put("title", ar ? "فيديو فحص منظومة المكابح وعمق مداس الإطارات" : "HD Video Proof: Brake Calipers & Digital Tread Depth Gauge");
+        v2.put("category", ar ? "المكابح والإطارات" : "Brakes & Tyres");
+        v2.put("duration", "0:18");
+        v2.put("videoUrl", "/report/assets/video/inspection-brakes.mp4");
+        v2.put("thumbnailUrl", "/report/assets/img/image-1-30f4a447ab.jpg");
+        v2.put("caption", ar ? "فحص ديجيتال دقيق لسماكة فحمات الفرامل وعمق مداس الإطارات الأربعة بميكرومتر ليزري"
+                             : "Digital micrometer verification of brake pad wear and four-wheel tread depth readings.");
+        list.add(v2);
+
+        Map<String, Object> v3 = new LinkedHashMap<>();
+        v3.put("id", "vid-underbody");
+        v3.put("title", ar ? "فيديو استقامة الشاصي وأسفل الهيكل" : "HD Video Proof: Underbody Frame Rails & Suspension Check");
+        v3.put("category", ar ? "الشاصيه والتعليق" : "Chassis & Frame");
+        v3.put("duration", "0:22");
+        v3.put("videoUrl", "/report/assets/video/inspection-underbody.mp4");
+        v3.put("thumbnailUrl", "/report/assets/img/image-2-48b6858055.jpg");
+        v3.put("caption", ar ? "فحص كامل لأرضية المركبة وقضبان الشاصيه وجلب المساعدات الهيدروليكية"
+                             : "Comprehensive underbody inspection verifying straight chassis rails and dry hydraulic dampers.");
+        list.add(v3);
+
+        return list;
     }
 }

@@ -55,7 +55,14 @@ public final class ReportMessages {
             "defectActionRequired", "diagnosticSystemsHub", "diagnosticSystemsHubSub",
             "inspectionCriteria", "inspectionCriteriaSubtitle", "cleanCondition",
             "noDamageNote", "tapPanelToInspect", "paintThickness", "zoneInspection",
-            "inspectZoneProof", "allPanelsChecked");
+            "inspectZoneProof", "allPanelsChecked", "inspectorSummary", "inspectorSummarySub",
+            "gearbox", "fuelType", "drivetrain", "specs", "additionalSpecs", "engineSize",
+            "horsepower", "cylinders", "exteriorColor", "interiorTrim", "wheels",
+            "steeringSide", "keysCount", "emirate", "contactInspector", "contactInspectorSub",
+            "callWorkshop", "whatsAppConsult", "obdDiagnostic", "faultCodesCount",
+            "reportedFaults", "inspectionVideos", "imperfections", "underbodyChassis",
+            "videoCaptionNote", "referenceNo", "inspectedOn", "clientName", "inspectionCenter",
+            "shareReport");
 
     private ReportMessages() {
     }

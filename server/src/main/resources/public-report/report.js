@@ -259,14 +259,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Showcase Category Filter (Tabs: All, Exterior, Interior, Mechanical)
-  var galleryFilterButtons = document.querySelectorAll('[data-gallery-filter]');
+  // Showcase Category Filter (Tabs: All, Exterior, Interior, Mechanical, Imperfections, Underbody)
+  var galleryFilterButtons = document.querySelectorAll('[data-gallery-filter], .gallery-tab');
   var galleryCards = document.querySelectorAll('.gallery-masonry-card, .gallery-photo-card');
 
   galleryFilterButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      galleryFilterButtons.forEach(function (b) { b.classList.remove('active'); });
+      galleryFilterButtons.forEach(function (b) {
+        b.classList.remove('active');
+        b.classList.remove('tab-active');
+      });
       btn.classList.add('active');
+      btn.classList.add('tab-active');
       var filter = btn.getAttribute('data-gallery-filter');
 
       galleryCards.forEach(function (card) {
@@ -357,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Sticky Nav Active Link ScrollSpy
-  var navLinks = document.querySelectorAll('.quick-nav-bar .nav-chip');
+  var navLinks = document.querySelectorAll('.report-nav .report-nav-chip, .quick-nav-bar .nav-chip, .report-sticky-nav .sticky-nav-pill');
   var mainSections = document.querySelectorAll('main > section[id]');
 
   if (window.IntersectionObserver && navLinks.length > 0 && mainSections.length > 0) {
@@ -380,6 +384,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     mainSections.forEach(function (sec) {
       observer.observe(sec);
+    });
+  }
+
+  // Report Share Button (Web Share API or Clipboard Copy)
+  var shareBtn = document.getElementById('reportShareBtn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', function () {
+      if (navigator.share) {
+        navigator.share({
+          title: document.title,
+          url: window.location.href
+        }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(function () {
+          shareBtn.classList.add('copied');
+          setTimeout(function () {
+            shareBtn.classList.remove('copied');
+          }, 2000);
+        }).catch(function () {});
+      }
     });
   }
 
