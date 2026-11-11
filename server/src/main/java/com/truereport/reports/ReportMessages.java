@@ -62,7 +62,8 @@ public final class ReportMessages {
             "callWorkshop", "whatsAppConsult", "obdDiagnostic", "faultCodesCount",
             "reportedFaults", "inspectionVideos", "imperfections", "underbodyChassis",
             "videoCaptionNote", "referenceNo", "inspectedOn", "clientName", "inspectionCenter",
-            "shareReport");
+            "shareReport", "electricalReport", "batteryReport", "beforeTestDriveReport",
+            "afterTestDriveReport", "tireReport", "downloadAllDocuments");
 
     private ReportMessages() {
     }

@@ -56,6 +56,8 @@
     <a href="#wireframe" class="nav-chip" th:text="${r.labels.exteriorDamageMap}"></a>
     <a href="#tyres" class="nav-chip" th:text="${r.labels.tyresAndBrakes}"></a>
     <a href="#photos" class="nav-chip" th:text="${r.labels.photos}"></a>
+    <a href="#videos" class="nav-chip" th:text="${r.labels.inspectionVideos}"></a>
+    <a href="#documents" class="nav-chip" th:text="${r.labels.downloadAllDocuments}"></a>
     <a href="#verification" class="nav-chip" th:text="${r.labels.verification}"></a>
   </div>
 </nav>
@@ -121,6 +123,10 @@
             <span class="snapshot-toggle-icon" aria-hidden="true" th:text="'▾'"></span>
           </summary>
           <div class="vehicle-specs-grid">
+            <div class="spec-item" th:title="${r.vehicle.clientName}">
+              <span class="spec-label" th:text="${r.labels.clientName}"></span>
+              <span class="spec-value" th:text="${r.vehicle.clientName}"></span>
+            </div>
             <div class="spec-item" th:title="${r.vehicle.vinMasked}">
               <span class="spec-label" th:text="${r.labels.vin}"></span>
               <div class="spec-val-copy-row">
@@ -652,7 +658,144 @@
     </div>
   </section>
 
-  <!-- Section 6: Excluded / Not Checked Items -->
+  <!-- Section 6: Certified Field Inspection Videos -->
+  <section id="videos" class="videos-section" aria-labelledby="videos-title">
+    <div class="section-header">
+      <div>
+        <h2 id="videos-title" th:text="${r.labels.inspectionVideos}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.videoCaptionNote}"></p>
+      </div>
+      <span class="section-tag" th:text="${#lists.size(r.inspectionVideos)} + ' ' + ${r.labels.videoProof}"></span>
+    </div>
+
+    <div class="videos-grid">
+      <div th:each="video : ${r.inspectionVideos}"
+           class="card video-card"
+           data-action="open-video-dialog"
+           role="button"
+           tabindex="0"
+           th:attr="data-title=${video.title}, data-category=${video.category}, data-video=${video.videoUrl}, data-img=${video.thumbnailUrl}, data-caption=${video.caption}"
+           th:title="${r.labels.playVideo}">
+        <div class="video-thumbnail-container">
+          <img loading="lazy" th:src="${video.thumbnailUrl}" th:alt="${video.title}" class="video-thumbnail-img">
+          <div class="video-play-overlay">
+            <span class="video-play-btn" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </span>
+          </div>
+          <span class="video-duration-pill" th:text="${video.duration}"></span>
+        </div>
+        <div class="video-info">
+          <div class="video-meta-top">
+            <span class="video-cat-badge" th:text="${video.category}"></span>
+            <span class="badge success" th:text="${r.labels.verifiedCapture}"></span>
+          </div>
+          <h3 class="video-title" th:text="${video.title}"></h3>
+          <p class="video-desc" th:text="${video.caption}"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Diagnostic & Inspection Documents Download Center -->
+  <section id="documents" class="documents-section" aria-labelledby="documents-title">
+    <div class="section-header">
+      <div>
+        <h2 id="documents-title" th:text="${r.labels.downloadAllDocuments}"></h2>
+        <p class="section-subtitle" th:text="${r.labels.tamperProof}"></p>
+      </div>
+      <span class="section-tag" th:text="'5 ' + ${r.labels.checksCompleted}"></span>
+    </div>
+
+    <div class="documents-grid">
+      <!-- 1. Electrical Checking Report -->
+      <div class="card doc-item-card">
+        <div class="doc-icon-wrap doc-icon-electric">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="doc-info-col">
+          <h3 class="doc-title" th:text="${r.labels.electricalReport}"></h3>
+          <p class="doc-desc" th:text="${r.labels.electricalSystem} + ' · 14.2V · PASS'"></p>
+        </div>
+        <div class="doc-actions-col">
+          <a th:href="@{/r/{token}/pdf(token=${token})}" class="button button-ghost doc-download-btn" th:attr="aria-label=${r.labels.electricalReport}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span th:text="${r.labels.downloadPdf}"></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 2. Battery & Charging Report -->
+      <div class="card doc-item-card">
+        <div class="doc-icon-wrap doc-icon-battery">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+        </div>
+        <div class="doc-info-col">
+          <h3 class="doc-title" th:text="${r.labels.batteryReport}"></h3>
+          <p class="doc-desc" th:text="'12.6V 680 CCA · 100% Health · PASS'"></p>
+        </div>
+        <div class="doc-actions-col">
+          <a th:href="@{/r/{token}/pdf(token=${token})}" class="button button-ghost doc-download-btn" th:attr="aria-label=${r.labels.batteryReport}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span th:text="${r.labels.downloadPdf}"></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. Before Test Drive Report -->
+      <div class="card doc-item-card">
+        <div class="doc-icon-wrap doc-icon-predrive">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+        </div>
+        <div class="doc-info-col">
+          <h3 class="doc-title" th:text="${r.labels.beforeTestDriveReport}"></h3>
+          <p class="doc-desc" th:text="${r.labels.powertrainSystem} + ' · Cold Start · PASS'"></p>
+        </div>
+        <div class="doc-actions-col">
+          <a th:href="@{/r/{token}/pdf(token=${token})}" class="button button-ghost doc-download-btn" th:attr="aria-label=${r.labels.beforeTestDriveReport}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span th:text="${r.labels.downloadPdf}"></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 4. After Test Drive Report -->
+      <div class="card doc-item-card">
+        <div class="doc-icon-wrap doc-icon-postdrive">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="doc-info-col">
+          <h3 class="doc-title" th:text="${r.labels.afterTestDriveReport}"></h3>
+          <p class="doc-desc" th:text="${r.labels.roadTestSystem} + ' · Dynamic Driving · PASS'"></p>
+        </div>
+        <div class="doc-actions-col">
+          <a th:href="@{/r/{token}/pdf(token=${token})}" class="button button-ghost doc-download-btn" th:attr="aria-label=${r.labels.afterTestDriveReport}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span th:text="${r.labels.downloadPdf}"></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 5. Tire Report -->
+      <div class="card doc-item-card">
+        <div class="doc-icon-wrap doc-icon-tire">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <div class="doc-info-col">
+          <h3 class="doc-title" th:text="${r.labels.tireReport}"></h3>
+          <p class="doc-desc" th:text="${r.labels.tyresAndBrakes} + ' · 4 Wheels · PASS'"></p>
+        </div>
+        <div class="doc-actions-col">
+          <a th:href="@{/r/{token}/pdf(token=${token})}" class="button button-ghost doc-download-btn" th:attr="aria-label=${r.labels.tireReport}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span th:text="${r.labels.downloadPdf}"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Excluded / Not Checked Items -->
   <section id="not-checked" class="not-checked-section" th:if="${!#lists.isEmpty(r.notChecked)}" aria-labelledby="not-checked-title">
     <div class="section-header">
       <h2 id="not-checked-title" th:text="${r.labels.notChecked}"></h2>
