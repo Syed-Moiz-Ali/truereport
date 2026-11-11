@@ -151,8 +151,8 @@
         </div>
       </div>
 
-      <!-- Right: Overall Condition & Executive Decision Scorecard (CENTERED ODOMETER CLUSTER) -->
-      <div class="card hero-score-card" th:style="'--score-percent: ' + ${r.passRate} + ';'">
+      <!-- Right: Overall Condition & Executive Decision Scorecard -->
+      <div class="card hero-score-card" th:style="'--score-percent: ' + ${r.passRate} + '%;'">
         <div class="score-card-header">
           <div class="decision-badge-wrap">
             <span class="decision-title" th:text="${r.labels.finalDecision}"></span>
@@ -166,47 +166,25 @@
           </span>
         </div>
 
-        <!-- Center: Luxury Automotive Cockpit Dial -->
-        <div class="cockpit-gauge-container">
-          <div class="cockpit-ambient-glow"></div>
-          <div class="cockpit-dial-wrapper">
-            <svg class="cockpit-svg" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-              <defs>
-                <linearGradient id="cockpitGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#059669" />
-                  <stop offset="50%" stop-color="#10B981" />
-                  <stop offset="100%" stop-color="#34D399" />
-                </linearGradient>
-                <filter id="cockpitGlow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#10B981" flood-opacity="0.35"/>
-                </filter>
-              </defs>
-
-              <!-- Outer Precision Graduation Notches -->
-              <path class="cockpit-notches" d="M 55 185 A 92 92 0 1 1 185 185" />
-
-              <!-- Main Background Track -->
-              <path class="cockpit-track" d="M 55 185 A 92 92 0 1 1 185 185" />
-
-              <!-- High-Luminance Active Score Arc -->
-              <path class="cockpit-fill" d="M 55 185 A 92 92 0 1 1 185 185" filter="url(#cockpitGlow)" />
-            </svg>
-
-            <!-- Inner Luxury Instrument Face -->
-            <div class="cockpit-center-face">
-              <div class="cockpit-score-row">
-                <span class="cockpit-score-number score-large-number" th:text="${r.passRate} + '%'"></span>
-              </div>
-              <span class="cockpit-score-label" th:text="${r.labels.passRateLabel}"></span>
-              <div class="cockpit-grade-tag">
-                <span class="grade-star" aria-hidden="true" th:text="'★'"></span>
-                <span th:text="${r.labels.gradeLabel} + ': A'"></span>
+        <!-- Center Stage: Luxury Executive Metric Ring (Centered, Large & Pro-Grade) -->
+        <div class="score-center-stage">
+          <div class="score-circle-wrapper">
+            <div class="score-radar-wave"></div>
+            <div class="score-glow-ring"></div>
+            <div class="score-circle-animated" th:style="'--score-percent: ' + ${r.passRate} + '%;'">
+              <div class="score-circle-inner-ring">
+                <span class="score-large-number" th:text="${r.passRate} + '%'"></span>
+                <span class="score-small-label" th:text="${r.labels.passRateLabel}"></span>
+                <div class="score-grade-pill">
+                  <span class="grade-star" aria-hidden="true" th:text="'★'"></span>
+                  <span th:text="${r.labels.gradeLabel} + ': A'"></span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Details Below Odometer: Passed, Attention, Defects & Checklist Breakdown -->
+        <!-- Details Below: Passed, Attention, Defects & Checklist Breakdown -->
         <div class="odometer-details-section">
           <!-- 3 Condition Cards in a Row -->
           <div class="score-condition-cards-grid">

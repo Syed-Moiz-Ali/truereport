@@ -736,150 +736,174 @@ h2 {
   align-items: center;
 }
 
-/* Center: Luxury Automotive Cockpit Dial (Pro High-End Design) */
-.cockpit-gauge-container {
+/* Center Stage: Luxury Executive Metric Ring (Pro-Grade High Impact Dial) */
+.score-center-stage {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  margin: 6px auto 16px;
+  align-items: center;
+  margin: 10px auto 16px;
   width: 100%;
 }
 
-.cockpit-ambient-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 270px;
-  height: 270px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%);
-  pointer-events: none;
-  animation: radarWave 4s infinite ease-out;
-}
-
-.cockpit-dial-wrapper {
+.score-circle-wrapper {
   position: relative;
-  width: 250px;
-  height: 250px;
+  width: 220px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 @media (min-width: 1200px) {
-  .cockpit-dial-wrapper {
-    width: 270px;
-    height: 270px;
+  .score-circle-wrapper {
+    width: 236px;
+    height: 236px;
   }
 }
 
-.cockpit-svg {
+.score-radar-wave {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.04) 65%, transparent 75%);
+  pointer-events: none;
+  animation: radarWave 3.5s infinite cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.cockpit-notches {
-  fill: none;
-  stroke: #94A3B8;
-  stroke-width: 4;
-  stroke-dasharray: 2 10.38;
-  opacity: 0.65;
-}
-
-.cockpit-track {
-  fill: none;
-  stroke: #E2E8F0;
-  stroke-width: 14;
-  stroke-linecap: round;
-}
-
-.cockpit-fill {
-  fill: none;
-  stroke: url(#cockpitGradient);
-  stroke-width: 14;
-  stroke-linecap: round;
-  stroke-dasharray: 433.5;
-  stroke-dashoffset: calc(433.5px * (1 - (var(--score-percent, 94) / 100)));
-  animation: cockpitArcSweep 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  transition: stroke-dashoffset 1.4s ease;
-}
-
-@keyframes cockpitArcSweep {
-  from {
-    stroke-dashoffset: 433.5px;
+@keyframes radarWave {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
   }
 }
 
-/* Inner Luxury Instrument Face */
-.cockpit-center-face {
+.score-glow-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, rgba(16, 185, 129, 0.45), rgba(52, 211, 153, 0.65), rgba(5, 150, 105, 0.45), rgba(16, 185, 129, 0.45));
+  filter: blur(10px);
+  opacity: 0.5;
+  animation: rotateGlowRing 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateGlowRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.score-circle-animated {
   position: relative;
   z-index: 2;
-  width: 162px;
-  height: 162px;
+  width: 214px;
+  height: 214px;
   border-radius: 50%;
-  background: radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 85%, #F1F5F9 100%);
-  border: 1.5px solid rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 108, 73, 0.08);
+  padding: 14px;
+  background: conic-gradient(
+    #10B981 0%,
+    #34D399 calc(var(--score-percent, 94%) * 0.7),
+    #059669 var(--score-percent, 94%),
+    #E2E8F0 var(--score-percent, 94%),
+    #F1F5F9 100%
+  );
+  box-shadow: 0 12px 32px -4px rgba(16, 185, 129, 0.32), inset 0 2px 6px rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 1.4s ease;
+  animation: scoreScaleIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (min-width: 1200px) {
+  .score-circle-animated {
+    width: 230px;
+    height: 230px;
+    padding: 15px;
+  }
+}
+
+@keyframes scoreScaleIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.score-circle-inner-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 80%, #F1F5F9 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 108, 73, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
   text-align: center;
-  padding: 8px;
+  padding: 10px;
 }
 
-@media (min-width: 1200px) {
-  .cockpit-center-face {
-    width: 178px;
-    height: 178px;
-  }
-}
-
-.cockpit-score-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  line-height: 1;
-}
-
-.cockpit-score-number {
-  font-size: clamp(3.2rem, 4.2vw, 4.2rem);
+.score-large-number {
+  font-size: clamp(3.4rem, 4.4vw, 4.4rem);
   font-weight: 900;
   line-height: 1;
-  background: linear-gradient(135deg, #064E3B 0%, #059669 50%, #10B981 100%);
+  letter-spacing: -0.05em;
+  font-feature-settings: "tnum" 1;
+  background: linear-gradient(135deg, #064E3B 0%, #059669 45%, #10B981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -0.04em;
-  font-feature-settings: "tnum" 1;
   animation: scoreNumberPop 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cockpit-score-label {
+@keyframes scoreNumberPop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.score-small-label {
   font-size: 0.72rem;
   font-weight: 800;
   color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-top: 4px;
+  letter-spacing: 0.12em;
+  margin-top: 3px;
 }
 
-.cockpit-grade-tag {
+.score-grade-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-top: 8px;
+  margin-top: 6px;
   background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
   border: 1px solid #A7F3D0;
   color: #065F46;
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 3px 12px;
+  padding: 2.5px 12px;
   border-radius: 9999px;
   box-shadow: 0 1px 4px rgba(16, 185, 129, 0.12);
 }
@@ -889,7 +913,7 @@ h2 {
   font-size: 0.82rem;
 }
 
-/* Details Below Cockpit: Passed, Attention, Defects & Checklist Breakdown */
+/* Details Below: Passed, Attention, Defects & Checklist Breakdown */
 .odometer-details-section {
   width: 100%;
   display: flex;
