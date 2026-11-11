@@ -413,7 +413,7 @@ h2 {
 
 @media (min-width: 1080px) {
   .hero-grid {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.05fr);
   }
 }
 
@@ -736,27 +736,27 @@ h2 {
   align-items: center;
 }
 
-/* Center: Automotive Odometer Speedometer Gauge */
+/* Center: Automotive Odometer Speedometer Gauge (EXPANDED TO COVER FULL WIDTH) */
 .odometer-gauge-wrapper {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 10px auto 14px;
+  margin: 4px auto 14px;
   width: 100%;
-  max-width: 290px;
+  max-width: 440px;
 }
 
 .odometer-ambient-glow {
   position: absolute;
-  top: 15px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 220px;
-  height: 120px;
+  width: 320px;
+  height: 180px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 70%);
+  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
   pointer-events: none;
   animation: radarWave 3.5s infinite;
 }
@@ -766,20 +766,20 @@ h2 {
   height: auto;
   display: block;
   overflow: visible;
-  filter: drop-shadow(0 8px 18px rgba(0, 108, 73, 0.12));
+  filter: drop-shadow(0 10px 24px rgba(0, 108, 73, 0.16));
 }
 
 .odometer-track {
   fill: none;
   stroke: #E2E8F0;
-  stroke-width: 14;
+  stroke-width: 15;
   stroke-linecap: round;
 }
 
 .odometer-fill {
   fill: none;
   stroke: url(#odometerGradient);
-  stroke-width: 14;
+  stroke-width: 15;
   stroke-linecap: round;
   stroke-dasharray: 298.5;
   stroke-dashoffset: calc(298.5px * (1 - (var(--score-percent, 94) / 100)));
@@ -824,21 +824,21 @@ h2 {
 
 .odometer-needle-arm {
   stroke: #059669;
-  stroke-width: 3.5;
+  stroke-width: 4;
   stroke-linecap: round;
 }
 
 .odometer-needle-pivot-outer {
   fill: #0F172A;
   stroke: #FFFFFF;
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
 
 .odometer-needle-pivot-inner {
   fill: #10B981;
 }
 
-/* Center Digital Odometer Display */
+/* Center Digital Odometer Display (LARGE, IMPACTFUL, PROMINENT) */
 .odometer-digital-readout {
   position: absolute;
   bottom: 0px;
@@ -850,12 +850,13 @@ h2 {
   justify-content: center;
   text-align: center;
   pointer-events: none;
+  width: 100%;
 }
 
 .odometer-score-val {
-  font-size: 3.1rem;
+  font-size: clamp(3.6rem, 5.5vw, 4.6rem);
   font-weight: 900;
-  line-height: 1;
+  line-height: 0.92;
   background: linear-gradient(135deg, #006C49 0%, #10B981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -864,24 +865,24 @@ h2 {
 }
 
 .odometer-sub-label {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  color: #64748B;
+  color: #475569;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 2px;
+  letter-spacing: 0.12em;
+  margin-top: 4px;
 }
 
 .odometer-grade-pill {
-  margin-top: 6px;
-  background: #ECFDF5;
-  border: 1px solid #A7F3D0;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border: 1.5px solid #6EE7B7;
   color: #065F46;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 4px 14px;
   border-radius: 9999px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
 }
 
 /* Details Below Odometer: Passed, Attention, Defects & Checklist Breakdown */
@@ -889,55 +890,59 @@ h2 {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .score-condition-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .condition-stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 8px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--outline-subtle);
+  justify-content: center;
+  padding: 14px 10px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--outline-subtle);
   background: #FFFFFF;
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .condition-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
 }
 
 .card-passed {
-  border-top: 3.5px solid #10B981;
+  border-top: 4px solid #10B981;
+  background: linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 60%);
 }
 
 .card-attention {
-  border-top: 3.5px solid #F59E0B;
+  border-top: 4px solid #F59E0B;
+  background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 60%);
 }
 
 .card-defects {
-  border-top: 3.5px solid #64748B;
+  border-top: 4px solid #64748B;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 60%);
 }
 
 .stat-card-top {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .stat-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -947,23 +952,23 @@ h2 {
 .dot-defects { background: #64748B; }
 
 .stat-name {
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 800;
   color: var(--on-variant);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .stat-count {
-  font-size: 1.25rem;
+  font-size: 1.55rem;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1;
   color: var(--on-surface);
 }
 
 .card-passed .stat-count { color: #006C49; }
 .card-attention .stat-count { color: #B45309; }
-.card-defects .stat-count { color: var(--on-surface); }
+.card-defects .stat-count { color: #334155; }
 
 .category-summary-banner {
   position: relative;
