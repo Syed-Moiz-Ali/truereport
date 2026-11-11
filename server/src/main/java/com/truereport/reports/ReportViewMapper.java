@@ -41,6 +41,7 @@ public class ReportViewMapper {
         root.put("labels", ReportMessages.labels(language));
         root.put("pdfDownloadEnabled", pdfDownloadEnabled);
         root.put("reportNumber", snapshot.reportNumber());
+        root.put("displayToken", snapshot.reportNumber());
         root.put("version", snapshot.reportVersion());
         root.put("finalizedAt", formatDate(snapshot.finalizedAt(), language));
         root.put("publishedAt", formatDate(snapshot.publishedAt(), language));
@@ -130,6 +131,7 @@ public class ReportViewMapper {
         root.put("en", ReportMessages.labels("en"));
         root.put("ar", ReportMessages.labels("ar"));
         root.put("reportNumber", snapshot.reportNumber());
+        root.put("displayToken", snapshot.reportNumber());
         root.put("version", snapshot.reportVersion());
         root.put("finalizedAt", formatDate(snapshot.finalizedAt(), "en"));
         root.put("publishedAt", formatDate(snapshot.publishedAt(), "en"));
