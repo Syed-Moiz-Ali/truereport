@@ -38,12 +38,12 @@
         <a class="button button-ghost" th:if="${r.lang != 'ar'}" th:href="@{/r/{token}(token=${token},lang='ar')}"
            th:text="${r.labels.arabic}"></a>
       </nav>
-      <a class="button button-primary" th:if="${r.pdfDownloadEnabled}"
+      <a class="button button-primary header-download-btn" th:if="${r.pdfDownloadEnabled}"
          th:href="@{/r/{token}/pdf(token=${token})}">
         <span class="btn-icon" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </span>
-        <span th:text="${r.labels.downloadPdf}"></span>
+        <span class="btn-text-responsive" th:text="${r.labels.downloadPdf}"></span>
       </a>
       <button type="button" class="button button-icon" id="reportShareBtn" th:attr="aria-label=${r.labels.shareReport}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -161,26 +161,31 @@
               <span th:text="${r.labels.approved}"></span>
             </span>
           </div>
-          <span class="score-grade-badge">
-            <span th:text="${r.labels.gradeLabel} + ': A'"></span>
-          </span>
         </div>
 
-        <!-- Center Stage: Luxury Executive Metric Ring (Centered, Large & Pro-Grade) -->
-        <div class="score-center-stage">
-          <div class="score-circle-wrapper">
-            <div class="score-radar-wave"></div>
-            <div class="score-glow-ring"></div>
-            <div class="score-circle-animated" th:style="'--score-percent: ' + ${r.passRate} + '%;'">
-              <div class="score-circle-inner-ring">
-                <span class="score-large-number" th:text="${r.passRate} + '%'"></span>
-                <span class="score-small-label" th:text="${r.labels.passRateLabel}"></span>
-                <div class="score-grade-pill">
-                  <span class="grade-star" aria-hidden="true" th:text="'★'"></span>
-                  <span th:text="${r.labels.gradeLabel} + ': A'"></span>
-                </div>
-              </div>
+        <!-- Center Stage: SVG Metric Ring (96px mobile / 128px desktop) + Verdict -->
+        <div class="score-ring-row">
+          <div class="score-ring-wrapper">
+            <svg class="score-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="score-ring-track" cx="60" cy="60" r="50" stroke-width="10" />
+              <circle class="score-ring-fill" cx="60" cy="60" r="50" stroke-width="10" stroke-linecap="round"
+                      th:style="'--score-val: ' + ${r.passRate} + ';'" />
+            </svg>
+            <div class="score-ring-inner">
+              <span class="score-ring-grade" th:text="'A'"></span>
+              <span class="score-ring-num score-large-number" th:text="${r.passRate} + '%'"></span>
             </div>
+          </div>
+          <div class="score-ring-meta">
+            <div class="score-verdict-title">
+              <span class="verdict-check-icon" aria-hidden="true" th:text="'✓'"></span>
+              <strong th:text="${r.labels.approved}"></strong>
+            </div>
+            <div class="score-verdict-text" th:text="${r.categoriesSummary.servicesText}"></div>
+            <button type="button" class="how-scoring-btn" data-action="open-scoring-modal">
+              <span class="how-scoring-icon" aria-hidden="true" th:text="'ⓘ'"></span>
+              <span th:text="${r.labels.systemHealthSummary}"></span>
+            </button>
           </div>
         </div>
 
@@ -211,10 +216,24 @@
             </div>
           </div>
 
-          <!-- 4 Services Good · 1 Service Needs Service Summary Banner -->
-          <div class="category-summary-banner">
-            <span class="summary-check-icon" aria-hidden="true" th:text="'🛡️'"></span>
-            <span class="summary-banner-text" th:text="${r.categoriesSummary.servicesText}"></span>
+          <!-- Category Bars: 8px rounded bar colored by status, sorted worst first via CSS order -->
+          <div class="score-category-bars-list">
+            <a th:each="category, catStat : ${r.categories}"
+               th:href="'#cat-accordion-' + ${catStat.index}"
+               class="score-cat-bar-item"
+               th:attr="data-status=${category.categoryStatus}">
+              <div class="score-cat-bar-header">
+                <span class="score-cat-name" th:text="${category.label}"></span>
+                <div class="score-cat-right">
+                  <span class="score-cat-val" th:text="${category.scoreText}"></span>
+                  <span class="score-cat-badge" th:classappend="${category.categoryStatus == 'DEFECT' ? 'badge-fail' : (category.categoryStatus == 'ATTENTION' ? 'badge-attention' : 'badge-pass')}" th:text="${category.categoryStatusLabel}"></span>
+                </div>
+              </div>
+              <div class="score-cat-bar-track">
+                <div class="score-cat-bar-fill" th:style="'width: ' + ${category.score} + '%;'"
+                     th:classappend="${category.categoryStatus == 'DEFECT' ? 'fill-fail' : (category.categoryStatus == 'ATTENTION' ? 'fill-warn' : 'fill-pass')}"></div>
+              </div>
+            </a>
           </div>
 
           <!-- Coverage Progress Bar & Summary -->
@@ -332,7 +351,8 @@
 
       <!-- Category Accordions Stack -->
       <div class="categories-accordion-stack">
-        <details th:each="category : ${r.categories}" class="card category-accordion" open
+        <details th:each="category, categoryStat : ${r.categories}" class="card category-accordion" open
+                 th:id="'cat-accordion-' + ${categoryStat.index}"
                  th:attr="data-cat-passed=${category.passedCount}, data-cat-attention=${category.attentionCount}, data-cat-defect=${category.defectCount}">
           <summary class="category-summary">
             <div class="category-summary-title">
@@ -806,6 +826,57 @@
     <div class="lightbox-details">
       <h4 id="lightbox-caption" class="lightbox-title"></h4>
       <p id="lightbox-note" class="lightbox-desc"></p>
+    </div>
+  </div>
+</dialog>
+
+<!-- How Scoring Works Modal Dialog -->
+<dialog id="scoring-modal" class="part-detail-dialog scoring-modal" aria-modal="true" aria-labelledby="scoring-modal-title">
+  <div class="dialog-content-box scoring-modal-box">
+    <button type="button" class="dialog-close-btn" data-action="close-scoring-modal" th:aria-label="${r.labels.close}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div class="dialog-header">
+      <h3 id="scoring-modal-title" class="dialog-part-title" th:text="${r.labels.systemHealthSummary}"></h3>
+    </div>
+    <div class="scoring-guide-content">
+      <div class="grade-table-grid">
+        <div class="grade-row grade-row-a">
+          <span class="grade-badge badge-pass" th:text="'A'"></span>
+          <div class="grade-range">
+            <strong th:text="'90% – 100%'"></strong>
+            <span th:text="${r.labels.goodCondition}"></span>
+          </div>
+        </div>
+        <div class="grade-row grade-row-b">
+          <span class="grade-badge badge-attention" th:text="'B'"></span>
+          <div class="grade-range">
+            <strong th:text="'80% – 89%'"></strong>
+            <span th:text="${r.labels.attention}"></span>
+          </div>
+        </div>
+        <div class="grade-row grade-row-c">
+          <span class="grade-badge badge-attention" th:text="'C'"></span>
+          <div class="grade-range">
+            <strong th:text="'65% – 79%'"></strong>
+            <span th:text="${r.labels.attention}"></span>
+          </div>
+        </div>
+        <div class="grade-row grade-row-d">
+          <span class="grade-badge badge-fail" th:text="'D'"></span>
+          <div class="grade-range">
+            <strong th:text="'< 65%'"></strong>
+            <span th:text="${r.labels.defects}"></span>
+          </div>
+        </div>
+      </div>
+      <p class="muted small" th:text="${r.labels.coverageNotScore}"></p>
+    </div>
+    <div class="dialog-footer">
+      <button type="button" class="button button-ghost" data-action="close-scoring-modal" th:text="${r.labels.close}"></button>
     </div>
   </div>
 </dialog>

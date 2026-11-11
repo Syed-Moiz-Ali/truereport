@@ -459,6 +459,54 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Sticky header shadow on scroll
+  var header = document.querySelector('.report-header');
+  if (header) {
+    window.addEventListener('scroll', function () {
+      if (window.scrollY > 12) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    }, { passive: true });
+  }
+
+  // Scoring modal open / close handlers
+  document.addEventListener('click', function (e) {
+    var openBtn = e.target.closest('[data-action="open-scoring-modal"]');
+    if (openBtn) {
+      var modal = document.getElementById('scoring-modal');
+      if (modal && typeof modal.showModal === 'function') {
+        modal.showModal();
+      }
+    }
+    var closeBtn = e.target.closest('[data-action="close-scoring-modal"]');
+    if (closeBtn) {
+      var modal = document.getElementById('scoring-modal');
+      if (modal && typeof modal.close === 'function') {
+        modal.close();
+      }
+    }
+  });
+
+  // Clicking category bars in hero scrolls to and opens that category accordion
+  var catBarLinks = document.querySelectorAll('.score-cat-bar-item');
+  catBarLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var href = link.getAttribute('href');
+      if (href && href.startsWith('#')) {
+        var targetEl = document.querySelector(href);
+        if (targetEl) {
+          e.preventDefault();
+          if (targetEl.tagName === 'DETAILS' && !targetEl.open) {
+            targetEl.open = true;
+          }
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
+
   // Dialog backdrop click-to-close & Esc handling
   var partDialog = document.getElementById('part-detail-dialog');
   if (partDialog) {
@@ -469,6 +517,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     partDialog.addEventListener('cancel', function () {
       closePartDialog();
+    });
+  }
+
+  var scoringDialog = document.getElementById('scoring-modal');
+  if (scoringDialog) {
+    scoringDialog.addEventListener('click', function (e) {
+      if (e.target === scoringDialog) {
+        scoringDialog.close();
+      }
+    });
+    scoringDialog.addEventListener('cancel', function () {
+      scoringDialog.close();
     });
   }
 
