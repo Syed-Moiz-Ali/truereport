@@ -12,6 +12,7 @@ function openPartDialog(el) {
   var cat = el.getAttribute('data-category') || '';
   var status = el.getAttribute('data-status') || el.getAttribute('data-status-label') || '';
   var statusCode = el.getAttribute('data-status-code') || '';
+  var passFail = el.getAttribute('data-pass-fail') || '';
   var score = parseInt(el.getAttribute('data-score') || '100', 10);
   var scoreText = el.getAttribute('data-score-text') || (score + '/100');
   var measured = el.getAttribute('data-measured') || '';
@@ -21,6 +22,16 @@ function openPartDialog(el) {
   var video = el.getAttribute('data-video') || '';
   var videoCaption = el.getAttribute('data-video-caption') || '';
 
+  if (!passFail) {
+    if (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' || statusCode === 'FAIL') {
+      passFail = 'FAIL';
+    } else if (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION') {
+      passFail = 'ATTENTION';
+    } else {
+      passFail = 'PASS';
+    }
+  }
+
   currentPartImg = img;
   currentPartCaption = title + (status ? ' - ' + status : '');
   currentPartNote = note;
@@ -28,6 +39,8 @@ function openPartDialog(el) {
   var titleEl = document.getElementById('dialog-part-title');
   var catEl = document.getElementById('dialog-part-cat');
   var statusEl = document.getElementById('dialog-part-status');
+  var passFailBadgeEl = document.getElementById('dialog-pass-fail-badge');
+  var statusRibbonEl = document.getElementById('dialog-status-ribbon');
   var scoreEl = document.getElementById('dialog-part-score');
   var measuredEl = document.getElementById('dialog-measured-spec');
   var standardEl = document.getElementById('dialog-standard-spec');
@@ -40,9 +53,28 @@ function openPartDialog(el) {
   if (titleEl) titleEl.textContent = title;
   if (catEl) catEl.textContent = cat;
 
+  var isFail = (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' || passFail.indexOf('FAIL') !== -1 || passFail.indexOf('فاشل') !== -1);
+  var isAttn = (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION' || passFail.indexOf('ATTENTION') !== -1 || passFail.indexOf('تنبيه') !== -1);
+
+  if (passFailBadgeEl) {
+    if (isFail) {
+      passFailBadgeEl.textContent = '✕ ' + passFail;
+      passFailBadgeEl.className = 'badge-status-pill badge-fail';
+    } else if (isAttn) {
+      passFailBadgeEl.textContent = '⚠ ' + passFail;
+      passFailBadgeEl.className = 'badge-status-pill badge-attention';
+    } else {
+      passFailBadgeEl.textContent = '✓ ' + passFail;
+      passFailBadgeEl.className = 'badge-status-pill badge-pass';
+    }
+  }
+
+  if (statusRibbonEl) {
+    statusRibbonEl.className = 'dialog-status-ribbon ' + (isFail ? 'ribbon-fail' : (isAttn ? 'ribbon-attention' : 'ribbon-pass'));
+  }
+
   if (statusEl) {
     statusEl.textContent = status;
-    statusEl.className = 'badge ' + (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' ? 'danger' : (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION' ? 'warning' : 'success'));
   }
 
   if (scoreEl) {

@@ -151,8 +151,8 @@
         </div>
       </div>
 
-      <!-- Right: Overall Condition & Executive Decision Scorecard (MASSIVE & ANIMATED) -->
-      <div class="card hero-score-card">
+      <!-- Right: Overall Condition & Executive Decision Scorecard (CENTERED ODOMETER CLUSTER) -->
+      <div class="card hero-score-card" th:style="'--score-percent: ' + ${r.passRate} + ';'">
         <div class="score-card-header">
           <div class="decision-badge-wrap">
             <span class="decision-title" th:text="${r.labels.finalDecision}"></span>
@@ -166,61 +166,102 @@
           </span>
         </div>
 
-        <div class="score-metric-hero">
-          <!-- Animated Big Circular Score Gauge (180px) -->
-          <div class="score-circle-wrapper">
-            <div class="score-radar-wave"></div>
-            <div class="score-glow-ring"></div>
-            <div class="score-circle-animated" th:style="'--score-percent: ' + ${r.passRate} + '%;'">
-              <div class="score-circle-inner-ring">
-                <span class="score-large-number" th:text="${r.passRate} + '%'"></span>
-                <span class="score-small-label" th:text="${r.labels.passRateLabel}"></span>
-              </div>
-            </div>
-          </div>
+        <!-- Center: Automotive Odometer Speedometer Gauge -->
+        <div class="odometer-gauge-wrapper">
+          <div class="odometer-ambient-glow"></div>
+          <svg class="odometer-svg" viewBox="0 0 250 148" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <linearGradient id="odometerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#10B981" />
+                <stop offset="60%" stop-color="#059669" />
+                <stop offset="100%" stop-color="#006C49" />
+              </linearGradient>
+              <filter id="needleGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#059669" flood-opacity="0.6"/>
+              </filter>
+            </defs>
 
-          <div class="score-counts-col">
-            <div class="condition-tile tile-passed">
-              <span class="condition-dot"></span>
-              <div class="tile-info">
-                <span class="condition-name" th:text="${r.labels.passed}"></span>
-                <span class="condition-count" th:text="${r.passedCount}"></span>
-              </div>
-            </div>
-            <div class="condition-tile tile-attention">
-              <span class="condition-dot"></span>
-              <div class="tile-info">
-                <span class="condition-name" th:text="${r.labels.attention}"></span>
-                <span class="condition-count" th:text="${r.attentionCount}"></span>
-              </div>
-            </div>
-            <div class="condition-tile tile-defects">
-              <span class="condition-dot"></span>
-              <div class="tile-info">
-                <span class="condition-name" th:text="${r.labels.defects}"></span>
-                <span class="condition-count" th:text="${r.defectCount}"></span>
-              </div>
+            <!-- Background Track Arc -->
+            <path class="odometer-track" d="M 30 130 A 95 95 0 0 1 220 130" />
+
+            <!-- Active Score Arc Fill -->
+            <path class="odometer-fill" d="M 30 130 A 95 95 0 0 1 220 130" />
+
+            <!-- Speedometer Graduation Tick Marks -->
+            <line class="odometer-tick" x1="30" y1="130" x2="42" y2="130" />
+            <line class="odometer-tick" x1="57.8" y1="62.8" x2="66.3" y2="71.3" />
+            <line class="odometer-tick" x1="125" y1="35" x2="125" y2="47" />
+            <line class="odometer-tick" x1="192.2" y1="62.8" x2="183.7" y2="71.3" />
+            <line class="odometer-tick" x1="220" y1="130" x2="208" y2="130" />
+
+            <!-- Speedometer Needle Pointer -->
+            <g class="odometer-needle-group">
+              <line class="odometer-needle-arm" x1="125" y1="130" x2="125" y2="44" filter="url(#needleGlow)" />
+              <circle class="odometer-needle-pivot-outer" cx="125" cy="130" r="10" />
+              <circle class="odometer-needle-pivot-inner" cx="125" cy="130" r="4" />
+            </g>
+
+            <!-- Speedometer Scale Min/Max Labels -->
+            <text class="odometer-scale-num" x="24" y="142" text-anchor="middle" th:text="'0'"></text>
+            <text class="odometer-scale-num" x="226" y="142" text-anchor="middle" th:text="'100'"></text>
+          </svg>
+
+          <!-- Center Digital Odometer Display -->
+          <div class="odometer-digital-readout">
+            <span class="odometer-score-val score-large-number" th:text="${r.passRate} + '%'"></span>
+            <span class="odometer-sub-label" th:text="${r.labels.passRateLabel}"></span>
+            <div class="odometer-grade-pill">
+              <span th:text="${r.labels.gradeLabel} + ': A'"></span>
             </div>
           </div>
         </div>
 
-        <!-- 4 Services Good · 1 Service Needs Service High-Impact Summary -->
-        <div class="category-summary-banner">
-          <span class="summary-check-icon" aria-hidden="true" th:text="'🛡️'"></span>
-          <span class="summary-banner-text" th:text="${r.categoriesSummary.servicesText}"></span>
-        </div>
+        <!-- Details Below Odometer: Passed, Attention, Defects & Checklist Breakdown -->
+        <div class="odometer-details-section">
+          <!-- 3 Condition Cards in a Row -->
+          <div class="score-condition-cards-grid">
+            <div class="condition-stat-card card-passed">
+              <div class="stat-card-top">
+                <span class="stat-dot dot-passed"></span>
+                <span class="stat-name" th:text="${r.labels.passed}"></span>
+              </div>
+              <strong class="stat-count" th:text="${r.passedCount}"></strong>
+            </div>
+            <div class="condition-stat-card card-attention">
+              <div class="stat-card-top">
+                <span class="stat-dot dot-attention"></span>
+                <span class="stat-name" th:text="${r.labels.attention}"></span>
+              </div>
+              <strong class="stat-count" th:text="${r.attentionCount}"></strong>
+            </div>
+            <div class="condition-stat-card card-defects">
+              <div class="stat-card-top">
+                <span class="stat-dot dot-defects"></span>
+                <span class="stat-name" th:text="${r.labels.defects}"></span>
+              </div>
+              <strong class="stat-count" th:text="${r.defectCount}"></strong>
+            </div>
+          </div>
 
-        <div class="score-footer-note">
-          <div class="coverage-bar-track">
-            <div class="coverage-bar-fill"></div>
+          <!-- 4 Services Good · 1 Service Needs Service Summary Banner -->
+          <div class="category-summary-banner">
+            <span class="summary-check-icon" aria-hidden="true" th:text="'🛡️'"></span>
+            <span class="summary-banner-text" th:text="${r.categoriesSummary.servicesText}"></span>
           </div>
-          <div class="coverage-label-row">
-            <span class="coverage-fraction">
-              <span th:text="${r.coverage.text}"></span>
-              <span th:text="${r.labels.checksCompleted}"></span>
-            </span>
+
+          <!-- Coverage Progress Bar & Summary -->
+          <div class="score-footer-note">
+            <div class="coverage-bar-track">
+              <div class="coverage-bar-fill"></div>
+            </div>
+            <div class="coverage-label-row">
+              <span class="coverage-fraction">
+                <span th:text="${r.coverage.text}"></span>
+                <span th:text="${r.labels.checksCompleted}"></span>
+              </span>
+            </div>
+            <p class="muted small" th:text="${r.labels.coverageNotScore}"></p>
           </div>
-          <p class="muted small" th:text="${r.labels.coverageNotScore}"></p>
         </div>
       </div>
 
@@ -246,7 +287,7 @@
              data-action="open-part-dialog"
              role="button"
              tabindex="0"
-             th:attr="data-title=${item.label}, data-category=${r.labels.brakingSystem}, data-status=${item.result}, data-status-code=${item.resultCode}, data-score=${item.score}, data-score-text=${item.scoreText}, data-measured=${item.measuredSpec}, data-standard=${item.standardSpec}, data-note=${item.note}, data-img=${item.partPhoto}, data-video=${item.videoUrl}, data-video-caption=${item.videoCaption}"
+             th:attr="data-title=${item.label}, data-category=${r.labels.brakingSystem}, data-status=${item.result}, data-status-code=${item.resultCode}, data-pass-fail=${item.passFailStatus}, data-score=${item.score}, data-score-text=${item.scoreText}, data-measured=${item.measuredSpec}, data-standard=${item.standardSpec}, data-note=${item.note}, data-img=${item.partPhoto}, data-video=${item.videoUrl}, data-video-caption=${item.videoCaption}"
              th:title="${r.labels.tapToToggleDetails}">
 
           <div class="key-finding-top">
@@ -344,7 +385,7 @@
           <div class="category-items-container">
             <div th:each="item : ${category.items}"
                  class="check-row-item"
-                 th:attr="data-result=${item.resultCode}, data-title=${item.label}, data-category=${category.label}, data-status=${item.result}, data-status-code=${item.resultCode}, data-score=${item.score}, data-score-text=${item.scoreText}, data-measured=${item.measuredSpec}, data-standard=${item.standardSpec}, data-note=${item.note}, data-img=${item.partPhoto}, data-video=${item.videoUrl}, data-video-caption=${item.videoCaption}"
+                 th:attr="data-result=${item.resultCode}, data-title=${item.label}, data-category=${category.label}, data-status=${item.result}, data-status-code=${item.resultCode}, data-pass-fail=${item.passFailStatus}, data-score=${item.score}, data-score-text=${item.scoreText}, data-measured=${item.measuredSpec}, data-standard=${item.standardSpec}, data-note=${item.note}, data-img=${item.partPhoto}, data-video=${item.videoUrl}, data-video-caption=${item.videoCaption}"
                  data-action="open-part-dialog"
                  role="button"
                  tabindex="0"
@@ -499,7 +540,7 @@
               <button type="button"
                       class="btn btn-outline zone-inspect-dialog-btn"
                       data-action="open-part-dialog"
-                      th:attr="data-title=${zone.title}, data-category=${r.labels.bodyCondition}, data-status=${zone.statusLabel}, data-status-code=${zone.status}, data-score=82, data-score-text='82/100', data-measured=${zone.paintThickness} + ' • 42mm scratch', data-standard=${r.labels.cleanCondition}, data-diagnostic-sensor='Elcometer 456 Paint Gauge & Optical Lens', data-note=${zone.note}, data-img=${zone.imageUrl}, data-video=${zone.videoUrl}, data-video-caption=${zone.videoCaption}">
+                      th:attr="data-title=${zone.title}, data-category=${r.labels.bodyCondition}, data-status=${zone.statusLabel}, data-status-code=${zone.status}, data-pass-fail=${zone.isDamaged ? 'ATTENTION' : 'PASS'}, data-score=82, data-score-text='82/100', data-measured=${zone.paintThickness} + ' • 42mm scratch', data-standard=${r.labels.cleanCondition}, data-diagnostic-sensor='Elcometer 456 Paint Gauge & Optical Lens', data-note=${zone.note}, data-img=${zone.imageUrl}, data-video=${zone.videoUrl}, data-video-caption=${zone.videoCaption}">
                 <span aria-hidden="true" th:text="'▶'"></span>
                 <span th:text="${r.labels.inspectZoneProof}"></span>
               </button>
@@ -530,7 +571,7 @@
            data-action="open-part-dialog"
            role="button"
            tabindex="0"
-           th:attr="data-title=${tyre.title}, data-category=${tyre.category}, data-status=${tyre.statusLabel}, data-status-code=${tyre.status}, data-score=${tyre.score}, data-score-text=${tyre.scoreText}, data-measured=${tyre.measuredSpec}, data-standard=${tyre.standardSpec}, data-diagnostic-sensor=${tyre.diagnosticSensor}, data-note=${tyre.technicianNote}, data-img=${tyre.imageUrl}, data-video=${tyre.videoUrl}, data-video-caption=${tyre.videoCaption}"
+           th:attr="data-title=${tyre.title}, data-category=${tyre.category}, data-status=${tyre.statusLabel}, data-status-code=${tyre.status}, data-pass-fail=${tyre.status == 'PASSED' ? 'PASS' : (tyre.status == 'ATTENTION' ? 'ATTENTION' : 'FAIL')}, data-score=${tyre.score}, data-score-text=${tyre.scoreText}, data-measured=${tyre.measuredSpec}, data-standard=${tyre.standardSpec}, data-diagnostic-sensor=${tyre.diagnosticSensor}, data-note=${tyre.technicianNote}, data-img=${tyre.imageUrl}, data-video=${tyre.videoUrl}, data-video-caption=${tyre.videoCaption}"
            th:title="${r.labels.tapToToggleDetails}">
 
         <div class="wheel-card-header">
@@ -695,9 +736,17 @@
         <span id="dialog-part-cat" class="dialog-category-badge"></span>
         <h3 id="dialog-part-title" class="dialog-part-title"></h3>
       </div>
-      <div class="dialog-badge-group">
+    </div>
+
+    <!-- Prominent User-Friendly PASS / FAIL Status Ribbon -->
+    <div class="dialog-status-ribbon" id="dialog-status-ribbon">
+      <div class="dialog-status-left">
+        <span id="dialog-pass-fail-badge" class="badge-status-pill badge-pass"></span>
+        <span id="dialog-part-status" class="dialog-status-desc"></span>
+      </div>
+      <div class="dialog-score-box">
+        <span class="dialog-score-sub" th:text="${r.labels.diagnosticScore}"></span>
         <span id="dialog-part-score" class="dialog-score-pill"></span>
-        <span id="dialog-part-status" class="badge"></span>
       </div>
     </div>
 
@@ -726,7 +775,7 @@
 
         <div class="dialog-note-card">
           <div class="note-card-title">
-            <span class="quote-icon" aria-hidden="true">“</span>
+            <span class="quote-icon" aria-hidden="true" th:text="'“'"></span>
             <span th:text="${r.labels.technicianObservations}"></span>
           </div>
           <p id="dialog-part-note" class="dialog-note-text"></p>
