@@ -166,52 +166,42 @@
           </span>
         </div>
 
-        <!-- Center: Automotive Odometer Speedometer Gauge -->
-        <div class="odometer-gauge-wrapper">
-          <div class="odometer-ambient-glow"></div>
-          <svg class="odometer-svg" viewBox="0 0 250 148" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-            <defs>
-              <linearGradient id="odometerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#10B981" />
-                <stop offset="60%" stop-color="#059669" />
-                <stop offset="100%" stop-color="#006C49" />
-              </linearGradient>
-              <filter id="needleGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#059669" flood-opacity="0.6"/>
-              </filter>
-            </defs>
+        <!-- Center: Luxury Automotive Cockpit Dial -->
+        <div class="cockpit-gauge-container">
+          <div class="cockpit-ambient-glow"></div>
+          <div class="cockpit-dial-wrapper">
+            <svg class="cockpit-svg" viewBox="0 0 240 240" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <defs>
+                <linearGradient id="cockpitGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#059669" />
+                  <stop offset="50%" stop-color="#10B981" />
+                  <stop offset="100%" stop-color="#34D399" />
+                </linearGradient>
+                <filter id="cockpitGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#10B981" flood-opacity="0.35"/>
+                </filter>
+              </defs>
 
-            <!-- Background Track Arc -->
-            <path class="odometer-track" d="M 30 130 A 95 95 0 0 1 220 130" />
+              <!-- Outer Precision Graduation Notches -->
+              <path class="cockpit-notches" d="M 55 185 A 92 92 0 1 1 185 185" />
 
-            <!-- Active Score Arc Fill -->
-            <path class="odometer-fill" d="M 30 130 A 95 95 0 0 1 220 130" />
+              <!-- Main Background Track -->
+              <path class="cockpit-track" d="M 55 185 A 92 92 0 1 1 185 185" />
 
-            <!-- Speedometer Graduation Tick Marks -->
-            <line class="odometer-tick" x1="30" y1="130" x2="42" y2="130" />
-            <line class="odometer-tick" x1="57.8" y1="62.8" x2="66.3" y2="71.3" />
-            <line class="odometer-tick" x1="125" y1="35" x2="125" y2="47" />
-            <line class="odometer-tick" x1="192.2" y1="62.8" x2="183.7" y2="71.3" />
-            <line class="odometer-tick" x1="220" y1="130" x2="208" y2="130" />
+              <!-- High-Luminance Active Score Arc -->
+              <path class="cockpit-fill" d="M 55 185 A 92 92 0 1 1 185 185" filter="url(#cockpitGlow)" />
+            </svg>
 
-            <!-- Speedometer Needle Pointer -->
-            <g class="odometer-needle-group">
-              <line class="odometer-needle-arm" x1="125" y1="130" x2="125" y2="44" filter="url(#needleGlow)" />
-              <circle class="odometer-needle-pivot-outer" cx="125" cy="130" r="10" />
-              <circle class="odometer-needle-pivot-inner" cx="125" cy="130" r="4" />
-            </g>
-
-            <!-- Speedometer Scale Min/Max Labels -->
-            <text class="odometer-scale-num" x="24" y="142" text-anchor="middle" th:text="'0'"></text>
-            <text class="odometer-scale-num" x="226" y="142" text-anchor="middle" th:text="'100'"></text>
-          </svg>
-
-          <!-- Center Digital Odometer Display -->
-          <div class="odometer-digital-readout">
-            <span class="odometer-score-val score-large-number" th:text="${r.passRate} + '%'"></span>
-            <span class="odometer-sub-label" th:text="${r.labels.passRateLabel}"></span>
-            <div class="odometer-grade-pill">
-              <span th:text="${r.labels.gradeLabel} + ': A'"></span>
+            <!-- Inner Luxury Instrument Face -->
+            <div class="cockpit-center-face">
+              <div class="cockpit-score-row">
+                <span class="cockpit-score-number score-large-number" th:text="${r.passRate} + '%'"></span>
+              </div>
+              <span class="cockpit-score-label" th:text="${r.labels.passRateLabel}"></span>
+              <div class="cockpit-grade-tag">
+                <span class="grade-star" aria-hidden="true" th:text="'★'"></span>
+                <span th:text="${r.labels.gradeLabel} + ': A'"></span>
+              </div>
             </div>
           </div>
         </div>

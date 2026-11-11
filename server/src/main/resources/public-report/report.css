@@ -736,156 +736,160 @@ h2 {
   align-items: center;
 }
 
-/* Center: Automotive Odometer Speedometer Gauge (EXPANDED TO COVER FULL WIDTH) */
-.odometer-gauge-wrapper {
+/* Center: Luxury Automotive Cockpit Dial (Pro High-End Design) */
+.cockpit-gauge-container {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 4px auto 14px;
+  margin: 6px auto 16px;
   width: 100%;
-  max-width: 440px;
 }
 
-.odometer-ambient-glow {
+.cockpit-ambient-glow {
   position: absolute;
-  top: 10px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 320px;
-  height: 180px;
+  transform: translate(-50%, -50%);
+  width: 270px;
+  height: 270px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%);
   pointer-events: none;
-  animation: radarWave 3.5s infinite;
+  animation: radarWave 4s infinite ease-out;
 }
 
-.odometer-svg {
+.cockpit-dial-wrapper {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1200px) {
+  .cockpit-dial-wrapper {
+    width: 270px;
+    height: 270px;
+  }
+}
+
+.cockpit-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
-  display: block;
+  height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 10px 24px rgba(0, 108, 73, 0.16));
 }
 
-.odometer-track {
+.cockpit-notches {
+  fill: none;
+  stroke: #94A3B8;
+  stroke-width: 4;
+  stroke-dasharray: 2 10.38;
+  opacity: 0.65;
+}
+
+.cockpit-track {
   fill: none;
   stroke: #E2E8F0;
-  stroke-width: 15;
+  stroke-width: 14;
   stroke-linecap: round;
 }
 
-.odometer-fill {
+.cockpit-fill {
   fill: none;
-  stroke: url(#odometerGradient);
-  stroke-width: 15;
+  stroke: url(#cockpitGradient);
+  stroke-width: 14;
   stroke-linecap: round;
-  stroke-dasharray: 298.5;
-  stroke-dashoffset: calc(298.5px * (1 - (var(--score-percent, 94) / 100)));
-  animation: arcFillSweep 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  stroke-dasharray: 433.5;
+  stroke-dashoffset: calc(433.5px * (1 - (var(--score-percent, 94) / 100)));
+  animation: cockpitArcSweep 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: stroke-dashoffset 1.4s ease;
 }
 
-@keyframes arcFillSweep {
+@keyframes cockpitArcSweep {
   from {
-    stroke-dashoffset: 298.5px;
+    stroke-dashoffset: 433.5px;
   }
 }
 
-.odometer-tick {
-  stroke: #94A3B8;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-}
-
-.odometer-scale-num {
-  fill: #64748B;
-  font-size: 11px;
-  font-weight: 800;
-  font-family: ui-monospace, "Cascadia Mono", sans-serif;
-}
-
-.odometer-needle-group {
-  transform-origin: 125px 130px;
-  transform: rotate(calc(-90deg + 1.8deg * var(--score-percent, 94)));
-  animation: needleSweep 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes needleSweep {
-  from {
-    transform: rotate(-90deg);
-  }
-  to {
-    transform: rotate(calc(-90deg + 1.8deg * var(--score-percent, 94)));
-  }
-}
-
-.odometer-needle-arm {
-  stroke: #059669;
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.odometer-needle-pivot-outer {
-  fill: #0F172A;
-  stroke: #FFFFFF;
-  stroke-width: 2.5;
-}
-
-.odometer-needle-pivot-inner {
-  fill: #10B981;
-}
-
-/* Center Digital Odometer Display (LARGE, IMPACTFUL, PROMINENT) */
-.odometer-digital-readout {
-  position: absolute;
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
+/* Inner Luxury Instrument Face */
+.cockpit-center-face {
+  position: relative;
+  z-index: 2;
+  width: 162px;
+  height: 162px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 85%, #F1F5F9 100%);
+  border: 1.5px solid rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 108, 73, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  pointer-events: none;
-  width: 100%;
+  padding: 8px;
 }
 
-.odometer-score-val {
-  font-size: clamp(3.6rem, 5.5vw, 4.6rem);
+@media (min-width: 1200px) {
+  .cockpit-center-face {
+    width: 178px;
+    height: 178px;
+  }
+}
+
+.cockpit-score-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  line-height: 1;
+}
+
+.cockpit-score-number {
+  font-size: clamp(3.2rem, 4.2vw, 4.2rem);
   font-weight: 900;
-  line-height: 0.92;
-  background: linear-gradient(135deg, #006C49 0%, #10B981 100%);
+  line-height: 1;
+  background: linear-gradient(135deg, #064E3B 0%, #059669 50%, #10B981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
+  font-feature-settings: "tnum" 1;
   animation: scoreNumberPop 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.odometer-sub-label {
-  font-size: 0.82rem;
+.cockpit-score-label {
+  font-size: 0.72rem;
   font-weight: 800;
-  color: #475569;
+  color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   margin-top: 4px;
 }
 
-.odometer-grade-pill {
+.cockpit-grade-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   margin-top: 8px;
   background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
-  border: 1.5px solid #6EE7B7;
+  border: 1px solid #A7F3D0;
   color: #065F46;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  padding: 4px 14px;
+  padding: 3px 12px;
   border-radius: 9999px;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.12);
 }
 
-/* Details Below Odometer: Passed, Attention, Defects & Checklist Breakdown */
+.grade-star {
+  color: #10B981;
+  font-size: 0.82rem;
+}
+
+/* Details Below Cockpit: Passed, Attention, Defects & Checklist Breakdown */
 .odometer-details-section {
   width: 100%;
   display: flex;
