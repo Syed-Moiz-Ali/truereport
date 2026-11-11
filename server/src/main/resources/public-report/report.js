@@ -214,6 +214,26 @@ document.addEventListener('keydown', function (e) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
+  // Smooth count-up animation for the prominent score percentage
+  var scoreEl = document.querySelector('.score-large-number');
+  if (scoreEl) {
+    var rawText = scoreEl.textContent || '';
+    var match = rawText.match(/(\d+)/);
+    if (match) {
+      var targetNum = parseInt(match[1], 10);
+      var current = 0;
+      var step = Math.max(1, Math.round(targetNum / 28));
+      var timer = setInterval(function () {
+        current += step;
+        if (current >= targetNum) {
+          current = targetNum;
+          clearInterval(timer);
+        }
+        scoreEl.textContent = current + '%';
+      }, 30);
+    }
+  }
+
   // One-Click Instant Checklist Filter (All, Passed, Attention, Failed)
   var checkFilterButtons = document.querySelectorAll('[data-checklist-filter]');
   var checkAccordions = document.querySelectorAll('.category-accordion');

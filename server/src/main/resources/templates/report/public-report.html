@@ -66,48 +66,21 @@
 
 <main id="main" class="container full-width-layout">
 
-  <!-- Section 1: Hero Overview Dashboard (Full Width Grid) -->
+  <!-- Section 1: Hero Overview Dashboard (Unified Vehicle Stage + Executive Scorecard) -->
   <section id="overview" class="hero-section" aria-labelledby="hero-title">
     <div class="hero-grid">
 
-      <!-- Card 1: Dedicated Vehicle Studio Showcase -->
-      <div class="card hero-photo-card" th:if="${!#lists.isEmpty(r.vehicleShowcase)}">
-        <div class="photo-card-media-wrapper">
-          <img class="photo-card-img" th:src="${r.vehicleShowcase[0].imageUrl}" th:alt="${r.vehicle.make} + ' ' + ${r.vehicle.model}">
-          <div class="photo-card-gradient-overlay"></div>
-          <div class="photo-card-top-tags">
-            <span class="photo-tag-pill tag-pill-year" th:text="${r.vehicle.year}"></span>
-            <span class="photo-tag-pill tag-pill-specs" th:text="${r.vehicle.specsOrigin}"></span>
-          </div>
-          <div class="photo-card-bottom-info">
-            <span class="photo-verified-badge">
+      <!-- Left: Comprehensive Vehicle Showcase Card -->
+      <div class="card hero-vehicle-card">
+        <!-- Top: Vehicle Header & Status Badges -->
+        <div class="vehicle-card-header">
+          <div class="vehicle-tag-row">
+            <span class="tag-pill tag-pill-year" th:text="${r.vehicle.year}"></span>
+            <span class="tag-pill tag-pill-specs" th:text="${r.vehicle.specsOrigin}"></span>
+            <span class="tag-pill tag-pill-accent">
               <span aria-hidden="true" th:text="'✓'"></span>
               <span th:text="${r.labels.officialInspection}"></span>
             </span>
-            <span class="photo-count-pill" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photos}"></span>
-          </div>
-        </div>
-        <div class="photo-card-quick-stats">
-          <div class="quick-stat-col" th:if="${r.vehicle.odometer != ''}">
-            <span class="quick-stat-lbl" th:text="${r.labels.odometer}"></span>
-            <strong class="quick-stat-val" th:text="${r.vehicle.odometer}"></strong>
-          </div>
-          <div class="quick-stat-col">
-            <span class="quick-stat-lbl" th:text="${r.labels.gearbox}"></span>
-            <strong class="quick-stat-val" th:text="${r.vehicle.gearbox}"></strong>
-          </div>
-          <div class="quick-stat-col">
-            <span class="quick-stat-lbl" th:text="${r.labels.fuelType}"></span>
-            <strong class="quick-stat-val" th:text="${r.vehicle.fuelType}"></strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2: Vehicle Identity & Technical Specifications Card -->
-      <div class="card hero-vehicle-card">
-        <div class="vehicle-card-header">
-          <div class="vehicle-tag-row">
-            <span class="tag-pill tag-pill-accent" th:text="${r.labels.officialInspection}"></span>
             <span class="tag-pill tag-mono ltr" th:text="${r.reportNumber}"></span>
           </div>
           <h1 id="hero-title" class="vehicle-title">
@@ -116,39 +89,69 @@
           </h1>
         </div>
 
+        <!-- Integrated Vehicle Studio Banner -->
+        <div class="hero-vehicle-banner" th:if="${!#lists.isEmpty(r.vehicleShowcase)}">
+          <div class="photo-banner-wrapper">
+            <img class="photo-banner-img" th:src="${r.vehicleShowcase[0].imageUrl}" th:alt="${r.vehicle.make} + ' ' + ${r.vehicle.model}">
+            <div class="photo-banner-overlay"></div>
+            <div class="photo-banner-badges">
+              <span class="photo-verified-badge">
+                <span aria-hidden="true" th:text="'✓'"></span>
+                <span th:text="${r.labels.officialInspection}"></span>
+              </span>
+              <span class="photo-count-pill" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photos}"></span>
+            </div>
+          </div>
+          <div class="photo-banner-strip">
+            <div class="banner-stat-col" th:if="${r.vehicle.odometer != ''}">
+              <span class="banner-stat-lbl" th:text="${r.labels.odometer}"></span>
+              <strong class="banner-stat-val" th:text="${r.vehicle.odometer}"></strong>
+            </div>
+            <div class="banner-stat-col">
+              <span class="banner-stat-lbl" th:text="${r.labels.gearbox}"></span>
+              <strong class="banner-stat-val" th:text="${r.vehicle.gearbox}"></strong>
+            </div>
+            <div class="banner-stat-col">
+              <span class="banner-stat-lbl" th:text="${r.labels.fuelType}"></span>
+              <strong class="banner-stat-val" th:text="${r.vehicle.fuelType}"></strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spacious Specifications Matrix (Full breathing room, never cuts or wraps to 2 lines!) -->
         <div class="vehicle-specs-grid">
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.vehicle.vinMasked}">
             <span class="spec-label" th:text="${r.labels.vin}"></span>
             <span class="spec-value ltr" th:text="${r.vehicle.vinMasked}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.vehicle.drivetrain}">
             <span class="spec-label" th:text="${r.labels.drivetrain}"></span>
             <span class="spec-value" th:text="${r.vehicle.drivetrain}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.vehicle.engineSize}">
             <span class="spec-label" th:text="${r.labels.engineSize}"></span>
             <span class="spec-value" th:text="${r.vehicle.engineSize}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.inspection.dateTime}">
             <span class="spec-label" th:text="${r.labels.inspection}"></span>
             <span class="spec-value" th:text="${r.inspection.dateTime}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.workshop.name}">
             <span class="spec-label" th:text="${r.labels.workshop}"></span>
             <span class="spec-value" th:text="${r.workshop.name}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.technician.displayName}">
             <span class="spec-label" th:text="${r.labels.technician}"></span>
             <span class="spec-value" th:text="${r.technician.displayName}"></span>
           </div>
-          <div class="spec-item">
+          <div class="spec-item" th:title="${r.inspection.templateVersion}">
             <span class="spec-label" th:text="${r.labels.template}"></span>
             <span class="spec-value" th:text="${r.inspection.templateVersion}"></span>
           </div>
         </div>
       </div>
 
-      <!-- Card 3: Overall Condition & Executive Decision Scorecard (HIGH IMPACT & ANIMATED) -->
+      <!-- Right: Overall Condition & Executive Decision Scorecard (MASSIVE & ANIMATED) -->
       <div class="card hero-score-card">
         <div class="score-card-header">
           <div class="decision-badge-wrap">
@@ -164,32 +167,39 @@
         </div>
 
         <div class="score-metric-hero">
-          <!-- Animated Big Circular Score Gauge -->
+          <!-- Animated Big Circular Score Gauge (180px) -->
           <div class="score-circle-wrapper">
+            <div class="score-radar-wave"></div>
+            <div class="score-glow-ring"></div>
             <div class="score-circle-animated" th:style="'--score-percent: ' + ${r.passRate} + '%;'">
               <div class="score-circle-inner-ring">
                 <span class="score-large-number" th:text="${r.passRate} + '%'"></span>
                 <span class="score-small-label" th:text="${r.labels.passRateLabel}"></span>
               </div>
             </div>
-            <div class="score-glow-ring"></div>
           </div>
 
           <div class="score-counts-col">
-            <div class="condition-row row-passed">
+            <div class="condition-tile tile-passed">
               <span class="condition-dot"></span>
-              <span class="condition-name" th:text="${r.labels.passed}"></span>
-              <span class="condition-count" th:text="${r.passedCount}"></span>
+              <div class="tile-info">
+                <span class="condition-name" th:text="${r.labels.passed}"></span>
+                <span class="condition-count" th:text="${r.passedCount}"></span>
+              </div>
             </div>
-            <div class="condition-row row-attention">
+            <div class="condition-tile tile-attention">
               <span class="condition-dot"></span>
-              <span class="condition-name" th:text="${r.labels.attention}"></span>
-              <span class="condition-count" th:text="${r.attentionCount}"></span>
+              <div class="tile-info">
+                <span class="condition-name" th:text="${r.labels.attention}"></span>
+                <span class="condition-count" th:text="${r.attentionCount}"></span>
+              </div>
             </div>
-            <div class="condition-row row-defects">
+            <div class="condition-tile tile-defects">
               <span class="condition-dot"></span>
-              <span class="condition-name" th:text="${r.labels.defects}"></span>
-              <span class="condition-count" th:text="${r.defectCount}"></span>
+              <div class="tile-info">
+                <span class="condition-name" th:text="${r.labels.defects}"></span>
+                <span class="condition-count" th:text="${r.defectCount}"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -201,10 +211,15 @@
         </div>
 
         <div class="score-footer-note">
-          <span class="coverage-fraction">
-            <span th:text="${r.coverage.text}"></span>
-            <span th:text="${r.labels.checksCompleted}"></span>
-          </span>
+          <div class="coverage-bar-track">
+            <div class="coverage-bar-fill"></div>
+          </div>
+          <div class="coverage-label-row">
+            <span class="coverage-fraction">
+              <span th:text="${r.coverage.text}"></span>
+              <span th:text="${r.labels.checksCompleted}"></span>
+            </span>
+          </div>
           <p class="muted small" th:text="${r.labels.coverageNotScore}"></p>
         </div>
       </div>
