@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/workshop/jobs")
+@RequestMapping("/api/v1/workshop/legacy/jobs")
 @PreAuthorize("hasRole('WORKSHOP_ADMIN')")
 public class WorkshopJobController {
 

@@ -4,6 +4,20 @@ import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
+/// Failure carrying the localized field errors returned in a ProblemDetails
+/// payload. It extends [AppFailure] so existing callers keep working.
+class ApiFailure extends AppFailure {
+  const ApiFailure({
+    required super.code,
+    required super.messageKey,
+    super.traceId,
+    super.statusCode,
+    this.errors = const <Map<String, dynamic>>[],
+  });
+
+  final List<Map<String, dynamic>> errors;
+}
+
 class ApiClient {
   ApiClient({required ApiConfig config, Dio? dio})
     : _dio = dio ?? Dio(BaseOptions(baseUrl: config.baseUrl)) {
@@ -41,6 +55,9 @@ class ApiClient {
   final Dio _dio;
 
   String? accessToken;
+
+  /// BCP-47 language code sent as `Accept-Language` on every request.
+  String? acceptLanguage;
 
   Dio get raw => _dio;
 
@@ -102,12 +119,31 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> putDynamic(String path, {Object? body}) async {
+  Future<dynamic> putDynamic(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) async {
     try {
       final response = await _dio.put<dynamic>(
         path,
         data: body,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _headers(headers)),
+      );
+      return response.data;
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    }
+  }
+
+  Future<dynamic> deleteDynamic(
+    String path, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await _dio.delete<dynamic>(
+        path,
+        options: Options(headers: _headers(headers)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -134,8 +170,22 @@ class ApiClient {
     required String contentType,
     Map<String, String>? headers,
   }) async {
+    await putBytesWithHeaders(
+      path,
+      bytes: bytes,
+      contentType: contentType,
+      headers: headers,
+    );
+  }
+
+  Future<dynamic> putBytesWithHeaders(
+    String path, {
+    required List<int> bytes,
+    required String contentType,
+    Map<String, String>? headers,
+  }) async {
     try {
-      await _dio.put<void>(
+      final response = await _dio.put<dynamic>(
         path,
         data: Stream.fromIterable([bytes]),
         options: Options(
@@ -146,6 +196,7 @@ class ApiClient {
           },
         ),
       );
+      return response.data;
     } on DioException catch (error) {
       throw _toFailure(error);
     }
@@ -171,22 +222,48 @@ class ApiClient {
   }
 
   Map<String, String> _authHeaders() {
+    final headers = <String, String>{};
     final token = accessToken;
-    if (token == null || token.isEmpty) {
-      return const <String, String>{};
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
     }
-    return <String, String>{'Authorization': 'Bearer $token'};
+    final language = acceptLanguage;
+    if (language != null && language.isNotEmpty) {
+      headers['Accept-Language'] = language;
+    }
+    return headers;
   }
 
   AppFailure _toFailure(DioException error) {
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {
-      return ProblemDetails.fromJson(data).toFailure();
+      final problem = ProblemDetails.fromJson(data);
+      return ApiFailure(
+        code: problem.code,
+        messageKey: problem.messageKey,
+        traceId: problem.traceId,
+        statusCode: problem.status ?? error.response?.statusCode,
+        errors: _errorList(data['errors']),
+      );
     }
     return AppFailure(
       code: error.type.name.toUpperCase(),
       messageKey: 'error.network',
       statusCode: error.response?.statusCode,
     );
+  }
+
+  List<Map<String, dynamic>> _errorList(dynamic value) {
+    if (value is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return value
+        .whereType<Map>()
+        .map(
+          (item) => item.map(
+            (key, fieldValue) => MapEntry(key.toString(), fieldValue),
+          ),
+        )
+        .toList(growable: false);
   }
 }

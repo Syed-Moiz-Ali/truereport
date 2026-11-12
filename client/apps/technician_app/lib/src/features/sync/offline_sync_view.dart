@@ -5,6 +5,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/shared/technician_intl.dart';
 
 /// Figma screen 15. Offline sync queue rebuilt with the real local queue and
 /// connectivity state. Values the product does not have (cache size, transfer
@@ -481,9 +482,10 @@ class _StatsMargin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final count1 = '${operations.length}';
+    final localeName = Localizations.localeOf(context).toString();
+    final count1 = formatCountLocalized(operations.length, localeName);
     final unit1 = l10n.itemsSelected;
-    final count2 = '$pendingCount';
+    final count2 = formatCountLocalized(pendingCount, localeName);
     final title2 = l10n.technicianInspection;
     final sub2 = online
         ? l10n.technicianOnlineSync

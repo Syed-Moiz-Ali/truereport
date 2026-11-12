@@ -34,6 +34,10 @@ String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
   'ASSIGNED' => l10n.statusAssigned,
   'IN_PROGRESS' => l10n.statusInProgress,
   'READY_TO_FINALIZE' => l10n.statusReadyToFinalize,
+  'PENDING_REVIEW' => l10n.jobsStatusPendingReview,
+  'APPROVED' => l10n.jobsStatusApproved,
+  'PUBLISHED' => l10n.jobsStatusPublished,
+  'REJECTED' => l10n.jobsStatusRejected,
   'FINALIZED' => l10n.statusFinalized,
   'CANCELLED' => l10n.statusCancelled,
   _ => status,
@@ -41,9 +45,9 @@ String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
 
 /// Maps job status to design system status tone.
 StatusTone jobStatusTone(String status) => switch (status) {
-  'FINALIZED' => StatusTone.success,
-  'CANCELLED' => StatusTone.danger,
+  'FINALIZED' || 'APPROVED' || 'PUBLISHED' => StatusTone.success,
+  'CANCELLED' || 'REJECTED' => StatusTone.danger,
   'ASSIGNED' || 'IN_PROGRESS' || 'READY_TO_FINALIZE' => StatusTone.info,
-  'SCHEDULED' => StatusTone.warning,
+  'SCHEDULED' || 'PENDING_REVIEW' => StatusTone.warning,
   _ => StatusTone.neutral,
 };

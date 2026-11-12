@@ -62,7 +62,7 @@ void main() {
     expect(
       const ApiEndpoints(baseUrl: '').workshopJobCounts,
       '/api/'
-      'v1/workshop/jobs/counts',
+      'v1/workshop/legacy/jobs/counts',
     );
   });
 
@@ -75,7 +75,7 @@ void main() {
 
     expect(requestedPaths, [
       '/api/'
-      'v1/workshop/jobs/counts',
+      'v1/workshop/legacy/jobs/counts',
     ]);
     expect(counts.draft, 1);
     expect(counts.scheduled, 2);
@@ -98,7 +98,7 @@ void main() {
     await expectLater(api.jobCounts(), throwsA(anything));
     expect(requestedPaths, [
       '/api/'
-      'v1/workshop/jobs/counts',
+      'v1/workshop/legacy/jobs/counts',
     ]);
   });
 }

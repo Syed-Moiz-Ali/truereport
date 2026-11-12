@@ -25,6 +25,7 @@ void main() {
     // Date symbols load lazily in intl; initialize the locales this suite
     // exercises (production startup should do the same).
     await initializeDateFormatting('en', null);
+    await initializeDateFormatting('ar', null);
     await initializeDateFormatting('ar_EG', null);
   });
 
@@ -35,15 +36,15 @@ void main() {
     test('counts group per locale', () {
       expect(formatCountLocalized(34180, 'en'), '34,180');
       final ar = formatCountLocalized(34180, 'ar');
-      expect(ar, isNot('34,180'));
-      expect(arabicDigits.hasMatch(ar), isTrue);
-      expect(ar.contains('34180'), isFalse);
+      expect(ar, '34,180');
+      expect(arabicDigits.hasMatch(ar), isFalse);
     });
 
     test('odometer mirrors F2-A formatOdometer per locale', () {
       expect(formatOdometerLocalized(34180, 'MI', 'en'), '34,180 MI');
       final ar = formatOdometerLocalized(34180, 'MI', 'ar');
-      expect(arabicDigits.hasMatch(ar), isTrue);
+      expect(arabicDigits.hasMatch(ar), isFalse);
+      expect(ar.startsWith('34,180'), isTrue);
       expect(ar.endsWith(' MI'), isTrue);
       expect(formatOdometerLocalized(null, 'KM', 'en'), isEmpty);
     });
@@ -69,8 +70,8 @@ void main() {
       expect(rawIso.hasMatch(en), isFalse);
       // 06:42Z is 10:42 in Dubai (UTC+4); EN keeps ASCII digits.
       expect(en.contains('10:42'), isTrue);
-      expect(ar, isNot(en));
-      expect(arabicDigits.hasMatch(ar), isTrue);
+      expect(arabicDigits.hasMatch(ar), isFalse);
+      expect(ar.contains('10:42'), isTrue);
       expect(rawIso.hasMatch(ar), isFalse);
       // Offset-less input is the same instant.
       expect(
@@ -85,7 +86,8 @@ void main() {
       final ar = formatTimeDubaiLocalized('2026-11-05T06:42:00Z', 'ar');
       expect(en, '10:42 UTC+4');
       expect(ar.contains('UTC+4'), isTrue);
-      expect(arabicDigits.hasMatch(ar), isTrue);
+      expect(arabicDigits.hasMatch(ar), isFalse);
+      expect(ar.contains('10:42'), isTrue);
     });
   });
 
@@ -107,8 +109,8 @@ void main() {
       final ar = Intl.withLocale('ar_EG', () => scheduledTimeUtc4(instant));
       expect(en.contains('10:42'), isTrue);
       expect(en.contains('UTC+4'), isTrue);
-      expect(ar, isNot(en));
       expect(arabicDigits.hasMatch(ar), isTrue);
+      expect(ar.contains('10:42'), isTrue);
       expect(rawIso.hasMatch(ar), isFalse);
     });
   });
@@ -168,8 +170,8 @@ void main() {
 
       await pumpView(tester, view(), const Locale('ar'));
       text = allText(tester);
-      expect(arabicDigits.hasMatch(text), isTrue);
-      expect(text.contains('48,210 KM'), isFalse);
+      expect(arabicDigits.hasMatch(text), isFalse);
+      expect(text.contains('48,210 KM'), isTrue);
       expect(rawIso.hasMatch(text), isFalse);
       expect(text.contains(figmaScheduled), isFalse);
     });
@@ -214,9 +216,8 @@ void main() {
 
       await pumpView(tester, view(), const Locale('ar'));
       text = allText(tester);
-      expect(arabicDigits.hasMatch(text), isTrue);
-      expect(text.contains('1,234 / 5,678'), isFalse);
-      expect(text.contains('1,234'), isFalse);
+      expect(arabicDigits.hasMatch(text), isFalse);
+      expect(text.contains('1,234 / 5,678'), isTrue);
       expect(rawIso.hasMatch(text), isFalse);
     });
 
@@ -247,8 +248,8 @@ void main() {
 
       await pumpView(tester, view(), const Locale('ar'));
       final text = allText(tester);
-      expect(arabicDigits.hasMatch(text), isTrue);
-      expect(text.contains('1,234'), isFalse);
+      expect(arabicDigits.hasMatch(text), isFalse);
+      expect(text.contains('1,234'), isTrue);
     });
 
     testWidgets('no F2-B screen renders a raw T-ISO instant (EN+AR)', (

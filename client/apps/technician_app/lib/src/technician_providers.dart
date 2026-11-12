@@ -1,6 +1,7 @@
 import 'package:auth/auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/offline_store.dart';
@@ -110,3 +111,52 @@ final technicianDeliveriesProvider = FutureProvider.autoDispose
     .family<List<TechnicianDelivery>, String>((ref, jobId) {
       return ref.watch(technicianApiProvider).deliveries(jobId);
     });
+
+// ------------------------------------------------- clean technician API
+typedef TechnicianJobsQuery = ({int page, int size, String? status});
+
+typedef TechnicianEvidenceQuery = ({String jobId, String itemCode});
+
+final technicianJobPageProvider = FutureProvider.autoDispose
+    .family<JobSummaryPage, TechnicianJobsQuery>((ref, query) {
+      return ref
+          .watch(technicianApiProvider)
+          .technicianJobs(
+            page: query.page,
+            size: query.size,
+            status: query.status,
+          );
+    });
+
+final technicianJobSummaryProvider = FutureProvider.autoDispose
+    .family<JobSummary, String>((ref, id) {
+      return ref.watch(technicianApiProvider).technicianJob(id);
+    });
+
+final technicianChecklistProvider = FutureProvider.autoDispose
+    .family<Checklist, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).cleanChecklist(jobId);
+    });
+
+final technicianSummaryProvider = FutureProvider.autoDispose
+    .family<Summary, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).summary(jobId);
+    });
+
+final technicianReviewProvider = FutureProvider.autoDispose
+    .family<Review, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).cleanReview(jobId);
+    });
+
+final technicianEvidenceListProvider = FutureProvider.autoDispose
+    .family<List<Evidence>, TechnicianEvidenceQuery>((ref, query) {
+      return ref
+          .watch(technicianApiProvider)
+          .evidenceList(query.jobId, query.itemCode);
+    });
+
+final syncQueueStatusProvider = FutureProvider.autoDispose<SyncQueueStatus>((
+  ref,
+) {
+  return ref.watch(offlineStoreProvider).syncQueueStatus();
+});

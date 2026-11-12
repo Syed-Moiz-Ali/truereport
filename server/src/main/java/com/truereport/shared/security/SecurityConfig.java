@@ -89,6 +89,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/password/**", "/api/v1/delivery/webhooks/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/prometheus", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/r/**", "/report/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/i18n/languages").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/api/v1/workshop/**").hasRole("WORKSHOP_ADMIN")
                         .requestMatchers("/api/v1/technician/**").hasRole("TECHNICIAN")

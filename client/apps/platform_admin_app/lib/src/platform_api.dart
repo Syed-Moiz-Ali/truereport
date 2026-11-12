@@ -1,5 +1,6 @@
 import 'package:api_client/api_client.dart';
 import 'package:uuid/uuid.dart';
+
 import 'platform_models.dart';
 
 abstract class PlatformAdminApi {
@@ -23,6 +24,14 @@ abstract class PlatformAdminApi {
   });
   Future<PlatformAccount> disableUser(String userId, String reason);
   Future<PlatformAccount> reactivateUser(String userId, String reason);
+  Future<HierarchyWorkshop> updateWorkshop(
+    String id, {
+    String? name,
+    String? location,
+    String? contactEmail,
+  });
+  Future<HierarchyWorkshop> deactivateWorkshop(String id, String reason);
+  Future<HierarchyWorkshop> reactivateWorkshop(String id, String reason);
 }
 
 class HttpPlatformAdminApi implements PlatformAdminApi {
@@ -118,5 +127,41 @@ class HttpPlatformAdminApi implements PlatformAdminApi {
       body: {'reason': reason},
     );
     return PlatformAccount.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<HierarchyWorkshop> updateWorkshop(
+    String id, {
+    String? name,
+    String? location,
+    String? contactEmail,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.platformWorkshop(id),
+      body: {
+        'name': ?name,
+        'location': ?location,
+        'contactEmail': ?contactEmail,
+      },
+    );
+    return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<HierarchyWorkshop> deactivateWorkshop(String id, String reason) async {
+    final data = await _api.postDynamic(
+      _endpoints.deactivatePlatformWorkshop(id),
+      body: {'reason': reason},
+    );
+    return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<HierarchyWorkshop> reactivateWorkshop(String id, String reason) async {
+    final data = await _api.postDynamic(
+      _endpoints.reactivatePlatformWorkshop(id),
+      body: {'reason': reason},
+    );
+    return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
   }
 }

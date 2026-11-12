@@ -1,5 +1,7 @@
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
+import 'package:workshop_admin_app/src/features/jobs/jobs_board_tab.dart';
+import 'package:workshop_admin_app/src/features/jobs/notification_center.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_tab.dart';
 import 'package:workshop_admin_app/src/features/templates/templates_tab.dart';
 import 'package:auth/auth.dart';
@@ -16,7 +18,7 @@ class WorkshopAdminHomePage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
     return DefaultTabController(
-      length: 4,
+      length: 6,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= AppBreakpoints.tablet;
@@ -68,11 +70,28 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                         icon: const Icon(Icons.dashboard_customize_outlined),
                         text: l10n.templatesTab,
                       ),
+                      Tab(
+                        key: const Key('workshop-tab-job-board'),
+                        icon: const Icon(Icons.assignment_outlined),
+                        text: l10n.jobsBoardTab,
+                      ),
+                      Tab(
+                        key: const Key('workshop-tab-notifications'),
+                        icon: const Icon(Icons.notifications_none_outlined),
+                        text: l10n.jobsNotificationsTab,
+                      ),
                     ],
                   ),
           );
           const tabs = TabBarView(
-            children: [DashboardTab(), JobsTab(), StaffTab(), TemplatesTab()],
+            children: [
+              DashboardTab(),
+              JobsTab(),
+              StaffTab(),
+              TemplatesTab(),
+              JobsBoardTab(),
+              NotificationCenterTab(),
+            ],
           );
           if (!wide) {
             return AppScaffold(appBar: appBar, body: tabs);
@@ -120,6 +139,22 @@ class WorkshopAdminHomePage extends ConsumerWidget {
                           label: Text(
                             l10n.templatesTab,
                             key: const Key('workshop-tab-templates'),
+                          ),
+                        ),
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.assignment_outlined),
+                          selectedIcon: const Icon(Icons.assignment),
+                          label: Text(
+                            l10n.jobsBoardTab,
+                            key: const Key('workshop-tab-job-board'),
+                          ),
+                        ),
+                        NavigationRailDestination(
+                          icon: const Icon(Icons.notifications_none_outlined),
+                          selectedIcon: const Icon(Icons.notifications),
+                          label: Text(
+                            l10n.jobsNotificationsTab,
+                            key: const Key('workshop-tab-notifications'),
                           ),
                         ),
                       ],

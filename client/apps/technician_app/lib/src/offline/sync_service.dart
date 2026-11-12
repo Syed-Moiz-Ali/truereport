@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/offline_store.dart';
 import 'package:technician_app/src/technician_api.dart';
@@ -85,8 +86,12 @@ class SyncService {
     switch (operation.type) {
       case 'assessment':
         await _syncAssessment(operation);
+      case 'assessment_clean':
+        await _syncCleanAssessment(operation);
       case 'evidence':
         await _syncEvidence(operation);
+      case 'evidence_clean':
+        await _syncCleanEvidence(operation);
       case 'customer':
         await _syncCustomer(operation);
       case 'vehicle':
@@ -171,6 +176,40 @@ class SyncService {
     );
   }
 
+  Future<void> _syncCleanAssessment(SyncOperation operation) async {
+    final payload = operation.payload;
+    final jobId = payload['jobId'] as String;
+    final itemCode = payload['itemCode'] as String;
+    final clientRevision = payload['clientRevision'] as int? ?? 1;
+    final mutation = SyncMutation.fromJson(
+      payload['mutation'] as Map<String, dynamic>,
+    );
+    final result = await _api.sync(
+      jobId,
+      SyncRequest(clientRevision: clientRevision, mutations: [mutation]),
+    );
+    if (result.hasConflicts) {
+      var matched = false;
+      for (final conflict in result.conflicts) {
+        await _store.recordSyncConflict(jobId: jobId, conflict: conflict);
+        if (conflict.itemCode == itemCode) {
+          matched = true;
+        }
+      }
+      if (matched) {
+        await _store.markCleanAssessmentConflict(
+          jobId: jobId,
+          itemCode: itemCode,
+        );
+      }
+      throw const AppFailure(
+        code: 'SYNC_CONFLICT',
+        messageKey: 'error.sync.conflict',
+      );
+    }
+    await _store.markCleanAssessmentReceived(jobId: jobId, itemCode: itemCode);
+  }
+
   Future<void> _syncEvidence(SyncOperation operation) async {
     final payload = operation.payload;
     final jobId = payload['jobId'] as String;
@@ -179,6 +218,11 @@ class SyncService {
     final evidence = await _findEvidence(jobId, itemId, evidenceId);
     if (evidence == null) {
       await _store.removeOperation(operation.id);
+      return;
+    }
+    final existing = await _api.evidence(jobId, itemId);
+    if (existing.any((item) => item.sha256 == evidence.sha256)) {
+      await _store.markEvidenceReceived(evidenceId);
       return;
     }
     final init = await _api.initEvidence(
@@ -200,11 +244,63 @@ class SyncService {
         );
       }
       await _api.uploadEvidence(uploadUrl, uploadToken, evidence.bytes);
-      await _api.completeEvidence(
+      await _api.completeEvidence(jobId, itemId, evidenceId, evidence.sha256);
+    }
+    await _store.markEvidenceReceived(evidenceId);
+  }
+
+  Future<void> _syncCleanEvidence(SyncOperation operation) async {
+    final payload = operation.payload;
+    final jobId = payload['jobId'] as String;
+    final itemCode = (payload['itemCode'] ?? payload['itemId']) as String;
+    final evidenceId = payload['evidenceId'] as String;
+    final evidence = await _findEvidence(jobId, itemCode, evidenceId);
+    if (evidence == null) {
+      await _store.removeOperation(operation.id);
+      return;
+    }
+    final existing = await _api.evidenceList(jobId, itemCode);
+    if (existing.any((item) => item.sha256 == evidence.sha256)) {
+      await _store.markEvidenceReceived(evidenceId);
+      return;
+    }
+    final init = await _api.cleanInitEvidence(
+      jobId,
+      itemCode,
+      EvidenceInitRequest(
+        type: evidence.type,
+        mime: evidence.mimeType,
+        bytes: evidence.bytes.length,
+        sha256: evidence.sha256,
+        capturedAt: payload['createdAt'] as String?,
+        captureSource: evidence.captureSource,
+        deviceId: evidence.deviceId,
+        width: evidence.width,
+        height: evidence.height,
+        durationMs: evidence.durationMs,
+        captionEn: evidence.captionEn,
+        captionAr: evidence.captionAr,
+        posterBase64: evidence.posterBase64,
+      ),
+      idempotencyKey: 'evidence-$evidenceId',
+    );
+    if (init.status != 'VERIFIED') {
+      await _api.uploadEvidenceContent(
         jobId,
-        itemId,
-        evidenceId,
-        evidence.sha256,
+        itemCode,
+        init.id,
+        evidence.bytes,
+        contentType: evidence.mimeType,
+      );
+      await _api.cleanCompleteEvidence(
+        jobId,
+        itemCode,
+        init.id,
+        EvidenceCompleteRequest(
+          captionEn: evidence.captionEn,
+          captionAr: evidence.captionAr,
+          posterBase64: evidence.posterBase64,
+        ),
       );
     }
     await _store.markEvidenceReceived(evidenceId);

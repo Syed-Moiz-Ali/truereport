@@ -57,15 +57,15 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         vehicle(technician, jobId, "Toyota", "Camry", 2022, "TESTVIN00000000001", "A12345", 82902, "KM");
         consent(technician, jobId, "PROCESSING", "GRANTED");
         assess(technician, jobId, itemId, "DEFECT_FOUND", "MODERATE", "نص عربي", "ar", null, null);
-        JsonNode review = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode review = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(review.get("ready").asBoolean()).isTrue();
         assertThat(review.get("blocking").size()).isZero();
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .header("Idempotency-Key", "too-early"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("READY_REQUIRED"));
-        JsonNode ready = postJson(technician, "/api/v1/technician/jobs/" + jobId + "/ready", null);
+        JsonNode ready = postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
         assertThat(ready.get("job").get("status").asText()).isEqualTo("READY_TO_FINALIZE");
 
         JsonNode first = finalize(technician, jobId, "final-key-1");
@@ -74,7 +74,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         JsonNode second = finalize(technician, jobId, "final-key-1");
         assertThat(second.get("snapshotHash").asText())
                 .isEqualTo(first.get("snapshotHash").asText());
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .header("Idempotency-Key", "different-key"))
                 .andExpect(status().isConflict())
@@ -84,18 +84,18 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assertThat(finalSnapshots.findByJobId(UUID.fromString(jobId)).orElseThrow()
                 .getSnapshotJson()).contains("Panel check").contains("نص عربي");
 
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(assessmentBody("NO_ISSUE_OBSERVED", null, null, 1)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("ALREADY_FINALIZED"));
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/customer")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/customer")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"customerName\":\"Changed\"}"))
                 .andExpect(status().isConflict());
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/start")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/start")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isConflict());
 
@@ -141,17 +141,17 @@ class TechnicianInspectionIT extends IntegrationTestBase {
                 "中文说明", 3, "zh-Hans", 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assessment.note").value("中文说明"));
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(assessmentBody("NO_ISSUE_OBSERVED", null, "stale", 99)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("VERSION_CONFLICT"));
 
-        JsonNode review = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode review = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(review.get("ready").asBoolean()).isFalse();
         assertThat(review.toString()).contains("EVIDENCE_REQUIRED");
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/ready")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/ready")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("INSPECTION_INCOMPLETE"));
@@ -205,12 +205,12 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         // Master/template changes after start must not change this pinned checklist.
         String v2 = createTemplateDraftAndPublish(adminA, templateId);
         assertThat(v2).isNotEqualTo(version1);
-        JsonNode review = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode review = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(review.get("ready").asBoolean()).isTrue();
-        postJson(technician, "/api/v1/technician/jobs/" + jobId + "/ready", null);
+        postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
         JsonNode finalized = finalize(technician, jobId, "bulk-key");
         assertThat(finalized.get("itemCount").asInt()).isEqualTo(105);
-        JsonNode checklistAfter = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/checklist");
+        JsonNode checklistAfter = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/checklist");
         assertThat(checklistAfter.get("items").size()).isEqualTo(105);
         assertThat(checklistAfter.get("job").get("status").asText()).isEqualTo("FINALIZED");
     }
@@ -231,17 +231,17 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assign(adminA, jobId, fixture.techA().getId());
         start(technicianA, jobId);
 
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/checklist")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/checklist")
                         .header("Authorization", "Bearer " + technicianB.accessToken()))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/checklist")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/checklist")
                         .header("Authorization", "Bearer " + adminA.accessToken()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/checklist")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/checklist")
                         .header("Authorization", "Bearer " + platform.accessToken()))
                 .andExpect(status().isForbidden());
 
-        mockMvc.perform(post("/api/v1/workshop/jobs/" + jobId + "/cancel")
+        mockMvc.perform(post("/api/v1/workshop/legacy/jobs/" + jobId + "/cancel")
                         .header("Authorization", "Bearer " + adminA.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\":\"Cancelled during inspection\"}"))
@@ -254,7 +254,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         String job2 = job(adminA, versionId, "Reassign customer");
         assign(adminA, job2, fixture.techA().getId());
         String itemId = start(technicianA, job2).get("items").get(0).get("inspectionItemId").asText();
-        mockMvc.perform(post("/api/v1/workshop/jobs/" + job2 + "/assign")
+        mockMvc.perform(post("/api/v1/workshop/legacy/jobs/" + job2 + "/assign")
                         .header("Authorization", "Bearer " + adminA.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"technicianId\":\"" + fixture.techC().getId() + "\",\"reason\":\"Reassigned\"}"))
@@ -262,63 +262,63 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assessment(technicianA, job2, itemId, assessmentBody("NO_ISSUE_OBSERVED", null, null, 1))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("JOB_REASSIGNED"));
-        mockMvc.perform(post("/api/v1/technician/jobs/" + job2 + "/start")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + job2 + "/start")
                         .header("Authorization", "Bearer " + technicianC.accessToken()))
                 .andExpect(status().isOk());
 
-        JsonNode walkIn = postJson(technicianA, "/api/v1/technician/jobs", walkInBody(versionId, "Walk-in customer"));
+        JsonNode walkIn = postJson(technicianA, "/api/v1/technician/legacy/jobs", walkInBody(versionId, "Walk-in customer"));
         String walkInId = walkIn.get("id").asText();
         assertThat(walkIn.get("status").asText()).isEqualTo("ASSIGNED");
         assertThat(walkIn.get("assignedTechnicianId").asText())
                 .isEqualTo(fixture.techA().getId().toString());
-        assertThat(getJson(adminA, "/api/v1/workshop/jobs").toString()).contains(walkInId);
+        assertThat(getJson(adminA, "/api/v1/workshop/legacy/jobs").toString()).contains(walkInId);
 
         String random = UUID.randomUUID().toString();
         String[] technicianGets = {
-                "/api/v1/technician/jobs",
-                "/api/v1/technician/jobs/" + random,
-                "/api/v1/technician/jobs/" + random + "/checklist",
-                "/api/v1/technician/jobs/" + random + "/equipment",
-                "/api/v1/technician/jobs/" + random + "/review",
-                "/api/v1/technician/templates/versions"
+                "/api/v1/technician/legacy/jobs",
+                "/api/v1/technician/legacy/jobs/" + random,
+                "/api/v1/technician/legacy/jobs/" + random + "/checklist",
+                "/api/v1/technician/legacy/jobs/" + random + "/equipment",
+                "/api/v1/technician/legacy/jobs/" + random + "/review",
+                "/api/v1/technician/legacy/templates/versions"
         };
         for (String path : technicianGets) {
             assertTechnicianForbidden(adminA, path, "GET");
             assertTechnicianForbidden(platform, path, "GET");
         }
         String[] technicianPosts = {
-                "/api/v1/technician/jobs",
-                "/api/v1/technician/jobs/" + random + "/start",
-                "/api/v1/technician/jobs/" + random + "/consent",
-                "/api/v1/technician/jobs/" + random + "/ready",
-                "/api/v1/technician/jobs/" + random + "/finalize"
+                "/api/v1/technician/legacy/jobs",
+                "/api/v1/technician/legacy/jobs/" + random + "/start",
+                "/api/v1/technician/legacy/jobs/" + random + "/consent",
+                "/api/v1/technician/legacy/jobs/" + random + "/ready",
+                "/api/v1/technician/legacy/jobs/" + random + "/finalize"
         };
         for (String path : technicianPosts) {
             assertTechnicianForbidden(adminA, path, "POST");
             assertTechnicianForbidden(platform, path, "POST");
         }
         String[] technicianPuts = {
-                "/api/v1/technician/jobs/" + random + "/customer",
-                "/api/v1/technician/jobs/" + random + "/vehicle",
-                "/api/v1/technician/jobs/" + random + "/items/" + random + "/assessment"
+                "/api/v1/technician/legacy/jobs/" + random + "/customer",
+                "/api/v1/technician/legacy/jobs/" + random + "/vehicle",
+                "/api/v1/technician/legacy/jobs/" + random + "/items/" + random + "/assessment"
         };
         for (String path : technicianPuts) {
             assertTechnicianForbidden(adminA, path, "PUT");
             assertTechnicianForbidden(platform, path, "PUT");
         }
-        mockMvc.perform(get("/api/v1/technician/jobs/" + walkInId + "/checklist")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + walkInId + "/checklist")
                         .header("Authorization", "Bearer " + technicianB.accessToken()))
                 .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/api/v1/technician/jobs")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs")
                         .header("Authorization", "Bearer " + technicianB.accessToken()))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/technician/jobs")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs")
                         .header("Authorization", "Bearer " + adminA.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(walkInBody(versionId, "Not allowed")))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(post("/api/v1/technician/jobs")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs")
                         .header("Authorization", "Bearer " + platform.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(walkInBody(versionId, "Not allowed")))
@@ -341,7 +341,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assign(adminA, jobId, fixture.techA().getId());
         start(technician, jobId);
 
-        JsonNode equipment = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/equipment");
+        JsonNode equipment = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/equipment");
         JsonNode items = equipment.get("items");
         assertThat(items.size()).isEqualTo(3);
         assertEquipmentItem(items.get(0), early);
@@ -366,7 +366,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assign(adminA, jobId, fixture.techA().getId());
         start(technician, jobId);
 
-        JsonNode equipment = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/equipment");
+        JsonNode equipment = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/equipment");
         Set<UUID> ids = uuids(equipment.get("equipmentIds"));
         Set<UUID> itemIds = new LinkedHashSet<>();
         equipment.get("items").forEach(value -> itemIds.add(UUID.fromString(value.get("equipmentId").asText())));
@@ -389,7 +389,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assign(adminA, jobId, fixture.techA().getId());
         start(technicianA, jobId);
 
-        String path = "/api/v1/technician/jobs/" + jobId + "/equipment";
+        String path = "/api/v1/technician/legacy/jobs/" + jobId + "/equipment";
         mockMvc.perform(get(path)
                         .header("Authorization", "Bearer " + technicianB.accessToken()))
                 .andExpect(status().isNotFound());
@@ -457,12 +457,12 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private String startItemId(Login login, String jobId) throws Exception {
-        JsonNode checklist = getJson(login, "/api/v1/technician/jobs/" + jobId + "/checklist");
+        JsonNode checklist = getJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/checklist");
         return checklist.get("items").get(0).get("inspectionItemId").asText();
     }
 
     private void customer(Login login, String jobId, String name, String phone, String email) throws Exception {
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/customer")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/customer")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"customerName\":\"" + name + "\",\"customerPhone\":\"" + phone
@@ -472,7 +472,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
 
     private void vehicle(Login login, String jobId, String make, String model, int year,
                          String vin, String plate, int odometer, String unit) throws Exception {
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/vehicle")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/vehicle")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"vehicleMake\":\"" + make + "\",\"vehicleModel\":\"" + model
@@ -483,7 +483,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private void consent(Login login, String jobId, String type, String status) throws Exception {
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/consent")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/consent")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"consentType\":\"" + type + "\",\"status\":\"" + status
@@ -493,7 +493,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
 
     private org.springframework.test.web.servlet.ResultActions assessment(Login login, String jobId,
                                                                           String itemId, String body) throws Exception {
-        return mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment")
+        return mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment")
                 .header("Authorization", "Bearer " + login.accessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
@@ -551,11 +551,11 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private JsonNode start(Login login, String jobId) throws Exception {
-        return postJson(login, "/api/v1/technician/jobs/" + jobId + "/start", null);
+        return postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/start", null);
     }
 
     private JsonNode finalize(Login login, String jobId, String key) throws Exception {
-        var result = mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        var result = mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .header("Idempotency-Key", key))
                 .andExpect(status().isOk())
@@ -627,7 +627,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private String job(Login login, String versionId, String customer) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs",
+        return postJson(login, "/api/v1/workshop/legacy/jobs",
                 "{\"templateVersionId\":\"" + versionId + "\",\"customerName\":\"" + customer
                         + "\",\"vehicleMake\":\"Toyota\",\"vehicleModel\":\"Camry\",\"vehicleYear\":2022,"
                         + "\"vehicleVin\":\"TESTVIN00000000001\",\"vehiclePlate\":\"A12345\","
@@ -636,7 +636,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
     }
 
     private void assign(Login login, String jobId, UUID technicianId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + technicianId + "\",\"reason\":\"Assigned\"}");
     }
 

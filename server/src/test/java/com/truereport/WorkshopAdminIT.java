@@ -60,7 +60,7 @@ class WorkshopAdminIT extends IntegrationTestBase {
         assertThat(oldVersion.get("items").get(0).get("labelEn").asText())
                 .isEqualTo("Version one label");
 
-        JsonNode jobs = getJson(adminA, "/api/v1/workshop/jobs");
+        JsonNode jobs = getJson(adminA, "/api/v1/workshop/legacy/jobs");
         assertThat(jobs.get(0).get("id").asText()).isEqualTo(jobId);
         assertThat(jobs.get(0).get("templateVersionId").asText()).isEqualTo(v1.toString());
 
@@ -104,19 +104,19 @@ class WorkshopAdminIT extends IntegrationTestBase {
                         .header("Authorization", "Bearer " + adminB.accessToken()))
                 .andExpect(status().isNotFound());
 
-        assertThat(getJson(adminA, "/api/v1/workshop/jobs").toString()).contains(jobA);
-        assertThat(getJson(adminB, "/api/v1/workshop/jobs").toString()).doesNotContain(jobA);
-        mockMvc.perform(post("/api/v1/workshop/jobs/" + jobA + "/assign")
+        assertThat(getJson(adminA, "/api/v1/workshop/legacy/jobs").toString()).contains(jobA);
+        assertThat(getJson(adminB, "/api/v1/workshop/legacy/jobs").toString()).doesNotContain(jobA);
+        mockMvc.perform(post("/api/v1/workshop/legacy/jobs/" + jobA + "/assign")
                         .header("Authorization", "Bearer " + adminB.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"technicianId\":\"" + fixture.techA().getId() + "\"}"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(post("/api/v1/workshop/jobs/" + jobA + "/cancel")
+        mockMvc.perform(post("/api/v1/workshop/legacy/jobs/" + jobA + "/cancel")
                         .header("Authorization", "Bearer " + adminB.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"reason\":\"Not mine\"}"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/workshop/jobs/" + jobA + "/assignments")
+        mockMvc.perform(get("/api/v1/workshop/legacy/jobs/" + jobA + "/assignments")
                         .header("Authorization", "Bearer " + adminB.accessToken()))
                 .andExpect(status().isNotFound());
 
@@ -125,18 +125,18 @@ class WorkshopAdminIT extends IntegrationTestBase {
         assertThat(staffA).contains("Technician A");
         assertThat(staffB).doesNotContain("Technician A");
 
-        JsonNode assigned = postJson(adminA, "/api/v1/workshop/jobs/" + jobA + "/assign",
+        JsonNode assigned = postJson(adminA, "/api/v1/workshop/legacy/jobs/" + jobA + "/assign",
                 "{\"technicianId\":\"" + fixture.techA().getId() + "\",\"reason\":\"Assigned\"}");
         assertThat(assigned.get("status").asText()).isEqualTo("ASSIGNED");
-        JsonNode technicianJobs = getJson(technician, "/api/v1/technician/jobs");
+        JsonNode technicianJobs = getJson(technician, "/api/v1/technician/legacy/jobs");
         assertThat(technicianJobs.toString()).contains(jobA);
-        assertThat(getJson(technician, "/api/v1/technician/jobs/" + jobA).get("id").asText())
+        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs/" + jobA).get("id").asText())
                 .isEqualTo(jobA);
 
         String unassignedJob = createJob(adminA, versionA, "Unassigned customer").get("id").asText();
-        assertThat(getJson(technician, "/api/v1/technician/jobs").toString())
+        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs").toString())
                 .doesNotContain(unassignedJob);
-        mockMvc.perform(get("/api/v1/technician/jobs/" + unassignedJob)
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + unassignedJob)
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isNotFound());
 
@@ -144,23 +144,23 @@ class WorkshopAdminIT extends IntegrationTestBase {
         assertForbidden(technician, platform, "/api/v1/workshop/templates/versions", false);
         assertForbidden(technician, platform, "/api/v1/workshop/master/categories", false);
         assertForbidden(technician, platform, "/api/v1/workshop/master/items", false);
-        assertForbidden(technician, platform, "/api/v1/workshop/jobs", false);
+        assertForbidden(technician, platform, "/api/v1/workshop/legacy/jobs", false);
         assertForbidden(technician, platform, "/api/v1/workshop/staff", false);
-        assertForbidden(technician, platform, "/api/v1/workshop/jobs/" + jobA + "/assignments", false);
+        assertForbidden(technician, platform, "/api/v1/workshop/legacy/jobs/" + jobA + "/assignments", false);
         assertForbidden(technician, platform, "/api/v1/workshop/templates", true);
-        assertForbidden(technician, platform, "/api/v1/workshop/jobs", true);
-        mockMvc.perform(get("/api/v1/technician/jobs")
+        assertForbidden(technician, platform, "/api/v1/workshop/legacy/jobs", true);
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs")
                         .header("Authorization", "Bearer " + adminA.accessToken()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/jobs")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs")
                         .header("Authorization", "Bearer " + platform.accessToken()))
                 .andExpect(status().isForbidden());
 
         String random = UUID.randomUUID().toString();
-        mockMvc.perform(get("/api/v1/technician/jobs/" + random)
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + random)
                         .header("Authorization", "Bearer " + adminA.accessToken()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + random)
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + random)
                         .header("Authorization", "Bearer " + platform.accessToken()))
                 .andExpect(status().isForbidden());
         String[] protectedGets = {
@@ -168,8 +168,8 @@ class WorkshopAdminIT extends IntegrationTestBase {
                 "/api/v1/workshop/master/items",
                 "/api/v1/workshop/master/items/" + random,
                 "/api/v1/workshop/staff",
-                "/api/v1/workshop/jobs",
-                "/api/v1/workshop/jobs/" + random + "/assignments",
+                "/api/v1/workshop/legacy/jobs",
+                "/api/v1/workshop/legacy/jobs/" + random + "/assignments",
                 "/api/v1/workshop/templates",
                 "/api/v1/workshop/templates/versions",
                 "/api/v1/workshop/templates/" + random,
@@ -181,9 +181,9 @@ class WorkshopAdminIT extends IntegrationTestBase {
             assertForbidden(technician, platform, path, false);
         }
         String[] protectedPosts = {
-                "/api/v1/workshop/jobs",
-                "/api/v1/workshop/jobs/" + random + "/assign",
-                "/api/v1/workshop/jobs/" + random + "/cancel",
+                "/api/v1/workshop/legacy/jobs",
+                "/api/v1/workshop/legacy/jobs/" + random + "/assign",
+                "/api/v1/workshop/legacy/jobs/" + random + "/cancel",
                 "/api/v1/workshop/templates",
                 "/api/v1/workshop/templates/" + random + "/draft",
                 "/api/v1/workshop/templates/" + random + "/publish",
@@ -328,7 +328,7 @@ class WorkshopAdminIT extends IntegrationTestBase {
     }
 
     private JsonNode createJob(Login login, UUID templateVersionId, String customer) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs", """
+        return postJson(login, "/api/v1/workshop/legacy/jobs", """
                 {"templateVersionId":"%s","scheduledAt":"2026-11-05T09:00:00",
                  "customerName":"%s","customerPhone":"+971500000000",
                  "customerEmail":"customer@test.local",

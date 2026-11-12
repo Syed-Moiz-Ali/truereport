@@ -1,6 +1,6 @@
 # TrueReport Admin App
 
-Phase 2 foundation only. Run from the workspace root:
+Workshop Admin app. Run from the workspace root:
 
 ```powershell
 cd client
@@ -10,4 +10,4 @@ flutter test
 flutter run -d chrome --dart-define-from-file=config/dev.json
 ```
 
-The app currently contains sign-in and a role-based home shell for Workshop Admin and Platform Admin. No job, template, report, delivery or platform-admin screen is implemented in Phase 2.
+The app contains sign-in and a role-based home shell for Workshop Admin and Platform Admin, including the workshop job board, job creation, review/approval, publishing, documents and notification screens.

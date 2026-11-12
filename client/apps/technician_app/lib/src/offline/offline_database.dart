@@ -50,7 +50,16 @@ class OfflineDatabase extends GeneratedDatabase {
         'sha256 TEXT NOT NULL, '
         'bytes BLOB NOT NULL, '
         'state TEXT NOT NULL, '
-        'created_at INTEGER NOT NULL)',
+        'created_at INTEGER NOT NULL, '
+        'type TEXT NOT NULL DEFAULT \'PHOTO\', '
+        'caption_en TEXT, '
+        'caption_ar TEXT, '
+        'poster_base64 TEXT, '
+        'duration_ms INTEGER, '
+        'capture_source TEXT, '
+        'device_id TEXT, '
+        'width INTEGER, '
+        'height INTEGER)',
       );
       await customStatement(
         'CREATE TABLE IF NOT EXISTS guide_blobs ('
@@ -61,12 +70,47 @@ class OfflineDatabase extends GeneratedDatabase {
         'PRIMARY KEY (job_id, item_id))',
       );
       await customStatement(
+        'CREATE TABLE IF NOT EXISTS dynamic_assessments ('
+        'job_id TEXT NOT NULL, '
+        'item_code TEXT NOT NULL, '
+        'result_code TEXT, '
+        'score INTEGER, '
+        'issue_values_json TEXT, '
+        'measurements_json TEXT, '
+        'notes_en TEXT, '
+        'notes_ar TEXT, '
+        'client_revision INTEGER NOT NULL, '
+        'base_version INTEGER NOT NULL, '
+        'state TEXT NOT NULL, '
+        'data_json TEXT, '
+        'evidence_json TEXT, '
+        'updated_at INTEGER NOT NULL, '
+        'PRIMARY KEY (job_id, item_code))',
+      );
+      await customStatement(
+        'CREATE TABLE IF NOT EXISTS sync_conflicts ('
+        'id TEXT PRIMARY KEY NOT NULL, '
+        'job_id TEXT NOT NULL, '
+        'item_code TEXT NOT NULL, '
+        'client_revision INTEGER NOT NULL, '
+        'server_revision INTEGER NOT NULL, '
+        'server_payload_json TEXT, '
+        'client_payload_json TEXT, '
+        'state TEXT NOT NULL, '
+        'created_at INTEGER NOT NULL, '
+        'updated_at INTEGER NOT NULL)',
+      );
+      await customStatement(
         'CREATE INDEX IF NOT EXISTS sync_operations_job '
         'ON sync_operations (job_id, state)',
       );
       await customStatement(
         'CREATE INDEX IF NOT EXISTS evidence_blobs_item '
         'ON evidence_blobs (job_id, item_id)',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS sync_conflicts_job '
+        'ON sync_conflicts (job_id, state)',
       );
     },
   );

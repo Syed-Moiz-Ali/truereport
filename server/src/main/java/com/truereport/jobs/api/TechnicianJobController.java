@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/technician/jobs")
+@RequestMapping("/api/v1/technician/legacy/jobs")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianJobController {
 

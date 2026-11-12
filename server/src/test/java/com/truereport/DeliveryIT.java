@@ -139,7 +139,7 @@ class DeliveryIT extends IntegrationTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"channel\":\"SMS\",\"language\":\"en\"}"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/deliveries")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/deliveries")
                         .header("Authorization", "Bearer " + admin.accessToken()))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/v1/platform/deliveries")
@@ -250,8 +250,8 @@ class DeliveryIT extends IntegrationTestBase {
             consent(technician, jobId, "SMS");
             consent(technician, jobId, "EMAIL");
         }
-        postJson(technician, "/api/v1/technician/jobs/" + jobId + "/ready", null);
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .header("Idempotency-Key", "delivery-final-" + jobId))
                 .andExpect(status().isOk());
@@ -281,7 +281,7 @@ class DeliveryIT extends IntegrationTestBase {
     }
 
     private void consent(Login login, String jobId, String type) throws Exception {
-        postJson(login, "/api/v1/technician/jobs/" + jobId + "/consent",
+        postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/consent",
                 "{\"consentType\":\"" + type + "\",\"status\":\"GRANTED\","
                         + "\"wordingVersion\":\"p7-test\",\"channel\":\"IN_PERSON\"}");
     }
@@ -334,7 +334,7 @@ class DeliveryIT extends IntegrationTestBase {
     }
 
     private String job(Login login, String versionId, String label) throws Exception {
-        JsonNode job = postJson(login, "/api/v1/workshop/jobs",
+        JsonNode job = postJson(login, "/api/v1/workshop/legacy/jobs",
                 "{\"templateVersionId\":\"" + versionId + "\",\"customerName\":\"Private Customer\","
                         + "\"customerPhone\":\"" + PHONE + "\",\"customerEmail\":\"" + EMAIL + "\","
                         + "\"vehicleMake\":\"Toyota\",\"vehicleModel\":\"Land Cruiser\","
@@ -344,16 +344,16 @@ class DeliveryIT extends IntegrationTestBase {
     }
 
     private void assign(Login login, String jobId, UUID technicianId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + technicianId + "\",\"reason\":\"Delivery test\"}");
     }
 
     private JsonNode start(Login login, String jobId) throws Exception {
-        return postJson(login, "/api/v1/technician/jobs/" + jobId + "/start", null);
+        return postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/start", null);
     }
 
     private void assess(Login login, String jobId, String itemId) throws Exception {
-        putJson(login, "/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment",
+        putJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment",
                 "{\"baseVersion\":0,\"clientRevision\":1,\"resultCode\":\"NO_ISSUE_OBSERVED\","
                         + "\"note\":\"Visible condition checked.\"}");
     }

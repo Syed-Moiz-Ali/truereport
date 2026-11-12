@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/features/inspection/assessment_page.dart';
-import 'package:technician_app/src/features/inspection/checklist_page.dart';
-import 'package:technician_app/src/features/review/finalized_page.dart';
-import 'package:technician_app/src/features/inspection/inspection_hub_page.dart';
-import 'package:technician_app/src/features/jobs/job_detail_page.dart';
-import 'package:technician_app/src/features/review/review_page.dart';
-import 'package:technician_app/src/features/sync/sync_queue_page.dart';
-import 'package:technician_app/src/features/jobs/technician_jobs_page.dart';
-import 'package:technician_app/src/features/jobs/walk_in_job_page.dart';
+import 'features/inspection/technician_dynamic_item_page.dart';
+import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
+import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
+import 'package:technician_app/src/features/review/technician_completed_page.dart';
+import 'package:technician_app/src/features/review/technician_signature_page.dart';
+import 'package:technician_app/src/features/review/technician_summary_page.dart';
+import 'package:technician_app/src/features/sync/technician_sync_page.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 ///
@@ -51,47 +49,38 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
       GoRoute(
         path: '/jobs',
-        builder: (context, state) => const TechnicianJobsPage(),
-      ),
-      GoRoute(
-        path: '/jobs/new',
-        builder: (context, state) => const WalkInJobPage(),
+        builder: (context, state) => const TechnicianJobsCleanPage(),
       ),
       GoRoute(
         path: '/sync',
-        builder: (context, state) => const SyncQueuePage(),
+        builder: (context, state) => const TechnicianSyncPage(),
       ),
       GoRoute(
         path: '/jobs/:id',
         builder: (context, state) =>
-            JobDetailPage(jobId: state.pathParameters['id']!),
+            TechnicianWorkspacePage(jobId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: '/jobs/:id/hub',
-        builder: (context, state) =>
-            InspectionHubPage(jobId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/jobs/:id/checklist',
-        builder: (context, state) =>
-            ChecklistPage(jobId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/jobs/:id/items/:itemId',
-        builder: (context, state) => AssessmentPage(
+        path: '/jobs/:id/items/:itemCode',
+        builder: (context, state) => TechnicianItemPage(
           jobId: state.pathParameters['id']!,
-          itemId: state.pathParameters['itemId']!,
+          itemCode: state.pathParameters['itemCode']!,
         ),
       ),
       GoRoute(
-        path: '/jobs/:id/review',
+        path: '/jobs/:id/summary',
         builder: (context, state) =>
-            ReviewPage(jobId: state.pathParameters['id']!),
+            TechnicianSummaryPage(jobId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: '/jobs/:id/finalized',
+        path: '/jobs/:id/signature',
         builder: (context, state) =>
-            FinalizedPage(jobId: state.pathParameters['id']!),
+            TechnicianSignaturePage(jobId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/jobs/:id/completed',
+        builder: (context, state) =>
+            TechnicianCompletedPage(jobId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/unauthorized',

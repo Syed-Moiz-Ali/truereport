@@ -1,4 +1,4 @@
-# Secrets and local environment
+﻿# Secrets and local environment
 .env
 .env.*
 !.env.example
@@ -51,3 +51,6 @@ spikes/**/build/
 infra/prod.env
 infra/nginx/tls/
 infra/backups*
+
+# Local development credentials (never commit real values)
+TEST_LOGIN_CREDENTIALS.txt

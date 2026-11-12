@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("18");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("108");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -44,6 +44,32 @@ class FlywayMigrationTest {
         assertThat(tableExists(url, "assessments")).isTrue();
         assertThat(tableExists(url, "inspection_final_snapshots")).isTrue();
         assertThat(tableExists(url, "evidence_assets")).isTrue();
+        assertThat(tableExists(url, "platform_languages")).isTrue();
+        assertThat(tableExists(url, "platform_categories")).isTrue();
+        assertThat(tableExists(url, "platform_items")).isTrue();
+        assertThat(tableExists(url, "platform_item_versions")).isTrue();
+        assertThat(tableExists(url, "platform_guide_images")).isTrue();
+        assertThat(tableExists(url, "platform_template_versions")).isTrue();
+        assertThat(tableExists(url, "platform_template_categories")).isTrue();
+        assertThat(tableExists(url, "platform_scoring_rules")).isTrue();
+        assertThat(tableExists(url, "platform_document_types")).isTrue();
+        assertThat(tableExists(url, "platform_outbox_events")).isTrue();
+        assertThat(tableExists(url, "platform_jobs")).isTrue();
+        assertThat(tableExists(url, "platform_job_assignments")).isTrue();
+        assertThat(tableExists(url, "platform_job_results")).isTrue();
+        assertThat(tableExists(url, "platform_job_approvals")).isTrue();
+        assertThat(tableExists(url, "platform_public_links")).isTrue();
+        assertThat(tableExists(url, "platform_report_documents")).isTrue();
+        assertThat(tableExists(url, "platform_notifications")).isTrue();
+        assertThat(tableExists(url, "platform_job_checklists")).isTrue();
+        assertThat(tableExists(url, "platform_assessments")).isTrue();
+        assertThat(tableExists(url, "platform_assessment_issue_values")).isTrue();
+        assertThat(tableExists(url, "platform_assessment_measurements")).isTrue();
+        assertThat(tableExists(url, "platform_evidence_assets")).isTrue();
+        assertThat(tableExists(url, "platform_evidence_derivatives")).isTrue();
+        assertThat(tableExists(url, "platform_job_signatures")).isTrue();
+        assertThat(tableExists(url, "platform_sync_conflicts")).isTrue();
+        assertThat(tableExists(url, "platform_translations")).isTrue();
     }
 
     private boolean tableExists(String url, String table) throws Exception {

@@ -1,6 +1,5 @@
 import 'package:auth/auth.dart';
 import 'package:core/core.dart';
-import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
@@ -29,31 +28,10 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     super.dispose();
   }
 
-  void _quickFillDemo() {
-    setState(() {
-      _email.text = 'wa@test.local';
-      _password.text = 'pass123';
-      _errorKey = null;
-    });
-  }
-
-  void _enterDemoMode() {
-    ref.read(authControllerProvider.notifier).setDemoSession(
-      email: _email.text.trim().isNotEmpty
-          ? _email.text.trim()
-          : 'wa@test.local',
-      displayName: 'Workshop Admin',
-      platformAdmin: false,
-      role: Role.workshopAdmin,
-    );
-  }
-
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
-      debugPrint('[WorkshopLogin] validation failed, not calling API');
       return;
     }
-    debugPrint('[WorkshopLogin] submit email=${_email.text.trim()}');
     setState(() {
       _submitting = true;
       _errorKey = null;
@@ -65,29 +43,12 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       if (!mounted) {
         return;
       }
-      debugPrint('[WorkshopLogin] success, awaiting router redirect');
     } on AppFailure catch (failure) {
-      debugPrint('[WorkshopLogin] failed code=${failure.code}');
-      final emailLower = _email.text.trim().toLowerCase();
-      if (emailLower.contains('wa') ||
-          emailLower.contains('admin') ||
-          emailLower.contains('test')) {
-        _enterDemoMode();
-        return;
-      }
       if (!mounted) {
         return;
       }
       setState(() => _errorKey = _messageFor(failure.code));
-    } catch (error) {
-      debugPrint('[WorkshopLogin] unexpected error: $error');
-      final emailLower = _email.text.trim().toLowerCase();
-      if (emailLower.contains('wa') ||
-          emailLower.contains('admin') ||
-          emailLower.contains('test')) {
-        _enterDemoMode();
-        return;
-      }
+    } catch (_) {
       if (!mounted) {
         return;
       }
@@ -153,7 +114,6 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       challenge: false,
       submitting: _submitting,
       errorText: errorText,
-      onQuickFillDemo: _quickFillDemo,
     );
   }
 }

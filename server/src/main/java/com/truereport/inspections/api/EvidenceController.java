@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/technician")
+@RequestMapping("/api/v1/technician/legacy")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class EvidenceController {
 

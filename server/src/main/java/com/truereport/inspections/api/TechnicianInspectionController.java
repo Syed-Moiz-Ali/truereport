@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/technician/jobs")
+@RequestMapping("/api/v1/technician/legacy/jobs")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianInspectionController {
 

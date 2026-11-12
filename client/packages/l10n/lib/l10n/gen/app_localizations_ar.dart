@@ -153,7 +153,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get versions => 'الإصدارات';
 
   @override
-  String get category => 'الفئة';
+  String get category => 'التصنيف';
 
   @override
   String get categories => 'الفئات';
@@ -171,7 +171,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noResults => 'لا توجد نتائج';
 
   @override
-  String get loading => 'جارٍ التحميل…';
+  String get loading => 'جار التحميل';
 
   @override
   String get error => 'حدث خطأ';
@@ -213,19 +213,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get entity => 'الكيان';
 
   @override
-  String get categoryNameEn => 'اسم الفئة (الإنجليزية)';
+  String get categoryNameEn => 'اسم التصنيف (الإنجليزية)';
 
   @override
-  String get categoryNameAr => 'اسم الفئة (العربية)';
+  String get categoryNameAr => 'اسم التصنيف (العربية)';
 
   @override
   String get slug => 'المعرّف';
 
   @override
-  String get labelEn => 'التسمية الإنجليزية';
+  String get labelEn => 'التسمية (الإنجليزية)';
 
   @override
-  String get labelAr => 'التسمية العربية';
+  String get labelAr => 'التسمية (العربية)';
 
   @override
   String get instructionEn => 'التعليمات الإنجليزية';
@@ -261,7 +261,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reasons => 'الأسباب';
 
   @override
-  String get guideImage => 'صورة إرشادية';
+  String get guideImage => 'صورة الدليل';
 
   @override
   String get sampleData => 'بيانات تجريبية مؤقتة';
@@ -276,7 +276,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retired => 'موقوف';
 
   @override
-  String get createDraft => 'إنشاء مسودة جديدة';
+  String get createDraft => 'إنشاء مسودة';
 
   @override
   String get saveDraft => 'حفظ المسودة';
@@ -348,6 +348,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get itemRetired => 'تم إيقاف النقطة';
 
   @override
+  String get retireItem => 'إيقاف النقطة';
+
+  @override
+  String get rejected => 'مرفوض';
+
+  @override
   String get actionFailed => 'فشل الإجراء';
 
   @override
@@ -366,7 +372,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboardTab => 'نظرة عامة';
 
   @override
-  String get dashboardSubtitle => 'المهام حسب الحالة في ورشتك';
+  String get dashboardSubtitle => 'نظرة عامة على المنصة والنشاط الأخير';
 
   @override
   String get dashboardStatActive => 'مهام نشطة';
@@ -381,7 +387,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboardRecentJobs => 'أحدث المهام';
 
   @override
-  String get queueTitle => 'قائمة المهام';
+  String get queueTitle => 'قائمة الترجمة';
 
   @override
   String get scheduleJobTitle => 'جدولة مهمة جديدة';
@@ -538,7 +544,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ينشئ مدير المنصة حسابات الورشة. يمكن لمدير الورشة مراجعة الموظفين وإسناد المهام.';
 
   @override
-  String get templates => 'القوالب';
+  String get templates => 'القوالب العالمية';
 
   @override
   String get newTemplate => 'قالب جديد';
@@ -1542,10 +1548,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminFeatureAudit => 'التدقيق والاعتماد المشفر';
 
   @override
-  String get adminFeatureHierarchy => 'هيكل الورش متعددة المستأجرين';
+  String get adminFeatureHierarchy => 'إدارة الورش';
 
   @override
-  String get adminFeatureCatalog => 'مكتبة بنود الفحص الرئيسية العالمية';
+  String get adminFeatureCatalog => 'مكتبة الفحص';
 
   @override
   String get adminFeatureLedger => 'سجل أمان غير قابل للتعديل';
@@ -1667,4 +1673,1624 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get fourHours => '4 ساعات';
+
+  @override
+  String get navTemplates => 'القوالب';
+
+  @override
+  String get navScoring => 'التقييم';
+
+  @override
+  String get navDocumentTypes => 'أنواع المستندات';
+
+  @override
+  String get navLanguages => 'اللغات';
+
+  @override
+  String get navConfigHealth => 'صحة الإعدادات';
+
+  @override
+  String get navConfigurationSection => 'التكوين';
+
+  @override
+  String get navChecklist => 'قائمة الفحص';
+
+  @override
+  String get navReports => 'التقارير';
+
+  @override
+  String get checklistTitle => 'قائمة الفحص';
+
+  @override
+  String get checklistHelper =>
+      'قائمة الفحص هي الكتالوج الرئيسي القابل لإعادة الاستخدام. القوالب هي مجموعات مسماة من فئات عناصر الفحص تختارها الورش عند إنشاء المهام.';
+
+  @override
+  String get checklistTabTemplates => 'قوالب الفحص';
+
+  @override
+  String get checklistTabIssueOptions => 'خيارات المشكلات';
+
+  @override
+  String get checklistTabHealth => 'الصحة';
+
+  @override
+  String get templateHelper =>
+      'القالب هو مجموعة قابلة لإعادة الاستخدام من فئات وعناصر قائمة الفحص. يختاره مدير الورشة عند إنشاء مهمة.';
+
+  @override
+  String get reportsTitle => 'التقارير';
+
+  @override
+  String get reportDocuments => 'مستندات التقارير';
+
+  @override
+  String get languagesCoverage => 'اللغات والتغطية';
+
+  @override
+  String get checklistHealth => 'صحة قائمة الفحص';
+
+  @override
+  String get reviewHealth => 'مراجعة الصحة';
+
+  @override
+  String get masterLibraryTitle => 'المكتبة الرئيسية';
+
+  @override
+  String get masterLibrarySubtitle => 'إعدادات الفحص المركزية لجميع الورش';
+
+  @override
+  String get seedDefaultChecklist => 'تحميل قائمة التحقق الافتراضية';
+
+  @override
+  String get seedConfirm =>
+      'هل تريد تحميل قائمة التحقق الافتراضية الآن؟ سيتم الاحتفاظ بالسجلات الحالية وتخطيها.';
+
+  @override
+  String seedSuccess(int created, int skipped) {
+    return 'اكتمل التحميل: $created جديد، $skipped تم تجاوزه';
+  }
+
+  @override
+  String get seedFailed => 'فشل تحميل البيانات';
+
+  @override
+  String get categoriesTab => 'التصنيفات';
+
+  @override
+  String get itemsTab => 'العناصر';
+
+  @override
+  String get optionSetsTab => 'مجموعات الخيارات';
+
+  @override
+  String get categoryManagement => 'إدارة التصنيفات';
+
+  @override
+  String get addCategory => 'إضافة تصنيف';
+
+  @override
+  String get editCategory => 'تعديل التصنيف';
+
+  @override
+  String get categoryCode => 'رمز التصنيف';
+
+  @override
+  String get categoryWeight => 'الوزن %';
+
+  @override
+  String get categoryOrder => 'الترتيب';
+
+  @override
+  String get weightTotal => 'مجموع الأوزان';
+
+  @override
+  String get weightsValid => 'الأوزان النشطة تساوي 100';
+
+  @override
+  String get weightsInvalid => 'يجب أن تساوي الأوزان النشطة 100';
+
+  @override
+  String get retireCategory => 'إيقاف التصنيف';
+
+  @override
+  String get retireConfirm =>
+      'هل تريد إيقاف هذا السجل؟ لا يمكن حذف السجلات المستخدمة، بل إيقافها فقط.';
+
+  @override
+  String get reorder => 'إعادة الترتيب';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get itemEditor => 'محرر العنصر';
+
+  @override
+  String get basics => 'الأساسيات';
+
+  @override
+  String get englishContent => 'الإنجليزية';
+
+  @override
+  String get arabicContent => 'العربية';
+
+  @override
+  String get scoreBands => 'نطاقات الدرجات';
+
+  @override
+  String get evidenceRules => 'قواعد الأدلة';
+
+  @override
+  String get issueFields => 'حقول العطل';
+
+  @override
+  String get measurementBands => 'نطاقات القياس';
+
+  @override
+  String get itemCode => 'رمز العنصر';
+
+  @override
+  String get measurementUnit => 'وحدة القياس';
+
+  @override
+  String get sensorTool => 'الحساس / الأداة';
+
+  @override
+  String get standardSpecEn => 'المواصفة القياسية (الإنجليزية)';
+
+  @override
+  String get standardSpecAr => 'المواصفة القياسية (العربية)';
+
+  @override
+  String get multiPoint => 'عنصر متعدد النقاط';
+
+  @override
+  String get maxTyreAge => 'أقصى عمر للإطار (سنوات)';
+
+  @override
+  String get allowFreeText => 'السماح بملاحظة نصية';
+
+  @override
+  String get minVideos => 'الحد الأدنى للفيديو';
+
+  @override
+  String get minNotes => 'الحد الأدنى لأحرف الملاحظة';
+
+  @override
+  String get requiredEvidenceType => 'نوع الدليل المطلوب';
+
+  @override
+  String get minValue => 'الحد الأدنى للقيمة';
+
+  @override
+  String get maxValue => 'الحد الأعلى للقيمة';
+
+  @override
+  String get criteriaEn => 'المعايير (الإنجليزية)';
+
+  @override
+  String get criteriaAr => 'المعايير (العربية)';
+
+  @override
+  String get fieldCode => 'رمز الحقل';
+
+  @override
+  String get inputType => 'نوع الإدخال';
+
+  @override
+  String get optionSet => 'مجموعة الخيارات';
+
+  @override
+  String get required => 'مطلوب';
+
+  @override
+  String get dependsOn => 'يعتمد على';
+
+  @override
+  String get allowMultiple => 'السماح بتعدد القيم';
+
+  @override
+  String get allowedValues => 'القيم المسموح بها';
+
+  @override
+  String get requiredForStatuses => 'مطلوب لحالات النتيجة';
+
+  @override
+  String get decimalPlaces => 'المنازل العشرية';
+
+  @override
+  String get publishItem => 'نشر العنصر';
+
+  @override
+  String get itemPublished => 'تم نشر إصدار العنصر';
+
+  @override
+  String get versionImmutable =>
+      'الإصدارات المنشورة غير قابلة للتعديل. أنشئ مسودة للتعديل.';
+
+  @override
+  String get addItem => 'إضافة عنصر';
+
+  @override
+  String get addOptionSet => 'إضافة مجموعة خيارات';
+
+  @override
+  String get itemCreated => 'تم إنشاء العنصر';
+
+  @override
+  String get createTemplate => 'إنشاء قالب';
+
+  @override
+  String get templateCode => 'رمز القالب';
+
+  @override
+  String get templateNameEn => 'اسم القالب (الإنجليزية)';
+
+  @override
+  String get templateNameAr => 'اسم القالب (العربية)';
+
+  @override
+  String get templateDescriptionEn => 'الوصف (الإنجليزية)';
+
+  @override
+  String get templateDescriptionAr => 'الوصف (العربية)';
+
+  @override
+  String get templateBuilder => 'منشئ القالب';
+
+  @override
+  String get weightPreview => 'معاينة الأوزان';
+
+  @override
+  String get normalizedWeight => 'الوزن المعاد توزيعه';
+
+  @override
+  String get approveTemplate => 'اعتماد';
+
+  @override
+  String get rejectTemplate => 'رفض';
+
+  @override
+  String get pendingApproval => 'بانتظار الاعتماد';
+
+  @override
+  String get scoringRules => 'قواعد التقييم';
+
+  @override
+  String get categoryWeightMode => 'وضع أوزان التصنيف';
+
+  @override
+  String get safetyCap => 'حد السلامة';
+
+  @override
+  String get capGrade => 'حد التقدير';
+
+  @override
+  String get gradeBoundaries => 'حدود التقديرات';
+
+  @override
+  String get grade => 'التقدير';
+
+  @override
+  String get addGrade => 'إضافة تقدير';
+
+  @override
+  String get coverageValid => 'حدود التقديرات تغطي 0-100';
+
+  @override
+  String get coverageInvalid => 'يجب أن تغطي حدود التقديرات 0-100 دون فراغات';
+
+  @override
+  String get proposeChange => 'اقتراح تغيير';
+
+  @override
+  String get approveChange => 'اعتماد التغيير';
+
+  @override
+  String get documentTypes => 'أنواع مستندات التقرير';
+
+  @override
+  String get addDocumentType => 'إضافة نوع مستند';
+
+  @override
+  String get documentTypeCode => 'رمز نوع المستند';
+
+  @override
+  String get languageRegistry => 'سجل اللغات';
+
+  @override
+  String get addLanguage => 'إضافة لغة';
+
+  @override
+  String get languageCode => 'رمز اللغة';
+
+  @override
+  String get nativeName => 'الاسم الأصلي';
+
+  @override
+  String get direction => 'الاتجاه';
+
+  @override
+  String get defaultLanguage => 'اللغة الافتراضية';
+
+  @override
+  String get translationCoverage => 'تغطية الترجمة';
+
+  @override
+  String get missingTranslations => 'الترجمات الناقصة';
+
+  @override
+  String get configHealth => 'صحة الإعدادات';
+
+  @override
+  String get healthy => 'سليم';
+
+  @override
+  String get unhealthy => 'توجد مشكلات';
+
+  @override
+  String get refresh => 'تحديث';
+
+  @override
+  String get impactAnalysis => 'تحليل الأثر';
+
+  @override
+  String get affectedTemplates => 'القوالب المتأثرة';
+
+  @override
+  String get affectedItems => 'العناصر المتأثرة';
+
+  @override
+  String get affectedJobs => 'المهام المتأثرة';
+
+  @override
+  String get blocked => 'محظور';
+
+  @override
+  String get notBlocked => 'غير محظور';
+
+  @override
+  String get configReleases => 'إصدارات الإعدادات';
+
+  @override
+  String get createRelease => 'إنشاء إصدار';
+
+  @override
+  String get renameTemplate => 'إعادة تسمية القالب';
+
+  @override
+  String get releaseEntityType => 'نوع الكيان';
+
+  @override
+  String get releaseEntityId => 'معرف الكيان';
+
+  @override
+  String get releaseNotes => 'ملاحظات الإصدار';
+
+  @override
+  String get releaseSubmit => 'إرسال للمراجعة';
+
+  @override
+  String get releaseApprove => 'اعتماد الإصدار';
+
+  @override
+  String get releasePublish => 'نشر الإصدار';
+
+  @override
+  String get releaseDeprecate => 'إيقاف الإصدار';
+
+  @override
+  String get noData => 'لا توجد بيانات بعد';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get jobsBoardTab => 'لوحة المهام';
+
+  @override
+  String get jobsNotificationsTab => 'الإشعارات';
+
+  @override
+  String get jobsNotificationsTitle => 'مركز الإشعارات';
+
+  @override
+  String get jobsNotificationsUnreadOnly => 'غير المقروءة فقط';
+
+  @override
+  String get jobsNotificationsEmpty => 'لا توجد إشعارات';
+
+  @override
+  String get jobsNotificationsMarkRead => 'وضع علامة كمقروء';
+
+  @override
+  String get jobsNotificationsMarkedRead => 'تم وضع علامة مقروء على الإشعار';
+
+  @override
+  String get jobsNotificationsUnread => 'غير مقروء';
+
+  @override
+  String get jobsNotificationsRead => 'مقروء';
+
+  @override
+  String get jobsCountsTitle => 'أعداد المهام';
+
+  @override
+  String get jobsCountDraft => 'مسودة';
+
+  @override
+  String get jobsCountScheduled => 'مجدولة';
+
+  @override
+  String get jobsCountAssigned => 'مسندة';
+
+  @override
+  String get jobsCountInProgress => 'قيد التنفيذ';
+
+  @override
+  String get jobsCountPendingReview => 'بانتظار المراجعة';
+
+  @override
+  String get jobsCountApproved => 'معتمدة';
+
+  @override
+  String get jobsCountPublished => 'منشورة';
+
+  @override
+  String get jobsCountRejected => 'مرفوضة';
+
+  @override
+  String get jobsCountCancelled => 'ملغاة';
+
+  @override
+  String get jobsCountTotal => 'الإجمالي';
+
+  @override
+  String get jobsStatusPendingReview => 'بانتظار المراجعة';
+
+  @override
+  String get jobsStatusApproved => 'معتمدة';
+
+  @override
+  String get jobsStatusPublished => 'منشورة';
+
+  @override
+  String get jobsStatusRejected => 'مرفوضة';
+
+  @override
+  String get commonPage => 'صفحة';
+
+  @override
+  String get commonOf => 'من';
+
+  @override
+  String get commonPrevious => 'السابق';
+
+  @override
+  String get commonNext => 'التالي';
+
+  @override
+  String get jobsEmpty => 'لا توجد مهام';
+
+  @override
+  String get jobsCreateTitle => 'إنشاء مهمة';
+
+  @override
+  String get jobsCreateStepCustomer => 'العميل';
+
+  @override
+  String get jobsCreateStepVehicle => 'المركبة';
+
+  @override
+  String get jobsCreateStepTemplate => 'القالب';
+
+  @override
+  String get jobsCreateStepTechnician => 'الفني';
+
+  @override
+  String get commonBack => 'السابق';
+
+  @override
+  String get jobsCreateCta => 'إنشاء المهمة';
+
+  @override
+  String get jobsFieldOdometer => 'عداد المسافة';
+
+  @override
+  String get jobsFieldOdometerUnit => 'وحدة عداد المسافة';
+
+  @override
+  String get jobsFieldTransmission => 'ناقل الحركة';
+
+  @override
+  String get jobsFieldFuelType => 'نوع الوقود';
+
+  @override
+  String get jobsFieldPreferredLanguage => 'اللغة المفضلة';
+
+  @override
+  String get jobsTemplatesAvailable => 'القوالب المتاحة';
+
+  @override
+  String get jobsTemplatesEmpty => 'لا توجد قوالب منشورة متاحة';
+
+  @override
+  String get jobsSelectTechnician => 'اختر فنيًا';
+
+  @override
+  String get jobsAssignLater => 'الإسناد لاحقًا';
+
+  @override
+  String get jobsCreated => 'تم إنشاء المهمة';
+
+  @override
+  String get commonServerRejected => 'رفض الخادم هذا الطلب.';
+
+  @override
+  String get jobsValidationVin => 'يجب أن يتكون رقم الهيكل من 17 حرفًا.';
+
+  @override
+  String get jobsValidationPhoneRequired => 'رقم هاتف العميل مطلوب.';
+
+  @override
+  String get jobsValidationEmailInvalid => 'أدخل بريدًا إلكترونيًا صالحًا.';
+
+  @override
+  String get jobsDetailTitle => 'تفاصيل المهمة';
+
+  @override
+  String get jobsSummary => 'الملخص';
+
+  @override
+  String get jobsAssignmentsTitle => 'الإسنادات';
+
+  @override
+  String get jobsAssignmentsEmpty => 'لا توجد إسنادات بعد';
+
+  @override
+  String get jobsReviewTitle => 'المراجعة';
+
+  @override
+  String get jobsReviewStatus => 'حالة المراجعة';
+
+  @override
+  String get jobsPublicationStatus => 'حالة النشر';
+
+  @override
+  String get jobsItemsAssessed => 'العناصر المقيّمة';
+
+  @override
+  String get jobsScorePreview => 'معاينة الدرجة';
+
+  @override
+  String get jobsGradePreview => 'معاينة التقدير';
+
+  @override
+  String get jobsSafetyCapPreview => 'معاينة حد السلامة';
+
+  @override
+  String get jobsScore => 'الدرجة';
+
+  @override
+  String get jobsEvidencePhotos => 'الصور';
+
+  @override
+  String get jobsEvidenceVideos => 'الفيديوهات';
+
+  @override
+  String get jobsSignaturePresent => 'التوقيع موجود';
+
+  @override
+  String get jobsSignatureMissing => 'التوقيع غير موجود';
+
+  @override
+  String get jobsCompletedAt => 'اكتملت في';
+
+  @override
+  String get jobsIssueValues => 'قيم المشكلات';
+
+  @override
+  String get jobsNoFindings => 'لا توجد نتائج';
+
+  @override
+  String get jobsOpenReview => 'فتح المراجعة';
+
+  @override
+  String get jobsApprove => 'اعتماد';
+
+  @override
+  String get jobsReject => 'رفض';
+
+  @override
+  String get jobsApproveTitle => 'الاعتماد وإصدار الشهادة';
+
+  @override
+  String get jobsApproveSubtitle =>
+      'راجع الدرجة والتقدير وقائمة التحقق قبل الاعتماد.';
+
+  @override
+  String get jobsSafetyCritical => 'حرج للسلامة';
+
+  @override
+  String get jobsSafetyCapReason => 'سبب حد السلامة';
+
+  @override
+  String get jobsApproved => 'تم اعتماد المهمة';
+
+  @override
+  String get jobsRejected => 'تم رفض المهمة';
+
+  @override
+  String get jobsRejectReason => 'سبب الرفض';
+
+  @override
+  String get jobsRejectHint => 'الرفض يغلق المهمة ويتطلب فحصًا جديدًا.';
+
+  @override
+  String get jobsApproveReasonOptional => 'سبب الاعتماد (اختياري)';
+
+  @override
+  String get jobsOpenPublishChecklist => 'فتح قائمة تحقق النشر';
+
+  @override
+  String get jobsPublishChecklist => 'قائمة تحقق النشر';
+
+  @override
+  String get jobsChecklistReady => 'جاهز للنشر';
+
+  @override
+  String get jobsChecklistNotReady => 'غير جاهز للنشر';
+
+  @override
+  String get jobsChecklistPassed => 'ناجح';
+
+  @override
+  String get jobsChecklistFailed => 'فاشل';
+
+  @override
+  String get jobsConsentGranted => 'الموافقة ممنوحة';
+
+  @override
+  String get jobsConsentMissing => 'الموافقة غير موجودة';
+
+  @override
+  String get jobsDocumentsReady => 'المستندات جاهزة';
+
+  @override
+  String get jobsDocumentsNotReady => 'المستندات غير جاهزة';
+
+  @override
+  String get jobsSafetyCapApplied => 'تم تطبيق حد السلامة';
+
+  @override
+  String get jobsSafetyCapNotApplied => 'لا يوجد حد سلامة';
+
+  @override
+  String get jobsGrade => 'التقدير';
+
+  @override
+  String get jobsPublishNow => 'نشر التقرير';
+
+  @override
+  String get jobsPublished => 'تم نشر التقرير';
+
+  @override
+  String get jobsPublishFailed => 'تعذر النشر.';
+
+  @override
+  String get jobsPublicLinkTitle => 'الرابط العام';
+
+  @override
+  String get jobsPublicUrl => 'الرابط العام';
+
+  @override
+  String get jobsPublicToken => 'الرمز';
+
+  @override
+  String get jobsShare => 'مشاركة';
+
+  @override
+  String get jobsQrTitle => 'رمز الاستجابة السريعة';
+
+  @override
+  String get jobsQrUnavailable => 'رمز الاستجابة السريعة غير متاح';
+
+  @override
+  String get jobsUnpublish => 'إلغاء النشر';
+
+  @override
+  String get jobsRevoke => 'إبطال';
+
+  @override
+  String get jobsRotateToken => 'تدوير الرمز';
+
+  @override
+  String get jobsUnpublishReason => 'سبب إلغاء النشر';
+
+  @override
+  String get jobsRevokeReason => 'سبب الإبطال';
+
+  @override
+  String get jobsTokenRotated => 'تم تدوير الرمز';
+
+  @override
+  String get jobsLinkUnpublished => 'تم إلغاء نشر الرابط';
+
+  @override
+  String get jobsActivatedAt => 'تم التفعيل في';
+
+  @override
+  String get jobsRevokedAt => 'تم الإبطال في';
+
+  @override
+  String get jobsRevocationReason => 'سبب الإبطال';
+
+  @override
+  String get jobsShareText => 'شارك رابط التقرير هذا';
+
+  @override
+  String get jobsDocumentsTitle => 'المستندات';
+
+  @override
+  String get jobsDocumentType => 'نوع المستند';
+
+  @override
+  String get jobsDocumentLanguage => 'اللغة';
+
+  @override
+  String get jobsDocumentStatus => 'الحالة';
+
+  @override
+  String get jobsDocumentSize => 'الحجم';
+
+  @override
+  String get jobsDocumentGeneratedAt => 'تم الإنشاء';
+
+  @override
+  String get jobsDocumentError => 'خطأ';
+
+  @override
+  String get jobsRetryDocument => 'إعادة المحاولة';
+
+  @override
+  String get jobsDocumentRetried => 'تمت جدولة إعادة المحاولة';
+
+  @override
+  String get jobsDocumentsEmpty => 'لا توجد مستندات بعد';
+
+  @override
+  String get commonDownload => 'تنزيل';
+
+  @override
+  String get commonActionFailed => 'فشل الإجراء. حاول مرة أخرى.';
+
+  @override
+  String get commonLoadFailed => 'تعذر التحميل. حاول مرة أخرى.';
+
+  @override
+  String get commonReasonRequired => 'السبب مطلوب.';
+
+  @override
+  String get commonConfirm => 'تأكيد';
+
+  @override
+  String get jobsNotificationPayload => 'التفاصيل';
+
+  @override
+  String get jobsNotificationNoPayload => 'لا توجد تفاصيل';
+
+  @override
+  String get commonType => 'النوع';
+
+  @override
+  String get commonCreatedAt => 'تم الإنشاء';
+
+  @override
+  String get jobsReference => 'المرجع';
+
+  @override
+  String get jobsJobScore => 'الدرجة';
+
+  @override
+  String get jobsJobGrade => 'التقدير';
+
+  @override
+  String get jobsAssignedTechnician => 'الفني';
+
+  @override
+  String get jobsUnit => 'الوحدة';
+
+  @override
+  String get jobsViewChecklist => 'عرض قائمة التحقق';
+
+  @override
+  String get jobsViewDocuments => 'عرض المستندات';
+
+  @override
+  String get jobsViewPublicLink => 'عرض الرابط العام';
+
+  @override
+  String get jobsCancelReason => 'سبب الإلغاء';
+
+  @override
+  String get jobsAssignTechnician => 'إسناد فني';
+
+  @override
+  String get jobsAssignmentReason => 'السبب (اختياري)';
+
+  @override
+  String get commonYes => 'نعم';
+
+  @override
+  String get commonNo => 'لا';
+
+  @override
+  String get commonNotAvailable => 'غير متاح';
+
+  @override
+  String get jobsOpenJobBoard => 'فتح لوحة المهام';
+
+  @override
+  String get technicianJobSearch => 'البحث عن المهام';
+
+  @override
+  String get technicianAllStatuses => 'كل الحالات';
+
+  @override
+  String get technicianRefresh => 'تحديث';
+
+  @override
+  String get technicianNextPage => 'التالي';
+
+  @override
+  String get technicianPreviousPage => 'السابق';
+
+  @override
+  String technicianPageOf(int page, int totalPages) {
+    return 'الصفحة $page من $totalPages';
+  }
+
+  @override
+  String get technicianJobQueue => 'قائمة الفحوصات';
+
+  @override
+  String get technicianSyncPending => 'بانتظار المزامنة';
+
+  @override
+  String get technicianOfflineQueued =>
+      'تم الحفظ على هذا الهاتف. ستتم المزامنة عند الاتصال.';
+
+  @override
+  String get technicianJobListEmpty => 'لا توجد فحوصات مسندة إليك.';
+
+  @override
+  String get technicianNoSearchResults => 'لا توجد مهام تطابق بحثك.';
+
+  @override
+  String get technicianVehicle => 'المركبة';
+
+  @override
+  String get technicianCustomer => 'العميل';
+
+  @override
+  String get technicianScheduledAt => 'الموعد';
+
+  @override
+  String get technicianStartedAt => 'بدأت';
+
+  @override
+  String get technicianAssessmentState => 'التقييم';
+
+  @override
+  String get technicianCategory => 'الفئة';
+
+  @override
+  String get technicianInstructions => 'التعليمات';
+
+  @override
+  String get technicianStandardSpec => 'المواصفة القياسية';
+
+  @override
+  String get technicianMeasurement => 'القياس';
+
+  @override
+  String get technicianMeasurementByPosition => 'القياس حسب الموضع';
+
+  @override
+  String get technicianUnit => 'الوحدة';
+
+  @override
+  String get technicianTool => 'الأداة';
+
+  @override
+  String get technicianSafetyCritical => 'حساس للسلامة';
+
+  @override
+  String get technicianMultiPoint => 'متعدد النقاط';
+
+  @override
+  String get technicianResult => 'النتيجة';
+
+  @override
+  String get technicianSelectResult => 'اختر نتيجة';
+
+  @override
+  String get technicianSuggestedResult => 'النتيجة المقترحة';
+
+  @override
+  String get technicianScore => 'الدرجة';
+
+  @override
+  String get technicianScoreOverride => 'تجاوز الدرجة';
+
+  @override
+  String technicianScoreHint(int min, int max) {
+    return 'النطاق المسموح $min–$max';
+  }
+
+  @override
+  String technicianScoreOutOfRange(int min, int max) {
+    return 'يجب أن تكون الدرجة بين $min و$max.';
+  }
+
+  @override
+  String get technicianIssueDetails => 'تفاصيل العطل';
+
+  @override
+  String get technicianIssueDetailsHint => 'اختر من الخيارات المعدة.';
+
+  @override
+  String get technicianIssueFieldRequired => 'هذا الحقل مطلوب.';
+
+  @override
+  String get technicianMeasurementRequired => 'أدخل قياساً لكل موضع.';
+
+  @override
+  String get technicianRequired => 'مطلوب';
+
+  @override
+  String get technicianOptional => 'اختياري';
+
+  @override
+  String get technicianSeverity => 'الخطورة';
+
+  @override
+  String get technicianNotes => 'ملاحظات';
+
+  @override
+  String technicianNotesHint(int count) {
+    return 'الحد الأدنى $count حرفاً';
+  }
+
+  @override
+  String get technicianEvidence => 'الأدلة';
+
+  @override
+  String get technicianEvidenceCounts => 'قائمة الأدلة';
+
+  @override
+  String technicianEvidencePhotoCount(int count, int required) {
+    return '$count / $required صور';
+  }
+
+  @override
+  String technicianEvidenceVideoCount(int count, int required) {
+    return '$count / $required فيديوهات';
+  }
+
+  @override
+  String technicianEvidenceDocumentCount(int count, int required) {
+    return '$count / $required مستندات';
+  }
+
+  @override
+  String get technicianEvidenceRequired =>
+      'مطلوب المزيد من الأدلة لهذه النتيجة.';
+
+  @override
+  String get technicianEvidenceSatisfied => 'تم استيفاء متطلبات الأدلة.';
+
+  @override
+  String get technicianCapturePhoto => 'التقاط صورة';
+
+  @override
+  String get technicianCaptureVideo => 'تسجيل فيديو';
+
+  @override
+  String get technicianCaptureDocument => 'إضافة مستند';
+
+  @override
+  String get technicianPhoto => 'صورة';
+
+  @override
+  String get technicianVideo => 'فيديو';
+
+  @override
+  String get technicianDocument => 'مستند';
+
+  @override
+  String get technicianCaptionsEn => 'التسمية (الإنجليزية)';
+
+  @override
+  String get technicianCaptionsAr => 'التسمية (العربية)';
+
+  @override
+  String get technicianCapturePoster => 'التقاط صورة غلاف';
+
+  @override
+  String get technicianCapture => 'التقاط';
+
+  @override
+  String get technicianSaveEvidence => 'حفظ الدليل';
+
+  @override
+  String technicianEvidenceUploading(String type) {
+    return 'جارٍ رفع $type...';
+  }
+
+  @override
+  String get technicianUploadProgress => 'تقدم الرفع';
+
+  @override
+  String get technicianEvidenceFailed => 'فشل رفع الدليل.';
+
+  @override
+  String get technicianRetryUpload => 'إعادة الرفع';
+
+  @override
+  String get technicianDeleteEvidence => 'حذف الدليل';
+
+  @override
+  String get technicianVideoTooLong => 'يجب ألا يتجاوز الفيديو 30 ثانية.';
+
+  @override
+  String get technicianVideoTooShort => 'يجب ألا يقل الفيديو عن 15 ثانية.';
+
+  @override
+  String get technicianFileTooLarge => 'الملف كبير جداً.';
+
+  @override
+  String get technicianChooseDocument => 'اختر مستنداً';
+
+  @override
+  String get technicianAssessmentProgress => 'تقدم التقييم';
+
+  @override
+  String get technicianPinnedTemplate => 'إصدار القالب المثبت';
+
+  @override
+  String get technicianReview => 'المراجعة';
+
+  @override
+  String get technicianDraftScore => 'الدرجة الأولية';
+
+  @override
+  String get technicianGrade => 'التقدير';
+
+  @override
+  String get technicianSafetyCap => 'حد السلامة';
+
+  @override
+  String technicianItemsAssessed(int done, int total) {
+    return '$done / $total عناصر تم تقييمها';
+  }
+
+  @override
+  String get technicianBlockers => 'العوائق';
+
+  @override
+  String get technicianWarnings => 'التحذيرات';
+
+  @override
+  String get technicianWarningsTitle => 'التحذيرات';
+
+  @override
+  String get technicianConflicts => 'التعارضات';
+
+  @override
+  String get technicianSyncConflictTitle => 'تعارض المزامنة';
+
+  @override
+  String get technicianConflictExists => 'حل تعارضات المزامنة قبل الإكمال.';
+
+  @override
+  String get technicianServerPayload => 'بيانات الخادم';
+
+  @override
+  String get technicianClientPayload => 'بيانات العميل';
+
+  @override
+  String get technicianReloadServer => 'الخادم هو المرجع — إعادة التحميل';
+
+  @override
+  String get technicianConflictReloaded =>
+      'تم تحميل حالة الخادم. أعد التحقق من العناصر المتأثرة.';
+
+  @override
+  String get technicianNoConflicts => 'لا توجد تعارضات مزامنة.';
+
+  @override
+  String get technicianSummaryTitle => 'ملخص الفحص';
+
+  @override
+  String get technicianOpenSummary => 'فتح الملخص';
+
+  @override
+  String get technicianComplete => 'إكمال';
+
+  @override
+  String get technicianCompleteInspection => 'إكمال الفحص';
+
+  @override
+  String get technicianSignature => 'التوقيع';
+
+  @override
+  String get technicianSignatureTitle => 'توقيع العميل';
+
+  @override
+  String get technicianSignatureHint => 'وقّع داخل المربع.';
+
+  @override
+  String get technicianClearSignature => 'مسح';
+
+  @override
+  String get technicianSignerName => 'اسم الموقّع';
+
+  @override
+  String get technicianSignatureRequired => 'أضف توقيعاً واسم الموقّع.';
+
+  @override
+  String get technicianSignatureSuccess => 'تم حفظ التوقيع.';
+
+  @override
+  String get technicianCompletedPendingReview => 'اكتمل الفحص وأُرسل للمراجعة.';
+
+  @override
+  String get technicianPendingReviewStatus => 'بانتظار المراجعة';
+
+  @override
+  String get technicianJobCompleted => 'اكتمل الفحص';
+
+  @override
+  String get technicianBackToJobs => 'العودة إلى المهام';
+
+  @override
+  String get technicianSaveItem => 'حفظ العنصر';
+
+  @override
+  String get technicianSaveAssessment => 'حفظ التقييم';
+
+  @override
+  String get technicianItemSaved => 'تم حفظ العنصر';
+
+  @override
+  String get technicianAssessmentSaved => 'تم حفظ التقييم';
+
+  @override
+  String get technicianNetworkRetry =>
+      'تعذر الوصول إلى الخادم. تم حفظ عملك على هذا الهاتف وستتم مزامنته تلقائياً.';
+
+  @override
+  String get technicianSyncReplay => 'إعادة تشغيل التغييرات المنتظرة';
+
+  @override
+  String technicianSyncApplied(int count) {
+    return 'تمت مزامنة $count تغييرات.';
+  }
+
+  @override
+  String technicianSyncConflictsCount(int count) {
+    return '$count تعارضات';
+  }
+
+  @override
+  String get technicianSyncNothing => 'لا يوجد شيء بانتظار المزامنة.';
+
+  @override
+  String get technicianNoItems => 'لا توجد عناصر في هذه الفئة.';
+
+  @override
+  String get technicianNoCategories => 'لا تحتوي قائمة الفحص على فئات.';
+
+  @override
+  String get technicianNoIssues => 'لا توجد مشاكل.';
+
+  @override
+  String get platformSearchHint =>
+      'ابحث في أصول المنصة والمواصفات وعقد الورش...';
+
+  @override
+  String get platformSearchHintCompact => 'ابحث...';
+
+  @override
+  String get platformNotifications => 'الإشعارات';
+
+  @override
+  String get platformNotificationsTitle => 'الإشعارات';
+
+  @override
+  String get platformNotificationsEmpty => 'لا توجد إشعارات بعد';
+
+  @override
+  String get platformNotificationsEmptyBody =>
+      'لا جديد لديك. ستظهر تنبيهات المنصة هنا.';
+
+  @override
+  String get platformHelp => 'مساعدة';
+
+  @override
+  String get platformHelpTitle => 'المساعدة والدعم';
+
+  @override
+  String get platformHelpBody => 'تواصل مع دعم المنصة أو اقرأ دليل الإدارة.';
+
+  @override
+  String get platformHelpContact => 'support@truereport.test';
+
+  @override
+  String get platformHelpDocs => 'فتح دليل الإدارة';
+
+  @override
+  String get platformProfile => 'الملف الشخصي';
+
+  @override
+  String get platformAccount => 'الحساب';
+
+  @override
+  String get platformLanguage => 'اللغة';
+
+  @override
+  String get platformSwitchToArabic => 'التبديل إلى العربية';
+
+  @override
+  String get platformSwitchToEnglish => 'التبديل إلى الإنجليزية';
+
+  @override
+  String get platformHierarchyRoot => 'جذر الهيكل';
+
+  @override
+  String get platformActiveWorkshops => 'الورش النشطة';
+
+  @override
+  String get navDashboard => 'لوحة التحكم';
+
+  @override
+  String get dashboardTitle => 'لوحة التحكم';
+
+  @override
+  String get dashboardKpis => 'المؤشرات الرئيسية';
+
+  @override
+  String get dashTotalWorkshops => 'إجمالي الورش';
+
+  @override
+  String get dashActiveWorkshops => 'الورش النشطة';
+
+  @override
+  String get dashTechnicians => 'الفنيون';
+
+  @override
+  String get dashActiveJobs => 'المهام النشطة';
+
+  @override
+  String get dashPendingReviews => 'بانتظار المراجعة';
+
+  @override
+  String get dashPublishedReports => 'التقارير المنشورة';
+
+  @override
+  String get dashChecklistHealth => 'صحة قائمة الفحص';
+
+  @override
+  String get dashLanguagesLive => 'اللغات المفعّلة';
+
+  @override
+  String get dashJobsByStatus => 'المهام حسب الحالة';
+
+  @override
+  String get dashReportsByMonth => 'التقارير حسب الشهر';
+
+  @override
+  String get dashRecentActivity => 'النشاط الأخير';
+
+  @override
+  String get dashAlerts => 'التنبيهات';
+
+  @override
+  String get dashQuickActions => 'إجراءات سريعة';
+
+  @override
+  String get dashViewAll => 'عرض الكل';
+
+  @override
+  String get dashEmpty => 'لا توجد بيانات بعد — أضف ورشتك الأولى للبدء.';
+
+  @override
+  String get dashNoAlerts => 'لا توجد تنبيهات — كل شيء سليم.';
+
+  @override
+  String dashTranslationIncomplete(String language) {
+    return 'ترجمة $language غير مكتملة';
+  }
+
+  @override
+  String get wsSubtitle => 'إدارة الورش والموظفين والقوالب';
+
+  @override
+  String get wsAdd => 'إضافة ورشة';
+
+  @override
+  String get wsSearchHint => 'البحث في الورش بالاسم أو الفرع أو الحالة';
+
+  @override
+  String get wsEdit => 'تعديل الورشة';
+
+  @override
+  String get wsDeactivate => 'تعطيل الورشة';
+
+  @override
+  String get wsReactivate => 'إعادة تفعيل الورشة';
+
+  @override
+  String get wsDeactivateConfirm =>
+      'تعطيل هذه الورشة؟ سيفقد الموظفون الوصول حتى إعادة التفعيل.';
+
+  @override
+  String get wsName => 'اسم الورشة';
+
+  @override
+  String get wsBranch => 'الفرع';
+
+  @override
+  String get wsContactEmail => 'البريد الإلكتروني للتواصل';
+
+  @override
+  String get wsOverview => 'نظرة عامة';
+
+  @override
+  String get wsStaff => 'الموظفون';
+
+  @override
+  String get wsWorkshopTemplates => 'القوالب';
+
+  @override
+  String get wsActivity => 'النشاط';
+
+  @override
+  String get wsCapacity => 'السعة';
+
+  @override
+  String get wsContact => 'التواصل';
+
+  @override
+  String get wsCreatedOn => 'أُنشئت';
+
+  @override
+  String get wsAddStaff => 'إضافة موظف';
+
+  @override
+  String get wsEmpty => 'لا توجد ورش بعد';
+
+  @override
+  String get wsEmptyBody => 'أضف ورشتك الأولى لبدء تأهيل الموظفين.';
+
+  @override
+  String wsResultCount(int count) {
+    return '$count ورش';
+  }
+
+  @override
+  String get chkItemsTitle => 'عناصر قائمة الفحص';
+
+  @override
+  String get chkCategoryFilter => 'تصفية الفئة';
+
+  @override
+  String get chkAllCategories => 'كل الفئات';
+
+  @override
+  String get chkSearchCategories => 'البحث في الفئات';
+
+  @override
+  String get chkEvidence => 'الأدلة';
+
+  @override
+  String get chkUpdated => 'آخر تحديث';
+
+  @override
+  String chkResultCount(int count) {
+    return '$count عناصر';
+  }
+
+  @override
+  String get stepBasics => 'الأساسيات';
+
+  @override
+  String get stepContent => 'المحتوى';
+
+  @override
+  String get stepIssueOptions => 'خيارات المشكلات';
+
+  @override
+  String get stepEvidence => 'الأدلة';
+
+  @override
+  String get stepMeasurement => 'القياسات';
+
+  @override
+  String get stepReview => 'المراجعة والنشر';
+
+  @override
+  String get stepBasicsHelp => 'حدد هوية العنصر وسلوكه.';
+
+  @override
+  String get stepContentHelp => 'اكتب التعليمات لكل لغة مفعّلة.';
+
+  @override
+  String get stepIssueHelp => 'حدد الحقول التي يملؤها الفنيون عند وجود مشكلة.';
+
+  @override
+  String get stepEvidenceHelp =>
+      'حدد الحد الأدنى لأدلة الصور والفيديو والملاحظات.';
+
+  @override
+  String get stepMeasureHelp => 'اربط نطاقات القياس بالنتائج. بدون درجات.';
+
+  @override
+  String get stepReviewHelp => 'راجع كل شيء ثم احفظ مسودة أو انشر.';
+
+  @override
+  String stepCounter(int current, int total) {
+    return 'الخطوة $current من $total';
+  }
+
+  @override
+  String get itemAdvanced => 'متقدم';
+
+  @override
+  String get itemSaveDraft => 'حفظ مسودة';
+
+  @override
+  String get tmplCreate => 'إنشاء قالب';
+
+  @override
+  String get tmplBuilderTitle => 'منشئ القوالب';
+
+  @override
+  String get tmplStepDetails => 'التفاصيل';
+
+  @override
+  String get tmplStepCategories => 'الفئات';
+
+  @override
+  String get tmplStepReview => 'المراجعة';
+
+  @override
+  String get tmplAddCategory => 'إضافة فئة';
+
+  @override
+  String get tmplAddItem => 'إضافة عنصر';
+
+  @override
+  String get tmplSearchCategories => 'البحث في الفئات';
+
+  @override
+  String get tmplSearchItems => 'البحث في العناصر';
+
+  @override
+  String get tmplEmptyCategory => 'لا توجد عناصر في هذه الفئة بعد';
+
+  @override
+  String get tmplDuplicate => 'تكرار';
+
+  @override
+  String tmplProgressCategories(int count) {
+    return '$count فئات';
+  }
+
+  @override
+  String tmplProgressItems(int count) {
+    return '$count عناصر';
+  }
+
+  @override
+  String get optHelper =>
+      'تحدد مجموعات الخيارات البدائل التي يختارها الفنيون عند الإبلاغ عن مشكلة. القيم مشتركة بين العناصر.';
+
+  @override
+  String get optSearchSets => 'البحث في مجموعات الخيارات';
+
+  @override
+  String get optSearchValues => 'البحث في القيم';
+
+  @override
+  String get optAddValue => 'إضافة قيمة';
+
+  @override
+  String get optValues => 'القيم';
+
+  @override
+  String get optInlineHint => 'حرر مباشرة؛ تُحفظ التغييرات فورًا.';
+
+  @override
+  String get optUsedBy => 'مُستخدم في';
+
+  @override
+  String get langStatusDraft => 'مسودة';
+
+  @override
+  String get langStatusTranslating => 'قيد الترجمة';
+
+  @override
+  String get langStatusReview => 'قيد المراجعة';
+
+  @override
+  String get langStatusLive => 'مفعّلة';
+
+  @override
+  String get langStatusRetired => 'متقاعدة';
+
+  @override
+  String get langCompleteTranslations => 'إكمال الترجمات';
+
+  @override
+  String get langPublish => 'نشر اللغة';
+
+  @override
+  String get langPublishBlocked => 'أكمل جميع الترجمات المطلوبة للنشر.';
+
+  @override
+  String get queueMissing => 'ناقصة';
+
+  @override
+  String get queueDraft => 'مسودة';
+
+  @override
+  String get queueReviewed => 'تمت مراجعتها';
+
+  @override
+  String get queueApproved => 'معتمدة';
+
+  @override
+  String get queueTotal => 'الإجمالي';
+
+  @override
+  String get queueEntityType => 'نوع الكيان';
+
+  @override
+  String get queueSearchHint => 'البحث في الترجمات';
+
+  @override
+  String get queueMissingOnly => 'الناقصة فقط';
+
+  @override
+  String get queueEditTitle => 'تعديل الترجمة';
+
+  @override
+  String get queueSaveAll => 'حفظ الكل';
+
+  @override
+  String get queueApproveSelected => 'اعتماد المحدد';
+
+  @override
+  String get queueDefaultText => 'النص الافتراضي';
+
+  @override
+  String get queueTranslation => 'الترجمة';
+
+  @override
+  String get queuePublishLanguage => 'نشر اللغة';
+
+  @override
+  String get queueEmpty => 'اكتملت جميع الترجمات';
+
+  @override
+  String get queueEmptyBody => 'لا يوجد نقص لهذه اللغة.';
+
+  @override
+  String get queueExport => 'تصدير';
+
+  @override
+  String get reportLabels => 'تسميات التقارير';
 }

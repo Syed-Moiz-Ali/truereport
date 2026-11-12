@@ -66,8 +66,13 @@ void main() {
         if (trimmed.startsWith('//')) {
           continue;
         }
-        if (RegExp(r'docs/ui/figma/(fidelity|f2a-screenshots|f3a-screenshots|f2b-screenshots)')
-            .hasMatch(lines[index])) {
+        final target = RegExp(
+          r'docs/ui/figma/(fidelity|f2a-screenshots|f3a-screenshots|f2b-screenshots)',
+        ).hasMatch(lines[index]);
+        final writes = RegExp(
+          r'writeAs|openWrite|\.copy\(|\.create\(|saveTo|UPDATE_FIDELITY',
+        ).hasMatch(lines[index]);
+        if (target && writes) {
           offenders.add('${entity.path}:${index + 1}');
         }
       }

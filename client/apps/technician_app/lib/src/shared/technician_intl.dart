@@ -13,9 +13,9 @@ import 'package:intl/intl.dart';
 /// offset is parsed as UTC, then displayed in the Asia/Dubai (UTC+4) wall
 /// clock used across the technician app.
 ///
-/// Digit shaping: `intl`'s bare `ar` symbols use Western digits (Gulf
-/// convention), so an Arabic UI locale is normalized to `ar_EG` (CLDR `arab`
-/// numbering) to render Arabic-Indic digits (`٣٤٬١٨٠`) as F3-B requires.
+/// Digit shaping: the technician app uses Western digits in Arabic (D-040),
+/// matching `intl`'s bare `ar` locale. Arabic UI locales are normalized to `ar`
+/// so numbers stay Western (`34,180`) rather than Arabic-Indic.
 /// Number symbols are compiled into `intl`, so number helpers never need
 /// async initialization. Date symbols load lazily: date helpers fall back to
 /// English when date data was not initialized (call
@@ -28,7 +28,7 @@ String _intlLocale(String? localeName) {
   }
   final language = name.split(RegExp(r'[_-]')).first.toLowerCase();
   if (language == 'ar') {
-    return 'ar_EG';
+    return 'ar';
   }
   return name;
 }

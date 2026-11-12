@@ -96,11 +96,11 @@ void main() {
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
     expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
     expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
-    expect(find.byKey(const Key('btn-fill-demo')), findsOneWidget);
+    expect(find.byKey(const Key('btn-fill-demo')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Workshop Admin quick fill demo sets workshop credentials', (tester) async {
+  testWidgets('Workshop Admin form accepts manually entered credentials', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -113,16 +113,23 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final demoBtn = find.byKey(const Key('btn-fill-demo'));
-    await tester.ensureVisible(demoBtn);
-    await tester.tap(demoBtn);
+    await tester.enterText(
+      find.byKey(const Key('sign-in-email')),
+      'admin.a@truereport.test',
+    );
+    await tester.enterText(
+      find.byKey(const Key('sign-in-password')),
+      'local-password',
+    );
     await tester.pumpAndSettle();
 
-    final emailField = tester.widget<TextFormField>(find.byKey(const Key('sign-in-email')));
-    final passField = tester.widget<TextFormField>(find.byKey(const Key('sign-in-password')));
+    final emailField =
+        tester.widget<TextFormField>(find.byKey(const Key('sign-in-email')));
+    final passField =
+        tester.widget<TextFormField>(find.byKey(const Key('sign-in-password')));
 
-    expect(emailField.controller?.text, 'wa@test.local');
-    expect(passField.controller?.text, 'pass123');
+    expect(emailField.controller?.text, 'admin.a@truereport.test');
+    expect(passField.controller?.text, 'local-password');
   });
 
   testWidgets('Workshop Admin login renders mobile view without overflow', (tester) async {

@@ -78,22 +78,22 @@ class TechnicianInspectionConcurrencyIT {
                         + "\",\"sortOrder\":0}]}");
         JsonNode published = postJson(admin, "/api/v1/workshop/templates/" + templateId + "/publish", "{}");
         String versionId = published.get("currentPublishedVersionId").asText();
-        JsonNode job = postJson(admin, "/api/v1/workshop/jobs",
+        JsonNode job = postJson(admin, "/api/v1/workshop/legacy/jobs",
                 "{\"templateVersionId\":\"" + versionId + "\",\"customerName\":\"Concurrent customer\","
                         + "\"vehicleMake\":\"Toyota\",\"vehicleModel\":\"Camry\",\"scope\":\"Full inspection\"}");
         String jobId = job.get("id").asText();
-        postJson(admin, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(admin, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + fixture.techA().getId() + "\"}");
-        JsonNode checklist = postJson(technician, "/api/v1/technician/jobs/" + jobId + "/start", null);
+        JsonNode checklist = postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/start", null);
         String itemId = checklist.get("items").get(0).get("inspectionItemId").asText();
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .put("/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment")
+                        .put("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment")
                         .header("Authorization", "Bearer " + technician.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"baseVersion\":0,\"clientRevision\":1,"
                                 + "\"resultCode\":\"NO_ISSUE_OBSERVED\"}"))
                 .andExpect(status().isOk());
-        postJson(technician, "/api/v1/technician/jobs/" + jobId + "/ready", null);
+        postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
 
         CompletableFuture<MvcResult> first = CompletableFuture.supplyAsync(
                 () -> finalizeRequest(technician, jobId, "same-concurrent-key"));
@@ -113,7 +113,7 @@ class TechnicianInspectionConcurrencyIT {
 
     private MvcResult finalizeRequest(Login login, String jobId, String key) {
         try {
-            return mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+            return mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                             .header("Authorization", "Bearer " + login.accessToken())
                             .header("Idempotency-Key", key))
                     .andReturn();

@@ -700,7 +700,7 @@ void main() {
 
     expect(find.text('Read-only version'), findsOneWidget);
     expect(find.byType(WorkshopSequenceCard), findsNothing);
-    await tester.tap(find.widgetWithText(AppButton, 'Create new draft'));
+    await tester.tap(find.widgetWithText(AppButton, 'Create draft'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(api.createDraftCalls, 1);

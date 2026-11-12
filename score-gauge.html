@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score gauge component</title>
+<style>
+/* ============================================================
+   SCORE GAUGE: drop-in component
+   - Inherits YOUR font (font-family: inherit). No fonts added.
+   - Only uses its own --g-* tokens, so it will not touch your theme.
+   ============================================================ */
+.score-gauge{
+  --g-bad:#EF4444;       --g-bad-text:#B91C1C;
+  --g-fair:#F59E0B;      --g-fair-text:#B45309;
+  --g-good:#FBB02D;      --g-good-text:#A16207;
+  --g-excellent:#22C55E; --g-excellent-text:#15803D;
+  --g-track:#EAF0FB;
+  --g-label:#1F2937;
+  --g-muted:#64748B;
+  width:100%; max-width:360px; margin-inline:auto;
+  font-family:inherit; text-align:center;
+}
+.score-gauge svg{display:block;width:100%;height:auto;overflow:visible}
+.score-gauge .g-tick-label{font-size:15px;font-weight:500;fill:var(--g-label);text-anchor:middle;dominant-baseline:middle}
+.score-gauge .g-value{font-size:32px;font-weight:700;fill:var(--g-label);text-anchor:middle;font-variant-numeric:tabular-nums}
+.score-gauge .g-value small{font-weight:600}
+.score-gauge .g-cond{font-size:17px;font-weight:500;text-anchor:middle}
+.score-gauge .g-legend{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;margin:6px 0 0;padding:0;list-style:none;font-size:12px;color:var(--g-muted)}
+.score-gauge .g-legend li{display:flex;align-items:center;gap:6px;opacity:.7}
+.score-gauge .g-legend li.is-active{opacity:1;font-weight:600;color:var(--g-label)}
+.score-gauge .g-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.score-gauge .g-title{margin:10px 0 0;font-size:20px;font-weight:700;color:var(--g-label)}
+.score-gauge[data-size="sm"]{max-width:220px}
+.score-gauge[data-size="sm"] .g-title{font-size:15px}
+.score-gauge[data-size="sm"] .g-legend{display:none}
+
+/* ---------- demo page only (delete this block in your project) ---------- */
+body{margin:0;padding:32px 16px;font-family:system-ui,sans-serif;background:#F7F8FA;color:#0F172A}
+.demo{display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:1100px;margin:0 auto}
+.demo .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:24px 16px}
+h1{font-size:20px;text-align:center;margin:0 0 24px}
+</style>
+</head>
+<body>
+
+<h1>Score gauge: drop-in component</h1>
+
+<div class="demo">
+  <div class="card"><div class="score-gauge" data-value="70.6" data-label="Overall Rating"></div></div>
+  <div class="card"><div class="score-gauge" data-value="91" data-label="Overall Rating"></div></div>
+  <div class="card"><div class="score-gauge" data-value="52" data-label="Overall Rating"></div></div>
+  <div class="card"><div class="score-gauge" data-value="28" data-label="Overall Rating"></div></div>
+  <div class="card"><div class="score-gauge" data-value="88" data-label="Braking System" data-size="sm"></div></div>
+</div>
+
+<script>
+/* ============================================================
+   SCORE GAUGE JS
+   Usage:  <div class="score-gauge" data-value="70.6" data-label="Overall Rating"></div>
+   Optional: data-size="sm" for a compact version (category scores).
+   Update later:  el.__gauge.set(85)
+   ============================================================ */
+(function () {
+  // Change thresholds / wording here only.
+  const ZONES = [
+    { key: 'bad',       name: 'Bad',       cond: 'Poor Condition',      max: 40  },
+    { key: 'fair',      name: 'Fair',      cond: 'Fair Condition',      max: 60  },
+    { key: 'good',      name: 'Good',      cond: 'Good Condition',      max: 80  },
+    { key: 'excellent', name: 'Excellent', cond: 'Excellent Condition', max: 100 }
+  ];
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const CX = 220, CY = 215;           // gauge centre
+  const R_OUT = 170, R_IN = 128;      // ring thickness
+  const START = -135, END = 135;      // 270 degree sweep (0 = 12 o'clock, clockwise)
+  const SEGMENTS = 10, GAP = 3.2, NOTCHES = 4;
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let uid = 0;
+
+  const zoneOf = v => ZONES.find(z => v < z.max) || ZONES[ZONES.length - 1];
+  const angleOf = v => START + (Math.max(0, Math.min(100, v)) / 100) * (END - START);
+  const pt = (r, deg) => { const a = deg * Math.PI / 180; return [CX + r * Math.sin(a), CY - r * Math.cos(a)]; };
+  const fmt = v => (Math.round(v * 10) / 10).toString();
+
+  function ring(r1, r2, a0, a1) {
+    const [x0, y0] = pt(r2, a0), [x1, y1] = pt(r2, a1), [x2, y2] = pt(r1, a1), [x3, y3] = pt(r1, a0);
+    const large = (a1 - a0) > 180 ? 1 : 0;
+    return `M${x0} ${y0}A${r2} ${r2} 0 ${large} 1 ${x1} ${y1}L${x2} ${y2}A${r1} ${r1} 0 ${large} 0 ${x3} ${y3}Z`;
+  }
+  function wedge(toDeg) {
+    const pts = [[CX, CY]];
+    for (let a = START - 2; a < toDeg; a += 2) pts.push(pt(R_OUT + 12, a));
+    pts.push(pt(R_OUT + 12, toDeg));
+    return 'M' + pts.map(p => p.join(' ')).join('L') + 'Z';
+  }
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  function build(host) {
+    const id = 'g' + (++uid);
+    const label = host.dataset.label || 'Overall Rating';
+    const target = parseFloat(host.dataset.value) || 0;
+
+    const svg = el('svg', { viewBox: '0 0 440 360', role: 'img' });
+    const defs = el('defs', {}, svg);
+
+    // Mask = ring segments (white) with tick notches (black) cut into them.
+    const mask = el('mask', { id: id + 'm', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 440, height: 360 }, defs);
+    const span = (END - START) / SEGMENTS;
+    for (let i = 0; i < SEGMENTS; i++) {
+      const a0 = START + i * span + GAP / 2, a1 = START + (i + 1) * span - GAP / 2;
+      el('path', { d: ring(R_IN, R_OUT, a0, a1), fill: '#fff' }, mask);
+      for (let n = 1; n <= NOTCHES; n++) {
+        const a = a0 + (a1 - a0) * (n / (NOTCHES + 1));
+        const [x1, y1] = pt(R_OUT + 1, a), [x2, y2] = pt(R_OUT - 15, a);
+        el('line', { x1, y1, x2, y2, stroke: '#000', 'stroke-width': 2.2 }, mask);
+      }
+    }
+    const clip = el('clipPath', { id: id + 'c' }, defs);
+    const clipPath = el('path', { d: wedge(START) }, clip);
+
+    // Track + filled layer, both masked by the segmented ring.
+    const g = el('g', { mask: `url(#${id}m)` }, svg);
+    el('rect', { x: 0, y: 0, width: 440, height: 360, fill: 'var(--g-track)' }, g);
+    const fill = el('rect', { x: 0, y: 0, width: 440, height: 360, 'clip-path': `url(#${id}c)` }, g);
+
+    // Scale labels 0..100, every 10.
+    for (let v = 0; v <= 100; v += 10) {
+      const [x, y] = pt(R_IN - 24, angleOf(v));
+      const t = el('text', { x, y, class: 'g-tick-label' }, svg);
+      t.textContent = v;
+    }
+
+    // Needle (drawn pointing up, rotated in JS).
+    const needle = el('g', {}, svg);
+    const needleShape = el('polygon', { points: `0,${-(R_IN - 16)} 5,0 0,24 -5,0` }, needle);
+
+    // Value + condition text (inside the open bottom of the ring).
+    const value = el('text', { x: CX, y: 322, class: 'g-value' }, svg);
+    const cond = el('text', { x: CX, y: 348, class: 'g-cond' }, svg);
+
+    host.textContent = '';
+    host.appendChild(svg);
+
+    const legend = document.createElement('ul');
+    legend.className = 'g-legend';
+    ZONES.forEach(z => {
+      const li = document.createElement('li');
+      li.dataset.zone = z.key;
+      li.innerHTML = `<i style="background:var(--g-${z.key})"></i>${z.name}`;
+      legend.appendChild(li);
+    });
+    host.appendChild(legend);
+
+    const title = document.createElement('p');
+    title.className = 'g-title';
+    title.textContent = label;
+    host.appendChild(title);
+
+    function paint(v) {
+      const z = zoneOf(v);
+      const a = angleOf(v);
+      clipPath.setAttribute('d', wedge(a));
+      fill.setAttribute('fill', `var(--g-${z.key})`);
+      needleShape.setAttribute('fill', `var(--g-${z.key})`);
+      needle.setAttribute('transform', `translate(${CX} ${CY}) rotate(${a})`);
+      value.innerHTML = `${fmt(v)} <tspan class="g-small" font-size="26" font-weight="600">/ 100</tspan>`;
+      cond.setAttribute('fill', `var(--g-${z.key}-text)`);
+      cond.textContent = z.cond;
+    }
+
+    function finalize(v) {
+      const z = zoneOf(v);
+      svg.setAttribute('aria-label', `${label}: ${fmt(v)} out of 100, ${z.cond}`);
+      legend.querySelectorAll('li').forEach(li => li.classList.toggle('is-active', li.dataset.zone === z.key));
+    }
+
+    let raf;
+    function animateTo(to, from = 0) {
+      cancelAnimationFrame(raf);
+      finalize(to);
+      if (REDUCED) return paint(to);
+      const t0 = performance.now(), dur = 1300;
+      const step = now => {
+        const p = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - p, 3);          // easeOutCubic
+        paint(from + (to - from) * e);
+        if (p < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }
+
+    paint(0);
+    finalize(target);
+    let current = 0, started = false;
+
+    host.__gauge = {
+      set(v) { animateTo(v, current); current = v; }
+    };
+
+    // Animate once when the gauge scrolls into view.
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !started) {
+        started = true;
+        host.__gauge.set(target);
+        io.disconnect();
+      }
+    }, { threshold: 0.35 });
+    io.observe(host);
+  }
+
+  document.querySelectorAll('.score-gauge').forEach(build);
+})();
+</script>
+</body>
+</html>

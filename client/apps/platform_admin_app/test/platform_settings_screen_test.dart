@@ -3,10 +3,29 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
+import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/features/settings/platform_settings_screen.dart';
 
-class _TestLocaleNotifier extends LocaleNotifier {
+const _testLanguage = PlatformLanguage(
+  code: 'en',
+  nameEn: 'English',
+  nameAr: 'الإنجليزية',
+  nativeName: 'English',
+  direction: 'LTR',
+  active: true,
+  isDefault: true,
+  sortOrder: 1,
+);
+
+const _testCoverage = TranslationCoverage(
+  languages: ['en', 'ar'],
+  namespaces: {
+    'common': CoverageNamespace(total: 12, missing: []),
+  },
+);
+
+class _TestLocaleNotifier extends LocaleController {
   _TestLocaleNotifier(this._initial);
   final Locale _initial;
 
@@ -20,6 +39,8 @@ Widget _buildTestApp({
   return ProviderScope(
     overrides: [
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
+      platformLanguagesProvider.overrideWith((ref) async => const [_testLanguage]),
+      translationCoverageProvider.overrideWith((ref) async => _testCoverage),
     ],
     child: MaterialApp(
       locale: locale,
@@ -130,7 +151,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.widget<Switch>(find.byKey(const Key('switch-spanish'))).value, isFalse);
 
-      // Tap Discard
+      // Tap Discard (section added below webhooks; scroll into view first)
+      await tester.ensureVisible(find.byKey(const Key('btn-discard-settings')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('btn-discard-settings')));
       await tester.pumpAndSettle();
 
@@ -144,11 +167,27 @@ void main() {
       await tester.pumpWidget(_buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tap Save
+      // Tap Save (section added below webhooks; scroll into view first)
+      await tester.ensureVisible(find.byKey(const Key('btn-save-settings')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('btn-save-settings')));
       await tester.pumpAndSettle();
 
       expect(find.text('Platform preferences saved and propagated to edge nodes!'), findsOneWidget);
+    });
+
+    testWidgets('shows Languages & Coverage summary with link to sub-page', (tester) async {
+      _setViewport(tester, width: 1280, height: 1293);
+      await tester.pumpWidget(_buildTestApp());
+      await tester.pumpAndSettle();
+
+      // New section title from ARB (plain language, no scoring UI).
+      expect(find.text('Languages & Coverage'), findsOneWidget);
+      expect(find.text('Translation coverage'), findsOneWidget);
+      // Summary pills + single navigation action (existing keys only).
+      expect(find.text('Language registry: 1'), findsOneWidget);
+      expect(find.text('Language registry'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('responsive layout on 400px compact mobile without RenderFlex overflow', (tester) async {

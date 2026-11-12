@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/technician/templates")
+@RequestMapping("/api/v1/technician/legacy/templates")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianTemplateController {
 

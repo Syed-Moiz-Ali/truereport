@@ -17,7 +17,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("TrueReport API")
                         .version("v1")
-                        .description("Phase 2 foundation API. No customer, payment or report-editing endpoints."))
+                        .description("Workshop job API. No customer, payment or report-editing endpoints."))
                 .components(new Components().addSecuritySchemes("bearerAuth",
                         new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)

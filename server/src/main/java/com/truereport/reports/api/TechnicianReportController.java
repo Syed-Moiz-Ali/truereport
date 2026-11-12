@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/technician/jobs/{jobId}/report")
+@RequestMapping("/api/v1/technician/legacy/jobs/{jobId}/report")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianReportController {
 

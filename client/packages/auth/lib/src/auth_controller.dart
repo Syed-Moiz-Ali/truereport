@@ -70,35 +70,6 @@ class AuthController extends AsyncNotifier<Session?> {
     }
   }
 
-  void setDemoSession({
-    String email = 'admin@platform.local',
-    String displayName = 'Alex Vance',
-    bool platformAdmin = true,
-    Role role = Role.platformAdmin,
-    String? workshopId = 'workshop-1',
-  }) {
-    state = AsyncData(
-      Session(
-        accessToken: 'demo-platform-access-token',
-        refreshToken: 'demo-platform-refresh-token',
-        user: User(
-          id: 'demo-admin-1',
-          email: email,
-          displayName: displayName,
-          platformAdmin: platformAdmin,
-          totpEnabled: false,
-        ),
-        memberships: [
-          Membership(
-            workshopId: workshopId ?? 'workshop-1',
-            workshopName: 'Workshop A',
-            role: role,
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> signOut() async {
     await _repository.signOut();
     state = const AsyncData(null);

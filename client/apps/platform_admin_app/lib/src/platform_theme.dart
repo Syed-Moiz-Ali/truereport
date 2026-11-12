@@ -29,4 +29,32 @@ abstract final class PtTheme {
       color: color,
     );
   }
+
+  static TextStyle get pageTitle => font(
+    24,
+    lineHeight: 30,
+    weight: FontWeight.w800,
+    tracking: -0.4,
+    color: ink,
+  );
+
+  static TextStyle get sectionTitle => font(
+    16,
+    lineHeight: 22,
+    weight: FontWeight.w700,
+    tracking: -0.2,
+    color: ink,
+  );
+
+  static TextStyle get body =>
+      font(13, lineHeight: 20, weight: FontWeight.w400, color: ink);
+
+  static TextStyle get bodyMuted =>
+      font(13, lineHeight: 20, weight: FontWeight.w400, color: muted);
+
+  static TextStyle get label =>
+      font(12, lineHeight: 16, weight: FontWeight.w600, color: muted);
+
+  static TextStyle get caption =>
+      font(11, lineHeight: 15, weight: FontWeight.w500, color: muted);
 }

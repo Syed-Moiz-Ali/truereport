@@ -57,10 +57,10 @@ class EvidenceIT extends IntegrationTestBase {
         String inspectionItemId = checklist.get("items").get(0).get("inspectionItemId").asText();
         assess(technician, jobId, inspectionItemId, "NO_ISSUE_OBSERVED", null, "Evidence note");
 
-        JsonNode blocked = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode blocked = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(blocked.get("ready").asBoolean()).isFalse();
         assertThat(blocked.toString()).contains("EVIDENCE_REQUIRED");
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/ready")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/ready")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("INSPECTION_INCOMPLETE"));
@@ -75,7 +75,7 @@ class EvidenceIT extends IntegrationTestBase {
         upload(technician, evidence1, token, jpeg).andExpect(status().isNoContent());
         complete(technician, jobId, inspectionItemId, evidence1, hash).andExpect(status().isOk());
 
-        JsonNode stillBlocked = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode stillBlocked = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(stillBlocked.get("ready").asBoolean()).isFalse();
 
         UUID evidence2 = UUID.randomUUID();
@@ -83,30 +83,30 @@ class EvidenceIT extends IntegrationTestBase {
         upload(technician, evidence2, token2, jpeg).andExpect(status().isNoContent());
         complete(technician, jobId, inspectionItemId, evidence2, hash).andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+        mockMvc.perform(get("/api/v1/technician/legacy/evidence/" + evidence2 + "/content")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+        mockMvc.perform(get("/api/v1/technician/legacy/evidence/" + evidence2 + "/content")
                         .header("Authorization", "Bearer " + admin.accessToken()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/evidence/" + evidence2 + "/content")
+        mockMvc.perform(get("/api/v1/technician/legacy/evidence/" + evidence2 + "/content")
                         .header("Authorization", "Bearer " + technicianB.accessToken()))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/technician/evidence/" + UUID.randomUUID() + "/content")
+        mockMvc.perform(get("/api/v1/technician/legacy/evidence/" + UUID.randomUUID() + "/content")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isNotFound());
 
-        JsonNode ready = getJson(technician, "/api/v1/technician/jobs/" + jobId + "/review");
+        JsonNode ready = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(ready.get("ready").asBoolean()).isTrue();
         assertThat(ready.toString()).doesNotContain("EVIDENCE_REQUIRED");
-        postJson(technician, "/api/v1/technician/jobs/" + jobId + "/ready", null);
+        postJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
         JsonNode finalized = finalize(technician, jobId, "evidence-final");
         assertThat(finalized.get("status").asText()).isEqualTo("FINALIZED");
         String snapshot = finalSnapshots.findByJobId(UUID.fromString(jobId)).orElseThrow()
                 .getSnapshotJson();
         assertThat(snapshot).contains("sourceSha256").contains(hash).contains("VERIFIED");
 
-        mockMvc.perform(delete("/api/v1/technician/jobs/" + jobId + "/evidence/" + evidence1)
+        mockMvc.perform(delete("/api/v1/technician/legacy/jobs/" + jobId + "/evidence/" + evidence1)
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isConflict());
     }
@@ -133,7 +133,7 @@ class EvidenceIT extends IntegrationTestBase {
         String secondToken = firstInit(technician, jobId, inspectionItemId, evidenceId, jpeg.length, hash);
         assertThat(firstToken).isNotBlank();
         assertThat(secondToken).isNotBlank();
-        assertThat(getJson(technician, "/api/v1/technician/jobs/" + jobId
+        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId
                 + "/items/" + inspectionItemId + "/evidence").size()).isEqualTo(1);
 
         init(technician, jobId, inspectionItemId, UUID.randomUUID(), jpeg.length, hash)
@@ -171,10 +171,10 @@ class EvidenceIT extends IntegrationTestBase {
         String validToken = initToken(technician, jobId, inspectionItemId, valid, jpeg.length, hash);
         upload(technician, valid, validToken, jpeg).andExpect(status().isNoContent());
         complete(technician, jobId, inspectionItemId, valid, hash).andExpect(status().isOk());
-        mockMvc.perform(delete("/api/v1/technician/jobs/" + jobId + "/evidence/" + valid)
+        mockMvc.perform(delete("/api/v1/technician/legacy/jobs/" + jobId + "/evidence/" + valid)
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isNoContent());
-        assertThat(getJson(technician, "/api/v1/technician/jobs/" + jobId
+        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId
                 + "/items/" + inspectionItemId + "/evidence").toString())
                 .doesNotContain(valid.toString());
     }
@@ -197,14 +197,14 @@ class EvidenceIT extends IntegrationTestBase {
         JsonNode checklist = start(technician, jobId);
         String inspectionItemId = checklist.get("items").get(0).get("inspectionItemId").asText();
 
-        MvcResult result = mockMvc.perform(get("/api/v1/technician/jobs/" + jobId
+        MvcResult result = mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId
                         + "/items/" + inspectionItemId + "/guide-image")
                         .header("Authorization", "Bearer " + technician.accessToken()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "image/jpeg"))
                 .andReturn();
         assertThat(result.getResponse().getContentAsByteArray()).isEqualTo(guide);
-        assertThat(getJson(technician, "/api/v1/technician/jobs/" + jobId
+        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId
                 + "/items/" + inspectionItemId + "/evidence").size()).isZero();
 
         mockMvc.perform(get("/api/v1/platform/master/guide-images/" + guideImage.id() + "/content")
@@ -221,7 +221,7 @@ class EvidenceIT extends IntegrationTestBase {
     private org.springframework.test.web.servlet.ResultActions init(Login login, String jobId,
                                                                     String itemId, UUID evidenceId,
                                                                     long bytes, String sha) throws Exception {
-        return mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/items/" + itemId
+        return mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId
                         + "/evidence/init")
                 .header("Authorization", "Bearer " + login.accessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -248,7 +248,7 @@ class EvidenceIT extends IntegrationTestBase {
 
     private org.springframework.test.web.servlet.ResultActions upload(Login login, UUID evidenceId,
                                                                        String token, byte[] bytes) throws Exception {
-        return mockMvc.perform(put("/api/v1/technician/evidence/" + evidenceId + "/upload")
+        return mockMvc.perform(put("/api/v1/technician/legacy/evidence/" + evidenceId + "/upload")
                 .param("token", token)
                 .header("Authorization", "Bearer " + login.accessToken())
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -258,7 +258,7 @@ class EvidenceIT extends IntegrationTestBase {
     private org.springframework.test.web.servlet.ResultActions complete(Login login, String jobId,
                                                                         String itemId, UUID evidenceId,
                                                                         String sha) throws Exception {
-        return mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/items/" + itemId
+        return mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId
                         + "/evidence/" + evidenceId + "/complete")
                 .header("Authorization", "Bearer " + login.accessToken())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -267,7 +267,7 @@ class EvidenceIT extends IntegrationTestBase {
 
     private void assess(Login login, String jobId, String itemId, String result,
                         String severity, String note) throws Exception {
-        mockMvc.perform(put("/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment")
+        mockMvc.perform(put("/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"baseVersion\":0,\"clientRevision\":1,\"resultCode\":\""
@@ -278,11 +278,11 @@ class EvidenceIT extends IntegrationTestBase {
     }
 
     private JsonNode start(Login login, String jobId) throws Exception {
-        return postJson(login, "/api/v1/technician/jobs/" + jobId + "/start", null);
+        return postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/start", null);
     }
 
     private JsonNode finalize(Login login, String jobId, String key) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        MvcResult result = mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .header("Idempotency-Key", key))
                 .andExpect(status().isOk()).andReturn();
@@ -344,7 +344,7 @@ class EvidenceIT extends IntegrationTestBase {
     }
 
     private String job(Login login, String versionId, String customer) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs",
+        return postJson(login, "/api/v1/workshop/legacy/jobs",
                 "{\"templateVersionId\":\"" + versionId + "\",\"customerName\":\"" + customer
                         + "\",\"vehicleMake\":\"Toyota\",\"vehicleModel\":\"Camry\","
                         + "\"scope\":\"Evidence inspection\"}")
@@ -352,7 +352,7 @@ class EvidenceIT extends IntegrationTestBase {
     }
 
     private void assign(Login login, String jobId, UUID technicianId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + technicianId + "\",\"reason\":\"Evidence test\"}");
     }
 

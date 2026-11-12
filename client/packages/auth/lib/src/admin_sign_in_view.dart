@@ -2,10 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 
-enum AdminPortalType {
-  workshop,
-  platform,
-}
+enum AdminPortalType { workshop, platform }
 
 class AdminFeatureHighlight {
   const AdminFeatureHighlight({
@@ -35,7 +32,6 @@ class AdminSignInView extends StatefulWidget {
     this.challenge = false,
     this.submitting = false,
     this.errorText,
-    this.onQuickFillDemo,
   });
 
   final AdminPortalType portalType;
@@ -51,7 +47,6 @@ class AdminSignInView extends StatefulWidget {
   final bool challenge;
   final bool submitting;
   final String? errorText;
-  final VoidCallback? onQuickFillDemo;
 
   @override
   State<AdminSignInView> createState() => _AdminSignInViewState();
@@ -66,8 +61,9 @@ class _AdminSignInViewState extends State<AdminSignInView> {
     final l10n = AppLocalizations.of(context);
     final isWorkshop = widget.portalType == AdminPortalType.workshop;
 
-    final portalBadge =
-        isWorkshop ? 'WORKSHOP OPERATIONS' : 'PLATFORM ADMINISTRATION';
+    final portalBadge = isWorkshop
+        ? 'WORKSHOP OPERATIONS'
+        : 'PLATFORM ADMINISTRATION';
     final showcaseEyebrow = isWorkshop
         ? 'HIGH-THROUGHPUT BAY DISPATCH'
         : 'MULTI-TENANT GOVERNANCE';
@@ -83,40 +79,34 @@ class _AdminSignInViewState extends State<AdminSignInView> {
             AdminFeatureHighlight(
               icon: Icons.garage_rounded,
               title: l10n.adminFeatureTelemetry,
-              description:
-                  'Real-time job sequencing, automated bay routing, and live technician throughput dispatch.',
+              description: 'Real-time job sequencing, automated bay routing, and live technician throughput dispatch.',
             ),
             AdminFeatureHighlight(
               icon: Icons.assignment_turned_in_rounded,
               title: l10n.adminFeatureSop,
-              description:
-                  'Multi-version inspection templates with required photo evidence and strict severity policies.',
+              description: 'Multi-version inspection templates with required photo evidence and strict severity policies.',
             ),
             AdminFeatureHighlight(
               icon: Icons.verified_rounded,
               title: l10n.adminFeatureAudit,
-              description:
-                  'Instant client-ready report generation with tamper-evident blockchain verification.',
+              description: 'Instant client-ready report generation with tamper-evident blockchain verification.',
             ),
           ]
         : [
             AdminFeatureHighlight(
-              icon: Icons.account_tree_rounded,
+              icon: Icons.apartment_rounded,
               title: l10n.adminFeatureHierarchy,
-              description:
-                  'Sovereign workshop provisioning, staff tree management, and technician role assignment.',
+              description: 'Workshop onboarding, staff accounts, and template assignment.',
             ),
             AdminFeatureHighlight(
               icon: Icons.menu_book_rounded,
               title: l10n.adminFeatureCatalog,
-              description:
-                  'Centralized catalog of 200+ standardized diagnostic checkpoints with automated EN/AR translation.',
+              description: 'Centralized catalog of standardized diagnostic checkpoints with bilingual labels.',
             ),
             AdminFeatureHighlight(
               icon: Icons.shield_rounded,
               title: l10n.adminFeatureLedger,
-              description:
-                  'SOC-2 compliant chronological audit events logging all platform mutations and credential resets.',
+              description: 'SOC-2 compliant chronological audit events logging all platform mutations and credential resets.',
             ),
           ];
 
@@ -145,10 +135,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                 ),
 
                 // Right Authentication Form Panel (55% width)
-                Expanded(
-                  flex: 55,
-                  child: _buildFormCanvas(isDesktop: true),
-                ),
+                Expanded(flex: 55, child: _buildFormCanvas(isDesktop: true)),
               ],
             );
           }
@@ -185,11 +172,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF003824),
-            Color(0xFF005438),
-            Color(0xFF006C49),
-          ],
+          colors: [Color(0xFF003824), Color(0xFF005438), Color(0xFF006C49)],
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
@@ -201,251 +184,274 @@ class _AdminSignInViewState extends State<AdminSignInView> {
               child: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Branding Header
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.20),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF6FFBBE).withValues(alpha: 0.40),
-                  ),
-                ),
-                child: Center(
-                  child: Icon(icon, color: const Color(0xFF6FFBBE), size: 24),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'TrueReport',
-                    style: Fx.text(
-                      18,
-                      22,
-                      FontWeight.w800,
-                      -0.3,
-                      color: Fx.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    portalBadge,
-                    style: Fx.text(
-                      10,
-                      12,
-                      FontWeight.w700,
-                      0.8,
-                      color: const Color(0xFF6FFBBE),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const Spacer(),
-
-          // 2. Center Value Proposition
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Fx.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(9999),
-              border: Border.all(color: Fx.white.withValues(alpha: 0.20)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF6FFBBE),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  showcaseEyebrow,
-                  style: Fx.text(
-                    10,
-                    12,
-                    FontWeight.w700,
-                    0.6,
-                    color: const Color(0xFF6FFBBE),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          Text(
-            showcaseHeadline,
-            style: Fx.text(
-              30,
-              36,
-              FontWeight.w800,
-              -0.6,
-              color: Fx.white,
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          Text(
-            showcaseSubtitle,
-            style: Fx.text(
-              13,
-              20,
-              FontWeight.w400,
-              0,
-              color: Fx.white.withValues(alpha: 0.78),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // 3. Feature Highlight Cards
-          for (final f in features) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Fx.white.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Fx.white.withValues(alpha: 0.15)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Icon(f.icon, color: const Color(0xFF6FFBBE), size: 18),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Branding Header
+                    Row(
                       children: [
-                        Text(
-                          f.title,
-                          style: Fx.text(
-                            13,
-                            16,
-                            FontWeight.w700,
-                            0,
-                            color: Fx.white,
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.20),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF6FFBBE)
+                                  .withValues(alpha: 0.40),
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              icon,
+                              color: const Color(0xFF6FFBBE),
+                              size: 24,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          f.description,
-                          style: Fx.text(
-                            11,
-                            15,
-                            FontWeight.w400,
-                            0,
-                            color: Fx.white.withValues(alpha: 0.70),
-                          ),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'TrueReport',
+                              style: Fx.text(
+                                18,
+                                22,
+                                FontWeight.w800,
+                                -0.3,
+                                color: Fx.white,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              portalBadge,
+                              style: Fx.text(
+                                10,
+                                12,
+                                FontWeight.w700,
+                                0.8,
+                                color: const Color(0xFF6FFBBE),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
+
+                    const Spacer(),
+
+                    // 2. Center Value Proposition
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Fx.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(9999),
+                        border: Border.all(
+                          color: Fx.white.withValues(alpha: 0.20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF6FFBBE),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            showcaseEyebrow,
+                            style: Fx.text(
+                              10,
+                              12,
+                              FontWeight.w700,
+                              0.6,
+                              color: const Color(0xFF6FFBBE),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    Text(
+                      showcaseHeadline,
+                      style: Fx.text(
+                        30,
+                        36,
+                        FontWeight.w800,
+                        -0.6,
+                        color: Fx.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    Text(
+                      showcaseSubtitle,
+                      style: Fx.text(
+                        13,
+                        20,
+                        FontWeight.w400,
+                        0,
+                        color: Fx.white.withValues(alpha: 0.78),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // 3. Feature Highlight Cards
+                    for (final f in features) ...[
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Fx.white.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Fx.white.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981)
+                                    .withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  f.icon,
+                                  color: const Color(0xFF6FFBBE),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    f.title,
+                                    style: Fx.text(
+                                      13,
+                                      16,
+                                      FontWeight.w700,
+                                      0,
+                                      color: Fx.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    f.description,
+                                    style: Fx.text(
+                                      11,
+                                      15,
+                                      FontWeight.w400,
+                                      0,
+                                      color: Fx.white.withValues(alpha: 0.70),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const Spacer(),
+
+                    // 4. Live System Status Strip
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(9999),
+                        border: Border.all(
+                          color: Fx.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'GRID V4.2 ACTIVE',
+                              style: Fx.text(
+                                11,
+                                14,
+                                FontWeight.w700,
+                                0.5,
+                                color: const Color(0xFF6FFBBE),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '·  Latency 14ms  ·  TLS 1.3',
+                              style: Fx.text(
+                                11,
+                                14,
+                                FontWeight.w400,
+                                0,
+                                color: Fx.white.withValues(alpha: 0.60),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(
+                              Icons.verified_user_rounded,
+                              color: Color(0xFF6FFBBE),
+                              size: 15,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'SECURED',
+                              style: Fx.text(
+                                10,
+                                12,
+                                FontWeight.w800,
+                                0.5,
+                                color: const Color(0xFF6FFBBE),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-
-          const Spacer(),
-
-          // 4. Live System Status Strip
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(9999),
-              border: Border.all(color: Fx.white.withValues(alpha: 0.12)),
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'GRID V4.2 ACTIVE',
-                    style: Fx.text(
-                      11,
-                      14,
-                      FontWeight.w700,
-                      0.5,
-                      color: const Color(0xFF6FFBBE),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '·  Latency 14ms  ·  TLS 1.3',
-                    style: Fx.text(
-                      11,
-                      14,
-                      FontWeight.w400,
-                      0,
-                      color: Fx.white.withValues(alpha: 0.60),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    Icons.verified_user_rounded,
-                    color: Color(0xFF6FFBBE),
-                    size: 15,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'SECURED',
-                    style: Fx.text(
-                      10,
-                      12,
-                      FontWeight.w800,
-                      0.5,
-                      color: const Color(0xFF6FFBBE),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
-    ),
-    ),
-    );
-    },
-    ),
     );
   }
 
@@ -834,11 +840,12 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF006C49).withValues(alpha: 0.08),
+                            color: const Color(0xFF006C49)
+                                .withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color:
-                                  const Color(0xFF006C49).withValues(alpha: 0.20),
+                              color: const Color(0xFF006C49)
+                                  .withValues(alpha: 0.20),
                             ),
                           ),
                           child: Column(
@@ -938,8 +945,8 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF006C49),
                           foregroundColor: Fx.white,
-                          disabledBackgroundColor:
-                              const Color(0xFF006C49).withValues(alpha: 0.50),
+                          disabledBackgroundColor: const Color(0xFF006C49)
+                              .withValues(alpha: 0.50),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -980,42 +987,6 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                                 ],
                               ),
                       ),
-
-                      if (widget.onQuickFillDemo != null) ...[
-                        const SizedBox(height: 18),
-                        OutlinedButton.icon(
-                          key: const Key('btn-fill-demo'),
-                          onPressed: widget.onQuickFillDemo,
-                          icon: const Icon(
-                            Icons.auto_fix_high_rounded,
-                            size: 15,
-                            color: Color(0xFF006C49),
-                          ),
-                          label: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'Fill Authorized Demo Account',
-                              style: Fx.text(
-                                12,
-                                16,
-                                FontWeight.w600,
-                                0,
-                                color: const Color(0xFF006C49),
-                              ),
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF006C49)),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ],
 
                       const SizedBox(height: 24),
 

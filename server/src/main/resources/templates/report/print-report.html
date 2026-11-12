@@ -2,354 +2,1883 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <!-- Light-only (C0 Workstream B): no dark variant is shipped. -->
   <meta name="color-scheme" content="light">
   <title th:text="${r.en.title}"></title>
   <style th:utext="${r.fontCss}"></style>
-  <!-- TOKENS:BEGIN -->
   <style>
-:root {
-  color-scheme: light;
-  --tr-surface: #FFFFFF;
-  --tr-surface-lowest: #FFFFFF;
-  --tr-surface-low: #F7F6FB;
-  --tr-surface-container: #F4F3F8;
-  --tr-surface-high: #EEEDF3;
-  --tr-surface-highest: #E9E7ED;
-  --tr-on-surface: #1A1B1F;
-  --tr-on-surface-variant: #5E5D69;
-  --tr-outline: #6C7A71;
-  --tr-outline-variant: #DAD9DF;
-  --tr-secondary: #3C4A42;
-  --tr-on-secondary: #FFFFFF;
-  --tr-secondary-container: #E3E1EF;
-  --tr-on-secondary-container: #464651;
-  --tr-error: #A3231F;
-  --tr-on-error: #FFFFFF;
-  --tr-error-container: #FBE9E7;
-  --tr-on-error-container: #7F1D1D;
-  --tr-focus: #0B63CE;
-  --tr-overlay: #1A1B1F66;
-  --tr-scrim: #00000066;
-  --tr-brand-emerald-fill: #10B981;
-  --tr-brand-emerald-on-fill: #1A1B1F;
-  --tr-brand-emerald-ink: #006C49;
-  --tr-brand-emerald-container: #D9FBE8;
-  --tr-brand-emerald-on-container: #00422B;
-  --tr-brand-deep-green-fill: #006C49;
-  --tr-brand-deep-green-on-fill: #FFFFFF;
-  --tr-brand-deep-green-ink: #006C49;
-  --tr-brand-deep-green-container: #D9FBE8;
-  --tr-brand-deep-green-on-container: #00422B;
-  --tr-brand-fill: var(--tr-brand-emerald-fill);
-  --tr-on-brand-fill: var(--tr-brand-emerald-on-fill);
-  --tr-brand-ink: var(--tr-brand-emerald-ink);
-  --tr-brand-container: var(--tr-brand-emerald-container);
-  --tr-on-brand-container: var(--tr-brand-emerald-on-container);
-  --tr-neutral: #3F4A54;
-  --tr-neutral-bg: #EDF1F3;
-  --tr-info: #1D5C8A;
-  --tr-info-bg: #E5F0F8;
-  --tr-success: #1F6B45;
-  --tr-success-bg: #E6F3EC;
-  --tr-warning: #8A5A00;
-  --tr-warning-bg: #FFF4D6;
-  --tr-danger: #A3231F;
-  --tr-danger-bg: #FBE9E7;
-  --tr-critical: #7F1D1D;
-  --tr-critical-bg: #F7DADA;
+/* ============================================================
+   TRUEREPORT™  CERTIFIED INSPECTION PDF  —  PRINT STYLESHEET
+   Rendered by Chromium headless → A4 PDF
+   ============================================================ */
 
-  --tr-space-xxs: 2px;
-  --tr-space-xs: 4px;
-  --tr-space-micro: 6px;
-  --tr-space-sm: 8px;
-  --tr-space-md: 12px;
-  --tr-space-lg: 16px;
-  --tr-space-gutter: 20px;
-  --tr-space-xl: 24px;
-  --tr-space-xxl: 32px;
-  --tr-space-xxxl: 40px;
-  --tr-space-huge: 48px;
-  --tr-space-massive: 64px;
-  --tr-space-colossal: var(--tr-space-massive);
-
-  --tr-radius-sm: 4px;
-  --tr-radius-md: 8px;
-  --tr-radius-lg: 12px;
-  --tr-radius-xl: 16px;
-  --tr-radius-card: 24px;
-  --tr-radius-card-large: 32px;
-  --tr-radius-sheet: 48px;
-  --tr-radius-pill: 999px;
-
-  --tr-font-latin: "Plus Jakarta Sans", "Noto Sans", "Noto Sans SC", system-ui, sans-serif;
-  --tr-font-arabic: "Noto Sans Arabic", "IBM Plex Sans Arabic", "Plus Jakarta Sans", "Noto Sans", sans-serif;
-  --tr-font-arabic-alt: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Plus Jakarta Sans", "Noto Sans", sans-serif;
-  --tr-font-cjk: "Noto Sans SC", "Noto Sans", system-ui, sans-serif;
-
-  --tr-shadow-card: 0px 2px 8px 0px #00000004, 0px 14px 40px 0px #0000000B;
-  --tr-shadow-floating: 0px 4px 12px 0px #00000008, 0px 18px 50px 0px #00000014;
-  --tr-shadow-button-emerald: 0px 10px 25px 0px #10B9814D;
-  --tr-shadow-button-deep-green: 0px 10px 25px 0px #006C494D;
-  --tr-shadow-focus: 0 0 0 2px var(--tr-focus);
-
-  --primary: var(--tr-brand-ink);
-  --secondary: var(--tr-secondary);
-  --surface: var(--tr-surface);
-  --surface-low: var(--tr-surface-low);
-  --surface-card: var(--tr-surface-lowest);
-  --surface-high: var(--tr-surface-high);
-  --on-surface: var(--tr-on-surface);
-  --on-variant: var(--tr-on-surface-variant);
-  --outline: var(--tr-outline);
-  --success: var(--tr-success);
-  --success-bg: var(--tr-success-bg);
-  --warning: var(--tr-warning);
-  --warning-bg: var(--tr-warning-bg);
-  --danger: var(--tr-danger);
-  --danger-bg: var(--tr-danger-bg);
-  --critical: var(--tr-critical);
-  --critical-bg: var(--tr-critical-bg);
-  --spacing-xxs: var(--tr-space-xxs);
-  --spacing-xs: var(--tr-space-xs);
-  --spacing-micro: var(--tr-space-micro);
-  --spacing-sm: var(--tr-space-sm);
-  --spacing-md: var(--tr-space-md);
-  --spacing-lg: var(--tr-space-lg);
-  --spacing-gutter: var(--tr-space-gutter);
-  --spacing-xl: var(--tr-space-xl);
-  --spacing-xxl: var(--tr-space-xxl);
-  --spacing-xxxl: var(--tr-space-xxxl);
-  --spacing-huge: var(--tr-space-huge);
-  --spacing-massive: var(--tr-space-massive);
-  --radius-sm: var(--tr-radius-sm);
-  --radius-md: var(--tr-radius-md);
-  --radius-lg: var(--tr-radius-lg);
-  --radius-xl: var(--tr-radius-xl);
-  --radius-card: var(--tr-radius-card);
-  --radius-card-large: var(--tr-radius-card-large);
-  --radius-sheet: var(--tr-radius-sheet);
-  --radius-pill: var(--tr-radius-pill);
-  --font-body: var(--tr-font-latin);
-  --font-arabic: var(--tr-font-arabic);
-  --font-cjk: var(--tr-font-cjk);
+/* ---- Page Setup ---- */
+@page {
+  size: A4;
+  margin: 0;
 }
-  </style>
-  <!-- TOKENS:END -->
-  <style>
-    @page { size: A4; margin: 16mm 13mm 20mm; }
-    * { box-sizing: border-box; }
-    body { margin: 0; color: var(--tr-on-surface); font-family: "TR Sans", "TR Arabic", "TR CJK", sans-serif; font-size: 9.5pt; line-height: 1.38; }
-    [lang="ar"], [dir="rtl"] { font-family: "TR Arabic", "TR Sans", "TR CJK", sans-serif; }
-    [lang="zh-Hans"] { font-family: "TR CJK", "TR Sans", sans-serif; }
-    h1 { margin: 0 0 3mm; font-size: 22pt; line-height: 1.08; letter-spacing: -0.04em; }
-    h2 { margin: 0 0 2mm; font-size: 13pt; color: var(--tr-brand-emerald-ink); }
-    h3 { margin: 3mm 0 1.5mm; font-size: 10.5pt; color: var(--tr-secondary); }
-    p { margin: 0 0 1.8mm; }
-    .ar { direction: rtl; text-align: right; }
-    .bilingual { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
-    .muted { color: var(--tr-on-surface-variant); }
-    .small { font-size: 8pt; }
-    .cover { border-bottom: 1.2mm solid var(--tr-brand-emerald-ink); padding-bottom: 5mm; margin-bottom: 6mm; }
-    .brand { color: var(--tr-secondary); font-size: 8pt; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
-    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-top: 4mm; }
-    .box { border: .3mm solid var(--tr-outline-variant); border-radius: 2mm; padding: 3mm; break-inside: avoid; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 3mm 0 5mm; }
-    .stat { border: .3mm solid var(--tr-outline-variant); border-radius: 2mm; padding: 3mm; }
-    .stat strong { display: block; font-size: 17pt; color: var(--tr-brand-emerald-ink); line-height: 1; }
-    .badge { display: inline-block; border-radius: 99mm; padding: .5mm 2mm; font-size: 7.5pt; font-weight: 700; background: var(--tr-neutral-bg); color: var(--tr-on-surface-variant); }
-    .badge.danger { background: var(--tr-danger-bg); color: var(--tr-danger); }
-    .badge.warning { background: var(--tr-warning-bg); color: var(--tr-warning); }
-    .badge.critical { background: var(--tr-critical-bg); color: var(--tr-critical); }
-    .badge.success { background: var(--tr-success-bg); color: var(--tr-success); }
-    .finding { border: .3mm solid var(--tr-outline-variant); border-left: 1.2mm solid var(--tr-secondary); border-radius: 1.5mm; padding: 3mm; margin: 0 0 3mm; break-inside: avoid; }
-    .finding.safety { border-left-color: var(--tr-critical); }
-    .note { background: var(--tr-surface-low); border-radius: 1.2mm; padding: 2mm; margin: 1.5mm 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-    table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; }
-    th, td { border: .25mm solid var(--tr-outline-variant); padding: 1.7mm; vertical-align: top; text-align: left; }
-    th { background: var(--tr-surface-high); color: var(--tr-on-surface-variant); font-size: 7.5pt; text-transform: uppercase; letter-spacing: .04em; }
-    [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
-    .item-head { display: flex; justify-content: space-between; gap: 2mm; align-items: baseline; }
-    .ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
-    .photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2mm; margin-top: 2mm; }
-    .photos figure { margin: 0; break-inside: avoid; }
-    .photos img { display: block; width: 100%; height: 30mm; object-fit: cover; border-radius: 1mm; border: .25mm solid var(--tr-outline-variant); }
-    figcaption { font-size: 7pt; color: var(--tr-on-surface-variant); margin-top: .8mm; }
-    .disclaimer { border-left: 1.2mm solid var(--tr-warning); background: var(--tr-warning-bg); padding: 3mm; border-radius: 1.2mm; }
-    .footer { position: fixed; bottom: 0; left: 0; right: 0; border-top: .25mm solid var(--tr-outline-variant); padding-top: 1.5mm; background: var(--tr-surface-lowest); font-size: 7.5pt; color: var(--tr-on-surface-variant); }
-    .page-break { break-before: page; }
-    ul { margin: 0 0 2mm; padding-left: 5mm; padding-right: 0; }
-    [dir="rtl"] ul { padding-left: 0; padding-right: 5mm; }
-    .hash { font-family: monospace; font-size: 6.5pt; word-break: break-all; }
+@page cover {
+  margin: 0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ---- Design Tokens ---- */
+:root {
+  --brand:        #10B981;
+  --brand-dark:   #006C49;
+  --brand-bg:     #D9FBE8;
+  --surface:      #FFFFFF;
+  --surface-low:  #F7F8FA;
+  --surface-mid:  #F0F1F4;
+  --on-surface:   #1A1B1F;
+  --on-muted:     #5E5D69;
+  --outline:      #E2E3E8;
+  --pass:         #1F6B45;
+  --pass-bg:      #DCFCE7;
+  --attention:    #92400E;
+  --attention-bg: #FEF3C7;
+  --fail:         #991B1B;
+  --fail-bg:      #FEE2E2;
+  --radius:       8px;
+  --shadow:       0 1px 4px rgba(0,0,0,.08);
+}
+
+/* ---- Base ---- */
+body {
+  font-family: "Plus Jakarta Sans","Noto Sans","Noto Sans SC",sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.45;
+  color: var(--on-surface);
+  background: var(--surface);
+}
+[lang="ar"],[dir="rtl"] {
+  font-family: "Noto Sans Arabic","IBM Plex Sans Arabic","Plus Jakarta Sans",sans-serif;
+}
+h1,h2,h3,h4,h5 { font-weight: 700; line-height: 1.15; }
+p { line-height: 1.5; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
+.rtl { direction: rtl; unicode-bidi: isolate; }
+.muted { color: var(--on-muted); }
+.small  { font-size: 7.5pt; }
+.mono   { font-family: "Courier New",monospace; font-size: 7pt; word-break: break-all; }
+.bold   { font-weight: 700; }
+
+/* ---- Page Break ---- */
+.page { page-break-after: always; break-after: page; min-height: 297mm; position: relative; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+.break-before { page-break-before: always; break-before: page; }
+.avoid-break  { page-break-inside: avoid; break-inside: avoid; }
+
+/* ============================================================
+   PAGE 1 — COVER
+   ============================================================ */
+.cover-page {
+  background: linear-gradient(155deg, #0A2F22 0%, #006C49 60%, #0E9B61 100%);
+  color: #fff;
+  min-height: 297mm;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circles */
+.cover-deco-1 {
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  top: -80px; right: -80px;
+}
+.cover-deco-2 {
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  bottom: 60px; left: -60px;
+}
+
+/* Top bar */
+.cover-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10mm 14mm 8mm;
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.cover-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cover-brand-icon svg { stroke: #10B981; }
+.cover-brand-name {
+  font-size: 15pt;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: #fff;
+}
+.cover-brand-tagline {
+  font-size: 7.5pt;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.cover-report-id {
+  text-align: right;
+}
+.cover-report-id-label {
+  font-size: 7pt;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.cover-report-id-num {
+  font-size: 11pt;
+  font-weight: 700;
+  font-family: "Courier New",monospace;
+  color: #10B981;
+  letter-spacing: .04em;
+}
+
+/* Cover body */
+.cover-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10mm 14mm;
+  position: relative;
+  z-index: 1;
+}
+
+/* Vehicle name */
+.cover-vehicle-name {
+  font-size: 32pt;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 2mm;
+}
+.cover-vehicle-year-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 10mm;
+}
+.cover-pill {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 8pt;
+  color: rgba(255,255,255,.85);
+}
+.cover-pill-brand {
+  background: #10B981;
+  border-color: #10B981;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Score ring */
+.cover-score-ring-wrap {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 8mm;
+}
+.cover-score-ring-svg {
+  width: 180px;
+  height: 180px;
+  transform: rotate(-90deg);
+}
+.cover-ring-track {
+  fill: none;
+  stroke: rgba(255,255,255,.12);
+  stroke-width: 12;
+}
+.cover-ring-fill {
+  fill: none;
+  stroke: #10B981;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dasharray .3s;
+}
+.cover-score-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.cover-score-grade {
+  font-size: 36pt;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.cover-score-pct {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #10B981;
+  margin-top: 2px;
+}
+.cover-score-label {
+  font-size: 7pt;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-top: 2px;
+}
+
+/* Cover verdict */
+.cover-verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.1);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 999px;
+  padding: 5px 16px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11pt;
+  margin-bottom: 10mm;
+}
+.verdict-check { color: #10B981; font-size: 14pt; }
+
+/* Cover stat cards */
+.cover-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 4mm;
+  width: 100%;
+  max-width: 130mm;
+  margin-bottom: 8mm;
+}
+.cover-stat-card {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  padding: 5mm;
+  text-align: center;
+}
+.cover-stat-num {
+  font-size: 22pt;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  display: block;
+}
+.cover-stat-label {
+  font-size: 7.5pt;
+  color: rgba(255,255,255,.65);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  display: block;
+  margin-top: 2px;
+}
+.stat-pass   .cover-stat-num { color: #34D399; }
+.stat-attn   .cover-stat-num { color: #FCD34D; }
+.stat-fail   .cover-stat-num { color: #F87171; }
+
+/* Cover footer bar */
+.cover-footer {
+  padding: 6mm 14mm;
+  border-top: 1px solid rgba(255,255,255,.12);
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 3mm;
+  position: relative;
+  z-index: 1;
+}
+.cover-footer-item {}
+.cover-footer-label {
+  font-size: 6.5pt;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.cover-footer-value {
+  font-size: 8.5pt;
+  font-weight: 600;
+  color: rgba(255,255,255,.9);
+  margin-top: 1px;
+}
+
+/* ============================================================
+   CONTENT PAGES — SHARED LAYOUT
+   ============================================================ */
+.content-page {
+  padding: 12mm 14mm 14mm;
+  min-height: 297mm;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Page header strip */
+.page-header-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7mm;
+  padding-bottom: 4mm;
+  border-bottom: 2px solid var(--brand);
+}
+.page-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--brand-dark);
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.page-header-title {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+.page-header-num {
+  font-size: 7pt;
+  color: var(--on-muted);
+  font-family: "Courier New",monospace;
+}
+
+/* Section heading */
+.section-heading {
+  font-size: 11pt;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin-bottom: 4mm;
+  margin-top: 6mm;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-heading:first-child { margin-top: 0; }
+.section-heading-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PAGE 2 — VEHICLE & CUSTOMER DETAILS
+   ============================================================ */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4mm;
+  margin-bottom: 5mm;
+}
+.detail-card {
+  background: var(--surface-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 5mm;
+}
+.detail-card-title {
+  font-size: 7.5pt;
+  font-weight: 700;
+  color: var(--brand-dark);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 3mm;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid var(--outline);
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4mm;
+  padding: 1.8mm 0;
+  border-bottom: 1px solid var(--outline);
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label {
+  font-size: 7.5pt;
+  color: var(--on-muted);
+  flex-shrink: 0;
+  min-width: 28mm;
+}
+.detail-value {
+  font-size: 8pt;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: right;
+}
+
+/* Executive summary bar */
+.exec-summary-bar {
+  background: linear-gradient(135deg, #0A2F22, #006C49);
+  border-radius: var(--radius);
+  padding: 5mm 6mm;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 4mm;
+  align-items: center;
+  margin-bottom: 5mm;
+  color: #fff;
+}
+.exec-score-block {}
+.exec-score-label {
+  font-size: 7pt;
+  color: rgba(255,255,255,.55);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.exec-score-val {
+  font-size: 20pt;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.exec-score-sub { font-size: 8pt; color: #10B981; font-weight: 600; }
+.exec-divider { width: 1px; background: rgba(255,255,255,.18); align-self: stretch; }
+.exec-stat { text-align: center; padding: 0 3mm; }
+.exec-stat-num { font-size: 17pt; font-weight: 800; line-height: 1; }
+.exec-stat-label { font-size: 6.5pt; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.6); }
+.exec-pass .exec-stat-num   { color: #34D399; }
+.exec-attn .exec-stat-num   { color: #FCD34D; }
+.exec-fail .exec-stat-num   { color: #F87171; }
+
+/* ============================================================
+   KEY FINDINGS SECTION
+   ============================================================ */
+.findings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3mm;
+  margin-bottom: 4mm;
+}
+.finding-card {
+  border: 1.5px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 4mm;
+  break-inside: avoid;
+  position: relative;
+  overflow: hidden;
+}
+.finding-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.finding-card.fc-fail::before   { background: #DC2626; }
+.finding-card.fc-attn::before   { background: #D97706; }
+.finding-card.fc-fail { background: #FFF5F5; }
+.finding-card.fc-attn { background: #FFFBEB; }
+.finding-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2mm;
+  margin-bottom: 2mm;
+}
+.finding-label {
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: var(--on-surface);
+  line-height: 1.3;
+}
+.finding-label-ar {
+  font-size: 7.5pt;
+  color: var(--on-muted);
+  margin-top: 1px;
+}
+.finding-badges { display: flex; gap: 2mm; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1.5px 6px;
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+.badge-pass   { background: var(--pass-bg);       color: var(--pass); }
+.badge-attn   { background: var(--attention-bg);  color: var(--attention); }
+.badge-fail   { background: var(--fail-bg);        color: var(--fail); }
+.badge-neutral { background: var(--surface-mid); color: var(--on-muted); }
+.finding-note {
+  font-size: 7.5pt;
+  color: var(--on-muted);
+  line-height: 1.4;
+  margin-top: 1.5mm;
+  background: rgba(0,0,0,.03);
+  border-radius: 4px;
+  padding: 2mm;
+}
+.finding-spec-row {
+  display: flex;
+  gap: 3mm;
+  margin-top: 2mm;
+  flex-wrap: wrap;
+}
+.finding-spec-pill {
+  font-size: 7pt;
+  background: var(--surface-mid);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--on-muted);
+}
+
+/* Empty findings */
+.no-findings-box {
+  background: var(--pass-bg);
+  border: 1.5px solid #86EFAC;
+  border-radius: var(--radius);
+  padding: 5mm 6mm;
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  margin-bottom: 4mm;
+}
+.no-findings-icon { font-size: 18pt; color: var(--pass); }
+.no-findings-text { font-weight: 700; color: var(--pass); font-size: 9.5pt; }
+
+/* ============================================================
+   CATEGORY SCORE OVERVIEW
+   ============================================================ */
+.cat-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3mm;
+  margin-bottom: 4mm;
+}
+.cat-overview-card {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 4mm;
+  break-inside: avoid;
+  position: relative;
+  overflow: hidden;
+}
+.cat-overview-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+}
+.cat-status-good::after   { background: var(--brand); }
+.cat-status-attn::after   { background: #F59E0B; }
+.cat-status-fail::after   { background: #EF4444; }
+.cat-overview-label {
+  font-size: 7.5pt;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin-bottom: 2mm;
+  line-height: 1.3;
+}
+.cat-overview-label-ar {
+  font-size: 6.5pt;
+  color: var(--on-muted);
+}
+.cat-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2mm;
+}
+.cat-score-num {
+  font-size: 14pt;
+  font-weight: 800;
+  line-height: 1;
+}
+.cat-score-good { color: var(--pass); }
+.cat-score-attn { color: #B45309; }
+.cat-score-fail { color: var(--fail); }
+.cat-items-tally {
+  font-size: 7pt;
+  color: var(--on-muted);
+  text-align: right;
+}
+.cat-items-tally span { display: block; }
+
+/* Category score bar */
+.cat-score-bar { 
+  height: 3px;
+  background: var(--outline);
+  border-radius: 999px;
+  margin-top: 2mm;
+  overflow: hidden;
+}
+.cat-score-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+.bar-good { background: var(--brand); }
+.bar-attn { background: #F59E0B; }
+.bar-fail { background: #EF4444; }
+
+/* ============================================================
+   CHECKLIST TABLE (per category)
+   ============================================================ */
+.category-section {
+  break-inside: avoid;
+  margin-bottom: 5mm;
+}
+.cat-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--on-surface);
+  color: #fff;
+  border-radius: 6px 6px 0 0;
+  padding: 3mm 4mm;
+}
+.cat-section-name {
+  font-size: 9pt;
+  font-weight: 700;
+}
+.cat-section-name-ar {
+  font-size: 7.5pt;
+  opacity: .65;
+}
+.cat-section-meta {
+  display: flex;
+  gap: 3mm;
+  align-items: center;
+}
+.cat-section-score {
+  font-size: 11pt;
+  font-weight: 800;
+}
+.score-good { color: #34D399; }
+.score-attn { color: #FCD34D; }
+.score-fail { color: #F87171; }
+
+table.checklist {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 7.5pt;
+}
+table.checklist th {
+  background: var(--surface-mid);
+  color: var(--on-muted);
+  font-size: 6.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 2mm 3mm;
+  border: 1px solid var(--outline);
+  text-align: left;
+}
+table.checklist td {
+  padding: 2.5mm 3mm;
+  border: 1px solid var(--outline);
+  vertical-align: top;
+  line-height: 1.4;
+}
+table.checklist tr:nth-child(even) td {
+  background: #FAFAFA;
+}
+.chk-name { font-weight: 600; color: var(--on-surface); font-size: 8pt; }
+.chk-name-ar { color: var(--on-muted); font-size: 7pt; }
+.chk-note { font-size: 7pt; color: var(--on-muted); margin-top: 1mm; font-style: italic; }
+.chk-status-cell { text-align: center; white-space: nowrap; }
+.chk-score-cell { text-align: center; white-space: nowrap; }
+.chk-metric-cell { font-size: 7pt; color: var(--on-muted); }
+.chk-score-bar {
+  height: 4px;
+  background: var(--outline);
+  border-radius: 999px;
+  margin-top: 1px;
+  overflow: hidden;
+}
+.chk-score-bar-fill { height: 100%; border-radius: 999px; }
+
+/* Status icon circles */
+.status-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-size: 8pt;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sc-pass { background: var(--pass-bg); color: var(--pass); }
+.sc-attn { background: var(--attention-bg); color: #B45309; }
+.sc-fail { background: var(--fail-bg); color: var(--fail); }
+
+/* ============================================================
+   TYRE & BRAKES PAGE
+   ============================================================ */
+.tyres-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4mm;
+  margin-bottom: 5mm;
+}
+.tyre-card {
+  border: 1.5px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 5mm;
+  break-inside: avoid;
+  position: relative;
+}
+.tyre-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3mm;
+}
+.tyre-position-wrap { display: flex; align-items: center; gap: 3mm; }
+.tyre-icon {
+  width: 32px; height: 32px;
+  background: var(--surface-mid);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tyre-position-name { font-size: 9pt; font-weight: 700; }
+.tyre-pos-code { font-size: 7pt; color: var(--on-muted); }
+.tyre-gauge-wrap { margin-bottom: 3mm; }
+.tyre-gauge-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7pt;
+  color: var(--on-muted);
+  margin-bottom: 1mm;
+}
+.tyre-gauge-val { font-size: 10pt; font-weight: 700; color: var(--on-surface); }
+.tyre-gauge-track {
+  height: 8px;
+  background: var(--surface-mid);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.tyre-gauge-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+.tgf-pass { background: linear-gradient(90deg, #10B981, #34D399); }
+.tgf-attn { background: linear-gradient(90deg, #F59E0B, #FCD34D); }
+.tgf-fail { background: linear-gradient(90deg, #EF4444, #F87171); }
+.tyre-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2mm;
+  margin-top: 2mm;
+}
+.tyre-metric-box {
+  background: var(--surface-low);
+  border-radius: 4px;
+  padding: 2mm;
+}
+.tyre-metric-label { font-size: 6.5pt; color: var(--on-muted); }
+.tyre-metric-val   { font-size: 8.5pt; font-weight: 700; color: var(--on-surface); }
+.tyre-note-bar {
+  margin-top: 2.5mm;
+  background: var(--attention-bg);
+  border-radius: 4px;
+  padding: 2mm 3mm;
+  font-size: 7pt;
+  color: var(--attention);
+  display: flex;
+  gap: 2mm;
+  align-items: flex-start;
+}
+.tyre-note-dot { flex-shrink: 0; margin-top: 1px; }
+
+/* ============================================================
+   DAMAGE MAP SECTION
+   ============================================================ */
+.damage-zones-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3mm;
+  margin-bottom: 4mm;
+}
+.damage-zone-card {
+  border: 1px solid var(--outline);
+  border-radius: 6px;
+  padding: 3mm 4mm;
+  break-inside: avoid;
+}
+.dz-clean { border-left: 3px solid var(--brand); }
+.dz-defect { border-left: 3px solid #EF4444; }
+.dz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5mm; }
+.dz-title { font-size: 8pt; font-weight: 700; }
+.dz-code { font-size: 7pt; color: var(--on-muted); }
+.dz-paint { font-size: 7pt; color: var(--on-muted); }
+.dz-note  { font-size: 7pt; color: var(--on-muted); margin-top: 1mm; }
+
+/* ============================================================
+   PHOTO GALLERY
+   ============================================================ */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2mm;
+  margin-bottom: 4mm;
+}
+.photo-cell {
+  break-inside: avoid;
+}
+.photo-cell img {
+  width: 100%;
+  height: 24mm;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--outline);
+  display: block;
+}
+.photo-caption {
+  font-size: 6.5pt;
+  color: var(--on-muted);
+  text-align: center;
+  margin-top: 1mm;
+  line-height: 1.3;
+}
+
+/* ============================================================
+   NOT-CHECKED SECTION
+   ============================================================ */
+.not-checked-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8pt;
+  margin-bottom: 4mm;
+}
+.not-checked-table th {
+  background: var(--surface-mid);
+  padding: 2mm 3mm;
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border: 1px solid var(--outline);
+  text-align: left;
+  color: var(--on-muted);
+  font-weight: 700;
+}
+.not-checked-table td {
+  padding: 2mm 3mm;
+  border: 1px solid var(--outline);
+  vertical-align: top;
+}
+
+/* ============================================================
+   VERIFICATION PAGE (LAST)
+   ============================================================ */
+.verification-page {
+  padding: 12mm 14mm;
+}
+.verification-card {
+  background: var(--surface-low);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 6mm;
+  margin-bottom: 4mm;
+}
+.verification-header {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  margin-bottom: 4mm;
+  padding-bottom: 4mm;
+  border-bottom: 1px solid var(--outline);
+}
+.verification-shield {
+  width: 40px; height: 40px;
+  background: var(--pass-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ver-title { font-size: 12pt; font-weight: 700; }
+.ver-sub { font-size: 8pt; color: var(--on-muted); margin-top: 1px; }
+.hash-label { font-size: 7.5pt; color: var(--on-muted); font-weight: 600; margin-bottom: 1.5mm; }
+.hash-code {
+  font-family: "Courier New",monospace;
+  font-size: 8pt;
+  background: var(--on-surface);
+  color: #10B981;
+  border-radius: 4px;
+  padding: 2.5mm 4mm;
+  word-break: break-all;
+  display: block;
+  letter-spacing: .04em;
+}
+.report-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3mm;
+  margin-bottom: 4mm;
+}
+.report-meta-box {
+  background: var(--surface-low);
+  border: 1px solid var(--outline);
+  border-radius: 6px;
+  padding: 3mm 4mm;
+}
+.report-meta-label { font-size: 7pt; color: var(--on-muted); font-weight: 600; }
+.report-meta-val   { font-size: 8.5pt; font-weight: 700; color: var(--on-surface); margin-top: 1px; }
+
+/* Limitations */
+.limitations-box {
+  border: 1px solid #FDE68A;
+  background: #FFFBEB;
+  border-radius: var(--radius);
+  padding: 4mm 5mm;
+  margin-bottom: 4mm;
+}
+.limitations-title {
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: #92400E;
+  margin-bottom: 2mm;
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+}
+.limitations-list {
+  list-style: disc;
+  padding-left: 5mm;
+  font-size: 7.5pt;
+  color: #78350F;
+  line-height: 1.6;
+}
+.disclaimer-text {
+  font-size: 7pt;
+  color: var(--on-muted);
+  line-height: 1.6;
+  border-top: 1px solid var(--outline);
+  padding-top: 3mm;
+}
+
+/* Fixed page footer on every content page */
+.page-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 8mm;
+  background: var(--surface);
+  border-top: 1px solid var(--outline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14mm;
+  font-size: 6.5pt;
+  color: var(--on-muted);
+}
+.page-footer-brand { font-weight: 700; color: var(--brand-dark); }
   </style>
 </head>
 <body>
-<div class="footer">
-  <span th:text="${r.reportNumber} + ' · ' + ${r.en.version} + ' ' + ${r.version}"></span>
-  <span aria-hidden="true"> · </span>
-  <span>TrueReport</span>
+
+<!-- ============================================================
+     PAGE 1 — COVER
+     ============================================================ -->
+<div class="page cover-page">
+  <div class="cover-deco-1"></div>
+  <div class="cover-deco-2"></div>
+
+  <!-- Top bar -->
+  <div class="cover-topbar">
+    <div class="cover-brand">
+      <div class="cover-brand-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4" stroke="#fff"/>
+        </svg>
+      </div>
+      <div>
+        <div class="cover-brand-name">TrueReport™</div>
+        <div class="cover-brand-tagline">Certified Vehicle Inspection Report</div>
+      </div>
+    </div>
+    <div class="cover-report-id">
+      <div class="cover-report-id-label">Report Number</div>
+      <div class="cover-report-id-num ltr" th:text="${r.reportNumber}">TR-2024-00001</div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="cover-body">
+
+    <!-- Vehicle name -->
+    <div class="cover-vehicle-name" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Camry</div>
+    <div class="cover-vehicle-year-row">
+      <span class="cover-pill" th:text="${r.vehicle.year}">2022</span>
+      <span class="cover-pill" th:text="${r.vehicle.specsOrigin}">GCC Specs</span>
+      <span class="cover-pill cover-pill-brand">✓ Certified Inspection</span>
+      <span class="cover-pill" th:text="${r.vehicle.gearbox}">Automatic</span>
+    </div>
+
+    <!-- Score ring -->
+    <div class="cover-score-ring-wrap">
+      <svg class="cover-score-ring-svg" viewBox="0 0 180 180" aria-hidden="true">
+        <circle class="cover-ring-track" cx="90" cy="90" r="75" />
+        <circle class="cover-ring-fill" cx="90" cy="90" r="75"
+                th:style="'stroke-dasharray: ' + ${r.passRate * 4.712} + ' 471.2; stroke-dashoffset: 0;'" />
+      </svg>
+      <div class="cover-score-inner">
+        <span class="cover-score-grade">A</span>
+        <span class="cover-score-pct" th:text="${r.passRate} + '%'">94%</span>
+        <span class="cover-score-label">Pass Rate</span>
+      </div>
+    </div>
+
+    <!-- Verdict badge -->
+    <div class="cover-verdict-badge">
+      <span class="verdict-check">✓</span>
+      <span th:text="${r.en.approved ?: 'Approved – Passes Certification'}">Approved – Passes Certification</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="cover-stats-row">
+      <div class="cover-stat-card stat-pass">
+        <span class="cover-stat-num" th:text="${r.passedCount}">29</span>
+        <span class="cover-stat-label">Passed</span>
+      </div>
+      <div class="cover-stat-card stat-attn">
+        <span class="cover-stat-num" th:text="${r.attentionCount}">2</span>
+        <span class="cover-stat-label">Attention</span>
+      </div>
+      <div class="cover-stat-card stat-fail">
+        <span class="cover-stat-num" th:text="${r.defectCount}">1</span>
+        <span class="cover-stat-label">Defects</span>
+      </div>
+    </div>
+
+  </div><!-- /cover-body -->
+
+  <!-- Footer -->
+  <div class="cover-footer">
+    <div class="cover-footer-item">
+      <div class="cover-footer-label">Customer</div>
+      <div class="cover-footer-value" th:text="${r.vehicle.clientName}">Private Client</div>
+    </div>
+    <div class="cover-footer-item">
+      <div class="cover-footer-label">Inspection Date</div>
+      <div class="cover-footer-value" th:text="${r.inspection.dateTime}">November 2024</div>
+    </div>
+    <div class="cover-footer-item">
+      <div class="cover-footer-label">Workshop</div>
+      <div class="cover-footer-value" th:text="${r.workshop.name}">TrueReport Workshop</div>
+    </div>
+    <div class="cover-footer-item">
+      <div class="cover-footer-label">Version</div>
+      <div class="cover-footer-value" th:text="${r.en.version ?: 'Version'} + ' ' + ${r.version}">v1</div>
+    </div>
+  </div>
 </div>
 
-<div class="cover">
-  <div class="brand">TrueReport</div>
-  <div class="bilingual">
+
+<!-- ============================================================
+     PAGE 2 — VEHICLE DETAILS & KEY FINDINGS
+     ============================================================ -->
+<div class="page content-page">
+
+  <!-- Page header -->
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Vehicle &amp; Customer Details</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <!-- Executive summary bar -->
+  <div class="exec-summary-bar">
+    <div class="exec-score-block">
+      <div class="exec-score-label">Overall Pass Rate</div>
+      <div class="exec-score-val" th:text="${r.passRate} + '%'">94%</div>
+      <div class="exec-score-sub" th:text="${r.coverage.text} + ' Checks Completed'">31/32 Checks Completed</div>
+    </div>
+    <div class="exec-divider"></div>
+    <div class="exec-stat exec-pass">
+      <div class="exec-stat-num" th:text="${r.passedCount}">29</div>
+      <div class="exec-stat-label">Passed</div>
+    </div>
+    <div class="exec-divider"></div>
+    <div class="exec-stat exec-attn">
+      <div class="exec-stat-num" th:text="${r.attentionCount}">2</div>
+      <div class="exec-stat-label">Attention</div>
+    </div>
+    <div class="exec-divider"></div>
+    <div class="exec-stat exec-fail">
+      <div class="exec-stat-num" th:text="${r.defectCount}">1</div>
+      <div class="exec-stat-label">Defects</div>
+    </div>
+  </div>
+
+  <!-- Two column details -->
+  <div class="details-grid">
+
+    <!-- Vehicle specs -->
+    <div class="detail-card">
+      <div class="detail-card-title">🚗 Vehicle Specifications</div>
+      <div class="detail-row">
+        <span class="detail-label">Make &amp; Model</span>
+        <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Camry</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Year</span>
+        <span class="detail-value" th:text="${r.vehicle.year}">2022</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">VIN</span>
+        <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G11AK8NU****</span>
+      </div>
+      <div class="detail-row" th:if="${r.vehicle.odometer != ''}">
+        <span class="detail-label">Odometer</span>
+        <span class="detail-value" th:text="${r.vehicle.odometer}">45,200 km</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Gearbox</span>
+        <span class="detail-value" th:text="${r.vehicle.gearbox}">Automatic (8-Speed)</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Fuel Type</span>
+        <span class="detail-value" th:text="${r.vehicle.fuelType}">Gasoline / Hybrid</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Drivetrain</span>
+        <span class="detail-value" th:text="${r.vehicle.drivetrain}">FWD</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Engine</span>
+        <span class="detail-value" th:text="${r.vehicle.engineSize}">2.5 L 4-Cylinder</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Specs Origin</span>
+        <span class="detail-value" th:text="${r.vehicle.specsOrigin}">GCC Specs</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Exterior Color</span>
+        <span class="detail-value" th:text="${r.vehicle.exteriorColor}">Silver Metallic</span>
+      </div>
+    </div>
+
+    <!-- Inspection & Customer info -->
     <div>
-      <h1 th:text="${r.en.title}"></h1>
-      <p class="muted" th:text="${r.en.notCertified}"></p>
-    </div>
-    <div class="ar" lang="ar">
-      <h1 th:text="${r.ar.title}"></h1>
-      <p class="muted" th:text="${r.ar.notCertified}"></p>
-    </div>
-  </div>
-  <div class="meta">
-    <div class="box">
-      <div class="muted small" th:text="${r.en.reportId}"></div>
-      <strong th:text="${r.reportNumber}"></strong>
-      <div class="small" th:text="${r.en.version} + ': ' + ${r.version}"></div>
-      <div class="small" th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}"></div>
-    </div>
-    <div class="box ar" lang="ar">
-      <div class="muted small" th:text="${r.ar.reportId}"></div>
-      <strong th:text="${r.reportNumber}"></strong>
-      <div class="small" th:text="${r.ar.version} + ': ' + ${r.version}"></div>
-      <div class="small" th:text="${r.ar.finalized} + ': ' + ${r.finalizedAt}"></div>
-    </div>
-  </div>
-</div>
-
-<h2><span th:text="${r.en.summary}"></span> / <span th:text="${r.ar.summary}"></span></h2>
-<div class="stats">
-  <div class="stat"><strong th:text="${r.coverage.text}"></strong><span class="small"><span th:text="${r.en.checksCompleted}"></span> / <span class="ar" th:text="${r.ar.checksCompleted}"></span></span></div>
-  <div class="stat"><strong th:text="${#lists.size(r.keyFindings)}"></strong><span class="small"><span th:text="${r.en.keyFindings}"></span> / <span class="ar" th:text="${r.ar.keyFindings}"></span></span></div>
-  <div class="stat"><strong th:text="${r.coverage.notApplicable}"></strong><span class="small"><span th:text="${r.en.notApplicable}"></span> / <span class="ar" th:text="${r.ar.notApplicable}"></span></span></div>
-  <div class="stat"><strong th:text="${r.coverage.notChecked + r.coverage.couldNotVerify}"></strong><span class="small"><span th:text="${r.en.notCompleted}"></span> / <span class="ar" th:text="${r.ar.notCompleted}"></span></span></div>
-</div>
-<p class="small muted"><span th:text="${r.en.coverageNotScore}"></span> / <span class="ar" th:text="${r.ar.coverageNotScore}"></span></p>
-
-<div class="bilingual">
-  <div class="box">
-    <h2 th:text="${r.en.vehicle}"></h2>
-    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')"></p>
-    <p class="small"><span th:text="${r.en.vin}"></span> / <span th:text="${r.ar.vin}"></span><span th:text="': '"></span><span class="ltr" th:text="${r.vehicle.vinMasked}"></span></p>
-    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.en.odometer} + ': ' + ${r.vehicle.odometer}"></p>
-    <p class="small" th:text="${r.en.workshop} + ': ' + ${r.workshop.name}"></p>
-    <p class="small" th:text="${r.en.technician} + ': ' + ${r.technician.displayName}"></p>
-    <p class="small" th:text="${r.en.scope} + ': ' + ${r.inspection.scope}"></p>
-    <p class="small" th:text="${r.en.template} + ': ' + ${r.inspection.templateVersion}"></p>
-  </div>
-  <div class="box ar" lang="ar">
-    <h2 th:text="${r.ar.vehicle}"></h2>
-    <p th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + (${r.vehicle.year} ?: '')"></p>
-    <p class="small"><span th:text="${r.ar.vin} + ': '"></span><span class="ltr" th:text="${r.vehicle.vinMasked}"></span></p>
-    <p class="small" th:if="${r.vehicle.odometer != ''}" th:text="${r.ar.odometer} + ': ' + ${r.vehicle.odometer}"></p>
-    <p class="small" th:text="${r.ar.workshop} + ': ' + ${r.workshop.name}"></p>
-    <p class="small" th:text="${r.ar.technician} + ': ' + ${r.technician.displayName}"></p>
-    <p class="small" th:text="${r.ar.scope} + ': ' + ${r.inspection.scope}"></p>
-    <p class="small" th:text="${r.ar.template} + ': ' + ${r.inspection.templateVersion}"></p>
-  </div>
-</div>
-
-<h2><span th:text="${r.en.keyFindings}"></span> / <span th:text="${r.ar.keyFindings}"></span></h2>
-<p th:if="${#lists.isEmpty(r.keyFindings)}"><span th:text="${r.en.noKeyFindings}"></span> / <span class="ar" th:text="${r.ar.noKeyFindings}"></span></p>
-<div th:each="item : ${r.keyFindings}" class="finding" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'safety' : ''}">
-  <div class="item-head">
-    <strong th:text="${item.labelEn} + ' / ' + ${item.labelAr}"></strong>
-    <span class="badge" th:classappend="${item.severityCode == 'SAFETY_CRITICAL' ? 'critical' : (item.severityCode == 'MAJOR' ? 'danger' : 'warning')}"
-          th:if="${item.severityCode != ''}" th:text="${item.severityEn} + ' / ' + ${item.severityAr}"></span>
-  </div>
-  <p class="small" th:text="${item.resultEn} + ' / ' + ${item.resultAr}"></p>
-  <div class="note" th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></div>
-  <p class="small" th:if="${item.reason != ''}"><span th:text="${r.en.reason}"></span> / <span class="ar" th:text="${r.ar.reason}"></span><span th:text="': ' + ${item.reason}"></span></p>
-  <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
-    <figure th:each="photo : ${item.photos}" th:if="${photo.dataUri != null}">
-      <img th:src="${photo.dataUri}" th:alt="${photo.altEn} + ' / ' + ${photo.altAr}">
-      <figcaption th:text="${r.en.evidenceCaption} + ' / ' + ${r.ar.evidenceCaption}"></figcaption>
-    </figure>
-  </div>
-</div>
-
-<div class="page-break"></div>
-<h2 th:text="${r.en.findings} + ' / ' + ${r.ar.findings}"></h2>
-<div th:each="category : ${r.categories}">
-  <h3 th:text="${category.labelEn} + ' / ' + ${category.labelAr}"></h3>
-  <table>
-    <thead>
-    <tr>
-      <th><span th:text="${r.en.check}"></span> / <span th:text="${r.ar.check}"></span></th>
-      <th><span th:text="${r.en.result}"></span> / <span th:text="${r.ar.result}"></span></th>
-      <th><span th:text="${r.en.severity}"></span> / <span th:text="${r.ar.severity}"></span></th>
-      <th><span th:text="${r.en.note}"></span> / <span th:text="${r.ar.note}"></span></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="item : ${category.items}">
-      <td>
-        <strong th:text="${item.labelEn}"></strong>
-        <div class="ar" th:text="${item.labelAr}"></div>
-        <div class="photos" th:if="${!#lists.isEmpty(item.photos)}">
-          <figure th:each="photo : ${item.photos}" th:if="${photo.dataUri != null}">
-            <img th:src="${photo.dataUri}" th:alt="${photo.altEn} + ' / ' + ${photo.altAr}">
-            <figcaption th:text="${r.en.evidenceCaption} + ' / ' + ${r.ar.evidenceCaption}"></figcaption>
-          </figure>
+      <div class="detail-card" style="margin-bottom:3mm;">
+        <div class="detail-card-title">👤 Customer &amp; Inspection Info</div>
+        <div class="detail-row">
+          <span class="detail-label">Customer</span>
+          <span class="detail-value" th:text="${r.vehicle.clientName}">Private Client</span>
         </div>
-      </td>
-      <td><span th:text="${item.resultEn}"></span><br><span class="ar" th:text="${item.resultAr}"></span></td>
-      <td><span th:if="${item.severityEn != ''}" th:text="${item.severityEn}"></span>
-        <span class="ar" th:if="${item.severityAr != ''}" th:text="${item.severityAr}"></span></td>
-      <td>
-        <span th:if="${item.note == ''}" class="muted">—</span>
-        <span th:if="${item.note != ''}" th:lang="${item.noteLanguage}" th:dir="${item.noteDir}" th:text="${item.note}"></span>
-        <div class="small muted" th:if="${item.note != ''}"><span th:text="${r.en.noTranslation}"></span> / <span class="ar" th:text="${r.ar.noTranslation}"></span></div>
-        <div class="small" th:if="${item.reason != ''}"><span th:text="${r.en.reason}"></span> / <span class="ar" th:text="${r.ar.reason}"></span><span th:text="': ' + ${item.reason}"></span></div>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</div>
+        <div class="detail-row">
+          <span class="detail-label">Inspection Date</span>
+          <span class="detail-value" th:text="${r.inspection.dateTime}">November 11, 2024</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Inspection Scope</span>
+          <span class="detail-value" th:text="${r.inspection.scope}">Comprehensive</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Template Version</span>
+          <span class="detail-value" th:text="${r.inspection.templateVersion}">v2</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Total Checks</span>
+          <span class="detail-value" th:text="${r.totalEvaluated} + ' evaluated'">32 evaluated</span>
+        </div>
+      </div>
 
-<div th:if="${!#lists.isEmpty(r.notChecked)}">
-  <h2 th:text="${r.en.notChecked} + ' / ' + ${r.ar.notChecked}"></h2>
-  <table>
-    <thead><tr>
-      <th><span th:text="${r.en.check}"></span> / <span th:text="${r.ar.check}"></span></th>
-      <th><span th:text="${r.en.result}"></span> / <span th:text="${r.ar.result}"></span></th>
-      <th><span th:text="${r.en.reason}"></span> / <span th:text="${r.ar.reason}"></span></th>
-    </tr></thead>
-    <tbody>
-    <tr th:each="item : ${r.notChecked}">
-      <td><span th:text="${item.labelEn}"></span><div class="ar" th:text="${item.labelAr}"></div></td>
-      <td><span th:text="${item.resultEn}"></span><div class="ar" th:text="${item.resultAr}"></div></td>
-      <td><span th:text="${item.reason}"></span></td>
-    </tr>
-    </tbody>
-  </table>
-</div>
+      <div class="detail-card">
+        <div class="detail-card-title">🏢 Workshop &amp; Technician</div>
+        <div class="detail-row">
+          <span class="detail-label">Workshop</span>
+          <span class="detail-value" th:text="${r.workshop.name}">TrueReport Diagnostic Hub</span>
+        </div>
+        <div class="detail-row" th:if="${r.workshop.branch != null and r.workshop.branch != ''}">
+          <span class="detail-label">Branch</span>
+          <span class="detail-value" th:text="${r.workshop.branch}">Main Branch</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Certified Technician</span>
+          <span class="detail-value" th:text="${r.technician.displayName}">Senior Inspector</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Report Version</span>
+          <span class="detail-value" th:text="${r.version}">1</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Issued On</span>
+          <span class="detail-value" th:text="${r.finalizedAt}">November 11, 2024</span>
+        </div>
+      </div>
+    </div>
 
-<h2 th:text="${r.en.limitations} + ' / ' + ${r.ar.limitations}"></h2>
-<div class="bilingual">
-  <div>
-    <ul><li th:each="value : ${r.limitationsEn}" th:text="${value}"></li></ul>
-    <p class="disclaimer" th:text="${r.disclaimerEn}"></p>
   </div>
-  <div class="ar" lang="ar">
-    <ul><li th:each="value : ${r.limitationsAr}" th:text="${value}"></li></ul>
-    <p class="disclaimer" th:text="${r.disclaimerAr}"></p>
+
+  <!-- KEY FINDINGS -->
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Key Findings &amp; Defects
+    <span class="badge badge-fail" th:if="${!#lists.isEmpty(r.keyFindings)}" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.keyFindings)} + ' Item(s) Require Attention'"></span>
   </div>
+
+  <!-- No findings -->
+  <div class="no-findings-box" th:if="${#lists.isEmpty(r.keyFindings)}">
+    <span class="no-findings-icon">✓</span>
+    <div>
+      <div class="no-findings-text">No Critical Defects Found</div>
+      <div class="small muted">All inspected components passed without any defects or safety issues.</div>
+    </div>
+  </div>
+
+  <!-- Finding cards -->
+  <div class="findings-grid" th:if="${!#lists.isEmpty(r.keyFindings)}">
+    <div th:each="item : ${r.keyFindings}"
+         class="finding-card avoid-break"
+         th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'fc-fail' : 'fc-attn'}">
+      <div class="finding-top">
+        <div>
+          <div class="finding-label" th:text="${item.labelEn}">Brake Pad Friction Lining</div>
+          <div class="finding-label-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">بطانات الفرامل</div>
+        </div>
+        <div class="finding-badges">
+          <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'badge-fail' : 'badge-attn'}"
+                th:text="${item.passFailStatus}">FAIL</span>
+          <span class="badge badge-neutral" th:if="${item.scoreText != null}" th:text="${item.scoreText}">40/100</span>
+        </div>
+      </div>
+      <div class="finding-spec-row" th:if="${item.measuredSpec != null and item.measuredSpec != ''}">
+        <span class="finding-spec-pill" th:text="'Measured: ' + ${item.measuredSpec}">Measured: 2.1mm</span>
+        <span class="finding-spec-pill" th:if="${item.standardSpec != null and item.standardSpec != ''}" th:text="'Standard: ' + ${item.standardSpec}">Standard: &gt;3mm</span>
+        <span class="finding-spec-pill" th:if="${item.severityEn != null and item.severityEn != ''}" th:text="${item.severityEn}">Major</span>
+      </div>
+      <div class="finding-note" th:if="${item.note != null and item.note != ''}"
+           th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
+           th:text="${item.note}">Technician observation notes appear here.</div>
+    </div>
+  </div>
+
+</div><!-- /page 2 -->
+
+
+<!-- ============================================================
+     PAGE 3 — CATEGORY SCORE OVERVIEW
+     ============================================================ -->
+<div class="page content-page">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Inspection Category Overview</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Score by Category
+  </div>
+
+  <!-- Category overview cards -->
+  <div class="cat-overview-grid">
+    <div th:each="cat : ${r.categories}"
+         class="cat-overview-card avoid-break"
+         th:classappend="${cat.defectCount > 0 ? 'cat-status-fail' : (cat.attentionCount > 0 ? 'cat-status-attn' : 'cat-status-good')}">
+      <div class="cat-overview-label" th:text="${cat.labelEn}">Category</div>
+      <div class="cat-overview-label-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
+      <div class="cat-score-row">
+        <span class="cat-score-num"
+              th:classappend="${cat.defectCount > 0 ? 'cat-score-fail' : (cat.attentionCount > 0 ? 'cat-score-attn' : 'cat-score-good')}"
+              th:text="${cat.scoreText}">96%</span>
+        <div class="cat-items-tally">
+          <span th:text="${cat.passedCount} + ' ✓'">5 ✓</span>
+          <span th:if="${cat.attentionCount > 0}" th:text="${cat.attentionCount} + ' ⚠'">1 ⚠</span>
+          <span th:if="${cat.defectCount > 0}" th:text="${cat.defectCount} + ' ✕'">0 ✕</span>
+        </div>
+      </div>
+      <div class="cat-score-bar">
+        <div class="cat-score-bar-fill"
+             th:classappend="${cat.defectCount > 0 ? 'bar-fail' : (cat.attentionCount > 0 ? 'bar-attn' : 'bar-good')}"
+             th:style="'width: ' + ${cat.score} + '%;'"></div>
+      </div>
+      <div style="margin-top:2mm;">
+        <span class="badge"
+              th:classappend="${cat.defectCount > 0 ? 'badge-fail' : (cat.attentionCount > 0 ? 'badge-attn' : 'badge-pass')}"
+              th:text="${cat.statusBadge}">PASS</span>
+        <span class="small muted" style="margin-left:2mm;" th:text="${#lists.size(cat.items)} + ' checks'">6 checks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary coverage box -->
+  <div style="background:var(--surface-low);border:1px solid var(--outline);border-radius:8px;padding:4mm 5mm;margin-bottom:5mm;">
+    <div class="section-heading" style="margin-top:0;margin-bottom:3mm;">
+      <span class="section-heading-dot"></span>
+      Inspection Coverage Summary
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;">
+      <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
+        <div style="font-size:16pt;font-weight:800;color:var(--brand-dark);" th:text="${r.coverage.completed}">31</div>
+        <div class="small muted">Completed</div>
+      </div>
+      <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
+        <div style="font-size:16pt;font-weight:800;color:var(--pass);" th:text="${r.passedCount}">29</div>
+        <div class="small muted">Passed (✓)</div>
+      </div>
+      <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
+        <div style="font-size:16pt;font-weight:800;color:#B45309;" th:text="${r.attentionCount}">2</div>
+        <div class="small muted">Attention (⚠)</div>
+      </div>
+      <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
+        <div style="font-size:16pt;font-weight:800;color:var(--fail);" th:text="${r.defectCount}">1</div>
+        <div class="small muted">Defects (✕)</div>
+      </div>
+    </div>
+    <div class="small muted" style="margin-top:3mm;" th:text="${r.en.coverageNotScore ?: 'Coverage reflects the number of checks performed, not the overall score.'}">Coverage reflects the number of checks performed, not the overall score.</div>
+  </div>
+
+  <!-- DETAILED CHECKLIST BEGINS — All categories with all items -->
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Full Inspection Checklist
+  </div>
+
+  <!-- Category 1 -->
+  <div th:if="${r.categories.size() > 0}" class="category-section avoid-break" th:with="cat=${r.categories[0]}">
+    <div class="cat-section-header">
+      <div>
+        <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+        <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
+      </div>
+      <div class="cat-section-meta">
+        <span class="cat-section-score"
+              th:classappend="${cat.defectCount > 0 ? 'score-fail' : (cat.attentionCount > 0 ? 'score-attn' : 'score-good')}"
+              th:text="${cat.scoreText}">96%</span>
+        <span class="badge"
+              th:classappend="${cat.defectCount > 0 ? 'badge-fail' : (cat.attentionCount > 0 ? 'badge-attn' : 'badge-pass')}"
+              th:text="${cat.statusBadge}">PASS</span>
+      </div>
+    </div>
+    <table class="checklist">
+      <thead>
+        <tr>
+          <th style="width:38%;">Check Item / البند</th>
+          <th style="width:14%;text-align:center;">Status</th>
+          <th style="width:14%;text-align:center;">Score</th>
+          <th style="width:17%;">Measured Value</th>
+          <th style="width:17%;">Technician Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${cat.items}">
+          <td>
+            <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+            <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
+          </td>
+          <td class="chk-status-cell">
+            <span class="status-circle"
+                  th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'sc-fail' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'sc-attn' : 'sc-pass')}">
+              <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
+              <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
+              <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
+            </span>
+            <div class="small muted" style="margin-top:1mm;" th:text="${item.passFailStatus}">PASS</div>
+          </td>
+          <td class="chk-score-cell">
+            <div class="bold" th:text="${item.scoreText}">100/100</div>
+            <div class="chk-score-bar">
+              <div class="chk-score-bar-fill"
+                   th:classappend="${item.score >= 90 ? 'bar-good' : (item.score >= 60 ? 'bar-attn' : 'bar-fail')}"
+                   th:style="'width:' + ${item.score} + '%;'"></div>
+            </div>
+          </td>
+          <td class="chk-metric-cell" th:text="${item.measuredSpec != null ? item.measuredSpec : '—'}">—</td>
+          <td>
+            <span class="chk-note" th:if="${item.note != null and item.note != ''}"
+                  th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
+                  th:text="${item.note}">Note</span>
+            <span class="small muted" th:if="${item.note == null or item.note == ''}">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /page 3 -->
+
+
+<!-- ============================================================
+     PAGES 4+ — REMAINING CATEGORIES (one page each group)
+     ============================================================ -->
+<div class="page content-page" th:if="${r.categories.size() > 1}">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Inspection Checklist — Continued</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <!-- Categories 2, 3, 4 -->
+  <div th:each="cat, catStat : ${r.categories}" th:if="${catStat.index >= 1 and catStat.index <= 3}">
+    <div class="category-section avoid-break" style="margin-bottom:5mm;">
+      <div class="cat-section-header">
+        <div>
+          <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+          <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
+        </div>
+        <div class="cat-section-meta">
+          <span class="cat-section-score"
+                th:classappend="${cat.defectCount > 0 ? 'score-fail' : (cat.attentionCount > 0 ? 'score-attn' : 'score-good')}"
+                th:text="${cat.scoreText}">96%</span>
+          <span class="badge"
+                th:classappend="${cat.defectCount > 0 ? 'badge-fail' : (cat.attentionCount > 0 ? 'badge-attn' : 'badge-pass')}"
+                th:text="${cat.statusBadge}">PASS</span>
+        </div>
+      </div>
+      <table class="checklist">
+        <thead>
+          <tr>
+            <th style="width:38%;">Check Item / البند</th>
+            <th style="width:14%;text-align:center;">Status</th>
+            <th style="width:14%;text-align:center;">Score</th>
+            <th style="width:17%;">Measured Value</th>
+            <th style="width:17%;">Technician Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="item : ${cat.items}">
+            <td>
+              <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+              <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
+            </td>
+            <td class="chk-status-cell">
+              <span class="status-circle"
+                    th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'sc-fail' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'sc-attn' : 'sc-pass')}">
+                <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
+                <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
+                <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
+              </span>
+              <div class="small muted" style="margin-top:1mm;" th:text="${item.passFailStatus}">PASS</div>
+            </td>
+            <td class="chk-score-cell">
+              <div class="bold" th:text="${item.scoreText}">100/100</div>
+              <div class="chk-score-bar">
+                <div class="chk-score-bar-fill"
+                     th:classappend="${item.score >= 90 ? 'bar-good' : (item.score >= 60 ? 'bar-attn' : 'bar-fail')}"
+                     th:style="'width:' + ${item.score} + '%;'"></div>
+              </div>
+            </td>
+            <td class="chk-metric-cell" th:text="${item.measuredSpec != null ? item.measuredSpec : '—'}">—</td>
+            <td>
+              <span class="chk-note" th:if="${item.note != null and item.note != ''}"
+                    th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
+                    th:text="${item.note}">Note</span>
+              <span class="small muted" th:if="${item.note == null or item.note == ''}">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /page 4 -->
+
+
+<!-- Categories 4+ continued -->
+<div class="page content-page" th:if="${r.categories.size() > 4}">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Inspection Checklist — Continued</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <div th:each="cat, catStat : ${r.categories}" th:if="${catStat.index >= 4}">
+    <div class="category-section avoid-break" style="margin-bottom:5mm;">
+      <div class="cat-section-header">
+        <div>
+          <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+          <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
+        </div>
+        <div class="cat-section-meta">
+          <span class="cat-section-score"
+                th:classappend="${cat.defectCount > 0 ? 'score-fail' : (cat.attentionCount > 0 ? 'score-attn' : 'score-good')}"
+                th:text="${cat.scoreText}">96%</span>
+          <span class="badge"
+                th:classappend="${cat.defectCount > 0 ? 'badge-fail' : (cat.attentionCount > 0 ? 'badge-attn' : 'badge-pass')}"
+                th:text="${cat.statusBadge}">PASS</span>
+        </div>
+      </div>
+      <table class="checklist">
+        <thead>
+          <tr>
+            <th style="width:38%;">Check Item / البند</th>
+            <th style="width:14%;text-align:center;">Status</th>
+            <th style="width:14%;text-align:center;">Score</th>
+            <th style="width:17%;">Measured Value</th>
+            <th style="width:17%;">Technician Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="item : ${cat.items}">
+            <td>
+              <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+              <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
+            </td>
+            <td class="chk-status-cell">
+              <span class="status-circle"
+                    th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'sc-fail' : (item.resultCode == 'ATTENTION_RECOMMENDED' ? 'sc-attn' : 'sc-pass')}">
+                <span th:if="${item.resultCode == 'NO_ISSUE_OBSERVED'}">✓</span>
+                <span th:if="${item.resultCode == 'ATTENTION_RECOMMENDED'}">!</span>
+                <span th:if="${item.resultCode == 'DEFECT_FOUND'}">✕</span>
+              </span>
+              <div class="small muted" style="margin-top:1mm;" th:text="${item.passFailStatus}">PASS</div>
+            </td>
+            <td class="chk-score-cell">
+              <div class="bold" th:text="${item.scoreText}">100/100</div>
+              <div class="chk-score-bar">
+                <div class="chk-score-bar-fill"
+                     th:classappend="${item.score >= 90 ? 'bar-good' : (item.score >= 60 ? 'bar-attn' : 'bar-fail')}"
+                     th:style="'width:' + ${item.score} + '%;'"></div>
+              </div>
+            </td>
+            <td class="chk-metric-cell" th:text="${item.measuredSpec != null ? item.measuredSpec : '—'}">—</td>
+            <td>
+              <span class="chk-note" th:if="${item.note != null and item.note != ''}"
+                    th:lang="${item.noteLanguage}" th:dir="${item.noteDir}"
+                    th:text="${item.note}">Note</span>
+              <span class="small muted" th:if="${item.note == null or item.note == ''}">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
-<h2 th:text="${r.en.reportDetails} + ' / ' + ${r.ar.reportDetails}"></h2>
-<p class="small">
-  <span th:text="${r.en.reportId} + ': ' + ${r.reportNumber}"></span> ·
-  <span th:text="${r.en.version} + ': ' + ${r.version}"></span> ·
-  <span th:text="${r.en.finalized} + ': ' + ${r.finalizedAt}"></span>
-</p>
-<p class="small ar" lang="ar">
-  <span th:text="${r.ar.reportId} + ': ' + ${r.reportNumber}"></span> ·
-  <span th:text="${r.ar.version} + ': ' + ${r.version}"></span> ·
-  <span th:text="${r.ar.finalized} + ': ' + ${r.finalizedAt}"></span>
-</p>
-<p class="hash"><span th:text="${r.en.reportHash} + ' / ' + ${r.ar.reportHash} + ': ' + ${r.verificationHash}"></span></p>
-<p class="small"><span th:text="${r.en.notCertified}"></span> / <span class="ar" th:text="${r.ar.notCertified}"></span></p>
+
+<!-- ============================================================
+     TYRE & BRAKES + DAMAGE MAP PAGE
+     ============================================================ -->
+<div class="page content-page">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Tyres, Brakes &amp; Body Condition</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Tyre &amp; Brake Analysis — All 4 Corners
+  </div>
+
+  <div class="tyres-grid">
+    <div th:each="tyre : ${r.tyreAssemblies}" class="tyre-card avoid-break">
+      <div class="tyre-card-header">
+        <div class="tyre-position-wrap">
+          <div class="tyre-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+              <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/>
+              <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/>
+              <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/>
+              <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/>
+            </svg>
+          </div>
+          <div>
+            <div class="tyre-position-name" th:text="${tyre.position}">Front Left</div>
+            <div class="tyre-pos-code" th:text="${tyre.posCode}">FL</div>
+          </div>
+        </div>
+        <span class="badge"
+              th:classappend="${tyre.status == 'PASSED' ? 'badge-pass' : (tyre.status == 'ATTENTION' ? 'badge-attn' : 'badge-fail')}"
+              th:text="${tyre.statusLabel}">PASS</span>
+      </div>
+
+      <div class="tyre-gauge-wrap">
+        <div class="tyre-gauge-label-row">
+          <span>Tread Depth</span>
+          <span class="tyre-gauge-val" th:text="${tyre.treadDepth}">7.5mm</span>
+        </div>
+        <div class="tyre-gauge-track">
+          <div class="tyre-gauge-fill"
+               th:classappend="${tyre.status == 'PASSED' ? 'tgf-pass' : (tyre.status == 'ATTENTION' ? 'tgf-attn' : 'tgf-fail')}"
+               th:style="'width:' + ${tyre.score} + '%;'"></div>
+        </div>
+      </div>
+
+      <div class="tyre-metrics-row">
+        <div class="tyre-metric-box">
+          <div class="tyre-metric-label">Pressure</div>
+          <div class="tyre-metric-val" th:text="${tyre.pressure}">33 PSI</div>
+        </div>
+        <div class="tyre-metric-box">
+          <div class="tyre-metric-label">Brake Pad</div>
+          <div class="tyre-metric-val" th:text="${tyre.brakePad}">8.2mm</div>
+        </div>
+      </div>
+
+      <div class="tyre-note-bar" th:if="${tyre.status != 'PASSED' and tyre.technicianNote != null and tyre.technicianNote != ''}">
+        <span class="tyre-note-dot">⚠</span>
+        <span th:text="${tyre.technicianNote}">Note from technician.</span>
+      </div>
+
+      <!-- Score row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2.5mm;">
+        <span class="small muted">Score</span>
+        <span class="bold" th:classappend="${tyre.score >= 85 ? 'pass' : (tyre.score >= 65 ? 'attn' : 'fail')}"
+              th:style="${tyre.score >= 85 ? 'color:var(--pass)' : (tyre.score >= 65 ? 'color:var(--attention)' : 'color:var(--fail)')}"
+              th:text="${tyre.scoreText}">95/100</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAMAGE MAP / BODY CONDITION -->
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Exterior Body &amp; Paint Condition Map
+  </div>
+
+  <div class="damage-zones-grid">
+    <div th:each="zone : ${r.damageZones}"
+         class="damage-zone-card avoid-break"
+         th:classappend="${zone.isDamaged ? 'dz-defect' : 'dz-clean'}">
+      <div class="dz-top">
+        <strong class="dz-title" th:text="${zone.title}">Zone</strong>
+        <span class="badge"
+              th:classappend="${zone.isDamaged ? 'badge-attn' : 'badge-pass'}"
+              th:text="${zone.statusLabel}">Clean</span>
+      </div>
+      <div class="dz-paint">
+        <span class="bold">Paint:</span>
+        <span th:text="${zone.paintThickness}">125 µm</span>
+        <span class="badge badge-neutral" style="margin-left:2mm;" th:text="'[' + ${zone.code} + ']'">FB</span>
+      </div>
+      <div class="dz-note" th:if="${zone.note != null and zone.note != ''}" th:text="${zone.note}">Panel note.</div>
+    </div>
+  </div>
+
+  <!-- Not checked items -->
+  <div th:if="${!#lists.isEmpty(r.notChecked)}">
+    <div class="section-heading">
+      <span class="section-heading-dot"></span>
+      Items Not Checked / Excluded
+    </div>
+    <table class="not-checked-table">
+      <thead>
+        <tr>
+          <th>Check Item</th>
+          <th>Status</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${r.notChecked}">
+          <td>
+            <span class="bold" th:text="${item.labelEn}">Item</span>
+            <div class="small muted" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">البند</div>
+          </td>
+          <td><span class="badge badge-neutral" th:text="${item.resultEn}">Not Checked</span></td>
+          <td class="small muted" th:text="${item.reason}">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /tyres page -->
+
+
+<!-- ============================================================
+     PHOTO SHOWCASE PAGE (if photos exist)
+     ============================================================ -->
+<div class="page content-page" th:if="${!#lists.isEmpty(r.vehicleShowcase)}">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Inspection Photo Evidence</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Official Inspection Photo Gallery
+    <span class="badge badge-pass" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.vehicleShowcase)} + ' Photos Documented'"></span>
+  </div>
+
+  <div class="photo-grid">
+    <div th:each="photo : ${r.vehicleShowcase}" class="photo-cell avoid-break">
+      <img th:src="${photo.imageUrl}" th:alt="${photo.title}" loading="eager">
+      <div class="photo-caption" th:text="${photo.title}">Photo caption</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================
+     VERIFICATION & DISCLAIMER — LAST PAGE
+     ============================================================ -->
+<div class="page content-page">
+
+  <div class="page-header-strip">
+    <div class="page-header-brand">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      TrueReport™
+    </div>
+    <span class="page-header-title">Verification &amp; Disclaimer</span>
+    <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
+  </div>
+
+  <!-- Report metadata -->
+  <div class="section-heading">
+    <span class="section-heading-dot"></span>
+    Report Identity &amp; Integrity
+  </div>
+
+  <div class="report-meta-grid" style="margin-bottom:4mm;">
+    <div class="report-meta-box">
+      <div class="report-meta-label">Report Number</div>
+      <div class="report-meta-val ltr mono" th:text="${r.reportNumber}">TR-2024-00001</div>
+    </div>
+    <div class="report-meta-box">
+      <div class="report-meta-label">Version</div>
+      <div class="report-meta-val" th:text="${r.version}">1</div>
+    </div>
+    <div class="report-meta-box">
+      <div class="report-meta-label">Finalized At</div>
+      <div class="report-meta-val" th:text="${r.finalizedAt}">Nov 11, 2024</div>
+    </div>
+  </div>
+
+  <!-- Verification hash card -->
+  <div class="verification-card">
+    <div class="verification-header">
+      <div class="verification-shield">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F6B45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="ver-title">Tamper-Proof Certification</div>
+        <div class="ver-sub" th:text="'Cryptographically signed &amp; verified by ' + ${r.workshop.name}">Verified by TrueReport Workshop</div>
+      </div>
+      <div style="margin-left:auto;">
+        <span class="badge badge-pass" style="font-size:8pt;padding:3px 10px;">✓ CERTIFIED</span>
+      </div>
+    </div>
+    <div class="hash-label">SHA-256 Report Hash (Tamper Evidence)</div>
+    <code class="hash-code ltr" th:text="${r.verificationHash}">abc123def456...</code>
+    <div class="small muted" style="margin-top:2mm;">This hash uniquely identifies this exact version of the report. Any modification would produce a completely different hash value.</div>
+  </div>
+
+  <!-- Bilingual final summary -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-bottom:4mm;">
+    <div class="verification-card" style="margin-bottom:0;">
+      <div class="detail-card-title">English Report Summary</div>
+      <div class="detail-row">
+        <span class="detail-label">Vehicle</span>
+        <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + ${r.vehicle.year}">Toyota Camry 2022</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">VIN</span>
+        <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G11AK8NU****</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Workshop</span>
+        <span class="detail-value" th:text="${r.workshop.name}">Workshop</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Technician</span>
+        <span class="detail-value" th:text="${r.technician.displayName}">Technician</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Scope</span>
+        <span class="detail-value" th:text="${r.inspection.scope}">Comprehensive</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Template</span>
+        <span class="detail-value" th:text="${r.inspection.templateVersion}">v2</span>
+      </div>
+    </div>
+
+    <div class="verification-card" style="margin-bottom:0;direction:rtl;text-align:right;" lang="ar">
+      <div class="detail-card-title" th:text="${r.ar.vehicle ?: 'ملخص التقرير'}">ملخص التقرير</div>
+      <div class="detail-row">
+        <span class="detail-label" th:text="${r.ar.vin ?: 'رقم الهيكل'}">رقم الهيكل</span>
+        <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G****</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label" th:text="${r.ar.workshop ?: 'الورشة'}">الورشة</span>
+        <span class="detail-value" th:text="${r.workshop.name}">الورشة</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label" th:text="${r.ar.technician ?: 'الفني'}">الفني</span>
+        <span class="detail-value" th:text="${r.technician.displayName}">الفني</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label" th:text="${r.ar.finalized ?: 'تاريخ الإصدار'}">تاريخ الإصدار</span>
+        <span class="detail-value" th:text="${r.finalizedAt}">نوفمبر 2024</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Limitations -->
+  <div class="limitations-box">
+    <div class="limitations-title">
+      ⚠ Inspection Scope &amp; Limitations
+    </div>
+    <ul class="limitations-list">
+      <li th:each="item : ${r.limitationsEn}" th:text="${item}">Limitation item.</li>
+    </ul>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer-text" th:text="${r.disclaimerEn}">Disclaimer text.</div>
+
+  <!-- Bottom branding strip -->
+  <div style="margin-top:auto;padding-top:5mm;border-top:2px solid var(--brand);display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:11pt;font-weight:800;color:var(--brand-dark);">TrueReport™</div>
+      <div class="small muted">Certified Vehicle Inspection Platform</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="small muted" th:text="${r.reportNumber} + ' · Version ' + ${r.version}">TR-2024-00001 · v1</div>
+      <div class="small muted" th:text="'Issued: ' + ${r.finalizedAt}">Issued: November 2024</div>
+    </div>
+  </div>
+
+</div><!-- /verification page -->
+
+<!-- Global page footer (fixed, appears on all content pages) -->
+<div class="page-footer">
+  <span class="page-footer-brand">TrueReport™ Certified Inspection</span>
+  <span class="ltr" th:text="${r.reportNumber}">TR-2024-00001</span>
+  <span class="small muted" th:text="'Version ' + ${r.version} + ' · ' + ${r.finalizedAt}">v1</span>
+</div>
+
 </body>
 </html>

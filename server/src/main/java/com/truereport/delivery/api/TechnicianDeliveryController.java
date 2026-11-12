@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/technician/jobs/{jobId}/deliveries")
+@RequestMapping("/api/v1/technician/legacy/jobs/{jobId}/deliveries")
 @PreAuthorize("hasRole('TECHNICIAN')")
 public class TechnicianDeliveryController {
 

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
-import '../../components/platform_header.dart';
-import '../../components/platform_sidebar.dart';
+
+import '../../components/platform_buttons.dart';
+import '../../components/platform_dialogs.dart';
+import '../../components/platform_form.dart';
+import '../../components/platform_shell.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../languages/languages_screen.dart';
 
 class PlatformSettingsScreen extends ConsumerStatefulWidget {
   const PlatformSettingsScreen({super.key});
@@ -14,7 +19,8 @@ class PlatformSettingsScreen extends ConsumerStatefulWidget {
       _PlatformSettingsScreenState();
 }
 
-class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen> {
+class _PlatformSettingsScreenState
+    extends ConsumerState<PlatformSettingsScreen> {
   // Localization states
   bool _arabicRtlEnabled = true;
   bool _spanishEnabled = true;
@@ -29,6 +35,46 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
   // Automated Fleet Dispatch & Webhooks states
   bool _telematicsIngestion = true;
   bool _instantPdfGeneration = true;
+
+  // Developer seed state (moved out of the Checklist UI).
+  bool _seeding = false;
+
+  Future<void> _seedChecklist() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showPlatformConfirmDialog(
+      context: context,
+      title: l10n.seedDefaultChecklist,
+      body: l10n.seedConfirm,
+      confirmLabel: l10n.save,
+    );
+    if (confirmed != true) return;
+    setState(() => _seeding = true);
+    try {
+      final result = await ref.read(platformConfigActionsProvider).seed();
+      if (!mounted) return;
+      _showSeedMessage(l10n.seedSuccess(result.created, result.skipped));
+    } catch (error) {
+      if (!mounted) return;
+      _showSeedMessage('${l10n.seedFailed}: $error', isError: true);
+    } finally {
+      if (mounted) setState(() => _seeding = false);
+    }
+  }
+
+  void _showSeedMessage(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isError ? PtTheme.rose : PtTheme.deepGreen,
+        content: Text(
+          message,
+          style: PtTheme.font(13, lineHeight: 18, color: PtTheme.white),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
   void _discardChanges() {
     setState(() {
@@ -45,7 +91,10 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          Localizations.of<AppLocalizations>(context, AppLocalizations)?.preferencesReset ??
+          Localizations.of<AppLocalizations>(
+                context,
+                AppLocalizations,
+              )?.preferencesReset ??
               'Preferences reset to default values.',
         ),
         duration: const Duration(seconds: 2),
@@ -58,7 +107,10 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
       SnackBar(
         key: const Key('snackbar-save-settings'),
         content: Text(
-          Localizations.of<AppLocalizations>(context, AppLocalizations)?.preferencesSaved ??
+          Localizations.of<AppLocalizations>(
+                context,
+                AppLocalizations,
+              )?.preferencesSaved ??
               'Platform preferences saved and propagated to edge nodes!',
         ),
         backgroundColor: PtTheme.emerald,
@@ -69,77 +121,67 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 900;
-        final isCompact = constraints.maxWidth < 620;
+    return PlatformShell(
+      currentRoute: '/settings',
+      showSearch: false,
+      child: PlatformPage(
+        maxWidth: 1040,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 620;
 
-        return Scaffold(
-          backgroundColor: PtTheme.white,
-          body: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isDesktop)
-                const PlatformSidebar(currentRoute: '/settings'),
-              Expanded(
-                child: Column(
-                  children: [
-                    const PlatformHeader(),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isCompact ? 16 : 32,
-                          vertical: 24,
-                        ),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1040),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // 1. Header & Scope Badge
-                                _buildHeaderSection(isCompact),
-                                const SizedBox(height: 24),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Header & Scope Badge
+                _buildHeaderSection(isCompact),
+                const SizedBox(height: 24),
 
-                                // 2. Main Settings Cards (Bento layout)
-                                if (constraints.maxWidth >= 960)
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(child: _buildLocalizationCard()),
-                                      const SizedBox(width: 24),
-                                      Expanded(child: _buildSecurityCard()),
-                                    ],
-                                  )
-                                else ...[
-                                  _buildLocalizationCard(),
-                                  const SizedBox(height: 20),
-                                  _buildSecurityCard(),
-                                ],
-
-                                const SizedBox(height: 24),
-
-                                // 3. Automated Fleet Dispatch & Webhooks (Full-width spanning)
-                                _buildWebhooksCard(isCompact),
-
-                                const SizedBox(height: 32),
-
-                                // 4. Action Bar / Bottom Confirmation
-                                _buildActionBar(isCompact),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                // 2. Languages & Coverage summary (sub-page: /settings/languages)
+                // Kept prominent at the top: it is the entry point to the
+                // language registry, translation coverage and queue.
+                LanguagesCoverageSummaryCard(
+                  onOpen: () => context.go('/settings/languages'),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+
+                const SizedBox(height: 24),
+
+                // 3. Main Settings Cards (Bento layout)
+                if (constraints.maxWidth >= 960)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildLocalizationCard()),
+                      const SizedBox(width: 24),
+                      Expanded(child: _buildSecurityCard()),
+                    ],
+                  )
+                else ...[
+                  _buildLocalizationCard(),
+                  const SizedBox(height: 20),
+                  _buildSecurityCard(),
+                ],
+
+                const SizedBox(height: 24),
+
+                // 4. Automated Fleet Dispatch & Webhooks (Full-width spanning)
+                _buildWebhooksCard(isCompact),
+
+                const SizedBox(height: 24),
+
+                // 5. Developer seed section (moved out of the Checklist UI).
+                _buildDeveloperCard(),
+
+                const SizedBox(height: 32),
+
+                // 6. Action Bar / Bottom Confirmation
+                _buildActionBar(isCompact),
+                const SizedBox(height: 16),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -149,6 +191,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
       children: [
         Text(
           'CONFIGURATION SCOPE • GLOBAL ROOT',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
             11,
             lineHeight: 14,
@@ -160,6 +204,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
         const SizedBox(height: 6),
         Text(
           'Platform Settings',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
             isCompact ? 22 : 28,
             lineHeight: 34,
@@ -171,6 +217,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
         const SizedBox(height: 4),
         Text(
           'Global runtime policies, regional localizations, and system authentication rules',
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
             13,
             lineHeight: 18,
@@ -197,22 +245,21 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
             decoration: const BoxDecoration(
               color: PtTheme.emerald,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x6610B981),
-                  blurRadius: 6,
-                ),
-              ],
+              boxShadow: [BoxShadow(color: Color(0x6610B981), blurRadius: 6)],
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            'Production Cluster EU-West',
-            style: PtTheme.font(
-              12,
-              lineHeight: 16,
-              weight: FontWeight.w600,
-              color: PtTheme.ink,
+          Flexible(
+            child: Text(
+              'Production Cluster EU-West',
+              style: PtTheme.font(
+                12,
+                lineHeight: 16,
+                weight: FontWeight.w600,
+                color: PtTheme.ink,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -222,17 +269,12 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     if (isCompact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          titleBlock,
-          const SizedBox(height: 14),
-          envBadge,
-        ],
+        children: [titleBlock, const SizedBox(height: 14), envBadge],
       );
     }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(child: titleBlock),
         const SizedBox(width: 16),
@@ -242,20 +284,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
   }
 
   Widget _buildLocalizationCard() {
-    return Container(
+    return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: PtTheme.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,6 +315,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                   children: [
                     Text(
                       'Localization',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         16,
                         lineHeight: 22,
@@ -295,6 +327,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                     const SizedBox(height: 2),
                     Text(
                       'Multilingual dictionary & typography sets',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -306,8 +340,10 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: PtTheme.canvas,
                   borderRadius: BorderRadius.circular(9999),
@@ -333,26 +369,46 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
           // Toggles
           _buildToggleRow(
             key: const Key('switch-arabic-rtl'),
-            header: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableArabicRtl ??
+            header:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableArabicRtl ??
                 'Enable Arabic (RTL) Localization',
-            description: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableArabicRtlDesc ??
+            description:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableArabicRtlDesc ??
                 'Auto-reverses layout coordinates and inspector forms',
             value: _arabicRtlEnabled,
             onChanged: (val) {
               setState(() => _arabicRtlEnabled = val);
               if (val) {
-                ref.read(platformLocaleProvider.notifier).setLocale(const Locale('ar'));
+                ref
+                    .read(platformLocaleProvider.notifier)
+                    .setLocale(const Locale('ar'));
               } else {
-                ref.read(platformLocaleProvider.notifier).setLocale(const Locale('en'));
+                ref
+                    .read(platformLocaleProvider.notifier)
+                    .setLocale(const Locale('en'));
               }
             },
           ),
           const SizedBox(height: 16),
           _buildToggleRow(
             key: const Key('switch-spanish'),
-            header: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableSpanish ??
+            header:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableSpanish ??
                 'Enable Spanish Support',
-            description: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableSpanishDesc ??
+            description:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableSpanishDesc ??
                 'Workshop regional standard (es-MX / es-ES)',
             value: _spanishEnabled,
             onChanged: (val) => setState(() => _spanishEnabled = val),
@@ -360,9 +416,17 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
           const SizedBox(height: 16),
           _buildToggleRow(
             key: const Key('switch-french'),
-            header: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableFrench ??
+            header:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableFrench ??
                 'Enable French Support',
-            description: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enableFrenchDesc ??
+            description:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enableFrenchDesc ??
                 'Quebec & European fleet inspection checklists',
             value: _frenchEnabled,
             onChanged: (val) => setState(() => _frenchEnabled = val),
@@ -390,6 +454,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                 Expanded(
                   child: Text(
                     'Activating a regional dialect dynamically triggers localized font subset packages via the Edge CDN to preserve 60fps rendering speed in field mobile devices.',
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
                     style: PtTheme.font(
                       11,
                       lineHeight: 16,
@@ -407,20 +473,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
   }
 
   Widget _buildSecurityCard() {
-    return Container(
+    return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: PtTheme.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -450,6 +504,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                   children: [
                     Text(
                       'Security & Access',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         16,
                         lineHeight: 22,
@@ -460,6 +516,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                     const SizedBox(height: 2),
                     Text(
                       'Zero-trust technician permissions & token life',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -479,88 +537,76 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
 
           // Control 1: Session Timeout
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Admin Session Timeout',
-                      style: PtTheme.font(
-                        14,
-                        lineHeight: 20,
-                        weight: FontWeight.w600,
-                        color: PtTheme.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Automatic revocation after period of inactivity',
-                      style: PtTheme.font(
-                        12,
-                        lineHeight: 16,
-                        weight: FontWeight.w400,
-                        color: PtTheme.muted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                height: 34,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: PtTheme.canvas,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: PtTheme.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    key: const Key('dropdown-session-timeout'),
-                    value: _sessionTimeout,
-                    icon: const Icon(Icons.arrow_drop_down, color: PtTheme.muted),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    'Automatic revocation after period of inactivity',
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: PtTheme.font(
                       12,
                       lineHeight: 16,
-                      weight: FontWeight.w600,
-                      color: PtTheme.ink,
+                      weight: FontWeight.w400,
+                      color: PtTheme.muted,
                     ),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _sessionTimeout = val);
-                    },
-                    items: [
-                      DropdownMenuItem(
-                        value: '15 Minutes',
-                        child: Text(
-                          Localizations.of<AppLocalizations>(context, AppLocalizations)?.fifteenMinutes ??
-                              '15 Minutes',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: '30 Minutes',
-                        child: Text(
-                          Localizations.of<AppLocalizations>(context, AppLocalizations)?.thirtyMinutes ??
-                              '30 Minutes',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: '1 Hour',
-                        child: Text(
-                          Localizations.of<AppLocalizations>(context, AppLocalizations)?.oneHour ??
-                              '1 Hour',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: '4 Hours',
-                        child: Text(
-                          Localizations.of<AppLocalizations>(context, AppLocalizations)?.fourHours ??
-                              '4 Hours',
-                        ),
-                      ),
-                    ],
                   ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 200),
+                child: PlatformDropdown<String>(
+                  key: const Key('dropdown-session-timeout'),
+                  label: 'Admin Session Timeout',
+                  value: _sessionTimeout,
+                  onChanged: (val) {
+                    if (val != null) setState(() => _sessionTimeout = val);
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: '15 Minutes',
+                      child: Text(
+                        Localizations.of<AppLocalizations>(
+                              context,
+                              AppLocalizations,
+                            )?.fifteenMinutes ??
+                            '15 Minutes',
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: '30 Minutes',
+                      child: Text(
+                        Localizations.of<AppLocalizations>(
+                              context,
+                              AppLocalizations,
+                            )?.thirtyMinutes ??
+                            '30 Minutes',
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: '1 Hour',
+                      child: Text(
+                        Localizations.of<AppLocalizations>(
+                              context,
+                              AppLocalizations,
+                            )?.oneHour ??
+                            '1 Hour',
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: '4 Hours',
+                      child: Text(
+                        Localizations.of<AppLocalizations>(
+                              context,
+                              AppLocalizations,
+                            )?.fourHours ??
+                            '4 Hours',
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -571,9 +617,17 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
           // Control 2: 2FA
           _buildToggleRow(
             key: const Key('switch-2fa'),
-            header: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enforce2fa ??
+            header:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enforce2fa ??
                 'Enforce 2FA (TOTP) for All Admins',
-            description: Localizations.of<AppLocalizations>(context, AppLocalizations)?.enforce2faDesc ??
+            description:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.enforce2faDesc ??
                 'Mandatory hardware security key or authenticator app',
             value: _enforce2fa,
             onChanged: (val) => setState(() => _enforce2fa = val),
@@ -584,9 +638,17 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
           // Control 3: IP Restriction Whitelist
           _buildToggleRow(
             key: const Key('switch-ip-whitelist'),
-            header: Localizations.of<AppLocalizations>(context, AppLocalizations)?.ipWhitelist ??
+            header:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.ipWhitelist ??
                 'IP Restriction Whitelist',
-            description: Localizations.of<AppLocalizations>(context, AppLocalizations)?.ipWhitelistDesc ??
+            description:
+                Localizations.of<AppLocalizations>(
+                  context,
+                  AppLocalizations,
+                )?.ipWhitelistDesc ??
                 'Limit console access strictly to corporate diagnostic VPNs',
             value: _ipWhitelistEnabled,
             onChanged: (val) => setState(() => _ipWhitelistEnabled = val),
@@ -611,7 +673,10 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
               ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: PtTheme.canvas,
                   borderRadius: BorderRadius.circular(6),
@@ -636,20 +701,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
   }
 
   Widget _buildWebhooksCard(bool isCompact) {
-    return Container(
+    return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: PtTheme.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -679,6 +732,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                   children: [
                     Text(
                       'Automated Fleet Dispatch & Webhooks',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         16,
                         lineHeight: 22,
@@ -689,6 +744,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                     const SizedBox(height: 2),
                     Text(
                       'Event pipeline, real-time OBD relays, and customer certificate exports',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -701,8 +758,10 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
               ),
               if (!isCompact)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: PtTheme.canvas,
                     borderRadius: BorderRadius.circular(9999),
@@ -761,6 +820,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                       children: [
                         Text(
                           'Real-Time Telematics Ingestion',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
                             14,
                             lineHeight: 20,
@@ -770,7 +831,9 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: PtTheme.emerald.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
@@ -790,6 +853,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                     const SizedBox(height: 2),
                     Text(
                       'Stream vehicle CAN-bus diagnostics and mileage counters live during visual lane walks.',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -827,6 +892,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                       children: [
                         Text(
                           'Instant PDF Generation On Sign-Off',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
                             14,
                             lineHeight: 20,
@@ -836,7 +903,9 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: PtTheme.canvas,
                             borderRadius: BorderRadius.circular(4),
@@ -857,6 +926,8 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
                     const SizedBox(height: 2),
                     Text(
                       'Compile comprehensive inspection reports with embedded damage markup photos upon technician sign.',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -888,43 +959,125 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 44),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  header,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: PtTheme.font(
+                    14,
+                    lineHeight: 20,
+                    weight: FontWeight.w600,
+                    color: PtTheme.ink,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: PtTheme.font(
+                    12,
+                    lineHeight: 16,
+                    weight: FontWeight.w400,
+                    color: PtTheme.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Switch.adaptive(
+            key: key,
+            value: value,
+            activeTrackColor: PtTheme.deepGreen,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeveloperCard() {
+    final l10n = AppLocalizations.of(context);
+    return PlatformSectionCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                header,
-                style: PtTheme.font(
-                  14,
-                  lineHeight: 20,
-                  weight: FontWeight.w600,
-                  color: PtTheme.ink,
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: PtTheme.canvas,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.cloud_download_outlined,
+                    color: PtTheme.deepGreen,
+                    size: 20,
+                  ),
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                description,
-                style: PtTheme.font(
-                  12,
-                  lineHeight: 16,
-                  weight: FontWeight.w400,
-                  color: PtTheme.muted,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.seedDefaultChecklist,
+                      style: PtTheme.font(
+                        16,
+                        lineHeight: 22,
+                        weight: FontWeight.w700,
+                        color: PtTheme.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.seedConfirm,
+                      style: PtTheme.font(
+                        12,
+                        lineHeight: 16,
+                        weight: FontWeight.w400,
+                        color: PtTheme.muted,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(width: 12),
-        Switch.adaptive(
-          key: key,
-          value: value,
-          activeTrackColor: PtTheme.deepGreen,
-          onChanged: onChanged,
-        ),
-      ],
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              PlatformPrimaryButton(
+                key: const Key('btn-developer-seed'),
+                label: l10n.seedDefaultChecklist,
+                icon: Icons.cloud_download_outlined,
+                isLoading: _seeding,
+                onPressed: _seeding ? null : _seedChecklist,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -932,15 +1085,13 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     final note = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
-          Icons.cloud_done_rounded,
-          size: 16,
-          color: PtTheme.muted,
-        ),
+        const Icon(Icons.cloud_done_rounded, size: 16, color: PtTheme.muted),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             'All changes sync immediately to edge nodes upon save',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: PtTheme.font(
               12,
               lineHeight: 16,
@@ -955,53 +1106,17 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     final actions = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Discard Button
-        OutlinedButton(
+        PlatformSecondaryButton(
           key: const Key('btn-discard-settings'),
+          label: 'Discard',
           onPressed: _discardChanges,
-          style: OutlinedButton.styleFrom(
-            backgroundColor: PtTheme.canvas,
-            foregroundColor: PtTheme.ink,
-            side: const BorderSide(color: PtTheme.border),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text(
-            'Discard',
-            style: PtTheme.font(
-              13,
-              lineHeight: 18,
-              weight: FontWeight.w600,
-              color: PtTheme.ink,
-            ),
-          ),
         ),
         const SizedBox(width: 12),
-
-        // Save Button (Chunky Solid Emerald CTA)
-        ElevatedButton.icon(
+        PlatformPrimaryButton(
           key: const Key('btn-save-settings'),
+          label: 'Save Platform Preferences',
+          icon: Icons.check_rounded,
           onPressed: _savePreferences,
-          icon: const Icon(Icons.check_rounded, size: 18, color: PtTheme.white),
-          label: Text(
-            'Save Platform Preferences',
-            style: PtTheme.font(
-              13,
-              lineHeight: 18,
-              weight: FontWeight.w600,
-              color: PtTheme.white,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: PtTheme.emerald,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
         ),
       ],
     );
@@ -1022,9 +1137,9 @@ class _PlatformSettingsScreenState extends ConsumerState<PlatformSettingsScreen>
     }
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Flexible(child: note),
+        Expanded(child: note),
         const SizedBox(width: 16),
         actions,
       ],

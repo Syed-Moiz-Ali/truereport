@@ -1,0 +1,666 @@
+{
+  "generatedAt": "2026-11-12T11:01:44.620Z",
+  "category": {
+    "id": "01a1cf6a-e201-7a9f-a175-1c2e4691e416",
+    "slug": "LIVE-CAT-1794481240641",
+    "status": "ACTIVE",
+    "sortOrder": 9,
+    "labelEn": "Live Category 1794481240641",
+    "labelAr": "فئة مباشرة 1794481240641",
+    "itemCount": 1,
+    "code": "LIVE-CAT-1794481240641",
+    "active": true
+  },
+  "item": {
+    "id": "01a1cf6b-0c1f-7663-9da3-018eea9eb30a",
+    "stableCode": "LIVE-ITEM-1794481240641",
+    "categoryId": "01a1cf6a-e201-7a9f-a175-1c2e4691e416",
+    "categoryLabelEn": "Live Category 1794481240641",
+    "categoryLabelAr": "فئة مباشرة 1794481240641",
+    "status": "PUBLISHED",
+    "currentVersion": 1,
+    "labelEn": "Live item 1794481240641",
+    "labelAr": "عنصر مباشر 1794481240641",
+    "sampleData": false,
+    "updatedAt": "",
+    "measurementUnit": "MM",
+    "sensorTool": "Vernier",
+    "standardSpecEn": "Above 3 mm",
+    "standardSpecAr": "أعلى من 3 مم",
+    "safetyCritical": false,
+    "multiPoint": false,
+    "allowFreeTextNote": false,
+    "sortOrder": 0,
+    "guideImageId": ""
+  },
+  "itemVersion": {
+    "id": "01a1cf6b-0c1f-70dd-a8ce-49b57c854c22",
+    "versionNo": 1,
+    "status": "PUBLISHED",
+    "resultOptions": [
+      "NO_ISSUE_OBSERVED",
+      "ATTENTION_RECOMMENDED",
+      "DEFECT_FOUND"
+    ],
+    "severityPolicy": "{}",
+    "applicability": "{}",
+    "reasonCodes": [],
+    "noteRequirement": "OPTIONAL",
+    "evidenceRequirement": "REQUIRED_MIN_N",
+    "minPhotos": 1,
+    "equipmentIds": [],
+    "publishedAt": "2026-11-12T11:01:18.195186",
+    "translations": {
+      "en": {
+        "locale": "en",
+        "label": "Live item 1794481240641",
+        "instruction": "Live EN instruction"
+      },
+      "ar": {
+        "locale": "ar",
+        "label": "عنصر مباشر 1794481240641",
+        "instruction": "تعليمات مباشرة"
+      }
+    }
+  },
+  "evidenceRules": [
+    {
+      "resultCode": "ATTENTION_RECOMMENDED",
+      "minPhotos": 0,
+      "minVideos": 0,
+      "minNotesChars": 0
+    },
+    {
+      "resultCode": "DEFECT_FOUND",
+      "minPhotos": 1,
+      "minVideos": 0,
+      "minNotesChars": 0
+    },
+    {
+      "resultCode": "NO_ISSUE_OBSERVED",
+      "minPhotos": 0,
+      "minVideos": 0,
+      "minNotesChars": 0
+    }
+  ],
+  "issueFields": [
+    {
+      "id": "01a1cf6b-321c-7182-aad8-e72de2a352f2",
+      "fieldCode": "ISSUE_TYPE",
+      "labelEn": "Issue type",
+      "labelAr": "نوع العطل",
+      "inputType": "SELECT",
+      "optionSetCode": "LIVE-SET-1794481240641",
+      "required": false,
+      "requiredForStatuses": [],
+      "decimalPlaces": 0,
+      "allowMultiple": false,
+      "allowFreeText": false,
+      "sortOrder": 0,
+      "allowedValues": []
+    }
+  ],
+  "measurementBands": [
+    {
+      "fieldCode": "MEASUREMENT",
+      "unitCode": "MM",
+      "direction": "HIGHER_IS_BETTER",
+      "minValue": 0,
+      "maxValue": 100,
+      "resultCode": "NO_ISSUE_OBSERVED",
+      "defaultScore": 100,
+      "labelEn": "Within spec",
+      "labelAr": "ضمن المواصفات",
+      "sortOrder": 0
+    }
+  ],
+  "optionSet": {
+    "id": "01a1cf6a-f48b-7838-a09e-1b69cbfcf07f",
+    "code": "LIVE-SET-1794481240641",
+    "nameEn": "Live Set 1794481240641",
+    "nameAr": "مجموعة مباشرة 1794481240641",
+    "status": "ACTIVE",
+    "sortOrder": 99,
+    "values": []
+  },
+  "template": {
+    "id": "01a1cf6b-5ef7-7784-96eb-8cc95f1c216f",
+    "code": "LIVE-TPL-1794481240641",
+    "nameEn": "Live template",
+    "nameAr": "قالب مباشر",
+    "descriptionEn": "Live flow",
+    "descriptionAr": "تدفق مباشر",
+    "status": "ACTIVE",
+    "currentPublishedVersionId": "01a1cf6b-5ef9-71cd-b4f4-18fc873fe806",
+    "versionCount": 1,
+    "currentVersionNo": 1,
+    "versions": [
+      {
+        "id": "01a1cf6b-5ef9-71cd-b4f4-18fc873fe806",
+        "versionNo": 1,
+        "status": "PUBLISHED",
+        "publishedAt": "2026-11-12T22:01:35"
+      }
+    ],
+    "categories": []
+  },
+  "templateDetail": {
+    "id": "01a1cf6b-5ef7-7784-96eb-8cc95f1c216f",
+    "code": "LIVE-TPL-1794481240641",
+    "nameEn": "Live template",
+    "nameAr": "قالب مباشر",
+    "descriptionEn": "Live flow",
+    "descriptionAr": "تدفق مباشر",
+    "status": "ACTIVE",
+    "currentPublishedVersionId": "01a1cf6b-5ef9-71cd-b4f4-18fc873fe806",
+    "versionCount": 1,
+    "currentVersionNo": 1,
+    "versions": [
+      {
+        "id": "01a1cf6b-5ef9-71cd-b4f4-18fc873fe806",
+        "versionNo": 1,
+        "status": "PUBLISHED",
+        "publishedAt": "2026-11-12T22:01:35"
+      }
+    ],
+    "categories": [
+      {
+        "categoryId": "01a1cf6a-e201-7a9f-a175-1c2e4691e416",
+        "categoryCode": "LIVE-CAT-1794481240641",
+        "nameEn": "Live Category 1794481240641",
+        "nameAr": "فئة مباشرة 1794481240641",
+        "sortOrder": 1,
+        "itemCount": 1,
+        "includedCount": 1,
+        "included": true,
+        "items": [
+          {
+            "id": "01a1cf6b-7c88-794b-bdc2-56b298e53d40",
+            "itemId": "01a1cf6b-0c1f-7663-9da3-018eea9eb30a",
+            "itemVersionId": "01a1cf6b-0c1f-70dd-a8ce-49b57c854c22",
+            "itemCode": "LIVE-ITEM-1794481240641",
+            "labelEn": "Live item 1794481240641",
+            "labelAr": "عنصر مباشر 1794481240641",
+            "categoryId": "01a1cf6a-e201-7a9f-a175-1c2e4691e416",
+            "sortOrder": 1,
+            "included": true,
+            "itemStatus": "PUBLISHED"
+          }
+        ]
+      }
+    ]
+  },
+  "configHealth": {
+    "healthy": false,
+    "checks": [
+      {
+        "code": "TRANSLATIONS",
+        "severity": "ERROR",
+        "messageEn": "2 translation(s) missing",
+        "messageAr": "عدد الترجمات الناقصة 2",
+        "affected": 2,
+        "references": [
+          "master.items.LIVE-ITEM-1794464506929",
+          "master.items.LIVE-ITEM-1794464861847"
+        ]
+      },
+      {
+        "code": "MEASUREMENT_BANDS",
+        "severity": "OK",
+        "messageEn": "Measurement bands are contiguous and non-overlapping",
+        "messageAr": "نطاقات القياس متصلة وغير متداخلة",
+        "affected": 0,
+        "references": []
+      },
+      {
+        "code": "RETIRED_OPTIONS",
+        "severity": "OK",
+        "messageEn": "No retired option values are referenced by active items",
+        "messageAr": "لا توجد قيم خيارات موقوفة مستخدمة",
+        "affected": 0,
+        "references": []
+      },
+      {
+        "code": "SAFETY_EVIDENCE",
+        "severity": "OK",
+        "messageEn": "Safety-critical items have FAIL evidence rules",
+        "messageAr": "العناصر الحرجة لديها قواعد أدلة للفشل",
+        "affected": 0,
+        "references": []
+      },
+      {
+        "code": "TEMPLATE_ITEMS",
+        "severity": "ERROR",
+        "messageEn": "2 template version(s) contain zero items",
+        "messageAr": "عدد إصدارات القوالب الفارغة 2",
+        "affected": 2,
+        "references": [
+          "LIVE-TPL-1794480676566",
+          "LIVE-TPL-1794480754111"
+        ]
+      },
+      {
+        "code": "NUMERIC_MEASUREMENTS",
+        "severity": "ERROR",
+        "messageEn": "11 numeric item(s) lack measurement bands",
+        "messageAr": "عدد العناصر الرقمية الناقصة لنطاقات القياس 11",
+        "affected": 11,
+        "references": [
+          "LIVE-ITEM-1794464506929",
+          "LIVE-ITEM-1794464861847",
+          "LIVE-ITEM-1794464930215",
+          "LIVE-ITEM-1794465019301",
+          "LIVE-ITEM-1794465111983",
+          "LIVE-ITEM-1794465205881",
+          "LIVE-ITEM-1794465405720",
+          "LIVE-ITEM-1794465489141",
+          "LIVE-ITEM-1794465577348",
+          "LIVE-ITEM-1794465678555",
+          "LIVE-ITEM-1794465984648"
+        ]
+      }
+    ]
+  },
+  "auditMatches": [
+    {
+      "id": "01a1cebd-d6ef-73a8-8722-3237c301e0c8",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_MEASUREMENT_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1cebd-9611-7c18-a34e-21f4f207b915",
+      "occurredAt": "2026-11-12T13:21:50",
+      "metadataJson": "[{\"fieldCode\":\"MEASUREMENT\",\"unitCode\":\"MM\",\"direction\":\"HIGHER_IS_BETTER\",\"minValue\":0.0,\"maxValue\":100.0,\"resultCode\":\"NO_ISSUE_OBSERVED\",\"defaultScore\":100,\"labelEn\":\"Within spec\",\"labelAr\":\"ضمن المواصفات\",\"sortOrder\":0}]"
+    },
+    {
+      "id": "01a1cebd-c5b9-7478-ab27-ae46737622a6",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_ISSUE_FIELDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1cebd-9611-7c18-a34e-21f4f207b915",
+      "occurredAt": "2026-11-12T13:21:45",
+      "metadataJson": "[{\"id\":null,\"fieldCode\":\"ISSUE_TYPE\",\"labelEn\":\"Issue type\",\"labelAr\":\"نوع العطل\",\"inputType\":\"SELECT\",\"optionSetCode\":\"LIVE-SET-1794469873105\",\"unitSetCode\":null,\"required\":false,\"requiredForStatuses\":[],\"minValue\":null,\"maxValue\":null,\"decimalPlaces\":0,\"dependsOnFieldCode\":null,\"dependsOnValueCode\":null,\"allowMultiple\":false,\"allowFreeText\":false,\"sortOrder\":0,\"allowedValues\":[]}]"
+    },
+    {
+      "id": "01a1cebd-ac3f-7d91-a148-f54cff394120",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_EVIDENCE_RULES_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1cebd-9611-7c18-a34e-21f4f207b915",
+      "occurredAt": "2026-11-12T13:21:39",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"DEFECT_FOUND\",\"minPhotos\":1,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null}]"
+    },
+    {
+      "id": "01a1cebd-a1ae-762e-aa58-caaac44cd8bb",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1cebd-9611-7c18-a34e-21f4f207b915",
+      "occurredAt": "2026-11-12T13:21:36",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minScore\":90,\"maxScore\":100,\"defaultScore\":100,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minScore\":50,\"maxScore\":89,\"defaultScore\":70,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"DEFECT_FOUND\",\"minScore\":0,\"maxScore\":49,\"defaultScore\":0,\"criteriaEn\":\"\",\"criteriaAr\":\"\"}]"
+    },
+    {
+      "id": "01a1cebd-9622-7cf1-bd08-1c0777d1acbf",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_CREATED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1cebd-9611-7e5e-85a3-628b032fbc91",
+      "occurredAt": "2026-11-12T13:21:33",
+      "metadataJson": "{\"sampleData\":\"false\",\"stableCode\":\"LIVE-ITEM-1794469873105\"}"
+    },
+    {
+      "id": "01a1cebd-7edb-7d90-a30b-3d2ec380334f",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "OPTION_SET_CREATED",
+      "entityType": "OPTION_SET",
+      "entityId": "01a1cebd-7ed8-75b3-b906-4cb12bfa75ab",
+      "occurredAt": "2026-11-12T13:21:27",
+      "metadataJson": "{\"id\":\"01a1cebd-7ed8-75b3-b906-4cb12bfa75ab\",\"code\":\"LIVE-SET-1794469873105\",\"nameEn\":\"Live Set 1794469873105\",\"nameAr\":\"مجموعة مباشرة 1794469873105\",\"status\":\"ACTIVE\",\"sortOrder\":99,\"values\":[]}"
+    },
+    {
+      "id": "01a1cebd-6c79-7958-9d0b-4d288d8d7e2f",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_CATEGORY_CREATED",
+      "entityType": "CATEGORY",
+      "entityId": "01a1cebd-6c76-7168-af14-82c974ec9347",
+      "occurredAt": "2026-11-12T13:21:23",
+      "metadataJson": "{\"code\":\"LIVE-CAT-1794469873105\"}"
+    },
+    {
+      "id": "01a1ceb5-4ace-7cf5-a541-d9e6d18eb48e",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISHED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ceb5-1f8d-78db-93f8-6e482fd14a42",
+      "occurredAt": "2026-11-12T13:12:30",
+      "metadataJson": "{\"versionId\":\"01a1ceb5-1f8d-78db-93f8-6e482fd14a42\",\"templateId\":\"01a1ceb5-1f8c-7d5f-97bd-90199711f65b\",\"status\":\"PUBLISHED\"}"
+    },
+    {
+      "id": "01a1ceb5-3d4c-7374-95ff-531bddbc5e82",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISH_REQUESTED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ceb5-1f8d-78db-93f8-6e482fd14a42",
+      "occurredAt": "2026-11-12T13:12:26",
+      "metadataJson": "{\"status\":\"PENDING_APPROVAL\",\"changeRequestId\":\"01a1ceb5-3d49-7a6e-b23f-3734dacef836\"}"
+    },
+    {
+      "id": "01a1ceb5-3805-71ec-80f0-44ed2882cf4b",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_ITEMS_REPLACED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ceb5-1f8d-78db-93f8-6e482fd14a42",
+      "occurredAt": "2026-11-12T13:12:25",
+      "metadataJson": "{\"itemCount\":1}"
+    },
+    {
+      "id": "01a1ceb5-1f8d-7f78-996f-4e6b8c72af02",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_CREATED",
+      "entityType": "TEMPLATE",
+      "entityId": "01a1ceb5-1f8c-7d5f-97bd-90199711f65b",
+      "occurredAt": "2026-11-12T13:12:19",
+      "metadataJson": "{\"nameAr\":\"قالب مباشر\",\"code\":\"LIVE-TPL-1794469293794\",\"nameEn\":\"Live template\",\"draftVersionId\":\"01a1ceb5-1f8d-78db-93f8-6e482fd14a42\"}"
+    },
+    {
+      "id": "01a1ceb5-0d94-7fa1-a85c-f69855cefc31",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_PUBLISHED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ceb4-c174-7530-a9c4-17eba3729964",
+      "occurredAt": "2026-11-12T13:12:14",
+      "metadataJson": "{\"version\":\"1\"}"
+    },
+    {
+      "id": "01a1ceb5-0301-7bd7-b017-f3302694b092",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_MEASUREMENT_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ceb4-c174-7812-a9ee-275e79d4cd2b",
+      "occurredAt": "2026-11-12T13:12:11",
+      "metadataJson": "[{\"fieldCode\":\"MEASUREMENT\",\"unitCode\":\"MM\",\"direction\":\"HIGHER_IS_BETTER\",\"minValue\":0.0,\"maxValue\":100.0,\"resultCode\":\"NO_ISSUE_OBSERVED\",\"defaultScore\":100,\"labelEn\":\"Within spec\",\"labelAr\":\"ضمن المواصفات\",\"sortOrder\":0}]"
+    },
+    {
+      "id": "01a1ceb4-f2b9-7553-8a25-bbf136f8ed7f",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_ISSUE_FIELDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ceb4-c174-7812-a9ee-275e79d4cd2b",
+      "occurredAt": "2026-11-12T13:12:07",
+      "metadataJson": "[{\"id\":null,\"fieldCode\":\"ISSUE_TYPE\",\"labelEn\":\"Issue type\",\"labelAr\":\"نوع العطل\",\"inputType\":\"SELECT\",\"optionSetCode\":\"LIVE-SET-1794469293794\",\"unitSetCode\":null,\"required\":false,\"requiredForStatuses\":[],\"minValue\":null,\"maxValue\":null,\"decimalPlaces\":0,\"dependsOnFieldCode\":null,\"dependsOnValueCode\":null,\"allowMultiple\":false,\"allowFreeText\":false,\"sortOrder\":0,\"allowedValues\":[]}]"
+    },
+    {
+      "id": "01a1ceb4-d8d5-7db9-8732-75182fa2b662",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_EVIDENCE_RULES_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ceb4-c174-7812-a9ee-275e79d4cd2b",
+      "occurredAt": "2026-11-12T13:12",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"DEFECT_FOUND\",\"minPhotos\":1,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null}]"
+    },
+    {
+      "id": "01a1ceb4-ce35-76b1-a492-2b7dc1f396a9",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ceb4-c174-7812-a9ee-275e79d4cd2b",
+      "occurredAt": "2026-11-12T13:11:58",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minScore\":90,\"maxScore\":100,\"defaultScore\":100,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minScore\":50,\"maxScore\":89,\"defaultScore\":70,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"DEFECT_FOUND\",\"minScore\":0,\"maxScore\":49,\"defaultScore\":0,\"criteriaEn\":\"\",\"criteriaAr\":\"\"}]"
+    },
+    {
+      "id": "01a1ceb4-c188-78f9-bb21-79efe2907604",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_CREATED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ceb4-c174-7530-a9c4-17eba3729964",
+      "occurredAt": "2026-11-12T13:11:54",
+      "metadataJson": "{\"sampleData\":\"false\",\"stableCode\":\"LIVE-ITEM-1794469293794\"}"
+    },
+    {
+      "id": "01a1ceb4-a988-7589-b534-c44b4e290b98",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "OPTION_SET_CREATED",
+      "entityType": "OPTION_SET",
+      "entityId": "01a1ceb4-a985-7994-82e3-4d4f28cabf3d",
+      "occurredAt": "2026-11-12T13:11:48",
+      "metadataJson": "{\"id\":\"01a1ceb4-a985-7994-82e3-4d4f28cabf3d\",\"code\":\"LIVE-SET-1794469293794\",\"nameEn\":\"Live Set 1794469293794\",\"nameAr\":\"مجموعة مباشرة 1794469293794\",\"status\":\"ACTIVE\",\"sortOrder\":99,\"values\":[]}"
+    },
+    {
+      "id": "01a1ceb4-96aa-7500-8fae-b835febf4f67",
+      "actorUserId": "c5baf1f3-de6a-11f1-ac16-e89c251e3141",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_CATEGORY_CREATED",
+      "entityType": "CATEGORY",
+      "entityId": "01a1ceb4-96a8-7fe3-9c08-013151bcc045",
+      "occurredAt": "2026-11-12T13:11:43",
+      "metadataJson": "{\"code\":\"LIVE-CAT-1794469293794\"}"
+    },
+    {
+      "id": "01a1ce85-9a65-7141-b3e3-94d0e574bcb6",
+      "actorUserId": "01a1ca67-a4a3-7f7c-8903-04cccbc82b83",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISHED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce85-6df2-7ad5-be16-bf36b454c01d",
+      "occurredAt": "2026-11-12T12:20:24",
+      "metadataJson": "{\"versionId\":\"01a1ce85-6df2-7ad5-be16-bf36b454c01d\",\"templateId\":\"01a1ce85-6df1-722d-be94-e01112f0b3a3\",\"status\":\"PUBLISHED\"}"
+    },
+    {
+      "id": "01a1ce85-8ce4-7c78-aab2-a08303ce1dcb",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISH_REQUESTED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce85-6df2-7ad5-be16-bf36b454c01d",
+      "occurredAt": "2026-11-12T12:20:21",
+      "metadataJson": "{\"changeRequestId\":\"01a1ce85-8ce3-738e-a296-3bf2efceacfd\",\"status\":\"PENDING_APPROVAL\"}"
+    },
+    {
+      "id": "01a1ce85-8727-723d-8193-f0ec09c84299",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_ITEMS_REPLACED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce85-6df2-7ad5-be16-bf36b454c01d",
+      "occurredAt": "2026-11-12T12:20:19",
+      "metadataJson": "{\"itemCount\":1}"
+    },
+    {
+      "id": "01a1ce85-6df2-71fd-8f32-76a779a6329d",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_CREATED",
+      "entityType": "TEMPLATE",
+      "entityId": "01a1ce85-6df1-722d-be94-e01112f0b3a3",
+      "occurredAt": "2026-11-12T12:20:13",
+      "metadataJson": "{\"nameAr\":\"قالب مباشر\",\"code\":\"LIVE-TPL-1794466168121\",\"nameEn\":\"Live template\",\"draftVersionId\":\"01a1ce85-6df2-7ad5-be16-bf36b454c01d\"}"
+    },
+    {
+      "id": "01a1ce85-5b5c-79ef-bdd1-c732556297ca",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_PUBLISHED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ce85-0f59-7788-b8be-f4b57b704ea9",
+      "occurredAt": "2026-11-12T12:20:08",
+      "metadataJson": "{\"version\":\"1\"}"
+    },
+    {
+      "id": "01a1ce85-50e2-7740-a016-d86ab5ab3a53",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_MEASUREMENT_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce85-0f59-79f9-9f76-cc183bc73fde",
+      "occurredAt": "2026-11-12T12:20:05",
+      "metadataJson": "[{\"fieldCode\":\"MEASUREMENT\",\"unitCode\":\"MM\",\"direction\":\"HIGHER_IS_BETTER\",\"minValue\":0.0,\"maxValue\":100.0,\"resultCode\":\"NO_ISSUE_OBSERVED\",\"defaultScore\":100,\"labelEn\":\"Within spec\",\"labelAr\":\"ضمن المواصفات\",\"sortOrder\":0}]"
+    },
+    {
+      "id": "01a1ce85-406b-7cb8-ace0-0326f734ef19",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_ISSUE_FIELDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce85-0f59-79f9-9f76-cc183bc73fde",
+      "occurredAt": "2026-11-12T12:20:01",
+      "metadataJson": "[{\"id\":null,\"fieldCode\":\"ISSUE_TYPE\",\"labelEn\":\"Issue type\",\"labelAr\":\"نوع العطل\",\"inputType\":\"SELECT\",\"optionSetCode\":\"LIVE-SET-1794466168121\",\"unitSetCode\":null,\"required\":false,\"requiredForStatuses\":[],\"minValue\":null,\"maxValue\":null,\"decimalPlaces\":0,\"dependsOnFieldCode\":null,\"dependsOnValueCode\":null,\"allowMultiple\":false,\"allowFreeText\":false,\"sortOrder\":0,\"allowedValues\":[]}]"
+    },
+    {
+      "id": "01a1ce85-26f1-7958-b925-695310338ef6",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_EVIDENCE_RULES_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce85-0f59-79f9-9f76-cc183bc73fde",
+      "occurredAt": "2026-11-12T12:19:55",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"DEFECT_FOUND\",\"minPhotos\":1,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null}]"
+    },
+    {
+      "id": "01a1ce85-1b86-7391-ab73-adaeb9ca4292",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce85-0f59-79f9-9f76-cc183bc73fde",
+      "occurredAt": "2026-11-12T12:19:52",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minScore\":90,\"maxScore\":100,\"defaultScore\":100,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minScore\":50,\"maxScore\":89,\"defaultScore\":70,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"DEFECT_FOUND\",\"minScore\":0,\"maxScore\":49,\"defaultScore\":0,\"criteriaEn\":\"\",\"criteriaAr\":\"\"}]"
+    },
+    {
+      "id": "01a1ce85-0f5d-7e78-88b4-34776e48fdbb",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_CREATED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ce85-0f59-7788-b8be-f4b57b704ea9",
+      "occurredAt": "2026-11-12T12:19:49",
+      "metadataJson": "{\"sampleData\":\"false\",\"stableCode\":\"LIVE-ITEM-1794466168121\"}"
+    },
+    {
+      "id": "01a1ce84-f7fa-7119-93d9-93d91c9649a9",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "OPTION_SET_CREATED",
+      "entityType": "OPTION_SET",
+      "entityId": "01a1ce84-f7f8-7de5-b1d5-de7dcadd29c8",
+      "occurredAt": "2026-11-12T12:19:43",
+      "metadataJson": "{\"id\":\"01a1ce84-f7f8-7de5-b1d5-de7dcadd29c8\",\"code\":\"LIVE-SET-1794466168121\",\"nameEn\":\"Live Set 1794466168121\",\"nameAr\":\"مجموعة مباشرة 1794466168121\",\"status\":\"ACTIVE\",\"sortOrder\":99,\"values\":[]}"
+    },
+    {
+      "id": "01a1ce84-e560-7ca6-9d48-74a6c6bbafbe",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_CATEGORY_CREATED",
+      "entityType": "CATEGORY",
+      "entityId": "01a1ce84-e55f-7252-a6df-f68c47b984e6",
+      "occurredAt": "2026-11-12T12:19:38",
+      "metadataJson": "{\"code\":\"LIVE-CAT-1794466168121\"}"
+    },
+    {
+      "id": "01a1ce82-bd5b-7444-9dd0-fcfc7291d876",
+      "actorUserId": "01a1ca67-a4a3-7f7c-8903-04cccbc82b83",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISHED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce82-9170-7181-b2a0-f745f4e874ba",
+      "occurredAt": "2026-11-12T12:17:17",
+      "metadataJson": "{\"versionId\":\"01a1ce82-9170-7181-b2a0-f745f4e874ba\",\"templateId\":\"01a1ce82-9170-7d2c-8a55-c67a542f9f90\",\"status\":\"PUBLISHED\"}"
+    },
+    {
+      "id": "01a1ce82-af3c-79aa-b0eb-7c3fcf0a1a32",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_PUBLISH_REQUESTED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce82-9170-7181-b2a0-f745f4e874ba",
+      "occurredAt": "2026-11-12T12:17:13",
+      "metadataJson": "{\"changeRequestId\":\"01a1ce82-af3b-795c-bef9-4c706f862a37\",\"status\":\"PENDING_APPROVAL\"}"
+    },
+    {
+      "id": "01a1ce82-aa06-75fc-93c4-cbeb9b03dc1d",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_ITEMS_REPLACED",
+      "entityType": "TEMPLATE_VERSION",
+      "entityId": "01a1ce82-9170-7181-b2a0-f745f4e874ba",
+      "occurredAt": "2026-11-12T12:17:12",
+      "metadataJson": "{\"itemCount\":1}"
+    },
+    {
+      "id": "01a1ce82-9170-76bb-8d91-8d0e2a0351f0",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "TEMPLATE_CREATED",
+      "entityType": "TEMPLATE",
+      "entityId": "01a1ce82-9170-7d2c-8a55-c67a542f9f90",
+      "occurredAt": "2026-11-12T12:17:05",
+      "metadataJson": "{\"nameAr\":\"قالب مباشر\",\"code\":\"LIVE-TPL-1794465984648\",\"nameEn\":\"Live template\",\"draftVersionId\":\"01a1ce82-9170-7181-b2a0-f745f4e874ba\"}"
+    },
+    {
+      "id": "01a1ce82-7ecd-799e-83bc-e0d11cd62d9a",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_PUBLISHED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ce82-42e0-791a-bcfc-d23200e8e2d9",
+      "occurredAt": "2026-11-12T12:17:01",
+      "metadataJson": "{\"version\":\"1\"}"
+    },
+    {
+      "id": "01a1ce82-7447-7e15-a43a-7eb02a4731c0",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_ISSUE_FIELDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce82-42e0-73af-b7a3-30e3da54fbed",
+      "occurredAt": "2026-11-12T12:16:58",
+      "metadataJson": "[{\"id\":null,\"fieldCode\":\"ISSUE_TYPE\",\"labelEn\":\"Issue type\",\"labelAr\":\"نوع العطل\",\"inputType\":\"SELECT\",\"optionSetCode\":\"LIVE-SET-1794465984648\",\"unitSetCode\":null,\"required\":false,\"requiredForStatuses\":[],\"minValue\":null,\"maxValue\":null,\"decimalPlaces\":0,\"dependsOnFieldCode\":null,\"dependsOnValueCode\":null,\"allowMultiple\":false,\"allowFreeText\":false,\"sortOrder\":0,\"allowedValues\":[]}]"
+    },
+    {
+      "id": "01a1ce82-5ae2-7010-9c22-b8558464057d",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_EVIDENCE_RULES_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce82-42e0-73af-b7a3-30e3da54fbed",
+      "occurredAt": "2026-11-12T12:16:51",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minPhotos\":0,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null},{\"resultCode\":\"DEFECT_FOUND\",\"minPhotos\":1,\"minVideos\":0,\"minNotesChars\":0,\"requiredEvidenceType\":null}]"
+    },
+    {
+      "id": "01a1ce82-4f1b-7405-b2a6-74e545d60696",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_BANDS_UPDATED",
+      "entityType": "MASTER_ITEM_VERSION",
+      "entityId": "01a1ce82-42e0-73af-b7a3-30e3da54fbed",
+      "occurredAt": "2026-11-12T12:16:48",
+      "metadataJson": "[{\"resultCode\":\"NO_ISSUE_OBSERVED\",\"minScore\":90,\"maxScore\":100,\"defaultScore\":100,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"ATTENTION_RECOMMENDED\",\"minScore\":50,\"maxScore\":89,\"defaultScore\":70,\"criteriaEn\":\"\",\"criteriaAr\":\"\"},{\"resultCode\":\"DEFECT_FOUND\",\"minScore\":0,\"maxScore\":49,\"defaultScore\":0,\"criteriaEn\":\"\",\"criteriaAr\":\"\"}]"
+    },
+    {
+      "id": "01a1ce82-42e3-7f90-8cb6-d56c9402b736",
+      "actorUserId": "01a1ca67-a4e1-74ee-a75f-5e88742d2914",
+      "actorRole": "PLATFORM_ADMIN",
+      "action": "MASTER_ITEM_CREATED",
+      "entityType": "MASTER_ITEM",
+      "entityId": "01a1ce82-42e0-791a-bcfc-d23200e8e2d9",
+      "occurredAt": "2026-11-12T12:16:45",
+      "metadataJson": "{\"sampleData\":\"false\",\"stableCode\":\"LIVE-ITEM-1794465984648\"}"
+    }
+  ]
+}

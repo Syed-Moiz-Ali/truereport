@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:
-  /// **'Loading…'**
+  /// **'Loading'**
   String get loading;
 
   /// No description provided for @error.
@@ -521,13 +521,13 @@ abstract class AppLocalizations {
   /// No description provided for @labelEn.
   ///
   /// In en, this message translates to:
-  /// **'English label'**
+  /// **'Label (English)'**
   String get labelEn;
 
   /// No description provided for @labelAr.
   ///
   /// In en, this message translates to:
-  /// **'Arabic label'**
+  /// **'Label (Arabic)'**
   String get labelAr;
 
   /// No description provided for @instructionEn.
@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @minPhotos.
   ///
   /// In en, this message translates to:
-  /// **'Minimum photos'**
+  /// **'Min photos'**
   String get minPhotos;
 
   /// No description provided for @equipment.
@@ -629,7 +629,7 @@ abstract class AppLocalizations {
   /// No description provided for @createDraft.
   ///
   /// In en, this message translates to:
-  /// **'Create new draft'**
+  /// **'Create draft'**
   String get createDraft;
 
   /// No description provided for @saveDraft.
@@ -770,6 +770,18 @@ abstract class AppLocalizations {
   /// **'Item retired'**
   String get itemRetired;
 
+  /// No description provided for @retireItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire item'**
+  String get retireItem;
+
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
   /// No description provided for @actionFailed.
   ///
   /// In en, this message translates to:
@@ -809,7 +821,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Jobs by status in your workshop'**
+  /// **'Platform overview and recent activity'**
   String get dashboardSubtitle;
 
   /// No description provided for @dashboardStatActive.
@@ -839,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @queueTitle.
   ///
   /// In en, this message translates to:
-  /// **'Job queue'**
+  /// **'Translation queue'**
   String get queueTitle;
 
   /// No description provided for @scheduleJobTitle.
@@ -1145,7 +1157,7 @@ abstract class AppLocalizations {
   /// No description provided for @templates.
   ///
   /// In en, this message translates to:
-  /// **'Templates'**
+  /// **'Global templates'**
   String get templates;
 
   /// No description provided for @newTemplate.
@@ -1475,7 +1487,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetyCritical.
   ///
   /// In en, this message translates to:
-  /// **'Safety-critical'**
+  /// **'Safety critical'**
   String get safetyCritical;
 
   /// No description provided for @saveAnswer.
@@ -3053,13 +3065,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminFeatureHierarchy.
   ///
   /// In en, this message translates to:
-  /// **'Multi-Tenant Workshop Hierarchy'**
+  /// **'Workshop Management'**
   String get adminFeatureHierarchy;
 
   /// No description provided for @adminFeatureCatalog.
   ///
   /// In en, this message translates to:
-  /// **'Global Master Item Library'**
+  /// **'Checklist Library'**
   String get adminFeatureCatalog;
 
   /// No description provided for @adminFeatureLedger.
@@ -3295,6 +3307,3144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'4 Hours'**
   String get fourHours;
+
+  /// No description provided for @navTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get navTemplates;
+
+  /// No description provided for @navScoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring'**
+  String get navScoring;
+
+  /// No description provided for @navDocumentTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Types'**
+  String get navDocumentTypes;
+
+  /// No description provided for @navLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get navLanguages;
+
+  /// No description provided for @navConfigHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Config Health'**
+  String get navConfigHealth;
+
+  /// No description provided for @navConfigurationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get navConfigurationSection;
+
+  /// No description provided for @navChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get navChecklist;
+
+  /// No description provided for @navReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get navReports;
+
+  /// No description provided for @checklistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist'**
+  String get checklistTitle;
+
+  /// No description provided for @checklistHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'The Checklist is the reusable master catalog. Templates are named sets of checklist categories and items that workshops select when creating jobs.'**
+  String get checklistHelper;
+
+  /// No description provided for @checklistTabTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection Templates'**
+  String get checklistTabTemplates;
+
+  /// No description provided for @checklistTabIssueOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Options'**
+  String get checklistTabIssueOptions;
+
+  /// No description provided for @checklistTabHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get checklistTabHealth;
+
+  /// No description provided for @templateHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'A template is a reusable set of categories and items from the Checklist. Workshop Admin selects it when creating a job.'**
+  String get templateHelper;
+
+  /// No description provided for @reportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reportsTitle;
+
+  /// No description provided for @reportDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Documents'**
+  String get reportDocuments;
+
+  /// No description provided for @languagesCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages & Coverage'**
+  String get languagesCoverage;
+
+  /// No description provided for @checklistHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist Health'**
+  String get checklistHealth;
+
+  /// No description provided for @reviewHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Review health'**
+  String get reviewHealth;
+
+  /// No description provided for @masterLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Global Master Library'**
+  String get masterLibraryTitle;
+
+  /// No description provided for @masterLibrarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Centrally governed inspection configuration for every workshop'**
+  String get masterLibrarySubtitle;
+
+  /// No description provided for @seedDefaultChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Load default checklist'**
+  String get seedDefaultChecklist;
+
+  /// No description provided for @seedConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Load the default checklist now? Existing records are kept and skipped.'**
+  String get seedConfirm;
+
+  /// No description provided for @seedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed completed: {created} created, {skipped} skipped'**
+  String seedSuccess(int created, int skipped);
+
+  /// No description provided for @seedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed failed'**
+  String get seedFailed;
+
+  /// No description provided for @categoriesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categoriesTab;
+
+  /// No description provided for @itemsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get itemsTab;
+
+  /// No description provided for @optionSetsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Option sets'**
+  String get optionSetsTab;
+
+  /// No description provided for @categoryManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Category management'**
+  String get categoryManagement;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get addCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get editCategory;
+
+  /// No description provided for @categoryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Category code'**
+  String get categoryCode;
+
+  /// No description provided for @categoryWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight %'**
+  String get categoryWeight;
+
+  /// No description provided for @categoryOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get categoryOrder;
+
+  /// No description provided for @weightTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight total'**
+  String get weightTotal;
+
+  /// No description provided for @weightsValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Active weights sum to 100'**
+  String get weightsValid;
+
+  /// No description provided for @weightsInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Active weights must sum to 100'**
+  String get weightsInvalid;
+
+  /// No description provided for @retireCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire category'**
+  String get retireCategory;
+
+  /// No description provided for @retireConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire this record? Referenced records cannot be deleted, only retired.'**
+  String get retireConfirm;
+
+  /// No description provided for @reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get reorder;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @itemEditor.
+  ///
+  /// In en, this message translates to:
+  /// **'Item editor'**
+  String get itemEditor;
+
+  /// No description provided for @basics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get basics;
+
+  /// No description provided for @englishContent.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get englishContent;
+
+  /// No description provided for @arabicContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get arabicContent;
+
+  /// No description provided for @scoreBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Score bands'**
+  String get scoreBands;
+
+  /// No description provided for @evidenceRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence rules'**
+  String get evidenceRules;
+
+  /// No description provided for @issueFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue fields'**
+  String get issueFields;
+
+  /// No description provided for @measurementBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement bands'**
+  String get measurementBands;
+
+  /// No description provided for @itemCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Item code'**
+  String get itemCode;
+
+  /// No description provided for @measurementUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement unit'**
+  String get measurementUnit;
+
+  /// No description provided for @sensorTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor / tool'**
+  String get sensorTool;
+
+  /// No description provided for @standardSpecEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard spec (English)'**
+  String get standardSpecEn;
+
+  /// No description provided for @standardSpecAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard spec (Arabic)'**
+  String get standardSpecAr;
+
+  /// No description provided for @multiPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-point item'**
+  String get multiPoint;
+
+  /// No description provided for @maxTyreAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Max tyre age (years)'**
+  String get maxTyreAge;
+
+  /// No description provided for @allowFreeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow free-text note'**
+  String get allowFreeText;
+
+  /// No description provided for @minVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Min videos'**
+  String get minVideos;
+
+  /// No description provided for @minNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Min note characters'**
+  String get minNotes;
+
+  /// No description provided for @requiredEvidenceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Required evidence type'**
+  String get requiredEvidenceType;
+
+  /// No description provided for @minValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Min value'**
+  String get minValue;
+
+  /// No description provided for @maxValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Max value'**
+  String get maxValue;
+
+  /// No description provided for @criteriaEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria (English)'**
+  String get criteriaEn;
+
+  /// No description provided for @criteriaAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Criteria (Arabic)'**
+  String get criteriaAr;
+
+  /// No description provided for @fieldCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Field code'**
+  String get fieldCode;
+
+  /// No description provided for @inputType.
+  ///
+  /// In en, this message translates to:
+  /// **'Input type'**
+  String get inputType;
+
+  /// No description provided for @optionSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Option set'**
+  String get optionSet;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @dependsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Depends on'**
+  String get dependsOn;
+
+  /// No description provided for @allowMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow multiple'**
+  String get allowMultiple;
+
+  /// No description provided for @allowedValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed values'**
+  String get allowedValues;
+
+  /// No description provided for @requiredForStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for statuses'**
+  String get requiredForStatuses;
+
+  /// No description provided for @decimalPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal places'**
+  String get decimalPlaces;
+
+  /// No description provided for @publishItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish item'**
+  String get publishItem;
+
+  /// No description provided for @itemPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Item version published'**
+  String get itemPublished;
+
+  /// No description provided for @versionImmutable.
+  ///
+  /// In en, this message translates to:
+  /// **'Published versions are immutable. Create a draft to edit.'**
+  String get versionImmutable;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get addItem;
+
+  /// No description provided for @addOptionSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add option set'**
+  String get addOptionSet;
+
+  /// No description provided for @itemCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Item created'**
+  String get itemCreated;
+
+  /// No description provided for @createTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create template'**
+  String get createTemplate;
+
+  /// No description provided for @templateCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Template code'**
+  String get templateCode;
+
+  /// No description provided for @templateNameEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name (English)'**
+  String get templateNameEn;
+
+  /// No description provided for @templateNameAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name (Arabic)'**
+  String get templateNameAr;
+
+  /// No description provided for @templateDescriptionEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (English)'**
+  String get templateDescriptionEn;
+
+  /// No description provided for @templateDescriptionAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Arabic)'**
+  String get templateDescriptionAr;
+
+  /// No description provided for @templateBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Template builder'**
+  String get templateBuilder;
+
+  /// No description provided for @weightPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight preview'**
+  String get weightPreview;
+
+  /// No description provided for @normalizedWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Normalized weight'**
+  String get normalizedWeight;
+
+  /// No description provided for @approveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approveTemplate;
+
+  /// No description provided for @rejectTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get rejectTemplate;
+
+  /// No description provided for @pendingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get pendingApproval;
+
+  /// No description provided for @scoringRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring rules'**
+  String get scoringRules;
+
+  /// No description provided for @categoryWeightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Category weight mode'**
+  String get categoryWeightMode;
+
+  /// No description provided for @safetyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap'**
+  String get safetyCap;
+
+  /// No description provided for @capGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Cap grade'**
+  String get capGrade;
+
+  /// No description provided for @gradeBoundaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries'**
+  String get gradeBoundaries;
+
+  /// No description provided for @grade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get grade;
+
+  /// No description provided for @addGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Add grade'**
+  String get addGrade;
+
+  /// No description provided for @coverageValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries cover 0-100'**
+  String get coverageValid;
+
+  /// No description provided for @coverageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade boundaries must cover 0-100 without gaps'**
+  String get coverageInvalid;
+
+  /// No description provided for @proposeChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose change'**
+  String get proposeChange;
+
+  /// No description provided for @approveChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve change'**
+  String get approveChange;
+
+  /// No description provided for @documentTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Report document types'**
+  String get documentTypes;
+
+  /// No description provided for @addDocumentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document type'**
+  String get addDocumentType;
+
+  /// No description provided for @documentTypeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Document type code'**
+  String get documentTypeCode;
+
+  /// No description provided for @languageRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Language registry'**
+  String get languageRegistry;
+
+  /// No description provided for @addLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add language'**
+  String get addLanguage;
+
+  /// No description provided for @languageCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Language code'**
+  String get languageCode;
+
+  /// No description provided for @nativeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Native name'**
+  String get nativeName;
+
+  /// No description provided for @direction.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get direction;
+
+  /// No description provided for @defaultLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Default language'**
+  String get defaultLanguage;
+
+  /// No description provided for @translationCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation coverage'**
+  String get translationCoverage;
+
+  /// No description provided for @missingTranslations.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing translations'**
+  String get missingTranslations;
+
+  /// No description provided for @configHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration health'**
+  String get configHealth;
+
+  /// No description provided for @healthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy'**
+  String get healthy;
+
+  /// No description provided for @unhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues found'**
+  String get unhealthy;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @impactAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Impact analysis'**
+  String get impactAnalysis;
+
+  /// No description provided for @affectedTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected templates'**
+  String get affectedTemplates;
+
+  /// No description provided for @affectedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected items'**
+  String get affectedItems;
+
+  /// No description provided for @affectedJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Affected jobs'**
+  String get affectedJobs;
+
+  /// No description provided for @blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked'**
+  String get blocked;
+
+  /// No description provided for @notBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not blocked'**
+  String get notBlocked;
+
+  /// No description provided for @configReleases.
+  ///
+  /// In en, this message translates to:
+  /// **'Config releases'**
+  String get configReleases;
+
+  /// No description provided for @createRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Create release'**
+  String get createRelease;
+
+  /// No description provided for @renameTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename template'**
+  String get renameTemplate;
+
+  /// No description provided for @releaseEntityType.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity type'**
+  String get releaseEntityType;
+
+  /// No description provided for @releaseEntityId.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity ID'**
+  String get releaseEntityId;
+
+  /// No description provided for @releaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get releaseNotes;
+
+  /// No description provided for @releaseSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for review'**
+  String get releaseSubmit;
+
+  /// No description provided for @releaseApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve release'**
+  String get releaseApprove;
+
+  /// No description provided for @releasePublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish release'**
+  String get releasePublish;
+
+  /// No description provided for @releaseDeprecate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deprecate release'**
+  String get releaseDeprecate;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet'**
+  String get noData;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @jobsBoardTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Job board'**
+  String get jobsBoardTab;
+
+  /// No description provided for @jobsNotificationsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get jobsNotificationsTab;
+
+  /// No description provided for @jobsNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification center'**
+  String get jobsNotificationsTitle;
+
+  /// No description provided for @jobsNotificationsUnreadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread only'**
+  String get jobsNotificationsUnreadOnly;
+
+  /// No description provided for @jobsNotificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get jobsNotificationsEmpty;
+
+  /// No description provided for @jobsNotificationsMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get jobsNotificationsMarkRead;
+
+  /// No description provided for @jobsNotificationsMarkedRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification marked as read'**
+  String get jobsNotificationsMarkedRead;
+
+  /// No description provided for @jobsNotificationsUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get jobsNotificationsUnread;
+
+  /// No description provided for @jobsNotificationsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get jobsNotificationsRead;
+
+  /// No description provided for @jobsCountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job counts'**
+  String get jobsCountsTitle;
+
+  /// No description provided for @jobsCountDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get jobsCountDraft;
+
+  /// No description provided for @jobsCountScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get jobsCountScheduled;
+
+  /// No description provided for @jobsCountAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get jobsCountAssigned;
+
+  /// No description provided for @jobsCountInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get jobsCountInProgress;
+
+  /// No description provided for @jobsCountPendingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get jobsCountPendingReview;
+
+  /// No description provided for @jobsCountApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get jobsCountApproved;
+
+  /// No description provided for @jobsCountPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get jobsCountPublished;
+
+  /// No description provided for @jobsCountRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get jobsCountRejected;
+
+  /// No description provided for @jobsCountCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get jobsCountCancelled;
+
+  /// No description provided for @jobsCountTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get jobsCountTotal;
+
+  /// No description provided for @jobsStatusPendingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get jobsStatusPendingReview;
+
+  /// No description provided for @jobsStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get jobsStatusApproved;
+
+  /// No description provided for @jobsStatusPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get jobsStatusPublished;
+
+  /// No description provided for @jobsStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get jobsStatusRejected;
+
+  /// No description provided for @commonPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get commonPage;
+
+  /// No description provided for @commonOf.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get commonOf;
+
+  /// No description provided for @commonPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get commonPrevious;
+
+  /// No description provided for @commonNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get commonNext;
+
+  /// No description provided for @jobsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs found'**
+  String get jobsEmpty;
+
+  /// No description provided for @jobsCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create job'**
+  String get jobsCreateTitle;
+
+  /// No description provided for @jobsCreateStepCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get jobsCreateStepCustomer;
+
+  /// No description provided for @jobsCreateStepVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get jobsCreateStepVehicle;
+
+  /// No description provided for @jobsCreateStepTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get jobsCreateStepTemplate;
+
+  /// No description provided for @jobsCreateStepTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get jobsCreateStepTechnician;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
+  /// No description provided for @jobsCreateCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create job'**
+  String get jobsCreateCta;
+
+  /// No description provided for @jobsFieldOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer'**
+  String get jobsFieldOdometer;
+
+  /// No description provided for @jobsFieldOdometerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer unit'**
+  String get jobsFieldOdometerUnit;
+
+  /// No description provided for @jobsFieldTransmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmission'**
+  String get jobsFieldTransmission;
+
+  /// No description provided for @jobsFieldFuelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel type'**
+  String get jobsFieldFuelType;
+
+  /// No description provided for @jobsFieldPreferredLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred language'**
+  String get jobsFieldPreferredLanguage;
+
+  /// No description provided for @jobsTemplatesAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available templates'**
+  String get jobsTemplatesAvailable;
+
+  /// No description provided for @jobsTemplatesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No published templates available'**
+  String get jobsTemplatesEmpty;
+
+  /// No description provided for @jobsSelectTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Select technician'**
+  String get jobsSelectTechnician;
+
+  /// No description provided for @jobsAssignLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign later'**
+  String get jobsAssignLater;
+
+  /// No description provided for @jobsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Job created'**
+  String get jobsCreated;
+
+  /// No description provided for @commonServerRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The server rejected this request.'**
+  String get commonServerRejected;
+
+  /// No description provided for @jobsValidationVin.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN must be 17 characters.'**
+  String get jobsValidationVin;
+
+  /// No description provided for @jobsValidationPhoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer phone is required.'**
+  String get jobsValidationPhoneRequired;
+
+  /// No description provided for @jobsValidationEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get jobsValidationEmailInvalid;
+
+  /// No description provided for @jobsDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job details'**
+  String get jobsDetailTitle;
+
+  /// No description provided for @jobsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get jobsSummary;
+
+  /// No description provided for @jobsAssignmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignments'**
+  String get jobsAssignmentsTitle;
+
+  /// No description provided for @jobsAssignmentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignments yet'**
+  String get jobsAssignmentsEmpty;
+
+  /// No description provided for @jobsReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get jobsReviewTitle;
+
+  /// No description provided for @jobsReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Review status'**
+  String get jobsReviewStatus;
+
+  /// No description provided for @jobsPublicationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Publication status'**
+  String get jobsPublicationStatus;
+
+  /// No description provided for @jobsItemsAssessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Items assessed'**
+  String get jobsItemsAssessed;
+
+  /// No description provided for @jobsScorePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Score preview'**
+  String get jobsScorePreview;
+
+  /// No description provided for @jobsGradePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade preview'**
+  String get jobsGradePreview;
+
+  /// No description provided for @jobsSafetyCapPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap preview'**
+  String get jobsSafetyCapPreview;
+
+  /// No description provided for @jobsScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get jobsScore;
+
+  /// No description provided for @jobsEvidencePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get jobsEvidencePhotos;
+
+  /// No description provided for @jobsEvidenceVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get jobsEvidenceVideos;
+
+  /// No description provided for @jobsSignaturePresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature present'**
+  String get jobsSignaturePresent;
+
+  /// No description provided for @jobsSignatureMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature missing'**
+  String get jobsSignatureMissing;
+
+  /// No description provided for @jobsCompletedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed at'**
+  String get jobsCompletedAt;
+
+  /// No description provided for @jobsIssueValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue values'**
+  String get jobsIssueValues;
+
+  /// No description provided for @jobsNoFindings.
+  ///
+  /// In en, this message translates to:
+  /// **'No findings'**
+  String get jobsNoFindings;
+
+  /// No description provided for @jobsOpenReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Open review'**
+  String get jobsOpenReview;
+
+  /// No description provided for @jobsApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get jobsApprove;
+
+  /// No description provided for @jobsReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get jobsReject;
+
+  /// No description provided for @jobsApproveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve and issue certificate'**
+  String get jobsApproveTitle;
+
+  /// No description provided for @jobsApproveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the score, grade and checklist before approving.'**
+  String get jobsApproveSubtitle;
+
+  /// No description provided for @jobsSafetyCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety critical'**
+  String get jobsSafetyCritical;
+
+  /// No description provided for @jobsSafetyCapReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap reason'**
+  String get jobsSafetyCapReason;
+
+  /// No description provided for @jobsApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Job approved'**
+  String get jobsApproved;
+
+  /// No description provided for @jobsRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Job rejected'**
+  String get jobsRejected;
+
+  /// No description provided for @jobsRejectReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get jobsRejectReason;
+
+  /// No description provided for @jobsRejectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection closes the job and requires a new inspection.'**
+  String get jobsRejectHint;
+
+  /// No description provided for @jobsApproveReasonOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval reason (optional)'**
+  String get jobsApproveReasonOptional;
+
+  /// No description provided for @jobsOpenPublishChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Open publish checklist'**
+  String get jobsOpenPublishChecklist;
+
+  /// No description provided for @jobsPublishChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish checklist'**
+  String get jobsPublishChecklist;
+
+  /// No description provided for @jobsChecklistReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to publish'**
+  String get jobsChecklistReady;
+
+  /// No description provided for @jobsChecklistNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Not ready to publish'**
+  String get jobsChecklistNotReady;
+
+  /// No description provided for @jobsChecklistPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get jobsChecklistPassed;
+
+  /// No description provided for @jobsChecklistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get jobsChecklistFailed;
+
+  /// No description provided for @jobsConsentGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent granted'**
+  String get jobsConsentGranted;
+
+  /// No description provided for @jobsConsentMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent missing'**
+  String get jobsConsentMissing;
+
+  /// No description provided for @jobsDocumentsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents ready'**
+  String get jobsDocumentsReady;
+
+  /// No description provided for @jobsDocumentsNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents not ready'**
+  String get jobsDocumentsNotReady;
+
+  /// No description provided for @jobsSafetyCapApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap applied'**
+  String get jobsSafetyCapApplied;
+
+  /// No description provided for @jobsSafetyCapNotApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'No safety cap'**
+  String get jobsSafetyCapNotApplied;
+
+  /// No description provided for @jobsGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get jobsGrade;
+
+  /// No description provided for @jobsPublishNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish report'**
+  String get jobsPublishNow;
+
+  /// No description provided for @jobsPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Report published'**
+  String get jobsPublished;
+
+  /// No description provided for @jobsPublishFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not publish.'**
+  String get jobsPublishFailed;
+
+  /// No description provided for @jobsPublicLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Public link'**
+  String get jobsPublicLinkTitle;
+
+  /// No description provided for @jobsPublicUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Public URL'**
+  String get jobsPublicUrl;
+
+  /// No description provided for @jobsPublicToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Token'**
+  String get jobsPublicToken;
+
+  /// No description provided for @jobsShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get jobsShare;
+
+  /// No description provided for @jobsQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get jobsQrTitle;
+
+  /// No description provided for @jobsQrUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code unavailable'**
+  String get jobsQrUnavailable;
+
+  /// No description provided for @jobsUnpublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublish'**
+  String get jobsUnpublish;
+
+  /// No description provided for @jobsRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get jobsRevoke;
+
+  /// No description provided for @jobsRotateToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate token'**
+  String get jobsRotateToken;
+
+  /// No description provided for @jobsUnpublishReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpublish reason'**
+  String get jobsUnpublishReason;
+
+  /// No description provided for @jobsRevokeReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke reason'**
+  String get jobsRevokeReason;
+
+  /// No description provided for @jobsTokenRotated.
+  ///
+  /// In en, this message translates to:
+  /// **'Token rotated'**
+  String get jobsTokenRotated;
+
+  /// No description provided for @jobsLinkUnpublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Link unpublished'**
+  String get jobsLinkUnpublished;
+
+  /// No description provided for @jobsActivatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Activated at'**
+  String get jobsActivatedAt;
+
+  /// No description provided for @jobsRevokedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoked at'**
+  String get jobsRevokedAt;
+
+  /// No description provided for @jobsRevocationReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Revocation reason'**
+  String get jobsRevocationReason;
+
+  /// No description provided for @jobsShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this report link'**
+  String get jobsShareText;
+
+  /// No description provided for @jobsDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get jobsDocumentsTitle;
+
+  /// No description provided for @jobsDocumentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Document type'**
+  String get jobsDocumentType;
+
+  /// No description provided for @jobsDocumentLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get jobsDocumentLanguage;
+
+  /// No description provided for @jobsDocumentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get jobsDocumentStatus;
+
+  /// No description provided for @jobsDocumentSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get jobsDocumentSize;
+
+  /// No description provided for @jobsDocumentGeneratedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated'**
+  String get jobsDocumentGeneratedAt;
+
+  /// No description provided for @jobsDocumentError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get jobsDocumentError;
+
+  /// No description provided for @jobsRetryDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get jobsRetryDocument;
+
+  /// No description provided for @jobsDocumentRetried.
+  ///
+  /// In en, this message translates to:
+  /// **'Document retry queued'**
+  String get jobsDocumentRetried;
+
+  /// No description provided for @jobsDocumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents yet'**
+  String get jobsDocumentsEmpty;
+
+  /// No description provided for @commonDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get commonDownload;
+
+  /// No description provided for @commonActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Try again.'**
+  String get commonActionFailed;
+
+  /// No description provided for @commonLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load. Try again.'**
+  String get commonLoadFailed;
+
+  /// No description provided for @commonReasonRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A reason is required.'**
+  String get commonReasonRequired;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get commonConfirm;
+
+  /// No description provided for @jobsNotificationPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get jobsNotificationPayload;
+
+  /// No description provided for @jobsNotificationNoPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'No details'**
+  String get jobsNotificationNoPayload;
+
+  /// No description provided for @commonType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get commonType;
+
+  /// No description provided for @commonCreatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get commonCreatedAt;
+
+  /// No description provided for @jobsReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get jobsReference;
+
+  /// No description provided for @jobsJobScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get jobsJobScore;
+
+  /// No description provided for @jobsJobGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get jobsJobGrade;
+
+  /// No description provided for @jobsAssignedTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get jobsAssignedTechnician;
+
+  /// No description provided for @jobsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get jobsUnit;
+
+  /// No description provided for @jobsViewChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'View checklist'**
+  String get jobsViewChecklist;
+
+  /// No description provided for @jobsViewDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'View documents'**
+  String get jobsViewDocuments;
+
+  /// No description provided for @jobsViewPublicLink.
+  ///
+  /// In en, this message translates to:
+  /// **'View public link'**
+  String get jobsViewPublicLink;
+
+  /// No description provided for @jobsCancelReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation reason'**
+  String get jobsCancelReason;
+
+  /// No description provided for @jobsAssignTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign technician'**
+  String get jobsAssignTechnician;
+
+  /// No description provided for @jobsAssignmentReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get jobsAssignmentReason;
+
+  /// No description provided for @commonYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get commonYes;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get commonNo;
+
+  /// No description provided for @commonNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get commonNotAvailable;
+
+  /// No description provided for @jobsOpenJobBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Open job board'**
+  String get jobsOpenJobBoard;
+
+  /// No description provided for @technicianJobSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search jobs'**
+  String get technicianJobSearch;
+
+  /// No description provided for @technicianAllStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get technicianAllStatuses;
+
+  /// No description provided for @technicianRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get technicianRefresh;
+
+  /// No description provided for @technicianNextPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get technicianNextPage;
+
+  /// No description provided for @technicianPreviousPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get technicianPreviousPage;
+
+  /// No description provided for @technicianPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {totalPages}'**
+  String technicianPageOf(int page, int totalPages);
+
+  /// No description provided for @technicianJobQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection queue'**
+  String get technicianJobQueue;
+
+  /// No description provided for @technicianSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending sync'**
+  String get technicianSyncPending;
+
+  /// No description provided for @technicianOfflineQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this phone. It will sync when online.'**
+  String get technicianOfflineQueued;
+
+  /// No description provided for @technicianJobListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No inspections are assigned to you.'**
+  String get technicianJobListEmpty;
+
+  /// No description provided for @technicianNoSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs match your search.'**
+  String get technicianNoSearchResults;
+
+  /// No description provided for @technicianVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get technicianVehicle;
+
+  /// No description provided for @technicianCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get technicianCustomer;
+
+  /// No description provided for @technicianScheduledAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get technicianScheduledAt;
+
+  /// No description provided for @technicianStartedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get technicianStartedAt;
+
+  /// No description provided for @technicianAssessmentState.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment'**
+  String get technicianAssessmentState;
+
+  /// No description provided for @technicianCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get technicianCategory;
+
+  /// No description provided for @technicianInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get technicianInstructions;
+
+  /// No description provided for @technicianStandardSpec.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard specification'**
+  String get technicianStandardSpec;
+
+  /// No description provided for @technicianMeasurement.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement'**
+  String get technicianMeasurement;
+
+  /// No description provided for @technicianMeasurementByPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement by position'**
+  String get technicianMeasurementByPosition;
+
+  /// No description provided for @technicianUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get technicianUnit;
+
+  /// No description provided for @technicianTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool'**
+  String get technicianTool;
+
+  /// No description provided for @technicianSafetyCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety critical'**
+  String get technicianSafetyCritical;
+
+  /// No description provided for @technicianMultiPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-point'**
+  String get technicianMultiPoint;
+
+  /// No description provided for @technicianResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get technicianResult;
+
+  /// No description provided for @technicianSelectResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a result'**
+  String get technicianSelectResult;
+
+  /// No description provided for @technicianSuggestedResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested result'**
+  String get technicianSuggestedResult;
+
+  /// No description provided for @technicianScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get technicianScore;
+
+  /// No description provided for @technicianScoreOverride.
+  ///
+  /// In en, this message translates to:
+  /// **'Score override'**
+  String get technicianScoreOverride;
+
+  /// No description provided for @technicianScoreHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed range {min}–{max}'**
+  String technicianScoreHint(int min, int max);
+
+  /// No description provided for @technicianScoreOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Score must be between {min} and {max}.'**
+  String technicianScoreOutOfRange(int min, int max);
+
+  /// No description provided for @technicianIssueDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue details'**
+  String get technicianIssueDetails;
+
+  /// No description provided for @technicianIssueDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from the configured options.'**
+  String get technicianIssueDetailsHint;
+
+  /// No description provided for @technicianIssueFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required.'**
+  String get technicianIssueFieldRequired;
+
+  /// No description provided for @technicianMeasurementRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a measurement for every position.'**
+  String get technicianMeasurementRequired;
+
+  /// No description provided for @technicianRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get technicianRequired;
+
+  /// No description provided for @technicianOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get technicianOptional;
+
+  /// No description provided for @technicianSeverity.
+  ///
+  /// In en, this message translates to:
+  /// **'Severity'**
+  String get technicianSeverity;
+
+  /// No description provided for @technicianNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get technicianNotes;
+
+  /// No description provided for @technicianNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum {count} characters'**
+  String technicianNotesHint(int count);
+
+  /// No description provided for @technicianEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get technicianEvidence;
+
+  /// No description provided for @technicianEvidenceCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence checklist'**
+  String get technicianEvidenceCounts;
+
+  /// No description provided for @technicianEvidencePhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {required} photos'**
+  String technicianEvidencePhotoCount(int count, int required);
+
+  /// No description provided for @technicianEvidenceVideoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {required} videos'**
+  String technicianEvidenceVideoCount(int count, int required);
+
+  /// No description provided for @technicianEvidenceDocumentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {required} documents'**
+  String technicianEvidenceDocumentCount(int count, int required);
+
+  /// No description provided for @technicianEvidenceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'More evidence is required for this result.'**
+  String get technicianEvidenceRequired;
+
+  /// No description provided for @technicianEvidenceSatisfied.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence requirements met.'**
+  String get technicianEvidenceSatisfied;
+
+  /// No description provided for @technicianCapturePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get technicianCapturePhoto;
+
+  /// No description provided for @technicianCaptureVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Record video'**
+  String get technicianCaptureVideo;
+
+  /// No description provided for @technicianCaptureDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get technicianCaptureDocument;
+
+  /// No description provided for @technicianPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get technicianPhoto;
+
+  /// No description provided for @technicianVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get technicianVideo;
+
+  /// No description provided for @technicianDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get technicianDocument;
+
+  /// No description provided for @technicianCaptionsEn.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption (English)'**
+  String get technicianCaptionsEn;
+
+  /// No description provided for @technicianCaptionsAr.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption (Arabic)'**
+  String get technicianCaptionsAr;
+
+  /// No description provided for @technicianCapturePoster.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture poster frame'**
+  String get technicianCapturePoster;
+
+  /// No description provided for @technicianCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture'**
+  String get technicianCapture;
+
+  /// No description provided for @technicianSaveEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Save evidence'**
+  String get technicianSaveEvidence;
+
+  /// No description provided for @technicianEvidenceUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading {type}...'**
+  String technicianEvidenceUploading(String type);
+
+  /// No description provided for @technicianUploadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload progress'**
+  String get technicianUploadProgress;
+
+  /// No description provided for @technicianEvidenceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence upload failed.'**
+  String get technicianEvidenceFailed;
+
+  /// No description provided for @technicianRetryUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry upload'**
+  String get technicianRetryUpload;
+
+  /// No description provided for @technicianDeleteEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete evidence'**
+  String get technicianDeleteEvidence;
+
+  /// No description provided for @technicianVideoTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Video must be 30 seconds or less.'**
+  String get technicianVideoTooLong;
+
+  /// No description provided for @technicianVideoTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Video must be at least 15 seconds.'**
+  String get technicianVideoTooShort;
+
+  /// No description provided for @technicianFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is too large.'**
+  String get technicianFileTooLarge;
+
+  /// No description provided for @technicianChooseDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a document'**
+  String get technicianChooseDocument;
+
+  /// No description provided for @technicianAssessmentProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment progress'**
+  String get technicianAssessmentProgress;
+
+  /// No description provided for @technicianPinnedTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned template version'**
+  String get technicianPinnedTemplate;
+
+  /// No description provided for @technicianReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get technicianReview;
+
+  /// No description provided for @technicianDraftScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft score'**
+  String get technicianDraftScore;
+
+  /// No description provided for @technicianGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get technicianGrade;
+
+  /// No description provided for @technicianSafetyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety cap'**
+  String get technicianSafetyCap;
+
+  /// No description provided for @technicianItemsAssessed.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / {total} items assessed'**
+  String technicianItemsAssessed(int done, int total);
+
+  /// No description provided for @technicianBlockers.
+  ///
+  /// In en, this message translates to:
+  /// **'Blockers'**
+  String get technicianBlockers;
+
+  /// No description provided for @technicianWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings'**
+  String get technicianWarnings;
+
+  /// No description provided for @technicianWarningsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings'**
+  String get technicianWarningsTitle;
+
+  /// No description provided for @technicianConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts'**
+  String get technicianConflicts;
+
+  /// No description provided for @technicianSyncConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync conflict'**
+  String get technicianSyncConflictTitle;
+
+  /// No description provided for @technicianConflictExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve sync conflicts before completing.'**
+  String get technicianConflictExists;
+
+  /// No description provided for @technicianServerPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Server payload'**
+  String get technicianServerPayload;
+
+  /// No description provided for @technicianClientPayload.
+  ///
+  /// In en, this message translates to:
+  /// **'Client payload'**
+  String get technicianClientPayload;
+
+  /// No description provided for @technicianReloadServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server wins — reload'**
+  String get technicianReloadServer;
+
+  /// No description provided for @technicianConflictReloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Server state reloaded. Revalidate the affected items.'**
+  String get technicianConflictReloaded;
+
+  /// No description provided for @technicianNoConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'No sync conflicts.'**
+  String get technicianNoConflicts;
+
+  /// No description provided for @technicianSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection summary'**
+  String get technicianSummaryTitle;
+
+  /// No description provided for @technicianOpenSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Open summary'**
+  String get technicianOpenSummary;
+
+  /// No description provided for @technicianComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get technicianComplete;
+
+  /// No description provided for @technicianCompleteInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete inspection'**
+  String get technicianCompleteInspection;
+
+  /// No description provided for @technicianSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get technicianSignature;
+
+  /// No description provided for @technicianSignatureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer signature'**
+  String get technicianSignatureTitle;
+
+  /// No description provided for @technicianSignatureHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign inside the box.'**
+  String get technicianSignatureHint;
+
+  /// No description provided for @technicianClearSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get technicianClearSignature;
+
+  /// No description provided for @technicianSignerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Signer name'**
+  String get technicianSignerName;
+
+  /// No description provided for @technicianSignatureRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a signature and signer name.'**
+  String get technicianSignatureRequired;
+
+  /// No description provided for @technicianSignatureSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature saved.'**
+  String get technicianSignatureSuccess;
+
+  /// No description provided for @technicianCompletedPendingReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection completed and sent for review.'**
+  String get technicianCompletedPendingReview;
+
+  /// No description provided for @technicianPendingReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get technicianPendingReviewStatus;
+
+  /// No description provided for @technicianJobCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection completed'**
+  String get technicianJobCompleted;
+
+  /// No description provided for @technicianBackToJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to jobs'**
+  String get technicianBackToJobs;
+
+  /// No description provided for @technicianSaveItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Save item'**
+  String get technicianSaveItem;
+
+  /// No description provided for @technicianSaveAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Save assessment'**
+  String get technicianSaveAssessment;
+
+  /// No description provided for @technicianItemSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Item saved'**
+  String get technicianItemSaved;
+
+  /// No description provided for @technicianAssessmentSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment saved'**
+  String get technicianAssessmentSaved;
+
+  /// No description provided for @technicianNetworkRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the server. Your work was saved on this phone and will sync automatically.'**
+  String get technicianNetworkRetry;
+
+  /// No description provided for @technicianSyncReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay queued changes'**
+  String get technicianSyncReplay;
+
+  /// No description provided for @technicianSyncApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes synced.'**
+  String technicianSyncApplied(int count);
+
+  /// No description provided for @technicianSyncConflictsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} conflicts'**
+  String technicianSyncConflictsCount(int count);
+
+  /// No description provided for @technicianSyncNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting to sync.'**
+  String get technicianSyncNothing;
+
+  /// No description provided for @technicianNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this category.'**
+  String get technicianNoItems;
+
+  /// No description provided for @technicianNoCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'This checklist has no categories.'**
+  String get technicianNoCategories;
+
+  /// No description provided for @technicianNoIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'No issues.'**
+  String get technicianNoIssues;
+
+  /// No description provided for @platformSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search platform assets, specs, workshop nodes...'**
+  String get platformSearchHint;
+
+  /// No description provided for @platformSearchHintCompact.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
+  String get platformSearchHintCompact;
+
+  /// No description provided for @platformNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get platformNotifications;
+
+  /// No description provided for @platformNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get platformNotificationsTitle;
+
+  /// No description provided for @platformNotificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get platformNotificationsEmpty;
+
+  /// No description provided for @platformNotificationsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up. New platform alerts will appear here.'**
+  String get platformNotificationsEmptyBody;
+
+  /// No description provided for @platformHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get platformHelp;
+
+  /// No description provided for @platformHelpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & support'**
+  String get platformHelpTitle;
+
+  /// No description provided for @platformHelpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact platform support or read the admin guide.'**
+  String get platformHelpBody;
+
+  /// No description provided for @platformHelpContact.
+  ///
+  /// In en, this message translates to:
+  /// **'support@truereport.test'**
+  String get platformHelpContact;
+
+  /// No description provided for @platformHelpDocs.
+  ///
+  /// In en, this message translates to:
+  /// **'Open admin guide'**
+  String get platformHelpDocs;
+
+  /// No description provided for @platformProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get platformProfile;
+
+  /// No description provided for @platformAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get platformAccount;
+
+  /// No description provided for @platformLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get platformLanguage;
+
+  /// No description provided for @platformSwitchToArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Arabic'**
+  String get platformSwitchToArabic;
+
+  /// No description provided for @platformSwitchToEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to English'**
+  String get platformSwitchToEnglish;
+
+  /// No description provided for @platformHierarchyRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'HIERARCHY ROOT'**
+  String get platformHierarchyRoot;
+
+  /// No description provided for @platformActiveWorkshops.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Workshops'**
+  String get platformActiveWorkshops;
+
+  /// No description provided for @navDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get navDashboard;
+
+  /// No description provided for @dashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboardTitle;
+
+  /// No description provided for @dashboardKpis.
+  ///
+  /// In en, this message translates to:
+  /// **'Key metrics'**
+  String get dashboardKpis;
+
+  /// No description provided for @dashTotalWorkshops.
+  ///
+  /// In en, this message translates to:
+  /// **'Total workshops'**
+  String get dashTotalWorkshops;
+
+  /// No description provided for @dashActiveWorkshops.
+  ///
+  /// In en, this message translates to:
+  /// **'Active workshops'**
+  String get dashActiveWorkshops;
+
+  /// No description provided for @dashTechnicians.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians'**
+  String get dashTechnicians;
+
+  /// No description provided for @dashActiveJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Active jobs'**
+  String get dashActiveJobs;
+
+  /// No description provided for @dashPendingReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending reviews'**
+  String get dashPendingReviews;
+
+  /// No description provided for @dashPublishedReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Published reports'**
+  String get dashPublishedReports;
+
+  /// No description provided for @dashChecklistHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist health'**
+  String get dashChecklistHealth;
+
+  /// No description provided for @dashLanguagesLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages live'**
+  String get dashLanguagesLive;
+
+  /// No description provided for @dashJobsByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs by status'**
+  String get dashJobsByStatus;
+
+  /// No description provided for @dashReportsByMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports by month'**
+  String get dashReportsByMonth;
+
+  /// No description provided for @dashRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get dashRecentActivity;
+
+  /// No description provided for @dashAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get dashAlerts;
+
+  /// No description provided for @dashQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get dashQuickActions;
+
+  /// No description provided for @dashViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get dashViewAll;
+
+  /// No description provided for @dashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet — add your first workshop to get started.'**
+  String get dashEmpty;
+
+  /// No description provided for @dashNoAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts — everything looks healthy.'**
+  String get dashNoAlerts;
+
+  /// No description provided for @dashTranslationIncomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{language} translation incomplete'**
+  String dashTranslationIncomplete(String language);
+
+  /// No description provided for @wsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage workshops, staff, and their templates'**
+  String get wsSubtitle;
+
+  /// No description provided for @wsAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add workshop'**
+  String get wsAdd;
+
+  /// No description provided for @wsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search workshops by name, branch, or status'**
+  String get wsSearchHint;
+
+  /// No description provided for @wsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit workshop'**
+  String get wsEdit;
+
+  /// No description provided for @wsDeactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate workshop'**
+  String get wsDeactivate;
+
+  /// No description provided for @wsReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate workshop'**
+  String get wsReactivate;
+
+  /// No description provided for @wsDeactivateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate this workshop? Staff lose access until it is reactivated.'**
+  String get wsDeactivateConfirm;
+
+  /// No description provided for @wsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop name'**
+  String get wsName;
+
+  /// No description provided for @wsBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch'**
+  String get wsBranch;
+
+  /// No description provided for @wsContactEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact email'**
+  String get wsContactEmail;
+
+  /// No description provided for @wsOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get wsOverview;
+
+  /// No description provided for @wsStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff'**
+  String get wsStaff;
+
+  /// No description provided for @wsWorkshopTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get wsWorkshopTemplates;
+
+  /// No description provided for @wsActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get wsActivity;
+
+  /// No description provided for @wsCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get wsCapacity;
+
+  /// No description provided for @wsContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get wsContact;
+
+  /// No description provided for @wsCreatedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get wsCreatedOn;
+
+  /// No description provided for @wsAddStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Add staff'**
+  String get wsAddStaff;
+
+  /// No description provided for @wsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No workshops yet'**
+  String get wsEmpty;
+
+  /// No description provided for @wsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first workshop to start onboarding staff.'**
+  String get wsEmptyBody;
+
+  /// No description provided for @wsResultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} workshops'**
+  String wsResultCount(int count);
+
+  /// No description provided for @chkItemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist items'**
+  String get chkItemsTitle;
+
+  /// No description provided for @chkCategoryFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Category filter'**
+  String get chkCategoryFilter;
+
+  /// No description provided for @chkAllCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get chkAllCategories;
+
+  /// No description provided for @chkSearchCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories'**
+  String get chkSearchCategories;
+
+  /// No description provided for @chkEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get chkEvidence;
+
+  /// No description provided for @chkUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get chkUpdated;
+
+  /// No description provided for @chkResultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String chkResultCount(int count);
+
+  /// No description provided for @stepBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Basics'**
+  String get stepBasics;
+
+  /// No description provided for @stepContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get stepContent;
+
+  /// No description provided for @stepIssueOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue options'**
+  String get stepIssueOptions;
+
+  /// No description provided for @stepEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Evidence'**
+  String get stepEvidence;
+
+  /// No description provided for @stepMeasurement.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements'**
+  String get stepMeasurement;
+
+  /// No description provided for @stepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & publish'**
+  String get stepReview;
+
+  /// No description provided for @stepBasicsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Define the item identity and behavior.'**
+  String get stepBasicsHelp;
+
+  /// No description provided for @stepContentHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Write instructions for every live language.'**
+  String get stepContentHelp;
+
+  /// No description provided for @stepIssueHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Define the fields technicians fill when they find an issue.'**
+  String get stepIssueHelp;
+
+  /// No description provided for @stepEvidenceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the minimum photo, video, and note evidence.'**
+  String get stepEvidenceHelp;
+
+  /// No description provided for @stepMeasureHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Map measurement ranges to results. No scores.'**
+  String get stepMeasureHelp;
+
+  /// No description provided for @stepReviewHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Review everything, save a draft, or publish.'**
+  String get stepReviewHelp;
+
+  /// No description provided for @stepCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String stepCounter(int current, int total);
+
+  /// No description provided for @itemAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get itemAdvanced;
+
+  /// No description provided for @itemSaveDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save draft'**
+  String get itemSaveDraft;
+
+  /// No description provided for @tmplCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create template'**
+  String get tmplCreate;
+
+  /// No description provided for @tmplBuilderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Template builder'**
+  String get tmplBuilderTitle;
+
+  /// No description provided for @tmplStepDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get tmplStepDetails;
+
+  /// No description provided for @tmplStepCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get tmplStepCategories;
+
+  /// No description provided for @tmplStepReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get tmplStepReview;
+
+  /// No description provided for @tmplAddCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get tmplAddCategory;
+
+  /// No description provided for @tmplAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get tmplAddItem;
+
+  /// No description provided for @tmplSearchCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories'**
+  String get tmplSearchCategories;
+
+  /// No description provided for @tmplSearchItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items'**
+  String get tmplSearchItems;
+
+  /// No description provided for @tmplEmptyCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this category yet'**
+  String get tmplEmptyCategory;
+
+  /// No description provided for @tmplDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get tmplDuplicate;
+
+  /// No description provided for @tmplProgressCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} categories'**
+  String tmplProgressCategories(int count);
+
+  /// No description provided for @tmplProgressItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String tmplProgressItems(int count);
+
+  /// No description provided for @optHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Option sets define the choices technicians pick when reporting an issue. Values are shared across items.'**
+  String get optHelper;
+
+  /// No description provided for @optSearchSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Search option sets'**
+  String get optSearchSets;
+
+  /// No description provided for @optSearchValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Search values'**
+  String get optSearchValues;
+
+  /// No description provided for @optAddValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Add value'**
+  String get optAddValue;
+
+  /// No description provided for @optValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Values'**
+  String get optValues;
+
+  /// No description provided for @optInlineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit inline; changes save immediately.'**
+  String get optInlineHint;
+
+  /// No description provided for @optUsedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Used by'**
+  String get optUsedBy;
+
+  /// No description provided for @langStatusDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get langStatusDraft;
+
+  /// No description provided for @langStatusTranslating.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating'**
+  String get langStatusTranslating;
+
+  /// No description provided for @langStatusReview.
+  ///
+  /// In en, this message translates to:
+  /// **'In review'**
+  String get langStatusReview;
+
+  /// No description provided for @langStatusLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get langStatusLive;
+
+  /// No description provided for @langStatusRetired.
+  ///
+  /// In en, this message translates to:
+  /// **'Retired'**
+  String get langStatusRetired;
+
+  /// No description provided for @langCompleteTranslations.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete translations'**
+  String get langCompleteTranslations;
+
+  /// No description provided for @langPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish language'**
+  String get langPublish;
+
+  /// No description provided for @langPublishBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete all required translations to publish.'**
+  String get langPublishBlocked;
+
+  /// No description provided for @queueMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get queueMissing;
+
+  /// No description provided for @queueDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get queueDraft;
+
+  /// No description provided for @queueReviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewed'**
+  String get queueReviewed;
+
+  /// No description provided for @queueApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get queueApproved;
+
+  /// No description provided for @queueTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get queueTotal;
+
+  /// No description provided for @queueEntityType.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity type'**
+  String get queueEntityType;
+
+  /// No description provided for @queueSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search translations'**
+  String get queueSearchHint;
+
+  /// No description provided for @queueMissingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing only'**
+  String get queueMissingOnly;
+
+  /// No description provided for @queueEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit translation'**
+  String get queueEditTitle;
+
+  /// No description provided for @queueSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get queueSaveAll;
+
+  /// No description provided for @queueApproveSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve selected'**
+  String get queueApproveSelected;
+
+  /// No description provided for @queueDefaultText.
+  ///
+  /// In en, this message translates to:
+  /// **'Default text'**
+  String get queueDefaultText;
+
+  /// No description provided for @queueTranslation.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation'**
+  String get queueTranslation;
+
+  /// No description provided for @queuePublishLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish language'**
+  String get queuePublishLanguage;
+
+  /// No description provided for @queueEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'All translations complete'**
+  String get queueEmpty;
+
+  /// No description provided for @queueEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is missing for this language.'**
+  String get queueEmptyBody;
+
+  /// No description provided for @queueExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get queueExport;
+
+  /// No description provided for @reportLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Report labels'**
+  String get reportLabels;
 }
 
 class _AppLocalizationsDelegate

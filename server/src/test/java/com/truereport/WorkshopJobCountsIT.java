@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class WorkshopJobCountsIT extends IntegrationTestBase {
 
-    private static final String COUNTS_PATH = "/api/v1/workshop/jobs/counts";
+    private static final String COUNTS_PATH = "/api/v1/workshop/legacy/jobs/counts";
 
     @Autowired
     MasterContentService masterContent;
@@ -137,7 +137,7 @@ class WorkshopJobCountsIT extends IntegrationTestBase {
         String email = "counts.pii@test.local";
         String vin = "PIIVIN00000000001";
         String plate = "PII-4242";
-        mockMvc.perform(post("/api/v1/workshop/jobs")
+        mockMvc.perform(post("/api/v1/workshop/legacy/jobs")
                         .header("Authorization", "Bearer " + adminA.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -206,7 +206,7 @@ class WorkshopJobCountsIT extends IntegrationTestBase {
     }
 
     private String createDraftJob(Login login, String versionId, String customer) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs", """
+        return postJson(login, "/api/v1/workshop/legacy/jobs", """
                 {"templateVersionId":"%s","customerName":"%s",
                  "vehicleMake":"Toyota","vehicleModel":"Camry","vehicleYear":2022,
                  "scope":"Full inspection"}
@@ -214,7 +214,7 @@ class WorkshopJobCountsIT extends IntegrationTestBase {
     }
 
     private String createScheduledJob(Login login, String versionId, String customer) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs", """
+        return postJson(login, "/api/v1/workshop/legacy/jobs", """
                 {"templateVersionId":"%s","scheduledAt":"2026-11-05T09:00:00",
                  "customerName":"%s","vehicleMake":"Toyota","vehicleModel":"Camry",
                  "vehicleYear":2022,"scope":"Full inspection"}
@@ -222,17 +222,17 @@ class WorkshopJobCountsIT extends IntegrationTestBase {
     }
 
     private void assign(Login login, String jobId, UUID technicianId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + technicianId + "\",\"reason\":\"Assigned\"}");
     }
 
     private void cancel(Login login, String jobId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/cancel",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/cancel",
                 "{\"reason\":\"No longer needed\"}");
     }
 
     private void start(Login login, String jobId) throws Exception {
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/start")
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/start")
                         .header("Authorization", "Bearer " + login.accessToken()))
                 .andExpect(status().isOk());
     }

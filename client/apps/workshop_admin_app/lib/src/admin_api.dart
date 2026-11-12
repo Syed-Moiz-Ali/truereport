@@ -1,6 +1,7 @@
 import 'package:api_client/api_client.dart';
 import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
+import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
@@ -222,6 +223,84 @@ abstract class AdminApi {
   Future<TemplateVersionView> templateVersion(String id, String versionId);
 
   Future<TemplateDetail> retireTemplate(String id);
+
+  Future<List<AvailableTemplate>> availableTemplates();
+
+  Future<JobTemplateDetail> templateVersionDetail(String versionId);
+
+  Future<JobPage> cleanJobs({
+    int page = 0,
+    int size = 20,
+    String status = '',
+    String search = '',
+    String from = '',
+    String to = '',
+  });
+
+  Future<CleanJob> cleanJob(String id);
+
+  Future<CleanJob> createCleanJob(NewCleanJob job);
+
+  Future<CleanJob> updateCleanJob(String id, UpdateCleanJob job);
+
+  Future<CleanJob> assignCleanJob(
+    String jobId,
+    String technicianId,
+    String? reason, {
+    int? version,
+  });
+
+  Future<CleanJob> cancelCleanJob(
+    String jobId,
+    String reason, {
+    int? version,
+  });
+
+  Future<List<JobAssignment>> jobAssignments(String jobId);
+
+  Future<JobReview> jobReview(String jobId);
+
+  Future<PublishChecklist> publishChecklist(String jobId);
+
+  Future<CleanJob> approveJob(
+    String jobId, {
+    String? reason,
+    String? safetyCapReason,
+    int? version,
+  });
+
+  Future<CleanJob> rejectJob(
+    String jobId,
+    String reason, {
+    int? version,
+  });
+
+  Future<PublicLink> publishJob(
+    String jobId, {
+    bool? pdfDownloadEnabled,
+  });
+
+  Future<PublicLink> unpublishJob(String jobId, String reason);
+
+  Future<PublicLink> rotateJobToken(String jobId);
+
+  Future<PublicLink> revokeJob(String jobId, String reason);
+
+  Future<PublicLink> publicLink(String jobId);
+
+  Future<List<int>> jobQr(String jobId);
+
+  Future<List<JobDocument>> jobDocuments(String jobId);
+
+  Future<List<JobDocument>> retryJobDocument(String jobId, String type);
+
+  Future<List<WorkshopNotification>> notifications({
+    bool unreadOnly = false,
+  });
+
+  Future<WorkshopNotification> readNotification(String id);
+
+  Future<CleanJobCounts> cleanJobCounts();
 }
 
 class TemplateItemDraft {
@@ -1026,5 +1105,260 @@ class HttpAdminApi implements AdminApi {
   Future<TemplateDetail> retireTemplate(String id) async {
     final data = await _api.postDynamic(_endpoints.retireWorkshopTemplate(id));
     return TemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<AvailableTemplate>> availableTemplates() async {
+    final data = await _api.getDynamic(_endpoints.workshopAvailableTemplates);
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(AvailableTemplate.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<JobTemplateDetail> templateVersionDetail(String versionId) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopTemplateDetail(versionId),
+    );
+    return JobTemplateDetail.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<JobPage> cleanJobs({
+    int page = 0,
+    int size = 20,
+    String status = '',
+    String search = '',
+    String from = '',
+    String to = '',
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopCleanJobs,
+      query: {
+        'page': page,
+        'size': size,
+        if (status.isNotEmpty) 'status': status,
+        if (search.trim().isNotEmpty) 'search': search.trim(),
+        if (from.isNotEmpty) 'from': from,
+        if (to.isNotEmpty) 'to': to,
+      },
+    );
+    return JobPage.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> cleanJob(String id) async {
+    final data = await _api.getDynamic(_endpoints.workshopCleanJob(id));
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> createCleanJob(NewCleanJob job) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopCleanJobs,
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: job.toJson(),
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> updateCleanJob(String id, UpdateCleanJob job) async {
+    final data = await _api.putDynamic(
+      _endpoints.workshopCleanJob(id),
+      body: job.toJson(),
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> assignCleanJob(
+    String jobId,
+    String technicianId,
+    String? reason, {
+    int? version,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.assignCleanWorkshopJob(jobId),
+      body: {
+        'technicianId': technicianId,
+        'reason': reason,
+        'version': version,
+      },
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> cancelCleanJob(
+    String jobId,
+    String reason, {
+    int? version,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.cancelCleanWorkshopJob(jobId),
+      body: {'reason': reason, 'version': version},
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<JobAssignment>> jobAssignments(String jobId) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopCleanJobAssignments(jobId),
+    );
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(JobAssignment.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<JobReview> jobReview(String jobId) async {
+    final data = await _api.getDynamic(_endpoints.workshopJobReview(jobId));
+    return JobReview.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublishChecklist> publishChecklist(String jobId) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopJobPublishChecklist(jobId),
+    );
+    return PublishChecklist.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> approveJob(
+    String jobId, {
+    String? reason,
+    String? safetyCapReason,
+    int? version,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobApprove(jobId),
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: {
+        'reason': reason,
+        'safetyCapReason': safetyCapReason,
+        'version': version,
+      },
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> rejectJob(
+    String jobId,
+    String reason, {
+    int? version,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobReject(jobId),
+      body: {'reason': reason, 'version': version},
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublicLink> publishJob(
+    String jobId, {
+    bool? pdfDownloadEnabled,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobPublish(jobId),
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: {'pdfDownloadEnabled': pdfDownloadEnabled},
+    );
+    return PublicLink.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublicLink> unpublishJob(String jobId, String reason) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobUnpublish(jobId),
+      body: {'reason': reason},
+    );
+    return PublicLink.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublicLink> rotateJobToken(String jobId) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobRotateToken(jobId),
+      body: const <String, dynamic>{},
+    );
+    return PublicLink.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublicLink> revokeJob(String jobId, String reason) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobRevoke(jobId),
+      body: {'reason': reason},
+    );
+    return PublicLink.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PublicLink> publicLink(String jobId) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopJobPublicLink(jobId),
+    );
+    return PublicLink.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<int>> jobQr(String jobId) =>
+      _api.getBytes(_endpoints.workshopJobQr(jobId));
+
+  @override
+  Future<List<JobDocument>> jobDocuments(String jobId) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopJobDocuments(jobId),
+    );
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(JobDocument.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<JobDocument>> retryJobDocument(String jobId, String type) async {
+    final data = await _api.postDynamic(
+      _endpoints.workshopJobDocumentRetry(jobId, type),
+    );
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(JobDocument.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<WorkshopNotification>> notifications({
+    bool unreadOnly = false,
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.workshopNotifications,
+      query: {if (unreadOnly) 'unreadOnly': 'true'},
+    );
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(WorkshopNotification.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<WorkshopNotification> readNotification(String id) async {
+    final data = await _api.postDynamic(
+      _endpoints.readWorkshopNotification(id),
+    );
+    return WorkshopNotification.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJobCounts> cleanJobCounts() async {
+    final data = await _api.getDynamic(_endpoints.workshopCleanJobCounts);
+    return CleanJobCounts.fromJson(data as Map<String, dynamic>);
   }
 }

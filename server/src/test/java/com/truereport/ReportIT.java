@@ -170,10 +170,10 @@ class ReportIT extends IntegrationTestBase {
         mockMvc.perform(post("/api/v1/workshop/jobs/" + jobId + "/report/retry")
                         .header("Authorization", "Bearer " + adminB.accessToken()))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/report")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/report")
                         .header("Authorization", "Bearer " + admin.accessToken()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/jobs/" + jobId + "/report")
+        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + jobId + "/report")
                         .header("Authorization", "Bearer " + platform.accessToken()))
                 .andExpect(status().isForbidden());
 
@@ -242,7 +242,7 @@ class ReportIT extends IntegrationTestBase {
     }
 
     private void consent(Login login, String jobId) throws Exception {
-        postJson(login, "/api/v1/technician/jobs/" + jobId + "/consent",
+        postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/consent",
                 "{\"consentType\":\"PUBLIC_LINK\",\"status\":\"GRANTED\","
                         + "\"wordingVersion\":\"p6-test\",\"channel\":\"IN_PERSON\"}");
     }
@@ -296,7 +296,7 @@ class ReportIT extends IntegrationTestBase {
 
     private String job(Login login, String versionId, String name, String phone,
                        String email, String vin, String plate) throws Exception {
-        return postJson(login, "/api/v1/workshop/jobs",
+        return postJson(login, "/api/v1/workshop/legacy/jobs",
                 "{\"templateVersionId\":\"" + versionId + "\",\"customerName\":\"" + name
                         + "\",\"customerPhone\":\"" + phone + "\",\"customerEmail\":\"" + email
                         + "\",\"vehicleMake\":\"Toyota\",\"vehicleModel\":\"Corolla\","
@@ -306,25 +306,25 @@ class ReportIT extends IntegrationTestBase {
     }
 
     private void assign(Login login, String jobId, UUID technicianId) throws Exception {
-        postJson(login, "/api/v1/workshop/jobs/" + jobId + "/assign",
+        postJson(login, "/api/v1/workshop/legacy/jobs/" + jobId + "/assign",
                 "{\"technicianId\":\"" + technicianId + "\",\"reason\":\"Report test\"}");
     }
 
     private JsonNode start(Login login, String jobId) throws Exception {
-        return postJson(login, "/api/v1/technician/jobs/" + jobId + "/start", null);
+        return postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/start", null);
     }
 
     private void assess(Login login, String jobId, String itemId, String result,
                         String severity, String note) throws Exception {
-        putJson(login, "/api/v1/technician/jobs/" + jobId + "/items/" + itemId + "/assessment",
+        putJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/items/" + itemId + "/assessment",
                 "{\"baseVersion\":0,\"clientRevision\":1,\"resultCode\":\"" + result
                         + "\",\"severityCode\":" + (severity == null ? "null" : "\"" + severity + "\"")
                         + ",\"note\":\"" + note.replace("\"", "\\\"") + "\"}");
     }
 
     private void finalize(Login login, String jobId, String key) throws Exception {
-        postJson(login, "/api/v1/technician/jobs/" + jobId + "/ready", null);
-        mockMvc.perform(post("/api/v1/technician/jobs/" + jobId + "/finalize")
+        postJson(login, "/api/v1/technician/legacy/jobs/" + jobId + "/ready", null);
+        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/finalize")
                         .header("Authorization", "Bearer " + login.accessToken())
                         .header("Idempotency-Key", key))
                 .andExpect(status().isOk());

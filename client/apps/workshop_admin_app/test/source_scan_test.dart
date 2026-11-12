@@ -273,7 +273,7 @@ void main() {
     expect(
       endpoints.workshopJobCounts,
       '/api/'
-      'v1/workshop/jobs/counts',
+      'v1/workshop/legacy/jobs/counts',
     );
     expect(endpoints.workshopHierarchy('w1'), contains('/workshops/w1/'));
     expect(

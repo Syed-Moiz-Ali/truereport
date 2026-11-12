@@ -31,30 +31,10 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     super.dispose();
   }
 
-  void _quickFillDemo() {
-    setState(() {
-      _email.text = 'admin@test.local';
-      _password.text = 'pass123';
-      _errorKey = null;
-    });
-  }
-
-  void _enterDemoMode() {
-    ref.read(authControllerProvider.notifier).setDemoSession(
-      email: _email.text.trim().isNotEmpty
-          ? _email.text.trim()
-          : 'admin@platform.local',
-      displayName: 'Alex Vance',
-    );
-    context.go('/workshops');
-  }
-
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
-      debugPrint('[PlatformLogin] validation failed, not calling API');
       return;
     }
-    debugPrint('[PlatformLogin] submit email=${_email.text.trim()}');
     setState(() {
       _submitting = true;
       _errorKey = null;
@@ -71,31 +51,16 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
         return;
       }
       if (result is AuthChallenge) {
-        debugPrint('[PlatformLogin] 2FA challenge received');
         setState(() => _challengeToken = result.challengeToken);
       } else {
-        debugPrint('[PlatformLogin] success, navigating to /workshops');
         context.go('/workshops');
       }
     } on AppFailure catch (failure) {
-      debugPrint('[PlatformLogin] failed code=${failure.code}');
-      // Fallback for offline/standalone execution when using test credentials
-      final emailLower = _email.text.trim().toLowerCase();
-      if (emailLower.contains('admin') || emailLower.contains('test')) {
-        _enterDemoMode();
-        return;
-      }
       if (!mounted) {
         return;
       }
       setState(() => _errorKey = _messageFor(failure.code));
-    } catch (error) {
-      debugPrint('[PlatformLogin] unexpected error: $error');
-      final emailLower = _email.text.trim().toLowerCase();
-      if (emailLower.contains('admin') || emailLower.contains('test')) {
-        _enterDemoMode();
-        return;
-      }
+    } catch (_) {
       if (!mounted) {
         return;
       }
@@ -138,84 +103,30 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
       _ => null,
     };
 
-    return Stack(
-      children: [
-        AdminSignInView(
-          portalType: AdminPortalType.platform,
-          emailController: _email,
-          passwordController: _password,
-          codeController: _code,
-          formKey: _formKey,
-          isArabic: locale.languageCode == 'ar',
-          onLocaleChanged: (isArabic) => ref
-              .read(platformLocaleProvider.notifier)
-              .setLocale(Locale(isArabic ? 'ar' : 'en')),
-          onSubmit: _submit,
-          onValidateEmail: (value) {
-            final required = _required(value);
-            if (required != null) {
-              return required;
-            }
-            return Validators.email(value) == null
-                ? null
-                : AppLocalizations.of(context).invalidEmail;
-          },
-          onValidateRequired: _required,
-          challenge: _challengeToken != null,
-          submitting: _submitting,
-          errorText: errorText,
-          onQuickFillDemo: _quickFillDemo,
-        ),
-        // One-click bypass / demo entrance chip at bottom right
-        Positioned(
-          bottom: 16,
-          right: 16,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              key: const Key('btn-direct-demo-access'),
-              onTap: _enterDemoMode,
-              borderRadius: BorderRadius.circular(9999),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF006C49),
-                  borderRadius: BorderRadius.circular(9999),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x33000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.play_circle_outline_rounded,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      'Explore Platform Admin (Demo)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AdminSignInView(
+      portalType: AdminPortalType.platform,
+      emailController: _email,
+      passwordController: _password,
+      codeController: _code,
+      formKey: _formKey,
+      isArabic: locale.languageCode == 'ar',
+      onLocaleChanged: (isArabic) => ref
+          .read(platformLocaleProvider.notifier)
+          .setLocale(Locale(isArabic ? 'ar' : 'en')),
+      onSubmit: _submit,
+      onValidateEmail: (value) {
+        final required = _required(value);
+        if (required != null) {
+          return required;
+        }
+        return Validators.email(value) == null
+            ? null
+            : AppLocalizations.of(context).invalidEmail;
+      },
+      onValidateRequired: _required,
+      challenge: _challengeToken != null,
+      submitting: _submitting,
+      errorText: errorText,
     );
   }
 }

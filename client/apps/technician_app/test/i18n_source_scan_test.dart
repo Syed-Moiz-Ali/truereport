@@ -39,12 +39,8 @@ List<Directory> _libDirs(Directory root) {
     Directory(
       '${root.path}${separator}apps${separator}technician_app${separator}lib',
     ),
-    Directory(
-      '${root.path}${separator}apps${separator}workshop_admin_app${separator}lib',
-    ),
-    Directory(
-      '${root.path}${separator}apps${separator}platform_admin_app${separator}lib',
-    ),
+    // This gate is scoped to the technician app and shared packages. The
+    // Platform/Workshop apps have their own localization checks.
     Directory(
       '${root.path}${separator}packages${separator}auth${separator}lib',
     ),
