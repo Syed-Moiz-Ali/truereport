@@ -37,9 +37,9 @@ This is a large functional refactor. Do not mix it with visual redesign or unrel
 
 - Backend is the **source of truth** for all Platform Admin static UI text.
 - Flutter Platform Admin no longer uses ARB files or `AppLocalizations` for static text.
-- On app startup, Flutter fetches the UI-message bundle as JSON, stores it locally, and renders from it.
-- On later launches, Flutter uses the cached bundle immediately and checks the backend for a newer version.
-- Language changes reload the bundle without an app restart.
+- On app startup, Flutter fetches a small manifest of LIVE languages and versions, then loops each language key, downloads that language catalog separately, and stores each catalog locally.
+- On later launches, Flutter loads cached catalogs immediately and checks the manifest. It downloads only missing or version-changed languages.
+- Language changes use the cached catalog for that language. If it is not cached yet, Flutter downloads only that one language and saves it.
 - Adding a new language such as `zh-Hans` requires only backend translations and publishing — no Flutter code change or redeploy.
 - CORS preflight for `X-Request-Id` works and is tested.
 
@@ -140,18 +140,39 @@ Requirements:
 
 Add anonymous endpoints:
 
+Manifest:
+- `GET /api/v1/i18n/ui-messages/manifest?namespaces=platform_admin,common`
+
+Per-language catalog:
 - `GET /api/v1/i18n/ui-messages?namespace=platform_admin&lang=en`
 - `GET /api/v1/i18n/ui-messages/bundle?namespaces=platform_admin,common&lang=en`
 
-Bundle response shape:
+Do not return all languages in one large payload. The Flutter app fetches the small manifest first, then loops the language keys and downloads each language catalog separately.
+
+Manifest response shape:
 
 ```json
 {
+  "catalogVersion": 12,
+  "defaultLanguage": "en",
   "namespaces": ["platform_admin", "common"],
+  "languages": [
+    { "code": "en", "version": 12, "direction": "ltr", "coverage": 100 },
+    { "code": "ar", "version": 12, "direction": "rtl", "coverage": 100 },
+    { "code": "zh-Hans", "version": 8, "direction": "ltr", "coverage": 98 }
+  ]
+}
+```
+
+Per-language response shape:
+
+```json
+{
   "language": "en",
   "fallbackLanguage": "en",
   "version": 12,
-  "messages": {
+  "namespaces": ["platform_admin", "common"],
+  "catalog": {
     "nav.dashboard": "Dashboard",
     "nav.workshops": "Workshops",
     "button.save": "Save",
@@ -164,14 +185,18 @@ Bundle response shape:
 
 Requirements:
 
-- Must work anonymously before login so the login page and shell can load text.
-- Serve only `LIVE` languages to user-facing clients.
-- Fall back to the default language when the requested language is missing or not live.
-- Include `language`, `fallbackLanguage`, `version`, `messages`, and `missingKeys`.
-- Support `ETag` and `If-None-Match` with `304 Not Modified`.
-- Add `Vary: Accept-Language`.
+- The manifest is small, anonymous, and cheap to fetch on every app open.
+- The manifest lists every LIVE language and its own catalog `version`.
+- The client loops `manifest.languages`; for each `code`, it downloads that language catalog and saves it separately.
+- `catalog` is a flat `message_key -> value` map for one language. Do not use a single-language `messages` field.
+- `missingKeys` lists keys missing for that language.
+- `defaultLanguage` must always be included for client-side fallback.
+- Use gzip/brotli response compression.
+- Support `ETag` and `If-None-Match` per language with `304 Not Modified`.
+- Add `Vary: Accept-Language` only if a per-language endpoint can be negotiated by header; otherwise cache by `lang` + version.
 - Do not require JWT.
 - Do not leak `DRAFT` or `RETIRED` messages to user-facing clients.
+- A failure loading one language must not prevent other languages from loading.
 
 ## 4. Admin APIs
 
@@ -215,18 +240,20 @@ Extend the existing Translation Queue at `/settings/languages/{code}/translation
 Create a remote localization layer in `client/packages/l10n`:
 
 - `RemoteStrings` / `UiMessageController`
-- `UiMessageBundle` model
+- `UiMessageManifest` model
+- `UiMessageCatalog` model
 - `UiMessageApi` client
 - `UiMessageCache`
 
 Responsibilities:
 
-- Load the backend bundle.
-- Cache in memory and local storage by namespace/language/version.
-- Expose `String t(String key)` and `String tArgs(String key, Map<String, Object?> args)`.
-- Fallback chain: requested language → default language → key.
+- Fetch the small language manifest first.
+- Loop `manifest.languages`; for each language `code`, download that language catalog separately and save it.
+- Cache each language catalog in memory and local storage by `language_code + version`.
+- Expose `String t(String key)` and `String tArgs(String key, Map<String, Object?> args)` using the active language catalog.
+- Fallback chain: selected language → default language → key.
 - Log a debug warning for missing keys, but never show raw keys in release when a cached fallback exists.
-- Reload when language changes.
+- On language change, use the cached catalog for that language when present; otherwise download only that language and save it.
 - Work before login.
 - Provide a bootstrap loading/retry state when no cache exists.
 
@@ -235,26 +262,34 @@ Responsibilities:
 First launch:
 
 1. Show a minimal bootstrap loading/retry state.
-2. Fetch the bundle.
-3. Store the cache.
-4. Render the app.
+2. Fetch the language manifest.
+3. Loop the manifest languages; download each language catalog separately.
+4. Store each language catalog in the cache.
+5. Render the app using the active language catalog.
 
 Later launches:
 
-1. Load the cached bundle immediately.
-2. Render immediately.
-3. Check the backend version in the background.
-4. If the version changed, fetch and replace the cache atomically.
+1. Load the cached catalogs immediately and render.
+2. Fetch the manifest in the background.
+3. For each manifest language, skip it when the cached `language_code + version` matches.
+4. Download only missing or version-changed languages, then replace those catalogs atomically.
 5. If the network fails, keep using the cache.
-6. Never block the app on network when a valid cache exists.
+6. Never block the app on network when a valid active-language cache exists.
+
+Loop rules:
+
+- Use a small concurrency limit (for example 2–4) when downloading multiple languages.
+- Do not download a language that is already cached at the manifest version.
+- One language failing must not block the others.
+- If the active language fails and no cache exists, fall back to the default language.
 
 Error rules:
 
 - Missing key: log in debug, use fallback text, never crash.
-- Bundle failure with cache: continue with cache.
-- Bundle failure without cache: show retry screen.
-- Invalid JSON: keep the previous cache.
-- Version mismatch: update cache atomically.
+- Catalog failure with cache: continue with cache.
+- Manifest or active-language failure without cache: show retry screen.
+- Invalid JSON: keep the previous cache for that language.
+- Version mismatch: replace only that language's cache atomically.
 - No raw keys in release builds when cache exists.
 
 ## 9. Remove Platform Admin ARB Usage
@@ -270,9 +305,11 @@ Error rules:
 ## 10. Language Switching
 
 - Update locale.
-- Reload the bundle for the new language.
-- Update `Accept-Language` on the API client.
-- If the bundle is missing or not live, fall back to the default language and log a debug warning.
+- Use the cached catalog for the selected language when present.
+- If that language is not cached, download only that language catalog, save it, then switch.
+- Do not re-download every language on switch.
+- Update `Accept-Language` on the API client for data requests.
+- If the selected language is missing or fails to load, fall back to the default language and log a debug warning.
 - Text direction must still follow the selected language.
 
 ## 11. Validation and Error Messages
@@ -363,17 +400,20 @@ Capture screenshots at 1280/1440/768/360 + RTL + `zh-Hans` fixture.
 
 1. Backend is the source of truth for all Platform Admin static UI text.
 2. Flutter Platform Admin has zero `AppLocalizations`/`l10n.` usages in `lib/`.
-3. UI bundle loads before login, caches locally, and renders from cache on later launches.
-4. Startup fetches immediately when no cache exists and refreshes in the background when cache exists.
-5. Language switch reloads UI text without an app restart and updates `Accept-Language`.
-6. Adding `zh-Hans` later requires only backend translations and publishing; no Flutter code change or redeploy.
-7. Translation Queue includes `UI Messages` and blocks language activation until required messages are approved.
-8. EN/AR key parity and code-vs-catalog completeness pass in CI.
-9. CORS preflight for `X-Request-Id` is tested and works on public and authenticated paths.
-10. Backend tests, Flutter analyze/tests, and screenshots pass.
-11. No Workshop Admin, Technician, or Public Report static-text migration in this pass.
-12. No visual redesign beyond startup loading/retry and static-text replacement.
-13. No commits.
+3. A small anonymous manifest lists every LIVE language with its own catalog version.
+4. Flutter loops the manifest languages and downloads each language catalog separately.
+5. Each language catalog is cached independently by `language_code + version`.
+6. On later opens, Flutter loads cached catalogs immediately and downloads only missing or version-changed languages.
+7. Language switch uses the cached catalog when present; otherwise it downloads only that one language.
+8. A 2000+ key catalog is not downloaded as one all-language mega-payload.
+9. Adding `zh-Hans` later requires only backend translations and publishing; the next manifest check downloads it with no Flutter code change or redeploy.
+10. Translation Queue includes `UI Messages` and blocks language activation until required messages are approved.
+11. EN/AR key parity and code-vs-catalog completeness pass in CI.
+12. CORS preflight for `X-Request-Id` is tested and works on public and authenticated paths.
+13. Backend tests, Flutter analyze/tests, and screenshots pass.
+14. No Workshop Admin, Technician, or Public Report static-text migration in this pass.
+15. No visual redesign beyond startup loading/retry and static-text replacement.
+16. No commits.
 
 ## Output Format
 
