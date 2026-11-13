@@ -38,8 +38,11 @@ public class PlatformTemplateController {
     }
 
     @GetMapping
-    public List<TemplateSummaryDto> list() {
-        return service.list();
+    public List<TemplateSummaryDto> list(
+            @org.springframework.web.bind.annotation.RequestParam(
+                    value = "publishedOnly", required = false, defaultValue = "false")
+            boolean publishedOnly) {
+        return service.list(publishedOnly);
     }
 
     @GetMapping("/{id}")

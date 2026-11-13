@@ -2,7 +2,9 @@ package com.truereport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,6 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * the platform overview aggregation.
  */
 class PlatformLanguageLifecycleIT extends IntegrationTestBase {
+
+    @Autowired
+    JdbcTemplate jdbc;
 
     @Test
     void lifecycleTransitionsForwardOnlyWithRetireAndReopen() throws Exception {
@@ -174,6 +179,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
                 .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
 
         approveEverything(platform);
+        attachUiMessages("zh-Hans");
 
         JsonNode published = postJson(platform,
                 "/api/v1/platform/i18n/languages/zh-Hans/publish", "{}");
@@ -197,6 +203,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
                 {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
                 """);
         approveEverything(platform);
+        attachUiMessages("zh-Hans");
         postJson(platform, "/api/v1/platform/i18n/languages/zh-Hans/publish", "{}");
 
         // Creating new live content is blocked while zh-Hans is LIVE.
@@ -304,6 +311,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
                 .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
 
         approveEverything(platform);
+        attachUiMessages("zh-Hans");
 
         JsonNode live = postStatus(platform, "zh-Hans", "LIVE");
         assertThat(live.get("status").asText()).isEqualTo("LIVE");
@@ -315,6 +323,13 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    private void attachUiMessages(String code) {
+        jdbc.update("""
+                UPDATE platform_languages SET ui_messages_path = 'platform_admin/en.json'
+                WHERE LOWER(code) = LOWER(?)
+                """, code);
+    }
 
     private void approveEverything(Login login) throws Exception {
         JsonNode backlog = getJson(login, "/api/v1/platform/i18n/languages/zh-Hans/backlog");

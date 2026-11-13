@@ -925,6 +925,7 @@ class PlatformLanguage {
     required this.isDefault,
     required this.sortOrder,
     this.status = 'LIVE',
+    this.uiMessagesPath = '',
   });
 
   final String code;
@@ -940,6 +941,9 @@ class PlatformLanguage {
   /// Defaults to LIVE for backends that predate the lifecycle.
   final String status;
 
+  /// Relative JSON path that stores this language's static UI text.
+  final String uiMessagesPath;
+
   bool get isLive => status == 'LIVE';
 
   factory PlatformLanguage.fromJson(Map<String, dynamic> json) =>
@@ -954,6 +958,7 @@ class PlatformLanguage {
             json['default'] as bool? ?? json['isDefault'] as bool? ?? false,
         sortOrder: _int(json['sortOrder']),
         status: _str(json['status']).isEmpty ? 'LIVE' : _str(json['status']),
+        uiMessagesPath: _str(json['uiMessagesPath']),
       );
 }
 

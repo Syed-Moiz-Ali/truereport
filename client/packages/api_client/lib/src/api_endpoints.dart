@@ -30,6 +30,7 @@ class ApiEndpoints {
   String transferUser(String userId) =>
       '$_root/platform/users/$userId/transfer';
   String get auditEvents => '$_root/platform/audit-events';
+  String get auditEventsExport => '$_root/platform/audit-events/export';
 
   String get categories => '$_root/platform/master/categories';
   String category(String id) => '$_root/platform/master/categories/$id';
@@ -241,6 +242,20 @@ class ApiEndpoints {
       '$_root/platform/i18n/languages/$code/publish';
   String platformLanguageBacklog(String code) =>
       '$_root/platform/i18n/languages/$code/backlog';
+  String platformLanguageUiMessagesGenerate(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/generate';
+  String platformLanguageUiMessagesGeneration(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/generation';
+  String platformLanguageUiMessagesGenerationCancel(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/generation/cancel';
+  String platformLanguageUiMessagesGenerationRetryFailed(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/generation/retry-failed';
+  String platformLanguageUiMessagesReview(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/review';
+  String platformLanguageUiMessagesApprove(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/approve';
+  String platformLanguageUiMessagesDownload(String code) =>
+      '$_root/platform/i18n/languages/$code/ui-messages/download';
   String platformLanguageCoverageFor(String code) =>
       '$_root/platform/i18n/coverage?language=$code';
   String get platformTranslations => '$_root/platform/i18n/translations';

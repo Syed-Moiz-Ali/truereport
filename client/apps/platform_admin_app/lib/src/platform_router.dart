@@ -9,6 +9,7 @@ import 'features/dashboard/dashboard_screen.dart';
 import 'features/documents/document_types_screen.dart';
 import 'features/languages/languages_screen.dart';
 import 'features/languages/translation_queue_screen.dart';
+import 'features/languages/ui_message_review_screen.dart';
 import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
 import 'features/master_library/categories_screen.dart';
@@ -122,6 +123,11 @@ List<RouteBase> _buildRoutes() {
       path: '/settings/languages/:code/translations',
       builder: (context, state) =>
           TranslationQueueScreen(languageCode: state.pathParameters['code']!),
+    ),
+    GoRoute(
+      path: '/settings/languages/:code/review',
+      builder: (context, state) =>
+          UiMessageReviewScreen(languageCode: state.pathParameters['code']!),
     ),
     GoRoute(
       path: '/audit-log',

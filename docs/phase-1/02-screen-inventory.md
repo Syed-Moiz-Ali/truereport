@@ -97,7 +97,7 @@ Every screen must define these states. “N/A” is allowed only where the state
 | P14 | Standard recommendations and disclaimers `/master/content` | Manage approved report text | Recommendation list, disclaimer versions, EN/AR, report placement | Create draft, translate, publish, retire | L: skeleton · E: none + create · X: missing legal-approved wording, conflict · S: version published | Nav | Editor with preview. |
 | P15 | Templates overview `/templates` | Oversee workshop templates without editing them | Filters, workshop, status, version, item count, inspections | Open read-only, view versions | L: skeleton · E: none · X: retry · S: list | Nav | Table. |
 | P16 | Audit events `/audit` | Investigate sensitive actions | Filters (actor, workshop, action, date, entity), event detail, export pending | Filter, open, export | L: skeleton · E: none · X: retry · S: list | Nav, P02 | Table + detail drawer; immutable; no delete. |
-| P17 | Platform settings `/settings/platform` | Platform-wide configuration | Locale defaults, report versioning, retention placeholders, provider settings, feature flags | Save, test connection | L: skeleton · E: n/a · X: validation, secret missing, provider failure · S: saved + audit | Nav | Sectioned form; secrets masked; never display full keys. |
+| P17 | Platform settings `/settings/platform` | Platform-wide configuration | Language registry and translation coverage summary | Open languages | L: skeleton; E: none; X: retry; S: list | Nav | Localization summary; no fake settings controls. |
 
 ---
 

@@ -70,6 +70,32 @@ class PlatformCatalogueEntry {
 }
 
 @immutable
+class AuditEventPage {
+  const AuditEventPage({
+    required this.items,
+    required this.total,
+    required this.page,
+    required this.size,
+  });
+
+  final List<PlatformAuditEvent> items;
+  final int total;
+  final int page;
+  final int size;
+
+  factory AuditEventPage.fromJson(Map<String, dynamic> json) => AuditEventPage(
+    items: (json['items'] as List<dynamic>? ?? const [])
+        .map(
+          (item) => PlatformAuditEvent.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false),
+    total: _i(json['total']),
+    page: _i(json['page']),
+    size: _i(json['size']) == 0 ? 25 : _i(json['size']),
+  );
+}
+
+@immutable
 class PlatformAuditEvent {
   const PlatformAuditEvent({
     required this.id,

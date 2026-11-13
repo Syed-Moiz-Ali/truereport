@@ -202,10 +202,11 @@ class ApiClient {
     }
   }
 
-  Future<List<int>> getBytes(String path) async {
+  Future<List<int>> getBytes(String path, {Map<String, dynamic>? query}) async {
     try {
       final response = await _dio.get<List<int>>(
         path,
+        queryParameters: query,
         options: Options(
           headers: _authHeaders(),
           responseType: ResponseType.bytes,

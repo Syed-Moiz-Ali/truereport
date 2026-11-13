@@ -82,18 +82,20 @@ class PlatformSecondaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.destructive = false,
+    this.isLoading = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool destructive;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     final color = destructive ? PtTheme.rose : PtTheme.deepGreen;
     return OutlinedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: OutlinedButton.styleFrom(
         side: BorderSide(
           color: destructive
@@ -109,7 +111,13 @@ class PlatformSecondaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(9999),
         ),
       ),
-      child: icon == null
+      child: isLoading
+          ? SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: color),
+            )
+          : icon == null
           ? Text(
               label,
               style: PtTheme.font(

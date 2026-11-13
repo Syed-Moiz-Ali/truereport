@@ -26,7 +26,8 @@ public class LanguageRepository {
                     rs.getBoolean("active"),
                     rs.getBoolean("is_default"),
                     rs.getInt("sort_order"),
-                    statusOf(rs)
+                    statusOf(rs),
+                    rs.getString("ui_messages_path")
             );
 
     private static String statusOf(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -40,28 +41,28 @@ public class LanguageRepository {
 
     public List<LanguageDto> findAll() {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status
+                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
                 FROM platform_languages ORDER BY sort_order, code
                 """, MAPPER);
     }
 
     public List<LanguageDto> findActive() {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status
+                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
                 FROM platform_languages WHERE active = TRUE ORDER BY sort_order, code
                 """, MAPPER);
     }
 
     public List<LanguageDto> findLive() {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status
+                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
                 FROM platform_languages WHERE active = TRUE AND status = 'LIVE' ORDER BY sort_order, code
                 """, MAPPER);
     }
 
     public Optional<LanguageDto> find(String code) {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status
+                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
                 FROM platform_languages WHERE code = ?
                 """, MAPPER, code).stream().findFirst();
     }
@@ -76,12 +77,12 @@ public class LanguageRepository {
         jdbc.update("""
                 INSERT INTO platform_languages
                     (code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status,
-                     created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                     ui_messages_path, created_at, updated_at, version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """,
                 language.code(), language.nameEn(), language.nameAr(), language.nativeName(),
                 language.direction(), language.active(), language.isDefault(), language.sortOrder(),
-                language.status() == null ? "DRAFT" : language.status());
+                language.status() == null ? "DRAFT" : language.status(), language.uiMessagesPath());
     }
 
     public void update(LanguageDto language) {
@@ -101,6 +102,24 @@ public class LanguageRepository {
                 SET status = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE code = ?
                 """, status, code);
+    }
+
+    public void setUiMessagesReview(String code, String hash, String reviewedBy) {
+        jdbc.update("""
+                UPDATE platform_languages
+                SET ui_messages_hash = ?, ui_messages_reviewed_at = CURRENT_TIMESTAMP,
+                    ui_messages_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP,
+                    version = version + 1
+                WHERE code = ?
+                """, hash, reviewedBy, code);
+    }
+
+    public void setUiMessagesPath(String code, String path) {
+        jdbc.update("""
+                UPDATE platform_languages
+                SET ui_messages_path = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
+                WHERE code = ?
+                """, path, code);
     }
 
     public void setLive(String code) {

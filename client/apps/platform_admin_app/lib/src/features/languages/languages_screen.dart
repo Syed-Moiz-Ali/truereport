@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -173,6 +175,10 @@ class LanguagesScreen extends ConsumerWidget {
                       onCompleteTranslations: (item) => context.go(
                         '/settings/languages/${item.code}/translations',
                       ),
+                      onGenerateUiMessages: (item) =>
+                          _generateUiMessages(context, ref, item),
+                      onReviewUiMessages: (item) =>
+                          context.go('/settings/languages/${item.code}/review'),
                       onToggleActive: (item) =>
                           _toggleActive(context, ref, item),
                       onSetDefault: (item) => _setDefault(context, ref, item),
@@ -209,6 +215,41 @@ class LanguagesScreen extends ConsumerWidget {
                 .tKey(CommonKeys.buttonSave),
           ),
           backgroundColor: PtTheme.deepGreen,
+        ),
+      );
+    }
+  }
+
+  Future<void> _generateUiMessages(
+    BuildContext context,
+    WidgetRef ref,
+    PlatformLanguage language,
+  ) async {
+    try {
+      final generation = await ref
+          .read(translationApiProvider)
+          .generateUiMessages(code: language.code);
+      if (!context.mounted) return;
+      ref.invalidate(platformLanguagesProvider);
+      await showDialog<void>(
+        context: context,
+        builder: (_) => _UiMessageGenerationDialog(
+          languageCode: language.code,
+          initial: generation,
+        ),
+      );
+      ref.invalidate(platformLanguagesProvider);
+    } on AppFailure catch (failure) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.messageKey)));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric),
+          ),
         ),
       );
     }
@@ -505,6 +546,8 @@ class _LanguagesContent extends StatelessWidget {
     required this.items,
     required this.onEdit,
     required this.onCompleteTranslations,
+    required this.onGenerateUiMessages,
+    required this.onReviewUiMessages,
     required this.onToggleActive,
     required this.onSetDefault,
     required this.onReorder,
@@ -513,6 +556,8 @@ class _LanguagesContent extends StatelessWidget {
   final List<PlatformLanguage> items;
   final ValueChanged<PlatformLanguage> onEdit;
   final ValueChanged<PlatformLanguage> onCompleteTranslations;
+  final ValueChanged<PlatformLanguage> onGenerateUiMessages;
+  final ValueChanged<PlatformLanguage> onReviewUiMessages;
   final ValueChanged<PlatformLanguage> onToggleActive;
   final ValueChanged<PlatformLanguage> onSetDefault;
   final void Function(List<PlatformLanguage> items, int index, int delta)
@@ -527,6 +572,8 @@ class _LanguagesContent extends StatelessWidget {
             items: items,
             onEdit: onEdit,
             onCompleteTranslations: onCompleteTranslations,
+            onGenerateUiMessages: onGenerateUiMessages,
+            onReviewUiMessages: onReviewUiMessages,
             onToggleActive: onToggleActive,
             onSetDefault: onSetDefault,
             onReorder: onReorder,
@@ -541,6 +588,8 @@ class _LanguagesContent extends StatelessWidget {
                 onEdit: () => onEdit(items[index]),
                 onCompleteTranslations: () =>
                     onCompleteTranslations(items[index]),
+                onGenerateUiMessages: () => onGenerateUiMessages(items[index]),
+                onReviewUiMessages: () => onReviewUiMessages(items[index]),
                 onToggleActive: () => onToggleActive(items[index]),
                 onSetDefault: () => onSetDefault(items[index]),
                 onMoveUp: index == 0 ? null : () => onReorder(items, index, -1),
@@ -562,6 +611,8 @@ class _LanguagesTable extends StatelessWidget {
     required this.items,
     required this.onEdit,
     required this.onCompleteTranslations,
+    required this.onGenerateUiMessages,
+    required this.onReviewUiMessages,
     required this.onToggleActive,
     required this.onSetDefault,
     required this.onReorder,
@@ -570,6 +621,8 @@ class _LanguagesTable extends StatelessWidget {
   final List<PlatformLanguage> items;
   final ValueChanged<PlatformLanguage> onEdit;
   final ValueChanged<PlatformLanguage> onCompleteTranslations;
+  final ValueChanged<PlatformLanguage> onGenerateUiMessages;
+  final ValueChanged<PlatformLanguage> onReviewUiMessages;
   final ValueChanged<PlatformLanguage> onToggleActive;
   final ValueChanged<PlatformLanguage> onSetDefault;
   final void Function(List<PlatformLanguage> items, int index, int delta)
@@ -601,6 +654,13 @@ class _LanguagesTable extends StatelessWidget {
             DataColumn(
               label: Text(
                 strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
@@ -654,6 +714,15 @@ class _LanguagesTable extends StatelessWidget {
                   DataCell(
                     Text(
                       language.direction,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      language.uiMessagesPath.isEmpty
+                          ? '-'
+                          : language.uiMessagesPath,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -726,6 +795,26 @@ class _LanguagesTable extends StatelessWidget {
                           icon: const Icon(Icons.translate_rounded, size: 18),
                         ),
                         IconButton(
+                          tooltip: strings.tKey(
+                            PlatformAdminKeys.buttonLanguageGenerate,
+                          ),
+                          onPressed: () => onGenerateUiMessages(language),
+                          icon: const Icon(
+                            Icons.cloud_download_rounded,
+                            size: 18,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: strings.tKey(
+                            PlatformAdminKeys.buttonLanguageReview,
+                          ),
+                          onPressed: () => onReviewUiMessages(language),
+                          icon: const Icon(
+                            Icons.rate_review_outlined,
+                            size: 18,
+                          ),
+                        ),
+                        IconButton(
                           tooltip: language.active
                               ? strings.tKey(CommonKeys.statusRetired)
                               : strings.tKey(CommonKeys.statusActive),
@@ -764,6 +853,8 @@ class _LanguageCard extends StatelessWidget {
     required this.language,
     required this.onEdit,
     required this.onCompleteTranslations,
+    required this.onGenerateUiMessages,
+    required this.onReviewUiMessages,
     required this.onToggleActive,
     required this.onSetDefault,
     required this.onMoveUp,
@@ -773,6 +864,8 @@ class _LanguageCard extends StatelessWidget {
   final PlatformLanguage language;
   final VoidCallback onEdit;
   final VoidCallback onCompleteTranslations;
+  final VoidCallback onGenerateUiMessages;
+  final VoidCallback onReviewUiMessages;
   final VoidCallback onToggleActive;
   final VoidCallback onSetDefault;
   final VoidCallback? onMoveUp;
@@ -841,6 +934,14 @@ class _LanguageCard extends StatelessWidget {
               style: PtTheme.font(12, color: PtTheme.muted),
             ),
           ],
+          const SizedBox(height: 2),
+          Text(
+            '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
+            '${language.uiMessagesPath.isEmpty ? '-' : language.uiMessagesPath}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: PtTheme.font(12, color: PtTheme.muted),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -868,6 +969,16 @@ class _LanguageCard extends StatelessWidget {
                 ),
                 icon: Icons.translate_rounded,
                 onPressed: onCompleteTranslations,
+              ),
+              PlatformSecondaryButton(
+                label: strings.tKey(PlatformAdminKeys.buttonLanguageGenerate),
+                icon: Icons.cloud_download_rounded,
+                onPressed: onGenerateUiMessages,
+              ),
+              PlatformSecondaryButton(
+                label: strings.tKey(PlatformAdminKeys.buttonLanguageReview),
+                icon: Icons.rate_review_outlined,
+                onPressed: onReviewUiMessages,
               ),
               PlatformSecondaryButton(
                 label: language.active
@@ -1271,6 +1382,222 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
           onPressed: _saving ? null : _submit,
         ),
       ],
+    );
+  }
+}
+
+class _UiMessageGenerationDialog extends ConsumerStatefulWidget {
+  const _UiMessageGenerationDialog({
+    required this.languageCode,
+    required this.initial,
+  });
+
+  final String languageCode;
+  final UiMessageGeneration initial;
+
+  @override
+  ConsumerState<_UiMessageGenerationDialog> createState() =>
+      _UiMessageGenerationDialogState();
+}
+
+class _UiMessageGenerationDialogState
+    extends ConsumerState<_UiMessageGenerationDialog> {
+  late UiMessageGeneration _generation = widget.initial;
+  Timer? _timer;
+  bool _retrying = false;
+  bool _cancelling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedulePolling();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _schedulePolling() {
+    _timer?.cancel();
+    if (!_generation.isRunning) return;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _poll());
+  }
+
+  Future<void> _poll() async {
+    try {
+      final generation = await ref
+          .read(translationApiProvider)
+          .fetchUiMessageGeneration(widget.languageCode);
+      if (!mounted) return;
+      setState(() => _generation = generation);
+      if (generation.isFinished) {
+        _timer?.cancel();
+        ref.invalidate(platformLanguagesProvider);
+      }
+    } catch (_) {
+      _timer?.cancel();
+    }
+  }
+
+  Future<void> _retry() async {
+    setState(() => _retrying = true);
+    try {
+      final generation = await ref
+          .read(translationApiProvider)
+          .generateUiMessages(code: widget.languageCode, force: true);
+      if (!mounted) return;
+      setState(() {
+        _generation = generation;
+        _retrying = false;
+      });
+      _schedulePolling();
+      ref.invalidate(platformLanguagesProvider);
+    } catch (_) {
+      if (mounted) setState(() => _retrying = false);
+    }
+  }
+
+  Future<void> _retryFailed() async {
+    setState(() => _retrying = true);
+    try {
+      final generation = await ref
+          .read(translationApiProvider)
+          .retryFailedUiMessageGeneration(widget.languageCode);
+      if (!mounted) return;
+      setState(() {
+        _generation = generation;
+        _retrying = false;
+      });
+      _schedulePolling();
+      ref.invalidate(platformLanguagesProvider);
+    } catch (_) {
+      if (mounted) setState(() => _retrying = false);
+    }
+  }
+
+  Future<void> _cancel() async {
+    setState(() => _cancelling = true);
+    try {
+      final generation = await ref
+          .read(translationApiProvider)
+          .cancelUiMessageGeneration(widget.languageCode);
+      if (!mounted) return;
+      setState(() {
+        _generation = generation;
+        _cancelling = false;
+      });
+      _timer?.cancel();
+      ref.invalidate(platformLanguagesProvider);
+    } catch (_) {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = ref.watch(uiStringsProvider);
+    final generation = _generation;
+    final progressLabel = generation.totalKeys <= 0
+        ? ''
+        : '${generation.completedKeys}/${generation.totalKeys}';
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.zero,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: PlatformSectionCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PlatformSectionHeader(
+                title: strings.tKey(PlatformAdminKeys.buttonLanguageGenerate),
+                subtitle: widget.languageCode,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  PlatformStatusChip(
+                    status: _languageStatusLabel(strings, generation.status),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    progressLabel,
+                    style: PtTheme.font(12, color: PtTheme.muted),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: generation.progress,
+                  minHeight: 8,
+                  backgroundColor: PtTheme.border,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    PtTheme.deepGreen,
+                  ),
+                ),
+              ),
+              if (generation.path.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
+                  '${generation.path}',
+                  style: PtTheme.font(12, color: PtTheme.muted),
+                ),
+              ],
+              if (generation.error.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  generation.error,
+                  style: PtTheme.font(12, color: PtTheme.rose),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  PlatformSecondaryButton(
+                    label: strings.tKey(CommonKeys.buttonClose),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  if (generation.isRunning)
+                    PlatformSecondaryButton(
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonLanguageCancelGeneration,
+                      ),
+                      icon: Icons.stop_circle_outlined,
+                      isLoading: _cancelling,
+                      onPressed: _cancelling ? null : _cancel,
+                    ),
+                  if (generation.isFailed)
+                    PlatformSecondaryButton(
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonLanguageRetryFailed,
+                      ),
+                      icon: Icons.refresh_rounded,
+                      isLoading: _retrying,
+                      onPressed: _retrying ? null : _retryFailed,
+                    ),
+                  PlatformPrimaryButton(
+                    label: strings.tKey(CommonKeys.buttonRetry),
+                    icon: Icons.autorenew_rounded,
+                    isLoading: _retrying && !generation.isFailed,
+                    onPressed: generation.isRunning || _retrying
+                        ? null
+                        : _retry,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

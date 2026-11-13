@@ -13,6 +13,7 @@ import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
 import com.truereport.shared.security.CurrentUser;
+import com.truereport.uimessages.api.UiMessagePublishGuard;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -60,13 +61,16 @@ public class TranslationBacklogService {
     private final LanguageRepository languages;
     private final TranslationRepository translations;
     private final FieldAuditService audit;
+    private final UiMessagePublishGuard uiMessageGuard;
 
     public TranslationBacklogService(JdbcTemplate jdbc, LanguageRepository languages,
-                                     TranslationRepository translations, FieldAuditService audit) {
+                                     TranslationRepository translations, FieldAuditService audit,
+                                     UiMessagePublishGuard uiMessageGuard) {
         this.jdbc = jdbc;
         this.languages = languages;
         this.translations = translations;
         this.audit = audit;
+        this.uiMessageGuard = uiMessageGuard;
     }
 
     // ------------------------------------------------------------------ upsert
@@ -182,6 +186,11 @@ public class TranslationBacklogService {
             throw ApiException.validation("TRANSLATION_REQUIRED",
                     "Language " + language.code() + " is not fully translated", missing);
         }
+        String defaultCode = languages.defaultCode();
+        com.truereport.localization.api.LanguageDtos.LanguageDto defaultLanguage =
+                defaultCode == null ? null : languages.find(defaultCode).orElse(null);
+        uiMessageGuard.requirePublishable(language.code(), language.uiMessagesPath(),
+                defaultLanguage == null ? null : defaultLanguage.uiMessagesPath());
         languages.setLive(language.code());
         audit.record(actor, "LANGUAGE_PUBLISHED", "LANGUAGE", language.code(),
                 Map.of("status", language.status()), Map.of("status", "LIVE"), null, http);

@@ -66,7 +66,23 @@ springdoc:
 
 truereport:
   i18n:
-    platform-admin-dir: ${PLATFORM_ADMIN_I18N_DIR:}
+    ui-messages-dir: ${UI_MESSAGES_DIR:src/main/resources/i18n/platform_admin}
+    translation:
+      provider: ${UI_TRANSLATION_PROVIDER:google}
+      base-url: ${UI_TRANSLATION_BASE_URL:https://translate.googleapis.com/translate_a/single}
+      source-language: ${UI_TRANSLATION_SOURCE_LANGUAGE:en}
+      # Optional Google provider code overrides. Any registered app language
+      # code is accepted; add an entry only when Google expects a different
+      # code (for example zh-Hans -> zh-CN or zh-Hant -> zh-TW).
+      target-languages:
+        zh-Hans: zh-CN
+        zh-hans: zh-CN
+      max-concurrency: ${UI_TRANSLATION_MAX_CONCURRENCY:3}
+      max-attempts: ${UI_TRANSLATION_MAX_ATTEMPTS:3}
+      connect-timeout: ${UI_TRANSLATION_CONNECT_TIMEOUT:PT10S}
+      read-timeout: ${UI_TRANSLATION_READ_TIMEOUT:PT20S}
+    generation:
+      synchronous: ${UI_MESSAGES_GENERATION_SYNC:false}
   jwt:
     issuer: truereport
     audience: truereport-api

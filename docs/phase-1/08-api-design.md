@@ -257,8 +257,6 @@ Legend: **T** Technician, **WA** Workshop Admin, **PA** Platform Admin, **Pub** 
 | POST | `/platform/users/{id}/reset-password` | No | No | Yes | No | Audited; generic response |
 | POST | `/platform/users/{id}/role` | No | No | Yes | No | Change WA/T; audited |
 | GET | `/platform/audit-events` | No | No | Yes | No | Filter; no secrets/PII |
-| GET | `/platform/settings` | No | No | Yes | No | Masked secrets |
-| PUT | `/platform/settings` | No | No | Yes | No | Audited |
 
 ### 7.2 Master content
 

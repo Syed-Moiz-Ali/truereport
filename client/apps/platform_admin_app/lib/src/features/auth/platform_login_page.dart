@@ -96,6 +96,55 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     return null;
   }
 
+  AdminSignInCopy _loginCopy(UiMessageStrings strings) {
+    String read(UiMessageKey key) => strings.tKey(key);
+    return AdminSignInCopy(
+      appName: read(PlatformAdminKeys.loginAppName),
+      portalBadge: read(PlatformAdminKeys.loginPortalBadge),
+      portalTitle: read(PlatformAdminKeys.loginPortalTitle),
+      cardEyebrow: read(PlatformAdminKeys.loginAuthorizedEyebrow),
+      signInTitle: read(PlatformAdminKeys.loginSignInTitle),
+      signInSubtitle: read(PlatformAdminKeys.loginSignInSubtitle),
+      showcaseEyebrow: read(PlatformAdminKeys.loginShowcaseEyebrow),
+      showcaseHeadline: read(PlatformAdminKeys.loginShowcaseHeadline),
+      showcaseSubtitle: read(PlatformAdminKeys.loginShowcaseSubtitle),
+      features: [
+        AdminFeatureHighlight(
+          icon: Icons.apartment_rounded,
+          title: read(PlatformAdminKeys.loginFeatureWorkshopsTitle),
+          description: read(PlatformAdminKeys.loginFeatureWorkshopsDesc),
+        ),
+        AdminFeatureHighlight(
+          icon: Icons.menu_book_rounded,
+          title: read(PlatformAdminKeys.loginFeatureChecklistTitle),
+          description: read(PlatformAdminKeys.loginFeatureChecklistDesc),
+        ),
+        AdminFeatureHighlight(
+          icon: Icons.shield_rounded,
+          title: read(PlatformAdminKeys.loginFeatureLedgerTitle),
+          description: read(PlatformAdminKeys.loginFeatureLedgerDesc),
+        ),
+      ],
+      emailLabel: read(PlatformAdminKeys.loginEmailLabel),
+      emailHint: read(PlatformAdminKeys.loginEmailHint),
+      passwordLabel: read(PlatformAdminKeys.loginPasswordLabel),
+      passwordHint: read(PlatformAdminKeys.loginPasswordHint),
+      rememberTerminal: read(PlatformAdminKeys.loginRememberTerminal),
+      needHelp: read(PlatformAdminKeys.loginNeedHelp),
+      challengeTitle: read(PlatformAdminKeys.loginChallengeTitle),
+      challengeBody: read(PlatformAdminKeys.loginChallengeBody),
+      codeLabel: read(PlatformAdminKeys.loginCodeLabel),
+      codeHint: read(PlatformAdminKeys.loginCodeHint),
+      signInButton: read(PlatformAdminKeys.loginSignInButton),
+      verifyButton: read(PlatformAdminKeys.loginVerifyButton),
+      footer: read(PlatformAdminKeys.loginFooter),
+      languageLabel: read(PlatformAdminKeys.loginLanguageLabel),
+      statusLabel: read(PlatformAdminKeys.loginStatusLabel),
+      statusDetails: read(PlatformAdminKeys.loginStatusDetails),
+      statusSecured: read(PlatformAdminKeys.loginStatusSecured),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
@@ -119,6 +168,7 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     };
 
     return AdminSignInView(
+      copy: _loginCopy(strings),
       portalType: AdminPortalType.platform,
       emailController: _email,
       passwordController: _password,

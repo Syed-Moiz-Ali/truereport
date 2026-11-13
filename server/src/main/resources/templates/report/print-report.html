@@ -124,7 +124,6 @@ p { line-height: 1.5; }
   font-size: 7.5pt;
   color: rgba(255,255,255,.6);
   letter-spacing: .08em;
-  text-transform: uppercase;
 }
 .cover-report-id {
   text-align: right;
@@ -1001,8 +1000,8 @@ table.checklist tr:nth-child(even) td {
         </svg>
       </div>
       <div>
-        <div class="cover-brand-name">TrueReport™</div>
-        <div class="cover-brand-tagline">Certified Vehicle Inspection Report</div>
+        <div class="cover-brand-name">TrueReport</div>
+        <div class="cover-brand-tagline" th:text="${r.en.title}">Certified Vehicle Inspection Report</div>
       </div>
     </div>
     <div class="cover-report-id">
@@ -1019,7 +1018,7 @@ table.checklist tr:nth-child(even) td {
     <div class="cover-vehicle-year-row">
       <span class="cover-pill" th:text="${r.vehicle.year}">2022</span>
       <span class="cover-pill" th:text="${r.vehicle.specsOrigin}">GCC Specs</span>
-      <span class="cover-pill cover-pill-brand">✓ Certified Inspection</span>
+      <span class="cover-pill cover-pill-brand" th:text="${r.en.officialInspection}">Official inspection</span>
       <span class="cover-pill" th:text="${r.vehicle.gearbox}">Automatic</span>
     </div>
 
@@ -1033,7 +1032,7 @@ table.checklist tr:nth-child(even) td {
       <div class="cover-score-inner">
         <span class="cover-score-grade">A</span>
         <span class="cover-score-pct" th:text="${r.passRate} + '%'">94%</span>
-        <span class="cover-score-label">Pass Rate</span>
+        <span class="cover-score-label" th:text="${r.en.passRateLabel}">Pass Rate</span>
       </div>
     </div>
 
@@ -1047,15 +1046,15 @@ table.checklist tr:nth-child(even) td {
     <div class="cover-stats-row">
       <div class="cover-stat-card stat-pass">
         <span class="cover-stat-num" th:text="${r.passedCount}">29</span>
-        <span class="cover-stat-label">Passed</span>
+        <span class="cover-stat-label" th:text="${r.en.passed}">Passed</span>
       </div>
       <div class="cover-stat-card stat-attn">
         <span class="cover-stat-num" th:text="${r.attentionCount}">2</span>
-        <span class="cover-stat-label">Attention</span>
+        <span class="cover-stat-label" th:text="${r.en.attention}">Attention</span>
       </div>
       <div class="cover-stat-card stat-fail">
         <span class="cover-stat-num" th:text="${r.defectCount}">1</span>
-        <span class="cover-stat-label">Defects</span>
+        <span class="cover-stat-label" th:text="${r.en.defects}">Defects</span>
       </div>
     </div>
 
@@ -1064,7 +1063,7 @@ table.checklist tr:nth-child(even) td {
   <!-- Footer -->
   <div class="cover-footer">
     <div class="cover-footer-item">
-      <div class="cover-footer-label">Customer</div>
+      <div class="cover-footer-label" th:text="${r.en.customer}">Customer</div>
       <div class="cover-footer-value" th:text="${r.vehicle.clientName}">Private Client</div>
     </div>
     <div class="cover-footer-item">
@@ -1073,7 +1072,7 @@ table.checklist tr:nth-child(even) td {
     </div>
     <div class="cover-footer-item">
       <div class="cover-footer-label">Workshop</div>
-      <div class="cover-footer-value" th:text="${r.workshop.name}">TrueReport Workshop</div>
+      <div class="cover-footer-value" th:text="${r.workshop.name}">TrueReport</div>
     </div>
     <div class="cover-footer-item">
       <div class="cover-footer-label">Version</div>
@@ -1094,31 +1093,31 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Vehicle &amp; Customer Details</span>
+    <span class="page-header-title" th:text="${r.en.vehicleDetails}">Vehicle &amp; Customer Details</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
   <!-- Executive summary bar -->
   <div class="exec-summary-bar">
     <div class="exec-score-block">
-      <div class="exec-score-label">Overall Pass Rate</div>
+      <div class="exec-score-label" th:text="${r.en.overallPassRate}">Overall Pass Rate</div>
       <div class="exec-score-val" th:text="${r.passRate} + '%'">94%</div>
       <div class="exec-score-sub" th:text="${r.coverage.text} + ' Checks Completed'">31/32 Checks Completed</div>
     </div>
     <div class="exec-divider"></div>
     <div class="exec-stat exec-pass">
       <div class="exec-stat-num" th:text="${r.passedCount}">29</div>
-      <div class="exec-stat-label">Passed</div>
+      <div class="exec-stat-label" th:text="${r.en.passed}">Passed</div>
     </div>
     <div class="exec-divider"></div>
     <div class="exec-stat exec-attn">
       <div class="exec-stat-num" th:text="${r.attentionCount}">2</div>
-      <div class="exec-stat-label">Attention</div>
+      <div class="exec-stat-label" th:text="${r.en.attention}">Attention</div>
     </div>
     <div class="exec-divider"></div>
     <div class="exec-stat exec-fail">
       <div class="exec-stat-num" th:text="${r.defectCount}">1</div>
-      <div class="exec-stat-label">Defects</div>
+      <div class="exec-stat-label" th:text="${r.en.defects}">Defects</div>
     </div>
   </div>
 
@@ -1127,7 +1126,7 @@ table.checklist tr:nth-child(even) td {
 
     <!-- Vehicle specs -->
     <div class="detail-card">
-      <div class="detail-card-title">🚗 Vehicle Specifications</div>
+      <div class="detail-card-title" th:text="${r.en.specs}">Vehicle Specifications</div>
       <div class="detail-row">
         <span class="detail-label">Make &amp; Model</span>
         <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Camry</span>
@@ -1173,7 +1172,7 @@ table.checklist tr:nth-child(even) td {
     <!-- Inspection & Customer info -->
     <div>
       <div class="detail-card" style="margin-bottom:3mm;">
-        <div class="detail-card-title">👤 Customer &amp; Inspection Info</div>
+        <div class="detail-card-title" th:text="${r.en.customerInspection}">Customer &amp; Inspection Info</div>
         <div class="detail-row">
           <span class="detail-label">Customer</span>
           <span class="detail-value" th:text="${r.vehicle.clientName}">Private Client</span>
@@ -1200,7 +1199,7 @@ table.checklist tr:nth-child(even) td {
         <div class="detail-card-title">🏢 Workshop &amp; Technician</div>
         <div class="detail-row">
           <span class="detail-label">Workshop</span>
-          <span class="detail-value" th:text="${r.workshop.name}">TrueReport Diagnostic Hub</span>
+          <span class="detail-value" th:text="${r.workshop.name}">TrueReport</span>
         </div>
         <div class="detail-row" th:if="${r.workshop.branch != null and r.workshop.branch != ''}">
           <span class="detail-label">Branch</span>
@@ -1235,7 +1234,7 @@ table.checklist tr:nth-child(even) td {
     <span class="no-findings-icon">✓</span>
     <div>
       <div class="no-findings-text">No Critical Defects Found</div>
-      <div class="small muted">All inspected components passed without any defects or safety issues.</div>
+      <div class="small muted" th:text="${r.en.noKeyFindings}">All inspected components passed without any defects or safety issues.</div>
     </div>
   </div>
 
@@ -1279,7 +1278,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Inspection Category Overview</span>
+    <span class="page-header-title" th:text="${r.en.categoryOverview}">Inspection Category Overview</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1328,19 +1327,19 @@ table.checklist tr:nth-child(even) td {
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;">
       <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
         <div style="font-size:16pt;font-weight:800;color:var(--brand-dark);" th:text="${r.coverage.completed}">31</div>
-        <div class="small muted">Completed</div>
+        <div class="small muted" th:text="${r.en.completed}">Completed</div>
       </div>
       <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
         <div style="font-size:16pt;font-weight:800;color:var(--pass);" th:text="${r.passedCount}">29</div>
-        <div class="small muted">Passed (✓)</div>
+        <div class="small muted" th:text="${r.en.passed}">Passed</div>
       </div>
       <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
         <div style="font-size:16pt;font-weight:800;color:#B45309;" th:text="${r.attentionCount}">2</div>
-        <div class="small muted">Attention (⚠)</div>
+        <div class="small muted" th:text="${r.en.attention}">Attention</div>
       </div>
       <div style="text-align:center;padding:3mm;background:#fff;border-radius:6px;border:1px solid var(--outline);">
         <div style="font-size:16pt;font-weight:800;color:var(--fail);" th:text="${r.defectCount}">1</div>
-        <div class="small muted">Defects (✕)</div>
+        <div class="small muted" th:text="${r.en.defects}">Defects</div>
       </div>
     </div>
     <div class="small muted" style="margin-top:3mm;" th:text="${r.en.coverageNotScore ?: 'Coverage reflects the number of checks performed, not the overall score.'}">Coverage reflects the number of checks performed, not the overall score.</div>
@@ -1426,7 +1425,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Inspection Checklist — Continued</span>
+    <span class="page-header-title" th:text="${r.en.checklistContinued}">Inspection Checklist - Continued</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1504,7 +1503,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Inspection Checklist — Continued</span>
+    <span class="page-header-title" th:text="${r.en.checklistContinued}">Inspection Checklist - Continued</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1583,7 +1582,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Tyres, Brakes &amp; Body Condition</span>
+    <span class="page-header-title" th:text="${r.en.tyresBrakesBody}">Tyres, Brakes &amp; Body Condition</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1617,7 +1616,7 @@ table.checklist tr:nth-child(even) td {
 
       <div class="tyre-gauge-wrap">
         <div class="tyre-gauge-label-row">
-          <span>Tread Depth</span>
+          <span th:text="${r.en.treadDepth}">Tread Depth</span>
           <span class="tyre-gauge-val" th:text="${tyre.treadDepth}">7.5mm</span>
         </div>
         <div class="tyre-gauge-track">
@@ -1629,7 +1628,7 @@ table.checklist tr:nth-child(even) td {
 
       <div class="tyre-metrics-row">
         <div class="tyre-metric-box">
-          <div class="tyre-metric-label">Pressure</div>
+          <div class="tyre-metric-label" th:text="${r.en.pressure}">Pressure</div>
           <div class="tyre-metric-val" th:text="${tyre.pressure}">33 PSI</div>
         </div>
         <div class="tyre-metric-box">
@@ -1688,8 +1687,8 @@ table.checklist tr:nth-child(even) td {
       <thead>
         <tr>
           <th>Check Item</th>
-          <th>Status</th>
-          <th>Reason</th>
+          <th th:text="${r.en.status}">Status</th>
+          <th th:text="${r.en.reason}">Reason</th>
         </tr>
       </thead>
       <tbody>
@@ -1718,7 +1717,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Inspection Photo Evidence</span>
+    <span class="page-header-title" th:text="${r.en.photoEvidence}">Inspection Photo Evidence</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1748,7 +1747,7 @@ table.checklist tr:nth-child(even) td {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       TrueReport™
     </div>
-    <span class="page-header-title">Verification &amp; Disclaimer</span>
+    <span class="page-header-title" th:text="${r.en.verificationDisclaimer}">Verification &amp; Disclaimer</span>
     <span class="page-header-num ltr" th:text="${r.reportNumber}"></span>
   </div>
 
@@ -1760,7 +1759,7 @@ table.checklist tr:nth-child(even) td {
 
   <div class="report-meta-grid" style="margin-bottom:4mm;">
     <div class="report-meta-box">
-      <div class="report-meta-label">Report Number</div>
+      <div class="report-meta-label" th:text="${r.en.reportNumber}">Report Number</div>
       <div class="report-meta-val ltr mono" th:text="${r.reportNumber}">TR-2024-00001</div>
     </div>
     <div class="report-meta-box">
@@ -1790,15 +1789,15 @@ table.checklist tr:nth-child(even) td {
         <span class="badge badge-pass" style="font-size:8pt;padding:3px 10px;">✓ CERTIFIED</span>
       </div>
     </div>
-    <div class="hash-label">SHA-256 Report Hash (Tamper Evidence)</div>
+    <div class="hash-label" th:text="${r.en.tamperHash}">SHA-256 Report Hash (Tamper Evidence)</div>
     <code class="hash-code ltr" th:text="${r.verificationHash}">abc123def456...</code>
-    <div class="small muted" style="margin-top:2mm;">This hash uniquely identifies this exact version of the report. Any modification would produce a completely different hash value.</div>
+    <div class="small muted" style="margin-top:2mm;" th:text="${r.en.tamperExplanation}">This hash uniquely identifies this exact version of the report. Any modification would produce a completely different hash value.</div>
   </div>
 
   <!-- Bilingual final summary -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-bottom:4mm;">
     <div class="verification-card" style="margin-bottom:0;">
-      <div class="detail-card-title">English Report Summary</div>
+      <div class="detail-card-title" th:text="${r.en.englishSummary}">English Report Summary</div>
       <div class="detail-row">
         <span class="detail-label">Vehicle</span>
         <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + ${r.vehicle.year}">Toyota Camry 2022</span>
@@ -1862,8 +1861,8 @@ table.checklist tr:nth-child(even) td {
   <!-- Bottom branding strip -->
   <div style="margin-top:auto;padding-top:5mm;border-top:2px solid var(--brand);display:flex;justify-content:space-between;align-items:center;">
     <div>
-      <div style="font-size:11pt;font-weight:800;color:var(--brand-dark);">TrueReport™</div>
-      <div class="small muted">Certified Vehicle Inspection Platform</div>
+      <div style="font-size:11pt;font-weight:800;color:var(--brand-dark);">TrueReport</div>
+      <div class="small muted" th:text="${r.en.certifiedPlatform}">Certified Vehicle Inspection Platform</div>
     </div>
     <div style="text-align:right;">
       <div class="small muted" th:text="${r.reportNumber} + ' · Version ' + ${r.version}">TR-2024-00001 · v1</div>
@@ -1875,7 +1874,7 @@ table.checklist tr:nth-child(even) td {
 
 <!-- Global page footer (fixed, appears on all content pages) -->
 <div class="page-footer">
-  <span class="page-footer-brand">TrueReport™ Certified Inspection</span>
+  <span class="page-footer-brand">TrueReport</span>
   <span class="ltr" th:text="${r.reportNumber}">TR-2024-00001</span>
   <span class="small muted" th:text="'Version ' + ${r.version} + ' · ' + ${r.finalizedAt}">v1</span>
 </div>

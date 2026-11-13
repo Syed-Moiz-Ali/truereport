@@ -2,6 +2,10 @@ package com.truereport.uimessages;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.truereport.shared.error.ApiException;
+import com.truereport.shared.error.FieldIssue;
+import com.truereport.uimessages.api.UiMessagePublishGuard;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -12,187 +16,331 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
-public class PlatformUiMessageCatalog {
+public class PlatformUiMessageCatalog implements UiMessagePublishGuard {
 
-    public static final String EXTERNAL_DIRECTORY_PROPERTY = "truereport.i18n.platform-admin-dir";
+    public static final String DIRECTORY_PROPERTY = "truereport.i18n.ui-messages-dir";
+    public static final String SOURCE_LANGUAGE = "en";
+    public static final String SOURCE_PATH = "platform_admin/en.json";
 
     public static final List<String> NAMESPACE_ORDER = List.of("platform_admin", "common");
     public static final Set<String> NAMESPACES = Set.copyOf(NAMESPACE_ORDER);
 
-    private static final String CLASSPATH_ROOT = "i18n/platform_admin/";
-    private static final String MANIFEST_FILE = "manifest.json";
+    private static final String CLASSPATH_ROOT = "i18n/";
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\{(\\w+)}");
 
-    public record Definition(String code, String name, String nativeName,
-                             String direction, String file) {
+    public record LanguageCatalog(
+            String path,
+            Map<String, String> flat,
+            Map<String, Map<String, String>> catalogs,
+            Map<String, Integer> versions,
+            String etag) {
     }
 
-    public record Language(Definition definition,
-                           Map<String, Map<String, String>> catalogs,
-                           Map<String, Integer> versions,
-                           String etag) {
-    }
-
-    public record Snapshot(String defaultLanguage, List<Language> languages, String etag) {
-
-        public Language defaultCatalog() {
-            return language(defaultLanguage);
-        }
-
-        public Language language(String code) {
-            if (code == null || code.isBlank()) {
-                return null;
-            }
-            for (Language language : languages) {
-                if (language.definition().code().equals(code)) {
-                    return language;
-                }
-            }
-            for (Language language : languages) {
-                if (language.definition().code().equalsIgnoreCase(code)) {
-                    return language;
-                }
-            }
-            return null;
-        }
+    private record CacheEntry(LanguageCatalog catalog, long modifiedAt) {
     }
 
     private final ObjectMapper objectMapper;
-    private final String externalDirectory;
-    private volatile Snapshot snapshot;
+    private final String directory;
+    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
 
     public PlatformUiMessageCatalog(
             ObjectMapper objectMapper,
-            @Value("${" + EXTERNAL_DIRECTORY_PROPERTY + ":}") String externalDirectory) {
+            @Value("${" + DIRECTORY_PROPERTY
+                    + ":src/main/resources/i18n/platform_admin}") String directory) {
         this.objectMapper = objectMapper;
-        this.externalDirectory = externalDirectory == null ? "" : externalDirectory.trim();
+        this.directory = directory == null ? "" : directory.trim();
     }
 
     @PostConstruct
-    void loadOnStartup() {
-        reload();
+    void validateOnStartup() {
+        validateRelativePath(SOURCE_PATH);
     }
 
-    public Snapshot snapshot() {
-        Snapshot current = snapshot;
-        if (current == null) {
-            synchronized (this) {
-                current = snapshot;
-                if (current == null) {
-                    current = read();
-                    snapshot = current;
+    public LanguageCatalog load(String relativePath) {
+        String clean = validateRelativePath(relativePath);
+        long modifiedAt = lastModified(clean);
+        CacheEntry existing = cache.get(clean);
+        if (existing != null && existing.modifiedAt() == modifiedAt) {
+            return existing.catalog();
+        }
+        synchronized (this) {
+            CacheEntry current = cache.get(clean);
+            if (current != null && current.modifiedAt() == modifiedAt) {
+                return current.catalog();
+            }
+            LanguageCatalog catalog = readCatalog(clean);
+            cache.put(clean, new CacheEntry(catalog, modifiedAt));
+            return catalog;
+        }
+    }
+
+    private long lastModified(String relativePath) {
+        Path filesystem = filesystemPath(relativePath);
+        if (!Files.isRegularFile(filesystem)) {
+            return -1L;
+        }
+        try {
+            return Files.getLastModifiedTime(filesystem).toMillis();
+        } catch (IOException error) {
+            return -1L;
+        }
+    }
+
+    public Map<String, String> loadFlat(String relativePath) {
+        return load(relativePath).flat();
+    }
+
+    public byte[] readBytes(String relativePath) {
+        String clean = validateRelativePath(relativePath);
+        Resource resource = resource(clean);
+        try (InputStream stream = resource.getInputStream()) {
+            return stream.readAllBytes();
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot read UI message file '" + clean
+                    + "': " + error.getMessage(), error);
+        }
+    }
+
+    public boolean exists(String relativePath) {
+        String clean = validateRelativePath(relativePath);
+        Path filesystem = filesystemPath(clean);
+        if (Files.isRegularFile(filesystem)) {
+            return true;
+        }
+        return new ClassPathResource(CLASSPATH_ROOT + clean).exists();
+    }
+
+    public void invalidate() {
+        cache.clear();
+    }
+
+    public void requireWritable() {
+        Path base = Path.of(directory).toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(base);
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot create UI messages directory: " + base,
+                    error);
+        }
+        if (!Files.isWritable(base)) {
+            throw new IllegalStateException("UI messages directory is not writable: " + base);
+        }
+    }
+
+    public Path writeAtomic(String relativePath, Map<String, String> values) {
+        String clean = validateRelativePath(relativePath);
+        Path target = filesystemPath(clean);
+        Path parent = target.getParent();
+        try {
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            if (parent == null || !Files.isWritable(parent)) {
+                throw new IllegalStateException("UI messages directory is not writable: "
+                        + (parent == null ? directory : parent));
+            }
+            TreeMap<String, String> ordered = new TreeMap<>(values);
+            ObjectNode node = objectMapper.createObjectNode();
+            ordered.forEach(node::put);
+            Path temp = Files.createTempFile(parent, ".ui-messages-", ".json.tmp");
+            try {
+                objectMapper.writerWithDefaultPrettyPrinter().writeValue(temp.toFile(), node);
+                Map<String, String> written = readFlat(new FileSystemResource(temp), temp.toString());
+                if (!written.keySet().equals(ordered.keySet())) {
+                    throw new IllegalStateException(
+                            "Generated UI message file key parity failed before publish");
                 }
+                for (Map.Entry<String, String> entry : ordered.entrySet()) {
+                    if (!entry.getValue().equals(written.get(entry.getKey()))) {
+                        throw new IllegalStateException(
+                                "Generated UI message file validation failed for '"
+                                        + entry.getKey() + "'");
+                    }
+                }
+                try {
+                    Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE,
+                            StandardCopyOption.REPLACE_EXISTING);
+                } catch (java.nio.file.AtomicMoveNotSupportedException unsupported) {
+                    Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+                }
+                invalidate();
+                return target;
+            } finally {
+                Files.deleteIfExists(temp);
+            }
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot write UI message file '" + clean + "': "
+                    + error.getMessage(), error);
+        }
+    }
+
+    @Override
+    public void requirePublishable(String languageCode, String uiMessagesPath,
+                                   String defaultLanguagePath) {
+        if (uiMessagesPath == null || uiMessagesPath.isBlank()) {
+            throw missing(languageCode, "UI message JSON path is not configured");
+        }
+        LanguageCatalog target;
+        try {
+            target = load(uiMessagesPath);
+        } catch (RuntimeException error) {
+            throw missing(languageCode, error.getMessage());
+        }
+        String sourcePath = defaultLanguagePath == null || defaultLanguagePath.isBlank()
+                ? SOURCE_PATH : defaultLanguagePath;
+        LanguageCatalog source;
+        try {
+            source = load(sourcePath);
+        } catch (RuntimeException error) {
+            throw missing(languageCode, "Default UI message JSON is missing: "
+                    + error.getMessage());
+        }
+        List<String> missing = new ArrayList<>(source.flat().keySet());
+        missing.removeAll(target.flat().keySet());
+        List<String> extra = new ArrayList<>(target.flat().keySet());
+        extra.removeAll(source.flat().keySet());
+        List<String> placeholderMismatch = new ArrayList<>();
+        for (String key : source.flat().keySet()) {
+            String translated = target.flat().get(key);
+            if (translated == null) {
+                continue;
+            }
+            if (!placeholders(source.flat().get(key)).equals(placeholders(translated))) {
+                placeholderMismatch.add(key);
             }
         }
-        return current;
-    }
-
-    public synchronized Snapshot reload() {
-        Snapshot loaded = read();
-        snapshot = loaded;
-        return loaded;
-    }
-
-    private Snapshot read() {
-        JsonNode manifest = readJson(resource(MANIFEST_FILE), MANIFEST_FILE);
-        if (!manifest.isObject()) {
-            throw new IllegalStateException("Platform UI message manifest must be a JSON object: "
-                    + MANIFEST_FILE);
-        }
-        String defaultLanguage = text(manifest, "defaultLanguage", MANIFEST_FILE);
-        JsonNode languageNodes = manifest.get("languages");
-        if (languageNodes == null || !languageNodes.isArray() || languageNodes.isEmpty()) {
-            throw new IllegalStateException(
-                    "Platform UI message manifest must define at least one language: "
-                            + MANIFEST_FILE);
-        }
-        List<Definition> definitions = new ArrayList<>();
-        Set<String> codes = new LinkedHashSet<>();
-        for (JsonNode node : languageNodes) {
-            Definition definition = definition(node);
-            if (!codes.add(definition.code())) {
-                throw new IllegalStateException("Duplicate UI message language code '"
-                        + definition.code() + "' in " + MANIFEST_FILE);
+        if (!missing.isEmpty() || !extra.isEmpty() || !placeholderMismatch.isEmpty()) {
+            List<FieldIssue> issues = new ArrayList<>();
+            for (String key : missing) {
+                issues.add(FieldIssue.of(key, "TRANSLATION_REQUIRED",
+                        "error.translation.required"));
             }
-            definitions.add(definition);
-        }
-        if (!codes.contains(defaultLanguage)) {
-            throw new IllegalStateException("Default UI message language '" + defaultLanguage
-                    + "' is not listed in " + MANIFEST_FILE);
-        }
-
-        List<Language> languages = new ArrayList<>();
-        for (Definition definition : definitions) {
-            Map<String, Map<String, String>> catalogs = loadCatalogs(definition);
-            Map<String, Integer> versions = new LinkedHashMap<>();
-            for (String namespace : NAMESPACE_ORDER) {
-                versions.put(namespace, namespaceVersion(catalogs.get(namespace)));
+            for (String key : extra) {
+                issues.add(FieldIssue.of(key, "UI_MESSAGE_KEY_UNKNOWN",
+                        "error.validation.failed"));
             }
-            languages.add(new Language(definition, catalogs, versions, languageEtag(definition, catalogs)));
+            for (String key : placeholderMismatch) {
+                issues.add(FieldIssue.of(key, "UI_MESSAGE_PLACEHOLDER_MISMATCH",
+                        "error.validation.failed"));
+            }
+            throw ApiException.validation("TRANSLATION_REQUIRED",
+                    "UI message JSON for " + languageCode + " is incomplete", issues);
         }
-        return new Snapshot(defaultLanguage, List.copyOf(languages), manifestEtag(defaultLanguage, languages));
     }
 
-    private Definition definition(JsonNode node) {
-        if (node == null || !node.isObject()) {
-            throw new IllegalStateException("Each language entry in " + MANIFEST_FILE
-                    + " must be a JSON object");
-        }
-        String code = text(node, "code", MANIFEST_FILE);
-        String file = text(node, "file", MANIFEST_FILE);
-        String name = text(node, "name", MANIFEST_FILE);
-        String nativeName = text(node, "nativeName", MANIFEST_FILE);
-        String direction = text(node, "direction", MANIFEST_FILE).toLowerCase(Locale.ROOT);
-        if (!direction.equals("ltr") && !direction.equals("rtl")) {
-            throw new IllegalStateException("UI message language '" + code
-                    + "' direction must be ltr or rtl in " + MANIFEST_FILE);
-        }
-        return new Definition(code, name, nativeName, direction, file);
-    }
-
-    private Map<String, Map<String, String>> loadCatalogs(Definition definition) {
-        Resource resource = resource(definition.file());
-        JsonNode root = readJson(resource, definition.file());
-        if (!root.isObject()) {
-            throw new IllegalStateException("UI message language file '" + definition.file()
-                    + "' for '" + definition.code() + "' must be a flat JSON object");
-        }
+    private LanguageCatalog readCatalog(String relativePath) {
+        Map<String, String> flat = readFlat(resource(relativePath), relativePath);
         Map<String, Map<String, String>> catalogs = new LinkedHashMap<>();
         for (String namespace : NAMESPACE_ORDER) {
             catalogs.put(namespace, new TreeMap<>());
         }
-        root.fields().forEachRemaining(entry -> {
-            String qualified = entry.getKey();
-            JsonNode value = entry.getValue();
-            if (qualified == null || qualified.isBlank()) {
-                throw new IllegalStateException("UI message language file '" + definition.file()
-                        + "' contains a blank key");
-            }
-            if (!value.isTextual()) {
-                throw new IllegalStateException("UI message language file '" + definition.file()
-                        + "' must be flat: value for '" + qualified + "' is not a string");
-            }
+        flat.forEach((qualified, value) -> {
             String namespace = namespaceOf(qualified);
             String key = messageKeyOf(qualified);
-            catalogs.get(namespace).put(key, value.asText());
+            catalogs.get(namespace).put(key, value);
         });
         Map<String, Map<String, String>> immutable = new LinkedHashMap<>();
         catalogs.forEach((namespace, values) ->
                 immutable.put(namespace, Collections.unmodifiableMap(values)));
-        return Collections.unmodifiableMap(immutable);
+        Map<String, Integer> versions = new LinkedHashMap<>();
+        for (String namespace : NAMESPACE_ORDER) {
+            versions.put(namespace, namespaceVersion(immutable.get(namespace)));
+        }
+        return new LanguageCatalog(relativePath, Collections.unmodifiableMap(flat),
+                Collections.unmodifiableMap(immutable), Collections.unmodifiableMap(versions),
+                etag(relativePath, immutable));
+    }
+
+    private Map<String, String> readFlat(Resource resource, String label) {
+        try (InputStream stream = resource.getInputStream()) {
+            JsonNode root = objectMapper.readTree(stream);
+            if (root == null || !root.isObject()) {
+                throw new IllegalStateException("UI message file '" + label
+                        + "' must be a flat JSON object");
+            }
+            Map<String, String> result = new TreeMap<>();
+            root.fields().forEachRemaining(entry -> {
+                if (entry.getKey() == null || entry.getKey().isBlank()) {
+                    throw new IllegalStateException("UI message file '" + label
+                            + "' contains a blank key");
+                }
+                if (!entry.getValue().isTextual()) {
+                    throw new IllegalStateException("UI message file '" + label
+                            + "' must be flat: value for '" + entry.getKey()
+                            + "' is not a string");
+                }
+                result.put(entry.getKey(), entry.getValue().asText());
+            });
+            return result;
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot read UI message file '" + label
+                    + "' from " + resource.getDescription() + ": " + error.getMessage(), error);
+        }
+    }
+
+    private Resource resource(String relativePath) {
+        Path filesystem = filesystemPath(relativePath);
+        if (Files.isRegularFile(filesystem)) {
+            return new FileSystemResource(filesystem);
+        }
+        return new ClassPathResource(CLASSPATH_ROOT + relativePath);
+    }
+
+    private Path filesystemPath(String relativePath) {
+        String clean = validateRelativePath(relativePath);
+        Path base = Path.of(directory).toAbsolutePath().normalize();
+        String withinBase = clean;
+        Path first = Path.of(clean).getName(0);
+        if (base.getFileName() != null
+                && base.getFileName().toString().equals(first.toString())) {
+            withinBase = clean.substring(first.toString().length() + 1);
+        }
+        Path resolved = base.resolve(withinBase).normalize();
+        if (!resolved.startsWith(base)) {
+            throw new IllegalArgumentException("UI message path escapes the configured directory");
+        }
+        return resolved;
+    }
+
+    public static String validateRelativePath(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("UI message path is required");
+        }
+        String value = raw.trim().replace('\\', '/');
+        if (value.startsWith("/") || value.matches("^[A-Za-z]:.*")
+                || value.indexOf('\0') >= 0) {
+            throw new IllegalArgumentException("UI message path must be relative: " + raw);
+        }
+        Path path = Path.of(value);
+        for (Path segment : path) {
+            if ("..".equals(segment.toString())) {
+                throw new IllegalArgumentException("UI message path traversal is not allowed: "
+                        + raw);
+            }
+        }
+        Path normalized = path.normalize();
+        if (normalized.isAbsolute() || normalized.startsWith("..")) {
+            throw new IllegalArgumentException("UI message path is invalid: " + raw);
+        }
+        return normalized.toString().replace('\\', '/');
     }
 
     private static String namespaceOf(String qualified) {
@@ -214,35 +362,6 @@ public class PlatformUiMessageCatalog {
         return qualified;
     }
 
-    private JsonNode readJson(Resource resource, String label) {
-        try (InputStream stream = resource.getInputStream()) {
-            JsonNode node = objectMapper.readTree(stream);
-            if (node == null) {
-                throw new IllegalStateException("UI message file '" + label + "' is empty");
-            }
-            return node;
-        } catch (IOException error) {
-            throw new IllegalStateException("Cannot read UI message file '" + label
-                    + "' from " + resource.getDescription() + ": " + error.getMessage(), error);
-        }
-    }
-
-    private Resource resource(String file) {
-        if (!externalDirectory.isBlank()) {
-            return new FileSystemResource(Path.of(externalDirectory).resolve(file));
-        }
-        return new ClassPathResource(CLASSPATH_ROOT + file);
-    }
-
-    private static String text(JsonNode node, String field, String label) {
-        JsonNode value = node.get(field);
-        if (value == null || !value.isTextual() || value.asText().isBlank()) {
-            throw new IllegalStateException("UI message file '" + label
-                    + "' requires a non-blank string field '" + field + "'");
-        }
-        return value.asText();
-    }
-
     private static int namespaceVersion(Map<String, String> catalog) {
         if (catalog == null || catalog.isEmpty()) {
             return 1;
@@ -250,17 +369,11 @@ public class PlatformUiMessageCatalog {
         StringBuilder canonical = new StringBuilder();
         catalog.forEach((key, value) -> canonical
                 .append(key).append('\u0000').append(value).append('\u0001'));
-        int version = positiveInt(canonical.toString());
-        return Math.max(1, version);
+        return Math.max(1, positiveInt(canonical.toString()));
     }
 
-    private static String languageEtag(Definition definition,
-                                       Map<String, Map<String, String>> catalogs) {
-        StringBuilder canonical = new StringBuilder();
-        canonical.append(definition.code()).append('|')
-                .append(definition.name()).append('|')
-                .append(definition.nativeName()).append('|')
-                .append(definition.direction());
+    private static String etag(String path, Map<String, Map<String, String>> catalogs) {
+        StringBuilder canonical = new StringBuilder(path);
         catalogs.forEach((namespace, values) -> {
             canonical.append('|').append(namespace);
             values.forEach((key, value) -> canonical
@@ -269,18 +382,13 @@ public class PlatformUiMessageCatalog {
         return quote(sha256(canonical.toString()));
     }
 
-    private static String manifestEtag(String defaultLanguage, List<Language> languages) {
-        StringBuilder canonical = new StringBuilder("manifest|").append(defaultLanguage);
-        languages.stream()
-                .sorted((left, right) -> left.definition().code()
-                        .compareTo(right.definition().code()))
-                .forEach(language -> canonical
-                        .append('|').append(language.definition().code())
-                        .append(':').append(language.definition().direction())
-                        .append(':').append(language.definition().nativeName())
-                        .append(':').append(language.definition().name())
-                        .append(':').append(language.etag()));
-        return quote(sha256(canonical.toString()));
+    private static Set<String> placeholders(String value) {
+        Set<String> names = new java.util.TreeSet<>();
+        Matcher matcher = PLACEHOLDER.matcher(value);
+        while (matcher.find()) {
+            names.add(matcher.group(1));
+        }
+        return names;
     }
 
     private static int positiveInt(String value) {
@@ -308,5 +416,17 @@ public class PlatformUiMessageCatalog {
             hex.append(Character.forDigit(value & 0xF, 16));
         }
         return "\"" + hex + "\"";
+    }
+
+    private static ApiException missing(String languageCode, String detail) {
+        return ApiException.validation("TRANSLATION_REQUIRED",
+                "UI message JSON for " + languageCode + " is not publishable: " + detail,
+                List.of(FieldIssue.of("uiMessagesPath", "UI_MESSAGES_REQUIRED",
+                        "error.translation.required")));
+    }
+
+    @SuppressWarnings("unused")
+    private static String normalizeCode(String code) {
+        return code == null ? "" : code.trim().toLowerCase(Locale.ROOT);
     }
 }

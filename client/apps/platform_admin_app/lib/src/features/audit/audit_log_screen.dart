@@ -1,16 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
+import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
-import '../../components/platform_toolbar.dart';
+import '../../download_file_stub.dart'
+    if (dart.library.html) '../../download_file_web.dart';
 import '../../platform_catalogue_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-
-import 'package:l10n/l10n.dart';
 
 /// Screen 9: Platform Audit Events Log, backed by the platform API.
 class AuditLogScreen extends ConsumerStatefulWidget {
@@ -21,14 +24,82 @@ class AuditLogScreen extends ConsumerStatefulWidget {
 }
 
 class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
-  String _query = '';
-  String? _actionFilter;
-  String? _entityFilter;
+  final _action = TextEditingController();
+  final _entityType = TextEditingController();
+  final _actor = TextEditingController();
+  final _dateFrom = TextEditingController();
+  final _dateTo = TextEditingController();
+  final _search = TextEditingController();
+  AuditQuery _query = const AuditQuery();
+  Timer? _debounce;
+  bool _exporting = false;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _action.dispose();
+    _entityType.dispose();
+    _actor.dispose();
+    _dateFrom.dispose();
+    _dateTo.dispose();
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _apply(AuditQuery next) {
+    setState(() => _query = next.copyWith(page: 0));
+  }
+
+  void _searchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      _apply(_query.copyWith(search: value.trim()));
+    });
+  }
+
+  Future<void> _export(String format) async {
+    if (_exporting) return;
+    final strings = ref.read(uiStringsProvider);
+    setState(() => _exporting = true);
+    try {
+      final bytes = await ref
+          .read(platformConfigApiProvider)
+          .exportAuditEvents(
+            format: format,
+            action: _query.action,
+            entityType: _query.entityType,
+            actor: _query.actor,
+            dateFrom: _query.dateFrom,
+            dateTo: _query.dateTo,
+            search: _query.search,
+            sort: _query.sort,
+          );
+      downloadBytes('audit-events.$format', bytes);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: PtTheme.deepGreen,
+          content: Text(
+            strings.tKey(PlatformAdminKeys.pageAuditTitle),
+            style: PtTheme.font(13, color: PtTheme.white),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    final auditEvents = ref.watch(auditEventsProvider);
+    final auditEvents = ref.watch(auditEventsPageProvider(_query));
 
     return PlatformShell(
       currentRoute: '/audit-log',
@@ -63,15 +134,32 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
             PlatformPageHeader(
               title: strings.tKey(PlatformAdminKeys.pageAuditTitle),
               subtitle: strings.tKey(PlatformAdminKeys.pageAuditSubtitle),
+              actions: [
+                PlatformSecondaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonAuditExportCsv),
+                  icon: Icons.table_view_rounded,
+                  isLoading: _exporting,
+                  onPressed: _exporting ? null : () => _export('csv'),
+                ),
+                PlatformSecondaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonAuditExportJson),
+                  icon: Icons.data_object_rounded,
+                  isLoading: _exporting,
+                  onPressed: _exporting ? null : () => _export('json'),
+                ),
+              ],
             ),
+            const SizedBox(height: 16),
+            _buildFilters(strings),
             const SizedBox(height: 20),
             auditEvents.when(
               loading: () => const PlatformLoadingView(),
               error: (error, stackTrace) => PlatformErrorView(
                 message: strings.tKey(CommonKeys.statusUnhealthy),
-                onRetry: () => ref.invalidate(auditEventsProvider),
+                retryLabel: strings.tKey(CommonKeys.buttonRetry),
+                onRetry: () => ref.invalidate(auditEventsPageProvider(_query)),
               ),
-              data: (events) => _buildData(strings, events),
+              data: (page) => _buildData(strings, page),
             ),
           ],
         ),
@@ -79,59 +167,145 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
     );
   }
 
-  Widget _buildData(dynamic strings, List<PlatformAuditEvent> events) {
-    final actions = _distinct(events.map((event) => event.action));
-    final entities = _distinct(events.map((event) => event.entityType));
-    final activeAction = actions.contains(_actionFilter) ? _actionFilter : null;
-    final activeEntity = entities.contains(_entityFilter)
-        ? _entityFilter
-        : null;
+  Widget _buildFilters(UiMessageStrings strings) {
+    return PlatformSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _search,
+            decoration: InputDecoration(
+              hintText: strings.tKey(PlatformAdminKeys.filterAuditSearch),
+              prefixIcon: const Icon(Icons.search_rounded, size: 18),
+            ),
+            onChanged: _searchChanged,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _filterField(
+                controller: _action,
+                label: strings.tKey(PlatformAdminKeys.filterAuditAction),
+                onSubmitted: (value) =>
+                    _apply(_query.copyWith(action: value.trim())),
+              ),
+              _filterField(
+                controller: _entityType,
+                label: strings.tKey(PlatformAdminKeys.filterAuditEntityType),
+                onSubmitted: (value) =>
+                    _apply(_query.copyWith(entityType: value.trim())),
+              ),
+              _filterField(
+                controller: _actor,
+                label: strings.tKey(PlatformAdminKeys.filterAuditActor),
+                onSubmitted: (value) =>
+                    _apply(_query.copyWith(actor: value.trim())),
+              ),
+              _filterField(
+                controller: _dateFrom,
+                label: strings.tKey(PlatformAdminKeys.filterAuditDateFrom),
+                onSubmitted: (value) =>
+                    _apply(_query.copyWith(dateFrom: value.trim())),
+              ),
+              _filterField(
+                controller: _dateTo,
+                label: strings.tKey(PlatformAdminKeys.filterAuditDateTo),
+                onSubmitted: (value) =>
+                    _apply(_query.copyWith(dateTo: value.trim())),
+              ),
+              SizedBox(
+                width: 200,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _query.sort,
+                  isExpanded: true,
+                  decoration: const InputDecoration(),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'occurredAt,desc',
+                      child: Text(
+                        strings.tKey(PlatformAdminKeys.filterAuditNewestFirst),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'occurredAt,asc',
+                      child: Text(
+                        strings.tKey(PlatformAdminKeys.filterAuditOldestFirst),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      _apply(_query.copyWith(sort: value));
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-    final query = _query.trim().toLowerCase();
-    final filtered = events
-        .where(
-          (event) =>
-              (activeAction == null || event.action == activeAction) &&
-              (activeEntity == null || event.entityType == activeEntity) &&
-              (query.isEmpty || _matches(event, query)),
-        )
-        .toList(growable: false);
+  Widget _filterField({
+    required TextEditingController controller,
+    required String label,
+    required ValueChanged<String> onSubmitted,
+  }) {
+    return SizedBox(
+      width: 220,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(labelText: label),
+        onSubmitted: onSubmitted,
+      ),
+    );
+  }
 
-    if (events.isEmpty) {
-      return PlatformEmptyView(
-        icon: Icons.history_toggle_off_rounded,
-        title: strings.tKey(CommonKeys.emptyTitle),
-      );
-    }
-
+  Widget _buildData(UiMessageStrings strings, AuditEventPage page) {
+    final pages = page.size <= 0
+        ? 1
+        : (page.total / page.size).ceil().clamp(1, 1 << 30);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PlatformToolbar(
-          searchHint:
-              '${strings.tKey(CommonKeys.filterSearch)} ${strings.tKey(PlatformAdminKeys.pageAuditTitle)}...',
-          onSearchChanged: (value) => setState(() => _query = value),
-          filters: [
-            _buildFilterGroup(
-              label: strings.tKey(CommonKeys.tableAction),
-              values: actions,
-              selected: activeAction,
-              allLabel: strings.tKey(CommonKeys.filterAll),
-              onSelected: (value) => setState(() => _actionFilter = value),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              strings.tArgsKey(PlatformAdminKeys.paginationPageInfo, {
+                'page': page.page + 1,
+                'pages': pages,
+                'total': page.total,
+              }),
+              style: PtTheme.font(12, color: PtTheme.muted),
             ),
-            _buildFilterGroup(
-              label: strings.tKey(PlatformAdminKeys.tableAuditEntity),
-              values: entities,
-              selected: activeEntity,
-              allLabel: strings.tKey(CommonKeys.filterAll),
-              onSelected: (value) => setState(() => _entityFilter = value),
+            PlatformSecondaryButton(
+              label: strings.tKey(CommonKeys.buttonPrevious),
+              icon: Icons.chevron_left_rounded,
+              onPressed: page.page <= 0
+                  ? null
+                  : () => setState(
+                      () => _query = _query.copyWith(page: page.page - 1),
+                    ),
+            ),
+            PlatformSecondaryButton(
+              label: strings.tKey(CommonKeys.buttonNext),
+              icon: Icons.chevron_right_rounded,
+              onPressed: page.page + 1 >= pages
+                  ? null
+                  : () => setState(
+                      () => _query = _query.copyWith(page: page.page + 1),
+                    ),
             ),
           ],
-          countLabel:
-              '${strings.tKey(PlatformAdminKeys.pageAuditTitle)} (${filtered.length}) • ${filtered.length} / ${events.length}',
         ),
-        const SizedBox(height: 20),
-        if (filtered.isEmpty)
+        const SizedBox(height: 16),
+        if (page.items.isEmpty)
           PlatformEmptyView(
             icon: Icons.history_toggle_off_rounded,
             title: strings.tKey(CommonKeys.emptyTitle),
@@ -139,57 +313,14 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
         else
           LayoutBuilder(
             builder: (context, constraints) =>
-                _buildEventGrid(strings, filtered, constraints.maxWidth),
+                _buildEventGrid(strings, page.items, constraints.maxWidth),
           ),
-      ],
-    );
-  }
-
-  Widget _buildFilterGroup({
-    required String label,
-    required List<String> values,
-    required String? selected,
-    required String allLabel,
-    required ValueChanged<String?> onSelected,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: PtTheme.font(
-            11,
-            lineHeight: 14,
-            weight: FontWeight.w700,
-            color: PtTheme.muted,
-            tracking: 0.6,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            PlatformFilterChip(
-              label: allLabel,
-              selected: selected == null,
-              onTap: () => onSelected(null),
-            ),
-            for (final value in values)
-              PlatformFilterChip(
-                label: value,
-                selected: selected == value,
-                onTap: () => onSelected(value),
-              ),
-          ],
-        ),
       ],
     );
   }
 
   Widget _buildEventGrid(
-    dynamic strings,
+    UiMessageStrings strings,
     List<PlatformAuditEvent> events,
     double maxWidth,
   ) {
@@ -202,12 +333,15 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
       runSpacing: spacing,
       children: [
         for (final event in events)
-          SizedBox(width: cardWidth, child: _buildEventCard(strings, event)),
+          SizedBox(
+            width: columns == 1 ? double.infinity : cardWidth,
+            child: _buildEventCard(strings, event),
+          ),
       ],
     );
   }
 
-  Widget _buildEventCard(dynamic strings, PlatformAuditEvent event) {
+  Widget _buildEventCard(UiMessageStrings strings, PlatformAuditEvent event) {
     final metadata = event.metadataJson.trim();
 
     return PlatformSectionCard(
@@ -312,24 +446,5 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
         ],
       ),
     );
-  }
-
-  bool _matches(PlatformAuditEvent event, String query) =>
-      event.action.toLowerCase().contains(query) ||
-      event.entityType.toLowerCase().contains(query) ||
-      event.entityId.toLowerCase().contains(query) ||
-      event.actorRole.toLowerCase().contains(query) ||
-      event.occurredAt.toLowerCase().contains(query) ||
-      event.reasonCode.toLowerCase().contains(query) ||
-      event.metadataJson.toLowerCase().contains(query);
-
-  List<String> _distinct(Iterable<String> values) {
-    final set = values
-        .map((value) => value.trim())
-        .where((value) => value.isNotEmpty)
-        .toSet()
-        .toList();
-    set.sort();
-    return set;
   }
 }

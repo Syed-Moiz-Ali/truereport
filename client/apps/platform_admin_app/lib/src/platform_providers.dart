@@ -260,6 +260,12 @@ final templatesProvider = FutureProvider.autoDispose<List<GlobalTemplate>>(
   (ref) => ref.watch(platformConfigApiProvider).templates(),
 );
 
+final availableTemplatesProvider =
+    FutureProvider.autoDispose<List<GlobalTemplate>>(
+      (ref) =>
+          ref.watch(platformConfigApiProvider).templates(publishedOnly: true),
+    );
+
 final templateDetailProvider = FutureProvider.autoDispose
     .family<GlobalTemplate, String>(
       (ref, id) => ref.watch(platformConfigApiProvider).templateDetail(id),
@@ -316,6 +322,7 @@ class PlatformConfigActions {
     _ref.invalidate(itemConfigProvider);
     _ref.invalidate(optionSetsProvider);
     _ref.invalidate(templatesProvider);
+    _ref.invalidate(availableTemplatesProvider);
     _ref.invalidate(templateDetailProvider);
     _ref.invalidate(templateVersionDetailProvider);
     _ref.invalidate(documentTypesProvider);
@@ -655,6 +662,96 @@ final platformConfigActionsProvider = Provider<PlatformConfigActions>(
 final auditEventsProvider =
     FutureProvider.autoDispose<List<PlatformAuditEvent>>(
       (ref) => ref.watch(platformConfigApiProvider).auditEvents(),
+    );
+
+@immutable
+class AuditQuery {
+  const AuditQuery({
+    this.action = '',
+    this.entityType = '',
+    this.actor = '',
+    this.dateFrom = '',
+    this.dateTo = '',
+    this.search = '',
+    this.sort = 'occurredAt,desc',
+    this.page = 0,
+    this.size = 25,
+  });
+
+  final String action;
+  final String entityType;
+  final String actor;
+  final String dateFrom;
+  final String dateTo;
+  final String search;
+  final String sort;
+  final int page;
+  final int size;
+
+  AuditQuery copyWith({
+    String? action,
+    String? entityType,
+    String? actor,
+    String? dateFrom,
+    String? dateTo,
+    String? search,
+    String? sort,
+    int? page,
+    int? size,
+  }) => AuditQuery(
+    action: action ?? this.action,
+    entityType: entityType ?? this.entityType,
+    actor: actor ?? this.actor,
+    dateFrom: dateFrom ?? this.dateFrom,
+    dateTo: dateTo ?? this.dateTo,
+    search: search ?? this.search,
+    sort: sort ?? this.sort,
+    page: page ?? this.page,
+    size: size ?? this.size,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is AuditQuery &&
+      other.action == action &&
+      other.entityType == entityType &&
+      other.actor == actor &&
+      other.dateFrom == dateFrom &&
+      other.dateTo == dateTo &&
+      other.search == search &&
+      other.sort == sort &&
+      other.page == page &&
+      other.size == size;
+
+  @override
+  int get hashCode => Object.hash(
+    action,
+    entityType,
+    actor,
+    dateFrom,
+    dateTo,
+    search,
+    sort,
+    page,
+    size,
+  );
+}
+
+final auditEventsPageProvider = FutureProvider.autoDispose
+    .family<AuditEventPage, AuditQuery>(
+      (ref, query) => ref
+          .watch(platformConfigApiProvider)
+          .auditEventsPage(
+            action: query.action,
+            entityType: query.entityType,
+            actor: query.actor,
+            dateFrom: query.dateFrom,
+            dateTo: query.dateTo,
+            search: query.search,
+            sort: query.sort,
+            page: query.page,
+            size: query.size,
+          ),
     );
 
 final overviewProvider = FutureProvider.autoDispose<OverviewSummary>(

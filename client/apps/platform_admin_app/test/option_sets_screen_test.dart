@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:api_client/api_client.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/master_library/option_sets_screen.dart';
 import 'package:platform_admin_app/src/platform_config_api.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
@@ -362,8 +362,8 @@ Widget _app(
     overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), platformConfigApiProvider.overrideWithValue(api), ...extra],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
       home: MediaQuery(
         data: MediaQueryData(size: size),
         child: const OptionSetsScreen(),
@@ -644,8 +644,8 @@ void main() {
         overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
         child: const MaterialApp(
           locale: Locale('ar'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: <Locale>[Locale('en'), Locale('ar')],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
           home: MediaQuery(
             data: MediaQueryData(size: Size(1280, 900)),
             child: OptionSetsScreen(),
@@ -668,8 +668,8 @@ void main() {
         overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
         child: const MaterialApp(
           locale: Locale('ar'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: <Locale>[Locale('en'), Locale('ar')],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
           home: MediaQuery(
             data: MediaQueryData(size: Size(360, 900)),
             child: OptionSetsScreen(),

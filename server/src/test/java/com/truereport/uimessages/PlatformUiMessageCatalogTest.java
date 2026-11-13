@@ -1,11 +1,14 @@
 package com.truereport.uimessages;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.shared.error.ApiException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,107 +21,102 @@ class PlatformUiMessageCatalogTest {
     Path directory;
 
     @Test
-    void addingLanguageFileAndManifestEntryExposesIt() throws Exception {
-        writeManifest("en");
-        write("en.json", "{\"platform_admin.hello\":\"Hello\"}");
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        assertThat(catalog.snapshot().language("fr")).isNull();
-
-        writeManifest("en", "fr");
-        write("fr.json", "{\"platform_admin.hello\":\"Bonjour\"}");
-        PlatformUiMessageCatalog.Snapshot reloaded = catalog.reload();
-        assertThat(reloaded.language("fr")).isNotNull();
-        assertThat(reloaded.language("fr").catalogs().get("platform_admin").get("hello"))
-                .isEqualTo("Bonjour");
+    void loadsFlatCatalogAndComputesVersions() throws Exception {
+        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello {name}\"}");
+        PlatformUiMessageCatalog catalog = catalog();
+        PlatformUiMessageCatalog.LanguageCatalog loaded =
+                catalog.load("platform_admin/en.json");
+        assertThat(loaded.flat().get("platform_admin.hello")).isEqualTo("Hello {name}");
+        assertThat(loaded.catalogs().get("platform_admin").get("hello"))
+                .isEqualTo("Hello {name}");
+        assertThat(loaded.versions().get("platform_admin")).isGreaterThan(0);
+        assertThat(loaded.etag()).isNotBlank();
     }
 
     @Test
-    void etagAndVersionChangeWhenFileChanges() throws Exception {
-        writeManifest("en");
-        write("en.json", "{\"common.button.save\":\"Save\"}");
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        PlatformUiMessageCatalog.Language before = catalog.snapshot().language("en");
-        String etagBefore = before.etag();
-        int versionBefore = before.versions().get("common");
-
-        write("en.json", "{\"common.button.save\":\"Save now\"}");
-        PlatformUiMessageCatalog.Language after = catalog.reload().language("en");
-        assertThat(after.etag()).isNotEqualTo(etagBefore);
-        assertThat(after.versions().get("common")).isNotEqualTo(versionBefore);
+    void etagChangesWhenFileChanges() throws Exception {
+        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello\"}");
+        PlatformUiMessageCatalog catalog = catalog();
+        String before = catalog.load("platform_admin/en.json").etag();
+        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello there\"}");
+        catalog.invalidate();
+        assertThat(catalog.load("platform_admin/en.json").etag()).isNotEqualTo(before);
     }
 
     @Test
-    void missingLanguageFileFailsFast() throws Exception {
-        writeManifest("en");
-        write("en.json", "{\"platform_admin.hello\":\"Hello\"}");
-        write("manifest.json", """
-                {"defaultLanguage":"en","languages":[
-                  {"code":"en","name":"English","nativeName":"English","direction":"ltr","file":"en.json"},
-                  {"code":"fr","name":"French","nativeName":"Français","direction":"ltr","file":"fr.json"}
-                ]}
-                """);
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        assertThatThrownBy(catalog::snapshot)
+    void rejectsAbsoluteAndTraversalPaths() {
+        assertThatThrownBy(() -> PlatformUiMessageCatalog.validateRelativePath("../en.json"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> PlatformUiMessageCatalog.validateRelativePath("/tmp/en.json"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> PlatformUiMessageCatalog.validateRelativePath("C:/tmp/en.json"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> PlatformUiMessageCatalog.validateRelativePath(
+                "platform_admin/../../en.json"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void missingFileFailsFast() {
+        PlatformUiMessageCatalog catalog = catalog();
+        assertThatThrownBy(() -> catalog.load("platform_admin/fr.json"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("fr.json");
     }
 
     @Test
-    void invalidLanguageJsonFailsFast() throws Exception {
-        writeManifest("en");
-        write("en.json", "{not-json");
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        assertThatThrownBy(catalog::snapshot)
+    void invalidJsonFailsFast() throws Exception {
+        write("platform_admin/en.json", "{not-json");
+        PlatformUiMessageCatalog catalog = catalog();
+        assertThatThrownBy(() -> catalog.load("platform_admin/en.json"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cannot read UI message file 'en.json'");
+                .hasMessageContaining("Cannot read UI message file");
     }
 
     @Test
-    void nonFlatLanguageJsonFailsFast() throws Exception {
-        writeManifest("en");
-        write("en.json", "{\"platform_admin.hello\":{\"nested\":true}}");
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        assertThatThrownBy(catalog::snapshot)
+    void nonFlatJsonFailsFast() throws Exception {
+        write("platform_admin/en.json", "{\"platform_admin.hello\":{\"nested\":true}}");
+        PlatformUiMessageCatalog catalog = catalog();
+        assertThatThrownBy(() -> catalog.load("platform_admin/en.json"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("must be flat");
     }
 
     @Test
-    void defaultLanguageMustBeListedInManifest() throws Exception {
-        write("manifest.json", """
-                {"defaultLanguage":"zz","languages":[
-                  {"code":"en","name":"English","nativeName":"English","direction":"ltr","file":"en.json"}
-                ]}
-                """);
-        write("en.json", "{\"platform_admin.hello\":\"Hello\"}");
-        PlatformUiMessageCatalog catalog = new PlatformUiMessageCatalog(
-                objectMapper, directory.toString());
-        assertThatThrownBy(catalog::snapshot)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Default UI message language");
+    void atomicWriteValidatesAndReplacesFile() throws Exception {
+        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello\"}");
+        PlatformUiMessageCatalog catalog = catalog();
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put("platform_admin.hello", "Bonjour");
+        Path target = catalog.writeAtomic("platform_admin/fr.json", values);
+        assertThat(Files.exists(target)).isTrue();
+        catalog.invalidate();
+        assertThat(catalog.load("platform_admin/fr.json").flat())
+                .containsEntry("platform_admin.hello", "Bonjour");
     }
 
-    private void writeManifest(String defaultLanguage, String... additionalCodes) throws Exception {
-        StringBuilder languages = new StringBuilder();
-        languages.append("""
-                {"code":"en","name":"English","nativeName":"English","direction":"ltr","file":"en.json"}
-                """);
-        for (String code : additionalCodes) {
-            languages.append("""
-                    ,{"code":"%s","name":"%s","nativeName":"%s","direction":"ltr","file":"%s.json"}
-                    """.formatted(code, code, code, code));
-        }
-        write("manifest.json", """
-                {"defaultLanguage":"%s","languages":[%s]}
-                """.formatted(defaultLanguage, languages));
+    @Test
+    void publishGuardRequiresKeyAndPlaceholderParity() throws Exception {
+        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello {name}\"}");
+        write("platform_admin/fr.json", "{\"platform_admin.hello\":\"Bonjour\"}");
+        PlatformUiMessageCatalog catalog = catalog();
+        assertThatThrownBy(() -> catalog.requirePublishable("fr",
+                "platform_admin/fr.json", "platform_admin/en.json"))
+                .isInstanceOf(ApiException.class);
+
+        write("platform_admin/fr.json", "{\"platform_admin.hello\":\"Bonjour {name}\"}");
+        catalog.invalidate();
+        catalog.requirePublishable("fr", "platform_admin/fr.json",
+                "platform_admin/en.json");
+    }
+
+    private PlatformUiMessageCatalog catalog() {
+        return new PlatformUiMessageCatalog(objectMapper, directory.toString());
     }
 
     private void write(String file, String content) throws Exception {
-        Files.writeString(directory.resolve(file), content);
+        Path target = directory.resolve(file);
+        Files.createDirectories(target.getParent());
+        Files.writeString(target, content);
     }
 }

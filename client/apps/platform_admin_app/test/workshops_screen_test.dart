@@ -403,9 +403,8 @@ Widget _buildListApp(
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
       localizationsDelegates: const [
-        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -425,14 +424,14 @@ Widget _buildDetailApp(
     overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
+      availableTemplatesProvider.overrideWith((ref) => Future.value([_template])),
       auditEventsProvider.overrideWith((ref) => Future.value(_auditEvents)),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
       localizationsDelegates: const [
-        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -453,13 +452,13 @@ Widget _buildFormApp(
     overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
+      availableTemplatesProvider.overrideWith((ref) => Future.value([_template])),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
       localizationsDelegates: const [
-        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -699,7 +698,7 @@ void main() {
       expect(find.text('EMEA Industrial Hub'), findsWidgets);
       expect(find.text('Overview'), findsWidgets);
       expect(find.text('Staff'), findsWidgets);
-      expect(find.text('Templates'), findsOneWidget);
+      expect(find.text('Available templates'), findsWidgets);
       expect(find.text('Activity'), findsOneWidget);
       expect(find.text('Edit workshop'), findsOneWidget);
       expect(find.text('Deactivate workshop'), findsOneWidget);
@@ -783,7 +782,7 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(PlatformFilterChip, 'Templates'));
+      await tester.tap(find.widgetWithText(PlatformFilterChip, 'Available templates'));
       await tester.pumpAndSettle();
 
       expect(find.text('GCC Standard'), findsOneWidget);

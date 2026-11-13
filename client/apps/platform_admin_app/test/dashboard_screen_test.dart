@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/dashboard/dashboard_screen.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
@@ -130,8 +130,8 @@ Widget _app({
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
       home: MediaQuery(
         data: MediaQueryData(size: Size(width, 900)),
         child: const DashboardScreen(),
@@ -207,8 +207,8 @@ void main() {
             ),
           ],
           child: const MaterialApp(
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: <Locale>[Locale('en'), Locale('ar')],
+            localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
             home: MediaQuery(
               data: MediaQueryData(size: Size(1280, 900)),
               child: DashboardScreen(),
@@ -237,8 +237,8 @@ void main() {
             auditEventsProvider.overrideWith((ref) async => _events),
           ],
           child: const MaterialApp(
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: <Locale>[Locale('en'), Locale('ar')],
+            localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
             home: MediaQuery(
               data: MediaQueryData(size: Size(1280, 900)),
               child: DashboardScreen(),

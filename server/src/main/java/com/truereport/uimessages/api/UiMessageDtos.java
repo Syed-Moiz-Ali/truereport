@@ -9,7 +9,8 @@ public final class UiMessageDtos {
     }
 
     public record ManifestLanguageDto(String code, String direction, String nativeName,
-                                      String nameEn, Map<String, Integer> versions) {
+                                      String nameEn, Map<String, Integer> versions,
+                                      String path) {
     }
 
     public record UiMessageManifestDto(

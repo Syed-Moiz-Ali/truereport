@@ -362,6 +362,65 @@ void main() {
     expect(generated.qualified.length, equals(catalog.length));
   });
 
+  test('removed platform settings feature names are absent', () {
+    const forbiddenInApp = <String>[
+      'sessionTimeoutMinutes',
+      'telematicsEnabled',
+      'instantPdfEnabled',
+      'webhooksEnabled',
+      'platformSettingsProvider',
+      'savePlatformSettings',
+      '/api/v1/platform/settings',
+      'switch-telematics',
+      'switch-pdf-generation',
+      'switch-webhooks-enabled',
+    ];
+    final violations = <String>[];
+    final sources = <File>[
+      ...files,
+      File('../../packages/api_client/lib/src/api_endpoints.dart'),
+    ];
+    for (final file in sources) {
+      final text = file.readAsStringSync();
+      for (final token in forbiddenInApp) {
+        if (text.contains(token)) {
+          violations.add('${file.path} :: $token');
+        }
+      }
+    }
+    expect(
+      violations,
+      isEmpty,
+      reason:
+          'removed settings names must not exist:\n${violations.join('\n')}',
+    );
+
+    final serverSettingsDir = Directory(
+      '../../../server/src/main/java/com/truereport/settings',
+    );
+    expect(
+      serverSettingsDir.existsSync(),
+      isFalse,
+      reason: 'Platform Admin settings backend package must be deleted',
+    );
+
+    final serverSources = Directory('../../../server/src/main/java')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.java'));
+    final tableReferences = serverSources
+        .where((file) => file.readAsStringSync().contains('platform_settings'))
+        .map((file) => file.path)
+        .toList(growable: false);
+    expect(
+      tableReferences,
+      isEmpty,
+      reason:
+          'platform_settings must not be referenced by server code: '
+          '$tableReferences',
+    );
+  });
+
   test('catalog namespaces and key counts are sane', () {
     final namespaces = <String>{};
     for (final key in catalog) {

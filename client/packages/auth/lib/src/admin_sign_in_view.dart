@@ -16,6 +16,150 @@ class AdminFeatureHighlight {
   final String description;
 }
 
+/// Every visible string rendered by [AdminSignInView].
+///
+/// Platform Admin builds this from backend UI strings; Workshop Admin uses
+/// [AdminSignInCopy.legacy] until its own static-text migration phase.
+class AdminSignInCopy {
+  const AdminSignInCopy({
+    required this.appName,
+    required this.portalBadge,
+    required this.portalTitle,
+    required this.cardEyebrow,
+    required this.signInTitle,
+    required this.signInSubtitle,
+    required this.showcaseEyebrow,
+    required this.showcaseHeadline,
+    required this.showcaseSubtitle,
+    required this.features,
+    required this.emailLabel,
+    required this.emailHint,
+    required this.passwordLabel,
+    required this.passwordHint,
+    required this.rememberTerminal,
+    required this.needHelp,
+    required this.challengeTitle,
+    required this.challengeBody,
+    required this.codeLabel,
+    required this.codeHint,
+    required this.signInButton,
+    required this.verifyButton,
+    required this.footer,
+    required this.languageLabel,
+    required this.statusLabel,
+    required this.statusDetails,
+    required this.statusSecured,
+  });
+
+  final String appName;
+  final String portalBadge;
+  final String portalTitle;
+  final String cardEyebrow;
+  final String signInTitle;
+  final String signInSubtitle;
+  final String showcaseEyebrow;
+  final String showcaseHeadline;
+  final String showcaseSubtitle;
+  final List<AdminFeatureHighlight> features;
+  final String emailLabel;
+  final String emailHint;
+  final String passwordLabel;
+  final String passwordHint;
+  final String rememberTerminal;
+  final String needHelp;
+  final String challengeTitle;
+  final String challengeBody;
+  final String codeLabel;
+  final String codeHint;
+  final String signInButton;
+  final String verifyButton;
+  final String footer;
+  final String languageLabel;
+  final String statusLabel;
+  final String statusDetails;
+  final String statusSecured;
+
+  /// Legacy Workshop Admin copy resolved from ARB localizations.
+  factory AdminSignInCopy.legacy(AppLocalizations l10n, AdminPortalType type) {
+    final isWorkshop = type == AdminPortalType.workshop;
+    return AdminSignInCopy(
+      appName: 'TrueReport',
+      portalBadge: isWorkshop
+          ? 'WORKSHOP OPERATIONS'
+          : 'PLATFORM ADMINISTRATION',
+      portalTitle: isWorkshop
+          ? 'Workshop Admin Portal'
+          : 'Platform Admin Gateway',
+      cardEyebrow: 'AUTHORIZED ACCESS ONLY',
+      signInTitle: 'Sign in to Portal',
+      signInSubtitle: isWorkshop
+          ? 'Enter your corporate credentials to access Workshop Admin Portal.'
+          : 'Enter your corporate credentials to access Platform Admin Gateway.',
+      showcaseEyebrow: isWorkshop
+          ? 'HIGH-THROUGHPUT BAY DISPATCH'
+          : 'MULTI-TENANT GOVERNANCE',
+      showcaseHeadline: isWorkshop
+          ? 'Precision Vehicle Diagnostics & Workshop Orchestration'
+          : 'Global Automotive Diagnostic Network Administration',
+      showcaseSubtitle: isWorkshop
+          ? 'Unified operational portal for bay allocation, live inspection workflows, dynamic SOP protocols, and cryptographically verified customer reports.'
+          : 'Central command hub for multi-tenant workshop networks, master checkpoint libraries, standardized data catalogues, and regulatory audit archives.',
+      features: isWorkshop
+          ? [
+              AdminFeatureHighlight(
+                icon: Icons.garage_rounded,
+                title: l10n.adminFeatureTelemetry,
+                description: 'Real-time job sequencing, automated bay routing, and live technician throughput dispatch.',
+              ),
+              AdminFeatureHighlight(
+                icon: Icons.assignment_turned_in_rounded,
+                title: l10n.adminFeatureSop,
+                description: 'Multi-version inspection templates with required photo evidence and strict severity policies.',
+              ),
+              AdminFeatureHighlight(
+                icon: Icons.verified_rounded,
+                title: l10n.adminFeatureAudit,
+                description: 'Instant client-ready report generation with tamper-evident blockchain verification.',
+              ),
+            ]
+          : [
+              AdminFeatureHighlight(
+                icon: Icons.apartment_rounded,
+                title: l10n.adminFeatureHierarchy,
+                description: 'Workshop onboarding, staff accounts, and template assignment.',
+              ),
+              AdminFeatureHighlight(
+                icon: Icons.menu_book_rounded,
+                title: l10n.adminFeatureCatalog,
+                description: 'Centralized catalog of standardized diagnostic checkpoints with bilingual labels.',
+              ),
+              AdminFeatureHighlight(
+                icon: Icons.shield_rounded,
+                title: l10n.adminFeatureLedger,
+                description: 'SOC-2 compliant chronological audit events logging all platform mutations and credential resets.',
+              ),
+            ],
+      emailLabel: 'Corporate Email Address',
+      emailHint: 'name@truereport.local',
+      passwordLabel: 'Password',
+      passwordHint: '••••••••••••',
+      rememberTerminal: 'Remember terminal',
+      needHelp: 'Need help?',
+      challengeTitle: 'Two-Factor Authentication Required',
+      challengeBody: 'Enter the 6-digit verification code from your security authenticator.',
+      codeLabel: 'Security Code',
+      codeHint: '000000',
+      signInButton: 'Sign In to Portal',
+      verifyButton: 'Verify Security Code',
+      footer: '256-bit TLS Encrypted · SOC-2 Certified',
+      languageLabel: 'Language',
+      statusLabel: 'GRID V4.2 ACTIVE',
+      statusDetails: '·  Latency 14ms  ·  TLS 1.3',
+      statusSecured: 'SECURED',
+    );
+  }
+}
+
 class AdminSignInView extends StatefulWidget {
   const AdminSignInView({
     super.key,
@@ -29,6 +173,7 @@ class AdminSignInView extends StatefulWidget {
     this.languages,
     this.selectedLanguageCode,
     this.onLanguageSelected,
+    this.copy,
     required this.onSubmit,
     required this.onValidateEmail,
     required this.onValidateRequired,
@@ -47,6 +192,7 @@ class AdminSignInView extends StatefulWidget {
   final List<LanguageOption>? languages;
   final String? selectedLanguageCode;
   final ValueChanged<String>? onLanguageSelected;
+  final AdminSignInCopy? copy;
   final VoidCallback onSubmit;
   final FormFieldValidator<String> onValidateEmail;
   final FormFieldValidator<String> onValidateRequired;
@@ -79,57 +225,13 @@ class _AdminSignInViewState extends State<AdminSignInView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final copy = widget.copy ?? _legacyCopy(context);
     final isWorkshop = widget.portalType == AdminPortalType.workshop;
-
-    final portalBadge = isWorkshop
-        ? 'WORKSHOP OPERATIONS'
-        : 'PLATFORM ADMINISTRATION';
-    final showcaseEyebrow = isWorkshop
-        ? 'HIGH-THROUGHPUT BAY DISPATCH'
-        : 'MULTI-TENANT GOVERNANCE';
-    final showcaseHeadline = isWorkshop
-        ? 'Precision Vehicle Diagnostics & Workshop Orchestration'
-        : 'Global Automotive Diagnostic Network Administration';
-    final showcaseSubtitle = isWorkshop
-        ? 'Unified operational portal for bay allocation, live inspection workflows, dynamic SOP protocols, and cryptographically verified customer reports.'
-        : 'Central command hub for multi-tenant workshop networks, master checkpoint libraries, standardized data catalogues, and regulatory audit archives.';
-
-    final features = isWorkshop
-        ? [
-            AdminFeatureHighlight(
-              icon: Icons.garage_rounded,
-              title: l10n.adminFeatureTelemetry,
-              description: 'Real-time job sequencing, automated bay routing, and live technician throughput dispatch.',
-            ),
-            AdminFeatureHighlight(
-              icon: Icons.assignment_turned_in_rounded,
-              title: l10n.adminFeatureSop,
-              description: 'Multi-version inspection templates with required photo evidence and strict severity policies.',
-            ),
-            AdminFeatureHighlight(
-              icon: Icons.verified_rounded,
-              title: l10n.adminFeatureAudit,
-              description: 'Instant client-ready report generation with tamper-evident blockchain verification.',
-            ),
-          ]
-        : [
-            AdminFeatureHighlight(
-              icon: Icons.apartment_rounded,
-              title: l10n.adminFeatureHierarchy,
-              description: 'Workshop onboarding, staff accounts, and template assignment.',
-            ),
-            AdminFeatureHighlight(
-              icon: Icons.menu_book_rounded,
-              title: l10n.adminFeatureCatalog,
-              description: 'Centralized catalog of standardized diagnostic checkpoints with bilingual labels.',
-            ),
-            AdminFeatureHighlight(
-              icon: Icons.shield_rounded,
-              title: l10n.adminFeatureLedger,
-              description: 'SOC-2 compliant chronological audit events logging all platform mutations and credential resets.',
-            ),
-          ];
+    final portalBadge = copy.portalBadge;
+    final showcaseEyebrow = copy.showcaseEyebrow;
+    final showcaseHeadline = copy.showcaseHeadline;
+    final showcaseSubtitle = copy.showcaseSubtitle;
+    final features = copy.features;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F3F8),
@@ -144,6 +246,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                 Expanded(
                   flex: 45,
                   child: _buildShowcasePanel(
+                    copy: copy,
                     portalBadge: portalBadge,
                     showcaseEyebrow: showcaseEyebrow,
                     showcaseHeadline: showcaseHeadline,
@@ -156,7 +259,10 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                 ),
 
                 // Right Authentication Form Panel (55% width)
-                Expanded(flex: 55, child: _buildFormCanvas(isDesktop: true)),
+                Expanded(
+                  flex: 55,
+                  child: _buildFormCanvas(copy: copy, isDesktop: true),
+                ),
               ],
             );
           }
@@ -166,12 +272,13 @@ class _AdminSignInViewState extends State<AdminSignInView> {
             child: Column(
               children: [
                 _buildMobileHeader(
+                  copy: copy,
                   portalBadge: portalBadge,
                   icon: isWorkshop
                       ? Icons.precision_manufacturing_rounded
                       : Icons.hub_rounded,
                 ),
-                _buildFormCanvas(isDesktop: false),
+                _buildFormCanvas(copy: copy, isDesktop: false),
               ],
             ),
           );
@@ -180,7 +287,15 @@ class _AdminSignInViewState extends State<AdminSignInView> {
     );
   }
 
+  AdminSignInCopy _legacyCopy(BuildContext context) {
+    final l10n =
+        Localizations.of<AppLocalizations>(context, AppLocalizations) ??
+        lookupAppLocalizations(const Locale('en'));
+    return AdminSignInCopy.legacy(l10n, widget.portalType);
+  }
+
   Widget _buildShowcasePanel({
+    required AdminSignInCopy copy,
     required String portalBadge,
     required String showcaseEyebrow,
     required String showcaseHeadline,
@@ -235,7 +350,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'TrueReport',
+                              copy.appName,
                               style: Fx.text(
                                 18,
                                 22,
@@ -425,7 +540,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                             ),
                             const SizedBox(width: 10),
                             Text(
-                              'GRID V4.2 ACTIVE',
+                              copy.statusLabel,
                               style: Fx.text(
                                 11,
                                 14,
@@ -436,7 +551,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '·  Latency 14ms  ·  TLS 1.3',
+                              copy.statusDetails,
                               style: Fx.text(
                                 11,
                                 14,
@@ -453,7 +568,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'SECURED',
+                              copy.statusSecured,
                               style: Fx.text(
                                 10,
                                 12,
@@ -477,6 +592,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
   }
 
   Widget _buildMobileHeader({
+    required AdminSignInCopy copy,
     required String portalBadge,
     required IconData icon,
   }) {
@@ -508,7 +624,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'TrueReport',
+                copy.appName,
                 style: Fx.text(18, 22, FontWeight.w800, -0.2, color: Fx.white),
               ),
               Text(
@@ -528,11 +644,10 @@ class _AdminSignInViewState extends State<AdminSignInView> {
     );
   }
 
-  Widget _buildFormCanvas({required bool isDesktop}) {
-    final portalTitle = widget.portalType == AdminPortalType.workshop
-        ? 'Workshop Admin Portal'
-        : 'Platform Admin Gateway';
-
+  Widget _buildFormCanvas({
+    required AdminSignInCopy copy,
+    required bool isDesktop,
+  }) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
@@ -594,7 +709,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                     children: [
                       // Card Eyebrow
                       Text(
-                        'AUTHORIZED ACCESS ONLY',
+                        copy.cardEyebrow,
                         style: Fx.text(
                           10,
                           14,
@@ -606,7 +721,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                       const SizedBox(height: 6),
 
                       Text(
-                        'Sign in to Portal',
+                        copy.signInTitle,
                         style: Fx.text(
                           24,
                           30,
@@ -618,7 +733,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                       const SizedBox(height: 6),
 
                       Text(
-                        'Enter your corporate credentials to access $portalTitle.',
+                        copy.signInSubtitle,
                         style: Fx.text(
                           13,
                           18,
@@ -669,7 +784,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                       if (!widget.challenge) ...[
                         // Email Field
                         Text(
-                          'Corporate Email Address',
+                          copy.emailLabel,
                           style: Fx.text(
                             12,
                             16,
@@ -698,7 +813,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                               color: const Color(0xFF1A1B1F),
                             ),
                             decoration: InputDecoration(
-                              hintText: 'name@truereport.local',
+                              hintText: copy.emailHint,
                               hintStyle: Fx.text(
                                 13,
                                 18,
@@ -725,7 +840,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
 
                         // Password Field
                         Text(
-                          'Password',
+                          copy.passwordLabel,
                           style: Fx.text(
                             12,
                             16,
@@ -754,7 +869,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                               color: const Color(0xFF1A1B1F),
                             ),
                             decoration: InputDecoration(
-                              hintText: '••••••••••••',
+                              hintText: copy.passwordHint,
                               hintStyle: Fx.text(
                                 13,
                                 18,
@@ -821,7 +936,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Remember terminal',
+                                  copy.rememberTerminal,
                                   style: Fx.text(
                                     11,
                                     14,
@@ -833,7 +948,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                               ],
                             ),
                             Text(
-                              'Need help?',
+                              copy.needHelp,
                               style: Fx.text(
                                 11,
                                 14,
@@ -860,27 +975,29 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.shield_outlined,
                                     color: Color(0xFF006C49),
                                     size: 20,
                                   ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Two-Factor Authentication Required',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF006C49),
-                                      fontSize: 12,
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      copy.challengeTitle,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF006C49),
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Enter the 6-digit verification code from your security authenticator.',
+                                copy.challengeBody,
                                 style: Fx.text(
                                   11,
                                   16,
@@ -896,7 +1013,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                         const SizedBox(height: 16),
 
                         Text(
-                          'Security Code',
+                          copy.codeLabel,
                           style: Fx.text(
                             12,
                             16,
@@ -926,7 +1043,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                               color: const Color(0xFF1A1B1F),
                             ),
                             decoration: InputDecoration(
-                              hintText: '000000',
+                              hintText: copy.codeHint,
                               hintStyle: Fx.text(
                                 18,
                                 24,
@@ -977,8 +1094,8 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                                 children: [
                                   Text(
                                     widget.challenge
-                                        ? 'Verify Security Code'
-                                        : 'Sign In to Portal',
+                                        ? copy.verifyButton
+                                        : copy.signInButton,
                                     style: Fx.text(
                                       14,
                                       18,
@@ -1012,7 +1129,7 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '256-bit TLS Encrypted · SOC-2 Certified',
+                              copy.footer,
                               style: Fx.text(
                                 11,
                                 14,

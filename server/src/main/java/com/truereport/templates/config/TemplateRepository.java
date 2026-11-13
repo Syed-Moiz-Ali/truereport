@@ -38,12 +38,18 @@ public class TemplateRepository {
     // --------------------------------------------------------------- templates
 
     public List<TemplateSummaryDto> findAll() {
+        return findAll(false);
+    }
+
+    public List<TemplateSummaryDto> findAll(boolean publishedOnly) {
         List<TemplateRow> rows = jdbc.query("""
                 SELECT id, code, name_en, name_ar, description_en, description_ar, status,
                        current_published_version_id
                 FROM platform_templates
+                WHERE (? = FALSE OR (status = 'ACTIVE'
+                       AND current_published_version_id IS NOT NULL))
                 ORDER BY code
-                """, templateRowMapper());
+                """, templateRowMapper(), publishedOnly);
         List<TemplateSummaryDto> result = new ArrayList<>(rows.size());
         for (TemplateRow row : rows) {
             result.add(toSummary(row));

@@ -357,8 +357,11 @@ class PlatformConfigApi {
 
   // --------------------------------------------------------------- templates
 
-  Future<List<GlobalTemplate>> templates() async {
-    final data = await _api.getDynamic(_endpoints.masterTemplates);
+  Future<List<GlobalTemplate>> templates({bool publishedOnly = false}) async {
+    final data = await _api.getDynamic(
+      _endpoints.masterTemplates,
+      query: publishedOnly ? {'publishedOnly': true} : null,
+    );
     return _list(data)
         .map((item) => GlobalTemplate.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
@@ -555,6 +558,61 @@ class PlatformConfigApi {
           (item) => PlatformAuditEvent.fromJson(item as Map<String, dynamic>),
         )
         .toList(growable: false);
+  }
+
+  Future<AuditEventPage> auditEventsPage({
+    String? action,
+    String? entityType,
+    String? actor,
+    String? dateFrom,
+    String? dateTo,
+    String? search,
+    String sort = 'occurredAt,desc',
+    int page = 0,
+    int size = 25,
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.auditEvents,
+      query: {
+        if (action != null && action.isNotEmpty) 'action': action,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+        if (actor != null && actor.isNotEmpty) 'actor': actor,
+        if (dateFrom != null && dateFrom.isNotEmpty) 'dateFrom': dateFrom,
+        if (dateTo != null && dateTo.isNotEmpty) 'dateTo': dateTo,
+        if (search != null && search.isNotEmpty) 'search': search,
+        'sort': sort,
+        'page': page,
+        'size': size,
+      },
+    );
+    return AuditEventPage.fromJson(_map(data));
+  }
+
+  Future<List<int>> exportAuditEvents({
+    required String format,
+    String? action,
+    String? entityType,
+    String? actor,
+    String? dateFrom,
+    String? dateTo,
+    String? search,
+    String sort = 'occurredAt,desc',
+  }) {
+    return _api.getBytes(
+      _endpoints.auditEventsExport,
+      query: {
+        'format': format,
+        if (action != null && action.isNotEmpty) 'action': action,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+        if (actor != null && actor.isNotEmpty) 'actor': actor,
+        if (dateFrom != null && dateFrom.isNotEmpty) 'dateFrom': dateFrom,
+        if (dateTo != null && dateTo.isNotEmpty) 'dateTo': dateTo,
+        if (search != null && search.isNotEmpty) 'search': search,
+        'sort': sort,
+      },
+    );
   }
 
   // --------------------------------------------------------------- overview

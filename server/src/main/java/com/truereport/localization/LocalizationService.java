@@ -108,7 +108,7 @@ public class LocalizationService {
         LanguageDto dto = new LanguageDto(code, request.nameEn().trim(), request.nameAr().trim(),
                 blankTo(request.nativeName(), request.nameEn().trim()), direction,
                 false, false, request.sortOrder() == null ? 99 : request.sortOrder(),
-                "DRAFT");
+                "DRAFT", null);
         languages.insert(dto);
         return languages.find(code).orElse(dto);
     }
@@ -128,7 +128,7 @@ public class LocalizationService {
                 request.active() == null ? existing.active() : request.active(),
                 existing.isDefault(),
                 request.sortOrder() == null ? existing.sortOrder() : request.sortOrder(),
-                existing.status());
+                existing.status(), existing.uiMessagesPath());
         languages.update(updated);
         return languages.find(updated.code()).orElse(updated);
     }
@@ -142,7 +142,7 @@ public class LocalizationService {
         }
         languages.update(new LanguageDto(existing.code(), existing.nameEn(), existing.nameAr(),
                 existing.nativeName(), existing.direction(), active, existing.isDefault(),
-                existing.sortOrder(), existing.status()));
+                existing.sortOrder(), existing.status(), existing.uiMessagesPath()));
         return languages.find(code).orElse(existing);
     }
 
@@ -167,7 +167,7 @@ public class LocalizationService {
             if ("RETIRED".equals(target)) {
                 languages.update(new LanguageDto(existing.code(), existing.nameEn(), existing.nameAr(),
                         existing.nativeName(), existing.direction(), false, existing.isDefault(),
-                        existing.sortOrder(), existing.status()));
+                        existing.sortOrder(), existing.status(), existing.uiMessagesPath()));
             }
             languages.setStatus(existing.code(), target);
         }

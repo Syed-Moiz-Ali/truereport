@@ -2,8 +2,8 @@ package com.truereport.uimessages;
 
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
-import com.truereport.uimessages.PlatformUiMessageCatalog.Language;
-import com.truereport.uimessages.PlatformUiMessageCatalog.Snapshot;
+import com.truereport.uimessages.PlatformUiMessageCatalog.LanguageCatalog;
+import com.truereport.uimessages.UiMessageLanguageGateway.Language;
 import com.truereport.uimessages.api.UiMessageDtos.ManifestLanguageDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageBundleDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageManifestDto;
@@ -32,66 +32,116 @@ public class UiMessageService {
     }
 
     private final PlatformUiMessageCatalog catalog;
+    private final UiMessageLanguageGateway languages;
 
-    public UiMessageService(PlatformUiMessageCatalog catalog) {
+    public UiMessageService(PlatformUiMessageCatalog catalog, UiMessageLanguageGateway languages) {
         this.catalog = catalog;
+        this.languages = languages;
     }
 
     public ManifestResult manifest(List<String> requestedNamespaces) {
-        Snapshot snapshot = catalog.snapshot();
         List<String> namespaces = resolveNamespaces(requestedNamespaces);
-        String fallback = snapshot.defaultLanguage();
+        String fallback = defaultCode();
         List<ManifestLanguageDto> live = new ArrayList<>();
-        for (Language language : snapshot.languages()) {
-            live.add(new ManifestLanguageDto(language.definition().code(),
-                    language.definition().direction(), language.definition().nativeName(),
-                    language.definition().name(), subset(language.versions(), namespaces)));
+        Map<String, LanguageCatalog> loaded = new LinkedHashMap<>();
+        for (Language language : languages.findLive()) {
+            if (language.uiMessagesPath() == null || language.uiMessagesPath().isBlank()) {
+                continue;
+            }
+            LanguageCatalog languageCatalog;
+            try {
+                languageCatalog = catalog.load(language.uiMessagesPath());
+            } catch (RuntimeException broken) {
+                continue;
+            }
+            loaded.put(language.code(), languageCatalog);
+            live.add(new ManifestLanguageDto(language.code(), language.direction(),
+                    language.nativeName(), language.nameEn(),
+                    subset(languageCatalog.versions(), namespaces),
+                    language.uiMessagesPath()));
         }
-        Map<String, Integer> versions = subset(snapshot.defaultCatalog().versions(), namespaces);
+        Map<String, Integer> versions = new LinkedHashMap<>();
+        LanguageCatalog defaultCatalog = loaded.get(fallback);
+        if (defaultCatalog == null) {
+            defaultCatalog = loaded.values().stream().findFirst().orElse(null);
+        }
+        for (String namespace : namespaces) {
+            versions.put(namespace, defaultCatalog == null
+                    ? 0 : defaultCatalog.versions().getOrDefault(namespace, 0));
+        }
         UiMessageManifestDto manifest = new UiMessageManifestDto(fallback, versions, live);
-        return new ManifestResult(manifest, etag(snapshot.etag() + "|" + String.join(",", namespaces)));
+        StringBuilder etagSource = new StringBuilder("manifest|").append(fallback)
+                .append('|').append(String.join(",", namespaces));
+        live.forEach(language -> etagSource.append('|').append(language.code())
+                .append(':').append(language.path()).append(':').append(language.versions()));
+        return new ManifestResult(manifest, etag(etagSource.toString()));
     }
 
     public BundleResult bundle(String language, List<String> requestedNamespaces) {
         if (language == null || language.isBlank()) {
             throw validation("language", "LANGUAGE_REQUIRED", "error.validation.failed");
         }
-        Snapshot snapshot = catalog.snapshot();
-        Language target = snapshot.language(language.trim());
-        if (target == null) {
+        Language targetLanguage = languages.find(language)
+                .orElseThrow(ApiException::notFound);
+        if (!targetLanguage.active() || !"LIVE".equals(targetLanguage.status())) {
+            throw ApiException.notFound();
+        }
+        if (targetLanguage.uiMessagesPath() == null
+                || targetLanguage.uiMessagesPath().isBlank()) {
+            throw ApiException.notFound();
+        }
+        LanguageCatalog target;
+        try {
+            target = catalog.load(targetLanguage.uiMessagesPath());
+        } catch (RuntimeException broken) {
             throw ApiException.notFound();
         }
         List<String> namespaces = resolveNamespaces(requestedNamespaces);
-        Language fallback = snapshot.defaultCatalog();
-        String targetCode = target.definition().code();
-        String fallbackCode = snapshot.defaultLanguage();
+        String fallback = defaultCode();
+        LanguageCatalog fallbackCatalog = null;
+        if (!targetLanguage.code().equalsIgnoreCase(fallback)) {
+            Language fallbackLanguage = languages.find(fallback).orElse(null);
+            if (fallbackLanguage != null && fallbackLanguage.uiMessagesPath() != null
+                    && !fallbackLanguage.uiMessagesPath().isBlank()) {
+                try {
+                    fallbackCatalog = catalog.load(fallbackLanguage.uiMessagesPath());
+                } catch (RuntimeException broken) {
+                    fallbackCatalog = null;
+                }
+            }
+        }
         Map<String, Integer> versions = new LinkedHashMap<>();
         Map<String, Map<String, String>> catalogs = new LinkedHashMap<>();
         Map<String, List<String>> missingKeys = new LinkedHashMap<>();
         for (String namespace : namespaces) {
             versions.put(namespace, target.versions().getOrDefault(namespace, 0));
             Map<String, String> primary = target.catalogs().getOrDefault(namespace, Map.of());
-            Map<String, String> fallbackCatalog = targetCode.equals(fallbackCode)
+            Map<String, String> fallbackValues = fallbackCatalog == null
                     ? Map.of()
-                    : fallback.catalogs().getOrDefault(namespace, Map.of());
+                    : fallbackCatalog.catalogs().getOrDefault(namespace, Map.of());
             TreeSet<String> keys = new TreeSet<>(primary.keySet());
-            keys.addAll(fallbackCatalog.keySet());
-            Map<String, String> catalog = new LinkedHashMap<>();
+            keys.addAll(fallbackValues.keySet());
+            Map<String, String> catalogValues = new LinkedHashMap<>();
             List<String> missing = new ArrayList<>();
             for (String key : keys) {
                 if (primary.containsKey(key)) {
-                    catalog.put(key, primary.get(key));
+                    catalogValues.put(key, primary.get(key));
                 } else {
-                    catalog.put(key, fallbackCatalog.get(key));
+                    catalogValues.put(key, fallbackValues.get(key));
                     missing.add(key);
                 }
             }
-            catalogs.put(namespace, catalog);
+            catalogs.put(namespace, catalogValues);
             missingKeys.put(namespace, missing);
         }
-        UiMessageBundleDto dto = new UiMessageBundleDto(targetCode, fallbackCode, versions,
-                catalogs, missingKeys);
+        UiMessageBundleDto dto = new UiMessageBundleDto(targetLanguage.code(), fallback,
+                versions, catalogs, missingKeys);
         return new BundleResult(dto, etag(target.etag() + "|" + String.join(",", namespaces)));
+    }
+
+    private String defaultCode() {
+        String fallback = languages.defaultCode();
+        return fallback == null ? "en" : fallback;
     }
 
     private Map<String, Integer> subset(Map<String, Integer> versions, List<String> namespaces) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
@@ -111,8 +111,8 @@ Widget _app({Locale locale = const Locale('en')}) {
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
       home: const TemplateBuilderScreen(templateId: 'template-1'),
     ),
   );

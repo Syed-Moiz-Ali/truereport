@@ -63,7 +63,11 @@ public final class ReportMessages {
             "reportedFaults", "inspectionVideos", "imperfections", "underbodyChassis",
             "videoCaptionNote", "referenceNo", "inspectedOn", "clientName", "inspectionCenter",
             "shareReport", "electricalReport", "batteryReport", "beforeTestDriveReport",
-            "afterTestDriveReport", "tireReport", "downloadAllDocuments");
+            "afterTestDriveReport", "tireReport", "downloadAllDocuments",
+            "customer", "vehicleDetails", "overallPassRate", "customerInspection",
+            "categoryOverview", "checklistContinued", "tyresBrakesBody",
+            "photoEvidence", "verificationDisclaimer", "reportNumber",
+            "tamperHash", "tamperExplanation", "englishSummary", "certifiedPlatform");
 
     private ReportMessages() {
     }

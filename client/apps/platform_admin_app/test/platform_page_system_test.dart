@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/components/platform_buttons.dart';
 import 'package:platform_admin_app/src/components/platform_chips.dart';
 import 'package:platform_admin_app/src/components/platform_dialogs.dart';
@@ -21,8 +21,8 @@ Widget _app(Widget child, {Locale locale = const Locale('en')}) {
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
       home: Scaffold(body: SingleChildScrollView(child: child)),
     ),
   );

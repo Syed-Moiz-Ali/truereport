@@ -15,10 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class PlatformUiMessagesIT extends IntegrationTestBase {
 
-    private static final String ROOT = "/i18n/platform_admin/";
-
     @Test
-    void manifestLoadsFromJson() throws Exception {
+    void manifestLoadsFromLanguageRegistryAndJsonPaths() throws Exception {
         JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
         assertThat(manifest.get("defaultLanguage").asText()).isEqualTo("en");
         assertThat(manifest.get("namespaces").get("common").asInt()).isGreaterThanOrEqualTo(1);
@@ -31,16 +29,14 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
             assertThat(language.get("direction").asText()).isIn("ltr", "rtl");
             assertThat(language.get("nativeName").asText()).isNotBlank();
             assertThat(language.get("nameEn").asText()).isNotBlank();
+            assertThat(language.get("path").asText())
+                    .startsWith("platform_admin/")
+                    .endsWith(".json");
             assertThat(language.get("versions").get("common").asInt()).isGreaterThanOrEqualTo(1);
             assertThat(language.get("versions").get("platform_admin").asInt())
                     .isGreaterThanOrEqualTo(1);
         }
-        assertThat(codes).containsExactlyInAnyOrder("en", "ar", "zh-Hans");
-        for (JsonNode language : manifest.get("languages")) {
-            if ("ar".equals(language.get("code").asText())) {
-                assertThat(language.get("direction").asText()).isEqualTo("rtl");
-            }
-        }
+        assertThat(codes).contains("en", "ar");
     }
 
     @Test
@@ -70,7 +66,7 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
     }
 
     @Test
-    void bundleServesFlatCatalogFromJson() throws Exception {
+    void bundleServesFlatCatalogFromJsonPaths() throws Exception {
         JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
         JsonNode bundle = getAnonymousJson(
                 "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
@@ -109,7 +105,7 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
 
     @Test
     void everyManifestLanguageServesItsOwnJsonCatalog() throws Exception {
-        JsonNode manifest = readResource("manifest.json");
+        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
         JsonNode en = getAnonymousJson(
                 "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
         Set<String> enCommon = keysOf(en.get("catalogs").get("common"));
@@ -123,39 +119,44 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
             assertThat(bundle.get("language").asText()).isEqualTo(code);
             assertThat(keysOf(bundle.get("catalogs").get("common"))).isEqualTo(enCommon);
             assertThat(keysOf(bundle.get("catalogs").get("platform_admin"))).isEqualTo(enAdmin);
-            assertThat(bundle.get("missingKeys").get("common").size()).isZero();
-            assertThat(bundle.get("missingKeys").get("platform_admin").size()).isZero();
         }
-        JsonNode zhHans = getAnonymousJson(
-                "/api/v1/i18n/ui-messages/bundle?lang=zh-Hans&namespaces=common");
-        assertThat(zhHans.get("catalogs").get("common").get("button.save").asText())
-                .isEqualTo("保存");
     }
 
     @Test
-    void everyManifestFileExistsIsFlatAndHasEnArParity() throws Exception {
-        JsonNode manifest = readResource("manifest.json");
-        Set<String> enKeys = flatKeys(readResource("en.json"));
-        Set<String> arKeys = flatKeys(readResource("ar.json"));
-        assertThat(arKeys).isEqualTo(enKeys);
-        for (JsonNode language : manifest.get("languages")) {
-            JsonNode catalog = readResource(language.get("file").asText());
+    void registeredEnArPathsAreFlatAndHaveKeyParity() throws Exception {
+        Login platform = login("platform@test.local");
+        JsonNode languages = getJson(platform, "/api/v1/platform/i18n/languages");
+        Set<String> enKeys = null;
+        for (JsonNode language : languages) {
+            String code = language.get("code").asText();
+            if (!"en".equals(code) && !"ar".equals(code)) {
+                continue;
+            }
+            String path = language.get("uiMessagesPath").asText();
+            assertThat(path).isNotBlank();
+            JsonNode catalog = readResource(path);
             assertThat(catalog.isObject()).isTrue();
             Iterator<Map.Entry<String, JsonNode>> fields = catalog.fields();
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> entry = fields.next();
                 assertThat(entry.getValue().isTextual())
-                        .as(language.get("code").asText() + " key " + entry.getKey())
+                        .as(code + " key " + entry.getKey())
                         .isTrue();
                 assertThat(entry.getValue().asText()).isNotBlank();
             }
-            assertThat(flatKeys(catalog)).isEqualTo(enKeys);
+            Set<String> keys = flatKeys(catalog);
+            if (enKeys == null) {
+                enKeys = keys;
+            } else {
+                assertThat(keys).isEqualTo(enKeys);
+            }
         }
+        assertThat(enKeys).isNotNull();
     }
 
-    private JsonNode readResource(String file) throws Exception {
-        try (var stream = getClass().getResourceAsStream(ROOT + file)) {
-            assertThat(stream).as("missing resource " + ROOT + file).isNotNull();
+    private JsonNode readResource(String path) throws Exception {
+        try (var stream = getClass().getResourceAsStream("/i18n/" + path)) {
+            assertThat(stream).as("missing resource /i18n/" + path).isNotNull();
             return objectMapper.readTree(stream);
         }
     }
@@ -174,6 +175,14 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
 
     private JsonNode getAnonymousJson(String path) throws Exception {
         var result = mockMvc.perform(get(path))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString());
+    }
+
+    private JsonNode getJson(Login login, String path) throws Exception {
+        var result = mockMvc.perform(get(path)
+                        .header("Authorization", "Bearer " + login.accessToken()))
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString());

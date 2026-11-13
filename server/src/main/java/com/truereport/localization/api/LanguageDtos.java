@@ -17,7 +17,8 @@ public final class LanguageDtos {
             boolean active,
             boolean isDefault,
             int sortOrder,
-            String status
+            String status,
+            String uiMessagesPath
     ) {
         public String name(LocaleView view) {
             return view == LocaleView.AR ? nameAr : nameEn;

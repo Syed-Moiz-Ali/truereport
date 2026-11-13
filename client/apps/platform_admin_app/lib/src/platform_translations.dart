@@ -298,6 +298,172 @@ class TranslationCoverage {
 
 /// Typed client for the Platform Admin translation queue endpoints.
 ///
+@immutable
+class UiMessageGeneration {
+  const UiMessageGeneration({
+    required this.language,
+    required this.jobId,
+    required this.jobStatus,
+    required this.status,
+    required this.path,
+    required this.keysTranslated,
+    required this.failedKeys,
+    required this.totalKeys,
+    required this.completedKeys,
+    required this.error,
+  });
+
+  static const String running = 'RUNNING';
+  static const String completed = 'COMPLETED';
+  static const String failed = 'FAILED';
+  static const String skipped = 'SKIPPED';
+
+  final String language;
+  final String jobId;
+  final String jobStatus;
+  final String status;
+  final String path;
+  final int keysTranslated;
+  final List<String> failedKeys;
+  final int totalKeys;
+  final int completedKeys;
+  final String error;
+
+  bool get isRunning => jobStatus == running;
+  bool get isCompleted => jobStatus == completed || jobStatus == skipped;
+  bool get isFailed => jobStatus == failed;
+  bool get isFinished => !isRunning;
+
+  double get progress {
+    if (totalKeys <= 0) return isFinished ? 1 : 0;
+    return (completedKeys / totalKeys).clamp(0, 1).toDouble();
+  }
+
+  factory UiMessageGeneration.fromJson(Map<String, dynamic> json) =>
+      UiMessageGeneration(
+        language: _str(json['language']),
+        jobId: _str(json['jobId']),
+        jobStatus: _str(json['jobStatus']),
+        status: _str(json['status']),
+        path: _str(json['path']),
+        keysTranslated: _int(json['keysTranslated']),
+        failedKeys: _list(json['failedKeys'])
+            .map((item) => item.toString())
+            .toList(growable: false),
+        totalKeys: _int(json['totalKeys']),
+        completedKeys: _int(json['completedKeys']),
+        error: _str(json['error']),
+      );
+}
+
+@immutable
+class UiMessageReviewEntry {
+  const UiMessageReviewEntry({
+    required this.key,
+    required this.sourceText,
+    required this.targetText,
+    required this.changed,
+    required this.missing,
+    required this.untranslated,
+    required this.placeholderMismatch,
+  });
+
+  final String key;
+  final String sourceText;
+  final String targetText;
+  final bool changed;
+  final bool missing;
+  final bool untranslated;
+  final bool placeholderMismatch;
+
+  UiMessageReviewEntry copyWith({
+    String? targetText,
+    bool? changed,
+    bool? missing,
+    bool? untranslated,
+    bool? placeholderMismatch,
+  }) => UiMessageReviewEntry(
+    key: key,
+    sourceText: sourceText,
+    targetText: targetText ?? this.targetText,
+    changed: changed ?? this.changed,
+    missing: missing ?? this.missing,
+    untranslated: untranslated ?? this.untranslated,
+    placeholderMismatch: placeholderMismatch ?? this.placeholderMismatch,
+  );
+
+  factory UiMessageReviewEntry.fromJson(Map<String, dynamic> json) =>
+      UiMessageReviewEntry(
+        key: _str(json['key']),
+        sourceText: _str(json['sourceText']),
+        targetText: _str(json['targetText']),
+        changed: json['changed'] as bool? ?? false,
+        missing: json['missing'] as bool? ?? false,
+        untranslated: json['untranslated'] as bool? ?? false,
+        placeholderMismatch: json['placeholderMismatch'] as bool? ?? false,
+      );
+}
+
+@immutable
+class UiMessageReview {
+  const UiMessageReview({
+    required this.language,
+    required this.status,
+    required this.path,
+    required this.totalKeys,
+    required this.changedKeys,
+    required this.missingKeys,
+    required this.entries,
+  });
+
+  final String language;
+  final String status;
+  final String path;
+  final int totalKeys;
+  final int changedKeys;
+  final int missingKeys;
+  final List<UiMessageReviewEntry> entries;
+
+  factory UiMessageReview.fromJson(Map<String, dynamic> json) =>
+      UiMessageReview(
+        language: _str(json['language']),
+        status: _str(json['status']),
+        path: _str(json['path']),
+        totalKeys: _int(json['totalKeys']),
+        changedKeys: _int(json['changedKeys']),
+        missingKeys: _int(json['missingKeys']),
+        entries: _list(json['entries'])
+            .map((e) => UiMessageReviewEntry.fromJson(_map(e)))
+            .toList(growable: false),
+      );
+}
+
+@immutable
+class UiMessageApproval {
+  const UiMessageApproval({
+    required this.language,
+    required this.status,
+    required this.path,
+    required this.hash,
+    required this.totalKeys,
+  });
+
+  final String language;
+  final String status;
+  final String path;
+  final String hash;
+  final int totalKeys;
+
+  factory UiMessageApproval.fromJson(Map<String, dynamic> json) =>
+      UiMessageApproval(
+        language: _str(json['language']),
+        status: _str(json['status']),
+        path: _str(json['path']),
+        hash: _str(json['hash']),
+        totalKeys: _int(json['totalKeys']),
+      );
+}
+
 /// Subclassable (non-final) with this exact constructor so widget tests can
 /// override [translationApiProvider] with an in-memory fake.
 class TranslationApi {
@@ -355,6 +521,70 @@ class TranslationApi {
       body: {'status': status},
     );
     return PlatformLanguage.fromJson(_map(data));
+  }
+
+  Future<UiMessageGeneration> generateUiMessages({
+    required String code,
+    bool force = false,
+    String reviewStatus = 'TRANSLATING',
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageUiMessagesGenerate(code),
+      body: {'force': force, 'reviewStatus': reviewStatus},
+    );
+    return UiMessageGeneration.fromJson(_map(data));
+  }
+
+  Future<UiMessageGeneration> fetchUiMessageGeneration(String code) async {
+    final data = await _api.getDynamic(
+      _endpoints.platformLanguageUiMessagesGeneration(code),
+    );
+    return UiMessageGeneration.fromJson(_map(data));
+  }
+
+  Future<UiMessageGeneration> cancelUiMessageGeneration(String code) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageUiMessagesGenerationCancel(code),
+    );
+    return UiMessageGeneration.fromJson(_map(data));
+  }
+
+  Future<UiMessageGeneration> retryFailedUiMessageGeneration(
+    String code,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageUiMessagesGenerationRetryFailed(code),
+    );
+    return UiMessageGeneration.fromJson(_map(data));
+  }
+
+  Future<UiMessageReview> fetchUiMessageReview(String code) async {
+    final data = await _api.getDynamic(
+      _endpoints.platformLanguageUiMessagesReview(code),
+    );
+    return UiMessageReview.fromJson(_map(data));
+  }
+
+  Future<UiMessageReview> saveUiMessageReview(
+    String code,
+    Map<String, String> translations,
+  ) async {
+    final data = await _api.putDynamic(
+      _endpoints.platformLanguageUiMessagesReview(code),
+      body: {'translations': translations},
+    );
+    return UiMessageReview.fromJson(_map(data));
+  }
+
+  Future<UiMessageApproval> approveUiMessageReview(String code) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageUiMessagesApprove(code),
+    );
+    return UiMessageApproval.fromJson(_map(data));
+  }
+
+  Future<List<int>> downloadUiMessageJson(String code) {
+    return _api.getBytes(_endpoints.platformLanguageUiMessagesDownload(code));
   }
 }
 

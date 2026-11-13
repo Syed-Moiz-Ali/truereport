@@ -264,6 +264,24 @@ spring:
 - Public page/PDF uses `?lang` first.
 - API responses use `Accept-Language`.
 
+### 6.2.1 Google Translate provider overrides
+
+`truereport.i18n.translation.target-languages` is an **optional override
+map**, not an allowlist of supported app languages.
+
+- Any language code from the language registry is accepted.
+- Resolution order: exact override, case-insensitive override, canonicalized
+  provider code, then the original code.
+- Canonicalization lowercases the language, title-cases the script, and
+  uppercases the region (`pt-br` -> `pt-BR`, `zh-hans` -> `zh-Hans`).
+- Add an override only when Google expects a different code. Examples:
+  `zh-Hans: zh-CN`, `zh-Hant: zh-TW`, and `pt-BR: pt` only if required.
+- A missing override never rejects a language.
+- If Google rejects an unsupported target, generation fails clearly and the
+  language stays non-LIVE. The provider may retry once with the base language
+  (`pt-BR` -> `pt`, `zh-Hans` -> `zh`, `es-MX` -> `es`) only for an
+  unsupported-target error.
+
 ### 6.3 Master content
 
 - EN + AR required before publish.

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/audit/audit_log_screen.dart';
 import 'package:platform_admin_app/src/features/documents/document_types_screen.dart';
 import 'package:platform_admin_app/src/features/governance/config_health_screen.dart';
@@ -176,6 +176,10 @@ List<Override> _overrides(Locale locale) => [
   configHealthProvider.overrideWith((ref) async => _configHealth),
   configReleasesProvider.overrideWith((ref) async => const <ConfigRelease>[]),
   auditEventsProvider.overrideWith((ref) async => const [_auditEvent]),
+  auditEventsPageProvider.overrideWith(
+    (ref, query) async =>
+        const AuditEventPage(items: [_auditEvent], total: 1, page: 0, size: 25),
+  ),
 ];
 
 Widget _app(Widget screen, Locale locale, Size size) {
@@ -183,8 +187,12 @@ Widget _app(Widget screen, Locale locale, Size size) {
     overrides: _overrides(locale),
     child: MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: MediaQuery(
         data: MediaQueryData(size: size),
         child: screen,

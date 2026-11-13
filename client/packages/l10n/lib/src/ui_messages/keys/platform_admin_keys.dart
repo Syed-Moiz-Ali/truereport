@@ -10,6 +10,12 @@ abstract final class PlatformAdminKeys {
   static const badgeSafetyCritical = UiMessageKey.platformAdmin(
     'badge.safetyCritical',
   );
+  static const buttonAuditExportCsv = UiMessageKey.platformAdmin(
+    'button.audit.exportCsv',
+  );
+  static const buttonAuditExportJson = UiMessageKey.platformAdmin(
+    'button.audit.exportJson',
+  );
   static const buttonCategoryAdd = UiMessageKey.platformAdmin(
     'button.category.add',
   );
@@ -32,11 +38,23 @@ abstract final class PlatformAdminKeys {
   static const buttonLanguageAdd = UiMessageKey.platformAdmin(
     'button.language.add',
   );
+  static const buttonLanguageCancelGeneration = UiMessageKey.platformAdmin(
+    'button.language.cancelGeneration',
+  );
   static const buttonLanguageCompleteTranslations = UiMessageKey.platformAdmin(
     'button.language.completeTranslations',
   );
+  static const buttonLanguageGenerate = UiMessageKey.platformAdmin(
+    'button.language.generate',
+  );
   static const buttonLanguagePublish = UiMessageKey.platformAdmin(
     'button.language.publish',
+  );
+  static const buttonLanguageRetryFailed = UiMessageKey.platformAdmin(
+    'button.language.retryFailed',
+  );
+  static const buttonLanguageReview = UiMessageKey.platformAdmin(
+    'button.language.review',
   );
   static const buttonOptionSetAdd = UiMessageKey.platformAdmin(
     'button.optionSet.add',
@@ -87,6 +105,15 @@ abstract final class PlatformAdminKeys {
   );
   static const buttonTemplateReject = UiMessageKey.platformAdmin(
     'button.template.reject',
+  );
+  static const buttonUiMessagesReviewApprove = UiMessageKey.platformAdmin(
+    'button.uiMessagesReview.approve',
+  );
+  static const buttonUiMessagesReviewDownload = UiMessageKey.platformAdmin(
+    'button.uiMessagesReview.download',
+  );
+  static const buttonUiMessagesReviewSave = UiMessageKey.platformAdmin(
+    'button.uiMessagesReview.save',
   );
   static const buttonViewAll = UiMessageKey.platformAdmin('button.viewAll');
   static const buttonWorkshopAddStaff = UiMessageKey.platformAdmin(
@@ -149,6 +176,15 @@ abstract final class PlatformAdminKeys {
   );
   static const emptyTemplateCategory = UiMessageKey.platformAdmin(
     'empty.template.category',
+  );
+  static const emptyUiMessagesReviewTitle = UiMessageKey.platformAdmin(
+    'empty.uiMessagesReview.title',
+  );
+  static const emptyWorkshopTemplatesBody = UiMessageKey.platformAdmin(
+    'empty.workshopTemplates.body',
+  );
+  static const emptyWorkshopTemplatesTitle = UiMessageKey.platformAdmin(
+    'empty.workshopTemplates.title',
   );
   static const emptyWorkshopsBody = UiMessageKey.platformAdmin(
     'empty.workshops.body',
@@ -251,6 +287,9 @@ abstract final class PlatformAdminKeys {
   static const fieldLanguageNativeName = UiMessageKey.platformAdmin(
     'field.language.nativeName',
   );
+  static const fieldLanguageUiMessagesPath = UiMessageKey.platformAdmin(
+    'field.language.uiMessagesPath',
+  );
   static const fieldMeasureDirection = UiMessageKey.platformAdmin(
     'field.measure.direction',
   );
@@ -308,6 +347,30 @@ abstract final class PlatformAdminKeys {
   static const filterAllCategories = UiMessageKey.platformAdmin(
     'filter.allCategories',
   );
+  static const filterAuditAction = UiMessageKey.platformAdmin(
+    'filter.audit.action',
+  );
+  static const filterAuditActor = UiMessageKey.platformAdmin(
+    'filter.audit.actor',
+  );
+  static const filterAuditDateFrom = UiMessageKey.platformAdmin(
+    'filter.audit.dateFrom',
+  );
+  static const filterAuditDateTo = UiMessageKey.platformAdmin(
+    'filter.audit.dateTo',
+  );
+  static const filterAuditEntityType = UiMessageKey.platformAdmin(
+    'filter.audit.entityType',
+  );
+  static const filterAuditNewestFirst = UiMessageKey.platformAdmin(
+    'filter.audit.newestFirst',
+  );
+  static const filterAuditOldestFirst = UiMessageKey.platformAdmin(
+    'filter.audit.oldestFirst',
+  );
+  static const filterAuditSearch = UiMessageKey.platformAdmin(
+    'filter.audit.search',
+  );
   static const filterCategory = UiMessageKey.platformAdmin('filter.category');
   static const filterCategorySearch = UiMessageKey.platformAdmin(
     'filter.category.search',
@@ -329,6 +392,21 @@ abstract final class PlatformAdminKeys {
   );
   static const filterTemplateSearchItems = UiMessageKey.platformAdmin(
     'filter.template.searchItems',
+  );
+  static const filterUiMessagesReviewAll = UiMessageKey.platformAdmin(
+    'filter.uiMessagesReview.all',
+  );
+  static const filterUiMessagesReviewChanged = UiMessageKey.platformAdmin(
+    'filter.uiMessagesReview.changed',
+  );
+  static const filterUiMessagesReviewMissing = UiMessageKey.platformAdmin(
+    'filter.uiMessagesReview.missing',
+  );
+  static const filterUiMessagesReviewSearch = UiMessageKey.platformAdmin(
+    'filter.uiMessagesReview.search',
+  );
+  static const filterUiMessagesReviewUntranslated = UiMessageKey.platformAdmin(
+    'filter.uiMessagesReview.untranslated',
   );
   static const filterWorkshopsSearch = UiMessageKey.platformAdmin(
     'filter.workshops.search',
@@ -468,6 +546,88 @@ abstract final class PlatformAdminKeys {
     'label.resultCode.noIssueObserved',
   );
   static const labelUiMessages = UiMessageKey.platformAdmin('label.uiMessages');
+  static const loginAppName = UiMessageKey.platformAdmin('login.appName');
+  static const loginAuthorizedEyebrow = UiMessageKey.platformAdmin(
+    'login.authorizedEyebrow',
+  );
+  static const loginChallengeBody = UiMessageKey.platformAdmin(
+    'login.challengeBody',
+  );
+  static const loginChallengeTitle = UiMessageKey.platformAdmin(
+    'login.challengeTitle',
+  );
+  static const loginCodeHint = UiMessageKey.platformAdmin('login.codeHint');
+  static const loginCodeLabel = UiMessageKey.platformAdmin('login.codeLabel');
+  static const loginEmailHint = UiMessageKey.platformAdmin('login.emailHint');
+  static const loginEmailLabel = UiMessageKey.platformAdmin('login.emailLabel');
+  static const loginFeatureChecklistDesc = UiMessageKey.platformAdmin(
+    'login.featureChecklistDesc',
+  );
+  static const loginFeatureChecklistTitle = UiMessageKey.platformAdmin(
+    'login.featureChecklistTitle',
+  );
+  static const loginFeatureLedgerDesc = UiMessageKey.platformAdmin(
+    'login.featureLedgerDesc',
+  );
+  static const loginFeatureLedgerTitle = UiMessageKey.platformAdmin(
+    'login.featureLedgerTitle',
+  );
+  static const loginFeatureWorkshopsDesc = UiMessageKey.platformAdmin(
+    'login.featureWorkshopsDesc',
+  );
+  static const loginFeatureWorkshopsTitle = UiMessageKey.platformAdmin(
+    'login.featureWorkshopsTitle',
+  );
+  static const loginFooter = UiMessageKey.platformAdmin('login.footer');
+  static const loginLanguageLabel = UiMessageKey.platformAdmin(
+    'login.languageLabel',
+  );
+  static const loginNeedHelp = UiMessageKey.platformAdmin('login.needHelp');
+  static const loginPasswordHint = UiMessageKey.platformAdmin(
+    'login.passwordHint',
+  );
+  static const loginPasswordLabel = UiMessageKey.platformAdmin(
+    'login.passwordLabel',
+  );
+  static const loginPortalBadge = UiMessageKey.platformAdmin(
+    'login.portalBadge',
+  );
+  static const loginPortalTitle = UiMessageKey.platformAdmin(
+    'login.portalTitle',
+  );
+  static const loginRememberTerminal = UiMessageKey.platformAdmin(
+    'login.rememberTerminal',
+  );
+  static const loginShowcaseEyebrow = UiMessageKey.platformAdmin(
+    'login.showcaseEyebrow',
+  );
+  static const loginShowcaseHeadline = UiMessageKey.platformAdmin(
+    'login.showcaseHeadline',
+  );
+  static const loginShowcaseSubtitle = UiMessageKey.platformAdmin(
+    'login.showcaseSubtitle',
+  );
+  static const loginSignInButton = UiMessageKey.platformAdmin(
+    'login.signInButton',
+  );
+  static const loginSignInSubtitle = UiMessageKey.platformAdmin(
+    'login.signInSubtitle',
+  );
+  static const loginSignInTitle = UiMessageKey.platformAdmin(
+    'login.signInTitle',
+  );
+  static const loginStatusDetails = UiMessageKey.platformAdmin(
+    'login.statusDetails',
+  );
+  static const loginStatusLabel = UiMessageKey.platformAdmin(
+    'login.statusLabel',
+  );
+  static const loginStatusSecured = UiMessageKey.platformAdmin(
+    'login.statusSecured',
+  );
+  static const loginVerifyButton = UiMessageKey.platformAdmin(
+    'login.verifyButton',
+  );
   static const navChecklist = UiMessageKey.platformAdmin('nav.checklist');
   static const navDashboard = UiMessageKey.platformAdmin('nav.dashboard');
   static const navReports = UiMessageKey.platformAdmin('nav.reports');
@@ -566,6 +726,15 @@ abstract final class PlatformAdminKeys {
   static const pageTranslationQueueTitle = UiMessageKey.platformAdmin(
     'page.translationQueue.title',
   );
+  static const pageUiMessagesReviewSubtitle = UiMessageKey.platformAdmin(
+    'page.uiMessagesReview.subtitle',
+  );
+  static const pageUiMessagesReviewTitle = UiMessageKey.platformAdmin(
+    'page.uiMessagesReview.title',
+  );
+  static const pageWorkshopTemplatesHelper = UiMessageKey.platformAdmin(
+    'page.workshopTemplates.helper',
+  );
   static const pageWorkshopsAdd = UiMessageKey.platformAdmin(
     'page.workshops.add',
   );
@@ -582,6 +751,9 @@ abstract final class PlatformAdminKeys {
     'page.workshops.subtitle',
   );
   static const paginationOf = UiMessageKey.platformAdmin('pagination.of');
+  static const paginationPageInfo = UiMessageKey.platformAdmin(
+    'pagination.pageInfo',
+  );
   static const queueApproved = UiMessageKey.platformAdmin('queue.approved');
   static const queueDraft = UiMessageKey.platformAdmin('queue.draft');
   static const queueMissing = UiMessageKey.platformAdmin('queue.missing');
@@ -641,114 +813,8 @@ abstract final class PlatformAdminKeys {
   static const sectionWorkshopTechnicians = UiMessageKey.platformAdmin(
     'section.workshop.technicians',
   );
-  static const settingsActionBarNote = UiMessageKey.platformAdmin(
-    'settings.actionBar.note',
-  );
-  static const settingsAuditTokenEncryptionLabel = UiMessageKey.platformAdmin(
-    'settings.auditTokenEncryption.label',
-  );
-  static const settingsEnableArabicRtl = UiMessageKey.platformAdmin(
-    'settings.enableArabicRtl',
-  );
-  static const settingsEnableArabicRtlDesc = UiMessageKey.platformAdmin(
-    'settings.enableArabicRtl.desc',
-  );
-  static const settingsEnableFrench = UiMessageKey.platformAdmin(
-    'settings.enableFrench',
-  );
-  static const settingsEnableFrenchDesc = UiMessageKey.platformAdmin(
-    'settings.enableFrench.desc',
-  );
-  static const settingsEnableSpanish = UiMessageKey.platformAdmin(
-    'settings.enableSpanish',
-  );
-  static const settingsEnableSpanishDesc = UiMessageKey.platformAdmin(
-    'settings.enableSpanish.desc',
-  );
-  static const settingsEnforce2fa = UiMessageKey.platformAdmin(
-    'settings.enforce2fa',
-  );
-  static const settingsEnforce2faDesc = UiMessageKey.platformAdmin(
-    'settings.enforce2fa.desc',
-  );
-  static const settingsFifteenMinutes = UiMessageKey.platformAdmin(
-    'settings.fifteenMinutes',
-  );
-  static const settingsFourHours = UiMessageKey.platformAdmin(
-    'settings.fourHours',
-  );
-  static const settingsIpWhitelist = UiMessageKey.platformAdmin(
-    'settings.ipWhitelist',
-  );
-  static const settingsIpWhitelistDesc = UiMessageKey.platformAdmin(
-    'settings.ipWhitelist.desc',
-  );
-  static const settingsLocalizationCount = UiMessageKey.platformAdmin(
-    'settings.localization.count',
-  );
-  static const settingsLocalizationDesc = UiMessageKey.platformAdmin(
-    'settings.localization.desc',
-  );
-  static const settingsLocalizationFootnote = UiMessageKey.platformAdmin(
-    'settings.localization.footnote',
-  );
-  static const settingsLocalizationTitle = UiMessageKey.platformAdmin(
-    'settings.localization.title',
-  );
-  static const settingsOneHour = UiMessageKey.platformAdmin('settings.oneHour');
-  static const settingsPdfBadge = UiMessageKey.platformAdmin(
-    'settings.pdf.badge',
-  );
-  static const settingsPdfDesc = UiMessageKey.platformAdmin(
-    'settings.pdf.desc',
-  );
-  static const settingsPdfTitle = UiMessageKey.platformAdmin(
-    'settings.pdf.title',
-  );
-  static const settingsPreferencesReset = UiMessageKey.platformAdmin(
-    'settings.preferences.reset',
-  );
-  static const settingsPreferencesSave = UiMessageKey.platformAdmin(
-    'settings.preferences.save',
-  );
-  static const settingsPreferencesSaved = UiMessageKey.platformAdmin(
-    'settings.preferences.saved',
-  );
   static const settingsScopeBadge = UiMessageKey.platformAdmin(
     'settings.scopeBadge',
-  );
-  static const settingsSecurityDesc = UiMessageKey.platformAdmin(
-    'settings.security.desc',
-  );
-  static const settingsSecurityTitle = UiMessageKey.platformAdmin(
-    'settings.security.title',
-  );
-  static const settingsSessionTimeoutDesc = UiMessageKey.platformAdmin(
-    'settings.sessionTimeout.desc',
-  );
-  static const settingsSessionTimeoutLabel = UiMessageKey.platformAdmin(
-    'settings.sessionTimeout.label',
-  );
-  static const settingsTelematicsBadge = UiMessageKey.platformAdmin(
-    'settings.telematics.badge',
-  );
-  static const settingsTelematicsDesc = UiMessageKey.platformAdmin(
-    'settings.telematics.desc',
-  );
-  static const settingsTelematicsTitle = UiMessageKey.platformAdmin(
-    'settings.telematics.title',
-  );
-  static const settingsThirtyMinutes = UiMessageKey.platformAdmin(
-    'settings.thirtyMinutes',
-  );
-  static const settingsWebhooksDesc = UiMessageKey.platformAdmin(
-    'settings.webhooks.desc',
-  );
-  static const settingsWebhooksStatus = UiMessageKey.platformAdmin(
-    'settings.webhooks.status',
-  );
-  static const settingsWebhooksTitle = UiMessageKey.platformAdmin(
-    'settings.webhooks.title',
   );
   static const statusLanguageDraft = UiMessageKey.platformAdmin(
     'status.language.draft',
@@ -850,6 +916,15 @@ abstract final class PlatformAdminKeys {
   static const tableQueueTranslation = UiMessageKey.platformAdmin(
     'table.queue.translation',
   );
+  static const tableUiMessagesReviewKey = UiMessageKey.platformAdmin(
+    'table.uiMessagesReview.key',
+  );
+  static const tableUiMessagesReviewSource = UiMessageKey.platformAdmin(
+    'table.uiMessagesReview.source',
+  );
+  static const tableUiMessagesReviewTarget = UiMessageKey.platformAdmin(
+    'table.uiMessagesReview.target',
+  );
   static const toastItemCreated = UiMessageKey.platformAdmin(
     'toast.item.created',
   );
@@ -864,6 +939,12 @@ abstract final class PlatformAdminKeys {
   );
   static const toastSeedSuccess = UiMessageKey.platformAdmin(
     'toast.seed.success',
+  );
+  static const toastUiMessagesReviewApproved = UiMessageKey.platformAdmin(
+    'toast.uiMessagesReview.approved',
+  );
+  static const toastUiMessagesReviewSaved = UiMessageKey.platformAdmin(
+    'toast.uiMessagesReview.saved',
   );
   static const validationLanguagePublishBlocked = UiMessageKey.platformAdmin(
     'validation.language.publishBlocked',

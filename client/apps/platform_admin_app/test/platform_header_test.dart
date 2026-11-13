@@ -2,6 +2,7 @@ import 'package:api_client/api_client.dart';
 import 'package:auth/auth.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
@@ -148,8 +149,8 @@ Widget _app({
         final effective = ref.read(platformLocaleProvider);
         return MaterialApp(
           locale: effective,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
           home: MediaQuery(
             data: MediaQueryData(size: size),
             child: Scaffold(

@@ -102,7 +102,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
         switch (_tab) {
           0 => _OverviewTab(workshop: workshop),
           1 => _StaffTab(workshop: workshop, onChanged: _refresh),
-          2 => const _TemplatesTab(),
+          2 => _TemplatesTab(workshopId: workshop.id),
           _ => _ActivityTab(workshopId: workshop.id),
         },
       ],
@@ -1124,46 +1124,80 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
 }
 
 class _TemplatesTab extends ConsumerWidget {
-  const _TemplatesTab();
+  const _TemplatesTab({required this.workshopId});
+
+  final String workshopId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final templates = ref.watch(templatesProvider);
-    return templates.when(
-      loading: () => const PlatformLoadingView(),
-      error: (_, _) => PlatformErrorView(
-        message: strings.tKey(CommonKeys.stateError),
-        onRetry: () => ref.invalidate(templatesProvider),
-      ),
-      data: (items) {
-        if (items.isEmpty) {
-          return PlatformEmptyView(
-            icon: Icons.description_outlined,
-            title: strings.tKey(CommonKeys.emptyTitle),
-          );
-        }
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 900 ? 2 : 1;
-            const spacing = 12.0;
-            final cardWidth = constraints.maxWidth <= 0
-                ? constraints.maxWidth
-                : (constraints.maxWidth - spacing * (columns - 1)) / columns;
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: [
-                for (final item in items)
-                  SizedBox(
-                    width: columns == 1 ? double.infinity : cardWidth,
-                    child: _TemplateCard(template: item),
-                  ),
-              ],
+    final templates = ref.watch(availableTemplatesProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PlatformSectionCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.description_outlined,
+                size: 18,
+                color: PtTheme.muted,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.pageWorkshopTemplatesHelper),
+                  style: PtTheme.font(12, lineHeight: 16, color: PtTheme.muted),
+                ),
+              ),
+              Semantics(label: workshopId, child: const SizedBox.shrink()),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        templates.when(
+          loading: () => const PlatformLoadingView(),
+          error: (_, _) => PlatformErrorView(
+            message: strings.tKey(CommonKeys.stateError),
+            onRetry: () => ref.invalidate(availableTemplatesProvider),
+          ),
+          data: (items) {
+            if (items.isEmpty) {
+              return PlatformEmptyView(
+                icon: Icons.description_outlined,
+                title: strings.tKey(
+                  PlatformAdminKeys.emptyWorkshopTemplatesTitle,
+                ),
+                body: strings.tKey(
+                  PlatformAdminKeys.emptyWorkshopTemplatesBody,
+                ),
+              );
+            }
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 900 ? 2 : 1;
+                const spacing = 12.0;
+                final cardWidth = constraints.maxWidth <= 0
+                    ? constraints.maxWidth
+                    : (constraints.maxWidth - spacing * (columns - 1)) /
+                          columns;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: [
+                    for (final item in items)
+                      SizedBox(
+                        width: columns == 1 ? double.infinity : cardWidth,
+                        child: _TemplateCard(template: item),
+                      ),
+                  ],
+                );
+              },
             );
           },
-        );
-      },
+        ),
+      ],
     );
   }
 }

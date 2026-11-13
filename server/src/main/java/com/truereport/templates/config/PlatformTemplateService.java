@@ -44,7 +44,11 @@ public class PlatformTemplateService {
 
     @Transactional(readOnly = true)
     public List<TemplateSummaryDto> list() {
-        return templates.findAll();
+        return list(false);
+    }
+
+    public List<TemplateSummaryDto> list(boolean publishedOnly) {
+        return templates.findAll(publishedOnly);
     }
 
     @Transactional(readOnly = true)

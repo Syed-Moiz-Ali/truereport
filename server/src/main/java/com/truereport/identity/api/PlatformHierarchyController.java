@@ -1,8 +1,11 @@
 package com.truereport.identity.api;
 
+import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import com.truereport.identity.HierarchyService;
+import com.truereport.identity.PlatformAuditService;
+import jakarta.servlet.http.HttpServletRequest;
 import com.truereport.identity.api.AccountActionRequest;
 import com.truereport.identity.api.AuditEventDto;
 import com.truereport.identity.api.CreateUserRequest;
@@ -33,11 +36,17 @@ import java.util.UUID;
 public class PlatformHierarchyController {
 
     private final HierarchyService hierarchyService;
+    private final PlatformAuditService platformAuditService;
+    private final FieldAuditService fieldAuditService;
     private final CurrentUserService currentUserService;
 
     public PlatformHierarchyController(HierarchyService hierarchyService,
+                                       PlatformAuditService platformAuditService,
+                                       FieldAuditService fieldAuditService,
                                        CurrentUserService currentUserService) {
         this.hierarchyService = hierarchyService;
+        this.platformAuditService = platformAuditService;
+        this.fieldAuditService = fieldAuditService;
         this.currentUserService = currentUserService;
     }
 
@@ -99,7 +108,55 @@ public class PlatformHierarchyController {
     }
 
     @GetMapping("/audit-events")
-    public List<AuditEventDto> auditEvents(@RequestParam(defaultValue = "100") int limit) {
-        return hierarchyService.auditEvents(limit);
+    public Object auditEvents(
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String entityType,
+            @RequestParam(required = false) String actor,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) Integer limit) {
+        if (page != null || size != null) {
+            return platformAuditService.page(action, entityType, actor, dateFrom,
+                    dateTo, search, sort, page == null ? 0 : page,
+                    size == null ? 25 : size);
+        }
+        List<AuditEventDto> events = platformAuditService.query(action,
+                entityType, actor, dateFrom, dateTo, search, sort);
+        int bounded = limit == null ? events.size() : Math.max(1, Math.min(limit, 500));
+        return events.stream().limit(bounded).toList();
+    }
+
+    @GetMapping("/audit-events/export")
+    public org.springframework.http.ResponseEntity<byte[]> exportAuditEvents(
+            JwtAuthenticationToken authentication,
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String entityType,
+            @RequestParam(required = false) String actor,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sort,
+            HttpServletRequest http) {
+        String normalized = "json".equalsIgnoreCase(format) ? "json" : "csv";
+        byte[] body = platformAuditService.export(normalized, action, entityType,
+                actor, dateFrom, dateTo, search, sort);
+        CurrentUser user = currentUserService.require(authentication);
+        fieldAuditService.record(user, "AUDIT_EVENTS_EXPORTED", "AUDIT_EVENT",
+                "export", null,
+                java.util.Map.of("format", normalized, "bytes", body.length),
+                null, http);
+        String contentType = "json".equals(normalized)
+                ? "application/json" : "text/csv";
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE,
+                        contentType + "; charset=utf-8")
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"audit-events." + normalized + "\"")
+                .body(body);
     }
 }

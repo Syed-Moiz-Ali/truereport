@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("114");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("119");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -73,6 +73,34 @@ class FlywayMigrationTest {
         assertThat(tableExists(url, "platform_ui_messages")).isFalse();
         assertThat(tableExists(url, "platform_ui_message_versions")).isFalse();
         assertThat(tableExists(url, "platform_ui_message_language_versions")).isFalse();
+        assertThat(tableExists(url, "platform_settings")).isFalse();
+        assertThat(tableExists(url, "platform_ui_message_generation_jobs")).isTrue();
+        assertThat(columnExists(url, "platform_languages", "ui_messages_path")).isTrue();
+        assertThat(columnExists(url, "platform_languages", "ui_messages_hash")).isTrue();
+        assertThat(columnExists(url, "platform_languages", "ui_messages_reviewed_at")).isTrue();
+        assertThat(value(url,
+                "SELECT ui_messages_path FROM platform_languages WHERE code = 'en'"))
+                .isEqualTo("platform_admin/en.json");
+        assertThat(value(url,
+                "SELECT ui_messages_path FROM platform_languages WHERE code = 'ar'"))
+                .isEqualTo("platform_admin/ar.json");
+    }
+
+    private boolean columnExists(String url, String table, String column) throws Exception {
+        try (Connection connection = DriverManager.getConnection(url, "sa", "");
+             ResultSet result = connection.getMetaData().getColumns(
+                     null, null, table, column)) {
+            return result.next();
+        }
+    }
+
+    private String value(String url, String sql) throws Exception {
+        try (Connection connection = DriverManager.getConnection(url, "sa", "");
+             Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            result.next();
+            return result.getString(1);
+        }
     }
 
     private boolean tableExists(String url, String table) throws Exception {

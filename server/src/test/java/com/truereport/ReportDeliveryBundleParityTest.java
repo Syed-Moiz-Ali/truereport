@@ -37,7 +37,8 @@ class ReportDeliveryBundleParityTest {
             "public-report.html", "print-report.html", "unavailable.html",
             "temporarily-unavailable.html");
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{(\\d+)[^}]*\\}");
-    private static final Pattern TEXT_NODE = Pattern.compile(">([^<>]*)<", Pattern.DOTALL);
+    private static final Pattern TEXT_NODE =
+            Pattern.compile("(?s)<([a-zA-Z][^>]*)>([^<>]*)<");
 
     private static ResourceBundle bundle(String baseName, String language) {
         Locale locale = "ar".equals(language) ? new Locale("ar") : Locale.ENGLISH;
@@ -152,7 +153,12 @@ class ReportDeliveryBundleParityTest {
                     .replaceAll("(?s)<!--.*?-->", "");
             Matcher matcher = TEXT_NODE.matcher(searchable);
             while (matcher.find()) {
-                String text = matcher.group(1).strip();
+                String attributes = matcher.group(1);
+                String text = matcher.group(2).strip();
+                if (attributes.contains("th:")) {
+                    // Inner text is a render-time fallback; Thymeleaf replaces it.
+                    continue;
+                }
                 if (text.isEmpty() || !text.matches("(?s).*\\p{L}.*")) {
                     continue;
                 }
