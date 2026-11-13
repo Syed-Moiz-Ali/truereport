@@ -395,10 +395,6 @@ public class WorkshopTemplateService {
 
     private String snapshot(PublishedItemDto item) {
         ItemVersionDto version = item.version();
-        TranslationDto en = version.translations().getOrDefault("en",
-                new TranslationDto("en", "", ""));
-        TranslationDto ar = version.translations().getOrDefault("ar",
-                new TranslationDto("ar", "", ""));
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("itemId", item.itemId().toString());
         snapshot.put("masterItemVersionId", item.versionId().toString());
@@ -407,10 +403,10 @@ public class WorkshopTemplateService {
         snapshot.put("categoryId", item.categoryId().toString());
         snapshot.put("categoryLabelEn", item.categoryLabelEn());
         snapshot.put("categoryLabelAr", item.categoryLabelAr());
-        snapshot.put("labelEn", en.label());
-        snapshot.put("labelAr", ar.label());
-        snapshot.put("instructionEn", en.instruction());
-        snapshot.put("instructionAr", ar.instruction());
+        snapshot.put("labelEn", version.labelEn());
+        snapshot.put("labelAr", version.labelAr());
+        snapshot.put("instructionEn", version.instructionEn());
+        snapshot.put("instructionAr", version.instructionAr());
         snapshot.put("resultOptions", version.resultOptions());
         snapshot.put("severityPolicy", version.severityPolicy());
         snapshot.put("applicability", version.applicability());
@@ -483,3 +479,4 @@ public class WorkshopTemplateService {
     private record PreparedItem(PublishedItemDto published, int sortOrder) {
     }
 }
+

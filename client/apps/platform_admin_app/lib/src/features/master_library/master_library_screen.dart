@@ -373,9 +373,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
   Widget _buildItemCard(dynamic strings, PlatformItem item) {
     final retired = item.status == 'RETIRED';
     final categoryLabel = item.categoryLabelEn.isEmpty
-        ? (item.categoryLabelAr.isEmpty
-              ? item.categoryId
-              : item.categoryLabelAr)
+        ? item.categoryId
         : item.categoryLabelEn;
     return Container(
       padding: const EdgeInsets.all(18),
@@ -448,7 +446,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            item.labelEn.isEmpty ? item.code : item.labelEn,
+            _itemLabel(item),
             style: PtTheme.font(
               16,
               lineHeight: 22,
@@ -458,16 +456,6 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (item.labelAr.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              item.labelAr,
-              textDirection: TextDirection.rtl,
-              style: PtTheme.font(14, lineHeight: 20, color: PtTheme.muted),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -584,4 +572,9 @@ String _failureMessage(Object error) {
         : '${error.messageKey} (${error.statusCode})';
   }
   return error.toString();
+}
+
+/// Source-language (default) label for a platform item.
+String _itemLabel(PlatformItem item) {
+  return item.label.isEmpty ? item.code : item.label;
 }

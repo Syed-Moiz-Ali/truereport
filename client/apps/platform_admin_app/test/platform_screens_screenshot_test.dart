@@ -165,8 +165,6 @@ const _documentType = ReportDocumentType(
 
 const _language = PlatformLanguage(
   code: 'en',
-  nameEn: 'English',
-  nameAr: 'الإنجليزية',
   nativeName: 'English',
   direction: 'LTR',
   active: true,
@@ -485,8 +483,6 @@ void main() {
     );
     const zhLanguage = PlatformLanguage(
       code: 'zh-hans',
-      nameEn: 'Chinese',
-      nameAr: '???????',
       nativeName: '??',
       direction: 'ltr',
       active: false,

@@ -4,6 +4,7 @@ import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,55 +17,54 @@ public class LanguageRepository {
         this.jdbc = jdbc;
     }
 
+    private static final String COLUMNS = """
+            code, native_name, direction, active, is_default, sort_order, status,
+            ui_messages_path, ui_messages_hash, ui_messages_reviewed_at, ui_messages_reviewed_by
+            """;
+
     private static final org.springframework.jdbc.core.RowMapper<LanguageDto> MAPPER = (rs, i) ->
             new LanguageDto(
                     rs.getString("code"),
-                    rs.getString("name_en"),
-                    rs.getString("name_ar"),
                     rs.getString("native_name"),
                     rs.getString("direction"),
                     rs.getBoolean("active"),
                     rs.getBoolean("is_default"),
                     rs.getInt("sort_order"),
                     statusOf(rs),
-                    rs.getString("ui_messages_path")
+                    rs.getString("ui_messages_path"),
+                    rs.getString("ui_messages_hash"),
+                    timestamp(rs.getTimestamp("ui_messages_reviewed_at")),
+                    rs.getString("ui_messages_reviewed_by")
             );
 
+    private static String timestamp(Timestamp value) {
+        return value == null ? null : value.toInstant().toString();
+    }
+
     private static String statusOf(java.sql.ResultSet rs) throws java.sql.SQLException {
-        try {
-            String status = rs.getString("status");
-            return status == null ? "DRAFT" : status;
-        } catch (java.sql.SQLException ex) {
-            return "DRAFT";
-        }
+        String status = rs.getString("status");
+        return status == null ? "DRAFT" : status;
     }
 
     public List<LanguageDto> findAll() {
-        return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
-                FROM platform_languages ORDER BY sort_order, code
-                """, MAPPER);
+        return jdbc.query("SELECT " + COLUMNS
+                + " FROM platform_languages ORDER BY sort_order, code", MAPPER);
     }
 
     public List<LanguageDto> findActive() {
-        return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
-                FROM platform_languages WHERE active = TRUE ORDER BY sort_order, code
-                """, MAPPER);
+        return jdbc.query("SELECT " + COLUMNS
+                + " FROM platform_languages WHERE active = TRUE ORDER BY sort_order, code", MAPPER);
     }
 
     public List<LanguageDto> findLive() {
-        return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
-                FROM platform_languages WHERE active = TRUE AND status = 'LIVE' ORDER BY sort_order, code
-                """, MAPPER);
+        return jdbc.query("SELECT " + COLUMNS
+                + " FROM platform_languages WHERE active = TRUE AND status = 'LIVE'"
+                + " ORDER BY sort_order, code", MAPPER);
     }
 
     public Optional<LanguageDto> find(String code) {
-        return jdbc.query("""
-                SELECT code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status, ui_messages_path
-                FROM platform_languages WHERE code = ?
-                """, MAPPER, code).stream().findFirst();
+        return jdbc.query("SELECT " + COLUMNS
+                + " FROM platform_languages WHERE code = ?", MAPPER, code).stream().findFirst();
     }
 
     public String defaultCode() {
@@ -76,24 +76,25 @@ public class LanguageRepository {
     public void insert(LanguageDto language) {
         jdbc.update("""
                 INSERT INTO platform_languages
-                    (code, name_en, name_ar, native_name, direction, active, is_default, sort_order, status,
+                    (code, native_name, direction, active, is_default, sort_order, status,
                      ui_messages_path, created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """,
-                language.code(), language.nameEn(), language.nameAr(), language.nativeName(),
-                language.direction(), language.active(), language.isDefault(), language.sortOrder(),
-                language.status() == null ? "DRAFT" : language.status(), language.uiMessagesPath());
+                language.code(), language.nativeName(), language.direction(), language.active(),
+                language.isDefault(), language.sortOrder(),
+                language.status() == null ? "DRAFT" : language.status(),
+                language.uiMessagesPath());
     }
 
     public void update(LanguageDto language) {
         jdbc.update("""
                 UPDATE platform_languages
-                SET name_en = ?, name_ar = ?, native_name = ?, direction = ?, active = ?,
-                    sort_order = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
+                SET native_name = ?, direction = ?, active = ?, sort_order = ?,
+                    updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE code = ?
                 """,
-                language.nameEn(), language.nameAr(), language.nativeName(), language.direction(),
-                language.active(), language.sortOrder(), language.code());
+                language.nativeName(), language.direction(), language.active(),
+                language.sortOrder(), language.code());
     }
 
     public void setStatus(String code, String status) {
@@ -133,14 +134,15 @@ public class LanguageRepository {
 
     public void setDefault(String code) {
         jdbc.update("UPDATE platform_languages SET is_default = FALSE WHERE is_default = TRUE");
-        jdbc.update("UPDATE platform_languages SET is_default = TRUE, updated_at = CURRENT_TIMESTAMP WHERE code = ?", code);
+        jdbc.update("UPDATE platform_languages SET is_default = TRUE,"
+                + " updated_at = CURRENT_TIMESTAMP WHERE code = ?", code);
     }
 
     public void reorder(List<String> codes) {
         int order = 1;
         for (String code : codes) {
-            jdbc.update("UPDATE platform_languages SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?",
-                    order++, code);
+            jdbc.update("UPDATE platform_languages SET sort_order = ?,"
+                    + " updated_at = CURRENT_TIMESTAMP WHERE code = ?", order++, code);
         }
     }
 
@@ -170,7 +172,6 @@ public class LanguageRepository {
     }
 
     public int countJobsUsing(String code) {
-        // Legacy jobs store preferred_language; guard against missing column in minimal schemas.
         try {
             Integer count = jdbc.queryForObject(
                     "SELECT COUNT(*) FROM inspection_jobs WHERE preferred_language = ?", Integer.class, code);

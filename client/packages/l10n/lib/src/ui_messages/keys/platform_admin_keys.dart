@@ -19,6 +19,9 @@ abstract final class PlatformAdminKeys {
   static const buttonCategoryAdd = UiMessageKey.platformAdmin(
     'button.category.add',
   );
+  static const buttonContentActivate = UiMessageKey.platformAdmin(
+    'button.content.activate',
+  );
   static const buttonDocumentTypeAdd = UiMessageKey.platformAdmin(
     'button.documentType.add',
   );
@@ -55,6 +58,9 @@ abstract final class PlatformAdminKeys {
   );
   static const buttonLanguageReview = UiMessageKey.platformAdmin(
     'button.language.review',
+  );
+  static const buttonOpenLanguageWorkspace = UiMessageKey.platformAdmin(
+    'button.openLanguageWorkspace',
   );
   static const buttonOptionSetAdd = UiMessageKey.platformAdmin(
     'button.optionSet.add',
@@ -375,6 +381,18 @@ abstract final class PlatformAdminKeys {
   static const filterCategorySearch = UiMessageKey.platformAdmin(
     'filter.category.search',
   );
+  static const filterContentActive = UiMessageKey.platformAdmin(
+    'filter.content.active',
+  );
+  static const filterContentAll = UiMessageKey.platformAdmin(
+    'filter.content.all',
+  );
+  static const filterContentMissing = UiMessageKey.platformAdmin(
+    'filter.content.missing',
+  );
+  static const filterContentPending = UiMessageKey.platformAdmin(
+    'filter.content.pending',
+  );
   static const filterOptionSetsSearch = UiMessageKey.platformAdmin(
     'filter.optionSets.search',
   );
@@ -546,6 +564,294 @@ abstract final class PlatformAdminKeys {
     'label.resultCode.noIssueObserved',
   );
   static const labelUiMessages = UiMessageKey.platformAdmin('label.uiMessages');
+  static const languageWorkspaceButtonActivate = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.activate',
+  );
+  static const languageWorkspaceButtonApprove = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.approve',
+  );
+  static const languageWorkspaceButtonBulkApprove = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.bulkApprove',
+  );
+  static const languageWorkspaceButtonDeactivate = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.deactivate',
+  );
+  static const languageWorkspaceButtonDeleteOrRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.deleteOrRetire',
+  );
+  static const languageWorkspaceButtonEditMetadata = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.editMetadata',
+  );
+  static const languageWorkspaceButtonGenerateAll = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.generateAll',
+  );
+  static const languageWorkspaceButtonGenerateEntity = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.generateEntity',
+  );
+  static const languageWorkspaceButtonGenerateUiText = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.generateUiText',
+  );
+  static const languageWorkspaceButtonManage = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.manage',
+  );
+  static const languageWorkspaceButtonOpenSource = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.openSource',
+  );
+  static const languageWorkspaceButtonPublish = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.publish',
+  );
+  static const languageWorkspaceButtonReopen = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.reopen',
+  );
+  static const languageWorkspaceButtonReorder = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.reorder',
+  );
+  static const languageWorkspaceButtonRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.retire',
+  );
+  static const languageWorkspaceButtonSetDefault = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.setDefault',
+  );
+  static const languageWorkspaceButtonValidate = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.validate',
+  );
+  static const languageWorkspaceContentNoItems = UiMessageKey.platformAdmin(
+    'languageWorkspace.content.noItems',
+  );
+  static const languageWorkspaceContentProgress = UiMessageKey.platformAdmin(
+    'languageWorkspace.content.progress',
+  );
+  static const languageWorkspaceContentSelectRow = UiMessageKey.platformAdmin(
+    'languageWorkspace.content.selectRow',
+  );
+  static const languageWorkspaceContentSubtitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.content.subtitle',
+  );
+  static const languageWorkspaceContentTitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.content.title',
+  );
+  static const languageWorkspaceDialogDeleteOrRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.deleteOrRetire',
+  );
+  static const languageWorkspaceDialogDeleteOrRetireBody = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.deleteOrRetireBody',
+  );
+  static const languageWorkspaceDialogEditMetadata = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.editMetadata',
+  );
+  static const languageWorkspaceDialogReopen = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.reopen',
+  );
+  static const languageWorkspaceDialogReopenBody = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.reopenBody',
+  );
+  static const languageWorkspaceDialogRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.retire',
+  );
+  static const languageWorkspaceDialogRetireBody = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.retireBody',
+  );
+  static const languageWorkspaceFieldApproved = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.approved',
+  );
+  static const languageWorkspaceFieldChanged = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.changed',
+  );
+  static const languageWorkspaceFieldContentCoverage = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.contentCoverage',
+  );
+  static const languageWorkspaceFieldDefaultFlag = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.defaultFlag',
+  );
+  static const languageWorkspaceFieldFailedKeys = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.failedKeys',
+  );
+  static const languageWorkspaceFieldGenerationStatus = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.generationStatus',
+  );
+  static const languageWorkspaceFieldLastGenerated = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.lastGenerated',
+  );
+  static const languageWorkspaceFieldLastPublished = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.lastPublished',
+  );
+  static const languageWorkspaceFieldLastReviewed = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.lastReviewed',
+  );
+  static const languageWorkspaceFieldMissing = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.missing',
+  );
+  static const languageWorkspaceFieldReadiness = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.readiness',
+  );
+  static const languageWorkspaceFieldSelect = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.select',
+  );
+  static const languageWorkspaceFieldTotal = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.total',
+  );
+  static const languageWorkspaceFieldUiTextCoverage = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.uiTextCoverage',
+  );
+  static const languageWorkspaceFilterFailed = UiMessageKey.platformAdmin(
+    'languageWorkspace.filter.failed',
+  );
+  static const languageWorkspaceGenerationCompleted = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.completed',
+  );
+  static const languageWorkspaceGenerationFailed = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.failed',
+  );
+  static const languageWorkspaceGenerationIdle = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.idle',
+  );
+  static const languageWorkspaceGenerationRunning = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.running',
+  );
+  static const languageWorkspaceGenerationSkipped = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.skipped',
+  );
+  static const languageWorkspaceHeaderSubtitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.header.subtitle',
+  );
+  static const languageWorkspaceOverviewBlockers = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.blockers',
+  );
+  static const languageWorkspaceOverviewContent = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.content',
+  );
+  static const languageWorkspaceOverviewGeneration = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.generation',
+  );
+  static const languageWorkspaceOverviewGenerationIdle = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.generationIdle',
+  );
+  static const languageWorkspaceOverviewNoBlockers = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.noBlockers',
+  );
+  static const languageWorkspaceOverviewOpenTab = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.openTab',
+  );
+  static const languageWorkspaceOverviewSubtitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.subtitle',
+  );
+  static const languageWorkspaceOverviewUiText = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.uiText',
+  );
+  static const languageWorkspacePublishActiveGeneration = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.activeGeneration',
+  );
+  static const languageWorkspacePublishBlocked = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.blocked',
+  );
+  static const languageWorkspacePublishCount = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.count',
+  );
+  static const languageWorkspacePublishMessage = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.message',
+  );
+  static const languageWorkspacePublishNoBlockers = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.noBlockers',
+  );
+  static const languageWorkspacePublishReady = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.ready',
+  );
+  static const languageWorkspacePublishSubtitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.subtitle',
+  );
+  static const languageWorkspacePublishTab = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.tab',
+  );
+  static const languageWorkspacePublishTitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.title',
+  );
+  static const languageWorkspaceTabCategories = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.categories',
+  );
+  static const languageWorkspaceTabChecklistItems = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.checklistItems',
+  );
+  static const languageWorkspaceTabDocumentTypes = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.documentTypes',
+  );
+  static const languageWorkspaceTabIssueFields = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.issueFields',
+  );
+  static const languageWorkspaceTabOptionSets = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.optionSets',
+  );
+  static const languageWorkspaceTabOptionValues = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.optionValues',
+  );
+  static const languageWorkspaceTabOverview = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.overview',
+  );
+  static const languageWorkspaceTabPublishBlockers = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.publishBlockers',
+  );
+  static const languageWorkspaceTabTemplates = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.templates',
+  );
+  static const languageWorkspaceTabUiText = UiMessageKey.platformAdmin(
+    'languageWorkspace.tab.uiText',
+  );
+  static const languageWorkspaceToastActivated = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.activated',
+  );
+  static const languageWorkspaceToastApproved = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.approved',
+  );
+  static const languageWorkspaceToastDeactivated = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.deactivated',
+  );
+  static const languageWorkspaceToastDefaultSet = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.defaultSet',
+  );
+  static const languageWorkspaceToastDeletedOrRetired = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.deletedOrRetired',
+  );
+  static const languageWorkspaceToastGenerationRetried = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.generationRetried',
+  );
+  static const languageWorkspaceToastGenerationStarted = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.generationStarted',
+  );
+  static const languageWorkspaceToastNoFailedKeys = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.noFailedKeys',
+  );
+  static const languageWorkspaceToastNothingToSave = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.nothingToSave',
+  );
+  static const languageWorkspaceToastPublished = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.published',
+  );
+  static const languageWorkspaceToastReopened = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.reopened',
+  );
+  static const languageWorkspaceToastReordered = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.reordered',
+  );
+  static const languageWorkspaceToastRetired = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.retired',
+  );
+  static const languageWorkspaceToastSaved = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.saved',
+  );
+  static const languageWorkspaceToastUpdated = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.updated',
+  );
+  static const languageWorkspaceToastValidated = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.validated',
+  );
+  static const languageWorkspaceUiTextPlaceholderMismatch = UiMessageKey.platformAdmin(
+    'languageWorkspace.uiText.placeholderMismatch',
+  );
+  static const languageWorkspaceUiTextSubtitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.uiText.subtitle',
+  );
+  static const languageWorkspaceUiTextTitle = UiMessageKey.platformAdmin(
+    'languageWorkspace.uiText.title',
+  );
   static const loginAppName = UiMessageKey.platformAdmin('login.appName');
   static const loginAuthorizedEyebrow = UiMessageKey.platformAdmin(
     'login.authorizedEyebrow',
@@ -816,6 +1122,12 @@ abstract final class PlatformAdminKeys {
   static const settingsScopeBadge = UiMessageKey.platformAdmin(
     'settings.scopeBadge',
   );
+  static const statusContentActive = UiMessageKey.platformAdmin(
+    'status.content.active',
+  );
+  static const statusContentDraft = UiMessageKey.platformAdmin(
+    'status.content.draft',
+  );
   static const statusLanguageDraft = UiMessageKey.platformAdmin(
     'status.language.draft',
   );
@@ -924,6 +1236,9 @@ abstract final class PlatformAdminKeys {
   );
   static const tableUiMessagesReviewTarget = UiMessageKey.platformAdmin(
     'table.uiMessagesReview.target',
+  );
+  static const textNeedsTranslation = UiMessageKey.platformAdmin(
+    'text.needsTranslation',
   );
   static const toastItemCreated = UiMessageKey.platformAdmin(
     'toast.item.created',

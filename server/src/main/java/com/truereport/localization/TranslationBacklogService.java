@@ -28,34 +28,36 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Translation overlay backlog, coverage and language publishing for dynamic
- * languages. Backlog covers LIVE content only: active categories, published
- * items, option sets/values used by published items, active templates,
- * active document types and issue fields of published item versions.
- * Draft/retired content never blocks activation.
+ * Translation workspace and language readiness.
+ *
+ * <p>Two distinct scopes are intentional:</p>
+ * <ul>
+ *   <li>{@link Scope#TRANSLATION} covers every non-retired source record,
+ *   including DRAFT categories/options/document types, the latest draft item
+ *   version, and its issue fields. This is what the workspace edits and what
+ *   Google generation translates.</li>
+ *   <li>{@link Scope#READINESS} covers only content that is currently visible:
+ *   ACTIVE categories/options/document types, published item versions, and
+ *   their issue fields. This is what can block a language from going LIVE.</li>
+ * </ul>
  */
 @Service
 public class TranslationBacklogService {
 
-    public static final Set<String> ENTITY_TYPES = Set.of(
-            "CATEGORY", "ITEM", "OPTION_SET", "OPTION_VALUE", "TEMPLATE",
-            "DOCUMENT_TYPE", "ISSUE_FIELD");
+    public enum Scope {
+        TRANSLATION,
+        READINESS
+    }
+
+    public static final Set<String> ENTITY_TYPES =
+            Set.copyOf(TranslationFieldRegistry.GROUP_ORDER);
 
     private static final Set<String> TRANSLATION_STATUSES = Set.of(
             "DRAFT", "TRANSLATING", "REVIEWED", "APPROVED");
 
-    private static final Map<String, List<String>> FIELDS = Map.of(
-            "CATEGORY", List.of("name"),
-            "ITEM", List.of("label", "instruction"),
-            "OPTION_SET", List.of("name"),
-            "OPTION_VALUE", List.of("label"),
-            "TEMPLATE", List.of("name", "description"),
-            "DOCUMENT_TYPE", List.of("name"),
-            "ISSUE_FIELD", List.of("label"));
+    private static final Map<String, List<String>> FIELDS = TranslationFieldRegistry.FIELDS;
 
-    private static final List<String> GROUP_ORDER = List.of(
-            "CATEGORY", "ITEM", "OPTION_SET", "OPTION_VALUE", "TEMPLATE",
-            "DOCUMENT_TYPE", "ISSUE_FIELD");
+    private static final List<String> GROUP_ORDER = TranslationFieldRegistry.GROUP_ORDER;
 
     private final JdbcTemplate jdbc;
     private final LanguageRepository languages;
@@ -72,8 +74,6 @@ public class TranslationBacklogService {
         this.audit = audit;
         this.uiMessageGuard = uiMessageGuard;
     }
-
-    // ------------------------------------------------------------------ upsert
 
     @Transactional
     public TranslationItemDto upsert(CurrentUser actor, UpsertTranslationRequest request,
@@ -106,6 +106,12 @@ public class TranslationBacklogService {
                     "error.validation.failed", "Unknown translation status");
         }
         entityId = entityId.trim();
+        String defaultCode = languages.defaultCode() == null ? "en" : languages.defaultCode();
+        if (target.code().equals(defaultCode)) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "TRANSLATION_SOURCE_INVALID",
+                    "error.validation.failed",
+                    "The default language is the source and cannot be overlaid");
+        }
         translations.upsert(entityType, entityId, field, target.code(),
                 request.text().trim(), status);
         if ("DRAFT".equals(target.status())) {
@@ -117,12 +123,11 @@ public class TranslationBacklogService {
         return itemFor(entityType, entityId, field, target.code());
     }
 
-    // ----------------------------------------------------------------- backlog
-
+    /** Full workspace backlog: includes DRAFT and unpublished content. */
     @Transactional(readOnly = true)
     public LanguageBacklogDto backlog(String code) {
         LanguageDto language = requireLanguage(code);
-        List<TranslationItemDto> all = requiredItems(language.code());
+        List<TranslationItemDto> all = requiredItems(language.code(), Scope.TRANSLATION);
         Map<String, List<TranslationItemDto>> byType = new LinkedHashMap<>();
         for (String type : GROUP_ORDER) {
             byType.put(type, new ArrayList<>());
@@ -143,10 +148,11 @@ public class TranslationBacklogService {
                 all.size(), approvedTotal, percent(approvedTotal, all.size()), groups);
     }
 
+    /** Language readiness: only LIVE/ACTIVE/published content counts. */
     @Transactional(readOnly = true)
     public LanguageCoverageDto coverage(String code) {
         LanguageDto language = requireLanguage(code);
-        List<TranslationItemDto> all = requiredItems(language.code());
+        List<TranslationItemDto> all = requiredItems(language.code(), Scope.READINESS);
         Map<String, EntityCoverageDto> byEntity = new LinkedHashMap<>();
         int approvedTotal = 0;
         for (String type : GROUP_ORDER) {
@@ -187,7 +193,7 @@ public class TranslationBacklogService {
                     "Language " + language.code() + " is not fully translated", missing);
         }
         String defaultCode = languages.defaultCode();
-        com.truereport.localization.api.LanguageDtos.LanguageDto defaultLanguage =
+        LanguageDto defaultLanguage =
                 defaultCode == null ? null : languages.find(defaultCode).orElse(null);
         uiMessageGuard.requirePublishable(language.code(), language.uiMessagesPath(),
                 defaultLanguage == null ? null : defaultLanguage.uiMessagesPath());
@@ -199,179 +205,212 @@ public class TranslationBacklogService {
 
     // ------------------------------------------------------------ required set
 
-    private List<TranslationItemDto> requiredItems(String language) {
+    private List<TranslationItemDto> requiredItems(String language, Scope scope) {
         List<TranslationItemDto> items = new ArrayList<>();
         String defaultLang = languages.defaultCode() == null ? "en" : languages.defaultCode();
-        for (CategoryRow row : activeCategories()) {
-            add(items, "CATEGORY", row.id(), row.code(), "name",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
+        for (CategoryRow row : categories(scope)) {
+            add(items, "CATEGORY", row.id(), row.code(), "name", row.name(),
+                    language, defaultLang, row.status());
         }
-        for (ItemRow row : publishedItems()) {
-            // ITEM overlays are keyed by the published version: a new draft that
-            // changes labels must ship its own approved overlay before publishing.
-            add(items, "ITEM", row.versionId(), row.code(), "label",
-                    display(row.labelEn(), row.labelAr(), language, defaultLang), language);
-            add(items, "ITEM", row.versionId(), row.code(), "instruction",
-                    display(row.instructionEn(), row.instructionAr(), language, defaultLang), language);
+        for (ItemRow row : items(scope)) {
+            add(items, "ITEM", row.versionId(), row.code(), "label", row.label(),
+                    language, defaultLang, row.status());
+            add(items, "ITEM", row.versionId(), row.code(), "instruction", row.instruction(),
+                    language, defaultLang, row.status());
+            if (hasText(row.standardSpec())) {
+                add(items, "ITEM", row.versionId(), row.code(), "standardSpec", row.standardSpec(),
+                        language, defaultLang, row.status());
+            }
         }
-        for (NamedRow row : usedOptionSets()) {
-            add(items, "OPTION_SET", row.id(), row.code(), "name",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
+        for (NamedRow row : optionSets(scope)) {
+            add(items, "OPTION_SET", row.id(), row.code(), "name", row.name(),
+                    language, defaultLang, row.status());
         }
-        for (NamedRow row : usedOptionValues()) {
-            add(items, "OPTION_VALUE", row.id(), row.code(), "label",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
+        for (NamedRow row : optionValues(scope)) {
+            add(items, "OPTION_VALUE", row.id(), row.code(), "label", row.name(),
+                    language, defaultLang, row.status());
         }
-        for (TemplateRow row : activeTemplates()) {
-            add(items, "TEMPLATE", row.id(), row.code(), "name",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
-            add(items, "TEMPLATE", row.id(), row.code(), "description",
-                    display(row.descriptionEn(), row.descriptionAr(), language, defaultLang), language);
+        for (TemplateRow row : templates(scope)) {
+            add(items, "TEMPLATE", row.id(), row.code(), "name", row.name(),
+                    language, defaultLang, row.status());
+            if (hasText(row.description())) {
+                add(items, "TEMPLATE", row.id(), row.code(), "description", row.description(),
+                        language, defaultLang, row.status());
+            }
         }
-        for (NamedRow row : activeDocumentTypes()) {
-            add(items, "DOCUMENT_TYPE", row.id(), row.code(), "name",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
+        for (NamedRow row : documentTypes(scope)) {
+            add(items, "DOCUMENT_TYPE", row.id(), row.code(), "name", row.name(),
+                    language, defaultLang, row.status());
         }
-        for (NamedRow row : publishedIssueFields()) {
-            add(items, "ISSUE_FIELD", row.id(), row.code(), "label",
-                    display(row.nameEn(), row.nameAr(), language, defaultLang), language);
+        for (NamedRow row : issueFields(scope)) {
+            add(items, "ISSUE_FIELD", row.id(), row.code(), "label", row.name(),
+                    language, defaultLang, row.status());
         }
         return items;
     }
 
     private void add(List<TranslationItemDto> items, String entityType, String entityId,
-                     String entityCode, String field, String defaultText, String language) {
-        if ("en".equals(language) || "ar".equals(language)) {
-            boolean present = defaultText != null && !defaultText.isBlank();
+                     String entityCode, String field, String sourceText,
+                     String language, String defaultLang, String contentStatus) {
+        if (language.equals(defaultLang)) {
+            boolean present = sourceText != null && !sourceText.isBlank();
             items.add(new TranslationItemDto(entityType, entityId, entityCode, field,
-                    defaultText == null ? "" : defaultText,
-                    present ? defaultText : null, present ? "APPROVED" : "MISSING"));
+                    sourceText == null ? "" : sourceText,
+                    present ? sourceText : null, present ? "APPROVED" : "MISSING",
+                    contentStatus));
             return;
         }
         TranslationRepository.Overlay overlay =
                 translations.find(entityType, entityId, field, language);
         items.add(new TranslationItemDto(entityType, entityId, entityCode, field,
-                defaultText == null ? "" : defaultText,
+                sourceText == null ? "" : sourceText,
                 overlay == null ? null : overlay.text(),
-                overlay == null ? "MISSING" : overlay.status()));
+                overlay == null ? "MISSING" : overlay.status(), contentStatus));
     }
 
     private TranslationItemDto itemFor(String entityType, String entityId, String field,
                                        String language) {
         String defaultLang = languages.defaultCode() == null ? "en" : languages.defaultCode();
-        String[] base = baseText(entityType, entityId, field);
+        String source = sourceText(entityType, entityId, field);
+        String code = entityCode(entityType, entityId);
+        String contentStatus = contentStatus(entityType, entityId);
+        if (language.equals(defaultLang)) {
+            boolean present = source != null && !source.isBlank();
+            return new TranslationItemDto(entityType, entityId, code, field,
+                    source == null ? "" : source, present ? source : null,
+                    present ? "APPROVED" : "MISSING", contentStatus);
+        }
         TranslationRepository.Overlay overlay =
                 translations.find(entityType, entityId, field, language);
-        String code = entityCode(entityType, entityId);
-        if ("en".equals(language) || "ar".equals(language)) {
-            String text = display(base[0], base[1], language, defaultLang);
-            boolean present = text != null && !text.isBlank();
-            return new TranslationItemDto(entityType, entityId, code, field,
-                    text == null ? "" : text, present ? text : null,
-                    present ? "APPROVED" : "MISSING");
-        }
         return new TranslationItemDto(entityType, entityId, code, field,
-                display(base[0], base[1], language, defaultLang),
+                source == null ? "" : source,
                 overlay == null ? null : overlay.text(),
-                overlay == null ? "MISSING" : overlay.status());
+                overlay == null ? "MISSING" : overlay.status(), contentStatus);
     }
 
     // ------------------------------------------------------------------ queries
 
-    private record CategoryRow(String id, String code, String nameEn, String nameAr) {
+    private record CategoryRow(String id, String code, String name, String status) {
     }
 
-    private record ItemRow(String id, String versionId, String code, String labelEn, String labelAr,
-                           String instructionEn, String instructionAr) {
+    private record ItemRow(String id, String versionId, String code, String label,
+                           String instruction, String standardSpec, String status) {
     }
 
-    private record NamedRow(String id, String code, String nameEn, String nameAr) {
+    private record NamedRow(String id, String code, String name, String status) {
     }
 
-    private record TemplateRow(String id, String code, String nameEn, String nameAr,
-                               String descriptionEn, String descriptionAr) {
+    private record TemplateRow(String id, String code, String name, String description,
+                               String status) {
     }
 
-    private List<CategoryRow> activeCategories() {
+    private List<CategoryRow> categories(Scope scope) {
+        String filter = scope == Scope.TRANSLATION ? "status <> 'RETIRED'" : "status = 'ACTIVE'";
+        return jdbc.query("SELECT id, code, name, status FROM platform_categories WHERE "
+                        + filter + " ORDER BY sort_order, code",
+                (rs, i) -> new CategoryRow(rs.getString("id"), rs.getString("code"),
+                        rs.getString("name"), rs.getString("status")));
+    }
+
+    private List<ItemRow> items(Scope scope) {
+        if (scope == Scope.TRANSLATION) {
+            return jdbc.query("""
+                    SELECT i.id, v.id AS version_id, i.stable_code, v.label, v.instruction,
+                           v.standard_spec, v.status
+                    FROM platform_items i
+                    JOIN platform_item_versions v ON v.item_id = i.id
+                    WHERE i.status <> 'RETIRED'
+                      AND (v.id = i.current_published_version_id
+                        OR v.version_no = (
+                            SELECT MAX(v2.version_no) FROM platform_item_versions v2
+                            WHERE v2.item_id = i.id))
+                    ORDER BY i.sort_order, i.stable_code, v.version_no DESC
+                    """, (rs, i) -> new ItemRow(rs.getString("id"), rs.getString("version_id"),
+                    rs.getString("stable_code"), rs.getString("label"),
+                    rs.getString("instruction"), rs.getString("standard_spec"),
+                    rs.getString("status")));
+        }
         return jdbc.query("""
-                SELECT id, code, name_en, name_ar FROM platform_categories
-                WHERE status = 'ACTIVE' ORDER BY sort_order, code
-                """, (rs, i) -> new CategoryRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("name_en"), rs.getString("name_ar")));
-    }
-
-    private List<ItemRow> publishedItems() {
-        return jdbc.query("""
-                SELECT i.id, v.id AS version_id, i.stable_code, v.label_en, v.label_ar,
-                       v.instruction_en, v.instruction_ar
+                SELECT i.id, v.id AS version_id, i.stable_code, v.label, v.instruction,
+                       v.standard_spec, v.status
                 FROM platform_items i
                 JOIN platform_item_versions v ON v.id = i.current_published_version_id
                 WHERE i.status = 'PUBLISHED'
                 ORDER BY i.sort_order, i.stable_code
                 """, (rs, i) -> new ItemRow(rs.getString("id"), rs.getString("version_id"),
-                rs.getString("stable_code"),
-                rs.getString("label_en"), rs.getString("label_ar"),
-                rs.getString("instruction_en"), rs.getString("instruction_ar")));
+                rs.getString("stable_code"), rs.getString("label"), rs.getString("instruction"),
+                rs.getString("standard_spec"), rs.getString("status")));
     }
 
-    private List<NamedRow> usedOptionSets() {
-        return jdbc.query("""
-                SELECT DISTINCT s.id, s.code, s.name_en, s.name_ar
-                FROM platform_option_sets s
-                WHERE s.status = 'ACTIVE'
-                  AND EXISTS (
-                    SELECT 1 FROM platform_issue_fields f
-                    JOIN platform_item_versions v ON v.id = f.item_version_id
-                    JOIN platform_items i ON i.id = v.item_id
-                       AND i.current_published_version_id = v.id
-                    WHERE i.status = 'PUBLISHED' AND v.status = 'PUBLISHED'
-                      AND (f.option_set_id = s.id OR f.unit_set_id = s.id))
-                ORDER BY s.code
-                """, (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("name_en"), rs.getString("name_ar")));
+    private List<NamedRow> optionSets(Scope scope) {
+        String filter = scope == Scope.TRANSLATION ? "status <> 'RETIRED'" : "status = 'ACTIVE'";
+        return jdbc.query("SELECT id, code, name, status FROM platform_option_sets WHERE "
+                        + filter + " ORDER BY code",
+                (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
+                        rs.getString("name"), rs.getString("status")));
     }
 
-    private List<NamedRow> usedOptionValues() {
+    private List<NamedRow> optionValues(Scope scope) {
+        String filter = scope == Scope.TRANSLATION
+                ? "v.status <> 'RETIRED' AND s.status <> 'RETIRED'"
+                : "v.status = 'ACTIVE' AND s.status = 'ACTIVE'";
         return jdbc.query("""
-                SELECT DISTINCT v.id, CONCAT(s.code, '.', v.code) AS code,
-                       v.label_en, v.label_ar
+                SELECT v.id, CONCAT(s.code, '.', v.code) AS code, v.label, v.status
                 FROM platform_option_values v
                 JOIN platform_option_sets s ON s.id = v.option_set_id
-                WHERE v.status = 'ACTIVE'
-                  AND EXISTS (
-                    SELECT 1 FROM platform_issue_field_options fo
-                    JOIN platform_issue_fields f ON f.id = fo.issue_field_id
-                    JOIN platform_item_versions iv ON iv.id = f.item_version_id
-                    JOIN platform_items i ON i.id = iv.item_id
-                       AND i.current_published_version_id = iv.id
-                    WHERE fo.option_value_id = v.id
-                      AND i.status = 'PUBLISHED' AND iv.status = 'PUBLISHED')
+                WHERE %s
                 ORDER BY code
-                """, (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("label_en"), rs.getString("label_ar")));
+                """.formatted(filter), (rs, i) -> new NamedRow(rs.getString("id"),
+                rs.getString("code"), rs.getString("label"), rs.getString("status")));
     }
 
-    private List<TemplateRow> activeTemplates() {
+    private List<TemplateRow> templates(Scope scope) {
+        if (scope == Scope.TRANSLATION) {
+            return jdbc.query("""
+                    SELECT id, code, name, description,
+                           CASE WHEN current_published_version_id IS NULL
+                                THEN 'DRAFT' ELSE status END AS content_status
+                    FROM platform_templates WHERE status <> 'RETIRED' ORDER BY code
+                    """, (rs, i) -> new TemplateRow(rs.getString("id"), rs.getString("code"),
+                    rs.getString("name"), rs.getString("description"),
+                    rs.getString("content_status")));
+        }
         return jdbc.query("""
-                SELECT id, code, name_en, name_ar, description_en, description_ar
-                FROM platform_templates WHERE status = 'ACTIVE' ORDER BY code
+                SELECT id, code, name, description, status
+                FROM platform_templates
+                WHERE status = 'ACTIVE' AND current_published_version_id IS NOT NULL
+                ORDER BY code
                 """, (rs, i) -> new TemplateRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("name_en"), rs.getString("name_ar"),
-                rs.getString("description_en"), rs.getString("description_ar")));
+                rs.getString("name"), rs.getString("description"), rs.getString("status")));
     }
 
-    private List<NamedRow> activeDocumentTypes() {
-        return jdbc.query("""
-                SELECT id, code, name_en, name_ar FROM platform_document_types
-                WHERE status = 'ACTIVE' ORDER BY code
-                """, (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("name_en"), rs.getString("name_ar")));
+    private List<NamedRow> documentTypes(Scope scope) {
+        String filter = scope == Scope.TRANSLATION ? "status <> 'RETIRED'" : "status = 'ACTIVE'";
+        return jdbc.query("SELECT id, code, name, status FROM platform_document_types WHERE "
+                        + filter + " ORDER BY code",
+                (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
+                        rs.getString("name"), rs.getString("status")));
     }
 
-    private List<NamedRow> publishedIssueFields() {
+    private List<NamedRow> issueFields(Scope scope) {
+        if (scope == Scope.TRANSLATION) {
+            return jdbc.query("""
+                    SELECT f.id, CONCAT(i.stable_code, '.', f.field_code) AS code, f.label,
+                           v.status
+                    FROM platform_issue_fields f
+                    JOIN platform_item_versions v ON v.id = f.item_version_id
+                    JOIN platform_items i ON i.id = v.item_id
+                    WHERE i.status <> 'RETIRED'
+                      AND (v.id = i.current_published_version_id
+                        OR v.version_no = (
+                            SELECT MAX(v2.version_no) FROM platform_item_versions v2
+                            WHERE v2.item_id = i.id))
+                    ORDER BY code
+                    """, (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
+                    rs.getString("label"), rs.getString("status")));
+        }
         return jdbc.query("""
-                SELECT f.id, CONCAT(i.stable_code, '.', f.field_code) AS code,
-                       f.label_en, f.label_ar
+                SELECT f.id, CONCAT(i.stable_code, '.', f.field_code) AS code, f.label, v.status
                 FROM platform_issue_fields f
                 JOIN platform_item_versions v ON v.id = f.item_version_id
                 JOIN platform_items i ON i.id = v.item_id
@@ -379,7 +418,7 @@ public class TranslationBacklogService {
                 WHERE i.status = 'PUBLISHED' AND v.status = 'PUBLISHED'
                 ORDER BY code
                 """, (rs, i) -> new NamedRow(rs.getString("id"), rs.getString("code"),
-                rs.getString("label_en"), rs.getString("label_ar")));
+                rs.getString("label"), rs.getString("status")));
     }
 
     private boolean entityExists(String entityType, String entityId) {
@@ -400,48 +439,58 @@ public class TranslationBacklogService {
         return count != null && count > 0;
     }
 
-    private String[] baseText(String entityType, String entityId, String field) {
-        List<Map<String, Object>> rows = switch (entityType) {
-            case "CATEGORY" -> jdbc.queryForList(
-                    "SELECT name_en, name_ar FROM platform_categories WHERE id = ?", entityId);
-            case "ITEM" -> "label".equals(field)
-                    ? jdbc.queryForList("""
-                    SELECT label_en AS name_en, label_ar AS name_ar
-                    FROM platform_item_versions WHERE id = ?""", entityId)
-                    : jdbc.queryForList("""
-                    SELECT instruction_en AS name_en, instruction_ar AS name_ar
-                    FROM platform_item_versions WHERE id = ?""", entityId);
-            case "OPTION_SET" -> jdbc.queryForList(
-                    "SELECT name_en, name_ar FROM platform_option_sets WHERE id = ?", entityId);
-            case "OPTION_VALUE" -> jdbc.queryForList(
-                    "SELECT label_en AS name_en, label_ar AS name_ar FROM platform_option_values WHERE id = ?",
-                    entityId);
-            case "TEMPLATE" -> "name".equals(field)
-                    ? jdbc.queryForList(
-                    "SELECT name_en, name_ar FROM platform_templates WHERE id = ?", entityId)
-                    : jdbc.queryForList(
-                    "SELECT description_en AS name_en, description_ar AS name_ar FROM platform_templates WHERE id = ?",
-                    entityId);
-            case "DOCUMENT_TYPE" -> jdbc.queryForList(
-                    "SELECT name_en, name_ar FROM platform_document_types WHERE id = ?", entityId);
-            case "ISSUE_FIELD" -> jdbc.queryForList(
-                    "SELECT label_en AS name_en, label_ar AS name_ar FROM platform_issue_fields WHERE id = ?",
-                    entityId);
+    private String contentStatus(String entityType, String entityId) {
+        String sql = switch (entityType) {
+            case "CATEGORY" -> "SELECT status FROM platform_categories WHERE id = ?";
+            case "ITEM" -> "SELECT status FROM platform_item_versions WHERE id = ?";
+            case "OPTION_SET" -> "SELECT status FROM platform_option_sets WHERE id = ?";
+            case "OPTION_VALUE" -> "SELECT status FROM platform_option_values WHERE id = ?";
+            case "TEMPLATE" -> """
+                    SELECT CASE
+                             WHEN current_published_version_id IS NULL THEN 'DRAFT'
+                             ELSE status
+                           END
+                    FROM platform_templates WHERE id = ?""";
+            case "DOCUMENT_TYPE" -> "SELECT status FROM platform_document_types WHERE id = ?";
+            case "ISSUE_FIELD" -> """
+                    SELECT v.status FROM platform_issue_fields f
+                    JOIN platform_item_versions v ON v.id = f.item_version_id
+                    WHERE f.id = ?""";
+            default -> null;
+        };
+        if (sql == null) {
+            return "";
+        }
+        return jdbc.query(sql, (rs, i) -> rs.getString(1), entityId)
+                .stream().findFirst().orElse("");
+    }
+
+    private String sourceText(String entityType, String entityId, String field) {
+        List<String> rows = switch (entityType) {
+            case "CATEGORY" -> jdbc.query("SELECT name FROM platform_categories WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "ITEM" -> jdbc.query("SELECT "
+                            + switch (field) {
+                                case "label" -> "label";
+                                case "standardSpec" -> "standard_spec";
+                                default -> "instruction";
+                            }
+                            + " FROM platform_item_versions WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "OPTION_SET" -> jdbc.query("SELECT name FROM platform_option_sets WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "OPTION_VALUE" -> jdbc.query("SELECT label FROM platform_option_values WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "TEMPLATE" -> jdbc.query("SELECT " + ("name".equals(field) ? "name" : "description")
+                            + " FROM platform_templates WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "DOCUMENT_TYPE" -> jdbc.query("SELECT name FROM platform_document_types WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
+            case "ISSUE_FIELD" -> jdbc.query("SELECT label FROM platform_issue_fields WHERE id = ?",
+                    (rs, i) -> rs.getString(1), entityId);
             default -> List.of();
         };
-        if (rows.isEmpty()) {
-            return new String[]{"", ""};
-        }
-        Object en = rows.get(0).get("name_en");
-        // H2 upper-cases unaliased labels only when not quoted; aliases above are lowercase.
-        Object ar = rows.get(0).get("name_ar");
-        if (en == null) {
-            en = rows.get(0).get("NAME_EN");
-        }
-        if (ar == null) {
-            ar = rows.get(0).get("NAME_AR");
-        }
-        return new String[]{en == null ? "" : en.toString(), ar == null ? "" : ar.toString()};
+        return rows.isEmpty() || rows.get(0) == null ? "" : rows.get(0);
     }
 
     private String entityCode(String entityType, String entityId) {
@@ -470,8 +519,6 @@ public class TranslationBacklogService {
                 .stream().findFirst().orElse(entityId);
     }
 
-    // ----------------------------------------------------------------- helpers
-
     private LanguageDto requireLanguage(String code) {
         if (code == null || code.isBlank()) {
             throw validation("language", "LANGUAGE_REQUIRED", "error.validation.failed");
@@ -484,16 +531,8 @@ public class TranslationBacklogService {
         return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
     }
 
-    private static String display(String en, String ar, String language, String defaultLang) {
-        if ("ar".equals(language) || "ar".equals(defaultLang)) {
-            if (ar != null && !ar.isBlank()) {
-                return ar;
-            }
-        }
-        if (en != null && !en.isBlank()) {
-            return en;
-        }
-        return ar == null ? "" : ar;
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private static int percent(int approved, int total) {

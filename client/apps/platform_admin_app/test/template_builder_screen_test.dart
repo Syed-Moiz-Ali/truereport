@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 const _itemOne = TemplateItem(
@@ -12,8 +13,7 @@ const _itemOne = TemplateItem(
   itemId: 'item-1',
   itemVersionId: 'version-item-1',
   itemCode: 'BRK-PAD-01',
-  labelEn: 'Brake Pad Thickness',
-  labelAr: 'سمك أقمشة الفرامل',
+  label: 'Brake Pad Thickness',
   categoryId: 'cat-1',
   categoryCode: 'CAT-BRK',
   categoryNameEn: 'Braking Systems & Tyres',
@@ -28,8 +28,7 @@ const _itemTwo = TemplateItem(
   itemId: 'item-2',
   itemVersionId: 'version-item-2',
   itemCode: 'BRK-ROT-01',
-  labelEn: 'Brake Rotors',
-  labelAr: 'أقراص الفرامل',
+  label: 'Brake Rotors',
   categoryId: 'cat-1',
   categoryCode: 'CAT-BRK',
   categoryNameEn: 'Braking Systems & Tyres',
@@ -42,8 +41,7 @@ const _itemTwo = TemplateItem(
 const _category = TemplateCategory(
   categoryId: 'cat-1',
   categoryCode: 'CAT-BRK',
-  nameEn: 'Braking Systems & Tyres',
-  nameAr: 'أنظمة الفرامل والإطارات',
+  name: 'Braking Systems & Tyres',
   sortOrder: 1,
   itemCount: 2,
   includedCount: 2,
@@ -54,10 +52,7 @@ const _category = TemplateCategory(
 const _otherCategory = PlatformCategory(
   id: 'cat-2',
   code: 'CAT-ENG',
-  nameEn: 'Powertrain & Mechanical',
-  nameAr: 'مجموعة الحركة والميكانيكا',
-  labelEn: 'Powertrain & Mechanical',
-  labelAr: 'مجموعة الحركة والميكانيكا',
+  name: 'Powertrain & Mechanical',
   status: 'ACTIVE',
   sortOrder: 2,
   active: true,
@@ -67,10 +62,8 @@ const _otherCategory = PlatformCategory(
 const _template = GlobalTemplate(
   id: 'template-1',
   code: 'TPL-BRK',
-  nameEn: 'Braking Template',
-  nameAr: 'قالب الفرامل',
-  descriptionEn: 'Braking inspection',
-  descriptionAr: 'فحص الفرامل',
+  name: 'Braking Template',
+  description: 'Braking inspection',
   status: 'PUBLISHED',
   currentPublishedVersionId: 'version-1',
   versionCount: 1,
@@ -96,9 +89,22 @@ const _versionDetail = TemplateVersionDetail(
   categories: [_category],
 );
 
+const _zhLanguage = PlatformLanguage(
+  code: 'zh-Hans',
+  nativeName: '中文',
+  direction: 'ltr',
+  active: true,
+  isDefault: false,
+  sortOrder: 3,
+  status: 'DRAFT',
+);
+
 Widget _app({Locale locale = const Locale('en')}) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       templateDetailProvider.overrideWith((ref, id) async => _template),
       templateVersionDetailProvider.overrideWith(
         (ref, key) async => _versionDetail,
@@ -106,13 +112,17 @@ Widget _app({Locale locale = const Locale('en')}) {
       categoriesProvider.overrideWith((ref) async => [_otherCategory]),
       itemsProvider.overrideWith((ref, query) async => const <PlatformItem>[]),
       platformLanguagesProvider.overrideWith(
-        (ref) async => const <PlatformLanguage>[],
+        (ref) async => const <PlatformLanguage>[_zhLanguage],
       ),
     ],
     child: MaterialApp(
       locale: locale,
       supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const TemplateBuilderScreen(templateId: 'template-1'),
     ),
   );
@@ -136,6 +146,14 @@ void main() {
 
     // Details step shows the template names (summary + prefilled fields).
     expect(find.text('Braking Template'), findsWidgets);
+    // English-only details form: no Arabic or dynamic language fields.
+    expect(find.byKey(const Key('template-builder-name')), findsOneWidget);
+    expect(
+      find.byKey(const Key('template-builder-description')),
+      findsOneWidget,
+    );
+    expect(find.text('中文'), findsNothing);
+    expect(find.text('Template name (Arabic)'), findsNothing);
 
     await _goToStep(tester, 1);
     expect(find.text('Braking Systems & Tyres'), findsOneWidget);

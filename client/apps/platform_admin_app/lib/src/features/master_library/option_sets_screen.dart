@@ -34,8 +34,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   bool _editorOpen = false;
   OptionSet? _editorTarget; // null => adding a new set.
   TextEditingController? _editorCode;
-  TextEditingController? _editorNameEn;
-  TextEditingController? _editorNameAr;
+  TextEditingController? _editorName;
   TextEditingController? _editorOrder;
   GlobalKey<FormState>? _editorFormKey;
 
@@ -43,8 +42,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   // [_editingValueId] null => add mode; otherwise edit mode for that value.
   String? _editingValueId;
   late final TextEditingController _valueCodeController;
-  late final TextEditingController _valueLabelEnController;
-  late final TextEditingController _valueLabelArController;
+  late final TextEditingController _valueLabelController;
   late final TextEditingController _valueMetadataController;
   final _valueFormKey = GlobalKey<FormState>();
 
@@ -54,8 +52,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     _setSearchController = TextEditingController();
     _valueSearchController = TextEditingController();
     _valueCodeController = TextEditingController();
-    _valueLabelEnController = TextEditingController();
-    _valueLabelArController = TextEditingController();
+    _valueLabelController = TextEditingController();
     _valueMetadataController = TextEditingController();
   }
 
@@ -65,20 +62,17 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     _setSearchController.dispose();
     _valueSearchController.dispose();
     _valueCodeController.dispose();
-    _valueLabelEnController.dispose();
-    _valueLabelArController.dispose();
+    _valueLabelController.dispose();
     _valueMetadataController.dispose();
     super.dispose();
   }
 
   void _closeEditorControllers() {
     _editorCode?.dispose();
-    _editorNameEn?.dispose();
-    _editorNameAr?.dispose();
+    _editorName?.dispose();
     _editorOrder?.dispose();
     _editorCode = null;
-    _editorNameEn = null;
-    _editorNameAr = null;
+    _editorName = null;
     _editorOrder = null;
     _editorFormKey = null;
   }
@@ -123,8 +117,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
       _editorOpen = true;
       _editorTarget = set;
       _editorCode = TextEditingController(text: set?.code ?? initialCode);
-      _editorNameEn = TextEditingController(text: set?.nameEn ?? '');
-      _editorNameAr = TextEditingController(text: set?.nameAr ?? '');
+      _editorName = TextEditingController(text: set?.name ?? '');
       _editorOrder = TextEditingController(
         text: (set?.sortOrder ?? 0).toString(),
       );
@@ -146,15 +139,13 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     if (formKey == null || formKey.currentState?.validate() != true) return;
     final isNew = _editorTarget == null;
     final code = _editorCode?.text.trim() ?? '';
-    final nameEn = _editorNameEn?.text.trim() ?? '';
-    final nameAr = _editorNameAr?.text.trim() ?? '';
+    final name = _editorName?.text.trim() ?? '';
     final sortOrder = int.tryParse(_editorOrder?.text.trim() ?? '') ?? 0;
     await _run(() async {
       final actions = ref.read(platformConfigActionsProvider);
       final body = <String, dynamic>{
         'code': code,
-        'nameEn': nameEn,
-        'nameAr': nameAr,
+        'name': name,
         'sortOrder': sortOrder,
       };
       if (isNew) {
@@ -198,14 +189,32 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     });
   }
 
+  Future<void> _activateSet(OptionSet set) async {
+    await _run(() async {
+      await ref.read(platformConfigActionsProvider).updateOptionSet(set.id, {
+        'name': set.name,
+        'status': 'ACTIVE',
+      });
+    });
+  }
+
+  Future<void> _activateValue(OptionSet set, OptionValue value) async {
+    await _run(() async {
+      await ref.read(platformConfigActionsProvider).updateOptionValue(
+        set.id,
+        value.id,
+        {'label': value.label, 'status': 'ACTIVE'},
+      );
+    });
+  }
+
   // ---------------------------------------------------------- value editor
 
   void _startEditValue(OptionValue value) {
     setState(() {
       _editingValueId = value.id;
       _valueCodeController.text = value.code;
-      _valueLabelEnController.text = value.labelEn;
-      _valueLabelArController.text = value.labelAr;
+      _valueLabelController.text = value.label;
       _valueMetadataController.text = value.metadataJson;
     });
   }
@@ -214,8 +223,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     void apply() {
       _editingValueId = null;
       _valueCodeController.clear();
-      _valueLabelEnController.clear();
-      _valueLabelArController.clear();
+      _valueLabelController.clear();
       _valueMetadataController.clear();
     }
 
@@ -248,8 +256,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   Future<void> _saveValue(OptionSet set) async {
     if (_valueFormKey.currentState?.validate() != true) return;
     final code = _valueCodeController.text.trim();
-    final labelEn = _valueLabelEnController.text.trim();
-    final labelAr = _valueLabelArController.text.trim();
+    final label = _valueLabelController.text.trim();
     final metadata = _valueMetadataController.text.trim();
     final editingId = _editingValueId;
     await _run(() async {
@@ -261,16 +268,14 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
         }
         await actions.addOptionValue(set.id, <String, dynamic>{
           'code': code,
-          'labelEn': labelEn,
-          'labelAr': labelAr,
+          'label': label,
           'sortOrder': nextOrder,
           'metadataJson': metadata,
         });
         if (mounted) {
           setState(() {
             _valueCodeController.clear();
-            _valueLabelEnController.clear();
-            _valueLabelArController.clear();
+            _valueLabelController.clear();
             _valueMetadataController.clear();
           });
         }
@@ -280,8 +285,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
           if (value.id == editingId) sortOrder = value.sortOrder;
         }
         await actions.updateOptionValue(set.id, editingId, <String, dynamic>{
-          'labelEn': labelEn,
-          'labelAr': labelAr,
+          'label': label,
           'sortOrder': sortOrder,
           'metadataJson': metadata,
         });
@@ -454,8 +458,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
         .where(
           (set) =>
               set.code.toLowerCase().contains(query) ||
-              set.nameEn.toLowerCase().contains(query) ||
-              set.nameAr.toLowerCase().contains(query),
+              set.name.toLowerCase().contains(query),
         )
         .toList(growable: false);
   }
@@ -469,8 +472,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
         .where(
           (value) =>
               value.code.toLowerCase().contains(query) ||
-              value.labelEn.toLowerCase().contains(query) ||
-              value.labelAr.toLowerCase().contains(query) ||
+              value.label.toLowerCase().contains(query) ||
               value.metadataJson.toLowerCase().contains(query),
         )
         .toList(growable: false);
@@ -689,7 +691,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                set.nameEn.isEmpty ? set.code : set.nameEn,
+                _optionSetName(set),
                 style: PtTheme.font(
                   14,
                   weight: FontWeight.w700,
@@ -698,16 +700,6 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (set.nameAr.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  set.nameAr,
-                  textDirection: TextDirection.rtl,
-                  style: PtTheme.font(12, color: PtTheme.muted),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -760,9 +752,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  value.labelEn.isEmpty
-                                      ? value.labelAr
-                                      : value.labelEn,
+                                  _optionValueLabel(value),
                                   style: PtTheme.font(
                                     12,
                                     weight: FontWeight.w600,
@@ -847,18 +837,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
-                  key: const Key('opt-set-name-en'),
-                  controller: _editorNameEn,
+                  key: const Key('opt-set-name'),
+                  controller: _editorName,
                   label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
-                  enabled: !_busy,
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  key: const Key('opt-set-name-ar'),
-                  controller: _editorNameAr,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameAr),
-                  textDirection: TextDirection.rtl,
                   enabled: !_busy,
                   validator: (value) => _required(value, strings),
                 ),
@@ -947,7 +928,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          set.nameEn.isEmpty ? set.code : set.nameEn,
+                          _optionSetName(set),
                           style: PtTheme.font(
                             18,
                             weight: FontWeight.w700,
@@ -956,14 +937,6 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (set.nameAr.isNotEmpty)
-                          Text(
-                            set.nameAr,
-                            textDirection: TextDirection.rtl,
-                            style: PtTheme.font(13, color: PtTheme.muted),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                       ],
                     ),
                   ),
@@ -971,6 +944,15 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      if (set.status == 'DRAFT')
+                        PlatformPrimaryButton(
+                          key: const Key('opt-set-activate'),
+                          label: strings.tKey(
+                            PlatformAdminKeys.buttonContentActivate,
+                          ),
+                          icon: Icons.check_circle_outline_rounded,
+                          onPressed: _busy ? null : () => _activateSet(set),
+                        ),
                       PlatformSecondaryButton(
                         key: const Key('opt-set-edit'),
                         label: strings.tKey(CommonKeys.buttonEdit),
@@ -1113,18 +1095,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             ),
             const SizedBox(height: 10),
             PlatformTextField(
-              key: const Key('opt-value-label-en'),
-              controller: _valueLabelEnController,
+              key: const Key('opt-value-label'),
+              controller: _valueLabelController,
               label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-              enabled: !_busy,
-              validator: (input) => _required(input, strings),
-            ),
-            const SizedBox(height: 10),
-            PlatformTextField(
-              key: const Key('opt-value-label-ar'),
-              controller: _valueLabelArController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-              textDirection: TextDirection.rtl,
               enabled: !_busy,
               validator: (input) => _required(input, strings),
             ),
@@ -1225,6 +1198,18 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         ? null
                         : () => _reorderValue(set, value.id, 1),
                   ),
+                  if (value.status == 'DRAFT')
+                    _smallIconButton(
+                      key: Key('opt-value-activate-${value.id}'),
+                      tooltip: strings.tKey(
+                        PlatformAdminKeys.buttonContentActivate,
+                      ),
+                      icon: Icons.check_circle_outline_rounded,
+                      color: PtTheme.deepGreen,
+                      onPressed: _busy
+                          ? null
+                          : () => _activateValue(set, value),
+                    ),
                   _smallIconButton(
                     key: Key('opt-value-edit-${value.id}'),
                     tooltip: strings.tKey(CommonKeys.buttonEdit),
@@ -1246,7 +1231,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            value.labelEn,
+            _optionValueLabel(value),
             style: PtTheme.font(
               13,
               weight: FontWeight.w600,
@@ -1255,14 +1240,6 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (value.labelAr.isNotEmpty)
-            Text(
-              value.labelAr,
-              textDirection: TextDirection.rtl,
-              style: PtTheme.font(12, color: PtTheme.muted),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
           if (value.metadataJson.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
@@ -1393,6 +1370,14 @@ String? _required(String? value, dynamic strings) {
     return strings.tKey(CommonKeys.validationRequired);
   }
   return null;
+}
+
+String _optionSetName(OptionSet set) {
+  return set.name.isEmpty ? set.code : set.name;
+}
+
+String _optionValueLabel(OptionValue value) {
+  return value.label.isEmpty ? value.code : value.label;
 }
 
 String _failureMessage(Object error) {

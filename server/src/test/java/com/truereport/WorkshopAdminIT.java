@@ -290,6 +290,8 @@ class WorkshopAdminIT extends IntegrationTestBase {
                 .findFirst().orElseThrow();
         masterContent.updateTranslation(platformActor(), item.itemId(), version.id(), "en",
                 new TranslationRequest(label, "Updated instruction"));
+        masterContent.updateTranslation(platformActor(), item.itemId(), version.id(), "ar",
+                new TranslationRequest("نسخة محدثة", "تعليمات محدثة"));
         masterContent.publish(platformActor(), item.itemId(), version.id());
         return version.id();
     }

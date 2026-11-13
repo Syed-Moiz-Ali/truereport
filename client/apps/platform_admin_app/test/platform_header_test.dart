@@ -53,19 +53,16 @@ UiMessageManifest _testManifest() => const UiMessageManifest(
       code: 'en',
       direction: 'ltr',
       nativeName: 'English',
-      nameEn: 'English',
     ),
     UiMessageLanguage(
       code: 'ar',
       direction: 'rtl',
       nativeName: 'العربية',
-      nameEn: 'Arabic',
     ),
     UiMessageLanguage(
       code: 'zh-hans',
       direction: 'ltr',
       nativeName: '中文',
-      nameEn: 'Chinese',
     ),
   ],
 );

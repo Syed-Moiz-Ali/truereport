@@ -87,10 +87,8 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
           .read(platformConfigActionsProvider)
           .createTemplate({
             'code': request.code,
-            'nameEn': request.nameEn,
-            'nameAr': request.nameAr,
-            'descriptionEn': request.descriptionEn,
-            'descriptionAr': request.descriptionAr,
+            'name': request.name,
+            'description': request.description,
           });
       if (!context.mounted) return;
       _openBuilder(context, created.id);
@@ -133,10 +131,8 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
       }
       final created = await actions.createTemplate({
         'code': '${template.code}-COPY',
-        'nameEn': template.nameEn,
-        'nameAr': template.nameAr,
-        'descriptionEn': template.descriptionEn,
-        'descriptionAr': template.descriptionAr,
+        'name': _templateName(template),
+        'description': _templateDescription(template),
       });
       final draftVersionId = _draftVersionId(created);
       if (detail != null && draftVersionId != null) {
@@ -342,7 +338,8 @@ class _TemplateCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final name = template.nameEn.isEmpty ? template.nameAr : template.nameEn;
+    final name = _templateName(template);
+    final description = _templateDescription(template);
     return InkWell(
       onTap: busy ? null : onOpen,
       borderRadius: BorderRadius.circular(14),
@@ -392,31 +389,10 @@ class _TemplateCard extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            if (template.nameEn.isNotEmpty && template.nameAr.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                template.nameAr,
-                textDirection: TextDirection.rtl,
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (template.descriptionEn.isNotEmpty) ...[
+            if (description.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                template.descriptionEn,
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (template.descriptionEn.isEmpty &&
-                template.descriptionAr.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                template.descriptionAr,
-                textDirection: TextDirection.rtl,
+                description,
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
@@ -478,17 +454,13 @@ String _updatedLabel(dynamic strings, GlobalTemplate template) {
 class _CreateTemplateRequest {
   const _CreateTemplateRequest({
     required this.code,
-    required this.nameEn,
-    required this.nameAr,
-    required this.descriptionEn,
-    required this.descriptionAr,
+    required this.name,
+    required this.description,
   });
 
   final String code;
-  final String nameEn;
-  final String nameAr;
-  final String descriptionEn;
-  final String descriptionAr;
+  final String name;
+  final String description;
 }
 
 class _CreateTemplateDialog extends ConsumerStatefulWidget {
@@ -502,18 +474,14 @@ class _CreateTemplateDialog extends ConsumerStatefulWidget {
 class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
-  final _nameEnController = TextEditingController();
-  final _nameArController = TextEditingController();
-  final _descriptionEnController = TextEditingController();
-  final _descriptionArController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
 
   @override
   void dispose() {
     _codeController.dispose();
-    _nameEnController.dispose();
-    _nameArController.dispose();
-    _descriptionEnController.dispose();
-    _descriptionArController.dispose();
+    _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -544,35 +512,18 @@ class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
               ),
               const SizedBox(height: 12),
               PlatformTextField(
-                controller: _nameEnController,
-                label: strings.tKey(PlatformAdminKeys.fieldTemplateNameEn),
+                key: const Key('template-name'),
+                controller: _nameController,
+                label: strings.tKey(PlatformAdminKeys.fieldTemplateName),
                 validator: (value) => (value == null || value.trim().isEmpty)
                     ? strings.tKey(CommonKeys.validationRequired)
                     : null,
               ),
               const SizedBox(height: 12),
               PlatformTextField(
-                controller: _nameArController,
-                label: strings.tKey(PlatformAdminKeys.fieldTemplateNameAr),
-                textDirection: TextDirection.rtl,
-                validator: (value) => (value == null || value.trim().isEmpty)
-                    ? strings.tKey(CommonKeys.validationRequired)
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              PlatformTextField(
-                controller: _descriptionEnController,
-                label: strings.tKey(
-                  PlatformAdminKeys.fieldTemplateDescriptionEn,
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 12),
-              PlatformTextField(
-                controller: _descriptionArController,
-                label: strings.tKey(
-                  PlatformAdminKeys.fieldTemplateDescriptionAr,
-                ),
+                key: const Key('template-description'),
+                controller: _descriptionController,
+                label: strings.tKey(PlatformAdminKeys.fieldTemplateDescription),
                 maxLines: 3,
               ),
             ],
@@ -590,10 +541,8 @@ class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
               Navigator.of(context).pop(
                 _CreateTemplateRequest(
                   code: _codeController.text.trim(),
-                  nameEn: _nameEnController.text.trim(),
-                  nameAr: _nameArController.text.trim(),
-                  descriptionEn: _descriptionEnController.text.trim(),
-                  descriptionAr: _descriptionArController.text.trim(),
+                  name: _nameController.text.trim(),
+                  description: _descriptionController.text.trim(),
                 ),
               );
             },
@@ -610,3 +559,9 @@ int _itemCount(GlobalTemplate template) => template.categories.fold<int>(
   0,
   (sum, category) => sum + category.itemCount,
 );
+
+String _templateName(GlobalTemplate template) {
+  return template.name.isEmpty ? template.code : template.name;
+}
+
+String _templateDescription(GlobalTemplate template) => template.description;

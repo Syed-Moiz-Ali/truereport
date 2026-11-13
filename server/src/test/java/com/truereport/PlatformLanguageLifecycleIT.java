@@ -34,8 +34,8 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
 
         JsonNode created = postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية",
-                 "nativeName":"中文","direction":"ltr","active":true,"sortOrder":10}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©",
+                 "nativeName":"ä¸­æ–‡","direction":"ltr","active":true,"sortOrder":10}
                 """);
         assertThat(created.get("code").asText()).isEqualTo("zh-hans");
         assertThat(created.get("status").asText()).isEqualTo("DRAFT");
@@ -75,7 +75,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
     void draftLanguageHiddenFromPublicList() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
 
         JsonNode publicList = getAnonymousJson("/api/v1/i18n/languages");
@@ -102,7 +102,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
 
         JsonNode backlog = getJson(platform, "/api/v1/platform/i18n/languages/zh-Hans/backlog");
@@ -130,7 +130,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
 
         JsonNode backlog = getJson(platform, "/api/v1/platform/i18n/languages/zh-Hans/backlog");
@@ -138,11 +138,11 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
 
         JsonNode saved = putJson(platform, "/api/v1/platform/i18n/translations", """
                 {"entityType":"%s","entityId":"%s","field":"%s","language":"zh-Hans",
-                 "text":"翻译文本","status":"APPROVED"}
+                 "text":"ç¿»è¯‘æ–‡æœ¬","status":"APPROVED"}
                 """.formatted(first.get("entityType").asText(), first.get("entityId").asText(),
                 first.get("field").asText()));
         assertThat(saved.get("status").asText()).isEqualTo("APPROVED");
-        assertThat(saved.get("text").asText()).isEqualTo("翻译文本");
+        assertThat(saved.get("text").asText()).isEqualTo("ç¿»è¯‘æ–‡æœ¬");
         assertThat(saved.get("entityCode").asText()).isNotBlank();
 
         JsonNode all = getJson(platform, "/api/v1/platform/i18n/languages");
@@ -170,7 +170,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
 
         mockMvc.perform(post("/api/v1/platform/i18n/languages/zh-Hans/publish")
@@ -200,30 +200,37 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
         approveEverything(platform);
         attachUiMessages("zh-Hans");
         postJson(platform, "/api/v1/platform/i18n/languages/zh-Hans/publish", "{}");
 
-        // Creating new live content is blocked while zh-Hans is LIVE.
-        mockMvc.perform(post("/api/v1/platform/master/categories")
-                        .header("Authorization", bearer(platform))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"code":"CAT-GATED","nameEn":"Gated","nameAr":"محجوب","sortOrder":99}
-                                """))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
+        // New source content is allowed; the language workspace flags it as
+        // missing and the content cannot be published until translated.
+        postJson(platform, "/api/v1/platform/master/categories", """
+                {"code":"CAT-GATED","name":"Gated","sortOrder":99}
+                """);
+        postJson(platform, "/api/v1/platform/document-types", """
+                {"code":"GATED_DOC","name":"Gated doc"}
+                """);
 
-        mockMvc.perform(post("/api/v1/platform/document-types")
-                        .header("Authorization", bearer(platform))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"code":"GATED_DOC","nameEn":"Gated doc","nameAr":"مستند محجوب"}
-                                """))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
+        JsonNode backlog = getJson(platform, "/api/v1/platform/i18n/languages/zh-Hans/backlog");
+        JsonNode categories = null;
+        for (JsonNode group : backlog.get("groups")) {
+            if ("CATEGORY".equals(group.get("entityType").asText())) {
+                categories = group;
+            }
+        }
+        assertThat(categories).isNotNull();
+        boolean flagged = false;
+        for (JsonNode entry : categories.get("items")) {
+            if ("CAT-GATED".equals(entry.get("entityCode").asText())) {
+                flagged = true;
+                assertThat(entry.get("status").asText()).isNotEqualTo("APPROVED");
+            }
+        }
+        assertThat(flagged).isTrue();
 
         // Publishing an item without approved zh-Hans overlays is blocked.
         JsonNode item = getJson(platform, "/api/v1/platform/master/items?search=BRK-PAD-01");
@@ -231,6 +238,10 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         JsonNode draft = postJson(platform,
                 "/api/v1/platform/master/items/" + itemId + "/versions", "{}");
         String versionId = draft.get("versions").get(0).get("id").asText();
+        putJson(platform, "/api/v1/platform/master/items/" + itemId
+                + "/versions/" + versionId + "/translations/en", """
+                {"label":"Updated brake pad measurement","instruction":"Updated instruction."}
+                """);
         mockMvc.perform(post("/api/v1/platform/master/items/" + itemId
                                 + "/versions/" + versionId + "/publish")
                         .header("Authorization", bearer(platform))
@@ -295,7 +306,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"Ø§Ù„ØµÙŠÙ†ÙŠØ©","nativeName":"ä¸­æ–‡"}
                 """);
 
         mockMvc.perform(post("/api/v1/platform/i18n/languages/zh-Hans/status")
@@ -344,7 +355,7 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         for (String[] entry : queue) {
             putJson(login, "/api/v1/platform/i18n/translations", """
                     {"entityType":"%s","entityId":"%s","field":"%s","language":"zh-Hans",
-                     "text":"翻译-%s-%s","status":"APPROVED"}
+                     "text":"ç¿»è¯‘-%s-%s","status":"APPROVED"}
                     """.formatted(entry[0], entry[1], entry[2], entry[1], entry[2]));
         }
         JsonNode coverage = getJson(login, "/api/v1/platform/i18n/coverage?language=zh-Hans");

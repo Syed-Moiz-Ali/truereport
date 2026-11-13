@@ -69,8 +69,6 @@ const _unhealthy = ConfigHealth(
 const _languages = [
   PlatformLanguage(
     code: 'en',
-    nameEn: 'English',
-    nameAr: 'الإنجليزية',
     nativeName: 'English',
     direction: 'ltr',
     active: true,
@@ -80,8 +78,6 @@ const _languages = [
   ),
   PlatformLanguage(
     code: 'ar',
-    nameEn: 'Arabic',
-    nameAr: 'العربية',
     nativeName: 'العربية',
     direction: 'rtl',
     active: true,
@@ -91,8 +87,6 @@ const _languages = [
   ),
   PlatformLanguage(
     code: 'zh-Hans',
-    nameEn: 'Chinese',
-    nameAr: 'الصينية',
     nativeName: '中文',
     direction: 'ltr',
     active: true,

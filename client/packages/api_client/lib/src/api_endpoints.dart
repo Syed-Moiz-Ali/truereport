@@ -236,6 +236,16 @@ class ApiEndpoints {
   String get platformLanguagesDefault =>
       '$_root/platform/i18n/languages/default';
   String get platformLanguageCoverage => '$_root/platform/i18n/coverage';
+  String platformLanguageReadiness(String code) =>
+      '$_root/platform/i18n/languages/$code/readiness';
+  String platformLanguageContentGenerate(String code) =>
+      '$_root/platform/i18n/languages/$code/content/generate';
+  String platformLanguageContentGeneration(String code) =>
+      '$_root/platform/i18n/languages/$code/content/generation';
+  String platformLanguageContentGenerationCancel(String code) =>
+      '$_root/platform/i18n/languages/$code/content/generation/cancel';
+  String platformLanguageContentGenerationRetryFailed(String code) =>
+      '$_root/platform/i18n/languages/$code/content/generation/retry-failed';
   String platformLanguageStatus(String code) =>
       '$_root/platform/i18n/languages/$code/status';
   String platformLanguagePublish(String code) =>

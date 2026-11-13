@@ -201,6 +201,8 @@ class TechnicianInspectionIT extends IntegrationTestBase {
                 .filter(value -> value.status().equals("DRAFT")).findFirst().orElseThrow().id();
         masterContent.updateTranslation(platformActor(), first.itemId(), masterDraftVersion, "en",
                 new TranslationRequest("Changed after start", "Changed instruction"));
+        masterContent.updateTranslation(platformActor(), first.itemId(), masterDraftVersion, "ar",
+                new TranslationRequest("تغيير بعد البدء", "تعليمات محدثة"));
         masterContent.publish(platformActor(), first.itemId(), masterDraftVersion);
         // Master/template changes after start must not change this pinned checklist.
         String v2 = createTemplateDraftAndPublish(adminA, templateId);

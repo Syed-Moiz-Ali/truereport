@@ -101,6 +101,46 @@ class PlatformConfigApi {
     return TranslationCoverage.fromJson(_map(data));
   }
 
+  Future<LanguageReadiness> readiness(String code) async {
+    final data = await _api.getDynamic(
+      _endpoints.platformLanguageReadiness(code),
+    );
+    return LanguageReadiness.fromJson(_map(data));
+  }
+
+  Future<ContentGeneration> generateContent(
+    String code, {
+    required List<String> entityTypes,
+    bool force = false,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageContentGenerate(code),
+      body: {'entityTypes': entityTypes, 'force': force},
+    );
+    return ContentGeneration.fromJson(_map(data));
+  }
+
+  Future<ContentGeneration> contentGeneration(String code) async {
+    final data = await _api.getDynamic(
+      _endpoints.platformLanguageContentGeneration(code),
+    );
+    return ContentGeneration.fromJson(_map(data));
+  }
+
+  Future<ContentGeneration> cancelContentGeneration(String code) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageContentGenerationCancel(code),
+    );
+    return ContentGeneration.fromJson(_map(data));
+  }
+
+  Future<ContentGeneration> retryFailedContentGeneration(String code) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguageContentGenerationRetryFailed(code),
+    );
+    return ContentGeneration.fromJson(_map(data));
+  }
+
   // ------------------------------------------------------------- categories
 
   Future<List<PlatformCategory>> categories() async {

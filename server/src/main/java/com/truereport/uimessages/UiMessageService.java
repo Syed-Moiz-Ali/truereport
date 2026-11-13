@@ -56,7 +56,7 @@ public class UiMessageService {
             }
             loaded.put(language.code(), languageCatalog);
             live.add(new ManifestLanguageDto(language.code(), language.direction(),
-                    language.nativeName(), language.nameEn(),
+                    language.nativeName(),
                     subset(languageCatalog.versions(), namespaces),
                     language.uiMessagesPath()));
         }

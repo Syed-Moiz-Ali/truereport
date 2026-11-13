@@ -184,7 +184,7 @@ void main() {
         const UiMessageLanguage(
           code: 'yy',
           direction: 'ltr',
-          nameEn: 'Yyy',
+          nativeName: 'Yyy',
         ).displayName,
         'Yyy',
       );

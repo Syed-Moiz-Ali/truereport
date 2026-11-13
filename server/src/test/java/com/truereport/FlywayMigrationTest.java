@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("119");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("121");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -78,6 +78,27 @@ class FlywayMigrationTest {
         assertThat(columnExists(url, "platform_languages", "ui_messages_path")).isTrue();
         assertThat(columnExists(url, "platform_languages", "ui_messages_hash")).isTrue();
         assertThat(columnExists(url, "platform_languages", "ui_messages_reviewed_at")).isTrue();
+        assertThat(columnExists(url, "platform_languages", "name_en")).isFalse();
+        assertThat(columnExists(url, "platform_languages", "name_ar")).isFalse();
+        assertThat(columnExists(url, "platform_categories", "name")).isTrue();
+        assertThat(columnExists(url, "platform_categories", "name_en")).isFalse();
+        assertThat(columnExists(url, "platform_categories", "name_ar")).isFalse();
+        assertThat(columnExists(url, "platform_item_versions", "label")).isTrue();
+        assertThat(columnExists(url, "platform_item_versions", "label_en")).isFalse();
+        assertThat(columnExists(url, "platform_item_versions", "label_ar")).isFalse();
+        assertThat(columnExists(url, "platform_templates", "name")).isTrue();
+        assertThat(columnExists(url, "platform_templates", "description")).isTrue();
+        assertThat(columnExists(url, "platform_templates", "name_en")).isFalse();
+        assertThat(columnExists(url, "platform_templates", "name_ar")).isFalse();
+        assertThat(columnExists(url, "platform_option_sets", "name")).isTrue();
+        assertThat(columnExists(url, "platform_option_sets", "name_ar")).isFalse();
+        assertThat(columnExists(url, "platform_option_values", "label")).isTrue();
+        assertThat(columnExists(url, "platform_option_values", "label_ar")).isFalse();
+        assertThat(columnExists(url, "platform_document_types", "name")).isTrue();
+        assertThat(columnExists(url, "platform_document_types", "name_ar")).isFalse();
+        assertThat(columnExists(url, "platform_issue_fields", "label")).isTrue();
+        assertThat(columnExists(url, "platform_issue_fields", "label_ar")).isFalse();
+        assertThat(tableExists(url, "platform_content_generation_jobs")).isTrue();
         assertThat(value(url,
                 "SELECT ui_messages_path FROM platform_languages WHERE code = 'en'"))
                 .isEqualTo("platform_admin/en.json");

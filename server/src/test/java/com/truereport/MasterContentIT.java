@@ -75,7 +75,24 @@ class MasterContentIT extends IntegrationTestBase {
                                 {"label":"Updated body panel check","instruction":"Updated instruction."}
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.translations.en.label").value("Updated body panel check"));
+                .andExpect(jsonPath("$.label").value("Updated body panel check"));
+
+        mockMvc.perform(put("/api/v1/platform/master/items/" + itemId + "/versions/" + v2Id
+                                + "/translations/ar")
+                        .header("Authorization", "Bearer " + platform.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"label":"فحص لوحة الجسم","instruction":"تعليمات محدثة."}
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put("/api/v1/platform/master/items/" + itemId + "/metadata")
+                        .header("Authorization", "Bearer " + platform.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"standardSpecEn":"Updated spec","standardSpecAr":"المواصفات المحدثة"}
+                                """))
+                .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/platform/master/items/" + itemId + "/versions/" + v2Id + "/publish")
                         .header("Authorization", "Bearer " + platform.accessToken()))
@@ -85,9 +102,9 @@ class MasterContentIT extends IntegrationTestBase {
         JsonNode versions = getJson(platform, "/api/v1/platform/master/items/" + itemId + "/versions");
         JsonNode v1 = findVersion(versions, 1);
         JsonNode v2 = findVersion(versions, 2);
-        assertThat(v1.get("translations").get("en").get("label").asText())
+        assertThat(v1.get("translations").get("label").get("en").asText())
                 .isEqualTo("Sample body panel check");
-        assertThat(v2.get("translations").get("en").get("label").asText())
+        assertThat(v2.get("translations").get("label").get("en").asText())
                 .isEqualTo("Updated body panel check");
 
         mockMvc.perform(post("/api/v1/platform/master/items/" + itemId + "/retire")
@@ -98,7 +115,7 @@ class MasterContentIT extends IntegrationTestBase {
         JsonNode retired = getJson(platform, "/api/v1/platform/master/items/" + itemId);
         assertThat(retired.get("item").get("status").asText()).isEqualTo("RETIRED");
         assertThat(retired.get("versions").size()).isEqualTo(2);
-        assertThat(findVersion(retired.get("versions"), 1).get("translations").get("en").get("label").asText())
+        assertThat(findVersion(retired.get("versions"), 1).get("translations").get("label").get("en").asText())
                 .isEqualTo("Sample body panel check");
 
         JsonNode audit = getJson(platform, "/api/v1/platform/audit-events");

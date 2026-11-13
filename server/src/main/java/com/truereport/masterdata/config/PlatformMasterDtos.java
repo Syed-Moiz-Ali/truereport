@@ -2,6 +2,7 @@ package com.truereport.masterdata.config;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public final class PlatformMasterDtos {
 
@@ -18,28 +19,32 @@ public final class PlatformMasterDtos {
             String itemId,
             String measurementUnit,
             String sensorTool,
-            String standardSpecEn,
-            String standardSpecAr,
+            String standardSpec,
             boolean safetyCritical,
             boolean multiPoint,
             Integer maxTyreAgeYears,
             boolean allowFreeTextNote,
             int sortOrder,
-            String guideImageId
+            String guideImageId,
+            Map<String, Map<String, String>> translations,
+            String standardSpecEn,
+            String standardSpecAr
     ) {
     }
 
     public record ItemMetadataRequest(
             String measurementUnit,
             String sensorTool,
-            String standardSpecEn,
-            String standardSpecAr,
+            String standardSpec,
+            Map<String, Map<String, String>> translations,
             Boolean safetyCritical,
             Boolean multiPoint,
             Integer maxTyreAgeYears,
             Boolean allowFreeTextNote,
             Integer sortOrder,
-            String guideImageId
+            String guideImageId,
+            String standardSpecEn,
+            String standardSpecAr
     ) {
     }
 
@@ -63,9 +68,11 @@ public final class PlatformMasterDtos {
             BigDecimal maxValue,
             String resultCode,
             int defaultScore,
+            String label,
+            int sortOrder,
+            Map<String, Map<String, String>> translations,
             String labelEn,
-            String labelAr,
-            int sortOrder
+            String labelAr
     ) {
     }
 
@@ -75,8 +82,7 @@ public final class PlatformMasterDtos {
     public record IssueFieldDto(
             String id,
             String fieldCode,
-            String labelEn,
-            String labelAr,
+            String label,
             String inputType,
             String optionSetCode,
             String unitSetCode,
@@ -90,7 +96,10 @@ public final class PlatformMasterDtos {
             Boolean allowMultiple,
             Boolean allowFreeText,
             Integer sortOrder,
-            List<String> allowedValues
+            List<String> allowedValues,
+            Map<String, Map<String, String>> translations,
+            String labelEn,
+            String labelAr
     ) {
     }
 
@@ -108,47 +117,59 @@ public final class PlatformMasterDtos {
     public record OptionValueDto(
             String id,
             String code,
-            String labelEn,
-            String labelAr,
+            String label,
             String status,
             int sortOrder,
-            String metadataJson
+            String metadataJson,
+            Map<String, Map<String, String>> translations,
+            String labelEn,
+            String labelAr
     ) {
     }
 
     public record OptionSetDto(
             String id,
             String code,
-            String nameEn,
-            String nameAr,
+            String name,
             String status,
             int sortOrder,
-            List<OptionValueDto> values
+            List<OptionValueDto> values,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr
     ) {
     }
 
     public record OptionSetRequest(
             String code,
+            String name,
+            Integer sortOrder,
+            Map<String, Map<String, String>> translations,
             String nameEn,
             String nameAr,
-            Integer sortOrder
+            String status
     ) {
     }
 
     public record OptionValueRequest(
             String code,
-            String labelEn,
-            String labelAr,
+            String label,
             Integer sortOrder,
-            String metadataJson
+            String metadataJson,
+            Map<String, Map<String, String>> translations,
+            String labelEn,
+            String labelAr
     ) {
     }
 
     public record OptionValueUpdateRequest(
+            String label,
+            Integer sortOrder,
+            String metadataJson,
+            Map<String, Map<String, String>> translations,
             String labelEn,
             String labelAr,
-            Integer sortOrder,
-            String metadataJson
+            String status
     ) {
     }
 

@@ -9,6 +9,8 @@ public record PublishedItemDto(
         UUID categoryId,
         String categoryLabelEn,
         String categoryLabelAr,
+        String label,
+        String instruction,
         String labelEn,
         String labelAr,
         boolean sampleData,

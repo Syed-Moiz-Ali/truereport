@@ -18,6 +18,13 @@ public record ItemVersionDto(
         List<UUID> equipmentIds,
         UUID guideImageId,
         String publishedAt,
-        Map<String, TranslationDto> translations
+        String label,
+        String instruction,
+        String standardSpec,
+        Map<String, Map<String, String>> translations,
+        String labelEn,
+        String labelAr,
+        String instructionEn,
+        String instructionAr
 ) {
 }

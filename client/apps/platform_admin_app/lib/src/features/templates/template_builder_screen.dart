@@ -14,7 +14,6 @@ import '../../components/platform_toolbar.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../../platform_translations.dart';
 
 import 'package:l10n/l10n.dart';
 
@@ -37,12 +36,8 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   static const int _totalSteps = 4;
 
   final _detailsFormKey = GlobalKey<FormState>();
-  final _nameEnController = TextEditingController();
-  final _nameArController = TextEditingController();
-  final _descriptionEnController = TextEditingController();
-  final _descriptionArController = TextEditingController();
-  final Map<String, TextEditingController> _overlayNameControllers = {};
-  final Map<String, TextEditingController> _overlayDescriptionControllers = {};
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
 
   int _step = 0;
   String? _selectedVersionId;
@@ -50,7 +45,6 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   String? _loadedVersionId;
   String? _prefilledTemplateId;
   bool _busy = false;
-  List<String> _overlayPendingLanguages = [];
 
   @override
   void didUpdateWidget(TemplateBuilderScreen oldWidget) {
@@ -61,22 +55,13 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       _loadedVersionId = null;
       _prefilledTemplateId = null;
       _categories = [];
-      _overlayPendingLanguages = [];
     }
   }
 
   @override
   void dispose() {
-    _nameEnController.dispose();
-    _nameArController.dispose();
-    _descriptionEnController.dispose();
-    _descriptionArController.dispose();
-    for (final controller in _overlayNameControllers.values) {
-      controller.dispose();
-    }
-    for (final controller in _overlayDescriptionControllers.values) {
-      controller.dispose();
-    }
+    _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -111,23 +96,8 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   void _ensureDetails(GlobalTemplate template) {
     if (_prefilledTemplateId == template.id) return;
     _prefilledTemplateId = template.id;
-    _nameEnController.text = template.nameEn;
-    _nameArController.text = template.nameAr;
-    _descriptionEnController.text = template.descriptionEn;
-    _descriptionArController.text = template.descriptionAr;
-  }
-
-  void _ensureOverlayControllers(List<PlatformLanguage> languages) {
-    for (final language in languages) {
-      _overlayNameControllers.putIfAbsent(
-        language.code,
-        TextEditingController.new,
-      );
-      _overlayDescriptionControllers.putIfAbsent(
-        language.code,
-        TextEditingController.new,
-      );
-    }
+    _nameController.text = _templateName(template);
+    _descriptionController.text = _templateDescription(template);
   }
 
   void _syncVersion(TemplateVersionDetail detail) {
@@ -186,20 +156,6 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     GlobalTemplate template,
   ) {
     _ensureDetails(template);
-    final overlayLanguages = ref
-        .watch(platformLanguagesProvider)
-        .maybeWhen(
-          data: (languages) => languages
-              .where(
-                (language) =>
-                    language.code.toLowerCase() != 'en' &&
-                    language.code.toLowerCase() != 'ar',
-              )
-              .toList(growable: false),
-          orElse: () => const <PlatformLanguage>[],
-        );
-    _ensureOverlayControllers(overlayLanguages);
-
     final versions = [...template.versions]
       ..sort((a, b) => b.versionNo.compareTo(a.versionNo));
     final selected =
@@ -227,9 +183,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     final includedCount = includedCategories
         .expand((category) => category.items.where((item) => item.included))
         .length;
-    final displayName = template.nameEn.isEmpty
-        ? template.nameAr
-        : template.nameEn;
+    final displayName = _templateName(template);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -275,12 +229,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                 if (versions.isEmpty)
                   _buildNoVersion(strings)
                 else if (_step == 0)
-                  _buildDetailsStep(
-                    strings,
-                    template,
-                    overlayLanguages,
-                    editing,
-                  )
+                  _buildDetailsStep(strings, template, editing)
                 else if (_step == 1)
                   _buildCategoriesStep(strings, editing)
                 else if (_step == 2)
@@ -447,7 +396,6 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   Widget _buildDetailsStep(
     dynamic strings,
     GlobalTemplate template,
-    List<PlatformLanguage> overlayLanguages,
     bool editing,
   ) {
     return PlatformSectionCard(
@@ -485,8 +433,9 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             ),
             const SizedBox(height: 12),
             PlatformTextField(
-              controller: _nameEnController,
-              label: strings.tKey(PlatformAdminKeys.fieldTemplateNameEn),
+              key: const Key('template-builder-name'),
+              controller: _nameController,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateName),
               enabled: editing,
               validator: (value) => (value == null || value.trim().isEmpty)
                   ? strings.tKey(CommonKeys.validationRequired)
@@ -494,59 +443,12 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             ),
             const SizedBox(height: 12),
             PlatformTextField(
-              controller: _nameArController,
-              label: strings.tKey(PlatformAdminKeys.fieldTemplateNameAr),
-              textDirection: TextDirection.rtl,
-              enabled: editing,
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? strings.tKey(CommonKeys.validationRequired)
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _descriptionEnController,
-              label: strings.tKey(PlatformAdminKeys.fieldTemplateDescriptionEn),
+              key: const Key('template-builder-description'),
+              controller: _descriptionController,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateDescription),
               maxLines: 3,
               enabled: editing,
             ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _descriptionArController,
-              label: strings.tKey(PlatformAdminKeys.fieldTemplateDescriptionAr),
-              maxLines: 3,
-              enabled: editing,
-            ),
-            if (overlayLanguages.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              PlatformSectionHeader(
-                title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-                subtitle: strings.tKey(PlatformAdminKeys.helpStepContent),
-              ),
-              const SizedBox(height: 12),
-              for (final language in overlayLanguages) ...[
-                PlatformTextField(
-                  controller: _overlayNameControllers[language.code],
-                  label:
-                      '${strings.tKey(PlatformAdminKeys.fieldTemplateName)} (${language.nativeName})',
-                  textDirection: language.direction == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
-                  enabled: editing,
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  controller: _overlayDescriptionControllers[language.code],
-                  label:
-                      '${strings.tKey(PlatformAdminKeys.fieldTemplateDescription)} (${language.nativeName})',
-                  maxLines: 2,
-                  textDirection: language.direction == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
-                  enabled: editing,
-                ),
-                const SizedBox(height: 12),
-              ],
-            ],
             if (!editing) ...[
               const SizedBox(height: 8),
               Text(
@@ -581,10 +483,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   (category) => PlatformCategory(
                     id: category.categoryId,
                     code: category.categoryCode,
-                    nameEn: category.nameEn,
-                    nameAr: category.nameAr,
-                    labelEn: category.nameEn,
-                    labelAr: category.nameAr,
+                    name: category.name,
                     status: 'ACTIVE',
                     sortOrder: 0,
                     active: true,
@@ -615,9 +514,9 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
 
   Widget _buildCategoryOrderRow(dynamic strings, int index, bool editing) {
     final category = _categories[index];
-    final displayName = category.nameEn.isEmpty
+    final displayName = category.name.isEmpty
         ? category.categoryCode
-        : category.nameEn;
+        : category.name;
     final included = category.items.where((item) => item.included).length;
     return Container(
       padding: const EdgeInsetsDirectional.symmetric(
@@ -740,9 +639,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     int includedCategories,
     int includedCount,
   ) {
-    final displayName = template.nameEn.isEmpty
-        ? template.nameAr
-        : template.nameEn;
+    final displayName = _templateName(template);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -810,44 +707,6 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             ],
           ),
         ),
-        if (_overlayPendingLanguages.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          PlatformSectionCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 20,
-                  color: PtTheme.gold,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-                        style: PtTheme.font(
-                          13,
-                          weight: FontWeight.w700,
-                          color: PtTheme.ink,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${strings.tKey(PlatformAdminKeys.queueMissing)}: '
-                        '${_overlayPendingLanguages.join(', ')}',
-                        style: PtTheme.font(12, color: PtTheme.muted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
         const SizedBox(height: 12),
         PlatformSectionCard(
           child: Column(
@@ -984,8 +843,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
         _CategoryState(
           categoryId: category.id,
           categoryCode: category.code,
-          nameEn: category.nameEn,
-          nameAr: category.nameAr,
+          name: _categoryName(category),
           itemCount: category.itemCount,
           included: true,
           items: [],
@@ -1034,8 +892,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             itemId: selected.id,
             itemVersionId: version.id,
             itemCode: selected.code,
-            labelEn: selected.labelEn,
-            labelAr: selected.labelAr,
+            label: _itemLabel(selected),
             included: true,
           ),
         );
@@ -1045,20 +902,17 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     }
   }
 
-  /// Persists details (updateTemplate), best-effort translation overlays,
-  /// then the ordered structure (replaceTemplateCategories/replaceTemplateItems).
+  /// Persists details (updateTemplate), then the ordered structure
+  /// (replaceTemplateCategories/replaceTemplateItems).
   Future<void> _save(String versionId) async {
     if (versionId.isEmpty) return;
     await _run(
       () async {
         final actions = ref.read(platformConfigActionsProvider);
         await actions.updateTemplate(widget.templateId, {
-          'nameEn': _nameEnController.text.trim(),
-          'nameAr': _nameArController.text.trim(),
-          'descriptionEn': _descriptionEnController.text.trim(),
-          'descriptionAr': _descriptionArController.text.trim(),
+          'name': _nameController.text.trim(),
+          'description': _descriptionController.text.trim(),
         });
-        await _saveOverlay(widget.templateId);
         await actions.replaceTemplateCategories(widget.templateId, versionId, [
           for (var index = 0; index < _categories.length; index++)
             {
@@ -1091,48 +945,6 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           .read(uiStringsProvider)
           .tKey(CommonKeys.buttonSaveDraft),
     );
-  }
-
-  /// Best-effort overlay upserts for non-en/ar languages. Failures never
-  /// block the save; they surface as a review-step warning instead.
-  Future<void> _saveOverlay(String templateId) async {
-    final pending = <String>[];
-    final api = ref.read(translationApiProvider);
-    for (final entry in _overlayNameControllers.entries) {
-      final name = entry.value.text.trim();
-      if (name.isEmpty) continue;
-      try {
-        await api.upsertTranslation(
-          entityType: 'TEMPLATE',
-          entityId: templateId,
-          field: 'name',
-          language: entry.key,
-          text: name,
-        );
-      } catch (_) {
-        pending.add(entry.key);
-      }
-    }
-    for (final entry in _overlayDescriptionControllers.entries) {
-      final text = entry.value.text.trim();
-      if (text.isEmpty) continue;
-      try {
-        await api.upsertTranslation(
-          entityType: 'TEMPLATE',
-          entityId: templateId,
-          field: 'description',
-          language: entry.key,
-          text: text,
-        );
-      } catch (_) {
-        if (!pending.contains(entry.key)) pending.add(entry.key);
-      }
-    }
-    if (mounted) {
-      setState(() => _overlayPendingLanguages = pending);
-    } else {
-      _overlayPendingLanguages = pending;
-    }
   }
 
   Future<void> _createDraft() async {
@@ -1197,8 +1009,7 @@ class _CategoryState {
   _CategoryState({
     required this.categoryId,
     required this.categoryCode,
-    required this.nameEn,
-    required this.nameAr,
+    required this.name,
     required this.itemCount,
     required this.included,
     required this.items,
@@ -1208,8 +1019,7 @@ class _CategoryState {
       _CategoryState(
         categoryId: category.categoryId,
         categoryCode: category.categoryCode,
-        nameEn: category.nameEn,
-        nameAr: category.nameAr,
+        name: category.name,
         itemCount: category.itemCount,
         included: category.included,
         items: category.items
@@ -1218,8 +1028,7 @@ class _CategoryState {
                 itemId: item.itemId,
                 itemVersionId: item.itemVersionId,
                 itemCode: item.itemCode,
-                labelEn: item.labelEn,
-                labelAr: item.labelAr,
+                label: item.label,
                 included: item.included,
               ),
             )
@@ -1228,8 +1037,7 @@ class _CategoryState {
 
   final String categoryId;
   final String categoryCode;
-  final String nameEn;
-  final String nameAr;
+  final String name;
   final int itemCount;
   final bool included;
   final List<_ItemState> items;
@@ -1240,16 +1048,14 @@ class _ItemState {
     required this.itemId,
     required this.itemVersionId,
     required this.itemCode,
-    required this.labelEn,
-    required this.labelAr,
+    required this.label,
     required this.included,
   });
 
   final String itemId;
   final String itemVersionId;
   final String itemCode;
-  final String labelEn;
-  final String labelAr;
+  final String label;
   bool included;
 }
 
@@ -1274,8 +1080,7 @@ class _ItemPickerBodyState extends ConsumerState<_ItemPickerBody> {
         : widget.items
               .where((item) {
                 return item.code.toLowerCase().contains(query) ||
-                    item.labelEn.toLowerCase().contains(query) ||
-                    item.labelAr.contains(_query.trim());
+                    _itemLabel(item).toLowerCase().contains(query);
               })
               .toList(growable: false);
     if (filtered.isEmpty) {
@@ -1312,8 +1117,7 @@ class _ItemPickerBodyState extends ConsumerState<_ItemPickerBody> {
               final item = filtered[index];
               return ListTile(
                 dense: true,
-                title: Text('${item.code} · ${item.labelEn}'),
-                subtitle: Text(item.labelAr),
+                title: Text('${item.code} · ${_itemLabel(item)}'),
                 onTap: () => Navigator.of(context).pop(item),
               );
             },
@@ -1367,14 +1171,13 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
               .where(
                 (item) =>
                     item.itemCode.toLowerCase().contains(query) ||
-                    item.labelEn.toLowerCase().contains(query) ||
-                    item.labelAr.contains(_query.trim()),
+                    item.label.toLowerCase().contains(query),
               )
               .toList(growable: false);
     final included = category.items.where((item) => item.included).length;
-    final displayName = category.nameEn.isEmpty
+    final displayName = category.name.isEmpty
         ? category.categoryCode
-        : category.nameEn;
+        : category.name;
 
     return PlatformSectionCard(
       child: Column(
@@ -1484,7 +1287,7 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
     _ItemState item,
     int index,
   ) {
-    final label = item.labelEn.isEmpty ? item.labelAr : item.labelEn;
+    final label = item.label;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsetsDirectional.fromSTEB(4, 8, 4, 8),
@@ -1539,20 +1342,6 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (item.labelEn.isNotEmpty && item.labelAr.isNotEmpty) ...[
-                  const SizedBox(height: 1),
-                  Text(
-                    item.labelAr,
-                    textDirection: TextDirection.rtl,
-                    style: PtTheme.font(
-                      12,
-                      lineHeight: 17,
-                      color: PtTheme.muted,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
           ),
@@ -1639,7 +1428,7 @@ class _TemplateSummary extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          template.nameEn.isEmpty ? template.nameAr : template.nameEn,
+          _templateName(template),
           style: PtTheme.font(
             22,
             lineHeight: 28,
@@ -1647,18 +1436,10 @@ class _TemplateSummary extends ConsumerWidget {
             color: PtTheme.ink,
           ),
         ),
-        if (template.nameAr.isNotEmpty) ...[
-          const SizedBox(height: 2),
-          Text(
-            template.nameAr,
-            textDirection: TextDirection.rtl,
-            style: PtTheme.font(13, color: PtTheme.muted),
-          ),
-        ],
-        if (template.descriptionEn.isNotEmpty) ...[
+        if (_templateDescription(template).isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            template.descriptionEn,
+            _templateDescription(template),
             style: PtTheme.font(13, color: PtTheme.muted),
           ),
         ],
@@ -1723,4 +1504,18 @@ TemplateVersionSummary? _findVersion(
     if (version.id == id) return version;
   }
   return null;
+}
+
+String _templateName(GlobalTemplate template) {
+  return template.name.isEmpty ? template.code : template.name;
+}
+
+String _templateDescription(GlobalTemplate template) => template.description;
+
+String _categoryName(PlatformCategory category) {
+  return category.name.isEmpty ? category.code : category.name;
+}
+
+String _itemLabel(PlatformItem item) {
+  return item.label.isEmpty ? item.code : item.label;
 }

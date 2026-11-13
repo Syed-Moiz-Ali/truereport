@@ -1,5 +1,6 @@
 package com.truereport.localization;
 
+import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -7,46 +8,82 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Blocks configuration publishes (and creation of new live content) while a
- * non-EN/AR language is LIVE but its approved overlay text is missing.
- * With only EN/AR live (all production seeds) this gate is a no-op.
+ * Blocks activation/publish of content while a non-default LIVE language has no
+ * approved overlay text for required fields.
  */
 @Service
 public class TranslationGate {
 
     private final JdbcTemplate jdbc;
+    private final LanguageRepository languages;
 
-    public TranslationGate(JdbcTemplate jdbc) {
+    public TranslationGate(JdbcTemplate jdbc, LanguageRepository languages) {
         this.jdbc = jdbc;
+        this.languages = languages;
     }
 
-    /** LIVE language codes beyond the built-in EN/AR pair. */
     public List<String> liveExtendedLanguages() {
-        return jdbc.query("""
-                SELECT code FROM platform_languages
-                WHERE active = TRUE AND status = 'LIVE' AND code NOT IN ('en', 'ar')
-                ORDER BY code
-                """, (rs, i) -> rs.getString(1));
+        String defaultCode = languages.defaultCode();
+        return languages.findLive().stream()
+                .map(LanguageDto::code)
+                .filter(code -> defaultCode == null || !code.equalsIgnoreCase(defaultCode))
+                .toList();
+    }
+
+    /** Creation is always allowed; activation/publish is gated. */
+    public void requireNewContentAllowed(String contentLabel) {
+        // Intentionally a no-op.
+    }
+
+    public boolean overlaysApproved(String entityType, String entityId, List<String> fields) {
+        List<String> extended = liveExtendedLanguages();
+        if (extended.isEmpty()) {
+            return true;
+        }
+        for (String language : extended) {
+            for (String field : fields) {
+                Integer approved = jdbc.queryForObject("""
+                        SELECT COUNT(*) FROM platform_translations
+                        WHERE entity_type = ? AND entity_id = ? AND field_name = ?
+                          AND lang = ? AND status = 'APPROVED'
+                        """, Integer.class, entityType, entityId, field, language);
+                if (approved == null || approved == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean overlaysApproved(String entityType, String entityId) {
+        return overlaysApproved(entityType, entityId,
+                TranslationFieldRegistry.fieldsFor(entityType));
     }
 
     /**
-     * Fail-fast for creating new live content while an extended language is
-     * LIVE: a brand-new entity cannot have approved overlay text yet, so the
-     * operator must either translate first or retire the language.
+     * True when the supplied request translations cover every LIVE extended
+     * language for the field. Used to choose ACTIVE vs DRAFT at creation time.
      */
-    public void requireNewContentAllowed(String contentLabel) {
+    public boolean translationProvidedForLive(Map<String, Map<String, String>> translations,
+                                              String field) {
         List<String> extended = liveExtendedLanguages();
-        if (!extended.isEmpty()) {
-            throw ApiException.validation("TRANSLATION_REQUIRED",
-                    contentLabel + " cannot be created while language(s) "
-                            + String.join(",", extended) + " are LIVE without translations",
-                    extended.stream()
-                            .map(code -> FieldIssue.of(code, "TRANSLATION_REQUIRED",
-                                    "error.translation.required"))
-                            .toList());
+        if (extended.isEmpty()) {
+            return true;
         }
+        Map<String, String> values = translations == null ? null : translations.get(field);
+        if (values == null) {
+            return false;
+        }
+        for (String language : extended) {
+            String text = values.get(language);
+            if (text == null || text.isBlank()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Requires APPROVED overlay text for every extended LIVE language. */
@@ -75,5 +112,10 @@ public class TranslationGate {
                             + " translations are required before publishing",
                     missing);
         }
+    }
+
+    public void requireOverlaysApproved(String entityType, String entityId) {
+        requireOverlaysApproved(entityType, entityId,
+                TranslationFieldRegistry.fieldsFor(entityType));
     }
 }

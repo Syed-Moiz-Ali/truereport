@@ -1,6 +1,7 @@
 package com.truereport.documents;
 
 import java.util.List;
+import java.util.Map;
 
 public final class DocumentTypeDtos {
 
@@ -10,29 +11,35 @@ public final class DocumentTypeDtos {
     public record DocumentTypeDto(
             String id,
             String code,
-            String nameEn,
-            String nameAr,
+            String name,
             String status,
             boolean required,
-            int sortOrder
+            int sortOrder,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr
     ) {
     }
 
     public record CreateDocumentTypeRequest(
             String code,
-            String nameEn,
-            String nameAr,
+            String name,
             Boolean required,
-            Integer sortOrder
+            Integer sortOrder,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr
     ) {
     }
 
     public record UpdateDocumentTypeRequest(
-            String nameEn,
-            String nameAr,
+            String name,
             Boolean required,
             Integer sortOrder,
-            Boolean active
+            Boolean active,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr
     ) {
     }
 

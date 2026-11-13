@@ -6,15 +6,13 @@ import 'package:platform_admin_app/src/components/platform_category_picker.dart'
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 const _category = PlatformCategory(
   id: 'cat-1',
   code: 'CAT-BRK',
-  nameEn: 'Braking Systems & Tyres',
-  nameAr: 'أنظمة الفرامل والإطارات',
-  labelEn: 'Braking Systems & Tyres',
-  labelAr: 'أنظمة الفرامل والإطارات',
+  name: 'Braking Systems & Tyres',
   status: 'ACTIVE',
   sortOrder: 1,
   active: true,
@@ -29,14 +27,13 @@ const _item = PlatformItem(
   categoryLabelAr: 'أنظمة الفرامل والإطارات',
   status: 'PUBLISHED',
   currentVersion: 1,
-  labelEn: 'Brake Pad Thickness',
-  labelAr: 'سمك أقمشة الفرامل',
+  label: 'Brake Pad Thickness',
+  instruction: 'Measure the pad thickness.',
+  standardSpec: 'Above 3.0 mm',
   sampleData: false,
   updatedAt: '',
   measurementUnit: 'MM',
   sensorTool: 'Vernier',
-  standardSpecEn: 'Above 3.0 mm',
-  standardSpecAr: 'أعلى من 3.0 مم',
   safetyCritical: true,
   multiPoint: true,
   maxTyreAgeYears: null,
@@ -67,7 +64,10 @@ Widget _app({
   ConfigHealth health = _healthy,
 }) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       categoriesProvider.overrideWith((ref) async => const [_category]),
       itemsProvider.overrideWith((ref, query) async => const [_item]),
       configHealthProvider.overrideWith((ref) async => health),
@@ -75,7 +75,11 @@ Widget _app({
     child: MaterialApp(
       locale: locale,
       supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: MediaQuery(
         data: MediaQueryData(size: Size(width, 900)),
         child: const MasterLibraryScreen(),

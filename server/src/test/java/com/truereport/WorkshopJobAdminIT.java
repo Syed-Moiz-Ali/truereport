@@ -419,11 +419,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
         jdbc.update("""
                 INSERT INTO platform_categories
-                    (id, code, name_en, name_ar, weight_percentage, status, sort_order,
+                    (id, code, name, weight_percentage, status, sort_order,
                      created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, 100, 'ACTIVE', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, categoryId, "job-cat-" + suffix, "Job Category " + suffix,
-                "فئة الوظيفة " + suffix);
+                VALUES (?, ?, ?, 100, 'ACTIVE', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, categoryId, "job-cat-" + suffix, "Job Category " + suffix);
 
         insertItem(itemOneId, versionOneId, categoryId, "JOB-ITEM-A-" + suffix,
                 "Front Brake Pads " + suffix, true, 1);
@@ -432,11 +431,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
         jdbc.update("""
                 INSERT INTO platform_templates
-                    (id, code, name_en, name_ar, status, current_published_version_id,
+                    (id, code, name, status, current_published_version_id,
                      created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, 'ACTIVE', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, templateId, "JOB-TPL-" + suffix, "Job Template " + suffix,
-                "قالب الوظيفة " + suffix);
+                VALUES (?, ?, ?, 'ACTIVE', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, templateId, "JOB-TPL-" + suffix, "Job Template " + suffix);
         jdbc.update("""
                 INSERT INTO platform_template_versions
                     (id, template_id, version_no, status, published_at, published_by,
@@ -475,14 +473,13 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
                 """, itemId, code, categoryId, sortOrder);
         jdbc.update("""
                 INSERT INTO platform_item_versions
-                    (id, item_id, version_no, status, label_en, label_ar, instruction_en,
-                     instruction_ar, measurement_unit, safety_critical, multi_point,
+                    (id, item_id, version_no, status, label, instruction,
+                     measurement_unit, safety_critical, multi_point,
                      allow_free_text_note, note_requirement, evidence_requirement, min_photos,
                      created_at, updated_at, version)
-                VALUES (?, ?, 1, 'PUBLISHED', ?, ?, ?, ?, 'MM', ?, FALSE, FALSE,
+                VALUES (?, ?, 1, 'PUBLISHED', ?, ?, 'MM', ?, FALSE, FALSE,
                         'OPTIONAL', 'REQUIRED', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, versionId, itemId, label, "عربي " + label, "Instruction " + label,
-                "تعليمات " + label, safetyCritical);
+                """, versionId, itemId, label, "Instruction " + label, safetyCritical);
         jdbc.update("""
                 UPDATE platform_items SET current_published_version_id = ? WHERE id = ?
                 """, versionId, itemId);
@@ -492,10 +489,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         String ruleId = UuidV7.generate().toString();
         jdbc.update("""
                 INSERT INTO platform_scoring_rules
-                    (id, code, name_en, name_ar, active, category_weight_mode,
+                    (id, code, name, active, category_weight_mode,
                      hard_fail_cap_enabled, hard_fail_cap_grade, pending_approval,
                      created_at, updated_at, version)
-                VALUES (?, ?, 'Job scoring', 'تقييم الوظيفة', TRUE,
+                VALUES (?, ?, 'Job scoring', TRUE,
                         'CONFIGURED', TRUE, 'B', FALSE, CURRENT_TIMESTAMP,
                         CURRENT_TIMESTAMP, 0)
                 """, ruleId, "JOB-SCORE-" + UUID.randomUUID());
@@ -508,21 +505,21 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
     private void insertBoundary(String ruleId, String grade, int min, int max, int order) {
         jdbc.update("""
                 INSERT INTO platform_grade_boundaries
-                    (id, scoring_rule_id, grade_code, min_score, max_score, label_en, label_ar,
+                    (id, scoring_rule_id, grade_code, min_score, max_score, label,
                      sort_order, approved, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """, UuidV7.generate().toString(), ruleId, grade, min, max,
-                "Grade " + grade, "الدرجة " + grade, order);
+                "Grade " + grade, order);
     }
 
     private void insertDocumentType(String code, String name, int order) {
         jdbc.update("""
                 INSERT INTO platform_document_types
-                    (id, code, name_en, name_ar, status, is_required, sort_order,
+                    (id, code, name, status, is_required, sort_order,
                      created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, 'ACTIVE', FALSE, ?, CURRENT_TIMESTAMP,
+                VALUES (?, ?, ?, 'ACTIVE', FALSE, ?, CURRENT_TIMESTAMP,
                         CURRENT_TIMESTAMP, 0)
-                """, UuidV7.generate().toString(), code, name, "عربي " + name, order);
+                """, UuidV7.generate().toString(), code, name, order);
     }
 
     private JsonNode postJson(Login login, String path, String body) throws Exception {

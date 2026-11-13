@@ -68,8 +68,6 @@ class FakeTranslationApi extends TranslationApi {
 
   PlatformLanguage _language(String code) => PlatformLanguage(
     code: code,
-    nameEn: code == 'zh-Hans' ? 'Chinese (Simplified)' : code,
-    nameAr: '',
     nativeName: code == 'zh-Hans' ? '中文' : code,
     direction: 'ltr',
     active: true,
@@ -217,8 +215,6 @@ Widget _buildTestApp({
         (ref) async => <PlatformLanguage>[
           const PlatformLanguage(
             code: 'en',
-            nameEn: 'English',
-            nameAr: 'الإنجليزية',
             nativeName: 'English',
             direction: 'ltr',
             active: true,
@@ -228,8 +224,6 @@ Widget _buildTestApp({
           ),
           PlatformLanguage(
             code: code,
-            nameEn: 'Chinese (Simplified)',
-            nameAr: '',
             nativeName: '中文',
             direction: 'ltr',
             active: true,

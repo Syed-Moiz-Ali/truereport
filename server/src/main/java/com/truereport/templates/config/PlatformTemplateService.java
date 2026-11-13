@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
+import com.truereport.localization.DynamicContentTranslations;
+import com.truereport.localization.TranslationFieldRegistry;
 import com.truereport.localization.TranslationGate;
 import com.truereport.shared.outbox.OutboxService;
 import com.truereport.shared.security.CurrentUser;
@@ -29,17 +31,20 @@ public class PlatformTemplateService {
     private final TemplateRepository templates;
     private final FieldAuditService audit;
     private final TranslationGate translationGate;
+    private final DynamicContentTranslations translations;
     private final OutboxService outbox;
     private final ObjectMapper objectMapper;
 
     public PlatformTemplateService(TemplateRepository templates, FieldAuditService audit,
                                     OutboxService outbox, ObjectMapper objectMapper,
-                                    TranslationGate translationGate) {
+                                    TranslationGate translationGate,
+                                    DynamicContentTranslations translations) {
         this.templates = templates;
         this.audit = audit;
         this.outbox = outbox;
         this.objectMapper = objectMapper;
         this.translationGate = translationGate;
+        this.translations = translations;
     }
 
     @Transactional(readOnly = true)
@@ -67,46 +72,62 @@ public class PlatformTemplateService {
     public TemplateSummaryDto create(CurrentUser actor, CreateTemplateRequest request) {
         translationGate.requireNewContentAllowed("Template");
         String code = trimToNull(request.code());
-        String nameEn = trimToNull(request.nameEn());
-        String nameAr = trimToNull(request.nameAr());
-        if (code == null || nameEn == null || nameAr == null) {
+        String name = trimToNull(firstNonBlank(request.name(), request.nameEn()));
+        if (code == null || name == null) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "TEMPLATE_INVALID",
                     "error.template.invalid",
-                    "Template code, nameEn and nameAr are required");
+                    "Template code and source name are required");
         }
         if (templates.codeExists(code)) {
             throw new ApiException(HttpStatus.CONFLICT, "TEMPLATE_CODE_EXISTS",
                     "error.template.codeExists", "A template with this code already exists");
         }
-        String id = templates.insertTemplate(code, nameEn, nameAr,
-                trimToNull(request.descriptionEn()), trimToNull(request.descriptionAr()));
+        String description = trimToNull(firstNonBlank(request.description(),
+                request.descriptionEn()));
+        Map<String, Map<String, String>> fields = legacyFields(request.translations(),
+                request.nameAr(), request.descriptionAr());
+        String id = templates.insertTemplate(code, name, description, fields);
         String versionId = templates.insertVersion(id, 1, "DRAFT");
         audit.record(actor, "TEMPLATE_CREATED", "TEMPLATE", id, null,
-                Map.of("code", code, "nameEn", nameEn, "nameAr", nameAr,
-                        "draftVersionId", versionId), null, null);
+                Map.of("code", code, "name", name, "draftVersionId", versionId), null, null);
         return detail(id);
     }
 
     @Transactional
     public TemplateSummaryDto update(CurrentUser actor, String id, UpdateTemplateRequest request) {
         TemplateSummaryDto before = detail(id);
-        String nameEn = isBlank(request.nameEn()) ? before.nameEn() : request.nameEn().trim();
-        String nameAr = isBlank(request.nameAr()) ? before.nameAr() : request.nameAr().trim();
-        String descriptionEn = request.descriptionEn() == null
-                ? before.descriptionEn() : trimToNull(request.descriptionEn());
-        String descriptionAr = request.descriptionAr() == null
-                ? before.descriptionAr() : trimToNull(request.descriptionAr());
-        templates.updateTemplate(id, nameEn, nameAr, descriptionEn, descriptionAr);
+        String name = trimToNull(firstNonBlank(request.name(), request.nameEn()));
+        String description = request.description() == null && request.descriptionEn() == null
+                ? before.description()
+                : trimToNull(firstNonBlank(request.description(), request.descriptionEn()));
+        Map<String, Map<String, String>> fields = legacyFields(request.translations(),
+                request.nameAr(), request.descriptionAr());
+        templates.updateTemplate(id, name, description, fields);
         TemplateSummaryDto after = detail(id);
         audit.record(actor, "TEMPLATE_UPDATED", "TEMPLATE", id,
-                Map.of("nameEn", before.nameEn(), "nameAr", before.nameAr(),
-                        "descriptionEn", nullSafe(before.descriptionEn()),
-                        "descriptionAr", nullSafe(before.descriptionAr())),
-                Map.of("nameEn", after.nameEn(), "nameAr", after.nameAr(),
-                        "descriptionEn", nullSafe(after.descriptionEn()),
-                        "descriptionAr", nullSafe(after.descriptionAr())),
+                Map.of("name", before.name()),
+                Map.of("name", after.name()),
                 null, null);
         return after;
+    }
+
+    private Map<String, Map<String, String>> legacyFields(
+            Map<String, Map<String, String>> provided, String nameAr, String descriptionAr) {
+        Map<String, String> legacy = new java.util.LinkedHashMap<>();
+        if (!isBlank(nameAr)) {
+            legacy.put("name", nameAr.trim());
+        }
+        if (!isBlank(descriptionAr)) {
+            legacy.put("description", descriptionAr.trim());
+        }
+        return translations.mergeLegacy(provided, legacy);
+    }
+
+    private static String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred;
+        }
+        return fallback;
     }
 
     @Transactional
@@ -173,10 +194,10 @@ public class PlatformTemplateService {
                     "error.template.itemsRequired",
                     "A template must contain at least one category with one included item before it can be published");
         }
-        if (isBlank(template.nameEn()) || isBlank(template.nameAr())) {
+        if (isBlank(template.name())) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "TEMPLATE_NAME_REQUIRED",
                     "error.template.nameRequired",
-                    "A template must have both an English and an Arabic name before it can be published");
+                    "A template must have a source-language name before it can be published");
         }
         translationGate.requireOverlaysApproved("TEMPLATE", templateId,
                 java.util.List.of("name", "description"));
@@ -297,3 +318,4 @@ public class PlatformTemplateService {
                 "error.template.notFound", "Template not found");
     }
 }
+

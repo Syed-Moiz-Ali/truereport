@@ -1,5 +1,6 @@
 package com.truereport.masterdata.api;
 
+import java.util.Map;
 import java.util.UUID;
 
 public record ItemSummaryDto(
@@ -10,19 +11,23 @@ public record ItemSummaryDto(
         String categoryLabelAr,
         String status,
         Integer currentVersion,
-        String labelEn,
-        String labelAr,
+        String label,
+        String instruction,
         boolean sampleData,
         String updatedAt,
         String measurementUnit,
         String sensorTool,
-        String standardSpecEn,
-        String standardSpecAr,
+        String standardSpec,
         boolean safetyCritical,
         boolean multiPoint,
         Integer maxTyreAgeYears,
         boolean allowFreeTextNote,
         int sortOrder,
-        String guideImageId
+        String guideImageId,
+        Map<String, Map<String, String>> translations,
+        String labelEn,
+        String labelAr,
+        String standardSpecEn,
+        String standardSpecAr
 ) {
 }

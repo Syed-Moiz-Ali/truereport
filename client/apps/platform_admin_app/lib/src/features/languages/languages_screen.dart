@@ -171,16 +171,25 @@ class LanguagesScreen extends ConsumerWidget {
                     )
                   : _LanguagesContent(
                       items: items,
+                      onManage: (item) =>
+                          context.go('/settings/languages/${item.code}'),
                       onEdit: (item) => _edit(context, item),
-                      onCompleteTranslations: (item) => context.go(
-                        '/settings/languages/${item.code}/translations',
-                      ),
                       onGenerateUiMessages: (item) =>
                           _generateUiMessages(context, ref, item),
-                      onReviewUiMessages: (item) =>
-                          context.go('/settings/languages/${item.code}/review'),
+                      onReviewUiMessages: (item) => context.go(
+                        '/settings/languages/${item.code}?tab=ui-text',
+                      ),
+                      onApproveUiMessages: (item) =>
+                          _approveUiMessages(context, ref, item),
+                      onPublish: (item) => _publish(context, ref, item),
                       onToggleActive: (item) =>
                           _toggleActive(context, ref, item),
+                      onRetire: (item) =>
+                          _setStatus(context, ref, item, 'RETIRED'),
+                      onReopen: (item) =>
+                          _setStatus(context, ref, item, 'REVIEW'),
+                      onDeleteOrRetire: (item) =>
+                          _confirmDeleteOrRetire(context, ref, item),
                       onSetDefault: (item) => _setDefault(context, ref, item),
                       onReorder: (items, index, delta) =>
                           _reorder(context, ref, items, index, delta),
@@ -253,6 +262,129 @@ class LanguagesScreen extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  Future<void> _approveUiMessages(
+    BuildContext context,
+    WidgetRef ref,
+    PlatformLanguage language,
+  ) async {
+    final strings = ref.read(uiStringsProvider);
+    try {
+      await ref
+          .read(translationApiProvider)
+          .approveUiMessageReview(language.code);
+      if (!context.mounted) return;
+      ref.invalidate(platformLanguagesProvider);
+      ref.invalidate(readinessProvider(language.code));
+      _showSnack(
+        context,
+        strings.tKey(PlatformAdminKeys.toastUiMessagesReviewApproved),
+      );
+    } on AppFailure catch (failure) {
+      if (!context.mounted) return;
+      _showSnack(context, failure.messageKey, error: true);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnack(context, strings.tKey(CommonKeys.errorGeneric), error: true);
+    }
+  }
+
+  Future<void> _publish(
+    BuildContext context,
+    WidgetRef ref,
+    PlatformLanguage language,
+  ) async {
+    final strings = ref.read(uiStringsProvider);
+    try {
+      await ref.read(translationApiProvider).publishLanguage(language.code);
+      if (!context.mounted) return;
+      ref.invalidate(platformLanguagesProvider);
+      ref.invalidate(readinessProvider(language.code));
+      _showSnack(
+        context,
+        strings.tKey(PlatformAdminKeys.languageWorkspaceToastPublished),
+      );
+    } on AppFailure catch (failure) {
+      if (!context.mounted) return;
+      _showSnack(context, failure.messageKey, error: true);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnack(context, strings.tKey(CommonKeys.errorGeneric), error: true);
+    }
+  }
+
+  Future<void> _setStatus(
+    BuildContext context,
+    WidgetRef ref,
+    PlatformLanguage language,
+    String status,
+  ) async {
+    final strings = ref.read(uiStringsProvider);
+    try {
+      await ref
+          .read(translationApiProvider)
+          .setLanguageStatus(language.code, status);
+      if (!context.mounted) return;
+      ref.invalidate(platformLanguagesProvider);
+      ref.invalidate(readinessProvider(language.code));
+      _showSnack(
+        context,
+        status == 'RETIRED'
+            ? strings.tKey(PlatformAdminKeys.languageWorkspaceToastRetired)
+            : strings.tKey(PlatformAdminKeys.languageWorkspaceToastReopened),
+      );
+    } on AppFailure catch (failure) {
+      if (!context.mounted) return;
+      _showSnack(context, failure.messageKey, error: true);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnack(context, strings.tKey(CommonKeys.errorGeneric), error: true);
+    }
+  }
+
+  Future<void> _confirmDeleteOrRetire(
+    BuildContext context,
+    WidgetRef ref,
+    PlatformLanguage language,
+  ) async {
+    final strings = ref.read(uiStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          strings.tKey(PlatformAdminKeys.languageWorkspaceDialogDeleteOrRetire),
+        ),
+        content: Text(
+          strings.tKey(
+            PlatformAdminKeys.languageWorkspaceDialogDeleteOrRetireBody,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(strings.tKey(CommonKeys.buttonCancel)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(strings.tKey(PlatformAdminKeys.buttonRetire)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await _setStatus(context, ref, language, 'RETIRED');
+  }
+
+  void _showSnack(BuildContext context, String message, {bool error = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: error ? PtTheme.rose : PtTheme.deepGreen,
+        content: Text(message),
+      ),
+    );
   }
 
   Future<void> _toggleActive(
@@ -478,44 +610,112 @@ String _activeLabel(UiMessageStrings strings, bool active) => active
     ? strings.tKey(CommonKeys.statusActive)
     : strings.tKey(CommonKeys.statusRetired);
 
-/// Per-language translation progress from the queue coverage endpoint.
+/// Readiness-driven coverage pills for a single language.
 ///
-/// Renders approved/total plus a missing count using existing localized
-/// labels. Loading or backend errors collapse to nothing so the list still
-/// renders while coverage loads.
-class _LanguageCoveragePill extends ConsumerWidget {
-  const _LanguageCoveragePill({required this.code});
+/// Shows UI-text approved/total, content approved/total and the latest
+/// generation state. Loading or backend errors collapse to a dash so the
+/// registry keeps rendering while coverage loads.
+class _LanguageCoveragePills extends ConsumerWidget {
+  const _LanguageCoveragePills({required this.code});
 
   final String code;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final coverage = ref.watch(languageCoverageProvider(code));
-    return coverage.maybeWhen(
+    final readiness = ref.watch(readinessProvider(code));
+    final generation = ref.watch(contentGenerationProvider(code));
+    final genStatus = _generationLabel(
+      strings,
+      generation.asData?.value.jobStatus ?? '',
+    );
+    return readiness.maybeWhen(
       data: (data) {
-        final missing = data.totalRequired - data.approvedCount;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
+        final ui = data.uiMessages;
+        final contentMissing = data.contentTotal - data.contentApproved;
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
           children: [
             PlatformMetaPill(
-              label: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-              value: '${data.approvedCount}/${data.totalRequired}',
+              label: strings.tKey(
+                PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage,
+              ),
+              value: '${ui.approved}/${ui.total}',
             ),
-            if (missing > 0) ...[
-              const SizedBox(width: 8),
+            PlatformMetaPill(
+              label: strings.tKey(
+                PlatformAdminKeys.languageWorkspaceFieldContentCoverage,
+              ),
+              value: '${data.contentApproved}/${data.contentTotal}',
+            ),
+            if (contentMissing > 0)
               PlatformMetaPill(
                 label: strings.tKey(
-                  PlatformAdminKeys.pageLanguagesMissingTranslations,
+                  PlatformAdminKeys.languageWorkspaceFieldMissing,
                 ),
-                value: '$missing',
+                value: '$contentMissing',
               ),
-            ],
+            PlatformStatusChip(status: genStatus),
           ],
         );
       },
-      orElse: () => const SizedBox.shrink(),
+      orElse: () => Text('-', style: PtTheme.font(12, color: PtTheme.muted)),
     );
+  }
+}
+
+enum _CoverageMetric { uiText, content, generation }
+
+class _LanguageCoverageCell extends ConsumerWidget {
+  const _LanguageCoverageCell({required this.code, required this.metric});
+
+  final String code;
+  final _CoverageMetric metric;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final readiness = ref.watch(readinessProvider(code));
+    final generation = ref.watch(contentGenerationProvider(code));
+    return readiness.maybeWhen(
+      data: (data) {
+        switch (metric) {
+          case _CoverageMetric.uiText:
+            return Text('${data.uiMessages.approved}/${data.uiMessages.total}');
+          case _CoverageMetric.content:
+            return Text('${data.contentApproved}/${data.contentTotal}');
+          case _CoverageMetric.generation:
+            return PlatformStatusChip(
+              status: _generationLabel(
+                strings,
+                generation.asData?.value.jobStatus ?? '',
+              ),
+            );
+        }
+      },
+      orElse: () => Text('-', style: PtTheme.font(12, color: PtTheme.muted)),
+    );
+  }
+}
+
+String _generationLabel(UiMessageStrings strings, String status) {
+  switch (status.toUpperCase()) {
+    case 'QUEUED':
+    case 'RUNNING':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceGenerationRunning);
+    case 'COMPLETED':
+      return strings.tKey(
+        PlatformAdminKeys.languageWorkspaceGenerationCompleted,
+      );
+    case 'FAILED':
+    case 'CANCELLED':
+    case 'INTERRUPTED':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceGenerationFailed);
+    case 'SKIPPED':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceGenerationSkipped);
+    default:
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceGenerationIdle);
   }
 }
 
@@ -544,21 +744,31 @@ String _languageStatusLabel(UiMessageStrings strings, String status) {
 class _LanguagesContent extends StatelessWidget {
   const _LanguagesContent({
     required this.items,
+    required this.onManage,
     required this.onEdit,
-    required this.onCompleteTranslations,
     required this.onGenerateUiMessages,
     required this.onReviewUiMessages,
+    required this.onApproveUiMessages,
+    required this.onPublish,
     required this.onToggleActive,
+    required this.onRetire,
+    required this.onReopen,
+    required this.onDeleteOrRetire,
     required this.onSetDefault,
     required this.onReorder,
   });
 
   final List<PlatformLanguage> items;
+  final ValueChanged<PlatformLanguage> onManage;
   final ValueChanged<PlatformLanguage> onEdit;
-  final ValueChanged<PlatformLanguage> onCompleteTranslations;
   final ValueChanged<PlatformLanguage> onGenerateUiMessages;
   final ValueChanged<PlatformLanguage> onReviewUiMessages;
+  final ValueChanged<PlatformLanguage> onApproveUiMessages;
+  final ValueChanged<PlatformLanguage> onPublish;
   final ValueChanged<PlatformLanguage> onToggleActive;
+  final ValueChanged<PlatformLanguage> onRetire;
+  final ValueChanged<PlatformLanguage> onReopen;
+  final ValueChanged<PlatformLanguage> onDeleteOrRetire;
   final ValueChanged<PlatformLanguage> onSetDefault;
   final void Function(List<PlatformLanguage> items, int index, int delta)
   onReorder;
@@ -567,14 +777,19 @@ class _LanguagesContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth > 1024) {
+        if (constraints.maxWidth > 1180) {
           return _LanguagesTable(
             items: items,
+            onManage: onManage,
             onEdit: onEdit,
-            onCompleteTranslations: onCompleteTranslations,
             onGenerateUiMessages: onGenerateUiMessages,
             onReviewUiMessages: onReviewUiMessages,
+            onApproveUiMessages: onApproveUiMessages,
+            onPublish: onPublish,
             onToggleActive: onToggleActive,
+            onRetire: onRetire,
+            onReopen: onReopen,
+            onDeleteOrRetire: onDeleteOrRetire,
             onSetDefault: onSetDefault,
             onReorder: onReorder,
           );
@@ -585,12 +800,16 @@ class _LanguagesContent extends StatelessWidget {
             for (var index = 0; index < items.length; index++) ...[
               _LanguageCard(
                 language: items[index],
+                onManage: () => onManage(items[index]),
                 onEdit: () => onEdit(items[index]),
-                onCompleteTranslations: () =>
-                    onCompleteTranslations(items[index]),
                 onGenerateUiMessages: () => onGenerateUiMessages(items[index]),
                 onReviewUiMessages: () => onReviewUiMessages(items[index]),
+                onApproveUiMessages: () => onApproveUiMessages(items[index]),
+                onPublish: () => onPublish(items[index]),
                 onToggleActive: () => onToggleActive(items[index]),
+                onRetire: () => onRetire(items[index]),
+                onReopen: () => onReopen(items[index]),
+                onDeleteOrRetire: () => onDeleteOrRetire(items[index]),
                 onSetDefault: () => onSetDefault(items[index]),
                 onMoveUp: index == 0 ? null : () => onReorder(items, index, -1),
                 onMoveDown: index == items.length - 1
@@ -609,21 +828,31 @@ class _LanguagesContent extends StatelessWidget {
 class _LanguagesTable extends StatelessWidget {
   const _LanguagesTable({
     required this.items,
+    required this.onManage,
     required this.onEdit,
-    required this.onCompleteTranslations,
     required this.onGenerateUiMessages,
     required this.onReviewUiMessages,
+    required this.onApproveUiMessages,
+    required this.onPublish,
     required this.onToggleActive,
+    required this.onRetire,
+    required this.onReopen,
+    required this.onDeleteOrRetire,
     required this.onSetDefault,
     required this.onReorder,
   });
 
   final List<PlatformLanguage> items;
+  final ValueChanged<PlatformLanguage> onManage;
   final ValueChanged<PlatformLanguage> onEdit;
-  final ValueChanged<PlatformLanguage> onCompleteTranslations;
   final ValueChanged<PlatformLanguage> onGenerateUiMessages;
   final ValueChanged<PlatformLanguage> onReviewUiMessages;
+  final ValueChanged<PlatformLanguage> onApproveUiMessages;
+  final ValueChanged<PlatformLanguage> onPublish;
   final ValueChanged<PlatformLanguage> onToggleActive;
+  final ValueChanged<PlatformLanguage> onRetire;
+  final ValueChanged<PlatformLanguage> onReopen;
+  final ValueChanged<PlatformLanguage> onDeleteOrRetire;
   final ValueChanged<PlatformLanguage> onSetDefault;
   final void Function(List<PlatformLanguage> items, int index, int delta)
   onReorder;
@@ -641,12 +870,6 @@ class _LanguagesTable extends StatelessWidget {
               label: Text(strings.tKey(PlatformAdminKeys.fieldLanguageCode)),
             ),
             DataColumn(
-              label: Text(strings.tKey(PlatformAdminKeys.fieldItemLabelEn)),
-            ),
-            DataColumn(
-              label: Text(strings.tKey(PlatformAdminKeys.fieldItemLabelAr)),
-            ),
-            DataColumn(
               label: Text(
                 strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
               ),
@@ -656,6 +879,14 @@ class _LanguagesTable extends StatelessWidget {
                 strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
               ),
             ),
+            DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
+            DataColumn(
+              label: Text(
+                strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
+                ),
+              ),
+            ),
             DataColumn(
               label: Text(
                 strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath),
@@ -663,16 +894,29 @@ class _LanguagesTable extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
-            DataColumn(label: Text(strings.tKey(CommonKeys.statusActive))),
             DataColumn(
               label: Text(
-                strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage),
+                strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             DataColumn(
               label: Text(
-                strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+                strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceFieldContentCoverage,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceFieldGenerationStatus,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -680,170 +924,209 @@ class _LanguagesTable extends StatelessWidget {
             DataColumn(label: Text(strings.tKey(CommonKeys.tableActions))),
           ],
           rows: [
-            for (final language in items)
-              DataRow(
-                cells: [
-                  DataCell(
-                    Text(
-                      language.code,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            for (var index = 0; index < items.length; index++)
+              _row(context, strings, items[index], index),
+          ],
+        ),
+      ),
+    );
+  }
+
+  DataRow _row(
+    BuildContext context,
+    UiMessageStrings strings,
+    PlatformLanguage language,
+    int index,
+  ) {
+    return DataRow(
+      cells: [
+        DataCell(
+          Text(language.code, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        DataCell(
+          Text(
+            language.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        DataCell(Text(language.direction)),
+        DataCell(
+          PlatformStatusChip(
+            status: _languageStatusLabel(strings, language.status),
+          ),
+        ),
+        DataCell(
+          language.isDefault
+              ? PlatformStatusChip(
+                  status: strings.tKey(
+                    PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
+                  ),
+                )
+              : const Text('-'),
+        ),
+        DataCell(
+          Text(
+            language.uiMessagesPath.isEmpty ? '-' : language.uiMessagesPath,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        DataCell(
+          _LanguageCoverageCell(
+            code: language.code,
+            metric: _CoverageMetric.uiText,
+          ),
+        ),
+        DataCell(
+          _LanguageCoverageCell(
+            code: language.code,
+            metric: _CoverageMetric.content,
+          ),
+        ),
+        DataCell(
+          _LanguageCoverageCell(
+            code: language.code,
+            metric: _CoverageMetric.generation,
+          ),
+        ),
+        DataCell(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PlatformPrimaryButton(
+                label: strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceButtonManage,
+                ),
+                onPressed: () => onManage(language),
+              ),
+              PopupMenuButton<String>(
+                tooltip: strings.tKey(CommonKeys.tableActions),
+                onSelected: (action) {
+                  switch (action) {
+                    case 'edit':
+                      onEdit(language);
+                    case 'default':
+                      onSetDefault(language);
+                    case 'up':
+                      onReorder(items, index, -1);
+                    case 'down':
+                      onReorder(items, index, 1);
+                    case 'active':
+                      onToggleActive(language);
+                    case 'retire':
+                      onRetire(language);
+                    case 'reopen':
+                      onReopen(language);
+                    case 'deleteRetire':
+                      onDeleteOrRetire(language);
+                    case 'generate':
+                      onGenerateUiMessages(language);
+                    case 'review':
+                      onReviewUiMessages(language);
+                    case 'approve':
+                      onApproveUiMessages(language);
+                    case 'publish':
+                      onPublish(language);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonEditMetadata,
+                      ),
                     ),
                   ),
-                  DataCell(
-                    Text(
-                      language.nameEn,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  if (language.code == 'en' && !language.isDefault)
+                    PopupMenuItem(
+                      value: 'default',
+                      child: Text(
+                        strings.tKey(
+                          PlatformAdminKeys.languageWorkspaceButtonSetDefault,
+                        ),
+                      ),
                     ),
+                  PopupMenuItem(
+                    value: 'up',
+                    enabled: index > 0,
+                    child: Text(strings.tKey(CommonKeys.buttonMoveUp)),
                   ),
-                  DataCell(
-                    Text(
-                      language.nameAr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  PopupMenuItem(
+                    value: 'down',
+                    enabled: index < items.length - 1,
+                    child: Text(strings.tKey(CommonKeys.buttonMoveDown)),
                   ),
-                  DataCell(
-                    Text(
-                      language.nativeName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      language.direction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      language.uiMessagesPath.isEmpty
-                          ? '-'
-                          : language.uiMessagesPath,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    PlatformStatusChip(
-                      status: _languageStatusLabel(strings, language.status),
-                    ),
-                  ),
-                  DataCell(
-                    PlatformStatusChip(
-                      status: _activeLabel(strings, language.active),
-                    ),
-                  ),
-                  DataCell(
-                    language.isDefault
-                        ? PlatformStatusChip(
-                            status: strings.tKey(
-                              PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                  PopupMenuItem(
+                    value: 'active',
+                    child: Text(
+                      language.active
+                          ? strings.tKey(
+                              PlatformAdminKeys
+                                  .languageWorkspaceButtonDeactivate,
+                            )
+                          : strings.tKey(
+                              PlatformAdminKeys.languageWorkspaceButtonActivate,
                             ),
-                          )
-                        : const Text('-'),
+                    ),
                   ),
-                  DataCell(_LanguageCoveragePill(code: language.code)),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: strings.tKey(CommonKeys.buttonReorder),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: items.indexOf(language) == 0
-                              ? null
-                              : () => onReorder(
-                                  items,
-                                  items.indexOf(language),
-                                  -1,
-                                ),
-                          icon: const Icon(
-                            Icons.arrow_upward_rounded,
-                            size: 18,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: strings.tKey(CommonKeys.buttonReorder),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: items.indexOf(language) == items.length - 1
-                              ? null
-                              : () => onReorder(
-                                  items,
-                                  items.indexOf(language),
-                                  1,
-                                ),
-                          icon: const Icon(
-                            Icons.arrow_downward_rounded,
-                            size: 18,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: strings.tKey(CommonKeys.buttonEdit),
-                          onPressed: () => onEdit(language),
-                          icon: const Icon(Icons.edit_outlined, size: 18),
-                        ),
-                        IconButton(
-                          tooltip: strings.tKey(
-                            PlatformAdminKeys
-                                .buttonLanguageCompleteTranslations,
-                          ),
-                          onPressed: () => onCompleteTranslations(language),
-                          icon: const Icon(Icons.translate_rounded, size: 18),
-                        ),
-                        IconButton(
-                          tooltip: strings.tKey(
-                            PlatformAdminKeys.buttonLanguageGenerate,
-                          ),
-                          onPressed: () => onGenerateUiMessages(language),
-                          icon: const Icon(
-                            Icons.cloud_download_rounded,
-                            size: 18,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: strings.tKey(
-                            PlatformAdminKeys.buttonLanguageReview,
-                          ),
-                          onPressed: () => onReviewUiMessages(language),
-                          icon: const Icon(
-                            Icons.rate_review_outlined,
-                            size: 18,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: language.active
-                              ? strings.tKey(CommonKeys.statusRetired)
-                              : strings.tKey(CommonKeys.statusActive),
-                          onPressed: () => onToggleActive(language),
-                          icon: Icon(
-                            language.active
-                                ? Icons.toggle_on_rounded
-                                : Icons.toggle_off_rounded,
-                            size: 22,
-                            color: language.active
-                                ? PtTheme.emerald
-                                : PtTheme.muted,
-                          ),
-                        ),
-                        if (!language.isDefault)
-                          PlatformSecondaryButton(
-                            label: strings.tKey(
-                              PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                  PopupMenuItem(
+                    value: language.status == 'RETIRED' ? 'reopen' : 'retire',
+                    child: Text(
+                      language.status == 'RETIRED'
+                          ? strings.tKey(
+                              PlatformAdminKeys.languageWorkspaceButtonReopen,
+                            )
+                          : strings.tKey(
+                              PlatformAdminKeys.languageWorkspaceButtonRetire,
                             ),
-                            onPressed: () => onSetDefault(language),
-                          ),
-                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'deleteRetire',
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonDeleteOrRetire,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'generate',
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonGenerateUiText,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'review',
+                    child: Text(
+                      strings.tKey(PlatformAdminKeys.buttonLanguageReview),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'approve',
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.buttonUiMessagesReviewApprove,
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'publish',
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonPublish,
+                      ),
                     ),
                   ),
                 ],
               ),
-          ],
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -851,22 +1134,32 @@ class _LanguagesTable extends StatelessWidget {
 class _LanguageCard extends StatelessWidget {
   const _LanguageCard({
     required this.language,
+    required this.onManage,
     required this.onEdit,
-    required this.onCompleteTranslations,
     required this.onGenerateUiMessages,
     required this.onReviewUiMessages,
+    required this.onApproveUiMessages,
+    required this.onPublish,
     required this.onToggleActive,
+    required this.onRetire,
+    required this.onReopen,
+    required this.onDeleteOrRetire,
     required this.onSetDefault,
     required this.onMoveUp,
     required this.onMoveDown,
   });
 
   final PlatformLanguage language;
+  final VoidCallback onManage;
   final VoidCallback onEdit;
-  final VoidCallback onCompleteTranslations;
   final VoidCallback onGenerateUiMessages;
   final VoidCallback onReviewUiMessages;
+  final VoidCallback onApproveUiMessages;
+  final VoidCallback onPublish;
   final VoidCallback onToggleActive;
+  final VoidCallback onRetire;
+  final VoidCallback onReopen;
+  final VoidCallback onDeleteOrRetire;
   final VoidCallback onSetDefault;
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
@@ -874,6 +1167,7 @@ class _LanguageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
+    final retired = language.status == 'RETIRED';
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -900,15 +1194,15 @@ class _LanguageCard extends StatelessWidget {
               if (language.isDefault)
                 PlatformStatusChip(
                   status: strings.tKey(
-                    PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                    PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
                   ),
                 ),
-              _LanguageCoveragePill(code: language.code),
+              _LanguageCoveragePills(code: language.code),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            language.nameEn,
+            language.displayName,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(
@@ -917,23 +1211,6 @@ class _LanguageCard extends StatelessWidget {
               color: PtTheme.ink,
             ),
           ),
-          if (language.nameAr.isNotEmpty)
-            Text(
-              language.nameAr,
-              textDirection: TextDirection.rtl,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(13, color: PtTheme.muted),
-            ),
-          if (language.nativeName.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              '${strings.tKey(PlatformAdminKeys.fieldLanguageNativeName)}: ${language.nativeName}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(12, color: PtTheme.muted),
-            ),
-          ],
           const SizedBox(height: 2),
           Text(
             '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
@@ -942,36 +1219,90 @@ class _LanguageCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(12, color: PtTheme.muted),
           ),
+          if (language.reviewedBy.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldLastReviewed)}: '
+              '${language.reviewedBy} · ${language.reviewedAt}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: PtTheme.font(12, color: PtTheme.muted),
+            ),
+          ],
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              PlatformPrimaryButton(
+                label: strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceButtonManage,
+                ),
+                onPressed: onManage,
+              ),
+              PlatformSecondaryButton(
+                label: strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceButtonEditMetadata,
+                ),
+                icon: Icons.edit_outlined,
+                onPressed: onEdit,
+              ),
+              if (language.code == 'en' && !language.isDefault)
+                PlatformSecondaryButton(
+                  label: strings.tKey(
+                    PlatformAdminKeys.languageWorkspaceButtonSetDefault,
+                  ),
+                  icon: Icons.star_outline_rounded,
+                  onPressed: onSetDefault,
+                ),
               IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonReorder),
+                tooltip: strings.tKey(CommonKeys.buttonMoveUp),
                 onPressed: onMoveUp,
                 icon: const Icon(Icons.arrow_upward_rounded, size: 18),
               ),
               IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonReorder),
+                tooltip: strings.tKey(CommonKeys.buttonMoveDown),
                 onPressed: onMoveDown,
                 icon: const Icon(Icons.arrow_downward_rounded, size: 18),
               ),
               PlatformSecondaryButton(
-                label: strings.tKey(CommonKeys.buttonEdit),
-                icon: Icons.edit_outlined,
-                onPressed: onEdit,
+                label: language.active
+                    ? strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonDeactivate,
+                      )
+                    : strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonActivate,
+                      ),
+                icon: language.active
+                    ? Icons.toggle_on_rounded
+                    : Icons.toggle_off_rounded,
+                onPressed: onToggleActive,
+              ),
+              PlatformSecondaryButton(
+                label: retired
+                    ? strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonReopen,
+                      )
+                    : strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonRetire,
+                      ),
+                icon: retired
+                    ? Icons.lock_open_rounded
+                    : Icons.lock_outline_rounded,
+                onPressed: retired ? onReopen : onRetire,
               ),
               PlatformSecondaryButton(
                 label: strings.tKey(
-                  PlatformAdminKeys.buttonLanguageCompleteTranslations,
+                  PlatformAdminKeys.languageWorkspaceButtonDeleteOrRetire,
                 ),
-                icon: Icons.translate_rounded,
-                onPressed: onCompleteTranslations,
+                icon: Icons.delete_outline_rounded,
+                onPressed: onDeleteOrRetire,
               ),
               PlatformSecondaryButton(
-                label: strings.tKey(PlatformAdminKeys.buttonLanguageGenerate),
+                label: strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceButtonGenerateUiText,
+                ),
                 icon: Icons.cloud_download_rounded,
                 onPressed: onGenerateUiMessages,
               ),
@@ -981,22 +1312,19 @@ class _LanguageCard extends StatelessWidget {
                 onPressed: onReviewUiMessages,
               ),
               PlatformSecondaryButton(
-                label: language.active
-                    ? strings.tKey(CommonKeys.statusRetired)
-                    : strings.tKey(CommonKeys.statusActive),
-                icon: language.active
-                    ? Icons.toggle_on_rounded
-                    : Icons.toggle_off_rounded,
-                onPressed: onToggleActive,
-              ),
-              if (!language.isDefault)
-                PlatformSecondaryButton(
-                  label: strings.tKey(
-                    PlatformAdminKeys.pageLanguagesDefaultLanguage,
-                  ),
-                  icon: Icons.star_outline_rounded,
-                  onPressed: onSetDefault,
+                label: strings.tKey(
+                  PlatformAdminKeys.buttonUiMessagesReviewApprove,
                 ),
+                icon: Icons.verified_rounded,
+                onPressed: onApproveUiMessages,
+              ),
+              PlatformSecondaryButton(
+                label: strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceButtonPublish,
+                ),
+                icon: Icons.publish_rounded,
+                onPressed: onPublish,
+              ),
             ],
           ),
         ],
@@ -1222,12 +1550,11 @@ class _LanguageDialog extends ConsumerStatefulWidget {
 class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _codeController;
-  late final TextEditingController _nameEnController;
-  late final TextEditingController _nameArController;
   late final TextEditingController _nativeNameController;
   late final TextEditingController _sortOrderController;
   late String _direction;
   late bool _active;
+  late bool _isDefault;
   bool _saving = false;
 
   @override
@@ -1235,8 +1562,6 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
     super.initState();
     final initial = widget.initial;
     _codeController = TextEditingController(text: initial?.code ?? '');
-    _nameEnController = TextEditingController(text: initial?.nameEn ?? '');
-    _nameArController = TextEditingController(text: initial?.nameAr ?? '');
     _nativeNameController = TextEditingController(
       text: initial?.nativeName ?? '',
     );
@@ -1244,15 +1569,14 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
       text: '${initial?.sortOrder ?? 0}',
     );
     final direction = initial?.direction ?? '';
-    _direction = direction.isEmpty ? 'LTR' : direction;
+    _direction = direction.isEmpty ? 'LTR' : direction.toUpperCase();
     _active = initial?.active ?? true;
+    _isDefault = initial?.isDefault ?? false;
   }
 
   @override
   void dispose() {
     _codeController.dispose();
-    _nameEnController.dispose();
-    _nameArController.dispose();
     _nativeNameController.dispose();
     _sortOrderController.dispose();
     super.dispose();
@@ -1266,12 +1590,11 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
           .read(platformConfigActionsProvider)
           .saveLanguage(
             code: _codeController.text.trim(),
-            nameEn: _nameEnController.text.trim(),
-            nameAr: _nameArController.text.trim(),
             nativeName: _nativeNameController.text.trim(),
             direction: _direction,
             active: _active,
             sortOrder: int.tryParse(_sortOrderController.text.trim()) ?? 0,
+            isDefault: _isDefault,
             isNew: widget.initial == null,
           );
       if (!mounted) return;
@@ -1315,22 +1638,14 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
             ),
             const SizedBox(height: 12),
             PlatformTextField(
-              controller: _nameEnController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+              controller: _nativeNameController,
+              label: strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
+              textDirection: Directionality.of(context) == TextDirection.rtl
+                  ? TextDirection.rtl
+                  : null,
               validator: (value) => (value == null || value.trim().isEmpty)
                   ? strings.tKey(CommonKeys.validationRequired)
                   : null,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _nameArController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-              textDirection: TextDirection.rtl,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _nativeNameController,
-              label: strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
             ),
             const SizedBox(height: 12),
             PlatformDropdown<String>(
@@ -1367,6 +1682,18 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
               value: _active,
               onChanged: (value) => setState(() => _active = value),
               title: Text(strings.tKey(CommonKeys.statusActive)),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _isDefault,
+              onChanged: widget.initial != null && widget.initial!.code != 'en'
+                  ? null
+                  : (value) => setState(() => _isDefault = value),
+              title: Text(
+                strings.tKey(
+                  PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
+                ),
+              ),
             ),
           ],
         ),

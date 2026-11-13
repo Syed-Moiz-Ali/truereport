@@ -6,6 +6,7 @@ import com.truereport.masterdata.config.PlatformMasterDtos.ItemConfigDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.ItemMetadataDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.ItemMetadataRequest;
 import com.truereport.masterdata.config.PlatformMasterDtos.MeasurementBandDto;
+import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.masterdata.config.PlatformContentStore.ItemRow;
 import com.truereport.masterdata.config.PlatformContentStore.VersionRow;
 import com.truereport.shared.audit.FieldAuditService;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,15 +28,18 @@ public class PlatformItemService {
     private final ItemConfigRepository itemConfig;
     private final OptionSetRepository optionSets;
     private final FieldAuditService audit;
+    private final DynamicContentTranslations translations;
 
     public PlatformItemService(PlatformContentStore content,
                                ItemConfigRepository itemConfig,
                                OptionSetRepository optionSets,
-                               FieldAuditService audit) {
+                               FieldAuditService audit,
+                               DynamicContentTranslations translations) {
         this.content = content;
         this.itemConfig = itemConfig;
         this.optionSets = optionSets;
         this.audit = audit;
+        this.translations = translations;
     }
 
     @Transactional(readOnly = true)
@@ -58,11 +63,19 @@ public class PlatformItemService {
         if (request.sortOrder() != null) {
             content.updateItemSortOrder(itemId.toString(), sortOrder);
         }
+        String standardSpec = request.translations() != null
+                && request.translations().get("standardSpec") != null
+                ? translations.source(request.translations(), "standardSpec", current.standardSpec())
+                : first(request.standardSpecEn(), current.standardSpec());
+        Map<String, String> legacy = new LinkedHashMap<>();
+        if (request.standardSpecAr() != null && !request.standardSpecAr().isBlank()) {
+            legacy.put("standardSpec", request.standardSpecAr().trim());
+        }
         VersionRow updated = content.updateMetadata(itemId, UUID.fromString(current.id()),
                 first(request.measurementUnit(), current.measurementUnit()),
                 first(request.sensorTool(), current.sensorTool()),
-                first(request.standardSpecEn(), current.standardSpecEn()),
-                first(request.standardSpecAr(), current.standardSpecAr()),
+                standardSpec,
+                translations.mergeLegacy(request.translations(), legacy),
                 request.safetyCritical() == null ? current.safetyCritical() : request.safetyCritical(),
                 request.multiPoint() == null ? current.multiPoint() : request.multiPoint(),
                 request.maxTyreAgeYears() == null ? current.maxTyreAgeYears() : request.maxTyreAgeYears(),
@@ -171,10 +184,15 @@ public class PlatformItemService {
     }
 
     private ItemMetadataDto metadataFrom(VersionRow version, int sortOrder) {
+        String source = version.standardSpec() == null ? "" : version.standardSpec();
+        String translatedAr = translations.resolve("ITEM", version.id(), "standardSpec", "ar", source);
+        Map<String, Map<String, String>> fieldTranslations = translations.view(
+                "ITEM", version.id(), Map.of("standardSpec", source));
         return new ItemMetadataDto(version.itemId(), version.measurementUnit(),
-                version.sensorTool(), version.standardSpecEn(), version.standardSpecAr(),
+                version.sensorTool(), source,
                 version.safetyCritical(), version.multiPoint(), version.maxTyreAgeYears(),
-                version.allowFreeTextNote(), sortOrder, version.guideImageId());
+                version.allowFreeTextNote(), sortOrder, version.guideImageId(),
+                fieldTranslations, source, translatedAr);
     }
 
     private static String first(String value, String fallback) {
@@ -186,3 +204,4 @@ public class PlatformItemService {
         return Map.of();
     }
 }
+

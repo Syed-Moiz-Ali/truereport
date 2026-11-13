@@ -11,6 +11,7 @@ import 'package:platform_admin_app/src/features/master_library/option_sets_scree
 import 'package:platform_admin_app/src/platform_config_api.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 // Local test double only. Production screens call the real API client;
@@ -38,7 +39,7 @@ class _FakeConfigApi extends PlatformConfigApi {
   static OptionSet _seedCondition() => const OptionSet(
     id: 'set-1',
     code: 'CONDITION',
-    nameEn: 'Overall Condition',
+    name: 'Overall Condition',
     nameAr: 'الحالة العامة',
     status: 'ACTIVE',
     sortOrder: 1,
@@ -46,7 +47,7 @@ class _FakeConfigApi extends PlatformConfigApi {
       OptionValue(
         id: 'value-1',
         code: 'GOOD',
-        labelEn: 'Good',
+        label: 'Good',
         labelAr: 'جيد',
         status: 'ACTIVE',
         sortOrder: 0,
@@ -55,7 +56,7 @@ class _FakeConfigApi extends PlatformConfigApi {
       OptionValue(
         id: 'value-2',
         code: 'WORN',
-        labelEn: 'Worn',
+        label: 'Worn',
         labelAr: 'بال',
         status: 'ACTIVE',
         sortOrder: 1,
@@ -67,7 +68,7 @@ class _FakeConfigApi extends PlatformConfigApi {
   static OptionSet _seedSeverity() => const OptionSet(
     id: 'set-2',
     code: 'SEVERITY',
-    nameEn: 'Severity Level',
+    name: 'Severity Level',
     nameAr: 'مستوى الخطورة',
     status: 'ACTIVE',
     sortOrder: 2,
@@ -75,7 +76,7 @@ class _FakeConfigApi extends PlatformConfigApi {
       OptionValue(
         id: 'value-3',
         code: 'LOW',
-        labelEn: 'Low',
+        label: 'Low',
         labelAr: 'منخفض',
         status: 'ACTIVE',
         sortOrder: 0,
@@ -87,7 +88,7 @@ class _FakeConfigApi extends PlatformConfigApi {
   static OptionSet _copy(OptionSet set) => OptionSet(
     id: set.id,
     code: set.code,
-    nameEn: set.nameEn,
+    name: set.nameEn,
     nameAr: set.nameAr,
     status: set.status,
     sortOrder: set.sortOrder,
@@ -96,7 +97,7 @@ class _FakeConfigApi extends PlatformConfigApi {
         OptionValue(
           id: value.id,
           code: value.code,
-          labelEn: value.labelEn,
+          label: value.labelEn,
           labelAr: value.labelAr,
           status: value.status,
           sortOrder: value.sortOrder,
@@ -117,7 +118,7 @@ class _FakeConfigApi extends PlatformConfigApi {
     final created = OptionSet(
       id: 'set-${_nextSet++}',
       code: (body['code'] as String? ?? '').trim(),
-      nameEn: (body['nameEn'] as String? ?? '').trim(),
+      name: (body['name'] as String? ?? '').trim(),
       nameAr: (body['nameAr'] as String? ?? '').trim(),
       status: 'ACTIVE',
       sortOrder: (body['sortOrder'] as int? ?? 0),
@@ -139,7 +140,7 @@ class _FakeConfigApi extends PlatformConfigApi {
           OptionSet(
             id: set.id,
             code: set.code,
-            nameEn: (body['nameEn'] as String? ?? set.nameEn).trim(),
+            name: (body['name'] as String? ?? set.nameEn).trim(),
             nameAr: (body['nameAr'] as String? ?? set.nameAr).trim(),
             status: set.status,
             sortOrder: (body['sortOrder'] as int?) ?? set.sortOrder,
@@ -160,7 +161,7 @@ class _FakeConfigApi extends PlatformConfigApi {
           OptionSet(
             id: set.id,
             code: set.code,
-            nameEn: set.nameEn,
+            name: set.nameEn,
             nameAr: set.nameAr,
             status: 'RETIRED',
             sortOrder: set.sortOrder,
@@ -181,7 +182,7 @@ class _FakeConfigApi extends PlatformConfigApi {
     final created = OptionValue(
       id: 'value-${_nextValue++}',
       code: (body['code'] as String? ?? '').trim(),
-      labelEn: (body['labelEn'] as String? ?? '').trim(),
+      label: (body['label'] as String? ?? '').trim(),
       labelAr: (body['labelAr'] as String? ?? '').trim(),
       status: 'ACTIVE',
       sortOrder: (body['sortOrder'] as int? ?? 0),
@@ -193,7 +194,7 @@ class _FakeConfigApi extends PlatformConfigApi {
           OptionSet(
             id: set.id,
             code: set.code,
-            nameEn: set.nameEn,
+            name: set.nameEn,
             nameAr: set.nameAr,
             status: set.status,
             sortOrder: set.sortOrder,
@@ -208,7 +209,7 @@ class _FakeConfigApi extends PlatformConfigApi {
   static OptionValue _copyValue(OptionValue value) => OptionValue(
     id: value.id,
     code: value.code,
-    labelEn: value.labelEn,
+    label: value.labelEn,
     labelAr: value.labelAr,
     status: value.status,
     sortOrder: value.sortOrder,
@@ -229,7 +230,7 @@ class _FakeConfigApi extends PlatformConfigApi {
           OptionSet(
             id: set.id,
             code: set.code,
-            nameEn: set.nameEn,
+            name: set.nameEn,
             nameAr: set.nameAr,
             status: set.status,
             sortOrder: set.sortOrder,
@@ -239,8 +240,7 @@ class _FakeConfigApi extends PlatformConfigApi {
                   OptionValue(
                     id: value.id,
                     code: value.code,
-                    labelEn: (body['labelEn'] as String? ?? value.labelEn)
-                        .trim(),
+                    label: (body['label'] as String? ?? value.labelEn).trim(),
                     labelAr: (body['labelAr'] as String? ?? value.labelAr)
                         .trim(),
                     status: value.status,
@@ -279,7 +279,7 @@ class _FakeConfigApi extends PlatformConfigApi {
           OptionSet(
             id: set.id,
             code: set.code,
-            nameEn: set.nameEn,
+            name: set.nameEn,
             nameAr: set.nameAr,
             status: set.status,
             sortOrder: set.sortOrder,
@@ -289,7 +289,7 @@ class _FakeConfigApi extends PlatformConfigApi {
                   OptionValue(
                     id: value.id,
                     code: value.code,
-                    labelEn: value.labelEn,
+                    label: value.labelEn,
                     labelAr: value.labelAr,
                     status: 'RETIRED',
                     sortOrder: value.sortOrder,
@@ -328,7 +328,7 @@ class _FakeConfigApi extends PlatformConfigApi {
                   OptionValue(
                     id: byCode[ids[i]]!.id,
                     code: byCode[ids[i]]!.code,
-                    labelEn: byCode[ids[i]]!.labelEn,
+                    label: byCode[ids[i]]!.labelEn,
                     labelAr: byCode[ids[i]]!.labelAr,
                     status: byCode[ids[i]]!.status,
                     sortOrder: i,
@@ -338,7 +338,7 @@ class _FakeConfigApi extends PlatformConfigApi {
             return OptionSet(
               id: set.id,
               code: set.code,
-              nameEn: set.nameEn,
+              name: set.nameEn,
               nameAr: set.nameAr,
               status: set.status,
               sortOrder: set.sortOrder,
@@ -359,11 +359,21 @@ Widget _app(
   List<Override> extra = const [],
 }) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), platformConfigApiProvider.overrideWithValue(api), ...extra],
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
+      platformConfigApiProvider.overrideWithValue(api),
+      ...extra,
+    ],
     child: MaterialApp(
       locale: locale,
       supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: MediaQuery(
         data: MediaQueryData(size: size),
         child: const OptionSetsScreen(),
@@ -468,20 +478,16 @@ void main() {
     expect(find.byKey(const Key('opt-set-editor')), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('opt-set-code')), 'NEWSET');
-    await tester.enterText(
-      find.byKey(const Key('opt-set-name-en')),
-      'New Set EN',
-    );
-    await tester.enterText(
-      find.byKey(const Key('opt-set-name-ar')),
-      'مجموعة جديدة',
-    );
+    await tester.enterText(find.byKey(const Key('opt-set-name')), 'New Set');
+    // English-only: no Arabic source field in the set editor.
+    expect(find.byKey(const Key('opt-set-name-ar')), findsNothing);
     await tester.pumpAndSettle();
     await _tap(tester, find.byKey(const Key('opt-set-save')));
 
     expect(api.calls, contains('createOptionSet'));
     expect(find.byKey(const Key('opt-set-editor')), findsNothing);
     expect(find.text('NEWSET'), findsWidgets);
+    expect(find.text('New Set'), findsWidgets);
   });
 
   testWidgets('edit option set through the in-page editor panel', (
@@ -495,7 +501,7 @@ void main() {
     expect(find.byKey(const Key('opt-set-editor')), findsOneWidget);
 
     await tester.enterText(
-      find.byKey(const Key('opt-set-name-en')),
+      find.byKey(const Key('opt-set-name')),
       'Condition Updated',
     );
     await tester.pumpAndSettle();
@@ -511,8 +517,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byKey(const Key('opt-value-code')), 'POOR');
-    await tester.enterText(find.byKey(const Key('opt-value-label-en')), 'Poor');
-    await tester.enterText(find.byKey(const Key('opt-value-label-ar')), 'سيئ');
+    await tester.enterText(find.byKey(const Key('opt-value-label')), 'Poor');
+    // English-only: no Arabic source field in the value editor.
+    expect(find.byKey(const Key('opt-value-label-ar')), findsNothing);
     await tester.pumpAndSettle();
     await _tap(tester, find.byKey(const Key('opt-value-save')));
 
@@ -530,10 +537,7 @@ void main() {
     // Save button switches to Save in edit mode with a cancel affordance.
     expect(find.byKey(const Key('opt-value-cancel')), findsOneWidget);
 
-    await tester.enterText(
-      find.byKey(const Key('opt-value-label-en')),
-      'Great',
-    );
+    await tester.enterText(find.byKey(const Key('opt-value-label')), 'Great');
     await tester.pumpAndSettle();
     await _tap(tester, find.byKey(const Key('opt-value-save')));
     await _tap(tester, find.byKey(const Key('opt-value-save')));
@@ -641,11 +645,18 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
+        overrides: [
+          uiStringsProvider.overrideWithValue(fakeArUiStrings()),
+          platformConfigApiProvider.overrideWithValue(api),
+        ],
         child: const MaterialApp(
           locale: Locale('ar'),
           supportedLocales: <Locale>[Locale('en'), Locale('ar')],
-          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: MediaQuery(
             data: MediaQueryData(size: Size(1280, 900)),
             child: OptionSetsScreen(),
@@ -665,11 +676,18 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
+        overrides: [
+          uiStringsProvider.overrideWithValue(fakeArUiStrings()),
+          platformConfigApiProvider.overrideWithValue(api),
+        ],
         child: const MaterialApp(
           locale: Locale('ar'),
           supportedLocales: <Locale>[Locale('en'), Locale('ar')],
-          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: MediaQuery(
             data: MediaQueryData(size: Size(360, 900)),
             child: OptionSetsScreen(),

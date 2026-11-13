@@ -1,11 +1,17 @@
 package com.truereport.localization.api;
 
+import com.truereport.localization.ContentTranslationGenerationService;
+import com.truereport.localization.LanguageReadinessService;
 import com.truereport.localization.LocalizationService;
 import com.truereport.localization.TranslationBacklogService;
+import com.truereport.localization.api.ContentGenerationDtos.ContentGenerationDto;
+import com.truereport.localization.api.ContentGenerationDtos.GenerateContentRequest;
+import com.truereport.localization.ContentTranslationGenerationService.StartResult;
 import com.truereport.localization.api.LanguageDtos.CreateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.LanguageBacklogDto;
 import com.truereport.localization.api.LanguageDtos.LanguageCoverageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
+import com.truereport.localization.api.LanguageDtos.LanguageReadinessDto;
 import com.truereport.localization.api.LanguageDtos.PublishLanguageResultDto;
 import com.truereport.localization.api.LanguageDtos.ReorderLanguagesRequest;
 import com.truereport.localization.api.LanguageDtos.SetLanguageStatusRequest;
@@ -37,13 +43,19 @@ public class PlatformLanguageController {
 
     private final LocalizationService localization;
     private final TranslationBacklogService backlog;
+    private final LanguageReadinessService readiness;
+    private final ContentTranslationGenerationService contentGeneration;
     private final CurrentUserService currentUserService;
 
     public PlatformLanguageController(LocalizationService localization,
                                       TranslationBacklogService backlog,
+                                      LanguageReadinessService readiness,
+                                      ContentTranslationGenerationService contentGeneration,
                                       CurrentUserService currentUserService) {
         this.localization = localization;
         this.backlog = backlog;
+        this.readiness = readiness;
+        this.contentGeneration = contentGeneration;
         this.currentUserService = currentUserService;
     }
 
@@ -112,11 +124,46 @@ public class PlatformLanguageController {
         return backlog.backlog(code);
     }
 
+    @GetMapping("/languages/{code}/readiness")
+    public LanguageReadinessDto readiness(@PathVariable String code) {
+        return readiness.readiness(code);
+    }
+
     @PostMapping("/languages/{code}/publish")
     public PublishLanguageResultDto publish(JwtAuthenticationToken authentication,
                                             @PathVariable String code,
                                             HttpServletRequest http) {
         CurrentUser actor = currentUserService.require(authentication);
         return backlog.publish(actor, code, http);
+    }
+
+    @PostMapping("/languages/{code}/content/generate")
+    public ResponseEntity<ContentGenerationDto> generateContent(
+            JwtAuthenticationToken authentication,
+            @PathVariable String code,
+            @RequestBody(required = false) GenerateContentRequest request) {
+        CurrentUser actor = currentUserService.require(authentication);
+        StartResult result = contentGeneration.generate(actor, code, request);
+        return ResponseEntity.status(result.accepted() ? 202 : 200)
+                .body(result.generation());
+    }
+
+    @GetMapping("/languages/{code}/content/generation")
+    public ContentGenerationDto contentGeneration(@PathVariable String code) {
+        return contentGeneration.status(code);
+    }
+
+    @PostMapping("/languages/{code}/content/generation/cancel")
+    public ContentGenerationDto cancelContentGeneration(JwtAuthenticationToken authentication,
+                                                        @PathVariable String code) {
+        return contentGeneration.cancel(currentUserService.require(authentication), code);
+    }
+
+    @PostMapping("/languages/{code}/content/generation/retry-failed")
+    public ResponseEntity<ContentGenerationDto> retryContentGeneration(
+            JwtAuthenticationToken authentication, @PathVariable String code) {
+        return ResponseEntity.status(202)
+                .body(contentGeneration.retryFailed(
+                        currentUserService.require(authentication), code));
     }
 }

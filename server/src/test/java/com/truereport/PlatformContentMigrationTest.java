@@ -153,25 +153,32 @@ class PlatformContentMigrationTest {
         try (Connection connection = DriverManager.getConnection(url, "sa", "");
              Statement statement = connection.createStatement()) {
             try (ResultSet rs = statement.executeQuery(
-                    "SELECT code, name_en, name_ar, weight_percentage FROM platform_categories")) {
+                    "SELECT code, name, weight_percentage FROM platform_categories")) {
                 assertThat(rs.next()).isTrue();
                 assertThat(rs.getString("code")).isEqualTo("CAT-LEGACY");
-                assertThat(rs.getString("name_en")).isEqualTo("Legacy category");
+                assertThat(rs.getString("name")).isEqualTo("Legacy category");
                 assertThat(rs.getBigDecimal("weight_percentage")).isEqualByComparingTo("25");
             }
             try (ResultSet rs = statement.executeQuery("""
-                    SELECT i.stable_code, v.label_en, v.measurement_unit, v.safety_critical,
+                    SELECT i.stable_code, v.label, v.measurement_unit, v.safety_critical,
                            i.sort_order, v.guide_image_id
                     FROM platform_items i
                     JOIN platform_item_versions v ON v.item_id = i.id
                     """)) {
                 assertThat(rs.next()).isTrue();
                 assertThat(rs.getString("stable_code")).isEqualTo("LEGACY-ITEM-01");
-                assertThat(rs.getString("label_en")).isEqualTo("Legacy item");
+                assertThat(rs.getString("label")).isEqualTo("Legacy item");
                 assertThat(rs.getString("measurement_unit")).isEqualTo("MM");
                 assertThat(rs.getBoolean("safety_critical")).isTrue();
                 assertThat(rs.getInt("sort_order")).isEqualTo(7);
                 assertThat(rs.getString("guide_image_id")).isEqualTo(guideImageId.toString());
+            }
+            try (ResultSet rs = statement.executeQuery(
+                    "SELECT lang, body FROM platform_translations WHERE entity_type = 'CATEGORY'"
+                            + " AND entity_id = '" + categoryId + "' AND field_name = 'name'")) {
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getString("lang")).isEqualTo("ar");
+                assertThat(rs.getString("body")).isNotBlank();
             }
             try (ResultSet rs = statement.executeQuery(
                     "SELECT COUNT(*) FROM platform_score_bands WHERE item_version_id = '"

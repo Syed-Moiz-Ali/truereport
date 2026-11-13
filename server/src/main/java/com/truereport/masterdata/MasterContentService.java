@@ -16,8 +16,12 @@ import com.truereport.masterdata.api.PublishedItemDto;
 import com.truereport.masterdata.api.ReasonDto;
 import com.truereport.masterdata.api.RulesRequest;
 import com.truereport.masterdata.api.TranslationRequest;
+import com.truereport.localization.DynamicContentTranslations;
+import com.truereport.localization.TranslationFieldRegistry;
+import com.truereport.masterdata.config.PlatformMasterDtos.IssueFieldDto;
 import com.truereport.masterdata.config.ItemConfigRepository;
-import com.truereport.masterdata.config.PlatformContentStore;import com.truereport.masterdata.config.PlatformContentStore.CategoryRow;
+import com.truereport.masterdata.config.PlatformContentStore;
+import com.truereport.masterdata.config.PlatformContentStore.CategoryRow;
 import com.truereport.masterdata.config.PlatformContentStore.GuideImageRow;
 import com.truereport.masterdata.config.PlatformContentStore.ItemRow;
 import com.truereport.masterdata.config.PlatformContentStore.VersionRow;
@@ -39,6 +43,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +56,6 @@ public class MasterContentService {
     private static final String EQUIPMENT = "EQUIPMENT";
     private static final String DROPDOWN = "DROPDOWN";
     private static final String DROPDOWN_VALUE = "DROPDOWN_VALUE";
-    private static final Set<String> LOCALES = Set.of("en", "ar", "ru", "zh-Hans");
     private static final Set<String> RESULT_OPTIONS = Set.of(
             "NO_ISSUE_OBSERVED", "ATTENTION_RECOMMENDED", "DEFECT_FOUND",
             "NOT_CHECKED", "NOT_APPLICABLE", "COULD_NOT_VERIFY");
@@ -72,6 +76,7 @@ public class MasterContentService {
     private final PlatformItemService platformItemService;
     private final FieldAuditService auditService;
     private final TranslationGate translationGate;
+    private final DynamicContentTranslations translations;
 
     public MasterContentService(PlatformContentStore content,
                                 LocalizedContentRepository localized,
@@ -84,7 +89,8 @@ public class MasterContentService {
                                 ItemConfigRepository itemConfig,
                                 PlatformItemService platformItemService,
                                 FieldAuditService auditService,
-                                TranslationGate translationGate) {
+                                TranslationGate translationGate,
+                                DynamicContentTranslations translations) {
         this.content = content;
         this.localized = localized;
         this.reasons = reasons;
@@ -97,6 +103,7 @@ public class MasterContentService {
         this.platformItemService = platformItemService;
         this.auditService = auditService;
         this.translationGate = translationGate;
+        this.translations = translations;
     }
 
     // ---------------------------------------------------------- categories
@@ -110,9 +117,8 @@ public class MasterContentService {
     public CategoryDto createCategory(CurrentUser actor, CategoryRequest request) {
         translationGate.requireNewContentAllowed("Category");
         String code = resolveCode(request);
-        String nameEn = resolveLabelEn(request);
-        String nameAr = resolveLabelAr(request);
-        requireBilingual("label", nameEn, nameAr);
+        String name = firstNonBlank(request.name(), source(request.translations(), "name", resolveLabelEn(request)));
+        translations.requireEnglishSource("name", name);
         if (content.categoryByCode(code).isPresent()) {
             throw ApiException.conflict("CATEGORY_EXISTS", "Category slug already exists");
         }
@@ -120,25 +126,39 @@ public class MasterContentService {
         if (request.status() != null && request.active() == null) {
             status = request.status();
         }
-        CategoryDto created = content.createCategory(code, nameEn, nameAr,
-                request.sortOrder() == null ? 0 : request.sortOrder(), status);
+        boolean wantsActive = "ACTIVE".equals(status);
+        Map<String, Map<String, String>> categoryTranslations =
+                overlays(request.translations(), "name", resolveLabelAr(request));
+        boolean allLiveProvided = translationGate.translationProvidedForLive(
+                categoryTranslations, "name");
+        CategoryDto created = content.createCategory(code, name.trim(), categoryTranslations,
+                request.sortOrder() == null ? 0 : request.sortOrder(),
+                wantsActive && allLiveProvided ? "ACTIVE" : (wantsActive ? "DRAFT" : status));
         audit(actor, "MASTER_CATEGORY_CREATED", "CATEGORY", created.id(), Map.of("code", code));
         return created;
     }
 
     @Transactional
     public CategoryDto updateCategory(CurrentUser actor, UUID id, CategoryRequest request) {
-        content.category(id.toString()).orElseThrow(ApiException::notFound);
+        CategoryRow current = content.category(id.toString()).orElseThrow(ApiException::notFound);
         String status = request.status();
         if (request.active() != null) {
             status = request.active() ? "ACTIVE" : "RETIRED";
         }
-        if (status != null && !Set.of("ACTIVE", "RETIRED").contains(status)) {
+        if (status != null && !Set.of("ACTIVE", "DRAFT", "RETIRED").contains(status)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATUS",
                     "error.status.invalid", "Invalid category status");
         }
-        CategoryDto updated = content.updateCategory(id.toString(), resolveLabelEn(request),
-                resolveLabelAr(request), request.sortOrder(), status);
+        if ("ACTIVE".equals(status) && !"ACTIVE".equals(current.status())) {
+            translationGate.requireOverlaysApproved("CATEGORY", id.toString(),
+                    TranslationFieldRegistry.fieldsFor("CATEGORY"));
+        }
+        String name = request.translations() == null || request.translations().get("name") == null
+                ? firstNonBlank(request.name(), resolveLabelEn(request))
+                : source(request.translations(), "name", firstNonBlank(request.name(), resolveLabelEn(request)));
+        CategoryDto updated = content.updateCategory(id.toString(), name,
+                overlays(request.translations(), "name", resolveLabelAr(request)),
+                request.sortOrder(), status);
         audit(actor, "MASTER_CATEGORY_UPDATED", "CATEGORY", id,
                 Map.of("code", updated.code(), "status", updated.status()));
         return updated;
@@ -215,12 +235,19 @@ public class MasterContentService {
                 request.applicability(), request.reasonCodes(), request.noteRequirement(),
                 request.evidenceRequirement(), request.minPhotos(), request.equipmentIds(),
                 request.guideImageId()));
+        String label = firstNonBlank(request.label(), request.labelEn());
+        String instruction = firstNonBlank(request.instruction(), request.instructionEn());
+        String standardSpec = firstNonBlank(request.standardSpec(), request.standardSpecEn());
+        translations.requireEnglishSource("label", label);
+        translations.requireEnglishSource("instruction", instruction);
         ItemDetailDto detail = content.createItem(request.categoryId(),
                 request.stableCode().trim(), request.sampleData(),
                 request.sortOrder() == null ? 0 : request.sortOrder(),
-                request.labelEn(), request.labelAr(), request.instructionEn(), request.instructionAr(),
-                request.measurementUnit(), request.sensorTool(), request.standardSpecEn(),
-                request.standardSpecAr(), Boolean.TRUE.equals(request.safetyCritical()),
+                label, instruction, standardSpec,
+                itemOverlays(request.translations(), request.labelAr(), request.instructionAr(),
+                        request.standardSpecAr()),
+                request.measurementUnit(), request.sensorTool(),
+                Boolean.TRUE.equals(request.safetyCritical()),
                 Boolean.TRUE.equals(request.multiPoint()), request.maxTyreAgeYears(),
                 Boolean.TRUE.equals(request.allowFreeTextNote()), request.resultOptions(),
                 request.severityPolicy(), request.applicability(), request.reasonCodes(),
@@ -251,10 +278,6 @@ public class MasterContentService {
     public ItemVersionDto updateTranslation(CurrentUser actor, UUID itemId, UUID versionId,
                                             String locale, TranslationRequest request) {
         content.requireDraft(itemId, versionId);
-        if (!LOCALES.contains(locale)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "LOCALE_INVALID",
-                    "error.locale.invalid", "Unsupported locale");
-        }
         content.updateTranslation(itemId, versionId, locale, request.label(), request.instruction());
         audit(actor, "MASTER_TRANSLATION_UPDATED", "MASTER_ITEM_VERSION", versionId,
                 Map.of("locale", locale));
@@ -276,10 +299,24 @@ public class MasterContentService {
     @Transactional
     public ItemVersionDto publish(CurrentUser actor, UUID itemId, UUID versionId) {
         VersionRow version = content.requireDraft(itemId, versionId);
-        requirePublishedTranslation(version, "en");
-        requirePublishedTranslation(version, "ar");
-        translationGate.requireOverlaysApproved("ITEM", versionId.toString(),
-                List.of("label", "instruction"));
+        requirePublishedTranslation(version);
+        List<String> requiredFields = new java.util.ArrayList<>();
+        if (notBlank(version.label())) {
+            requiredFields.add("label");
+        }
+        if (notBlank(version.instruction())) {
+            requiredFields.add("instruction");
+        }
+        if (notBlank(version.standardSpec())) {
+            requiredFields.add("standardSpec");
+        }
+        translationGate.requireOverlaysApproved("ITEM", versionId.toString(), requiredFields);
+        for (IssueFieldDto field : itemConfig.issueFields(versionId.toString())) {
+            if (field.id() != null && !field.id().isBlank()) {
+                translationGate.requireOverlaysApproved("ISSUE_FIELD", field.id(),
+                        TranslationFieldRegistry.fieldsFor("ISSUE_FIELD"));
+            }
+        }
         if (version.resultOptionsJson() == null || version.resultOptionsJson().isBlank()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "RESULT_OPTIONS_REQUIRED",
                     "error.resultOptions.required", "At least one result option is required");
@@ -422,7 +459,9 @@ public class MasterContentService {
             String key = "guide/" + UuidV7.generate() + "/" + safeFilename(file.getOriginalFilename());
             objectStorage.put(key, bytes, mime);
             GuideImageRow image = content.createGuideImage(key, hash, mime, bytes.length,
-                    licenceNote, altEn == null ? "" : altEn, altAr == null ? "" : altAr,
+                    licenceNote, firstNonBlank(altEn, altAr),
+                    altAr == null || altAr.isBlank() ? Map.of()
+                            : Map.of("alt", Map.of("ar", altAr.trim())),
                     actor.userId());
             audit(actor, "MASTER_GUIDE_IMAGE_UPLOADED", "GUIDE_IMAGE",
                     UUID.fromString(image.id()), Map.of("mime", mime,
@@ -440,7 +479,7 @@ public class MasterContentService {
         audit(actor, "MASTER_GUIDE_IMAGE_RETIRED", "GUIDE_IMAGE", id, Map.of());
         return content.toGuideDto(new GuideImageRow(image.id(), image.storageKey(),
                 image.contentHash(), image.mime(), image.bytes(), "RETIRED", image.licenceNote(),
-                image.altEn(), image.altAr(), image.uploadedBy(), image.createdAt()));
+                image.alt(), image.uploadedBy(), image.createdAt()));
     }
 
     @Transactional(readOnly = true)
@@ -485,16 +524,54 @@ public class MasterContentService {
         }
     }
 
-    private void requirePublishedTranslation(VersionRow version, String locale) {
-        boolean hasLabel = "ar".equals(locale)
-                ? notBlank(version.labelAr()) : notBlank(version.labelEn());
-        boolean hasInstruction = "ar".equals(locale)
-                ? notBlank(version.instructionAr()) : notBlank(version.instructionEn());
-        if (!hasLabel || !hasInstruction) {
+    private void requirePublishedTranslation(VersionRow version) {
+        if (!notBlank(version.label()) || !notBlank(version.instruction())) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "TRANSLATION_REQUIRED",
                     "error.translation.required",
-                    "English and Arabic label and instruction are required");
+                    "The source-language label and instruction are required");
         }
+    }
+
+    private String source(Map<String, Map<String, String>> provided, String field, String fallback) {
+        String translated = translations.source(provided, field, null);
+        return firstNonBlank(translated, fallback);
+    }
+
+    private Map<String, Map<String, String>> overlays(Map<String, Map<String, String>> provided,
+                                                      String field, String legacyAr) {
+        Map<String, String> legacy = new LinkedHashMap<>();
+        String value = blankToNull(legacyAr);
+        if (value != null) {
+            legacy.put(field, value);
+        }
+        return translations.mergeLegacy(provided, legacy);
+    }
+
+    private Map<String, Map<String, String>> itemOverlays(
+            Map<String, Map<String, String>> provided, String labelAr, String instructionAr,
+            String standardSpecAr) {
+        Map<String, String> legacy = new LinkedHashMap<>();
+        if (notBlank(labelAr)) {
+            legacy.put("label", labelAr.trim());
+        }
+        if (notBlank(instructionAr)) {
+            legacy.put("instruction", instructionAr.trim());
+        }
+        if (notBlank(standardSpecAr)) {
+            legacy.put("standardSpec", standardSpecAr.trim());
+        }
+        return translations.mergeLegacy(provided, legacy);
+    }
+
+    private static String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred.trim();
+        }
+        return fallback == null ? "" : fallback.trim();
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private static boolean notBlank(String value) {
@@ -576,3 +653,5 @@ public class MasterContentService {
     public record GuideImageContent(String mime, byte[] bytes) {
     }
 }
+
+

@@ -2,6 +2,7 @@ package com.truereport.masterdata.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.masterdata.config.PlatformMasterDtos.EvidenceRuleDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.IssueFieldDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.ItemMetadataDto;
@@ -13,20 +14,23 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ItemConfigRepository {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
+    private final DynamicContentTranslations translations;
 
-    public ItemConfigRepository(JdbcTemplate jdbc, ObjectMapper objectMapper) {
+    public ItemConfigRepository(JdbcTemplate jdbc, ObjectMapper objectMapper,
+                                DynamicContentTranslations translations) {
         this.jdbc = jdbc;
         this.objectMapper = objectMapper;
+        this.translations = translations;
     }
-
-    // ---------------------------------------------------------- evidence rules
 
     public List<EvidenceRuleDto> evidenceRules(String versionId) {
         return jdbc.query("""
@@ -50,41 +54,47 @@ public class ItemConfigRepository {
         }
     }
 
-    // ------------------------------------------------------ measurement bands
-
     public List<MeasurementBandDto> measurementBands(String versionId) {
         return jdbc.query("""
-                SELECT field_code, unit_code, direction, min_value, max_value, result_code,
-                       default_score, label_en, label_ar, sort_order
+                SELECT id, field_code, unit_code, direction, min_value, max_value, result_code,
+                       default_score, label, sort_order
                 FROM platform_measurement_bands WHERE item_version_id = ? ORDER BY sort_order, min_value
-                """, (rs, i) -> new MeasurementBandDto(
-                rs.getString("field_code"), rs.getString("unit_code"), rs.getString("direction"),
-                rs.getBigDecimal("min_value"), rs.getBigDecimal("max_value"),
-                rs.getString("result_code"), rs.getInt("default_score"),
-                rs.getString("label_en"), rs.getString("label_ar"), rs.getInt("sort_order")),
-                versionId);
+                """, (rs, i) -> {
+            String id = rs.getString("id");
+            String label = rs.getString("label");
+            Map<String, Map<String, String>> fields = translations.view(
+                    "MEASUREMENT_BAND", id, Map.of("label", safe(label)));
+            String labelAr = translations.resolve("MEASUREMENT_BAND", id, "label", "ar", safe(label));
+            return new MeasurementBandDto(
+                    rs.getString("field_code"), rs.getString("unit_code"), rs.getString("direction"),
+                    rs.getBigDecimal("min_value"), rs.getBigDecimal("max_value"),
+                    rs.getString("result_code"), rs.getInt("default_score"),
+                    label, rs.getInt("sort_order"), fields, label, labelAr);
+        }, versionId);
     }
 
     public void replaceMeasurementBands(String versionId, List<MeasurementBandDto> bands) {
         jdbc.update("DELETE FROM platform_measurement_bands WHERE item_version_id = ?", versionId);
         for (MeasurementBandDto band : bands) {
+            String bandId = UuidV7.generate().toString();
+            String label = firstNonBlank(band.label(), band.labelEn());
             jdbc.update("""
                     INSERT INTO platform_measurement_bands
                         (id, item_version_id, field_code, unit_code, direction, min_value, max_value,
-                         result_code, default_score, label_en, label_ar, sort_order,
+                         result_code, default_score, label, sort_order,
                          created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                    """, UuidV7.generate().toString(), versionId, band.fieldCode(), band.unitCode(),
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """, bandId, versionId, band.fieldCode(), band.unitCode(),
                     band.direction(), band.minValue(), band.maxValue(), band.resultCode(),
-                    band.defaultScore(), band.labelEn(), band.labelAr(), band.sortOrder());
+                    band.defaultScore(), label, band.sortOrder());
+            translations.saveOverlays("MEASUREMENT_BAND", bandId,
+                    legacy(band.translations(), "label", band.labelAr()), "APPROVED");
         }
     }
 
-    // ------------------------------------------------------------ issue fields
-
     public List<IssueFieldDto> issueFields(String versionId) {
         List<IssueFieldDto> fields = jdbc.query("""
-                SELECT f.id, f.field_code, f.label_en, f.label_ar, f.input_type,
+                SELECT f.id, f.field_code, f.label, f.input_type,
                        os.code AS option_set_code, us.code AS unit_set_code, f.is_required,
                        f.required_for_statuses_json, f.min_value, f.max_value, f.decimal_places,
                        f.depends_on_field_code, f.depends_on_value_code, f.allow_multiple,
@@ -93,16 +103,23 @@ public class ItemConfigRepository {
                 LEFT JOIN platform_option_sets os ON os.id = f.option_set_id
                 LEFT JOIN platform_option_sets us ON us.id = f.unit_set_id
                 WHERE f.item_version_id = ? ORDER BY f.sort_order, f.field_code
-                """, (rs, i) -> new IssueFieldDto(
-                rs.getString("id"), rs.getString("field_code"), rs.getString("label_en"),
-                rs.getString("label_ar"), rs.getString("input_type"), rs.getString("option_set_code"),
-                rs.getString("unit_set_code"), rs.getBoolean("is_required"),
-                parseStatuses(rs.getString("required_for_statuses_json")),
-                rs.getBigDecimal("min_value"), rs.getBigDecimal("max_value"),
-                rs.getInt("decimal_places"), rs.getString("depends_on_field_code"),
-                rs.getString("depends_on_value_code"), rs.getBoolean("allow_multiple"),
-                rs.getBoolean("allow_free_text"), rs.getInt("sort_order"),
-                new ArrayList<>()), versionId);
+                """, (rs, i) -> {
+            String id = rs.getString("id");
+            String label = rs.getString("label");
+            Map<String, Map<String, String>> fieldsForRecord = translations.view(
+                    "ISSUE_FIELD", id, Map.of("label", safe(label)));
+            String labelAr = translations.resolve("ISSUE_FIELD", id, "label", "ar", safe(label));
+            return new IssueFieldDto(
+                    id, rs.getString("field_code"), label, rs.getString("input_type"),
+                    rs.getString("option_set_code"), rs.getString("unit_set_code"),
+                    rs.getBoolean("is_required"),
+                    parseStatuses(rs.getString("required_for_statuses_json")),
+                    rs.getBigDecimal("min_value"), rs.getBigDecimal("max_value"),
+                    rs.getInt("decimal_places"), rs.getString("depends_on_field_code"),
+                    rs.getString("depends_on_value_code"), rs.getBoolean("allow_multiple"),
+                    rs.getBoolean("allow_free_text"), rs.getInt("sort_order"),
+                    new ArrayList<>(), fieldsForRecord, label, labelAr);
+        }, versionId);
         for (IssueFieldDto field : fields) {
             field.allowedValues().addAll(allowedValues(field.id()));
         }
@@ -120,16 +137,17 @@ public class ItemConfigRepository {
         for (IssueFieldDto field : fields) {
             String fieldId = field.id() == null || field.id().isBlank()
                     ? UuidV7.generate().toString() : field.id();
+            String label = firstNonBlank(field.label(), field.labelEn());
             jdbc.update("""
                     INSERT INTO platform_issue_fields
-                        (id, item_version_id, field_code, label_en, label_ar, input_type,
+                        (id, item_version_id, field_code, label, input_type,
                          option_set_id, unit_set_id, is_required, required_for_statuses_json,
                          min_value, max_value, decimal_places, depends_on_field_code,
                          depends_on_value_code, allow_multiple, allow_free_text, sort_order,
                          created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                             CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                    """, fieldId, versionId, field.fieldCode(), field.labelEn(), field.labelAr(),
+                    """, fieldId, versionId, field.fieldCode(), label,
                     field.inputType(), optionSetId(field.optionSetCode()), optionSetId(field.unitSetCode()),
                     Boolean.TRUE.equals(field.required()), toJson(field.requiredForStatuses()),
                     field.minValue(), field.maxValue(),
@@ -138,6 +156,8 @@ public class ItemConfigRepository {
                     Boolean.TRUE.equals(field.allowMultiple()),
                     Boolean.TRUE.equals(field.allowFreeText()),
                     field.sortOrder() == null ? 0 : field.sortOrder());
+            translations.saveOverlays("ISSUE_FIELD", fieldId,
+                    legacy(field.translations(), "label", field.labelAr()), "APPROVED");
             if (field.allowedValues() != null) {
                 for (String valueCode : field.allowedValues()) {
                     String valueId = optionValueId(field.optionSetCode(), valueCode);
@@ -157,12 +177,13 @@ public class ItemConfigRepository {
         replaceEvidenceRules(toVersionId, evidenceRules(fromVersionId));
         List<IssueFieldDto> copies = issueFields(fromVersionId).stream()
                 .map(field -> new IssueFieldDto(
-                        null, field.fieldCode(), field.labelEn(), field.labelAr(), field.inputType(),
+                        null, field.fieldCode(), field.label(), field.inputType(),
                         field.optionSetCode(), field.unitSetCode(), field.required(),
                         field.requiredForStatuses(), field.minValue(), field.maxValue(),
                         field.decimalPlaces(), field.dependsOnFieldCode(), field.dependsOnValueCode(),
                         field.allowMultiple(), field.allowFreeText(), field.sortOrder(),
-                        field.allowedValues()))
+                        field.allowedValues(), field.translations(), field.labelEn(),
+                        field.labelAr()))
                 .toList();
         replaceIssueFields(toVersionId, copies);
         replaceMeasurementBands(toVersionId, measurementBands(fromVersionId));
@@ -181,8 +202,6 @@ public class ItemConfigRepository {
                 """, Integer.class, optionSetId);
         return count == null ? 0 : count;
     }
-
-    // ---------------------------------------------------------------- helpers
 
     private List<String> allowedValues(String issueFieldId) {
         return jdbc.query("""
@@ -231,13 +250,46 @@ public class ItemConfigRepository {
         }
     }
 
-    private RowMapper<com.truereport.masterdata.config.PlatformMasterDtos.ItemMetadataDto> metadataMapper() {
-        return (rs, i) -> new com.truereport.masterdata.config.PlatformMasterDtos.ItemMetadataDto(
-                rs.getString("item_id"), rs.getString("measurement_unit"), rs.getString("sensor_tool"),
-                rs.getString("standard_spec_en"), rs.getString("standard_spec_ar"),
-                rs.getBoolean("safety_critical"), rs.getBoolean("multi_point"),
-                (Integer) rs.getObject("max_tyre_age_years"), rs.getBoolean("allow_free_text_note"),
-                rs.getInt("sort_order"), rs.getString("guide_image_id"));
+    private Map<String, Map<String, String>> legacy(
+            Map<String, Map<String, String>> provided, String field, String legacyAr) {
+        Map<String, String> legacy = new LinkedHashMap<>();
+        if (legacyAr != null && !legacyAr.isBlank()) {
+            legacy.put(field, legacyAr);
+        }
+        return translations.mergeLegacy(provided, legacy);
+    }
+
+    private static String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred.trim();
+        }
+        return fallback == null ? "" : fallback.trim();
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    public record MetadataRow(String itemId, String measurementUnit, String sensorTool,
+                              String standardSpec, boolean safetyCritical, boolean multiPoint,
+                              Integer maxTyreAgeYears, boolean allowFreeTextNote, int sortOrder,
+                              String guideImageId) {
+    }
+
+    public RowMapper<ItemMetadataDto> metadataMapper() {
+        return (rs, i) -> {
+            String itemId = rs.getString("item_id");
+            String standardSpec = rs.getString("standard_spec");
+            Map<String, Map<String, String>> fields = translations.view(
+                    "ITEM", itemId, Map.of("standardSpec", safe(standardSpec)));
+            String standardSpecAr = translations.resolve("ITEM", itemId, "standardSpec", "ar",
+                    safe(standardSpec));
+            return new ItemMetadataDto(itemId, rs.getString("measurement_unit"),
+                    rs.getString("sensor_tool"), standardSpec, rs.getBoolean("safety_critical"),
+                    rs.getBoolean("multi_point"), (Integer) rs.getObject("max_tyre_age_years"),
+                    rs.getBoolean("allow_free_text_note"), rs.getInt("sort_order"),
+                    rs.getString("guide_image_id"), fields, standardSpec, standardSpecAr);
+        };
     }
 
     @SuppressWarnings("unused")

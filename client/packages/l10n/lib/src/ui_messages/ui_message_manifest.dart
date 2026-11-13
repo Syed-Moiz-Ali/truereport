@@ -5,7 +5,6 @@ class UiMessageLanguage {
     this.version = 0,
     this.versions = const <String, int>{},
     this.nativeName = '',
-    this.nameEn = '',
   });
 
   final String code;
@@ -13,23 +12,18 @@ class UiMessageLanguage {
   final int version;
   final Map<String, int> versions;
   final String nativeName;
-  final String nameEn;
 
   bool get isRtl => direction.toLowerCase() == 'rtl';
 
   bool get hasVersions => versions.isNotEmpty;
 
-  String get displayName {
-    if (nativeName.isNotEmpty) return nativeName;
-    if (nameEn.isNotEmpty) return nameEn;
-    return code;
-  }
+  /// The manifest no longer carries English names; native name or code only.
+  String get displayName => nativeName.isNotEmpty ? nativeName : code;
 
   factory UiMessageLanguage.fromJson(Map<String, dynamic> json) {
     final rawCode = json['code'];
     final rawDirection = json['direction'];
     final rawNativeName = json['nativeName'];
-    final rawNameEn = json['nameEn'];
     return UiMessageLanguage(
       code: rawCode is String ? rawCode : '',
       direction: rawDirection is String && rawDirection.isNotEmpty
@@ -38,7 +32,6 @@ class UiMessageLanguage {
       version: _asInt(json['version']),
       versions: _asVersionMap(json['versions']),
       nativeName: rawNativeName is String ? rawNativeName : '',
-      nameEn: rawNameEn is String ? rawNameEn : '',
     );
   }
 
@@ -48,7 +41,6 @@ class UiMessageLanguage {
     'version': version,
     'versions': Map<String, dynamic>.from(versions),
     'nativeName': nativeName,
-    'nameEn': nameEn,
   };
 }
 

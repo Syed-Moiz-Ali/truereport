@@ -252,7 +252,11 @@ public class TechnicianStore {
 
     public Optional<TemplateRow> template(String versionId) {
         return jdbc.query("""
-                SELECT v.id AS version_id, v.template_id, t.code, t.name_en, t.name_ar,
+                SELECT v.id AS version_id, v.template_id, t.code,
+                       t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'TEMPLATE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar,
                        v.version_no, v.status
                 FROM platform_template_versions v
                 JOIN platform_templates t ON t.id = v.template_id
@@ -266,11 +270,25 @@ public class TechnicianStore {
     public List<ItemRow> items(String templateVersionId) {
         return jdbc.query("""
                 SELECT ti.item_version_id, v.item_id, i.stable_code AS item_code,
-                       i.category_id, c.code AS category_code, c.name_en AS category_name_en,
-                       c.name_ar AS category_name_ar, c.sort_order AS category_sort_order,
-                       ti.sort_order AS item_sort_order, v.label_en, v.label_ar,
-                       v.instruction_en, v.instruction_ar, v.standard_spec_en,
-                       v.standard_spec_ar, v.measurement_unit, v.sensor_tool,
+                       i.category_id, c.code AS category_code, c.name AS category_name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_name_ar,
+                       c.sort_order AS category_sort_order,
+                       ti.sort_order AS item_sort_order,
+                       v.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       v.instruction AS instruction_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'instruction' AND pt.lang = 'ar') AS instruction_ar,
+                       v.standard_spec AS standard_spec_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'standardSpec' AND pt.lang = 'ar') AS standard_spec_ar,
+                       v.measurement_unit, v.sensor_tool,
                        v.safety_critical, v.multi_point, v.allow_free_text_note,
                        v.note_requirement, v.result_options_json, v.severity_policy_json,
                        v.reason_codes_json
@@ -311,9 +329,13 @@ public class TechnicianStore {
 
     public List<ScoreBandRow> scoreBands(String itemVersionId) {
         return jdbc.query("""
-                SELECT id, result_code, min_score, max_score, default_score, criteria_en,
-                       criteria_ar, sort_order
-                FROM platform_score_bands WHERE item_version_id = ?
+                SELECT b.id, b.result_code, b.min_score, b.max_score, b.default_score,
+                       b.criteria AS criteria_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'SCORE_BAND' AND pt.entity_id = b.id
+                          AND pt.field_name = 'criteria' AND pt.lang = 'ar') AS criteria_ar,
+                       b.sort_order
+                FROM platform_score_bands b WHERE b.item_version_id = ?
                 ORDER BY sort_order, min_score
                 """, (rs, i) -> new ScoreBandRow(
                 rs.getString("id"), rs.getString("result_code"), rs.getInt("min_score"),
@@ -335,9 +357,14 @@ public class TechnicianStore {
 
     public List<MeasureBandRow> measurementBands(String itemVersionId) {
         return jdbc.query("""
-                SELECT id, field_code, unit_code, direction, min_value, max_value, result_code,
-                       default_score, label_en, label_ar, sort_order
-                FROM platform_measurement_bands WHERE item_version_id = ?
+                SELECT b.id, b.field_code, b.unit_code, b.direction, b.min_value, b.max_value,
+                       b.result_code, b.default_score,
+                       b.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'MEASUREMENT_BAND' AND pt.entity_id = b.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       b.sort_order
+                FROM platform_measurement_bands b WHERE b.item_version_id = ?
                 ORDER BY field_code, sort_order, min_value
                 """, (rs, i) -> new MeasureBandRow(
                 rs.getString("id"), rs.getString("field_code"), rs.getString("unit_code"),
@@ -349,7 +376,12 @@ public class TechnicianStore {
 
     public List<IssueFieldRow> issueFields(String itemVersionId) {
         return jdbc.query("""
-                SELECT f.id, f.field_code, f.label_en, f.label_ar, f.input_type,
+                SELECT f.id, f.field_code,
+                       f.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ISSUE_FIELD' AND pt.entity_id = f.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       f.input_type,
                        f.option_set_id, os.code AS option_set_code,
                        f.unit_set_id, us.code AS unit_set_code, f.is_required,
                        f.required_for_statuses_json, f.min_value, f.max_value, f.decimal_places,
@@ -375,7 +407,11 @@ public class TechnicianStore {
     public List<OptionRow> options(String issueFieldId, String optionSetId) {
         if (issueFieldId != null) {
             List<OptionRow> subset = jdbc.query("""
-                    SELECT ov.code, ov.label_en, ov.label_ar, ov.sort_order
+                    SELECT ov.code, ov.label AS label_en,
+                           (SELECT body FROM platform_translations pt
+                            WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
+                              AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                           ov.sort_order
                     FROM platform_issue_field_options ifo
                     JOIN platform_option_values ov ON ov.id = ifo.option_value_id
                     WHERE ifo.issue_field_id = ? AND ov.status = 'ACTIVE'
@@ -389,9 +425,13 @@ public class TechnicianStore {
             return List.of();
         }
         return jdbc.query("""
-                SELECT code, label_en, label_ar, sort_order
-                FROM platform_option_values
-                WHERE option_set_id = ? AND status = 'ACTIVE'
+                SELECT ov.code, ov.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       ov.sort_order
+                FROM platform_option_values ov
+                WHERE ov.option_set_id = ? AND ov.status = 'ACTIVE'
                 ORDER BY sort_order, code
                 """, OPTION_MAPPER, optionSetId);
     }
@@ -828,3 +868,4 @@ public class TechnicianStore {
             dateTime(rs, "deleted_at"), rs.getString("deleted_by"),
             dateTime(rs, "created_at"), dateTime(rs, "updated_at"), rs.getInt("version"));
 }
+

@@ -7,6 +7,7 @@ import 'features/auth/platform_login_page.dart';
 import 'features/audit/audit_log_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/documents/document_types_screen.dart';
+import 'features/languages/language_workspace_screen.dart';
 import 'features/languages/languages_screen.dart';
 import 'features/languages/translation_queue_screen.dart';
 import 'features/languages/ui_message_review_screen.dart';
@@ -118,6 +119,13 @@ List<RouteBase> _buildRoutes() {
     GoRoute(
       path: '/settings/languages',
       builder: (context, state) => const LanguagesScreen(),
+    ),
+    GoRoute(
+      path: '/settings/languages/:code',
+      builder: (context, state) => LanguageWorkspaceScreen(
+        languageCode: state.pathParameters['code']!,
+        initialTab: state.uri.queryParameters['tab'],
+      ),
     ),
     GoRoute(
       path: '/settings/languages/:code/translations',

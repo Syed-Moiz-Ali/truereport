@@ -107,6 +107,7 @@ class TranslationItem {
     required this.defaultText,
     required this.text,
     required this.status,
+    this.contentStatus = '',
   });
 
   final String entityType;
@@ -117,6 +118,9 @@ class TranslationItem {
   final String? text;
   final String status;
 
+  /// ACTIVE / DRAFT / PUBLISHED for the underlying source record.
+  final String contentStatus;
+
   /// Stable selection key for bulk actions (`entityType|entityId|field`).
   String get key => '$entityType|$entityId|$field';
 
@@ -126,6 +130,11 @@ class TranslationItem {
       status == TranslationStatus.missing ||
       (text == null || text!.trim().isEmpty);
 
+  bool get isPendingActivation => contentStatus == 'DRAFT';
+
+  bool get isActive =>
+      contentStatus == 'ACTIVE' || contentStatus == 'PUBLISHED';
+
   TranslationItem copyWith({
     String? entityType,
     String? entityId,
@@ -134,6 +143,7 @@ class TranslationItem {
     String? defaultText,
     String? text,
     String? status,
+    String? contentStatus,
   }) {
     return TranslationItem(
       entityType: entityType ?? this.entityType,
@@ -143,6 +153,7 @@ class TranslationItem {
       defaultText: defaultText ?? this.defaultText,
       text: text ?? this.text,
       status: status ?? this.status,
+      contentStatus: contentStatus ?? this.contentStatus,
     );
   }
 
@@ -155,6 +166,7 @@ class TranslationItem {
         defaultText: _str(json['defaultText']),
         text: json['text'] == null ? null : _str(json['text']),
         status: TranslationStatus.normalize(json['status']),
+        contentStatus: _str(json['contentStatus']).toUpperCase(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -165,6 +177,7 @@ class TranslationItem {
     'defaultText': defaultText,
     'text': text,
     'status': status,
+    'contentStatus': contentStatus,
   };
 }
 

@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -12,7 +13,6 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../../platform_translations.dart';
 
 import 'package:l10n/l10n.dart';
 
@@ -135,69 +135,16 @@ class _CreateItemStepper extends ConsumerStatefulWidget {
   ConsumerState<_CreateItemStepper> createState() => _CreateItemStepperState();
 }
 
-/// Lightweight label/instruction pair for a non-en/ar registry language.
-class _LangText {
-  _LangText({this.label = '', this.instruction = ''});
-
-  String label;
-  String instruction;
-
-  _LangText copy() => _LangText(label: label, instruction: instruction);
-}
-
-/// Best-effort overlay save for non-en/ar languages. Translations for the
-/// version-scoped ITEM entity are upserted AFTER the item exists; failures
-/// are returned so the caller can surface a review-step warning instead of
-/// failing the whole save.
-Future<List<String>> _upsertExtraTranslations(
-  TranslationApi api, {
-  required String versionId,
-  required Map<String, _LangText> extras,
-}) async {
-  final failed = <String>[];
-  for (final entry in extras.entries) {
-    final label = entry.value.label.trim();
-    final instruction = entry.value.instruction.trim();
-    if (label.isEmpty && instruction.isEmpty) continue;
-    try {
-      if (label.isNotEmpty) {
-        await api.upsertTranslation(
-          entityType: 'ITEM',
-          entityId: versionId,
-          field: 'label',
-          language: entry.key,
-          text: label,
-        );
-      }
-      if (instruction.isNotEmpty) {
-        await api.upsertTranslation(
-          entityType: 'ITEM',
-          entityId: versionId,
-          field: 'instruction',
-          language: entry.key,
-          text: instruction,
-        );
-      }
-    } catch (_) {
-      failed.add(entry.key);
-    }
-  }
-  return failed;
-}
-
 class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   int _step = 0;
   final _basicsFormKey = GlobalKey<FormState>();
   final _contentFormKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
-  final _labelEnController = TextEditingController();
-  final _labelArController = TextEditingController();
-  final _instructionEnController = TextEditingController();
-  final _instructionArController = TextEditingController();
+  final _labelController = TextEditingController();
+  final _instructionController = TextEditingController();
   final _unitController = TextEditingController();
   final _sensorController = TextEditingController();
-  final _specEnController = TextEditingController();
-  final _specArController = TextEditingController();
+  final _specController = TextEditingController();
   final _maxTyreAgeController = TextEditingController();
   final _sortOrderController = TextEditingController(text: '0');
 
@@ -211,30 +158,19 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   bool _evidenceTouched = false;
   bool _fieldsTouched = false;
   bool _bandsTouched = false;
-  Map<String, _LangText> _extras = {};
   bool _saving = false;
 
   @override
   void dispose() {
     _codeController.dispose();
-    _labelEnController.dispose();
-    _labelArController.dispose();
-    _instructionEnController.dispose();
-    _instructionArController.dispose();
+    _labelController.dispose();
+    _instructionController.dispose();
     _unitController.dispose();
     _sensorController.dispose();
-    _specEnController.dispose();
-    _specArController.dispose();
+    _specController.dispose();
     _maxTyreAgeController.dispose();
     _sortOrderController.dispose();
     super.dispose();
-  }
-
-  List<PlatformLanguage> _extraLanguages(List<PlatformLanguage> languages) {
-    return [
-      for (final language in languages)
-        if (language.code != 'en' && language.code != 'ar') language,
-    ];
   }
 
   void _continueFrom(int step) {
@@ -281,10 +217,9 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       final detail = await actions.createItem(<String, dynamic>{
         'stableCode': _codeController.text.trim(),
         'categoryId': _categoryId,
-        'labelEn': _labelEnController.text.trim(),
-        'labelAr': _labelArController.text.trim(),
-        'instructionEn': _instructionEnController.text.trim(),
-        'instructionAr': _instructionArController.text.trim(),
+        'label': _labelController.text.trim(),
+        'instruction': _instructionController.text.trim(),
+        'standardSpec': _specController.text.trim(),
         'sampleData': false,
         'resultOptions': const <String>[
           'NO_ISSUE_OBSERVED',
@@ -301,8 +236,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
         'guideImageId': null,
         'measurementUnit': _unitController.text.trim(),
         'sensorTool': _sensorController.text.trim(),
-        'standardSpecEn': _specEnController.text.trim(),
-        'standardSpecAr': _specArController.text.trim(),
         'safetyCritical': _safetyCritical,
         'multiPoint': _multiPoint,
         'maxTyreAgeYears': int.tryParse(_maxTyreAgeController.text.trim()),
@@ -331,27 +264,16 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
           measurementBands: _bands,
         );
       }
-      final failed = await _upsertExtraTranslations(
-        ref.read(translationApiProvider),
-        versionId: versionId,
-        extras: _extras,
-      );
       if (publish) {
         await actions.publishItem(detail.item.id, versionId);
       }
       if (!mounted) return;
-      if (failed.isNotEmpty) {
-        // Item and en/ar content are saved; extra-language translations can
-        // be retried from the editor Content step.
-        _showSnack(context, strings.tKey(CommonKeys.stateError), isError: true);
-      } else {
-        _showSnack(
-          context,
-          publish
-              ? strings.tKey(PlatformAdminKeys.toastItemPublished)
-              : strings.tKey(PlatformAdminKeys.toastItemCreated),
-        );
-      }
+      _showSnack(
+        context,
+        publish
+            ? strings.tKey(PlatformAdminKeys.toastItemPublished)
+            : strings.tKey(PlatformAdminKeys.toastItemCreated),
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => MasterItemEditorScreen(itemId: detail.item.id),
@@ -371,10 +293,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     final categoriesAsync = ref.watch(categoriesProvider);
     final categories =
         categoriesAsync.asData?.value ?? const <PlatformCategory>[];
-    final languages =
-        ref.watch(platformLanguagesProvider).asData?.value ??
-        const <PlatformLanguage>[];
-    final extras = _extraLanguages(languages);
     final optionSets =
         ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[];
 
@@ -464,7 +382,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepContent)),
                 isActive: _step >= 1,
                 state: _step > 1 ? StepState.complete : StepState.indexed,
-                content: _buildContentStep(strings, extras),
+                content: _buildContentStep(strings),
               ),
               Step(
                 title: Text(
@@ -572,7 +490,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepReview)),
                 isActive: _step >= 5,
                 state: StepState.indexed,
-                content: _buildCreateReview(strings, categories, extras),
+                content: _buildCreateReview(strings, categories),
               ),
             ],
           ),
@@ -751,17 +669,11 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                       children: [
                         for (final field in <Widget>[
                           PlatformTextField(
-                            controller: _specEnController,
+                            key: const Key('item-standard-spec'),
+                            controller: _specController,
                             label: strings.tKey(
                               PlatformAdminKeys.fieldItemStandardSpecEn,
                             ),
-                          ),
-                          PlatformTextField(
-                            controller: _specArController,
-                            label: strings.tKey(
-                              PlatformAdminKeys.fieldItemStandardSpecAr,
-                            ),
-                            textDirection: TextDirection.rtl,
                           ),
                           PlatformTextField(
                             controller: _maxTyreAgeController,
@@ -784,7 +696,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     );
   }
 
-  Widget _buildContentStep(dynamic strings, List<PlatformLanguage> extras) {
+  Widget _buildContentStep(dynamic strings) {
     return Form(
       key: _contentFormKey,
       child: Column(
@@ -796,35 +708,17 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
           ),
           const SizedBox(height: 12),
           PlatformTextField(
-            controller: _labelEnController,
+            key: const Key('item-label'),
+            controller: _labelController,
             label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
             validator: (value) => _required(value, strings),
           ),
           const SizedBox(height: 12),
           PlatformTextField(
-            controller: _labelArController,
-            label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-            textDirection: TextDirection.rtl,
-            validator: (value) => _required(value, strings),
-          ),
-          const SizedBox(height: 12),
-          PlatformTextField(
-            controller: _instructionEnController,
+            key: const Key('item-instruction'),
+            controller: _instructionController,
             label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
             maxLines: 3,
-          ),
-          const SizedBox(height: 12),
-          PlatformTextField(
-            controller: _instructionArController,
-            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionAr),
-            maxLines: 3,
-            textDirection: TextDirection.rtl,
-          ),
-          const SizedBox(height: 12),
-          _ExtraTranslationsCard(
-            languages: extras,
-            initial: _extras,
-            onChanged: (texts) => _extras = texts,
           ),
         ],
       ),
@@ -834,21 +728,15 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   Widget _buildCreateReview(
     dynamic strings,
     List<PlatformCategory> categories,
-    List<PlatformLanguage> extras,
   ) {
     var categoryName = _categoryId;
     for (final category in categories) {
       if (category.id == _categoryId) {
-        categoryName = category.name.isEmpty ? category.code : category.name;
+        categoryName = category.name;
+        if (categoryName.isEmpty) categoryName = category.code;
         break;
       }
     }
-    final stagedExtras = [
-      for (final language in extras)
-        if (((_extras[language.code]?.label.trim().isNotEmpty) == true) ||
-            ((_extras[language.code]?.instruction.trim().isNotEmpty) == true))
-          language.code,
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -873,15 +761,9 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
               ),
               _ReviewRow(
                 label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-                value: _labelEnController.text.trim().isEmpty
-                    ? '�'
-                    : _labelEnController.text.trim(),
-              ),
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-                value: _labelArController.text.trim().isEmpty
-                    ? '�'
-                    : _labelArController.text.trim(),
+                value: _labelController.text.trim().isEmpty
+                    ? '—'
+                    : _labelController.text.trim(),
               ),
               _ReviewRow(
                 label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
@@ -903,11 +785,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 ),
                 value: '${_bands.length}',
               ),
-              if (stagedExtras.isNotEmpty)
-                _ReviewRow(
-                  label: strings.tKey(PlatformAdminKeys.stepItemContent),
-                  value: stagedExtras.join(', '),
-                ),
             ],
           ),
         ),
@@ -1010,168 +887,6 @@ class _ReviewRow extends StatelessWidget {
   }
 }
 
-/// Extra (non-en/ar) language fields driven by the language registry.
-///
-/// In create mode the texts are synced live via [onChanged] and upserted
-/// after the item is created. In edit mode they are saved explicitly via
-/// [onSave]; the overlay save is best-effort and failures are reported back
-/// to the review step.
-class _ExtraTranslationsCard extends ConsumerStatefulWidget {
-  const _ExtraTranslationsCard({
-    required this.languages,
-    this.initial = const {},
-    this.enabled = true,
-    this.saving = false,
-    this.onSave,
-    this.onChanged,
-  });
-
-  final List<PlatformLanguage> languages;
-  final Map<String, _LangText> initial;
-  final bool enabled;
-  final bool saving;
-  final Future<void> Function(Map<String, _LangText> texts)? onSave;
-  final ValueChanged<Map<String, _LangText>>? onChanged;
-
-  @override
-  ConsumerState<_ExtraTranslationsCard> createState() =>
-      _ExtraTranslationsCardState();
-}
-
-class _ExtraTranslationsCardState
-    extends ConsumerState<_ExtraTranslationsCard> {
-  final Map<String, TextEditingController> _labels = {};
-  final Map<String, TextEditingController> _instructions = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _reconcile(widget.languages);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ExtraTranslationsCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.languages, widget.languages)) {
-      _reconcile(widget.languages);
-    }
-  }
-
-  void _reconcile(List<PlatformLanguage> languages) {
-    final codes = {for (final language in languages) language.code};
-    for (final code in List.of(_labels.keys)) {
-      if (!codes.contains(code)) {
-        _labels.remove(code)?.dispose();
-        _instructions.remove(code)?.dispose();
-      }
-    }
-    for (final language in languages) {
-      if (_labels.containsKey(language.code)) continue;
-      final initial = widget.initial[language.code];
-      final label = TextEditingController(text: initial?.label ?? '');
-      final instruction = TextEditingController(
-        text: initial?.instruction ?? '',
-      );
-      label.addListener(_notify);
-      instruction.addListener(_notify);
-      _labels[language.code] = label;
-      _instructions[language.code] = instruction;
-    }
-  }
-
-  void _notify() {
-    widget.onChanged?.call(_snapshot());
-  }
-
-  Map<String, _LangText> _snapshot() {
-    return {
-      for (final code in _labels.keys)
-        code: _LangText(
-          label: _labels[code]!.text,
-          instruction: _instructions[code]!.text,
-        ),
-    };
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _labels.values) {
-      controller.dispose();
-    }
-    for (final controller in _instructions.values) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.languages.isEmpty) return const SizedBox.shrink();
-    final strings = ref.watch(uiStringsProvider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final language in widget.languages) ...[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: PtTheme.canvas,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: PtTheme.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  language.nativeName.isEmpty
-                      ? language.code
-                      : language.nativeName,
-                  style: PtTheme.font(
-                    14,
-                    weight: FontWeight.w700,
-                    color: PtTheme.ink,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                PlatformTextField(
-                  controller: _labels[language.code]!,
-                  label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-                  enabled: widget.enabled,
-                  textDirection: language.direction == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
-                ),
-                const SizedBox(height: 10),
-                PlatformTextField(
-                  controller: _instructions[language.code]!,
-                  label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
-                  enabled: widget.enabled,
-                  maxLines: 4,
-                  textDirection: language.direction == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-        if (widget.onSave != null)
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: PlatformPrimaryButton(
-              label: strings.tKey(CommonKeys.buttonSave),
-              isLoading: widget.saving,
-              onPressed: widget.enabled && !widget.saving
-                  ? () => widget.onSave!(_snapshot())
-                  : null,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 class _EditItemView extends ConsumerStatefulWidget {
   const _EditItemView({required this.itemId});
 
@@ -1187,9 +902,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   bool _creatingDraft = false;
   bool _publishing = false;
   bool _retiring = false;
-  Map<String, _LangText> _extras = {};
-  List<String> _extraFailed = [];
-  bool _extraSaving = false;
 
   Future<void> _createDraft() async {
     setState(() => _creatingDraft = true);
@@ -1388,7 +1100,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.labelEn.isEmpty ? item.code : item.labelEn,
+                    item.label.isEmpty ? item.code : item.label,
                     style: PtTheme.font(
                       24,
                       lineHeight: 30,
@@ -1397,12 +1109,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                       tracking: -0.4,
                     ),
                   ),
-                  if (item.labelAr.isNotEmpty)
-                    Text(
-                      item.labelAr,
-                      textDirection: TextDirection.rtl,
-                      style: PtTheme.font(14, color: PtTheme.muted),
-                    ),
                   const SizedBox(height: 4),
                   Text(
                     item.categoryLabelEn.isEmpty
@@ -1531,47 +1237,13 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   ];
 
   /// Inline per-step validity on persisted state. Content requires saved
-  /// en/ar labels; config steps accept the server model as-is (empty lists
+  /// Inline per-step validity on persisted state. Content requires a saved
+  /// source label; config steps accept the server model as-is (empty lists
   /// and optional fields are valid), so they never block Next.
   bool _stepValid(int step, PlatformItemVersion version) {
     if (step != 1) return true;
-    final enLabel = version.translations['en']?.label.trim() ?? '';
-    final arLabel = version.translations['ar']?.label.trim() ?? '';
-    return enLabel.isNotEmpty && arLabel.isNotEmpty;
-  }
-
-  Future<void> _saveExtras(
-    PlatformItemVersion version,
-    Map<String, _LangText> texts,
-  ) async {
-    setState(() => _extraSaving = true);
-    try {
-      final failed = await _upsertExtraTranslations(
-        ref.read(translationApiProvider),
-        versionId: version.id,
-        extras: texts,
-      );
-      if (!mounted) return;
-      setState(() {
-        _extraSaving = false;
-        _extraFailed = failed;
-        _extras = texts;
-      });
-      if (failed.isNotEmpty) {
-        _showSnack(
-          context,
-          ref.read(uiStringsProvider).tKey(CommonKeys.stateError),
-          isError: true,
-        );
-      }
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _extraSaving = false;
-        _extraFailed = texts.keys.toList(growable: false);
-      });
-      _showSnack(context, _failureMessage(error), isError: true);
-    }
+    final label = version.label.trim();
+    return label.isNotEmpty;
   }
 
   /// Review-step draft action: creates a draft when none exists, otherwise
@@ -1675,13 +1347,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   ) {
     final key = ItemVersionKey(widget.itemId, version.id);
     final configAsync = ref.watch(itemConfigProvider(key));
-    final languages =
-        ref.watch(platformLanguagesProvider).asData?.value ??
-        const <PlatformLanguage>[];
-    final extras = [
-      for (final language in languages)
-        if (language.code != 'en' && language.code != 'ar') language,
-    ];
     switch (index) {
       case 0:
         return configAsync.when(
@@ -1720,27 +1385,19 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
               style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
             ),
             const SizedBox(height: 12),
-            _TranslationsSection(
-              translations: version.translations,
+            _SourceContentSection(
+              label: version.label,
+              instruction: version.instruction,
               editable: editable,
-              onSave: (labelEn, instructionEn, labelAr, instructionAr) => ref
-                  .read(platformConfigActionsProvider)
-                  .saveTranslations(
+              onSave: (label, instruction) => ref
+                  .read(platformConfigApiProvider)
+                  .updateTranslation(
                     widget.itemId,
                     version.id,
-                    labelEn: labelEn,
-                    instructionEn: instructionEn,
-                    labelAr: labelAr,
-                    instructionAr: instructionAr,
+                    'en',
+                    label: label,
+                    instruction: instruction,
                   ),
-            ),
-            const SizedBox(height: 12),
-            _ExtraTranslationsCard(
-              languages: extras,
-              initial: _extras,
-              enabled: editable,
-              saving: _extraSaving,
-              onSave: (texts) => _saveExtras(version, texts),
             ),
             if (!_stepValid(1, version)) ...[
               const SizedBox(height: 8),
@@ -1909,7 +1566,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    item.labelEn.isEmpty ? item.code : item.labelEn,
+                    item.label.isEmpty ? item.code : item.label,
                     style: PtTheme.font(
                       18,
                       lineHeight: 24,
@@ -1917,16 +1574,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                       color: PtTheme.ink,
                     ),
                   ),
-                  if (item.labelAr.isNotEmpty)
-                    Text(
-                      item.labelAr,
-                      textDirection: TextDirection.rtl,
-                      style: PtTheme.font(
-                        14,
-                        lineHeight: 20,
-                        color: PtTheme.muted,
-                      ),
-                    ),
                   const SizedBox(height: 8),
                   _ReviewRow(
                     label: strings.tKey(
@@ -1954,27 +1601,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                     ),
                     value: '${config.measurementBands.length}',
                   ),
-                  if (_extraFailed.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: PtTheme.rose.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: PtTheme.rose.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Text(
-                        '${strings.tKey(CommonKeys.stateError)}: ${_extraFailed.join(', ')}',
-                        style: PtTheme.font(
-                          12,
-                          lineHeight: 17,
-                          weight: FontWeight.w600,
-                          color: PtTheme.rose,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             );
@@ -1990,6 +1616,11 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
               label: strings.tKey(PlatformAdminKeys.buttonItemSaveDraft),
               icon: Icons.note_add_outlined,
               onPressed: _creatingDraft ? null : () => _ensureDraft(detail),
+            ),
+            PlatformSecondaryButton(
+              label: strings.tKey(PlatformAdminKeys.textNeedsTranslation),
+              icon: Icons.translate_rounded,
+              onPressed: () => context.go('/settings/languages'),
             ),
             PlatformPrimaryButton(
               label: strings.tKey(PlatformAdminKeys.buttonPublish),
@@ -2024,8 +1655,7 @@ class _BasicsSection extends ConsumerStatefulWidget {
 class _BasicsSectionState extends ConsumerState<_BasicsSection> {
   late final TextEditingController _unit;
   late final TextEditingController _sensor;
-  late final TextEditingController _specEn;
-  late final TextEditingController _specAr;
+  late final TextEditingController _standardSpec;
   late final TextEditingController _maxTyreAge;
   late final TextEditingController _sortOrder;
   late final TextEditingController _guideImage;
@@ -2039,8 +1669,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
     super.initState();
     _unit = TextEditingController(text: widget.metadata.measurementUnit);
     _sensor = TextEditingController(text: widget.metadata.sensorTool);
-    _specEn = TextEditingController(text: widget.metadata.standardSpecEn);
-    _specAr = TextEditingController(text: widget.metadata.standardSpecAr);
+    _standardSpec = TextEditingController(text: widget.metadata.standardSpec);
     _maxTyreAge = TextEditingController(
       text: widget.metadata.maxTyreAgeYears?.toString() ?? '',
     );
@@ -2059,8 +1688,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
     if (!identical(oldWidget.metadata, widget.metadata)) {
       _unit.text = widget.metadata.measurementUnit;
       _sensor.text = widget.metadata.sensorTool;
-      _specEn.text = widget.metadata.standardSpecEn;
-      _specAr.text = widget.metadata.standardSpecAr;
+      _standardSpec.text = widget.metadata.standardSpec;
       _maxTyreAge.text = widget.metadata.maxTyreAgeYears?.toString() ?? '';
       _sortOrder.text = widget.metadata.sortOrder.toString();
       _guideImage.text = widget.metadata.guideImageId;
@@ -2074,8 +1702,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
   void dispose() {
     _unit.dispose();
     _sensor.dispose();
-    _specEn.dispose();
-    _specAr.dispose();
+    _standardSpec.dispose();
     _maxTyreAge.dispose();
     _sortOrder.dispose();
     _guideImage.dispose();
@@ -2090,8 +1717,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
           itemId: widget.itemId,
           measurementUnit: _unit.text.trim(),
           sensorTool: _sensor.text.trim(),
-          standardSpecEn: _specEn.text.trim(),
-          standardSpecAr: _specAr.text.trim(),
+          standardSpec: _standardSpec.text.trim(),
           safetyCritical: _safetyCritical,
           multiPoint: _multiPoint,
           maxTyreAgeYears: int.tryParse(_maxTyreAge.text.trim()),
@@ -2180,19 +1806,12 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
                       children: [
                         for (final field in <Widget>[
                           PlatformTextField(
-                            controller: _specEn,
+                            key: const Key('item-standard-spec-edit'),
+                            controller: _standardSpec,
                             label: strings.tKey(
                               PlatformAdminKeys.fieldItemStandardSpecEn,
                             ),
                             enabled: widget.editable,
-                          ),
-                          PlatformTextField(
-                            controller: _specAr,
-                            label: strings.tKey(
-                              PlatformAdminKeys.fieldItemStandardSpecAr,
-                            ),
-                            enabled: widget.editable,
-                            textDirection: TextDirection.rtl,
                           ),
                           PlatformTextField(
                             controller: _maxTyreAge,
@@ -2286,81 +1905,56 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
   }
 }
 
-class _TranslationsSection extends ConsumerStatefulWidget {
-  const _TranslationsSection({
-    required this.translations,
+class _SourceContentSection extends ConsumerStatefulWidget {
+  const _SourceContentSection({
+    required this.label,
+    required this.instruction,
     required this.editable,
     required this.onSave,
   });
 
-  final Map<String, ItemTranslation> translations;
+  final String label;
+  final String instruction;
   final bool editable;
-  final Future<void> Function(
-    String labelEn,
-    String instructionEn,
-    String labelAr,
-    String instructionAr,
-  )
-  onSave;
+  final Future<void> Function(String label, String instruction) onSave;
 
   @override
-  ConsumerState<_TranslationsSection> createState() =>
-      _TranslationsSectionState();
+  ConsumerState<_SourceContentSection> createState() =>
+      _SourceContentSectionState();
 }
 
-class _TranslationsSectionState extends ConsumerState<_TranslationsSection> {
-  late final TextEditingController _labelEn;
-  late final TextEditingController _instructionEn;
-  late final TextEditingController _labelAr;
-  late final TextEditingController _instructionAr;
+class _SourceContentSectionState extends ConsumerState<_SourceContentSection> {
+  late final TextEditingController _label;
+  late final TextEditingController _instruction;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _labelEn = TextEditingController(
-      text: widget.translations['en']?.label ?? '',
-    );
-    _instructionEn = TextEditingController(
-      text: widget.translations['en']?.instruction ?? '',
-    );
-    _labelAr = TextEditingController(
-      text: widget.translations['ar']?.label ?? '',
-    );
-    _instructionAr = TextEditingController(
-      text: widget.translations['ar']?.instruction ?? '',
-    );
+    _label = TextEditingController(text: widget.label);
+    _instruction = TextEditingController(text: widget.instruction);
   }
 
   @override
-  void didUpdateWidget(covariant _TranslationsSection oldWidget) {
+  void didUpdateWidget(covariant _SourceContentSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.translations, widget.translations)) {
-      _labelEn.text = widget.translations['en']?.label ?? '';
-      _instructionEn.text = widget.translations['en']?.instruction ?? '';
-      _labelAr.text = widget.translations['ar']?.label ?? '';
-      _instructionAr.text = widget.translations['ar']?.instruction ?? '';
+    if (oldWidget.label != widget.label) _label.text = widget.label;
+    if (oldWidget.instruction != widget.instruction) {
+      _instruction.text = widget.instruction;
     }
   }
 
   @override
   void dispose() {
-    _labelEn.dispose();
-    _instructionEn.dispose();
-    _labelAr.dispose();
-    _instructionAr.dispose();
+    _label.dispose();
+    _instruction.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await widget.onSave(
-        _labelEn.text.trim(),
-        _instructionEn.text.trim(),
-        _labelAr.text.trim(),
-        _instructionAr.text.trim(),
-      );
+      await widget.onSave(_label.text.trim(), _instruction.text.trim());
     } catch (error) {
       if (!mounted) return;
       _showSnack(context, _failureMessage(error), isError: true);
@@ -2377,41 +1971,22 @@ class _TranslationsSectionState extends ConsumerState<_TranslationsSection> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title:
-                '${strings.tKey(PlatformAdminKeys.tabItemEnglish)} / ${strings.tKey(PlatformAdminKeys.tabItemArabic)}',
+            title: strings.tKey(PlatformAdminKeys.stepItemContent),
           ),
           const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final en = _buildLanguageCard(
-                title: strings.tKey(PlatformAdminKeys.tabItemEnglish),
-                labelController: _labelEn,
-                instructionController: _instructionEn,
-                isRtl: false,
-                strings: strings,
-              );
-              final ar = _buildLanguageCard(
-                title: strings.tKey(PlatformAdminKeys.tabItemArabic),
-                labelController: _labelAr,
-                instructionController: _instructionAr,
-                isRtl: true,
-                strings: strings,
-              );
-              if (constraints.maxWidth < 760) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [en, const SizedBox(height: 14), ar],
-                );
-              }
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: en),
-                  const SizedBox(width: 14),
-                  Expanded(child: ar),
-                ],
-              );
-            },
+          PlatformTextField(
+            key: const Key('item-edit-label'),
+            controller: _label,
+            label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+            enabled: widget.editable,
+          ),
+          const SizedBox(height: 12),
+          PlatformTextField(
+            key: const Key('item-edit-instruction'),
+            controller: _instruction,
+            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
+            enabled: widget.editable,
+            maxLines: 5,
           ),
           const SizedBox(height: 12),
           Align(
@@ -2421,55 +1996,6 @@ class _TranslationsSectionState extends ConsumerState<_TranslationsSection> {
               isLoading: _saving,
               onPressed: widget.editable && !_saving ? _save : null,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageCard({
-    required String title,
-    required TextEditingController labelController,
-    required TextEditingController instructionController,
-    required bool isRtl,
-    required dynamic strings,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: PtTheme.font(
-              14,
-              weight: FontWeight.w700,
-              color: PtTheme.ink,
-            ),
-          ),
-          const SizedBox(height: 10),
-          PlatformTextField(
-            controller: labelController,
-            label: isRtl
-                ? strings.tKey(PlatformAdminKeys.fieldItemLabelAr)
-                : strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-            enabled: widget.editable,
-            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-          ),
-          const SizedBox(height: 10),
-          PlatformTextField(
-            controller: instructionController,
-            label: isRtl
-                ? strings.tKey(PlatformAdminKeys.tabItemArabic)
-                : strings.tKey(PlatformAdminKeys.tabItemEnglish),
-            enabled: widget.editable,
-            maxLines: 5,
-            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
           ),
         ],
       ),
@@ -2932,15 +2458,10 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                 children: [
                   for (final field in <Widget>[
                     PlatformTextField(
-                      controller: form.labelEn,
+                      key: const Key('issue-field-label'),
+                      controller: form.label,
                       label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                       enabled: widget.editable,
-                    ),
-                    PlatformTextField(
-                      controller: form.labelAr,
-                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-                      enabled: widget.editable,
-                      textDirection: TextDirection.rtl,
                     ),
                     IgnorePointer(
                       ignoring: !widget.editable,
@@ -2980,11 +2501,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                             for (final optionSet in widget.optionSets)
                               DropdownMenuItem(
                                 value: optionSet.code,
-                                child: Text(
-                                  optionSet.nameEn.isEmpty
-                                      ? optionSet.code
-                                      : optionSet.nameEn,
-                                ),
+                                child: Text(_optionSetName(optionSet)),
                               ),
                             if (form.optionSetCode.isNotEmpty &&
                                 !optionCodes.contains(form.optionSetCode))
@@ -3074,9 +2591,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                   children: [
                     for (final value in selectedOptionSet.values)
                       PlatformFilterChip(
-                        label: value.labelEn.isEmpty
-                            ? value.code
-                            : value.labelEn,
+                        label: _optionValueLabel(value),
                         selected: form.allowedValues.contains(value.code),
                         onTap: () => setState(() {
                           if (form.allowedValues.contains(value.code)) {
@@ -3163,8 +2678,7 @@ class _IssueFieldForm {
   _IssueFieldForm(IssueField field)
     : initialId = field.id,
       fieldCode = TextEditingController(text: field.fieldCode),
-      labelEn = TextEditingController(text: field.labelEn),
-      labelAr = TextEditingController(text: field.labelAr),
+      label = TextEditingController(text: field.label),
       inputType = _inputTypes.contains(field.inputType)
           ? field.inputType
           : _inputTypes.first,
@@ -3191,8 +2705,7 @@ class _IssueFieldForm {
   _IssueFieldForm.empty(int index)
     : initialId = null,
       fieldCode = TextEditingController(),
-      labelEn = TextEditingController(),
-      labelAr = TextEditingController(),
+      label = TextEditingController(),
       inputType = _inputTypes.first,
       optionSetCode = '',
       unitSetCode = '',
@@ -3210,8 +2723,7 @@ class _IssueFieldForm {
 
   final String? initialId;
   final TextEditingController fieldCode;
-  final TextEditingController labelEn;
-  final TextEditingController labelAr;
+  final TextEditingController label;
   String inputType;
   String optionSetCode;
   String unitSetCode;
@@ -3230,8 +2742,7 @@ class _IssueFieldForm {
   IssueField toIssueField(int index) => IssueField(
     id: initialId,
     fieldCode: fieldCode.text.trim(),
-    labelEn: labelEn.text.trim(),
-    labelAr: labelAr.text.trim(),
+    label: label.text.trim(),
     inputType: inputType,
     optionSetCode: optionSetCode,
     unitSetCode: unitSetCode,
@@ -3250,8 +2761,7 @@ class _IssueFieldForm {
 
   void dispose() {
     fieldCode.dispose();
-    labelEn.dispose();
-    labelAr.dispose();
+    label.dispose();
     minValue.dispose();
     maxValue.dispose();
     decimalPlaces.dispose();
@@ -3355,8 +2865,6 @@ class _MeasurementBandsSectionState
                               minValue: 0,
                               maxValue: 0,
                               resultCode: _resultCodes.first,
-                              labelEn: '',
-                              labelAr: '',
                               sortOrder: _forms.length,
                             ),
                           ),
@@ -3497,15 +3005,10 @@ class _MeasurementBandsSectionState
                       ),
                     ),
                     PlatformTextField(
-                      controller: form.labelEn,
+                      key: const Key('band-label'),
+                      controller: form.label,
                       label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                       enabled: widget.editable,
-                    ),
-                    PlatformTextField(
-                      controller: form.labelAr,
-                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-                      enabled: widget.editable,
-                      textDirection: TextDirection.rtl,
                     ),
                     PlatformTextField(
                       controller: form.sortOrder,
@@ -3537,8 +3040,7 @@ class _MeasurementBandForm {
       resultCode = _resultCodes.contains(band.resultCode)
           ? band.resultCode
           : _resultCodes.first,
-      labelEn = TextEditingController(text: band.labelEn),
-      labelAr = TextEditingController(text: band.labelAr),
+      label = TextEditingController(text: band.label),
       sortOrder = TextEditingController(text: band.sortOrder.toString());
 
   final TextEditingController fieldCode;
@@ -3547,8 +3049,7 @@ class _MeasurementBandForm {
   final TextEditingController minValue;
   final TextEditingController maxValue;
   String resultCode;
-  final TextEditingController labelEn;
-  final TextEditingController labelAr;
+  final TextEditingController label;
   final TextEditingController sortOrder;
 
   MeasurementBand toBand() => MeasurementBand(
@@ -3558,8 +3059,7 @@ class _MeasurementBandForm {
     minValue: double.tryParse(minValue.text.trim()) ?? 0,
     maxValue: double.tryParse(maxValue.text.trim()) ?? 0,
     resultCode: resultCode,
-    labelEn: labelEn.text.trim(),
-    labelAr: labelAr.text.trim(),
+    label: label.text.trim(),
     sortOrder: int.tryParse(sortOrder.text.trim()) ?? 0,
   );
 
@@ -3568,8 +3068,7 @@ class _MeasurementBandForm {
     unitCode.dispose();
     minValue.dispose();
     maxValue.dispose();
-    labelEn.dispose();
-    labelAr.dispose();
+    label.dispose();
     sortOrder.dispose();
   }
 }
@@ -3579,6 +3078,14 @@ String? _required(String? value, dynamic strings) {
     return strings.tKey(CommonKeys.validationRequired);
   }
   return null;
+}
+
+String _optionSetName(OptionSet set) {
+  return set.name.isEmpty ? set.code : set.name;
+}
+
+String _optionValueLabel(OptionValue value) {
+  return value.label.isEmpty ? value.code : value.label;
 }
 
 String _failureMessage(Object error) {

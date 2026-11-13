@@ -128,6 +128,7 @@ class DocumentTypesSection extends ConsumerWidget {
               : _DocumentTypesContent(
                   items: items,
                   onEdit: (item) => showDocumentTypeDialog(context, item),
+                  onActivate: (item) => _activate(context, ref, item),
                   onRetire: (item) => _retire(context, ref, item),
                   onMove: (index, delta) =>
                       _reorder(context, ref, items, index, delta),
@@ -153,6 +154,35 @@ class DocumentTypesSection extends ConsumerWidget {
     if (!confirmed || !context.mounted) return;
     try {
       await ref.read(platformConfigActionsProvider).retireDocumentType(item.id);
+    } on AppFailure catch (failure) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(failure.messageKey)));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
+      );
+    }
+  }
+
+  Future<void> _activate(
+    BuildContext context,
+    WidgetRef ref,
+    ReportDocumentType item,
+  ) async {
+    final strings = ref.read(uiStringsProvider);
+    try {
+      await ref
+          .read(platformConfigActionsProvider)
+          .saveDocumentType(
+            id: item.id,
+            code: item.code,
+            name: item.name,
+            required: item.required,
+            sortOrder: item.sortOrder,
+            active: true,
+          );
     } on AppFailure catch (failure) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
@@ -202,6 +232,8 @@ String _statusLabel(dynamic strings, String status) {
   switch (status) {
     case 'ACTIVE':
       return strings.tKey(CommonKeys.statusActive);
+    case 'DRAFT':
+      return strings.tKey(PlatformAdminKeys.statusContentDraft);
     case 'RETIRED':
       return strings.tKey(CommonKeys.statusRetired);
     default:
@@ -209,16 +241,23 @@ String _statusLabel(dynamic strings, String status) {
   }
 }
 
+/// Source-language (default) name for a document type.
+String _documentTypeName(ReportDocumentType type) {
+  return type.name.isEmpty ? type.code : type.name;
+}
+
 class _DocumentTypesContent extends StatelessWidget {
   const _DocumentTypesContent({
     required this.items,
     required this.onEdit,
+    required this.onActivate,
     required this.onRetire,
     required this.onMove,
   });
 
   final List<ReportDocumentType> items;
   final ValueChanged<ReportDocumentType> onEdit;
+  final ValueChanged<ReportDocumentType> onActivate;
   final ValueChanged<ReportDocumentType> onRetire;
   final void Function(int index, int delta) onMove;
 
@@ -230,6 +269,7 @@ class _DocumentTypesContent extends StatelessWidget {
           return _DocumentTypesTable(
             items: items,
             onEdit: onEdit,
+            onActivate: onActivate,
             onRetire: onRetire,
             onMove: onMove,
           );
@@ -243,6 +283,7 @@ class _DocumentTypesContent extends StatelessWidget {
                 canMoveUp: index > 0,
                 canMoveDown: index < items.length - 1,
                 onEdit: () => onEdit(items[index]),
+                onActivate: () => onActivate(items[index]),
                 onRetire: () => onRetire(items[index]),
                 onUp: () => onMove(index, -1),
                 onDown: () => onMove(index, 1),
@@ -260,12 +301,14 @@ class _DocumentTypesTable extends ConsumerWidget {
   const _DocumentTypesTable({
     required this.items,
     required this.onEdit,
+    required this.onActivate,
     required this.onRetire,
     required this.onMove,
   });
 
   final List<ReportDocumentType> items;
   final ValueChanged<ReportDocumentType> onEdit;
+  final ValueChanged<ReportDocumentType> onActivate;
   final ValueChanged<ReportDocumentType> onRetire;
   final void Function(int index, int delta) onMove;
 
@@ -286,13 +329,6 @@ class _DocumentTypesTable extends ConsumerWidget {
             DataColumn(
               label: Text(
                 strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -319,14 +355,7 @@ class _DocumentTypesTable extends ConsumerWidget {
                   ),
                   DataCell(
                     Text(
-                      items[index].nameEn,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      items[index].nameAr,
+                      _documentTypeName(items[index]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -372,6 +401,17 @@ class _DocumentTypesTable extends ConsumerWidget {
                             size: 20,
                           ),
                         ),
+                        if (items[index].status == 'DRAFT')
+                          IconButton(
+                            tooltip: strings.tKey(
+                              PlatformAdminKeys.buttonContentActivate,
+                            ),
+                            onPressed: () => onActivate(items[index]),
+                            icon: const Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 18,
+                            ),
+                          ),
                         IconButton(
                           tooltip: strings.tKey(CommonKeys.buttonEdit),
                           onPressed: () => onEdit(items[index]),
@@ -404,6 +444,7 @@ class _DocumentTypeCard extends ConsumerWidget {
     required this.canMoveUp,
     required this.canMoveDown,
     required this.onEdit,
+    required this.onActivate,
     required this.onRetire,
     required this.onUp,
     required this.onDown,
@@ -413,6 +454,7 @@ class _DocumentTypeCard extends ConsumerWidget {
   final bool canMoveUp;
   final bool canMoveDown;
   final VoidCallback onEdit;
+  final VoidCallback onActivate;
   final VoidCallback onRetire;
   final VoidCallback onUp;
   final VoidCallback onDown;
@@ -446,7 +488,7 @@ class _DocumentTypeCard extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            item.nameEn,
+            _documentTypeName(item),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(
@@ -455,14 +497,6 @@ class _DocumentTypeCard extends ConsumerWidget {
               color: PtTheme.ink,
             ),
           ),
-          if (item.nameAr.isNotEmpty)
-            Text(
-              item.nameAr,
-              textDirection: TextDirection.rtl,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(13, color: PtTheme.muted),
-            ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -479,6 +513,12 @@ class _DocumentTypeCard extends ConsumerWidget {
                 onPressed: canMoveDown ? onDown : null,
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
               ),
+              if (item.status == 'DRAFT')
+                PlatformPrimaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonContentActivate),
+                  icon: Icons.check_circle_outline_rounded,
+                  onPressed: onActivate,
+                ),
               PlatformSecondaryButton(
                 label: strings.tKey(CommonKeys.buttonEdit),
                 icon: Icons.edit_outlined,
@@ -511,8 +551,7 @@ class _DocumentTypeDialog extends ConsumerStatefulWidget {
 class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _codeController;
-  late final TextEditingController _nameEnController;
-  late final TextEditingController _nameArController;
+  late final TextEditingController _nameController;
   late final TextEditingController _sortOrderController;
   late bool _required;
   bool _saving = false;
@@ -522,8 +561,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
     super.initState();
     final initial = widget.initial;
     _codeController = TextEditingController(text: initial?.code ?? '');
-    _nameEnController = TextEditingController(text: initial?.nameEn ?? '');
-    _nameArController = TextEditingController(text: initial?.nameAr ?? '');
+    _nameController = TextEditingController(text: initial?.name ?? '');
     _sortOrderController = TextEditingController(
       text: '${initial?.sortOrder ?? 0}',
     );
@@ -533,8 +571,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
   @override
   void dispose() {
     _codeController.dispose();
-    _nameEnController.dispose();
-    _nameArController.dispose();
+    _nameController.dispose();
     _sortOrderController.dispose();
     super.dispose();
   }
@@ -543,16 +580,20 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     try {
-      await ref
-          .read(platformConfigActionsProvider)
-          .saveDocumentType(
-            id: widget.initial?.id,
-            code: _codeController.text.trim(),
-            nameEn: _nameEnController.text.trim(),
-            nameAr: _nameArController.text.trim(),
-            required: _required,
-            sortOrder: int.tryParse(_sortOrderController.text.trim()) ?? 0,
-          );
+      final api = ref.read(platformConfigApiProvider);
+      final body = <String, dynamic>{
+        'code': _codeController.text.trim(),
+        'name': _nameController.text.trim(),
+        'required': _required,
+        'sortOrder': int.tryParse(_sortOrderController.text.trim()) ?? 0,
+      };
+      final id = widget.initial?.id;
+      if (id == null) {
+        await api.createDocumentType(body);
+      } else {
+        await api.updateDocumentType(id, body);
+      }
+      ref.invalidate(documentTypesProvider);
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } on AppFailure catch (failure) {
@@ -585,6 +626,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformTextField(
+              key: const Key('doc-type-code'),
               controller: _codeController,
               label: strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
               validator: (value) => (value == null || value.trim().isEmpty)
@@ -593,17 +635,9 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
             ),
             const SizedBox(height: 12),
             PlatformTextField(
-              controller: _nameEnController,
+              key: const Key('doc-type-name'),
+              controller: _nameController,
               label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? strings.tKey(CommonKeys.validationRequired)
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _nameArController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
-              textDirection: TextDirection.rtl,
               validator: (value) => (value == null || value.trim().isEmpty)
                   ? strings.tKey(CommonKeys.validationRequired)
                   : null,

@@ -415,7 +415,11 @@ public class PlatformJobStore {
 
     public List<TemplateVersionRow> availableTemplates() {
         return jdbc.query("""
-                SELECT v.id AS version_id, v.template_id, t.code, t.name_en, t.name_ar,
+                SELECT v.id AS version_id, v.template_id, t.code,
+                       t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'TEMPLATE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar,
                        v.version_no, v.status
                 FROM platform_template_versions v
                 JOIN platform_templates t ON t.id = v.template_id
@@ -428,7 +432,11 @@ public class PlatformJobStore {
 
     public Optional<TemplateVersionRow> templateVersion(String versionId) {
         return jdbc.query("""
-                SELECT v.id AS version_id, v.template_id, t.code, t.name_en, t.name_ar,
+                SELECT v.id AS version_id, v.template_id, t.code,
+                       t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'TEMPLATE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar,
                        v.version_no, v.status
                 FROM platform_template_versions v
                 JOIN platform_templates t ON t.id = v.template_id
@@ -446,8 +454,16 @@ public class PlatformJobStore {
 
     public List<TemplateItemRow> templateItems(String versionId) {
         return jdbc.query("""
-                SELECT ti.item_version_id, i.stable_code, v.label_en, v.label_ar,
-                       i.category_id, c.name_en AS category_name_en, c.name_ar AS category_name_ar,
+                SELECT ti.item_version_id, i.stable_code,
+                       v.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       i.category_id,
+                       c.name AS category_name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_name_ar,
                        v.safety_critical, v.measurement_unit, ti.sort_order,
                        c.weight_percentage
                 FROM platform_template_items ti
@@ -487,9 +503,14 @@ public class PlatformJobStore {
 
     public List<GradeBoundaryRow> gradeBoundaries(String ruleId) {
         return jdbc.query("""
-                SELECT grade_code, min_score, max_score, label_en, label_ar, sort_order
-                FROM platform_grade_boundaries WHERE scoring_rule_id = ?
-                ORDER BY sort_order, min_score
+                SELECT g.grade_code, g.min_score, g.max_score,
+                       g.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'GRADE_BOUNDARY' AND pt.entity_id = g.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       g.sort_order
+                FROM platform_grade_boundaries g WHERE g.scoring_rule_id = ?
+                ORDER BY g.sort_order, g.min_score
                 """, (rs, i) -> new GradeBoundaryRow(
                 rs.getString("grade_code"), rs.getInt("min_score"), rs.getInt("max_score"),
                 rs.getString("label_en"), rs.getString("label_ar"), rs.getInt("sort_order")),
@@ -585,8 +606,13 @@ public class PlatformJobStore {
 
     public List<DocumentTypeRow> activeDocumentTypes() {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, sort_order FROM platform_document_types
-                WHERE status = 'ACTIVE' ORDER BY sort_order, code
+                SELECT d.code, d.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'DOCUMENT_TYPE' AND pt.entity_id = d.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar,
+                       d.sort_order
+                FROM platform_document_types d
+                WHERE d.status = 'ACTIVE' ORDER BY d.sort_order, d.code
                 """, (rs, i) -> new DocumentTypeRow(
                 rs.getString("code"), rs.getString("name_en"), rs.getString("name_ar"),
                 rs.getInt("sort_order")));
@@ -594,8 +620,13 @@ public class PlatformJobStore {
 
     public Optional<DocumentTypeRow> documentType(String code) {
         return jdbc.query("""
-                SELECT code, name_en, name_ar, sort_order FROM platform_document_types
-                WHERE code = ?
+                SELECT d.code, d.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'DOCUMENT_TYPE' AND pt.entity_id = d.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar,
+                       d.sort_order
+                FROM platform_document_types d
+                WHERE d.code = ?
                 """, (rs, i) -> new DocumentTypeRow(
                 rs.getString("code"), rs.getString("name_en"), rs.getString("name_ar"),
                 rs.getInt("sort_order")), code).stream().findFirst();
@@ -631,7 +662,10 @@ public class PlatformJobStore {
 
     public List<DocumentRow> documents(String reportVersionId) {
         return jdbc.query("""
-                SELECT d.*, t.name_en, t.name_ar
+                SELECT d.*, t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'DOCUMENT_TYPE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar
                 FROM platform_report_documents d
                 LEFT JOIN platform_document_types t ON t.code = d.document_type_code
                 WHERE d.report_version_id = ?
@@ -641,7 +675,10 @@ public class PlatformJobStore {
 
     public List<DocumentRow> documents(String reportVersionId, String documentTypeCode) {
         return jdbc.query("""
-                SELECT d.*, t.name_en, t.name_ar
+                SELECT d.*, t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'DOCUMENT_TYPE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar
                 FROM platform_report_documents d
                 LEFT JOIN platform_document_types t ON t.code = d.document_type_code
                 WHERE d.report_version_id = ? AND d.document_type_code = ?
@@ -651,7 +688,10 @@ public class PlatformJobStore {
 
     public Optional<DocumentRow> document(String id) {
         return jdbc.query("""
-                SELECT d.*, t.name_en, t.name_ar
+                SELECT d.*, t.name AS name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'DOCUMENT_TYPE' AND pt.entity_id = t.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS name_ar
                 FROM platform_report_documents d
                 LEFT JOIN platform_document_types t ON t.code = d.document_type_code
                 WHERE d.id = ?
@@ -780,3 +820,4 @@ public class PlatformJobStore {
         return value == null || value.isEmpty() ? value : pii.decrypt(value);
     }
 }
+

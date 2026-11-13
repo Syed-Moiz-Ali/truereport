@@ -28,7 +28,6 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
             codes.add(language.get("code").asText());
             assertThat(language.get("direction").asText()).isIn("ltr", "rtl");
             assertThat(language.get("nativeName").asText()).isNotBlank();
-            assertThat(language.get("nameEn").asText()).isNotBlank();
             assertThat(language.get("path").asText())
                     .startsWith("platform_admin/")
                     .endsWith(".json");

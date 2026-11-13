@@ -10,41 +10,47 @@ public final class LanguageDtos {
 
     public record LanguageDto(
             String code,
-            String nameEn,
-            String nameAr,
             String nativeName,
             String direction,
             boolean active,
             boolean isDefault,
             int sortOrder,
             String status,
-            String uiMessagesPath
+            String uiMessagesPath,
+            String uiMessagesHash,
+            String reviewedAt,
+            String reviewedBy
     ) {
-        public String name(LocaleView view) {
-            return view == LocaleView.AR ? nameAr : nameEn;
+        /**
+         * Display name rule: native name first, then the code. Arabic is not
+         * special; every added language follows the same rule.
+         */
+        public String displayName() {
+            return nativeName == null || nativeName.isBlank() ? code : nativeName;
         }
     }
 
-    public enum LocaleView { EN, AR }
-
     public record CreateLanguageRequest(
             String code,
-            String nameEn,
-            String nameAr,
             String nativeName,
             String direction,
             Boolean active,
-            Integer sortOrder
+            Integer sortOrder,
+            Boolean isDefault,
+            // Legacy compatibility input from older clients. Never stored as a
+            // fixed language column; used only as a nativeName fallback.
+            String nameEn,
+            String nameAr
     ) {
     }
 
     public record UpdateLanguageRequest(
-            String nameEn,
-            String nameAr,
             String nativeName,
             String direction,
             Boolean active,
-            Integer sortOrder
+            Integer sortOrder,
+            String nameEn,
+            String nameAr
     ) {
     }
 
@@ -76,7 +82,8 @@ public final class LanguageDtos {
             @com.fasterxml.jackson.annotation.JsonInclude(
                     com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
             String text,
-            String status
+            String status,
+            String contentStatus
     ) {
     }
 
@@ -123,5 +130,32 @@ public final class LanguageDtos {
 
     public record TranslationCoverageDto(List<String> languages,
                                          Map<String, CoverageNamespace> namespaces) {
+    }
+
+    public record UiMessageCoverageDto(
+            int total,
+            int approved,
+            int missing,
+            int changed,
+            String path,
+            String generationStatus
+    ) {
+    }
+
+    public record ReadinessBlockerDto(String code, String tab, int count, String message) {
+    }
+
+    public record LanguageReadinessDto(
+            String language,
+            String status,
+            String nativeName,
+            String direction,
+            boolean isDefault,
+            String uiMessagesPath,
+            int readinessPercent,
+            UiMessageCoverageDto uiMessages,
+            Map<String, EntityCoverageDto> content,
+            List<ReadinessBlockerDto> blockers
+    ) {
     }
 }

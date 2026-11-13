@@ -54,10 +54,10 @@ class PlatformTemplateScopeIT extends IntegrationTestBase {
                                 String publishedVersionId) {
         jdbc.update("""
                 INSERT INTO platform_templates
-                    (id, code, name_en, name_ar, description_en, description_ar,
+                    (id, code, name, description,
                      status, current_published_version_id, created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, '', '', ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, id, code, code, code, status, publishedVersionId);
+                VALUES (?, ?, ?, '', ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, id, code, code, status, publishedVersionId);
     }
 
     private JsonNode getJson(Login login, String path) throws Exception {

@@ -1,5 +1,6 @@
 package com.truereport.templates.config;
 
+import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.uuid.UuidV7;
 import com.truereport.templates.config.PlatformTemplateDtos.ChangeRequestDto;
@@ -30,9 +31,11 @@ import java.util.Set;
 public class TemplateRepository {
 
     private final JdbcTemplate jdbc;
+    private final DynamicContentTranslations translations;
 
-    public TemplateRepository(JdbcTemplate jdbc) {
+    public TemplateRepository(JdbcTemplate jdbc, DynamicContentTranslations translations) {
         this.jdbc = jdbc;
+        this.translations = translations;
     }
 
     // --------------------------------------------------------------- templates
@@ -43,7 +46,7 @@ public class TemplateRepository {
 
     public List<TemplateSummaryDto> findAll(boolean publishedOnly) {
         List<TemplateRow> rows = jdbc.query("""
-                SELECT id, code, name_en, name_ar, description_en, description_ar, status,
+                SELECT id, code, name, description, status,
                        current_published_version_id
                 FROM platform_templates
                 WHERE (? = FALSE OR (status = 'ACTIVE'
@@ -59,7 +62,7 @@ public class TemplateRepository {
 
     public Optional<TemplateSummaryDto> findById(String id) {
         List<TemplateRow> rows = jdbc.query("""
-                SELECT id, code, name_en, name_ar, description_en, description_ar, status,
+                SELECT id, code, name, description, status,
                        current_published_version_id
                 FROM platform_templates
                 WHERE id = ?
@@ -75,10 +78,11 @@ public class TemplateRepository {
         List<TemplateCategoryDto> grouped = versionId == null
                 ? List.of() : findVersion(base.id(), versionId)
                         .map(TemplateVersionDto::categories).orElse(List.of());
-        return Optional.of(new TemplateSummaryDto(base.id(), base.code(), base.nameEn(),
-                base.nameAr(), base.descriptionEn(), base.descriptionAr(), base.status(),
-                base.currentPublishedVersionId(), base.versionCount(), base.currentVersionNo(),
-                base.versions(), grouped));
+        return Optional.of(new TemplateSummaryDto(base.id(), base.code(), base.name(),
+                base.description(), base.status(), base.currentPublishedVersionId(),
+                base.versionCount(), base.currentVersionNo(), base.versions(), grouped,
+                base.translations(), base.nameEn(), base.nameAr(),
+                base.descriptionEn(), base.descriptionAr()));
     }
 
     public boolean codeExists(String code) {
@@ -87,27 +91,29 @@ public class TemplateRepository {
         return count != null && count > 0;
     }
 
-    public String insertTemplate(String code, String nameEn, String nameAr,
-                                 String descriptionEn, String descriptionAr) {
+    public String insertTemplate(String code, String name, String description,
+                                 Map<String, Map<String, String>> fieldTranslations) {
         String id = UuidV7.generate().toString();
         jdbc.update("""
                 INSERT INTO platform_templates
-                    (id, code, name_en, name_ar, description_en, description_ar, status,
+                    (id, code, name, description, status,
                      current_published_version_id, created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', NULL,
+                VALUES (?, ?, ?, ?, 'ACTIVE', NULL,
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, id, code, nameEn, nameAr, descriptionEn, descriptionAr);
+                """, id, code, name, description);
+        translations.saveOverlays("TEMPLATE", id, fieldTranslations, "APPROVED");
         return id;
     }
 
-    public void updateTemplate(String id, String nameEn, String nameAr,
-                               String descriptionEn, String descriptionAr) {
+    public void updateTemplate(String id, String name, String description,
+                               Map<String, Map<String, String>> fieldTranslations) {
         jdbc.update("""
                 UPDATE platform_templates
-                SET name_en = ?, name_ar = ?, description_en = ?, description_ar = ?,
+                SET name = COALESCE(?, name), description = COALESCE(?, description),
                     updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE id = ?
-                """, nameEn, nameAr, descriptionEn, descriptionAr, id);
+                """, name, description, id);
+        translations.saveOverlays("TEMPLATE", id, fieldTranslations, "APPROVED");
     }
 
     public void retireTemplate(String id) {
@@ -229,8 +235,7 @@ public class TemplateRepository {
         }
         return jdbc.query("""
                 SELECT tc.category_id, tc.sort_order, tc.included,
-                       c.code AS category_code, c.name_en AS category_name_en,
-                       c.name_ar AS category_name_ar,
+                       c.code AS category_code, c.name AS category_name,
                        (SELECT COUNT(*) FROM platform_items i
                         WHERE i.category_id = tc.category_id AND i.status <> 'RETIRED') AS item_count
                 FROM platform_template_categories tc
@@ -243,16 +248,23 @@ public class TemplateRepository {
                             .getOrDefault(categoryId, List.of());
                     int includedCount = (int) categoryItems.stream()
                             .filter(TemplateItemDto::included).count();
+                    String name = rs.getString("category_name");
+                    Map<String, Map<String, String>> fields = translations.view(
+                            "CATEGORY", categoryId, Map.of("name", name == null ? "" : name));
+                    String nameAr = translations.resolve("CATEGORY", categoryId, "name", "ar",
+                            name == null ? "" : name);
                     return new TemplateCategoryDto(
                             categoryId,
                             rs.getString("category_code"),
-                            rs.getString("category_name_en"),
-                            rs.getString("category_name_ar"),
+                            name,
                             rs.getInt("sort_order"),
                             rs.getInt("item_count"),
                             includedCount,
                             rs.getBoolean("included"),
-                            categoryItems);
+                            categoryItems,
+                            fields,
+                            name,
+                            nameAr);
                 }, templateVersionId);
     }
 
@@ -314,24 +326,34 @@ public class TemplateRepository {
     public List<TemplateItemDto> items(String templateVersionId) {
         return jdbc.query("""
                 SELECT ti.id, ti.item_version_id, ti.sort_order, ti.included, ti.category_id,
-                       v.item_id, v.label_en, v.label_ar,
+                       v.item_id, v.label,
                        i.stable_code, i.status AS item_status
                 FROM platform_template_items ti
                 LEFT JOIN platform_item_versions v ON v.id = ti.item_version_id
                 LEFT JOIN platform_items i ON i.id = v.item_id
                 WHERE ti.template_version_id = ?
                 ORDER BY ti.sort_order, i.sort_order, i.stable_code
-                """, (rs, i) -> new TemplateItemDto(
-                rs.getString("id"),
-                rs.getString("item_id"),
-                rs.getString("item_version_id"),
-                rs.getString("stable_code"),
-                rs.getString("label_en"),
-                rs.getString("label_ar"),
-                rs.getString("category_id"),
-                rs.getInt("sort_order"),
-                rs.getBoolean("included"),
-                rs.getString("item_status")), templateVersionId);
+                """, (rs, i) -> {
+            String label = rs.getString("label");
+            Map<String, Map<String, String>> fields = translations.view(
+                    "ITEM", rs.getString("item_version_id"),
+                    Map.of("label", label == null ? "" : label));
+            String labelAr = translations.resolve("ITEM", rs.getString("item_version_id"),
+                    "label", "ar", label == null ? "" : label);
+            return new TemplateItemDto(
+                    rs.getString("id"),
+                    rs.getString("item_id"),
+                    rs.getString("item_version_id"),
+                    rs.getString("stable_code"),
+                    label,
+                    rs.getString("category_id"),
+                    rs.getInt("sort_order"),
+                    rs.getBoolean("included"),
+                    rs.getString("item_status"),
+                    fields,
+                    label,
+                    labelAr);
+        }, templateVersionId);
     }
 
     public void replaceItems(String templateVersionId, List<TemplateItemRequest> requests) {
@@ -511,9 +533,17 @@ public class TemplateRepository {
         if (currentVersionNo == null && !versions.isEmpty()) {
             currentVersionNo = versions.get(0).versionNo();
         }
-        return new TemplateSummaryDto(row.id(), row.code(), row.nameEn(), row.nameAr(),
-                row.descriptionEn(), row.descriptionAr(), row.status(), row.currentPublishedVersionId(),
-                versions.size(), currentVersionNo, versions, List.of());
+        return new TemplateSummaryDto(row.id(), row.code(), row.name(),
+                row.description(), row.status(), row.currentPublishedVersionId(),
+                versions.size(), currentVersionNo, versions, List.of(),
+                templateTranslations(row), row.name(), row.nameAr(),
+                row.description(), row.descriptionAr());
+    }
+
+    private Map<String, Map<String, String>> templateTranslations(TemplateRow row) {
+        return translations.view("TEMPLATE", row.id(), Map.of(
+                "name", row.name() == null ? "" : row.name(),
+                "description", row.description() == null ? "" : row.description()));
     }
 
     private boolean categoryExists(String categoryId) {
@@ -545,15 +575,18 @@ public class TemplateRepository {
     }
 
     private RowMapper<TemplateRow> templateRowMapper() {
-        return (rs, i) -> new TemplateRow(
-                rs.getString("id"),
-                rs.getString("code"),
-                rs.getString("name_en"),
-                rs.getString("name_ar"),
-                rs.getString("description_en"),
-                rs.getString("description_ar"),
-                rs.getString("status"),
-                rs.getString("current_published_version_id"));
+        return (rs, i) -> {
+            String id = rs.getString("id");
+            String name = rs.getString("name");
+            String description = rs.getString("description");
+            String nameAr = translations.resolve("TEMPLATE", id, "name", "ar",
+                    name == null ? "" : name);
+            String descriptionAr = translations.resolve("TEMPLATE", id, "description", "ar",
+                    description == null ? "" : description);
+            return new TemplateRow(id, rs.getString("code"), name, description, nameAr,
+                    descriptionAr, rs.getString("status"),
+                    rs.getString("current_published_version_id"));
+        };
     }
 
     private RowMapper<VersionRow> versionRowMapper() {
@@ -588,9 +621,9 @@ public class TemplateRepository {
     private record TemplateRow(
             String id,
             String code,
-            String nameEn,
+            String name,
+            String description,
             String nameAr,
-            String descriptionEn,
             String descriptionAr,
             String status,
             String currentPublishedVersionId
@@ -613,3 +646,5 @@ public class TemplateRepository {
     ) {
     }
 }
+
+

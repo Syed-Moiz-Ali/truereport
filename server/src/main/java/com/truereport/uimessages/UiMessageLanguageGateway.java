@@ -13,7 +13,6 @@ public class UiMessageLanguageGateway {
 
     public record Language(
             String code,
-            String nameEn,
             String nativeName,
             String direction,
             boolean active,
@@ -24,13 +23,12 @@ public class UiMessageLanguageGateway {
     }
 
     private static final String COLUMNS = """
-            code, name_en, native_name, direction, active, is_default, sort_order,
+            code, native_name, direction, active, is_default, sort_order,
             status, ui_messages_path
             """;
 
     private static final RowMapper<Language> MAPPER = (rs, i) -> new Language(
             rs.getString("code"),
-            rs.getString("name_en"),
             rs.getString("native_name"),
             rs.getString("direction"),
             rs.getBoolean("active"),

@@ -11,8 +11,6 @@ import 'support/ui_message_fixtures.dart';
 
 const _testLanguage = PlatformLanguage(
   code: 'en',
-  nameEn: 'English',
-  nameAr: 'الإنجليزية',
   nativeName: 'English',
   direction: 'ltr',
   active: true,

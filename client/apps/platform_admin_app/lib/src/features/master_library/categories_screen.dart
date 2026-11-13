@@ -66,12 +66,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Future<void> _showCategoryDialog(PlatformCategory? category) async {
     final strings = ref.watch(uiStringsProvider);
     final codeController = TextEditingController(text: category?.code ?? '');
-    final nameEnController = TextEditingController(
-      text: category?.nameEn ?? '',
-    );
-    final nameArController = TextEditingController(
-      text: category?.nameAr ?? '',
-    );
+    final nameController = TextEditingController(text: category?.name ?? '');
     final sortOrderController = TextEditingController(
       text: (category?.sortOrder ?? 0).toString(),
     );
@@ -92,25 +87,21 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PlatformTextField(
+                  key: const Key('category-code'),
                   controller: codeController,
                   label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
                   validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
-                  controller: nameEnController,
+                  key: const Key('category-name'),
+                  controller: nameController,
                   label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
                   validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
-                  controller: nameArController,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameAr),
-                  textDirection: TextDirection.rtl,
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
+                  key: const Key('category-order'),
                   controller: sortOrderController,
                   label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                   keyboardType: TextInputType.number,
@@ -174,28 +165,32 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     );
 
     final code = codeController.text.trim();
-    final nameEn = nameEnController.text.trim();
-    final nameAr = nameArController.text.trim();
+    final name = nameController.text.trim();
     final sortOrder = int.tryParse(sortOrderController.text.trim()) ?? 0;
     Future<void>.delayed(const Duration(milliseconds: 400), () {
       codeController.dispose();
-      nameEnController.dispose();
-      nameArController.dispose();
+      nameController.dispose();
       sortOrderController.dispose();
     });
 
     if (shouldSave != true) return;
     await _run(() async {
-      await ref
-          .read(platformConfigActionsProvider)
-          .saveCategory(
-            id: category?.id,
-            code: code,
-            nameEn: nameEn,
-            nameAr: nameAr,
-            sortOrder: sortOrder,
-            active: active,
-          );
+      final api = ref.read(platformConfigApiProvider);
+      final body = <String, dynamic>{
+        'code': code,
+        'name': name,
+        'sortOrder': sortOrder,
+        'status': active ? 'ACTIVE' : 'RETIRED',
+        'active': active,
+      };
+      if (category == null) {
+        await api.createCategory(body);
+      } else {
+        await api.updateCategory(category.id, body);
+      }
+      ref.invalidate(categoriesProvider);
+      ref.invalidate(itemsProvider);
+      ref.invalidate(configHealthProvider);
     });
   }
 
@@ -211,6 +206,20 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     if (confirmed != true) return;
     await _run(() async {
       await ref.read(platformConfigActionsProvider).retireCategory(category.id);
+    });
+  }
+
+  Future<void> _activate(PlatformCategory category) async {
+    await _run(() async {
+      await ref
+          .read(platformConfigActionsProvider)
+          .saveCategory(
+            id: category.id,
+            code: category.code,
+            name: category.name,
+            sortOrder: category.sortOrder,
+            active: true,
+          );
     });
   }
 
@@ -264,8 +273,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 }
                 if (query.isEmpty) return true;
                 return category.code.toLowerCase().contains(query) ||
-                    category.nameEn.toLowerCase().contains(query) ||
-                    category.nameAr.contains(_search.trim());
+                    _categoryName(category).toLowerCase().contains(query);
               })
               .toList(growable: false);
           final countLabel = query.isEmpty && _status.isEmpty
@@ -293,6 +301,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                         DropdownMenuItem(
                           value: 'ACTIVE',
                           child: Text(strings.tKey(CommonKeys.statusActive)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'DRAFT',
+                          child: Text(
+                            strings.tKey(PlatformAdminKeys.statusContentDraft),
+                          ),
                         ),
                         DropdownMenuItem(
                           value: 'RETIRED',
@@ -445,7 +459,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            category.nameEn.isEmpty ? category.code : category.nameEn,
+            _categoryName(category),
             style: PtTheme.font(
               16,
               lineHeight: 22,
@@ -455,16 +469,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (category.nameAr.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              category.nameAr,
-              textDirection: TextDirection.rtl,
-              style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -491,6 +495,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              if (category.status == 'DRAFT')
+                PlatformPrimaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonContentActivate),
+                  icon: Icons.check_circle_outline_rounded,
+                  onPressed: _busy ? null : () => _activate(category),
+                ),
               PlatformSecondaryButton(
                 label: strings.tKey(CommonKeys.buttonEdit),
                 icon: Icons.edit_outlined,
@@ -549,6 +559,10 @@ String? _required(String? value, dynamic strings) {
     return strings.tKey(CommonKeys.validationRequired);
   }
   return null;
+}
+
+String _categoryName(PlatformCategory category) {
+  return category.name.isEmpty ? category.code : category.name;
 }
 
 String _failureMessage(Object error) {

@@ -101,15 +101,21 @@ public class LocalizationService {
         if (languages.find(code).isPresent()) {
             throw ApiException.conflict("LANGUAGE_EXISTS", "Language already exists");
         }
-        validateNames(request.nameEn(), request.nameAr());
+        String nativeName = request.nativeName();
+        validateNativeName(nativeName);
         String direction = normalizeDirection(request.direction());
         // New languages always start as inactive DRAFT; they become selectable
         // only after the translation backlog is approved and the language is published.
-        LanguageDto dto = new LanguageDto(code, request.nameEn().trim(), request.nameAr().trim(),
-                blankTo(request.nativeName(), request.nameEn().trim()), direction,
+        LanguageDto dto = new LanguageDto(code, nativeName.trim(), direction,
                 false, false, request.sortOrder() == null ? 99 : request.sortOrder(),
-                "DRAFT", null);
+                "DRAFT", null, null, null, null);
         languages.insert(dto);
+        if (Boolean.TRUE.equals(request.isDefault()) && !"en".equals(code)) {
+            throw ApiException.validation("LANGUAGE_DEFAULT_FIXED",
+                    "English is the only default/source language",
+                    List.of(FieldIssue.of("isDefault", "LANGUAGE_DEFAULT_FIXED",
+                            "error.validation.failed")));
+        }
         return languages.find(code).orElse(dto);
     }
 
@@ -121,14 +127,14 @@ public class LocalizationService {
             assertCanDeactivate(existing);
         }
         LanguageDto updated = new LanguageDto(existing.code(),
-                blankTo(request.nameEn(), existing.nameEn()),
-                blankTo(request.nameAr(), existing.nameAr()),
                 blankTo(request.nativeName(), existing.nativeName()),
                 normalizeDirection(request.direction() == null ? existing.direction() : request.direction()),
                 request.active() == null ? existing.active() : request.active(),
                 existing.isDefault(),
                 request.sortOrder() == null ? existing.sortOrder() : request.sortOrder(),
-                existing.status(), existing.uiMessagesPath());
+                existing.status(), existing.uiMessagesPath(), existing.uiMessagesHash(),
+                existing.reviewedAt(), existing.reviewedBy());
+        validateNativeName(updated.nativeName());
         languages.update(updated);
         return languages.find(updated.code()).orElse(updated);
     }
@@ -140,9 +146,10 @@ public class LocalizationService {
         if (!active) {
             assertCanDeactivate(existing);
         }
-        languages.update(new LanguageDto(existing.code(), existing.nameEn(), existing.nameAr(),
-                existing.nativeName(), existing.direction(), active, existing.isDefault(),
-                existing.sortOrder(), existing.status(), existing.uiMessagesPath()));
+        languages.update(new LanguageDto(existing.code(), existing.nativeName(),
+                existing.direction(), active, existing.isDefault(),
+                existing.sortOrder(), existing.status(), existing.uiMessagesPath(),
+                existing.uiMessagesHash(), existing.reviewedAt(), existing.reviewedBy()));
         return languages.find(code).orElse(existing);
     }
 
@@ -165,9 +172,10 @@ public class LocalizationService {
             backlog.publish(actor, existing.code(), null);
         } else {
             if ("RETIRED".equals(target)) {
-                languages.update(new LanguageDto(existing.code(), existing.nameEn(), existing.nameAr(),
-                        existing.nativeName(), existing.direction(), false, existing.isDefault(),
-                        existing.sortOrder(), existing.status(), existing.uiMessagesPath()));
+                languages.update(new LanguageDto(existing.code(), existing.nativeName(),
+                        existing.direction(), false, existing.isDefault(),
+                        existing.sortOrder(), existing.status(), existing.uiMessagesPath(),
+                        existing.uiMessagesHash(), existing.reviewedAt(), existing.reviewedBy()));
             }
             languages.setStatus(existing.code(), target);
         }
@@ -222,66 +230,41 @@ public class LocalizationService {
     @Transactional(readOnly = true)
     public TranslationCoverageDto coverage() {
         List<String> codes = languages.findAll().stream().map(LanguageDto::code).toList();
-        Map<String, CoverageNamespace> namespaces = new LinkedHashMap<>();
-        namespaces.put("master.categories", categoryCoverage());
-        namespaces.put("master.items", itemCoverage());
-        namespaces.put("master.options", optionCoverage());
-        namespaces.put("master.templates", templateCoverage());
-        namespaces.put("master.documentTypes", documentTypeCoverage());
-        return new TranslationCoverageDto(codes, namespaces);
-    }
-
-    private CoverageNamespace categoryCoverage() {
-        Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM platform_categories", Integer.class);
-        List<String> missing = jdbc.query("""
-                SELECT code FROM platform_categories
-                WHERE name_ar IS NULL OR TRIM(name_ar) = ''
-                ORDER BY sort_order
-                """, (rs, i) -> rs.getString(1));
-        return new CoverageNamespace(total == null ? 0 : total, missing);
-    }
-
-    private CoverageNamespace itemCoverage() {
-        Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM platform_items", Integer.class);
-        List<String> missing = jdbc.query("""
-                SELECT i.stable_code FROM platform_items i
-                LEFT JOIN platform_item_versions v ON v.id = i.current_published_version_id
-                WHERE v.id IS NULL OR v.instruction_ar IS NULL OR TRIM(v.instruction_ar) = ''
-                ORDER BY i.stable_code
-                """, (rs, i) -> rs.getString(1));
-        return new CoverageNamespace(total == null ? 0 : total, missing);
-    }
-
-    private CoverageNamespace optionCoverage() {
-        Integer total = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM platform_option_values WHERE status = 'ACTIVE'", Integer.class);
-        List<String> missing = jdbc.query("""
-                SELECT CONCAT(s.code, '.', v.code) FROM platform_option_values v
-                JOIN platform_option_sets s ON s.id = v.option_set_id
-                WHERE v.status = 'ACTIVE' AND (v.label_ar IS NULL OR TRIM(v.label_ar) = '')
-                ORDER BY s.code, v.sort_order
-                """, (rs, i) -> rs.getString(1));
-        return new CoverageNamespace(total == null ? 0 : total, missing);
-    }
-
-    private CoverageNamespace templateCoverage() {
-        Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM platform_templates", Integer.class);
-        List<String> missing = jdbc.query("""
-                SELECT code FROM platform_templates
-                WHERE name_ar IS NULL OR TRIM(name_ar) = ''
-                ORDER BY code
-                """, (rs, i) -> rs.getString(1));
-        return new CoverageNamespace(total == null ? 0 : total, missing);
-    }
-
-    private CoverageNamespace documentTypeCoverage() {
-        Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM platform_document_types", Integer.class);
-        List<String> missing = jdbc.query("""
-                SELECT code FROM platform_document_types
-                WHERE name_ar IS NULL OR TRIM(name_ar) = ''
-                ORDER BY code
-                """, (rs, i) -> rs.getString(1));
-        return new CoverageNamespace(total == null ? 0 : total, missing);
+        List<LanguageDto> targets = languages.findAll().stream()
+                .filter(language -> !language.isDefault())
+                .filter(language -> !"RETIRED".equals(language.status()))
+                .toList();
+        Map<String, Integer> totals = new LinkedHashMap<>();
+        Map<String, List<String>> missing = new LinkedHashMap<>();
+        String[] namespaces = {"master.categories", "master.items", "master.options",
+                "master.templates", "master.documentTypes"};
+        String[] entityTypes = {"CATEGORY", "ITEM", "OPTION_VALUE", "TEMPLATE", "DOCUMENT_TYPE"};
+        for (int i = 0; i < namespaces.length; i++) {
+            totals.put(namespaces[i], 0);
+            missing.put(namespaces[i], new ArrayList<>());
+        }
+        for (LanguageDto language : targets) {
+            var backlogForLanguage = backlog.backlog(language.code());
+            for (var group : backlogForLanguage.groups()) {
+                int index = java.util.Arrays.asList(entityTypes).indexOf(group.entityType());
+                if (index < 0) {
+                    continue;
+                }
+                String namespace = namespaces[index];
+                totals.merge(namespace, group.total(), Integer::sum);
+                for (var item : group.items()) {
+                    if (!"APPROVED".equals(item.status())) {
+                        missing.get(namespace).add(language.code() + ":" + item.entityCode());
+                    }
+                }
+            }
+        }
+        Map<String, CoverageNamespace> result = new LinkedHashMap<>();
+        for (String namespace : namespaces) {
+            result.put(namespace, new CoverageNamespace(
+                    totals.getOrDefault(namespace, 0), missing.getOrDefault(namespace, List.of())));
+        }
+        return new TranslationCoverageDto(codes, result);
     }
 
     private void assertCanDeactivate(LanguageDto language) {
@@ -296,16 +279,10 @@ public class LocalizationService {
         }
     }
 
-    private void validateNames(String nameEn, String nameAr) {
-        List<FieldIssue> issues = new ArrayList<>();
-        if (nameEn == null || nameEn.isBlank()) {
-            issues.add(FieldIssue.of("nameEn", "REQUIRED", "error.field.invalid"));
-        }
-        if (nameAr == null || nameAr.isBlank()) {
-            issues.add(FieldIssue.of("nameAr", "REQUIRED", "error.field.invalid"));
-        }
-        if (!issues.isEmpty()) {
-            throw ApiException.validation("LANGUAGE_INVALID", "Language names are required", issues);
+    private void validateNativeName(String nativeName) {
+        if (nativeName == null || nativeName.isBlank()) {
+            throw ApiException.validation("LANGUAGE_INVALID", "A native name is required",
+                    List.of(FieldIssue.of("nativeName", "REQUIRED", "error.field.invalid")));
         }
     }
 

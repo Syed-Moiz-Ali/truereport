@@ -1,6 +1,7 @@
 package com.truereport.templates.config;
 
 import java.util.List;
+import java.util.Map;
 
 public final class PlatformTemplateDtos {
 
@@ -10,16 +11,19 @@ public final class PlatformTemplateDtos {
     public record TemplateSummaryDto(
             String id,
             String code,
-            String nameEn,
-            String nameAr,
-            String descriptionEn,
-            String descriptionAr,
+            String name,
+            String description,
             String status,
             String currentPublishedVersionId,
             int versionCount,
             Integer currentVersionNo,
             List<TemplateVersionSummaryDto> versions,
-            List<TemplateCategoryDto> categories
+            List<TemplateCategoryDto> categories,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr,
+            String descriptionEn,
+            String descriptionAr
     ) {
     }
 
@@ -47,13 +51,15 @@ public final class PlatformTemplateDtos {
     public record TemplateCategoryDto(
             String categoryId,
             String categoryCode,
-            String nameEn,
-            String nameAr,
+            String name,
             int sortOrder,
             int itemCount,
             int includedCount,
             boolean included,
-            List<TemplateItemDto> items
+            List<TemplateItemDto> items,
+            Map<String, Map<String, String>> translations,
+            String nameEn,
+            String nameAr
     ) {
     }
 
@@ -62,17 +68,22 @@ public final class PlatformTemplateDtos {
             String itemId,
             String itemVersionId,
             String itemCode,
-            String labelEn,
-            String labelAr,
+            String label,
             String categoryId,
             int sortOrder,
             boolean included,
-            String itemStatus
+            String itemStatus,
+            Map<String, Map<String, String>> translations,
+            String labelEn,
+            String labelAr
     ) {
     }
 
     public record CreateTemplateRequest(
             String code,
+            String name,
+            String description,
+            Map<String, Map<String, String>> translations,
             String nameEn,
             String nameAr,
             String descriptionEn,
@@ -81,6 +92,9 @@ public final class PlatformTemplateDtos {
     }
 
     public record UpdateTemplateRequest(
+            String name,
+            String description,
+            Map<String, Map<String, String>> translations,
             String nameEn,
             String nameAr,
             String descriptionEn,

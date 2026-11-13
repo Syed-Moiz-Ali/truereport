@@ -293,6 +293,19 @@ final translationCoverageProvider =
       (ref) => ref.watch(platformConfigApiProvider).translationCoverage(),
     );
 
+/// Per-language publish readiness (UI text + dynamic content + blockers).
+final readinessProvider = FutureProvider.autoDispose
+    .family<LanguageReadiness, String>(
+      (ref, code) => ref.watch(platformConfigApiProvider).readiness(code),
+    );
+
+/// Current dynamic-content generation job for a language.
+final contentGenerationProvider = FutureProvider.autoDispose
+    .family<ContentGeneration, String>(
+      (ref, code) =>
+          ref.watch(platformConfigApiProvider).contentGeneration(code),
+    );
+
 final configHealthProvider = FutureProvider.autoDispose<ConfigHealth>(
   (ref) => ref.watch(platformConfigApiProvider).configHealth(),
 );
@@ -328,6 +341,8 @@ class PlatformConfigActions {
     _ref.invalidate(documentTypesProvider);
     _ref.invalidate(platformLanguagesProvider);
     _ref.invalidate(translationCoverageProvider);
+    _ref.invalidate(readinessProvider);
+    _ref.invalidate(contentGenerationProvider);
     _ref.invalidate(configHealthProvider);
     _ref.invalidate(configReleasesProvider);
     _ref.invalidate(impactProvider);
@@ -342,15 +357,13 @@ class PlatformConfigActions {
   Future<PlatformCategory> saveCategory({
     String? id,
     required String code,
-    required String nameEn,
-    required String nameAr,
+    required String name,
     required int sortOrder,
     bool active = true,
   }) async {
     final body = <String, dynamic>{
       'code': code,
-      'nameEn': nameEn,
-      'nameAr': nameAr,
+      'name': name,
       'sortOrder': sortOrder,
       'active': active,
     };
@@ -392,27 +405,18 @@ class PlatformConfigActions {
     return result;
   }
 
-  Future<void> saveTranslations(
+  Future<void> saveSourceContent(
     String itemId,
     String versionId, {
-    required String labelEn,
-    required String instructionEn,
-    required String labelAr,
-    required String instructionAr,
+    required String label,
+    required String instruction,
   }) async {
     await _api.updateTranslation(
       itemId,
       versionId,
       'en',
-      label: labelEn,
-      instruction: instructionEn,
-    );
-    await _api.updateTranslation(
-      itemId,
-      versionId,
-      'ar',
-      label: labelAr,
-      instruction: instructionAr,
+      label: label,
+      instruction: instruction,
     );
     _invalidateAll();
   }
@@ -583,17 +587,17 @@ class PlatformConfigActions {
   Future<ReportDocumentType> saveDocumentType({
     String? id,
     required String code,
-    required String nameEn,
-    required String nameAr,
+    required String name,
     required bool required,
     required int sortOrder,
+    bool? active,
   }) async {
     final body = <String, dynamic>{
       'code': code,
-      'nameEn': nameEn,
-      'nameAr': nameAr,
+      'name': name,
       'required': required,
       'sortOrder': sortOrder,
+      'active': ?active,
     };
     final result = id == null
         ? await _api.createDocumentType(body)
@@ -609,25 +613,29 @@ class PlatformConfigActions {
 
   Future<PlatformLanguage> saveLanguage({
     required String code,
-    required String nameEn,
-    required String nameAr,
     required String nativeName,
     required String direction,
     required bool active,
     required int sortOrder,
+    required bool isDefault,
     bool isNew = false,
   }) async {
     final body = <String, dynamic>{
-      'nameEn': nameEn,
-      'nameAr': nameAr,
       'nativeName': nativeName,
       'direction': direction,
       'active': active,
       'sortOrder': sortOrder,
     };
     final result = isNew
-        ? await _api.createLanguage({...body, 'code': code})
+        ? await _api.createLanguage({
+            ...body,
+            'code': code,
+            'isDefault': isDefault,
+          })
         : await _api.updateLanguage(code, body);
+    if (isDefault && !result.isDefault) {
+      await _api.setDefaultLanguage(code);
+    }
     _invalidateAll();
     return result;
   }
@@ -640,6 +648,32 @@ class PlatformConfigActions {
   Future<void> reorderLanguages(List<String> codes) async {
     await _api.reorderLanguages(codes);
     _invalidateAll();
+  }
+
+  Future<ContentGeneration> generateContent(
+    String code, {
+    required List<String> entityTypes,
+    bool force = false,
+  }) async {
+    final result = await _api.generateContent(
+      code,
+      entityTypes: entityTypes,
+      force: force,
+    );
+    _invalidateAll();
+    return result;
+  }
+
+  Future<ContentGeneration> cancelContentGeneration(String code) async {
+    final result = await _api.cancelContentGeneration(code);
+    _invalidateAll();
+    return result;
+  }
+
+  Future<ContentGeneration> retryFailedContentGeneration(String code) async {
+    final result = await _api.retryFailedContentGeneration(code);
+    _invalidateAll();
+    return result;
   }
 
   Future<ConfigRelease> createRelease(Map<String, dynamic> body) async {
