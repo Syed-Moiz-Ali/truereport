@@ -7,6 +7,7 @@ import 'package:platform_admin_app/src/features/master_library/master_item_edito
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_translations.dart';
+import 'support/ui_message_fixtures.dart';
 
 const _category = PlatformCategory(
   id: 'cat-1',
@@ -89,7 +90,7 @@ class _FakeTranslationApi extends TranslationApi {
 
 Widget _app({Locale locale = const Locale('en'), double width = 1280}) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       categoriesProvider.overrideWith((ref) async => const [_category]),
       optionSetsProvider.overrideWith((ref) async => const []),
       platformLanguagesProvider.overrideWith(

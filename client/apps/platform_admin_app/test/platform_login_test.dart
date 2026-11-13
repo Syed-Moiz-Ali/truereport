@@ -8,6 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/auth/platform_login_page.dart';
+import 'package:platform_admin_app/src/platform_providers.dart';
+
+import 'support/ui_message_fixtures.dart';
 
 class _FakeAuthController extends AuthController {
   _FakeAuthController(this._onSignIn);
@@ -51,12 +54,66 @@ GoRouter _router() => GoRouter(
   ],
 );
 
+UiMessageManifest _testManifest() => const UiMessageManifest(
+  defaultLanguage: 'en',
+  namespaceVersions: {'platform_admin': 1, 'common': 1},
+  languages: [
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      nameEn: 'English',
+    ),
+    UiMessageLanguage(
+      code: 'ar',
+      direction: 'rtl',
+      nativeName: 'العربية',
+      nameEn: 'Arabic',
+    ),
+    UiMessageLanguage(
+      code: 'zh-hans',
+      direction: 'ltr',
+      nativeName: '中文',
+      nameEn: 'Chinese',
+    ),
+  ],
+);
+
+class _FakeUiMessageController extends UiMessageController {
+  _FakeUiMessageController(this.manifest);
+
+  final UiMessageManifest manifest;
+
+  @override
+  UiMessageState build() => UiMessageState(
+    manifest: manifest,
+    activeLanguage: 'en',
+    defaultLanguage: 'en',
+    ready: true,
+    revision: 1,
+  );
+
+  @override
+  Future<bool> useLanguage(String code) async {
+    state = state.copyWith(activeLanguage: code, revision: state.revision + 1);
+    return true;
+  }
+}
+
 Widget _buildLoginApp({
   Locale locale = const Locale('en'),
   Future<AuthResult> Function(String email, String password)? onSignIn,
+  UiMessageManifest? manifest,
 }) {
   return ProviderScope(
     overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
+      if (manifest != null)
+        uiMessageControllerProvider.overrideWith(
+          () => _FakeUiMessageController(manifest),
+        ),
       authControllerProvider.overrideWith(
         () => _FakeAuthController(
           onSignIn ?? (email, password) async => AuthSuccess(_session()),
@@ -195,4 +252,81 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('Login language picker lists every manifest language', (
+    tester,
+  ) async {
+    _setViewport(tester, width: 1280, height: 800);
+    await tester.pumpWidget(_buildLoginApp(manifest: _testManifest()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('sign-in-language-menu')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('sign-in-language-en')), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-language-ar')), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-language-zh-hans')), findsOneWidget);
+    expect(find.text('English'), findsWidgets);
+    expect(find.text('العربية'), findsWidgets);
+    expect(find.text('中文'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Selecting zh-hans on login switches locale without auth', (
+    tester,
+  ) async {
+    _setViewport(tester, width: 1280, height: 800);
+    await tester.pumpWidget(_buildLoginApp(manifest: _testManifest()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('sign-in-language-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sign-in-language-zh-hans')));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const Key('sign-in-submit'))),
+    );
+    final locale = container.read(platformLocaleProvider);
+    expect(locale.languageCode, 'zh');
+    expect(locale.scriptCode, 'Hans');
+    expect(
+      container.read(uiMessageControllerProvider).activeLanguage,
+      'zh-hans',
+    );
+    expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('AdminSignInView legacy toggle still works without options', (
+    tester,
+  ) async {
+    _setViewport(tester, width: 1280, height: 800);
+    var arabic = false;
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AdminSignInView(
+            portalType: AdminPortalType.platform,
+            emailController: TextEditingController(),
+            passwordController: TextEditingController(),
+            codeController: TextEditingController(),
+            formKey: GlobalKey<FormState>(),
+            isArabic: arabic,
+            onLocaleChanged: (value) => arabic = value,
+            onSubmit: () {},
+            onValidateEmail: (_) => null,
+            onValidateRequired: (_) => null,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('العربية'), findsOneWidget);
+    expect(find.byKey(const Key('sign-in-language-menu')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }

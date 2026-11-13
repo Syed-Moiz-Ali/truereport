@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_category_picker.dart';
@@ -16,6 +15,8 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Full-screen guided template builder (category-first, no weights/scoring).
 ///
@@ -94,7 +95,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       _snack(failure.messageKey);
     } catch (_) {
       if (!mounted) return;
-      _snack(AppLocalizations.of(context).genericError);
+      _snack(ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -145,7 +146,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final templateAsync = ref.watch(templateDetailProvider(widget.templateId));
 
     return PlatformShell(
@@ -154,7 +155,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
         data: (template) => PlatformContextBar(
           breadcrumbs: [
             ContextBreadcrumbItem(
-              label: l10n.templates,
+              label: strings.tKey(PlatformAdminKeys.pageTemplatesTitle),
               onTap: () => Navigator.of(context).pop(),
             ),
             ContextBreadcrumbItem(label: template.code),
@@ -165,13 +166,15 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       child: PlatformPage(
         maxWidth: 1200,
         child: templateAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, stackTrace) => PlatformErrorView(
-            message: l10n.noData,
+            message: strings.tKey(CommonKeys.emptyTitle),
             onRetry: () =>
                 ref.invalidate(templateDetailProvider(widget.templateId)),
           ),
-          data: (template) => _buildBody(context, l10n, template),
+          data: (template) => _buildBody(context, strings, template),
         ),
       ),
     );
@@ -179,7 +182,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
 
   Widget _buildBody(
     BuildContext context,
-    AppLocalizations l10n,
+    dynamic strings,
     GlobalTemplate template,
   ) {
     _ensureDetails(template);
@@ -232,16 +235,16 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformPageHeader(
-          title: l10n.tmplBuilderTitle,
+          title: strings.tKey(PlatformAdminKeys.pageTemplateBuilderTitle),
           subtitle:
-              '${l10n.stepCounter(_step + 1, _totalSteps)} · $displayName',
+              '${strings.tArgsKey(PlatformAdminKeys.stepCounter, {'current': _step + 1, 'total': _totalSteps})} · $displayName',
         ),
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 1100;
             final sidePanel = _buildSidePanel(
-              l10n,
+              strings,
               template,
               versions,
               selected,
@@ -255,7 +258,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                 if (selected?.status == 'PENDING_APPROVAL') ...[
                   PlatformSectionCard(
                     child: Text(
-                      l10n.pendingApproval,
+                      strings.tKey(CommonKeys.statusPendingApproval),
                       style: PtTheme.font(
                         12,
                         weight: FontWeight.w600,
@@ -267,24 +270,29 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                PlatformSectionCard(child: _buildStepIndicator(l10n)),
+                PlatformSectionCard(child: _buildStepIndicator(strings)),
                 const SizedBox(height: 16),
                 if (versions.isEmpty)
-                  _buildNoVersion(l10n)
+                  _buildNoVersion(strings)
                 else if (_step == 0)
-                  _buildDetailsStep(l10n, template, overlayLanguages, editing)
+                  _buildDetailsStep(
+                    strings,
+                    template,
+                    overlayLanguages,
+                    editing,
+                  )
                 else if (_step == 1)
-                  _buildCategoriesStep(l10n, editing)
+                  _buildCategoriesStep(strings, editing)
                 else if (_step == 2)
                   _buildItemsStep(
-                    l10n,
+                    strings,
                     editing,
                     includedCategories.length,
                     includedCount,
                   )
                 else
                   _buildReviewStep(
-                    l10n,
+                    strings,
                     template,
                     selected,
                     editing,
@@ -293,7 +301,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                     includedCount,
                   ),
                 const SizedBox(height: 16),
-                _buildStepNav(l10n, versions.isEmpty),
+                _buildStepNav(strings, versions.isEmpty),
               ],
             );
             // Sticky summary/action area on wide viewports; the same
@@ -322,7 +330,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   }
 
   Widget _buildSidePanel(
-    AppLocalizations l10n,
+    dynamic strings,
     GlobalTemplate template,
     List<TemplateVersionSummary> versions,
     TemplateVersionSummary? selected,
@@ -359,18 +367,22 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PlatformSectionHeader(title: l10n.tmplStepReview),
+                PlatformSectionHeader(
+                  title: strings.tKey(PlatformAdminKeys.stepTemplateReview),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
                   children: [
                     PlatformMetaPill(
-                      label: l10n.categoriesTab,
+                      label: strings.tKey(
+                        PlatformAdminKeys.tabChecklistCategories,
+                      ),
                       value: '$includedCategories',
                     ),
                     PlatformMetaPill(
-                      label: l10n.itemsTab,
+                      label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
                       value: '$includedCount',
                     ),
                   ],
@@ -385,15 +397,15 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
 
   /// Step titles. Gap: no tmplStepItems key exists, so the Items+Order step
   /// uses the closest key [items] ("Inspection items").
-  List<String> _stepTitles(AppLocalizations l10n) => [
-    l10n.tmplStepDetails,
-    l10n.tmplStepCategories,
-    l10n.items,
-    l10n.tmplStepReview,
+  List<String> _stepTitles(dynamic strings) => [
+    strings.tKey(PlatformAdminKeys.stepTemplateDetails),
+    strings.tKey(PlatformAdminKeys.stepTemplateCategories),
+    strings.tKey(CommonKeys.labelItems),
+    strings.tKey(PlatformAdminKeys.stepTemplateReview),
   ];
 
-  Widget _buildStepIndicator(AppLocalizations l10n) {
-    final titles = _stepTitles(l10n);
+  Widget _buildStepIndicator(dynamic strings) {
+    final titles = _stepTitles(strings);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -412,17 +424,17 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildNoVersion(AppLocalizations l10n) {
+  Widget _buildNoVersion(dynamic strings) {
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PlatformEmptyView(title: l10n.noData),
+          PlatformEmptyView(title: strings.tKey(CommonKeys.emptyTitle)),
           const SizedBox(height: 12),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: PlatformPrimaryButton(
-              label: l10n.createDraft,
+              label: strings.tKey(CommonKeys.buttonCreateDraft),
               icon: Icons.add_rounded,
               onPressed: _busy ? null : _createDraft,
             ),
@@ -433,7 +445,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   }
 
   Widget _buildDetailsStep(
-    AppLocalizations l10n,
+    dynamic strings,
     GlobalTemplate template,
     List<PlatformLanguage> overlayLanguages,
     bool editing,
@@ -445,14 +457,14 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformSectionHeader(
-              title: l10n.tmplStepDetails,
-              subtitle: l10n.templateHelper,
+              title: strings.tKey(PlatformAdminKeys.stepTemplateDetails),
+              subtitle: strings.tKey(PlatformAdminKeys.pageTemplatesHelper),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
                 Text(
-                  '${l10n.templateCode}: ',
+                  '${strings.tKey(PlatformAdminKeys.fieldTemplateCode)}: ',
                   style: PtTheme.font(
                     12,
                     weight: FontWeight.w700,
@@ -474,47 +486,48 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameEnController,
-              label: l10n.templateNameEn,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateNameEn),
               enabled: editing,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameArController,
-              label: l10n.templateNameAr,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateNameAr),
               textDirection: TextDirection.rtl,
               enabled: editing,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _descriptionEnController,
-              label: l10n.templateDescriptionEn,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateDescriptionEn),
               maxLines: 3,
               enabled: editing,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _descriptionArController,
-              label: l10n.templateDescriptionAr,
+              label: strings.tKey(PlatformAdminKeys.fieldTemplateDescriptionAr),
               maxLines: 3,
               enabled: editing,
             ),
             if (overlayLanguages.isNotEmpty) ...[
               const SizedBox(height: 16),
               PlatformSectionHeader(
-                title: l10n.translationCoverage,
-                subtitle: l10n.stepContentHelp,
+                title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+                subtitle: strings.tKey(PlatformAdminKeys.helpStepContent),
               ),
               const SizedBox(height: 12),
               for (final language in overlayLanguages) ...[
                 PlatformTextField(
                   controller: _overlayNameControllers[language.code],
-                  label: '${l10n.templateName} (${language.nativeName})',
+                  label:
+                      '${strings.tKey(PlatformAdminKeys.fieldTemplateName)} (${language.nativeName})',
                   textDirection: language.direction == 'rtl'
                       ? TextDirection.rtl
                       : TextDirection.ltr,
@@ -523,7 +536,8 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                 const SizedBox(height: 12),
                 PlatformTextField(
                   controller: _overlayDescriptionControllers[language.code],
-                  label: '${l10n.templateDescription} (${language.nativeName})',
+                  label:
+                      '${strings.tKey(PlatformAdminKeys.fieldTemplateDescription)} (${language.nativeName})',
                   maxLines: 2,
                   textDirection: language.direction == 'rtl'
                       ? TextDirection.rtl
@@ -536,7 +550,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             if (!editing) ...[
               const SizedBox(height: 8),
               Text(
-                l10n.versionImmutable,
+                strings.tKey(PlatformAdminKeys.alertVersionImmutable),
                 style: PtTheme.font(12, color: PtTheme.muted),
               ),
             ],
@@ -546,15 +560,17 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildCategoriesStep(AppLocalizations l10n, bool editing) {
+  Widget _buildCategoriesStep(dynamic strings, bool editing) {
     final available = _availableCategories();
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title: l10n.tmplStepCategories,
-            subtitle: l10n.tmplSearchCategories,
+            title: strings.tKey(PlatformAdminKeys.stepTemplateCategories),
+            subtitle: strings.tKey(
+              PlatformAdminKeys.filterTemplateSearchCategories,
+            ),
           ),
           const SizedBox(height: 12),
           if (editing)
@@ -586,10 +602,10 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             ),
           if (editing) const SizedBox(height: 12),
           if (_categories.isEmpty)
-            PlatformEmptyView(title: l10n.noData)
+            PlatformEmptyView(title: strings.tKey(CommonKeys.emptyTitle))
           else
             for (var index = 0; index < _categories.length; index++) ...[
-              _buildCategoryOrderRow(l10n, index, editing),
+              _buildCategoryOrderRow(strings, index, editing),
               if (index != _categories.length - 1) const SizedBox(height: 8),
             ],
         ],
@@ -597,11 +613,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildCategoryOrderRow(
-    AppLocalizations l10n,
-    int index,
-    bool editing,
-  ) {
+  Widget _buildCategoryOrderRow(dynamic strings, int index, bool editing) {
     final category = _categories[index];
     final displayName = category.nameEn.isEmpty
         ? category.categoryCode
@@ -637,7 +649,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                 ),
                 Text(
                   '${category.categoryCode} · $included / '
-                  '${category.items.length} ${l10n.itemsTab}',
+                  '${category.items.length} ${strings.tKey(PlatformAdminKeys.tabChecklistItems)}',
                   style: PtTheme.font(12, color: PtTheme.muted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -647,7 +659,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           ),
           if (editing) ...[
             IconButton(
-              tooltip: l10n.moveUp,
+              tooltip: strings.tKey(CommonKeys.buttonMoveUp),
               onPressed: index == 0
                   ? null
                   : () => setState(() => _moveCategory(index, -1)),
@@ -655,7 +667,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
             IconButton(
-              tooltip: l10n.moveDown,
+              tooltip: strings.tKey(CommonKeys.buttonMoveDown),
               onPressed: index == _categories.length - 1
                   ? null
                   : () => setState(() => _moveCategory(index, 1)),
@@ -663,7 +675,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
             IconButton(
-              tooltip: l10n.delete,
+              tooltip: strings.tKey(CommonKeys.buttonDelete),
               onPressed: () => setState(() => _categories.removeAt(index)),
               icon: const Icon(
                 Icons.delete_outline_rounded,
@@ -680,7 +692,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   }
 
   Widget _buildItemsStep(
-    AppLocalizations l10n,
+    dynamic strings,
     bool editing,
     int includedCategories,
     int includedCount,
@@ -689,15 +701,15 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformToolbar(
-          searchHint: l10n.tmplSearchItems,
+          searchHint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
           onSearchChanged: (_) {},
           countLabel:
-              '${l10n.tmplProgressCategories(includedCategories)}'
-              '  ·  ${l10n.tmplProgressItems(includedCount)}',
+              '${strings.tArgsKey(PlatformAdminKeys.pageTemplateProgressCategories, {'count': includedCategories})}'
+              '  ·  ${strings.tArgsKey(PlatformAdminKeys.pageTemplateProgressItems, {'count': includedCount})}',
         ),
         const SizedBox(height: 14),
         if (_categories.isEmpty)
-          PlatformEmptyView(title: l10n.noData)
+          PlatformEmptyView(title: strings.tKey(CommonKeys.emptyTitle))
         else
           for (var index = 0; index < _categories.length; index++) ...[
             _CategoryItemsSection(
@@ -720,7 +732,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   }
 
   Widget _buildReviewStep(
-    AppLocalizations l10n,
+    dynamic strings,
     GlobalTemplate template,
     TemplateVersionSummary? selected,
     bool editing,
@@ -739,8 +751,8 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               PlatformSectionHeader(
-                title: l10n.tmplStepReview,
-                subtitle: l10n.stepReviewHelp,
+                title: strings.tKey(PlatformAdminKeys.stepTemplateReview),
+                subtitle: strings.tKey(PlatformAdminKeys.helpStepReview),
               ),
               const SizedBox(height: 12),
               Row(
@@ -753,7 +765,10 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l10n.tmplProgressCategories(includedCategories),
+                      strings.tArgsKey(
+                        PlatformAdminKeys.pageTemplateProgressCategories,
+                        {'count': includedCategories},
+                      ),
                       style: PtTheme.font(
                         14,
                         weight: FontWeight.w600,
@@ -774,7 +789,10 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      l10n.tmplProgressItems(includedCount),
+                      strings.tArgsKey(
+                        PlatformAdminKeys.pageTemplateProgressItems,
+                        {'count': includedCount},
+                      ),
                       style: PtTheme.font(
                         14,
                         weight: FontWeight.w600,
@@ -810,7 +828,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        l10n.translationCoverage,
+                        strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
                         style: PtTheme.font(
                           13,
                           weight: FontWeight.w700,
@@ -819,7 +837,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${l10n.queueMissing}: '
+                        '${strings.tKey(PlatformAdminKeys.queueMissing)}: '
                         '${_overlayPendingLanguages.join(', ')}',
                         style: PtTheme.font(12, color: PtTheme.muted),
                       ),
@@ -836,7 +854,9 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               PlatformSectionHeader(
-                title: l10n.versionHistory,
+                title: strings.tKey(
+                  PlatformAdminKeys.sectionTemplateVersionHistory,
+                ),
                 subtitle: selected == null
                     ? null
                     : 'v${selected.versionNo} · ${selected.status}',
@@ -849,19 +869,21 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                 children: [
                   if (!hasDraft)
                     PlatformPrimaryButton(
-                      label: l10n.createDraft,
+                      label: strings.tKey(CommonKeys.buttonCreateDraft),
                       icon: Icons.add_rounded,
                       onPressed: _busy ? null : _createDraft,
                     ),
                   if (editing)
                     PlatformPrimaryButton(
-                      label: l10n.saveDraft,
+                      label: strings.tKey(CommonKeys.buttonSaveDraft),
                       icon: Icons.save_outlined,
                       onPressed: _busy ? null : () => _save(selected?.id ?? ''),
                     ),
                   if (selected?.status == 'DRAFT')
                     PlatformSecondaryButton(
-                      label: l10n.publishTemplate,
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonTemplatePublish,
+                      ),
                       icon: Icons.publish_rounded,
                       onPressed: _busy
                           ? null
@@ -869,14 +891,18 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                     ),
                   if (selected?.status == 'PENDING_APPROVAL') ...[
                     PlatformSecondaryButton(
-                      label: l10n.approveTemplate,
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonTemplateApprove,
+                      ),
                       icon: Icons.check_rounded,
                       onPressed: _busy
                           ? null
                           : () => _approve(selected?.id ?? ''),
                     ),
                     PlatformSecondaryButton(
-                      label: l10n.rejectTemplate,
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonTemplateReject,
+                      ),
                       icon: Icons.close_rounded,
                       destructive: true,
                       onPressed: _busy
@@ -886,7 +912,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   ],
                   if (selected != null && !editing && hasDraft)
                     Text(
-                      l10n.versionImmutable,
+                      strings.tKey(PlatformAdminKeys.alertVersionImmutable),
                       style: PtTheme.font(12, color: PtTheme.muted),
                     ),
                 ],
@@ -898,7 +924,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     );
   }
 
-  Widget _buildStepNav(AppLocalizations l10n, bool noVersions) {
+  Widget _buildStepNav(dynamic strings, bool noVersions) {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -907,7 +933,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
       children: [
         if (_step > 0)
           PlatformSecondaryButton(
-            label: l10n.previous,
+            label: strings.tKey(CommonKeys.buttonPrevious),
             icon: Icons.arrow_back_rounded,
             onPressed: _busy
                 ? null
@@ -915,7 +941,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           ),
         if (_step < _totalSteps - 1 && !noVersions)
           PlatformPrimaryButton(
-            label: l10n.next,
+            label: strings.tKey(CommonKeys.buttonNext),
             icon: Icons.arrow_forward_rounded,
             onPressed: _busy ? null : _continue,
           ),
@@ -969,12 +995,14 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   }
 
   Future<void> _addItemDialog(_CategoryState category) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final List<PlatformItem> all;
     try {
       all = await ref.read(itemsProvider(const ItemQuery()).future);
     } catch (_) {
-      if (mounted) _snack(AppLocalizations.of(context).genericError);
+      if (mounted) {
+        _snack(ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric));
+      }
       return;
     }
     if (!mounted) return;
@@ -987,7 +1015,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
         .toList();
     final selected = await showPlatformDialog<PlatformItem>(
       context: context,
-      title: l10n.tmplAddItem,
+      title: strings.tKey(PlatformAdminKeys.buttonTemplateAddItem),
       body: _ItemPickerBody(items: available),
     );
     if (selected == null || !mounted) return;
@@ -997,7 +1025,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           .itemDetail(selected.id);
       final version = detail.draftVersion ?? detail.publishedVersion;
       if (version == null) {
-        _snack(l10n.noData);
+        _snack(strings.tKey(CommonKeys.emptyTitle));
         return;
       }
       setState(() {
@@ -1013,7 +1041,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
         );
       });
     } catch (_) {
-      if (mounted) _snack(l10n.genericError);
+      if (mounted) _snack(strings.tKey(CommonKeys.errorGeneric));
     }
   }
 
@@ -1021,43 +1049,48 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   /// then the ordered structure (replaceTemplateCategories/replaceTemplateItems).
   Future<void> _save(String versionId) async {
     if (versionId.isEmpty) return;
-    await _run(() async {
-      final actions = ref.read(platformConfigActionsProvider);
-      await actions.updateTemplate(widget.templateId, {
-        'nameEn': _nameEnController.text.trim(),
-        'nameAr': _nameArController.text.trim(),
-        'descriptionEn': _descriptionEnController.text.trim(),
-        'descriptionAr': _descriptionArController.text.trim(),
-      });
-      await _saveOverlay(widget.templateId);
-      await actions.replaceTemplateCategories(widget.templateId, versionId, [
-        for (var index = 0; index < _categories.length; index++)
-          {
-            'categoryId': _categories[index].categoryId,
-            'included': true,
-            'sortOrder': index + 1,
-          },
-      ]);
-      await actions.replaceTemplateItems(widget.templateId, versionId, [
-        for (final category in _categories)
-          for (var index = 0; index < category.items.length; index++)
-            if (category.items[index].included)
-              {
-                'categoryId': category.categoryId,
-                'itemVersionId': category.items[index].itemVersionId,
-                'included': true,
-                'sortOrder': index + 1,
-              },
-      ]);
-      if (mounted) {
-        setState(() => _loadedVersionId = null);
-        ref.invalidate(
-          templateVersionDetailProvider(
-            ItemVersionKey(widget.templateId, versionId),
-          ),
-        );
-      }
-    }, successMessage: AppLocalizations.of(context).saveDraft);
+    await _run(
+      () async {
+        final actions = ref.read(platformConfigActionsProvider);
+        await actions.updateTemplate(widget.templateId, {
+          'nameEn': _nameEnController.text.trim(),
+          'nameAr': _nameArController.text.trim(),
+          'descriptionEn': _descriptionEnController.text.trim(),
+          'descriptionAr': _descriptionArController.text.trim(),
+        });
+        await _saveOverlay(widget.templateId);
+        await actions.replaceTemplateCategories(widget.templateId, versionId, [
+          for (var index = 0; index < _categories.length; index++)
+            {
+              'categoryId': _categories[index].categoryId,
+              'included': true,
+              'sortOrder': index + 1,
+            },
+        ]);
+        await actions.replaceTemplateItems(widget.templateId, versionId, [
+          for (final category in _categories)
+            for (var index = 0; index < category.items.length; index++)
+              if (category.items[index].included)
+                {
+                  'categoryId': category.categoryId,
+                  'itemVersionId': category.items[index].itemVersionId,
+                  'included': true,
+                  'sortOrder': index + 1,
+                },
+        ]);
+        if (mounted) {
+          setState(() => _loadedVersionId = null);
+          ref.invalidate(
+            templateVersionDetailProvider(
+              ItemVersionKey(widget.templateId, versionId),
+            ),
+          );
+        }
+      },
+      successMessage: ref
+          .read(uiStringsProvider)
+          .tKey(CommonKeys.buttonSaveDraft),
+    );
   }
 
   /// Best-effort overlay upserts for non-en/ar languages. Failures never
@@ -1131,7 +1164,9 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           .read(platformConfigActionsProvider)
           .publishTemplate(widget.templateId, versionId)
           .then((_) {}),
-      successMessage: AppLocalizations.of(context).pendingApproval,
+      successMessage: ref
+          .read(uiStringsProvider)
+          .tKey(CommonKeys.statusPendingApproval),
     );
   }
 
@@ -1141,7 +1176,9 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           .read(platformConfigActionsProvider)
           .approveTemplate(widget.templateId, versionId)
           .then((_) {}),
-      successMessage: AppLocalizations.of(context).published,
+      successMessage: ref
+          .read(uiStringsProvider)
+          .tKey(PlatformAdminKeys.statusPublished),
     );
   }
 
@@ -1151,7 +1188,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
           .read(platformConfigActionsProvider)
           .rejectTemplate(widget.templateId, versionId)
           .then((_) {}),
-      successMessage: AppLocalizations.of(context).draft,
+      successMessage: ref.read(uiStringsProvider).tKey(CommonKeys.statusDraft),
     );
   }
 }
@@ -1216,21 +1253,21 @@ class _ItemState {
   bool included;
 }
 
-class _ItemPickerBody extends StatefulWidget {
+class _ItemPickerBody extends ConsumerStatefulWidget {
   const _ItemPickerBody({required this.items});
 
   final List<PlatformItem> items;
 
   @override
-  State<_ItemPickerBody> createState() => _ItemPickerBodyState();
+  ConsumerState<_ItemPickerBody> createState() => _ItemPickerBodyState();
 }
 
-class _ItemPickerBodyState extends State<_ItemPickerBody> {
+class _ItemPickerBodyState extends ConsumerState<_ItemPickerBody> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final query = _query.trim().toLowerCase();
     final filtered = query.isEmpty
         ? widget.items
@@ -1247,11 +1284,14 @@ class _ItemPickerBodyState extends State<_ItemPickerBody> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformTextField(
-            hint: l10n.tmplSearchItems,
+            hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
             onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: 12),
-          Text(l10n.noData, style: PtTheme.font(13, color: PtTheme.muted)),
+          Text(
+            strings.tKey(CommonKeys.emptyTitle),
+            style: PtTheme.font(13, color: PtTheme.muted),
+          ),
         ],
       );
     }
@@ -1260,7 +1300,7 @@ class _ItemPickerBodyState extends State<_ItemPickerBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformTextField(
-          hint: l10n.tmplSearchItems,
+          hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
           onChanged: (value) => setState(() => _query = value),
         ),
         const SizedBox(height: 12),
@@ -1284,7 +1324,7 @@ class _ItemPickerBodyState extends State<_ItemPickerBody> {
   }
 }
 
-class _CategoryItemsSection extends StatefulWidget {
+class _CategoryItemsSection extends ConsumerStatefulWidget {
   const _CategoryItemsSection({
     super.key,
     required this.category,
@@ -1309,15 +1349,16 @@ class _CategoryItemsSection extends StatefulWidget {
   final VoidCallback onAddItem;
 
   @override
-  State<_CategoryItemsSection> createState() => _CategoryItemsSectionState();
+  ConsumerState<_CategoryItemsSection> createState() =>
+      _CategoryItemsSectionState();
 }
 
-class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
+class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final category = widget.category;
     final query = _query.trim().toLowerCase();
     final visibleItems = query.isEmpty
@@ -1341,13 +1382,14 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
         children: [
           PlatformSectionHeader(
             title: displayName,
-            subtitle: '$included / ${category.items.length} ${l10n.itemsTab}',
+            subtitle:
+                '$included / ${category.items.length} ${strings.tKey(PlatformAdminKeys.tabChecklistItems)}',
             action: widget.editing
                 ? Wrap(
                     spacing: 0,
                     children: [
                       IconButton(
-                        tooltip: l10n.moveUp,
+                        tooltip: strings.tKey(CommonKeys.buttonMoveUp),
                         onPressed: widget.canMoveUp ? widget.onMoveUp : null,
                         icon: const Icon(Icons.arrow_upward_rounded, size: 18),
                         constraints: const BoxConstraints(
@@ -1356,7 +1398,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
                         ),
                       ),
                       IconButton(
-                        tooltip: l10n.moveDown,
+                        tooltip: strings.tKey(CommonKeys.buttonMoveDown),
                         onPressed: widget.canMoveDown
                             ? widget.onMoveDown
                             : null,
@@ -1370,7 +1412,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
                         ),
                       ),
                       IconButton(
-                        tooltip: l10n.delete,
+                        tooltip: strings.tKey(CommonKeys.buttonDelete),
                         onPressed: widget.onRemoveCategory,
                         icon: const Icon(
                           Icons.delete_outline_rounded,
@@ -1388,7 +1430,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
           ),
           const SizedBox(height: 8),
           PlatformTextField(
-            hint: l10n.tmplSearchItems,
+            hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
             onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: 8),
@@ -1396,7 +1438,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                l10n.tmplEmptyCategory,
+                strings.tKey(PlatformAdminKeys.emptyTemplateCategory),
                 style: PtTheme.font(13, color: PtTheme.muted),
               ),
             )
@@ -1404,7 +1446,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                l10n.noData,
+                strings.tKey(CommonKeys.emptyTitle),
                 style: PtTheme.font(13, color: PtTheme.muted),
               ),
             )
@@ -1415,7 +1457,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
               itemIndex++
             )
               _buildItemRow(
-                l10n,
+                strings,
                 category,
                 visibleItems[itemIndex],
                 category.items.indexOf(visibleItems[itemIndex]),
@@ -1425,7 +1467,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: PlatformSecondaryButton(
-                label: l10n.tmplAddItem,
+                label: strings.tKey(PlatformAdminKeys.buttonTemplateAddItem),
                 icon: Icons.add_rounded,
                 onPressed: widget.onAddItem,
               ),
@@ -1437,7 +1479,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
   }
 
   Widget _buildItemRow(
-    AppLocalizations l10n,
+    dynamic strings,
     _CategoryState category,
     _ItemState item,
     int index,
@@ -1517,7 +1559,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
           if (widget.editing) ...[
             const SizedBox(width: 4),
             IconButton(
-              tooltip: l10n.moveUp,
+              tooltip: strings.tKey(CommonKeys.buttonMoveUp),
               onPressed: index == 0
                   ? null
                   : () {
@@ -1531,7 +1573,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
             IconButton(
-              tooltip: l10n.moveDown,
+              tooltip: strings.tKey(CommonKeys.buttonMoveDown),
               onPressed: index == category.items.length - 1
                   ? null
                   : () {
@@ -1545,7 +1587,7 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
             IconButton(
-              tooltip: l10n.delete,
+              tooltip: strings.tKey(CommonKeys.buttonDelete),
               onPressed: () {
                 setState(() => category.items.removeAt(index));
                 widget.onChanged();
@@ -1560,7 +1602,9 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
           ] else ...[
             const SizedBox(width: 4),
             PlatformStatusChip(
-              status: item.included ? l10n.active : l10n.draft,
+              status: item.included
+                  ? strings.tKey(CommonKeys.statusActive)
+                  : strings.tKey(CommonKeys.statusDraft),
             ),
           ],
         ],
@@ -1569,14 +1613,14 @@ class _CategoryItemsSectionState extends State<_CategoryItemsSection> {
   }
 }
 
-class _TemplateSummary extends StatelessWidget {
+class _TemplateSummary extends ConsumerWidget {
   const _TemplateSummary({required this.template});
 
   final GlobalTemplate template;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1588,7 +1632,7 @@ class _TemplateSummary extends StatelessWidget {
             PlatformStatusChip(status: template.code),
             PlatformStatusChip(status: template.status),
             PlatformMetaPill(
-              label: l10n.versions,
+              label: strings.tKey(CommonKeys.labelVersions),
               value: '${template.versionCount}',
             ),
           ],
@@ -1623,7 +1667,7 @@ class _TemplateSummary extends StatelessWidget {
   }
 }
 
-class _VersionSelector extends StatelessWidget {
+class _VersionSelector extends ConsumerWidget {
   const _VersionSelector({
     required this.versions,
     required this.selected,
@@ -1637,8 +1681,8 @@ class _VersionSelector extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final current = selected;
     return Wrap(
       spacing: 10,
@@ -1646,12 +1690,12 @@ class _VersionSelector extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
-          l10n.versions,
+          strings.tKey(CommonKeys.labelVersions),
           style: PtTheme.font(12, weight: FontWeight.w700, color: PtTheme.ink),
         ),
         if (current != null)
           PlatformDropdown<String>(
-            label: l10n.versions,
+            label: strings.tKey(CommonKeys.labelVersions),
             value: current.id,
             items: [
               for (final version in versions)

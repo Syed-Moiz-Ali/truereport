@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../platform_providers.dart';
 import '../platform_theme.dart';
 import 'platform_buttons.dart';
 
-/// Loading state rendered inside the content frame (no layout shift,
-/// no full-screen jump).
-class PlatformLoadingView extends StatelessWidget {
+import 'package:l10n/l10n.dart';
+
+class PlatformLoadingView extends ConsumerWidget {
   const PlatformLoadingView({super.key, this.message});
 
   final String? message;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return _StateFrame(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -21,7 +22,7 @@ class PlatformLoadingView extends StatelessWidget {
           const CircularProgressIndicator(color: PtTheme.deepGreen),
           const SizedBox(height: 12),
           Text(
-            message ?? l10n?.loading ?? 'Loading',
+            message ?? strings.tKey(CommonKeys.stateLoading),
             style: PtTheme.font(13, lineHeight: 18, color: PtTheme.muted),
           ),
         ],
@@ -89,7 +90,7 @@ class PlatformEmptyView extends StatelessWidget {
 
 /// Inline error card with retry. Server messages are mapped to fields by
 /// the calling page; this widget only renders the card.
-class PlatformErrorView extends StatelessWidget {
+class PlatformErrorView extends ConsumerWidget {
   const PlatformErrorView({
     super.key,
     required this.message,
@@ -102,8 +103,8 @@ class PlatformErrorView extends StatelessWidget {
   final String? retryLabel;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return _StateFrame(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -121,7 +122,7 @@ class PlatformErrorView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           PlatformSecondaryButton(
-            label: retryLabel ?? l10n?.retry ?? 'Retry',
+            label: retryLabel ?? strings.tKey(CommonKeys.buttonRetry),
             onPressed: onRetry,
           ),
         ],

@@ -13,6 +13,7 @@ import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 // ---------------------------------------------------------------------------
 // Local fakes only. test/support/fake_platform_api.dart is untouched.
@@ -396,7 +397,7 @@ Widget _buildListApp(
   Locale locale = const Locale('en'),
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformApiProvider.overrideWithValue(api),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
@@ -421,7 +422,7 @@ Widget _buildDetailApp(
   String workshopId = 'workshop-1',
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
       auditEventsProvider.overrideWith((ref) => Future.value(_auditEvents)),
@@ -449,7 +450,7 @@ Widget _buildFormApp(
   void Function(HierarchyWorkshop saved)? onSaved,
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),

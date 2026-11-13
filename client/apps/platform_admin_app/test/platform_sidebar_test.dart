@@ -12,6 +12,8 @@ import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_router.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
 
+import 'support/ui_message_fixtures.dart';
+
 Widget _buildTestApp({
   required Widget child,
   Locale locale = const Locale('en'),
@@ -19,6 +21,9 @@ Widget _buildTestApp({
 }) {
   return ProviderScope(
     overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
     ],
     child: MaterialApp(
@@ -110,7 +115,7 @@ void main() {
     });
 
     test('primary items are exactly the 6 IA entries in order', () {
-      final items = PlatformNavData.primaryItems;
+      const items = PlatformNavData.primaryItems;
       expect(items.map((item) => item.id).toList(), [
         'dashboard',
         'workshops',
@@ -409,6 +414,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
             authControllerProvider.overrideWith(
               () => _TestAuth(_testSession()),
             ),

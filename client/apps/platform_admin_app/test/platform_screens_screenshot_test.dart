@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -29,18 +29,19 @@ import 'package:platform_admin_app/src/platform_translations.dart'
     hide TranslationCoverage;
 
 import 'support/fake_platform_api.dart';
+import 'support/ui_message_fixtures.dart';
 
 // Visual evidence: captures every Platform Admin screen at 1280, 1440,
-// 768, 360 and Arabic RTL. Run with `flutter test` â€” PNGs land in
+// 768, 360 and Arabic RTL. Run with `flutter test` — PNGs land in
 // test/screenshots/ and are committed as review evidence.
 
 const _category = PlatformCategory(
   id: 'cat-1',
   code: 'CAT-BRK',
   nameEn: 'Braking Systems & Tyres',
-  nameAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  nameAr: 'أنظمة الفرامل والإطارات',
   labelEn: 'Braking Systems & Tyres',
-  labelAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  labelAr: 'أنظمة الفرامل والإطارات',
   status: 'ACTIVE',
   sortOrder: 1,
   active: true,
@@ -52,17 +53,17 @@ const _item = PlatformItem(
   code: 'BRK-PAD-01',
   categoryId: 'cat-1',
   categoryLabelEn: 'Braking Systems & Tyres',
-  categoryLabelAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  categoryLabelAr: 'أنظمة الفرامل والإطارات',
   status: 'PUBLISHED',
   currentVersion: 1,
   labelEn: 'Brake Pad Thickness',
-  labelAr: 'Ø³Ù…Ùƒ Ø£Ù‚Ù…Ø´Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  labelAr: 'سمك أقمشة الفرامل',
   sampleData: false,
   updatedAt: '',
   measurementUnit: 'MM',
   sensorTool: 'Vernier Caliper',
   standardSpecEn: 'Above 3.0 mm',
-  standardSpecAr: 'Ø£Ø¹Ù„Ù‰ Ù…Ù† 3.0 Ù…Ù…',
+  standardSpecAr: 'أعلى من 3.0 مم',
   safetyCritical: true,
   multiPoint: true,
   maxTyreAgeYears: null,
@@ -75,7 +76,7 @@ const _optionSet = OptionSet(
   id: 'set-1',
   code: 'CONDITION',
   nameEn: 'Overall Condition',
-  nameAr: 'Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ø§Ù…Ø©',
+  nameAr: 'الحالة العامة',
   status: 'ACTIVE',
   sortOrder: 1,
   values: [
@@ -83,7 +84,7 @@ const _optionSet = OptionSet(
       id: 'value-1',
       code: 'GOOD',
       labelEn: 'Good',
-      labelAr: 'Ø¬ÙŠØ¯',
+      labelAr: 'جيد',
       status: 'ACTIVE',
       sortOrder: 1,
       metadataJson: '{}',
@@ -95,7 +96,7 @@ const _templateCategory = TemplateCategory(
   categoryId: 'cat-1',
   categoryCode: 'CAT-BRK',
   nameEn: 'Braking Systems & Tyres',
-  nameAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  nameAr: 'أنظمة الفرامل والإطارات',
   sortOrder: 1,
   itemCount: 1,
   includedCount: 1,
@@ -107,11 +108,11 @@ const _templateCategory = TemplateCategory(
       itemVersionId: 'v-1',
       itemCode: 'BRK-PAD-01',
       labelEn: 'Brake Pad Thickness',
-      labelAr: 'Ø³Ù…Ùƒ Ø£Ù‚Ù…Ø´Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„',
+      labelAr: 'سمك أقمشة الفرامل',
       categoryId: 'cat-1',
       categoryCode: 'CAT-BRK',
       categoryNameEn: 'Braking',
-      categoryNameAr: 'Ø§Ù„ÙØ±Ø§Ù…Ù„',
+      categoryNameAr: 'الفرامل',
       sortOrder: 1,
       included: true,
       itemStatus: 'PUBLISHED',
@@ -123,9 +124,9 @@ const _template = GlobalTemplate(
   id: 'template-1',
   code: 'TPL-BRK',
   nameEn: 'Braking Inspection Template',
-  nameAr: 'Ù‚Ø§Ù„Ø¨ ÙØ­Øµ Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  nameAr: 'قالب فحص الفرامل',
   descriptionEn: 'Braking inspection',
-  descriptionAr: 'ÙØ­Øµ Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  descriptionAr: 'فحص الفرامل',
   status: 'PUBLISHED',
   currentPublishedVersionId: 'version-1',
   versionCount: 1,
@@ -155,7 +156,7 @@ const _documentType = ReportDocumentType(
   id: 'doc-1',
   code: 'DOC-PHOTO',
   nameEn: 'Photo Evidence',
-  nameAr: 'Ø¯Ù„ÙŠÙ„ Ù…ØµÙˆØ±',
+  nameAr: 'دليل مصور',
   status: 'ACTIVE',
   required: true,
   sortOrder: 1,
@@ -164,7 +165,7 @@ const _documentType = ReportDocumentType(
 const _language = PlatformLanguage(
   code: 'en',
   nameEn: 'English',
-  nameAr: 'Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©',
+  nameAr: 'الإنجليزية',
   nativeName: 'English',
   direction: 'LTR',
   active: true,
@@ -186,7 +187,7 @@ const _configHealth = ConfigHealth(
       code: 'TRANSLATIONS',
       severity: 'OK',
       messageEn: 'Translations complete.',
-      messageAr: 'Ø§Ù„ØªØ±Ø¬Ù…Ø§Øª Ù…ÙƒØªÙ…Ù„Ø©.',
+      messageAr: 'الترجمات مكتملة.',
       affected: 0,
       references: ['CAT-BRK'],
     ),
@@ -222,6 +223,9 @@ Widget _screenshotApp({
 }) {
   return ProviderScope(
     overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
       categoriesProvider.overrideWith((ref) async => const [_category]),
       itemsProvider.overrideWith((ref, query) async => const [_item]),
@@ -434,7 +438,7 @@ void main() {
               entityCode: 'CAT-BRK',
               field: 'name',
               defaultText: 'Braking Systems & Tyres',
-              text: '制动系统和轮胎',
+              text: '???????',
               status: 'APPROVED',
             ),
           ],
@@ -450,7 +454,7 @@ void main() {
               entityCode: 'BRK-PAD-01',
               field: 'label',
               defaultText: 'Brake Pad Thickness',
-              text: '刹车片厚度',
+              text: '?????',
               status: 'DRAFT',
             ),
             translations.TranslationItem(
@@ -469,8 +473,8 @@ void main() {
     const zhLanguage = PlatformLanguage(
       code: 'zh-hans',
       nameEn: 'Chinese',
-      nameAr: 'الصينية',
-      nativeName: '中文',
+      nameAr: '???????',
+      nativeName: '??',
       direction: 'ltr',
       active: false,
       isDefault: false,

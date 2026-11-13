@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../platform_providers.dart';
 import '../platform_theme.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Shared dialog shell: 18px w800 title, consistent content padding,
 /// Cancel + Primary actions, max-width 560 for forms, scrollable content,
 /// full-screen sheet on compact widths.
-class PlatformDialogShell extends StatelessWidget {
+class PlatformDialogShell extends ConsumerWidget {
   const PlatformDialogShell({
     super.key,
     required this.title,
@@ -21,7 +24,8 @@ class PlatformDialogShell extends StatelessWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 600;
@@ -51,20 +55,14 @@ class PlatformDialogShell extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: Localizations.of<AppLocalizations>(
-                              context,
-                              AppLocalizations,
-                            )?.close ??
-                            'Close',
+                        tooltip: strings.tKey(CommonKeys.buttonClose),
                         icon: const Icon(Icons.close_rounded, size: 20),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Flexible(
-                    child: SingleChildScrollView(child: body),
-                  ),
+                  Flexible(child: SingleChildScrollView(child: body)),
                   if (actions.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Wrap(
@@ -83,9 +81,7 @@ class PlatformDialogShell extends StatelessWidget {
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Center(
-                child: SingleChildScrollView(child: dialog),
-              ),
+              child: Center(child: SingleChildScrollView(child: dialog)),
             ),
           );
         }
@@ -133,7 +129,10 @@ Future<bool> showPlatformConfirmDialog({
   required String confirmLabel,
   bool destructive = false,
 }) async {
-  final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+  final strings = ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(uiStringsProvider);
   final confirmed = await showPlatformDialog<bool>(
     context: context,
     title: title,
@@ -144,13 +143,12 @@ Future<bool> showPlatformConfirmDialog({
     actionsBuilder: (dialogContext) => [
       TextButton(
         onPressed: () => Navigator.of(dialogContext).pop(false),
-        child: Text(l10n?.cancel ?? 'Cancel'),
+        child: Text(strings.tKey(CommonKeys.buttonCancel)),
       ),
       FilledButton(
         onPressed: () => Navigator.of(dialogContext).pop(true),
         style: FilledButton.styleFrom(
-          backgroundColor:
-              destructive ? PtTheme.rose : PtTheme.deepGreen,
+          backgroundColor: destructive ? PtTheme.rose : PtTheme.deepGreen,
         ),
         child: Text(confirmLabel),
       ),

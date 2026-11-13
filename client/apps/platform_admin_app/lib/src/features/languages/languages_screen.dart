@@ -21,7 +21,7 @@ class LanguagesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final languages = ref.watch(platformLanguagesProvider);
     final coverage = ref.watch(translationCoverageProvider);
 
@@ -30,10 +30,12 @@ class LanguagesScreen extends ConsumerWidget {
       contextBar: PlatformContextBar(
         breadcrumbs: [
           ContextBreadcrumbItem(
-            label: l10n.settings,
+            label: strings.tKey(PlatformAdminKeys.pageSettingsTitle),
             onTap: () => context.go('/settings'),
           ),
-          ContextBreadcrumbItem(label: l10n.languagesCoverage),
+          ContextBreadcrumbItem(
+            label: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
+          ),
         ],
       ),
       child: PlatformPage(
@@ -41,11 +43,11 @@ class LanguagesScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: l10n.languagesCoverage,
-              subtitle: l10n.translationCoverage,
+              title: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
+              subtitle: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
               actions: [
                 PlatformPrimaryButton(
-                  label: l10n.addLanguage,
+                  label: strings.tKey(PlatformAdminKeys.buttonLanguageAdd),
                   icon: Icons.add_rounded,
                   onPressed: () => _edit(context, null),
                 ),
@@ -81,7 +83,7 @@ class LanguagesScreen extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          l10n.languageRegistry,
+                          strings.tKey(PlatformAdminKeys.pageLanguagesTitle),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
@@ -97,7 +99,7 @@ class LanguagesScreen extends ConsumerWidget {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
-                              l10n.addLanguage,
+                              strings.tKey(PlatformAdminKeys.buttonLanguageAdd),
                               style: PtTheme.font(
                                 12,
                                 weight: FontWeight.w700,
@@ -110,7 +112,10 @@ class LanguagesScreen extends ConsumerWidget {
                               color: PtTheme.muted,
                             ),
                             Text(
-                              l10n.langCompleteTranslations,
+                              strings.tKey(
+                                PlatformAdminKeys
+                                    .buttonLanguageCompleteTranslations,
+                              ),
                               style: PtTheme.font(
                                 12,
                                 weight: FontWeight.w700,
@@ -123,7 +128,7 @@ class LanguagesScreen extends ConsumerWidget {
                               color: PtTheme.muted,
                             ),
                             Text(
-                              '${l10n.langPublish} (${l10n.langStatusLive})',
+                              '${strings.tKey(PlatformAdminKeys.buttonLanguagePublish)} (${strings.tKey(PlatformAdminKeys.statusLanguageLive)})',
                               style: PtTheme.font(
                                 12,
                                 weight: FontWeight.w700,
@@ -134,7 +139,7 @@ class LanguagesScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${l10n.langStatusDraft} · ${l10n.langStatusTranslating} · ${l10n.langStatusReview} · ${l10n.langStatusLive} · ${l10n.langStatusRetired}',
+                          '${strings.tKey(PlatformAdminKeys.statusLanguageDraft)} · ${strings.tKey(PlatformAdminKeys.statusLanguageTranslating)} · ${strings.tKey(PlatformAdminKeys.statusLanguageReview)} · ${strings.tKey(PlatformAdminKeys.statusLanguageLive)} · ${strings.tKey(PlatformAdminKeys.statusLanguageRetired)}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(12, color: PtTheme.muted),
@@ -149,15 +154,17 @@ class LanguagesScreen extends ConsumerWidget {
             languages.when(
               loading: () => const PlatformLoadingView(),
               error: (error, stackTrace) => PlatformErrorView(
-                message: l10n.unhealthy,
-                retryLabel: l10n.retry,
+                message: strings.tKey(CommonKeys.statusUnhealthy),
+                retryLabel: strings.tKey(CommonKeys.buttonRetry),
                 onRetry: () => ref.invalidate(platformLanguagesProvider),
               ),
               data: (items) => items.isEmpty
                   ? PlatformEmptyView(
                       icon: Icons.translate_rounded,
-                      title: l10n.noData,
-                      actionLabel: l10n.addLanguage,
+                      title: strings.tKey(CommonKeys.emptyTitle),
+                      actionLabel: strings.tKey(
+                        PlatformAdminKeys.buttonLanguageAdd,
+                      ),
                       onAction: () => _edit(context, null),
                     )
                   : _LanguagesContent(
@@ -196,7 +203,11 @@ class LanguagesScreen extends ConsumerWidget {
     if (result == true && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).save),
+          content: Text(
+            ProviderScope.containerOf(context)
+                .read(uiStringsProvider)
+                .tKey(CommonKeys.buttonSave),
+          ),
           backgroundColor: PtTheme.deepGreen,
         ),
       );
@@ -224,7 +235,11 @@ class LanguagesScreen extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(
+          content: Text(
+            ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric),
+          ),
+        ),
       );
     }
   }
@@ -245,7 +260,11 @@ class LanguagesScreen extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(
+          content: Text(
+            ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric),
+          ),
+        ),
       );
     }
   }
@@ -271,7 +290,11 @@ class LanguagesScreen extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(
+          content: Text(
+            ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric),
+          ),
+        ),
       );
     }
   }
@@ -291,7 +314,7 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final languages = ref.watch(platformLanguagesProvider);
     final coverage = ref.watch(translationCoverageProvider);
 
@@ -312,15 +335,15 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PlatformSectionHeader(
-            title: l10n.languagesCoverage,
-            subtitle: l10n.translationCoverage,
+            title: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
+            subtitle: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
           ),
           const SizedBox(height: 12),
           languages.when(
             loading: () => const PlatformLoadingView(),
             error: (error, stackTrace) => PlatformErrorView(
-              message: l10n.unhealthy,
-              retryLabel: l10n.retry,
+              message: strings.tKey(CommonKeys.statusUnhealthy),
+              retryLabel: strings.tKey(CommonKeys.buttonRetry),
               onRetry: () => ref.invalidate(platformLanguagesProvider),
             ),
             data: (items) {
@@ -336,8 +359,8 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
               return coverage.when(
                 loading: () => const PlatformLoadingView(),
                 error: (error, stackTrace) => PlatformErrorView(
-                  message: l10n.unhealthy,
-                  retryLabel: l10n.retry,
+                  message: strings.tKey(CommonKeys.statusUnhealthy),
+                  retryLabel: strings.tKey(CommonKeys.buttonRetry),
                   onRetry: () => ref.invalidate(translationCoverageProvider),
                 ),
                 data: (data) {
@@ -355,24 +378,31 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           PlatformMetaPill(
-                            label: l10n.languageRegistry,
+                            label: strings.tKey(
+                              PlatformAdminKeys.pageLanguagesTitle,
+                            ),
                             value: '${items.length}',
                           ),
                           PlatformMetaPill(
-                            label: l10n.active,
+                            label: strings.tKey(CommonKeys.statusActive),
                             value: '$activeCount',
                           ),
                           if (fallback != null)
                             PlatformStatusChip(
                               status:
-                                  '${l10n.defaultLanguage}: ${fallback.code}',
+                                  '${strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage)}: ${fallback.code}',
                             ),
                           PlatformStatusChip(
-                            status: healthy ? l10n.healthy : l10n.unhealthy,
+                            status: healthy
+                                ? strings.tKey(CommonKeys.statusHealthy)
+                                : strings.tKey(CommonKeys.statusUnhealthy),
                           ),
                           if (missing > 0)
                             PlatformMetaPill(
-                              label: l10n.missingTranslations,
+                              label: strings.tKey(
+                                PlatformAdminKeys
+                                    .pageLanguagesMissingTranslations,
+                              ),
                               value: '$missing',
                             ),
                         ],
@@ -383,7 +413,9 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
                         runSpacing: 8,
                         children: [
                           PlatformSecondaryButton(
-                            label: l10n.languageRegistry,
+                            label: strings.tKey(
+                              PlatformAdminKeys.pageLanguagesTitle,
+                            ),
                             icon: Icons.translate_rounded,
                             onPressed: open,
                           ),
@@ -401,8 +433,9 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
   }
 }
 
-String _activeLabel(AppLocalizations l10n, bool active) =>
-    active ? l10n.active : l10n.retired;
+String _activeLabel(UiMessageStrings strings, bool active) => active
+    ? strings.tKey(CommonKeys.statusActive)
+    : strings.tKey(CommonKeys.statusRetired);
 
 /// Per-language translation progress from the queue coverage endpoint.
 ///
@@ -416,7 +449,7 @@ class _LanguageCoveragePill extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final coverage = ref.watch(languageCoverageProvider(code));
     return coverage.maybeWhen(
       data: (data) {
@@ -425,13 +458,15 @@ class _LanguageCoveragePill extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             PlatformMetaPill(
-              label: l10n.translationCoverage,
+              label: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
               value: '${data.approvedCount}/${data.totalRequired}',
             ),
             if (missing > 0) ...[
               const SizedBox(width: 8),
               PlatformMetaPill(
-                label: l10n.missingTranslations,
+                label: strings.tKey(
+                  PlatformAdminKeys.pageLanguagesMissingTranslations,
+                ),
                 value: '$missing',
               ),
             ],
@@ -446,20 +481,22 @@ class _LanguageCoveragePill extends ConsumerWidget {
 /// Maps a language lifecycle status (DRAFT → TRANSLATING → REVIEW → LIVE →
 /// RETIRED) to its localized label. Unknown values fall back to the raw
 /// status so future backend states still render.
-String _languageStatusLabel(AppLocalizations l10n, String status) {
+String _languageStatusLabel(UiMessageStrings strings, String status) {
   switch (status.toUpperCase()) {
     case 'DRAFT':
-      return l10n.langStatusDraft;
+      return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
     case 'TRANSLATING':
-      return l10n.langStatusTranslating;
+      return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
     case 'REVIEW':
-      return l10n.langStatusReview;
+      return strings.tKey(PlatformAdminKeys.statusLanguageReview);
     case 'LIVE':
-      return l10n.langStatusLive;
+      return strings.tKey(PlatformAdminKeys.statusLanguageLive);
     case 'RETIRED':
-      return l10n.langStatusRetired;
+      return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
     default:
-      return status.isEmpty ? l10n.langStatusDraft : status;
+      return status.isEmpty
+          ? strings.tKey(PlatformAdminKeys.statusLanguageDraft)
+          : status;
   }
 }
 
@@ -540,29 +577,47 @@ class _LanguagesTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return PlatformSectionCard(
       padding: EdgeInsets.zero,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
           columns: [
-            DataColumn(label: Text(l10n.languageCode)),
-            DataColumn(label: Text(l10n.labelEn)),
-            DataColumn(label: Text(l10n.labelAr)),
-            DataColumn(label: Text(l10n.nativeName)),
-            DataColumn(label: Text(l10n.direction)),
-            DataColumn(label: Text(l10n.status)),
-            DataColumn(label: Text(l10n.active)),
-            DataColumn(label: Text(l10n.defaultLanguage)),
+            DataColumn(
+              label: Text(strings.tKey(PlatformAdminKeys.fieldLanguageCode)),
+            ),
+            DataColumn(
+              label: Text(strings.tKey(PlatformAdminKeys.fieldItemLabelEn)),
+            ),
+            DataColumn(
+              label: Text(strings.tKey(PlatformAdminKeys.fieldItemLabelAr)),
+            ),
             DataColumn(
               label: Text(
-                l10n.translationCoverage,
+                strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
+              ),
+            ),
+            DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
+            DataColumn(label: Text(strings.tKey(CommonKeys.statusActive))),
+            DataColumn(
+              label: Text(
+                strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            DataColumn(label: Text(l10n.actions)),
+            DataColumn(label: Text(strings.tKey(CommonKeys.tableActions))),
           ],
           rows: [
             for (final language in items)
@@ -605,17 +660,21 @@ class _LanguagesTable extends StatelessWidget {
                   ),
                   DataCell(
                     PlatformStatusChip(
-                      status: _languageStatusLabel(l10n, language.status),
+                      status: _languageStatusLabel(strings, language.status),
                     ),
                   ),
                   DataCell(
                     PlatformStatusChip(
-                      status: _activeLabel(l10n, language.active),
+                      status: _activeLabel(strings, language.active),
                     ),
                   ),
                   DataCell(
                     language.isDefault
-                        ? PlatformStatusChip(status: l10n.defaultLanguage)
+                        ? PlatformStatusChip(
+                            status: strings.tKey(
+                              PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                            ),
+                          )
                         : const Text('-'),
                   ),
                   DataCell(_LanguageCoveragePill(code: language.code)),
@@ -624,7 +683,7 @@ class _LanguagesTable extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          tooltip: l10n.reorder,
+                          tooltip: strings.tKey(CommonKeys.buttonReorder),
                           visualDensity: VisualDensity.compact,
                           onPressed: items.indexOf(language) == 0
                               ? null
@@ -639,7 +698,7 @@ class _LanguagesTable extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: l10n.reorder,
+                          tooltip: strings.tKey(CommonKeys.buttonReorder),
                           visualDensity: VisualDensity.compact,
                           onPressed: items.indexOf(language) == items.length - 1
                               ? null
@@ -654,17 +713,22 @@ class _LanguagesTable extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: l10n.edit,
+                          tooltip: strings.tKey(CommonKeys.buttonEdit),
                           onPressed: () => onEdit(language),
                           icon: const Icon(Icons.edit_outlined, size: 18),
                         ),
                         IconButton(
-                          tooltip: l10n.langCompleteTranslations,
+                          tooltip: strings.tKey(
+                            PlatformAdminKeys
+                                .buttonLanguageCompleteTranslations,
+                          ),
                           onPressed: () => onCompleteTranslations(language),
                           icon: const Icon(Icons.translate_rounded, size: 18),
                         ),
                         IconButton(
-                          tooltip: language.active ? l10n.retired : l10n.active,
+                          tooltip: language.active
+                              ? strings.tKey(CommonKeys.statusRetired)
+                              : strings.tKey(CommonKeys.statusActive),
                           onPressed: () => onToggleActive(language),
                           icon: Icon(
                             language.active
@@ -678,7 +742,9 @@ class _LanguagesTable extends StatelessWidget {
                         ),
                         if (!language.isDefault)
                           PlatformSecondaryButton(
-                            label: l10n.defaultLanguage,
+                            label: strings.tKey(
+                              PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                            ),
                             onPressed: () => onSetDefault(language),
                           ),
                       ],
@@ -714,7 +780,7 @@ class _LanguageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,17 +790,26 @@ class _LanguageCard extends StatelessWidget {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              PlatformMetaPill(label: l10n.languageCode, value: language.code),
-              PlatformStatusChip(
-                status: _languageStatusLabel(l10n, language.status),
-              ),
-              PlatformStatusChip(status: _activeLabel(l10n, language.active)),
               PlatformMetaPill(
-                label: l10n.direction,
+                label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
+                value: language.code,
+              ),
+              PlatformStatusChip(
+                status: _languageStatusLabel(strings, language.status),
+              ),
+              PlatformStatusChip(
+                status: _activeLabel(strings, language.active),
+              ),
+              PlatformMetaPill(
+                label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
                 value: language.direction,
               ),
               if (language.isDefault)
-                PlatformStatusChip(status: l10n.defaultLanguage),
+                PlatformStatusChip(
+                  status: strings.tKey(
+                    PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                  ),
+                ),
               _LanguageCoveragePill(code: language.code),
             ],
           ),
@@ -760,7 +835,7 @@ class _LanguageCard extends StatelessWidget {
           if (language.nativeName.isNotEmpty) ...[
             const SizedBox(height: 2),
             Text(
-              '${l10n.nativeName}: ${language.nativeName}',
+              '${strings.tKey(PlatformAdminKeys.fieldLanguageNativeName)}: ${language.nativeName}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: PtTheme.font(12, color: PtTheme.muted),
@@ -773,27 +848,31 @@ class _LanguageCard extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               IconButton(
-                tooltip: l10n.reorder,
+                tooltip: strings.tKey(CommonKeys.buttonReorder),
                 onPressed: onMoveUp,
                 icon: const Icon(Icons.arrow_upward_rounded, size: 18),
               ),
               IconButton(
-                tooltip: l10n.reorder,
+                tooltip: strings.tKey(CommonKeys.buttonReorder),
                 onPressed: onMoveDown,
                 icon: const Icon(Icons.arrow_downward_rounded, size: 18),
               ),
               PlatformSecondaryButton(
-                label: l10n.edit,
+                label: strings.tKey(CommonKeys.buttonEdit),
                 icon: Icons.edit_outlined,
                 onPressed: onEdit,
               ),
               PlatformSecondaryButton(
-                label: l10n.langCompleteTranslations,
+                label: strings.tKey(
+                  PlatformAdminKeys.buttonLanguageCompleteTranslations,
+                ),
                 icon: Icons.translate_rounded,
                 onPressed: onCompleteTranslations,
               ),
               PlatformSecondaryButton(
-                label: language.active ? l10n.retired : l10n.active,
+                label: language.active
+                    ? strings.tKey(CommonKeys.statusRetired)
+                    : strings.tKey(CommonKeys.statusActive),
                 icon: language.active
                     ? Icons.toggle_on_rounded
                     : Icons.toggle_off_rounded,
@@ -801,7 +880,9 @@ class _LanguageCard extends StatelessWidget {
               ),
               if (!language.isDefault)
                 PlatformSecondaryButton(
-                  label: l10n.defaultLanguage,
+                  label: strings.tKey(
+                    PlatformAdminKeys.pageLanguagesDefaultLanguage,
+                  ),
                   icon: Icons.star_outline_rounded,
                   onPressed: onSetDefault,
                 ),
@@ -821,16 +902,21 @@ class _CoverageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return PlatformSectionCard(
       child: coverage.when(
         loading: () => const PlatformLoadingView(),
         error: (error, stackTrace) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PlatformSectionHeader(title: l10n.translationCoverage),
+            PlatformSectionHeader(
+              title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+            ),
             const SizedBox(height: 12),
-            PlatformSecondaryButton(label: l10n.retry, onPressed: onRetry),
+            PlatformSecondaryButton(
+              label: strings.tKey(CommonKeys.buttonRetry),
+              onPressed: onRetry,
+            ),
           ],
         ),
         data: (data) {
@@ -839,7 +925,9 @@ class _CoverageSection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PlatformSectionHeader(title: l10n.translationCoverage),
+              PlatformSectionHeader(
+                title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+              ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -851,7 +939,10 @@ class _CoverageSection extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               if (namespaces.isEmpty)
-                Text(l10n.noData, style: PtTheme.font(13, color: PtTheme.muted))
+                Text(
+                  strings.tKey(CommonKeys.emptyTitle),
+                  style: PtTheme.font(13, color: PtTheme.muted),
+                )
               else
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -884,7 +975,7 @@ class _CoverageTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -898,9 +989,21 @@ class _CoverageTable extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: DataTable(
               columns: [
-                DataColumn(label: Text(l10n.translationCoverage)),
-                const DataColumn(label: Text('Total')),
-                DataColumn(label: Text(l10n.missingTranslations)),
+                DataColumn(
+                  label: Text(
+                    strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(strings.tKey(PlatformAdminKeys.queueTotal)),
+                ),
+                DataColumn(
+                  label: Text(
+                    strings.tKey(
+                      PlatformAdminKeys.pageLanguagesMissingTranslations,
+                    ),
+                  ),
+                ),
               ],
               rows: [
                 for (final entry in namespaces)
@@ -948,7 +1051,7 @@ class _CoverageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -969,13 +1072,16 @@ class _CoverageCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Total: ${entry.value.total} · '
-            '${l10n.missingTranslations}: ${entry.value.missing.length}',
+            '${strings.tKey(PlatformAdminKeys.queueTotal)}: ${entry.value.total} · '
+            '${strings.tKey(PlatformAdminKeys.pageLanguagesMissingTranslations)}: ${entry.value.missing.length}',
             style: PtTheme.font(12, color: PtTheme.muted),
           ),
           if (entry.value.missing.isEmpty) ...[
             const SizedBox(height: 6),
-            Text(l10n.noData, style: PtTheme.font(12, color: PtTheme.muted)),
+            Text(
+              strings.tKey(CommonKeys.emptyTitle),
+              style: PtTheme.font(12, color: PtTheme.muted),
+            ),
           ] else ...[
             const SizedBox(height: 8),
             Wrap(
@@ -1064,7 +1170,7 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
       _snack(failure.messageKey);
     } catch (_) {
       if (!mounted) return;
-      _snack(AppLocalizations.of(context).genericError);
+      _snack(ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -1077,9 +1183,11 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformDialogShell(
-      title: widget.initial == null ? l10n.addLanguage : l10n.languageRegistry,
+      title: widget.initial == null
+          ? strings.tKey(PlatformAdminKeys.buttonLanguageAdd)
+          : strings.tKey(PlatformAdminKeys.pageLanguagesTitle),
       body: Form(
         key: _formKey,
         child: Column(
@@ -1088,38 +1196,48 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
           children: [
             PlatformTextField(
               controller: _codeController,
-              label: l10n.languageCode,
+              label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
               enabled: widget.initial == null,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameEnController,
-              label: l10n.labelEn,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameArController,
-              label: l10n.labelAr,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
               textDirection: TextDirection.rtl,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nativeNameController,
-              label: l10n.nativeName,
+              label: strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
             ),
             const SizedBox(height: 12),
             PlatformDropdown<String>(
-              label: l10n.direction,
+              label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
               value: _direction,
-              items: const [
-                DropdownMenuItem(value: 'LTR', child: Text('LTR')),
-                DropdownMenuItem(value: 'RTL', child: Text('RTL')),
+              items: [
+                DropdownMenuItem(
+                  value: 'LTR',
+                  child: Text(
+                    strings.tKey(PlatformAdminKeys.labelDirectionLtr),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'RTL',
+                  child: Text(
+                    strings.tKey(PlatformAdminKeys.labelDirectionRtl),
+                  ),
+                ),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -1130,25 +1248,25 @@ class _LanguageDialogState extends ConsumerState<_LanguageDialog> {
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _sortOrderController,
-              label: 'Order',
+              label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
               keyboardType: TextInputType.number,
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: _active,
               onChanged: (value) => setState(() => _active = value),
-              title: Text(l10n.active),
+              title: Text(strings.tKey(CommonKeys.statusActive)),
             ),
           ],
         ),
       ),
       actions: [
         PlatformSecondaryButton(
-          label: l10n.cancel,
+          label: strings.tKey(CommonKeys.buttonCancel),
           onPressed: _saving ? null : () => Navigator.of(context).pop(false),
         ),
         PlatformPrimaryButton(
-          label: l10n.save,
+          label: strings.tKey(CommonKeys.buttonSave),
           isLoading: _saving,
           onPressed: _saving ? null : _submit,
         ),

@@ -1,5 +1,5 @@
 import 'package:auth/auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
@@ -25,6 +25,144 @@ final platformConfigApiProvider = Provider<PlatformConfigApi>((ref) {
 
 /// Shared language state. The platform app no longer owns a locale provider.
 final platformLocaleProvider = localeProvider;
+
+/// Remote-string wiring for [PlatformAdminApp].
+///
+/// Kept here (instead of `main.dart`) so the app entrypoint never imports
+/// generated ARB accessors: only remote UI-message catalogs, the
+/// Material/Widgets/Cupertino built-in delegates, and neutral placeholders.
+Future<UiMessageStore> createPlatformUiMessageStore() => createUiMessageStore();
+
+ProviderScope platformUiMessageScope({
+  required UiMessageStore store,
+  required Widget child,
+}) {
+  return ProviderScope(
+    overrides: [
+      uiMessageStoreProvider.overrideWithValue(store),
+      uiMessageApiProvider.overrideWith((ref) {
+        final client = ref.watch(apiClientProvider);
+        return UiMessageApi((path, query) async {
+          final data = await client.getDynamic(path, query: query);
+          if (data is Map<String, dynamic>) return data;
+          if (data is Map) return Map<String, dynamic>.from(data);
+          throw const FormatException('UI message payload is not an object');
+        });
+      }),
+    ],
+    child: child,
+  );
+}
+
+final platformUiReadyProvider = Provider<bool>((ref) {
+  return ref.watch(uiMessageControllerProvider.select((state) => state.ready));
+});
+
+final platformUiManifestProvider = Provider<UiMessageManifest?>((ref) {
+  return ref.watch(
+    uiMessageControllerProvider.select((state) => state.manifest),
+  );
+});
+
+final platformUiDefaultLanguageProvider = Provider<String>((ref) {
+  return ref.watch(
+    uiMessageControllerProvider.select((state) => state.defaultLanguage),
+  );
+});
+
+const UiMessageKey _platformAppTitleKey = PlatformAdminKeys.headerTitle;
+
+const String _platformAppIdTitle = 'truereport';
+
+final platformAppTitleProvider = Provider<String>((ref) {
+  if (!ref.watch(platformUiReadyProvider)) return _platformAppIdTitle;
+  final resolved = ref.watch(uiStringsProvider).tKey(_platformAppTitleKey);
+  if (resolved.isEmpty || resolved == _platformAppTitleKey.qualified) {
+    return _platformAppIdTitle;
+  }
+  return resolved;
+});
+
+List<Locale> platformSupportedLocales(UiMessageManifest? manifest) {
+  final codes = <String>[];
+  if (manifest != null) {
+    for (final code in manifest.codes) {
+      if (!codes.contains(code)) codes.add(code);
+    }
+    if (!codes.contains(manifest.defaultLanguage)) {
+      codes.add(manifest.defaultLanguage);
+    }
+  }
+  if (codes.isEmpty) return const [Locale('en')];
+  return codes.map(localeForLanguage).toList(growable: false);
+}
+
+Locale resolvePlatformLocale(
+  Locale? device,
+  Iterable<Locale> supported,
+  String defaultLanguage,
+) {
+  final candidates = supported.toList(growable: false);
+  final fallback = localeForLanguage(defaultLanguage);
+  if (candidates.isEmpty) return fallback;
+  if (device == null) {
+    return _platformByCode(candidates, fallback) ?? candidates.first;
+  }
+  for (final candidate in candidates) {
+    if (candidate.languageCode == device.languageCode &&
+        candidate.scriptCode == device.scriptCode &&
+        candidate.countryCode == device.countryCode) {
+      return candidate;
+    }
+  }
+  if (device.scriptCode != null) {
+    for (final candidate in candidates) {
+      if (candidate.languageCode == device.languageCode &&
+          candidate.scriptCode == device.scriptCode) {
+        return candidate;
+      }
+    }
+  }
+  for (final candidate in candidates) {
+    if (candidate.languageCode == device.languageCode) return candidate;
+  }
+  return _platformByCode(candidates, fallback) ?? candidates.first;
+}
+
+Locale? _platformByCode(List<Locale> candidates, Locale fallback) {
+  for (final candidate in candidates) {
+    if (candidate.languageCode == fallback.languageCode &&
+        candidate.scriptCode == fallback.scriptCode &&
+        candidate.countryCode == fallback.countryCode) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+final uiStringsProvider = Provider<UiMessageStrings>((ref) {
+  ref.watch(uiMessageControllerProvider);
+  return ref.watch(uiMessageControllerProvider.notifier).strings();
+});
+
+final uiMessageSwitcherProvider = Provider<UiMessageSwitcher>((ref) {
+  return UiMessageSwitcher(ref);
+});
+
+class UiMessageSwitcher {
+  UiMessageSwitcher(this._ref);
+
+  final Ref _ref;
+
+  Future<bool> switchTo(String code) async {
+    final controller = _ref.read(uiMessageControllerProvider.notifier);
+    final switched = await controller.useLanguage(code);
+    final active = _ref.read(uiMessageControllerProvider).activeLanguage;
+    _ref.read(localeProvider.notifier).setLocale(localeForLanguage(active));
+    _ref.read(apiClientProvider).acceptLanguage = active;
+    return switched;
+  }
+}
 
 final hierarchyStateProvider = FutureProvider.autoDispose<HierarchyResponse>(
   (ref) => ref.watch(platformApiProvider).hierarchy(),

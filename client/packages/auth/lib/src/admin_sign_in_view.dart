@@ -24,8 +24,11 @@ class AdminSignInView extends StatefulWidget {
     required this.passwordController,
     required this.codeController,
     required this.formKey,
-    required this.isArabic,
-    required this.onLocaleChanged,
+    this.isArabic,
+    this.onLocaleChanged,
+    this.languages,
+    this.selectedLanguageCode,
+    this.onLanguageSelected,
     required this.onSubmit,
     required this.onValidateEmail,
     required this.onValidateRequired,
@@ -39,8 +42,11 @@ class AdminSignInView extends StatefulWidget {
   final TextEditingController passwordController;
   final TextEditingController codeController;
   final GlobalKey<FormState> formKey;
-  final bool isArabic;
-  final ValueChanged<bool> onLocaleChanged;
+  final bool? isArabic;
+  final ValueChanged<bool>? onLocaleChanged;
+  final List<LanguageOption>? languages;
+  final String? selectedLanguageCode;
+  final ValueChanged<String>? onLanguageSelected;
   final VoidCallback onSubmit;
   final FormFieldValidator<String> onValidateEmail;
   final FormFieldValidator<String> onValidateRequired;
@@ -48,8 +54,23 @@ class AdminSignInView extends StatefulWidget {
   final bool submitting;
   final String? errorText;
 
+  bool get useLanguageOptions =>
+      languages != null && languages!.isNotEmpty && onLanguageSelected != null;
+
   @override
   State<AdminSignInView> createState() => _AdminSignInViewState();
+}
+
+class LanguageOption {
+  const LanguageOption({
+    required this.code,
+    required this.displayName,
+    this.direction = 'ltr',
+  });
+
+  final String code;
+  final String displayName;
+  final String direction;
 }
 
 class _AdminSignInViewState extends State<AdminSignInView> {
@@ -530,33 +551,21 @@ class _AdminSignInViewState extends State<AdminSignInView> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFE9E7ED)),
                   ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => widget.onLocaleChanged(!widget.isArabic),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.language_rounded,
-                            size: 16,
-                            color: Color(0xFF006C49),
+                  child: _LanguageSwitcher(
+                    useOptions: widget.useLanguageOptions,
+                    languages: widget.languages ?? const <LanguageOption>[],
+                    selectedCode:
+                        widget.selectedLanguageCode ??
+                        (widget.isArabic == true ? 'ar' : 'en'),
+                    legacyLabel: widget.isArabic == true
+                        ? 'English'
+                        : 'العربية',
+                    onOptionSelected: widget.onLanguageSelected,
+                    onLegacyToggle: widget.onLocaleChanged == null
+                        ? null
+                        : () => widget.onLocaleChanged!(
+                            !(widget.isArabic ?? false),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            widget.isArabic ? 'English' : 'العربية',
-                            style: Fx.text(
-                              12,
-                              16,
-                              FontWeight.w700,
-                              0,
-                              color: const Color(0xFF006C49),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -1021,6 +1030,88 @@ class _AdminSignInViewState extends State<AdminSignInView> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LanguageSwitcher extends StatelessWidget {
+  const _LanguageSwitcher({
+    required this.useOptions,
+    required this.languages,
+    required this.selectedCode,
+    required this.legacyLabel,
+    required this.onOptionSelected,
+    required this.onLegacyToggle,
+  });
+
+  final bool useOptions;
+  final List<LanguageOption> languages;
+  final String selectedCode;
+  final String legacyLabel;
+  final ValueChanged<String>? onOptionSelected;
+  final VoidCallback? onLegacyToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFF006C49);
+    if (useOptions) {
+      var selected = languages.first;
+      for (final option in languages) {
+        if (option.code == selectedCode) selected = option;
+      }
+      return PopupMenuButton<String>(
+        key: const Key('sign-in-language-menu'),
+        borderRadius: BorderRadius.circular(8),
+        onSelected: onOptionSelected,
+        itemBuilder: (menuContext) {
+          return [
+            for (final option in languages)
+              PopupMenuItem<String>(
+                key: Key('sign-in-language-${option.code}'),
+                value: option.code,
+                child: Row(
+                  children: [
+                    Expanded(child: Text(option.displayName)),
+                    if (option.code == selected.code)
+                      const Icon(Icons.check_rounded, size: 16, color: accent),
+                  ],
+                ),
+              ),
+          ];
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.language_rounded, size: 16, color: accent),
+              const SizedBox(width: 6),
+              Text(
+                selected.displayName,
+                style: Fx.text(12, 16, FontWeight.w700, 0, color: accent),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onLegacyToggle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.language_rounded, size: 16, color: accent),
+            const SizedBox(width: 6),
+            Text(
+              legacyLabel,
+              style: Fx.text(12, 16, FontWeight.w700, 0, color: accent),
+            ),
+          ],
         ),
       ),
     );

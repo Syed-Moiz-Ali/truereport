@@ -5,6 +5,7 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/audit/audit_log_screen.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 const _event = PlatformAuditEvent(
   id: 'evt-1',
@@ -19,7 +20,7 @@ const _event = PlatformAuditEvent(
 
 Widget _app({Locale locale = const Locale('en'), double width = 1280}) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       auditEventsProvider.overrideWith((ref) async => const [_event]),
     ],
     child: MaterialApp(

@@ -8,6 +8,7 @@ import 'package:platform_admin_app/src/features/dashboard/dashboard_screen.dart'
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 const _summary = OverviewSummary(
   workshops: OverviewWorkshops(total: 12, active: 9),
@@ -121,7 +122,7 @@ Widget _app({
   ConfigHealth health = _healthy,
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       overviewProvider.overrideWith((ref) async => summary),
       configHealthProvider.overrideWith((ref) async => health),
       platformLanguagesProvider.overrideWith((ref) async => _languages),
@@ -200,7 +201,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
+          overrides: [uiStringsProvider.overrideWithValue(fakeEnUiStrings()), 
             overviewProvider.overrideWith(
               (ref) => Completer<OverviewSummary>().future,
             ),
@@ -226,7 +227,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
+          overrides: [uiStringsProvider.overrideWithValue(fakeEnUiStrings()), 
             overviewProvider.overrideWith((ref) async {
               if (fail) throw Exception('offline');
               return _summary;

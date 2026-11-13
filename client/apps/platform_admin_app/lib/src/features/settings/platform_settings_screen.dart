@@ -40,22 +40,30 @@ class _PlatformSettingsScreenState
   bool _seeding = false;
 
   Future<void> _seedChecklist() async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.seedDefaultChecklist,
-      body: l10n.seedConfirm,
-      confirmLabel: l10n.save,
+      title: strings.tKey(PlatformAdminKeys.buttonSeedLoadDefault),
+      body: strings.tKey(PlatformAdminKeys.dialogSeedConfirm),
+      confirmLabel: strings.tKey(CommonKeys.buttonSave),
     );
     if (confirmed != true) return;
     setState(() => _seeding = true);
     try {
       final result = await ref.read(platformConfigActionsProvider).seed();
       if (!mounted) return;
-      _showSeedMessage(l10n.seedSuccess(result.created, result.skipped));
+      _showSeedMessage(
+        strings.tArgsKey(PlatformAdminKeys.toastSeedSuccess, {
+          'created': result.created,
+          'skipped': result.skipped,
+        }),
+      );
     } catch (error) {
       if (!mounted) return;
-      _showSeedMessage('${l10n.seedFailed}: $error', isError: true);
+      _showSeedMessage(
+        '${strings.tKey(PlatformAdminKeys.toastSeedFailed)}: $error',
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _seeding = false);
     }
@@ -77,6 +85,7 @@ class _PlatformSettingsScreenState
   }
 
   void _discardChanges() {
+    final strings = ref.read(uiStringsProvider);
     setState(() {
       _arabicRtlEnabled = true;
       _spanishEnabled = true;
@@ -90,29 +99,18 @@ class _PlatformSettingsScreenState
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          Localizations.of<AppLocalizations>(
-                context,
-                AppLocalizations,
-              )?.preferencesReset ??
-              'Preferences reset to default values.',
-        ),
+        content: Text(strings.tKey(PlatformAdminKeys.settingsPreferencesReset)),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
   void _savePreferences() {
+    final strings = ref.read(uiStringsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         key: const Key('snackbar-save-settings'),
-        content: Text(
-          Localizations.of<AppLocalizations>(
-                context,
-                AppLocalizations,
-              )?.preferencesSaved ??
-              'Platform preferences saved and propagated to edge nodes!',
-        ),
+        content: Text(strings.tKey(PlatformAdminKeys.settingsPreferencesSaved)),
         backgroundColor: PtTheme.emerald,
         duration: const Duration(seconds: 3),
       ),
@@ -186,11 +184,12 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildHeaderSection(bool isCompact) {
+    final strings = ref.watch(uiStringsProvider);
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'CONFIGURATION SCOPE • GLOBAL ROOT',
+          strings.tKey(PlatformAdminKeys.settingsScopeBadge),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
@@ -203,7 +202,7 @@ class _PlatformSettingsScreenState
         ),
         const SizedBox(height: 6),
         Text(
-          'Platform Settings',
+          strings.tKey(PlatformAdminKeys.pageSettingsHeading),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
@@ -216,7 +215,7 @@ class _PlatformSettingsScreenState
         ),
         const SizedBox(height: 4),
         Text(
-          'Global runtime policies, regional localizations, and system authentication rules',
+          strings.tKey(PlatformAdminKeys.pageSettingsSubtitle),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
           style: PtTheme.font(
@@ -284,6 +283,7 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildLocalizationCard() {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -314,7 +314,7 @@ class _PlatformSettingsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Localization',
+                      strings.tKey(PlatformAdminKeys.settingsLocalizationTitle),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -326,7 +326,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Multilingual dictionary & typography sets',
+                      strings.tKey(PlatformAdminKeys.settingsLocalizationDesc),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -350,7 +350,10 @@ class _PlatformSettingsScreenState
                   border: Border.all(color: PtTheme.border),
                 ),
                 child: Text(
-                  '3 Languages',
+                  strings.tArgsKey(
+                    PlatformAdminKeys.settingsLocalizationCount,
+                    const {'count': 3},
+                  ),
                   style: PtTheme.font(
                     11,
                     lineHeight: 14,
@@ -369,65 +372,44 @@ class _PlatformSettingsScreenState
           // Toggles
           _buildToggleRow(
             key: const Key('switch-arabic-rtl'),
-            header:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableArabicRtl ??
-                'Enable Arabic (RTL) Localization',
-            description:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableArabicRtlDesc ??
-                'Auto-reverses layout coordinates and inspector forms',
+            header: strings.tKey(PlatformAdminKeys.settingsEnableArabicRtl),
+            description: strings.tKey(
+              PlatformAdminKeys.settingsEnableArabicRtlDesc,
+            ),
             value: _arabicRtlEnabled,
-            onChanged: (val) {
+            onChanged: (val) async {
               setState(() => _arabicRtlEnabled = val);
-              if (val) {
-                ref
-                    .read(platformLocaleProvider.notifier)
-                    .setLocale(const Locale('ar'));
-              } else {
-                ref
-                    .read(platformLocaleProvider.notifier)
-                    .setLocale(const Locale('en'));
+              final manifest = ref.read(platformUiManifestProvider);
+              final fallback = manifest?.defaultLanguage ?? 'en';
+              var target = fallback;
+              if (val && manifest != null) {
+                for (final language in manifest.languages) {
+                  if (language.isRtl) {
+                    target = language.code;
+                    break;
+                  }
+                }
               }
+              await ref.read(uiMessageSwitcherProvider).switchTo(target);
             },
           ),
           const SizedBox(height: 16),
           _buildToggleRow(
             key: const Key('switch-spanish'),
-            header:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableSpanish ??
-                'Enable Spanish Support',
-            description:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableSpanishDesc ??
-                'Workshop regional standard (es-MX / es-ES)',
+            header: strings.tKey(PlatformAdminKeys.settingsEnableSpanish),
+            description: strings.tKey(
+              PlatformAdminKeys.settingsEnableSpanishDesc,
+            ),
             value: _spanishEnabled,
             onChanged: (val) => setState(() => _spanishEnabled = val),
           ),
           const SizedBox(height: 16),
           _buildToggleRow(
             key: const Key('switch-french'),
-            header:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableFrench ??
-                'Enable French Support',
-            description:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enableFrenchDesc ??
-                'Quebec & European fleet inspection checklists',
+            header: strings.tKey(PlatformAdminKeys.settingsEnableFrench),
+            description: strings.tKey(
+              PlatformAdminKeys.settingsEnableFrenchDesc,
+            ),
             value: _frenchEnabled,
             onChanged: (val) => setState(() => _frenchEnabled = val),
           ),
@@ -453,7 +435,9 @@ class _PlatformSettingsScreenState
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Activating a regional dialect dynamically triggers localized font subset packages via the Edge CDN to preserve 60fps rendering speed in field mobile devices.',
+                    strings.tKey(
+                      PlatformAdminKeys.settingsLocalizationFootnote,
+                    ),
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     style: PtTheme.font(
@@ -473,6 +457,7 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildSecurityCard() {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -503,7 +488,7 @@ class _PlatformSettingsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Security & Access',
+                      strings.tKey(PlatformAdminKeys.settingsSecurityTitle),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -515,7 +500,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Zero-trust technician permissions & token life',
+                      strings.tKey(PlatformAdminKeys.settingsSecurityDesc),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -543,7 +528,7 @@ class _PlatformSettingsScreenState
                 child: Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Text(
-                    'Automatic revocation after period of inactivity',
+                    strings.tKey(PlatformAdminKeys.settingsSessionTimeoutDesc),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: PtTheme.font(
@@ -560,7 +545,9 @@ class _PlatformSettingsScreenState
                 constraints: const BoxConstraints(maxWidth: 200),
                 child: PlatformDropdown<String>(
                   key: const Key('dropdown-session-timeout'),
-                  label: 'Admin Session Timeout',
+                  label: strings.tKey(
+                    PlatformAdminKeys.settingsSessionTimeoutLabel,
+                  ),
                   value: _sessionTimeout,
                   onChanged: (val) {
                     if (val != null) setState(() => _sessionTimeout = val);
@@ -569,41 +556,25 @@ class _PlatformSettingsScreenState
                     DropdownMenuItem(
                       value: '15 Minutes',
                       child: Text(
-                        Localizations.of<AppLocalizations>(
-                              context,
-                              AppLocalizations,
-                            )?.fifteenMinutes ??
-                            '15 Minutes',
+                        strings.tKey(PlatformAdminKeys.settingsFifteenMinutes),
                       ),
                     ),
                     DropdownMenuItem(
                       value: '30 Minutes',
                       child: Text(
-                        Localizations.of<AppLocalizations>(
-                              context,
-                              AppLocalizations,
-                            )?.thirtyMinutes ??
-                            '30 Minutes',
+                        strings.tKey(PlatformAdminKeys.settingsThirtyMinutes),
                       ),
                     ),
                     DropdownMenuItem(
                       value: '1 Hour',
                       child: Text(
-                        Localizations.of<AppLocalizations>(
-                              context,
-                              AppLocalizations,
-                            )?.oneHour ??
-                            '1 Hour',
+                        strings.tKey(PlatformAdminKeys.settingsOneHour),
                       ),
                     ),
                     DropdownMenuItem(
                       value: '4 Hours',
                       child: Text(
-                        Localizations.of<AppLocalizations>(
-                              context,
-                              AppLocalizations,
-                            )?.fourHours ??
-                            '4 Hours',
+                        strings.tKey(PlatformAdminKeys.settingsFourHours),
                       ),
                     ),
                   ],
@@ -617,18 +588,8 @@ class _PlatformSettingsScreenState
           // Control 2: 2FA
           _buildToggleRow(
             key: const Key('switch-2fa'),
-            header:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enforce2fa ??
-                'Enforce 2FA (TOTP) for All Admins',
-            description:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.enforce2faDesc ??
-                'Mandatory hardware security key or authenticator app',
+            header: strings.tKey(PlatformAdminKeys.settingsEnforce2fa),
+            description: strings.tKey(PlatformAdminKeys.settingsEnforce2faDesc),
             value: _enforce2fa,
             onChanged: (val) => setState(() => _enforce2fa = val),
           ),
@@ -638,18 +599,10 @@ class _PlatformSettingsScreenState
           // Control 3: IP Restriction Whitelist
           _buildToggleRow(
             key: const Key('switch-ip-whitelist'),
-            header:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.ipWhitelist ??
-                'IP Restriction Whitelist',
-            description:
-                Localizations.of<AppLocalizations>(
-                  context,
-                  AppLocalizations,
-                )?.ipWhitelistDesc ??
-                'Limit console access strictly to corporate diagnostic VPNs',
+            header: strings.tKey(PlatformAdminKeys.settingsIpWhitelist),
+            description: strings.tKey(
+              PlatformAdminKeys.settingsIpWhitelistDesc,
+            ),
             value: _ipWhitelistEnabled,
             onChanged: (val) => setState(() => _ipWhitelistEnabled = val),
           ),
@@ -662,7 +615,9 @@ class _PlatformSettingsScreenState
             children: [
               Expanded(
                 child: Text(
-                  'Audit Token Encryption',
+                  strings.tKey(
+                    PlatformAdminKeys.settingsAuditTokenEncryptionLabel,
+                  ),
                   style: PtTheme.font(
                     14,
                     lineHeight: 20,
@@ -701,6 +656,7 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildWebhooksCard(bool isCompact) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -731,7 +687,7 @@ class _PlatformSettingsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Automated Fleet Dispatch & Webhooks',
+                      strings.tKey(PlatformAdminKeys.settingsWebhooksTitle),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -743,7 +699,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Event pipeline, real-time OBD relays, and customer certificate exports',
+                      strings.tKey(PlatformAdminKeys.settingsWebhooksDesc),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -768,7 +724,7 @@ class _PlatformSettingsScreenState
                     border: Border.all(color: PtTheme.border),
                   ),
                   child: Text(
-                    'Webhooks Healthy • 99.98% SLA',
+                    strings.tKey(PlatformAdminKeys.settingsWebhooksStatus),
                     style: PtTheme.font(
                       11,
                       lineHeight: 14,
@@ -790,7 +746,7 @@ class _PlatformSettingsScreenState
                 border: Border.all(color: PtTheme.border),
               ),
               child: Text(
-                'Webhooks Healthy • 99.98% SLA',
+                strings.tKey(PlatformAdminKeys.settingsWebhooksStatus),
                 style: PtTheme.font(
                   11,
                   lineHeight: 14,
@@ -819,7 +775,9 @@ class _PlatformSettingsScreenState
                       runSpacing: 4,
                       children: [
                         Text(
-                          'Real-Time Telematics Ingestion',
+                          strings.tKey(
+                            PlatformAdminKeys.settingsTelematicsTitle,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
@@ -839,7 +797,9 @@ class _PlatformSettingsScreenState
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'WEBSOCKET STREAMING ACTIVE',
+                            strings.tKey(
+                              PlatformAdminKeys.settingsTelematicsBadge,
+                            ),
                             style: PtTheme.font(
                               9,
                               lineHeight: 12,
@@ -852,7 +812,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Stream vehicle CAN-bus diagnostics and mileage counters live during visual lane walks.',
+                      strings.tKey(PlatformAdminKeys.settingsTelematicsDesc),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -891,7 +851,7 @@ class _PlatformSettingsScreenState
                       runSpacing: 4,
                       children: [
                         Text(
-                          'Instant PDF Generation On Sign-Off',
+                          strings.tKey(PlatformAdminKeys.settingsPdfTitle),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
@@ -912,7 +872,7 @@ class _PlatformSettingsScreenState
                             border: Border.all(color: PtTheme.border),
                           ),
                           child: Text(
-                            'AUTO-DISTRIBUTION HOOK',
+                            strings.tKey(PlatformAdminKeys.settingsPdfBadge),
                             style: PtTheme.font(
                               9,
                               lineHeight: 12,
@@ -925,7 +885,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Compile comprehensive inspection reports with embedded damage markup photos upon technician sign.',
+                      strings.tKey(PlatformAdminKeys.settingsPdfDesc),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -1008,7 +968,7 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildDeveloperCard() {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1038,7 +998,7 @@ class _PlatformSettingsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.seedDefaultChecklist,
+                      strings.tKey(PlatformAdminKeys.buttonSeedLoadDefault),
                       style: PtTheme.font(
                         16,
                         lineHeight: 22,
@@ -1048,7 +1008,7 @@ class _PlatformSettingsScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      l10n.seedConfirm,
+                      strings.tKey(PlatformAdminKeys.dialogSeedConfirm),
                       style: PtTheme.font(
                         12,
                         lineHeight: 16,
@@ -1069,7 +1029,7 @@ class _PlatformSettingsScreenState
             children: [
               PlatformPrimaryButton(
                 key: const Key('btn-developer-seed'),
-                label: l10n.seedDefaultChecklist,
+                label: strings.tKey(PlatformAdminKeys.buttonSeedLoadDefault),
                 icon: Icons.cloud_download_outlined,
                 isLoading: _seeding,
                 onPressed: _seeding ? null : _seedChecklist,
@@ -1082,6 +1042,7 @@ class _PlatformSettingsScreenState
   }
 
   Widget _buildActionBar(bool isCompact) {
+    final strings = ref.watch(uiStringsProvider);
     final note = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1089,7 +1050,7 @@ class _PlatformSettingsScreenState
         const SizedBox(width: 8),
         Flexible(
           child: Text(
-            'All changes sync immediately to edge nodes upon save',
+            strings.tKey(PlatformAdminKeys.settingsActionBarNote),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(
@@ -1108,13 +1069,13 @@ class _PlatformSettingsScreenState
       children: [
         PlatformSecondaryButton(
           key: const Key('btn-discard-settings'),
-          label: 'Discard',
+          label: strings.tKey(CommonKeys.buttonDiscard),
           onPressed: _discardChanges,
         ),
         const SizedBox(width: 12),
         PlatformPrimaryButton(
           key: const Key('btn-save-settings'),
-          label: 'Save Platform Preferences',
+          label: strings.tKey(PlatformAdminKeys.settingsPreferencesSave),
           icon: Icons.check_rounded,
           onPressed: _savePreferences,
         ),

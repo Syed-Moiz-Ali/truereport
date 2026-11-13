@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_dialogs.dart';
@@ -10,6 +9,8 @@ import '../../components/platform_shell.dart';
 import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+
+import 'package:l10n/l10n.dart';
 
 class WorkshopForm extends ConsumerStatefulWidget {
   const WorkshopForm({super.key, this.workshop, this.onSaved});
@@ -54,7 +55,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   bool get _isCreate => widget.workshop == null;
 
   Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -72,7 +73,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
         templateId = templates.first.id;
         _selectedTemplateId = templateId;
       } else {
-        setState(() => _error = l10n.error);
+        setState(() => _error = strings.tKey(CommonKeys.stateError));
         return;
       }
     }
@@ -101,7 +102,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
       widget.onSaved?.call(saved);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = l10n.error);
+      setState(() => _error = strings.tKey(CommonKeys.stateError));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -119,7 +120,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Form(
       key: _formKey,
       child: Column(
@@ -160,7 +161,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
           ],
           _FormSection(
             step: '1',
-            title: l10n.wsOverview,
+            title: strings.tKey(PlatformAdminKeys.tabWorkshopOverview),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -168,20 +169,22 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
                 PlatformTextField(
                   key: const Key('input-workshop-name'),
                   controller: _nameController,
-                  label: '${l10n.wsName} *',
-                  hint: l10n.wsName,
+                  label:
+                      '${strings.tKey(PlatformAdminKeys.fieldWorkshopName)} *',
+                  hint: strings.tKey(PlatformAdminKeys.fieldWorkshopName),
                   validator: (value) => (value == null || value.trim().isEmpty)
-                      ? l10n.error
+                      ? strings.tKey(CommonKeys.stateError)
                       : null,
                 ),
                 const SizedBox(height: 14),
                 PlatformTextField(
                   key: const Key('input-workshop-branch'),
                   controller: _branchController,
-                  label: '${l10n.wsBranch} *',
-                  hint: l10n.wsBranch,
+                  label:
+                      '${strings.tKey(PlatformAdminKeys.fieldWorkshopBranch)} *',
+                  hint: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
                   validator: (value) => (value == null || value.trim().isEmpty)
-                      ? l10n.error
+                      ? strings.tKey(CommonKeys.stateError)
                       : null,
                 ),
               ],
@@ -190,17 +193,18 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
           const SizedBox(height: 14),
           _FormSection(
             step: '2',
-            title: l10n.wsContact,
+            title: strings.tKey(PlatformAdminKeys.sectionWorkshopContact),
             child: PlatformTextField(
               key: const Key('input-workshop-email'),
               controller: _emailController,
-              label: '${l10n.wsContactEmail} *',
-              hint: l10n.wsContactEmail,
+              label:
+                  '${strings.tKey(PlatformAdminKeys.fieldWorkshopContactEmail)} *',
+              hint: strings.tKey(PlatformAdminKeys.fieldWorkshopContactEmail),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 final text = value?.trim() ?? '';
                 if (text.isEmpty || !text.contains('@')) {
-                  return l10n.error;
+                  return strings.tKey(CommonKeys.stateError);
                 }
                 return null;
               },
@@ -210,7 +214,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
             const SizedBox(height: 14),
             _FormSection(
               step: '3',
-              title: l10n.templates,
+              title: strings.tKey(PlatformAdminKeys.pageTemplatesTitle),
               child: _TemplatePicker(
                 selectedId: _selectedTemplateId,
                 onSelected: (id) => setState(() => _selectedTemplateId = id),
@@ -224,11 +228,11 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.cancel,
+                label: strings.tKey(CommonKeys.buttonCancel),
                 onPressed: _submitting ? null : _cancel,
               ),
               PlatformPrimaryButton(
-                label: l10n.save,
+                label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _submitting,
                 onPressed: _submitting ? null : _submit,
               ),
@@ -240,7 +244,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   }
 }
 
-class _FormSection extends StatelessWidget {
+class _FormSection extends ConsumerWidget {
   const _FormSection({
     required this.step,
     required this.title,
@@ -252,7 +256,7 @@ class _FormSection extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -317,7 +321,7 @@ class _TemplatePicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final templates = ref.watch(templatesProvider);
     return templates.when(
       loading: () => const Padding(
@@ -326,22 +330,22 @@ class _TemplatePicker extends ConsumerWidget {
       ),
       error: (_, _) => Row(
         children: [
-          Expanded(child: Text(l10n.error)),
+          Expanded(child: Text(strings.tKey(CommonKeys.stateError))),
           TextButton(
             onPressed: () => ref.invalidate(templatesProvider),
-            child: Text(l10n.retry),
+            child: Text(strings.tKey(CommonKeys.buttonRetry)),
           ),
         ],
       ),
       data: (items) {
         if (items.isEmpty) {
-          return Text(l10n.noData);
+          return Text(strings.tKey(CommonKeys.emptyTitle));
         }
         final value = items.any((item) => item.id == selectedId)
             ? selectedId
             : items.first.id;
         return PlatformDropdown<String>(
-          label: '${l10n.templates} *',
+          label: '${strings.tKey(PlatformAdminKeys.pageTemplatesTitle)} *',
           value: value!,
           items: [
             for (final item in items)
@@ -361,14 +365,14 @@ class _TemplatePicker extends ConsumerWidget {
   }
 }
 
-class WorkshopFormPage extends StatelessWidget {
+class WorkshopFormPage extends ConsumerWidget {
   const WorkshopFormPage({super.key, this.workshop});
 
   final HierarchyWorkshop? workshop;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformShell(
       currentRoute: '/workshops',
       onNavigate: (route) => context.go(route),
@@ -377,8 +381,10 @@ class WorkshopFormPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: workshop == null ? l10n.wsAdd : l10n.wsEdit,
-              subtitle: l10n.wsSubtitle,
+              title: workshop == null
+                  ? strings.tKey(PlatformAdminKeys.pageWorkshopsAdd)
+                  : strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
+              subtitle: strings.tKey(PlatformAdminKeys.pageWorkshopsSubtitle),
             ),
             const SizedBox(height: 20),
             PlatformSectionCard(
@@ -418,7 +424,7 @@ Future<String?> showReasonDialog({
   );
 }
 
-class _ReasonDialog extends StatefulWidget {
+class _ReasonDialog extends ConsumerStatefulWidget {
   const _ReasonDialog({
     required this.title,
     this.body,
@@ -432,10 +438,10 @@ class _ReasonDialog extends StatefulWidget {
   final bool destructive;
 
   @override
-  State<_ReasonDialog> createState() => _ReasonDialogState();
+  ConsumerState<_ReasonDialog> createState() => _ReasonDialogState();
 }
 
-class _ReasonDialogState extends State<_ReasonDialog> {
+class _ReasonDialogState extends ConsumerState<_ReasonDialog> {
   final _controller = TextEditingController();
 
   @override
@@ -446,7 +452,7 @@ class _ReasonDialogState extends State<_ReasonDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.zero,
@@ -465,15 +471,15 @@ class _ReasonDialogState extends State<_ReasonDialog> {
             ],
             PlatformTextField(
               controller: _controller,
-              label: l10n.reason,
-              hint: l10n.reason,
+              label: strings.tKey(CommonKeys.fieldReason),
+              hint: strings.tKey(CommonKeys.fieldReason),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
+            child: Text(strings.tKey(CommonKeys.buttonCancel)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(_controller.text.trim()),

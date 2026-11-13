@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -14,6 +13,8 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
+
+import 'package:l10n/l10n.dart';
 
 class OptionSetsScreen extends ConsumerStatefulWidget {
   const OptionSetsScreen({super.key});
@@ -173,12 +174,12 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   }
 
   Future<void> _confirmRetireSet(OptionSet set) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retire,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retire,
+      title: strings.tKey(PlatformAdminKeys.buttonRetire),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
       destructive: true,
     );
     if (confirmed != true) return;
@@ -290,7 +291,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   }
 
   Future<void> _confirmRetireValue(OptionSet set, OptionValue value) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final replacementController = TextEditingController();
     String? errorText;
     var submitting = false;
@@ -304,7 +305,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
 
     final retired = await showPlatformDialog<bool>(
       context: context,
-      title: l10n.retire,
+      title: strings.tKey(PlatformAdminKeys.buttonRetire),
       body: StatefulBuilder(
         builder: (context, setState) {
           refreshBody = setState;
@@ -313,14 +314,14 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.retireConfirm,
+                strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
               ),
               const SizedBox(height: 14),
               PlatformTextField(
                 key: const Key('opt-value-replacement'),
                 controller: replacementController,
-                label: l10n.optUsedBy,
+                label: strings.tKey(PlatformAdminKeys.tableOptionValueUsedBy),
                 enabled: !submitting,
               ),
               if (errorText != null) ...[
@@ -346,7 +347,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                       ? null
                       : () => Navigator.of(dialogContext).pop(false),
                   child: Text(
-                    l10n.cancel,
+                    strings.tKey(CommonKeys.buttonCancel),
                     style: PtTheme.font(
                       13,
                       weight: FontWeight.w700,
@@ -393,7 +394,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                           ),
                         )
                       : Text(
-                          l10n.retire,
+                          strings.tKey(PlatformAdminKeys.buttonRetire),
                           style: PtTheme.font(
                             13,
                             weight: FontWeight.w700,
@@ -479,7 +480,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final setsAsync = ref.watch(optionSetsProvider);
 
     return ChecklistPageFrame(
@@ -489,7 +490,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
       actions: [
         PlatformPrimaryButton(
           key: const Key('btn-add-option-set'),
-          label: l10n.addOptionSet,
+          label: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
           icon: Icons.add_rounded,
           onPressed: _busy ? null : () => _openSetEditor(null),
         ),
@@ -497,17 +498,22 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _HelperBanner(message: l10n.optHelper),
+          _HelperBanner(
+            message: strings.tKey(PlatformAdminKeys.pageIssueOptionsHelper),
+          ),
           const SizedBox(height: 16),
           setsAsync.when(
-            loading: () =>
-                Center(child: PlatformLoadingView(message: l10n.loading)),
+            loading: () => Center(
+              child: PlatformLoadingView(
+                message: strings.tKey(CommonKeys.stateLoading),
+              ),
+            ),
             error: (error, _) => Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: PlatformErrorView(
                   message: _failureMessage(error),
-                  retryLabel: l10n.retry,
+                  retryLabel: strings.tKey(CommonKeys.buttonRetry),
                   onRetry: () => ref.invalidate(optionSetsProvider),
                 ),
               ),
@@ -519,16 +525,16 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                   // Master-detail: side-by-side on medium+ widths,
                   // stacked panels on compact widths.
                   final isWide = constraints.maxWidth >= 760;
-                  final listPanel = _buildSetsPanel(l10n, sets);
+                  final listPanel = _buildSetsPanel(strings, sets);
                   // In-page editor panel replaces the detail panel while
                   // open (no new route). Controllers are disposed
                   // synchronously on close, so no exit animation may
                   // outlive them (see D-069 for the dialog variant).
                   final detailPanel = _editorOpen
-                      ? _buildSetEditor(l10n)
+                      ? _buildSetEditor(strings)
                       : selected == null
-                      ? _buildDetailEmpty(l10n)
-                      : _buildSetDetail(l10n, selected);
+                      ? _buildDetailEmpty(strings)
+                      : _buildSetDetail(strings, selected);
                   if (isWide) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -558,7 +564,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
 
   // ------------------------------------------------------------ list panel
 
-  Widget _buildSetsPanel(AppLocalizations l10n, List<OptionSet> sets) {
+  Widget _buildSetsPanel(dynamic strings, List<OptionSet> sets) {
     final filtered = _filteredSets(sets);
     final selected = _resolveSelection(sets);
     final countLabel = _setQuery.isEmpty
@@ -572,7 +578,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  l10n.optionSetsTab,
+                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
                   style: PtTheme.sectionTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -593,20 +599,20 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
           _SearchField(
             key: const Key('opt-set-search'),
             controller: _setSearchController,
-            hint: l10n.optSearchSets,
+            hint: strings.tKey(PlatformAdminKeys.filterOptionSetsSearch),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
           if (sets.isEmpty)
             PlatformEmptyView(
-              title: l10n.noData,
-              actionLabel: l10n.addOptionSet,
+              title: strings.tKey(CommonKeys.emptyTitle),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
               onAction: _busy ? null : () => _openSetEditor(null),
             )
           else if (filtered.isEmpty)
             PlatformEmptyView(
-              title: l10n.noResults,
-              actionLabel: l10n.addOptionSet,
+              title: strings.tKey(CommonKeys.emptySearch),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
               onAction: _busy
                   ? null
                   : () => _openSetEditor(
@@ -616,7 +622,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             )
           else
             for (final set in filtered) ...[
-              _buildSetTile(l10n, set, selected?.id == set.id),
+              _buildSetTile(strings, set, selected?.id == set.id),
               const SizedBox(height: 8),
             ],
         ],
@@ -624,7 +630,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     );
   }
 
-  Widget _buildSetTile(AppLocalizations l10n, OptionSet set, bool isSelected) {
+  Widget _buildSetTile(dynamic strings, OptionSet set, bool isSelected) {
     final ordered = [...set.values]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     final preview = ordered.take(3).toList(growable: false);
@@ -675,7 +681,8 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                   ),
                   const SizedBox(width: 8),
                   Semantics(
-                    label: '${l10n.status}: ${set.status}',
+                    label:
+                        '${strings.tKey(CommonKeys.tableStatus)}: ${set.status}',
                     child: PlatformStatusChip(status: set.status),
                   ),
                 ],
@@ -707,10 +714,15 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 runSpacing: 6,
                 children: [
                   PlatformMetaPill(
-                    label: l10n.optValues,
+                    label: strings.tKey(
+                      PlatformAdminKeys.sectionOptionSetValues,
+                    ),
                     value: '${set.values.length}',
                   ),
-                  PlatformMetaPill(label: l10n.status, value: set.status),
+                  PlatformMetaPill(
+                    label: strings.tKey(CommonKeys.tableStatus),
+                    value: set.status,
+                  ),
                 ],
               ),
               // Values preview for unselected sets; the selected set lists
@@ -767,7 +779,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            '+$remaining ${l10n.optValues}',
+                            '+$remaining ${strings.tKey(PlatformAdminKeys.sectionOptionSetValues)}',
                             style: PtTheme.font(
                               11,
                               weight: FontWeight.w600,
@@ -790,7 +802,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
 
   // ---------------------------------------------------------- editor panel
 
-  Widget _buildSetEditor(AppLocalizations l10n) {
+  Widget _buildSetEditor(dynamic strings) {
     final isNew = _editorTarget == null;
     final formKey = _editorFormKey;
     if (formKey == null) return const SizedBox.shrink();
@@ -803,7 +815,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  isNew ? l10n.addOptionSet : l10n.edit,
+                  isNew
+                      ? strings.tKey(PlatformAdminKeys.buttonOptionSetAdd)
+                      : strings.tKey(CommonKeys.buttonEdit),
                   style: PtTheme.sectionTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -812,7 +826,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
               const SizedBox(width: 12),
               IconButton(
                 key: const Key('opt-set-editor-close'),
-                tooltip: l10n.close,
+                tooltip: strings.tKey(CommonKeys.buttonClose),
                 icon: const Icon(Icons.close_rounded, size: 20),
                 onPressed: _busy ? null : _closeSetEditor,
               ),
@@ -827,32 +841,32 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 PlatformTextField(
                   key: const Key('opt-set-code'),
                   controller: _editorCode,
-                  label: l10n.categoryCode,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
                   enabled: isNew && !_busy,
-                  validator: (value) => _required(value, l10n),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   key: const Key('opt-set-name-en'),
                   controller: _editorNameEn,
-                  label: l10n.categoryNameEn,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
                   enabled: !_busy,
-                  validator: (value) => _required(value, l10n),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   key: const Key('opt-set-name-ar'),
                   controller: _editorNameAr,
-                  label: l10n.categoryNameAr,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameAr),
                   textDirection: TextDirection.rtl,
                   enabled: !_busy,
-                  validator: (value) => _required(value, l10n),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   key: const Key('opt-set-order'),
                   controller: _editorOrder,
-                  label: l10n.categoryOrder,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                   keyboardType: TextInputType.number,
                   enabled: !_busy,
                 ),
@@ -866,12 +880,12 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.cancel,
+                label: strings.tKey(CommonKeys.buttonCancel),
                 onPressed: _busy ? null : _closeSetEditor,
               ),
               PlatformPrimaryButton(
                 key: const Key('opt-set-save'),
-                label: l10n.save,
+                label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _busy,
                 onPressed: _busy ? null : _saveSetEditor,
               ),
@@ -882,18 +896,18 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     );
   }
 
-  Widget _buildDetailEmpty(AppLocalizations l10n) {
+  Widget _buildDetailEmpty(dynamic strings) {
     return PlatformEmptyView(
       key: const Key('opt-detail-empty'),
-      title: l10n.noData,
-      actionLabel: l10n.addOptionSet,
+      title: strings.tKey(CommonKeys.emptyTitle),
+      actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
       onAction: _busy ? null : () => _openSetEditor(null),
     );
   }
 
   // ---------------------------------------------------------- detail panel
 
-  Widget _buildSetDetail(AppLocalizations l10n, OptionSet set) {
+  Widget _buildSetDetail(dynamic strings, OptionSet set) {
     return Column(
       key: Key('opt-set-detail-${set.id}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -959,13 +973,13 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                     children: [
                       PlatformSecondaryButton(
                         key: const Key('opt-set-edit'),
-                        label: l10n.edit,
+                        label: strings.tKey(CommonKeys.buttonEdit),
                         icon: Icons.edit_outlined,
                         onPressed: _busy ? null : () => _openSetEditor(set),
                       ),
                       PlatformSecondaryButton(
                         key: const Key('opt-set-retire'),
-                        label: l10n.retire,
+                        label: strings.tKey(PlatformAdminKeys.buttonRetire),
                         icon: Icons.archive_outlined,
                         destructive: true,
                         onPressed: _busy ? null : () => _confirmRetireSet(set),
@@ -978,12 +992,12 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildValuesPanel(l10n, set),
+        _buildValuesPanel(strings, set),
       ],
     );
   }
 
-  Widget _buildValuesPanel(AppLocalizations l10n, OptionSet set) {
+  Widget _buildValuesPanel(dynamic strings, OptionSet set) {
     final filtered = _filteredValues(set);
     final countLabel = _valueQuery.isEmpty
         ? '${set.values.length}'
@@ -994,8 +1008,10 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title: l10n.optValues,
-            subtitle: l10n.optInlineHint,
+            title: strings.tKey(PlatformAdminKeys.sectionOptionSetValues),
+            subtitle: strings.tKey(
+              PlatformAdminKeys.pageIssueOptionsInlineHint,
+            ),
             action: Text(
               countLabel,
               style: PtTheme.font(
@@ -1009,29 +1025,29 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
           _SearchField(
             key: const Key('opt-value-search'),
             controller: _valueSearchController,
-            hint: l10n.optSearchValues,
+            hint: strings.tKey(PlatformAdminKeys.filterOptionValuesSearch),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 12),
-          _buildValueEditor(l10n, set),
+          _buildValueEditor(strings, set),
           const SizedBox(height: 12),
           if (set.values.isEmpty)
             PlatformEmptyView(
-              title: l10n.noData,
-              actionLabel: l10n.optAddValue,
+              title: strings.tKey(CommonKeys.emptyTitle),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
               onAction: () => _focusValueEditor(),
             )
           else if (filtered.isEmpty)
             PlatformEmptyView(
-              title: l10n.noResults,
-              actionLabel: l10n.optAddValue,
+              title: strings.tKey(CommonKeys.emptySearch),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
               onAction: () => _focusValueEditor(
                 prefillCode: _valueSearchController.text.trim(),
               ),
             )
           else
             for (final value in filtered) ...[
-              _buildValueRow(l10n, set, value, reorderEnabled),
+              _buildValueRow(strings, set, value, reorderEnabled),
               const SizedBox(height: 8),
             ],
         ],
@@ -1039,7 +1055,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     );
   }
 
-  Widget _buildValueEditor(AppLocalizations l10n, OptionSet set) {
+  Widget _buildValueEditor(dynamic strings, OptionSet set) {
     final isEdit = _editingValueId != null;
     return Container(
       key: const Key('opt-value-editor'),
@@ -1058,7 +1074,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    isEdit ? l10n.edit : l10n.optAddValue,
+                    isEdit
+                        ? strings.tKey(CommonKeys.buttonEdit)
+                        : strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
                     style: PtTheme.font(
                       13,
                       weight: FontWeight.w700,
@@ -1074,7 +1092,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                     key: const Key('opt-value-cancel'),
                     onPressed: _busy ? null : _cancelValueEdit,
                     child: Text(
-                      l10n.cancel,
+                      strings.tKey(CommonKeys.buttonCancel),
                       style: PtTheme.font(
                         13,
                         weight: FontWeight.w700,
@@ -1089,32 +1107,32 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             PlatformTextField(
               key: const Key('opt-value-code'),
               controller: _valueCodeController,
-              label: l10n.fieldCode,
+              label: strings.tKey(PlatformAdminKeys.fieldIssueCode),
               enabled: !isEdit && !_busy,
-              validator: (input) => _required(input, l10n),
+              validator: (input) => _required(input, strings),
             ),
             const SizedBox(height: 10),
             PlatformTextField(
               key: const Key('opt-value-label-en'),
               controller: _valueLabelEnController,
-              label: l10n.labelEn,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
               enabled: !_busy,
-              validator: (input) => _required(input, l10n),
+              validator: (input) => _required(input, strings),
             ),
             const SizedBox(height: 10),
             PlatformTextField(
               key: const Key('opt-value-label-ar'),
               controller: _valueLabelArController,
-              label: l10n.labelAr,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
               textDirection: TextDirection.rtl,
               enabled: !_busy,
-              validator: (input) => _required(input, l10n),
+              validator: (input) => _required(input, strings),
             ),
             const SizedBox(height: 10),
             PlatformTextField(
               key: const Key('opt-value-metadata'),
               controller: _valueMetadataController,
-              label: l10n.details,
+              label: strings.tKey(CommonKeys.labelDetails),
               hint: '{}',
               enabled: !_busy,
             ),
@@ -1123,7 +1141,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
               alignment: AlignmentDirectional.centerEnd,
               child: PlatformPrimaryButton(
                 key: const Key('opt-value-save'),
-                label: isEdit ? l10n.save : l10n.optAddValue,
+                label: isEdit
+                    ? strings.tKey(CommonKeys.buttonSave)
+                    : strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
                 icon: isEdit ? null : Icons.add_rounded,
                 isLoading: _busy,
                 onPressed: _busy ? null : () => _saveValue(set),
@@ -1136,7 +1156,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   }
 
   Widget _buildValueRow(
-    AppLocalizations l10n,
+    dynamic strings,
     OptionSet set,
     OptionValue value,
     bool reorderEnabled,
@@ -1174,7 +1194,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                     ),
                     PlatformStatusChip(status: value.status),
                     Text(
-                      '${l10n.categoryOrder}: ${value.sortOrder}',
+                      '${strings.tKey(PlatformAdminKeys.fieldCategoryOrder)}: ${value.sortOrder}',
                       style: PtTheme.font(11, color: PtTheme.muted),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1188,7 +1208,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 children: [
                   _smallIconButton(
                     key: Key('opt-value-up-${value.id}'),
-                    tooltip: l10n.moveUp,
+                    tooltip: strings.tKey(CommonKeys.buttonMoveUp),
                     icon: Icons.arrow_upward_rounded,
                     onPressed: !reorderEnabled || index <= 0
                         ? null
@@ -1196,7 +1216,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                   ),
                   _smallIconButton(
                     key: Key('opt-value-down-${value.id}'),
-                    tooltip: l10n.moveDown,
+                    tooltip: strings.tKey(CommonKeys.buttonMoveDown),
                     icon: Icons.arrow_downward_rounded,
                     onPressed:
                         !reorderEnabled ||
@@ -1207,13 +1227,13 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                   ),
                   _smallIconButton(
                     key: Key('opt-value-edit-${value.id}'),
-                    tooltip: l10n.edit,
+                    tooltip: strings.tKey(CommonKeys.buttonEdit),
                     icon: Icons.edit_outlined,
                     onPressed: _busy ? null : () => _startEditValue(value),
                   ),
                   _smallIconButton(
                     key: Key('opt-value-retire-${value.id}'),
-                    tooltip: l10n.retire,
+                    tooltip: strings.tKey(PlatformAdminKeys.buttonRetire),
                     icon: Icons.archive_outlined,
                     color: PtTheme.rose,
                     onPressed: _busy
@@ -1368,8 +1388,10 @@ class _SearchField extends StatelessWidget {
   }
 }
 
-String? _required(String? value, AppLocalizations l10n) {
-  if (value == null || value.trim().isEmpty) return l10n.required;
+String? _required(String? value, dynamic strings) {
+  if (value == null || value.trim().isEmpty) {
+    return strings.tKey(CommonKeys.validationRequired);
+  }
   return null;
 }
 

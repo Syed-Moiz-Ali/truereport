@@ -2,7 +2,6 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -16,6 +15,8 @@ import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
 
+import 'package:l10n/l10n.dart';
+
 class TemplatesScreen extends ConsumerStatefulWidget {
   const TemplatesScreen({super.key});
 
@@ -28,7 +29,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final templates = ref.watch(templatesProvider);
 
     return ChecklistPageFrame(
@@ -37,7 +38,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
       showSearch: false,
       actions: [
         PlatformPrimaryButton(
-          label: l10n.tmplCreate,
+          label: strings.tKey(PlatformAdminKeys.pageTemplatesCreate),
           icon: Icons.add_rounded,
           onPressed: () => _createTemplate(context),
         ),
@@ -45,12 +46,17 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(l10n.templateHelper, style: PtTheme.bodyMuted),
+          Text(
+            strings.tKey(PlatformAdminKeys.pageTemplatesHelper),
+            style: PtTheme.bodyMuted,
+          ),
           const SizedBox(height: 20),
           templates.when(
-            loading: () => PlatformLoadingView(message: l10n.loading),
+            loading: () => PlatformLoadingView(
+              message: strings.tKey(CommonKeys.stateLoading),
+            ),
             error: (error, stackTrace) => PlatformErrorView(
-              message: l10n.unhealthy,
+              message: strings.tKey(CommonKeys.statusUnhealthy),
               onRetry: () => ref.invalidate(templatesProvider),
             ),
             data: (items) => _TemplatesContent(
@@ -70,6 +76,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
   /// Create flow: creates a DRAFT via the existing create API, then navigates
   /// to the builder with the new id (no id-less builder).
   Future<void> _createTemplate(BuildContext context) async {
+    final strings = ref.read(uiStringsProvider);
     final request = await showDialog<_CreateTemplateRequest>(
       context: context,
       builder: (dialogContext) => const _CreateTemplateDialog(),
@@ -94,7 +101,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
       );
     }
   }
@@ -110,6 +117,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
     BuildContext context,
     GlobalTemplate template,
   ) async {
+    final strings = ref.read(uiStringsProvider);
     if (_busyIds.contains(template.id)) return;
     setState(() => _busyIds.add(template.id));
     try {
@@ -163,7 +171,7 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
       );
     } finally {
       if (mounted) setState(() => _busyIds.remove(template.id));
@@ -174,12 +182,12 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
     BuildContext context,
     GlobalTemplate template,
   ) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retired,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retire,
+      title: strings.tKey(CommonKeys.statusRetired),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
       destructive: true,
     );
     if (!confirmed || !context.mounted) return;
@@ -191,8 +199,9 @@ class _TemplatesScreenState extends ConsumerState<TemplatesScreen> {
           .showSnackBar(SnackBar(content: Text(failure.messageKey)));
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.genericError)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
+      );
     }
   }
 }
@@ -223,7 +232,7 @@ List<TemplateItem> _sortedItems(TemplateCategory category) {
   return items;
 }
 
-class _TemplatesContent extends StatelessWidget {
+class _TemplatesContent extends ConsumerWidget {
   const _TemplatesContent({
     required this.templates,
     required this.busyIds,
@@ -241,14 +250,14 @@ class _TemplatesContent extends StatelessWidget {
   final VoidCallback onCreate;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     if (templates.isEmpty) {
       return PlatformEmptyView(
         icon: Icons.description_outlined,
-        title: l10n.noData,
-        body: l10n.templateHelper,
-        actionLabel: l10n.tmplCreate,
+        title: strings.tKey(CommonKeys.emptyTitle),
+        body: strings.tKey(PlatformAdminKeys.pageTemplatesHelper),
+        actionLabel: strings.tKey(PlatformAdminKeys.pageTemplatesCreate),
         onAction: onCreate,
       );
     }
@@ -315,7 +324,7 @@ class _TemplatesContent extends StatelessWidget {
   }
 }
 
-class _TemplateCard extends StatelessWidget {
+class _TemplateCard extends ConsumerWidget {
   const _TemplateCard({
     required this.template,
     required this.busy,
@@ -331,8 +340,8 @@ class _TemplateCard extends StatelessWidget {
   final VoidCallback onRetire;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final name = template.nameEn.isEmpty ? template.nameAr : template.nameEn;
     return InkWell(
       onTap: busy ? null : onOpen,
@@ -347,27 +356,27 @@ class _TemplateCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 PlatformMetaPill(
-                  label: l10n.templateCode,
+                  label: strings.tKey(PlatformAdminKeys.fieldTemplateCode),
                   value: template.code,
                 ),
                 PlatformStatusChip(status: template.status),
                 PlatformMetaPill(
-                  label: l10n.versions,
+                  label: strings.tKey(CommonKeys.labelVersions),
                   value:
                       '${template.versionCount}'
                       '${template.currentVersionNo == null ? '' : ' / v${template.currentVersionNo}'}',
                 ),
                 PlatformMetaPill(
-                  label: l10n.categoriesTab,
+                  label: strings.tKey(PlatformAdminKeys.tabChecklistCategories),
                   value: '${_categoryCount(template)}',
                 ),
                 PlatformMetaPill(
-                  label: l10n.itemsTab,
+                  label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
                   value: '${_itemCount(template)}',
                 ),
                 PlatformMetaPill(
-                  label: l10n.chkUpdated,
-                  value: _updatedLabel(context, template),
+                  label: strings.tKey(PlatformAdminKeys.tableItemUpdated),
+                  value: _updatedLabel(strings, template),
                 ),
               ],
             ),
@@ -420,17 +429,21 @@ class _TemplateCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 PlatformSecondaryButton(
-                  label: l10n.tmplBuilderTitle,
+                  label: strings.tKey(
+                    PlatformAdminKeys.pageTemplateBuilderTitle,
+                  ),
                   icon: Icons.open_in_new_rounded,
                   onPressed: busy ? null : onOpen,
                 ),
                 PlatformSecondaryButton(
-                  label: l10n.tmplDuplicate,
+                  label: strings.tKey(
+                    PlatformAdminKeys.buttonTemplateDuplicate,
+                  ),
                   icon: Icons.copy_outlined,
                   onPressed: busy ? null : onDuplicate,
                 ),
                 PlatformSecondaryButton(
-                  label: l10n.retire,
+                  label: strings.tKey(PlatformAdminKeys.buttonRetire),
                   icon: Icons.archive_outlined,
                   destructive: true,
                   onPressed: busy ? null : onRetire,
@@ -447,8 +460,7 @@ class _TemplateCard extends StatelessWidget {
 /// Closest available label for the "updated" column: the newest version's
 /// publish timestamp via [templatesUpdatedOn] under the [chkUpdated] header.
 /// [GlobalTemplate] carries no updated field, so an exact updated key is a gap.
-String _updatedLabel(BuildContext context, GlobalTemplate template) {
-  final l10n = AppLocalizations.of(context);
+String _updatedLabel(dynamic strings, GlobalTemplate template) {
   var latestPublished = '';
   var latestVersionNo = -1;
   for (final version in template.versions) {
@@ -458,7 +470,9 @@ String _updatedLabel(BuildContext context, GlobalTemplate template) {
     }
   }
   if (latestPublished.isEmpty) return '—';
-  return l10n.templatesUpdatedOn(latestPublished);
+  return strings.tArgsKey(PlatformAdminKeys.pageTemplatesUpdatedOn, {
+    'date': latestPublished,
+  });
 }
 
 class _CreateTemplateRequest {
@@ -477,14 +491,15 @@ class _CreateTemplateRequest {
   final String descriptionAr;
 }
 
-class _CreateTemplateDialog extends StatefulWidget {
+class _CreateTemplateDialog extends ConsumerStatefulWidget {
   const _CreateTemplateDialog();
 
   @override
-  State<_CreateTemplateDialog> createState() => _CreateTemplateDialogState();
+  ConsumerState<_CreateTemplateDialog> createState() =>
+      _CreateTemplateDialogState();
 }
 
-class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
+class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
   final _nameEnController = TextEditingController();
@@ -504,56 +519,60 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.zero,
       child: PlatformDialogShell(
-        title: l10n.tmplCreate,
+        title: strings.tKey(PlatformAdminKeys.pageTemplatesCreate),
         body: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                l10n.templateHelper,
+                strings.tKey(PlatformAdminKeys.pageTemplatesHelper),
                 style: PtTheme.font(13, color: PtTheme.muted),
               ),
               const SizedBox(height: 12),
               PlatformTextField(
                 controller: _codeController,
-                label: l10n.templateCode,
+                label: strings.tKey(PlatformAdminKeys.fieldTemplateCode),
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.required
+                    ? strings.tKey(CommonKeys.validationRequired)
                     : null,
               ),
               const SizedBox(height: 12),
               PlatformTextField(
                 controller: _nameEnController,
-                label: l10n.templateNameEn,
+                label: strings.tKey(PlatformAdminKeys.fieldTemplateNameEn),
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.required
+                    ? strings.tKey(CommonKeys.validationRequired)
                     : null,
               ),
               const SizedBox(height: 12),
               PlatformTextField(
                 controller: _nameArController,
-                label: l10n.templateNameAr,
+                label: strings.tKey(PlatformAdminKeys.fieldTemplateNameAr),
                 textDirection: TextDirection.rtl,
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? l10n.required
+                    ? strings.tKey(CommonKeys.validationRequired)
                     : null,
               ),
               const SizedBox(height: 12),
               PlatformTextField(
                 controller: _descriptionEnController,
-                label: l10n.templateDescriptionEn,
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldTemplateDescriptionEn,
+                ),
                 maxLines: 3,
               ),
               const SizedBox(height: 12),
               PlatformTextField(
                 controller: _descriptionArController,
-                label: l10n.templateDescriptionAr,
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldTemplateDescriptionAr,
+                ),
                 maxLines: 3,
               ),
             ],
@@ -561,11 +580,11 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
         ),
         actions: [
           PlatformSecondaryButton(
-            label: l10n.cancel,
+            label: strings.tKey(CommonKeys.buttonCancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           PlatformPrimaryButton(
-            label: l10n.tmplCreate,
+            label: strings.tKey(PlatformAdminKeys.pageTemplatesCreate),
             onPressed: () {
               if (!(_formKey.currentState?.validate() ?? false)) return;
               Navigator.of(context).pop(

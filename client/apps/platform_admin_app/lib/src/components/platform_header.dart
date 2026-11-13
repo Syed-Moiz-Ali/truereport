@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../platform_providers.dart';
 import '../platform_theme.dart';
 import 'platform_nav.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Reusable Platform Admin app header.
 ///
@@ -50,7 +51,7 @@ class PlatformHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ref.watch(uiStringsProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -77,9 +78,7 @@ class PlatformHeader extends ConsumerWidget {
               if (showMobileNav) ...[
                 IconButton(
                   key: const Key('btn-mobile-nav-menu'),
-                  tooltip:
-                      l10n?.platformAdminTitle ??
-                      MaterialLocalizations.of(context).openAppDrawerTooltip,
+                  tooltip: strings.tKey(PlatformAdminKeys.headerTitle),
                   icon: const Icon(
                     Icons.menu_rounded,
                     size: 22,
@@ -111,17 +110,19 @@ class PlatformHeader extends ConsumerWidget {
               SizedBox(width: isCompact ? 6 : 12),
               _HeaderCircleAction(
                 key: const Key('btn-header-notifications'),
-                tooltip: l10n?.platformNotifications ?? 'Notifications',
+                tooltip: strings.tKey(PlatformAdminKeys.headerNotifications),
                 icon: Icons.notifications_none_rounded,
-                semanticLabel: l10n?.platformNotifications ?? 'Notifications',
+                semanticLabel: strings.tKey(
+                  PlatformAdminKeys.headerNotifications,
+                ),
                 onPressed: () => _openNotificationsSheet(context),
               ),
               const SizedBox(width: 4),
               _HeaderCircleAction(
                 key: const Key('btn-header-help'),
-                tooltip: l10n?.platformHelp ?? 'Help',
+                tooltip: strings.tKey(PlatformAdminKeys.headerHelp),
                 icon: Icons.help_outline_rounded,
-                semanticLabel: l10n?.platformHelp ?? 'Help',
+                semanticLabel: strings.tKey(PlatformAdminKeys.headerHelp),
                 onPressed: () => _openHelpSheet(context),
               ),
               SizedBox(width: isCompact ? 4 : 8),
@@ -134,7 +135,10 @@ class PlatformHeader extends ConsumerWidget {
   }
 
   void _openNotificationsSheet(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(uiStringsProvider);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: PtTheme.white,
@@ -154,7 +158,9 @@ class PlatformHeader extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        l10n?.platformNotificationsTitle ?? 'Notifications',
+                        strings.tKey(
+                          PlatformAdminKeys.headerNotificationsTitle,
+                        ),
                         style: PtTheme.font(
                           16,
                           lineHeight: 22,
@@ -164,7 +170,7 @@ class PlatformHeader extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: l10n?.close ?? 'Close',
+                      tooltip: strings.tKey(CommonKeys.buttonClose),
                       icon: const Icon(Icons.close_rounded, size: 20),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
@@ -194,8 +200,9 @@ class PlatformHeader extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        l10n?.platformNotificationsEmpty ??
-                            'No notifications yet',
+                        strings.tKey(
+                          PlatformAdminKeys.headerNotificationsEmpty,
+                        ),
                         style: PtTheme.font(
                           14,
                           lineHeight: 20,
@@ -206,7 +213,9 @@ class PlatformHeader extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        l10n?.platformNotificationsEmptyBody ?? "You're all caught up. New platform alerts will appear here.",
+                        strings.tKey(
+                          PlatformAdminKeys.headerNotificationsEmptyBody,
+                        ),
                         style: PtTheme.bodyMuted,
                         textAlign: TextAlign.center,
                       ),
@@ -222,8 +231,11 @@ class PlatformHeader extends ConsumerWidget {
   }
 
   void _openHelpSheet(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
-    final contact = l10n?.platformHelpContact ?? 'support@truereport.test';
+    final strings = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(uiStringsProvider);
+    final contact = strings.tKey(PlatformAdminKeys.headerHelpContact);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: PtTheme.white,
@@ -243,7 +255,7 @@ class PlatformHeader extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        l10n?.platformHelpTitle ?? 'Help & support',
+                        strings.tKey(PlatformAdminKeys.headerHelpTitle),
                         style: PtTheme.font(
                           16,
                           lineHeight: 22,
@@ -253,7 +265,7 @@ class PlatformHeader extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: l10n?.close ?? 'Close',
+                      tooltip: strings.tKey(CommonKeys.buttonClose),
                       icon: const Icon(Icons.close_rounded, size: 20),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
@@ -261,8 +273,7 @@ class PlatformHeader extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  l10n?.platformHelpBody ??
-                      'Contact platform support or read the admin guide.',
+                  strings.tKey(PlatformAdminKeys.headerHelpBody),
                   style: PtTheme.bodyMuted,
                 ),
                 const SizedBox(height: 16),
@@ -308,14 +319,14 @@ class PlatformHeader extends ConsumerWidget {
                           }
                         },
                         icon: const Icon(Icons.copy_rounded, size: 16),
-                        label: Text(l10n?.copy ?? 'Copy'),
+                        label: Text(strings.tKey(CommonKeys.buttonCopy)),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  l10n?.platformHelpDocs ?? 'Open admin guide',
+                  strings.tKey(PlatformAdminKeys.headerHelpDocs),
                   style: PtTheme.font(
                     12,
                     lineHeight: 16,
@@ -332,8 +343,11 @@ class PlatformHeader extends ConsumerWidget {
   }
 
   void _openMobileNav(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
-    final platformTitle = l10n?.platformAdminTitle ?? 'Platform Navigation';
+    final strings = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(uiStringsProvider);
+    final platformTitle = strings.tKey(PlatformAdminKeys.headerTitle);
     final currentPath = _resolveCurrentRoute(context);
 
     showModalBottomSheet<void>(
@@ -390,17 +404,17 @@ class PlatformHeader extends ConsumerWidget {
   }
 }
 
-class _HeaderSearchField extends StatefulWidget {
+class _HeaderSearchField extends ConsumerStatefulWidget {
   const _HeaderSearchField({required this.isCompact, this.onChanged});
 
   final bool isCompact;
   final ValueChanged<String>? onChanged;
 
   @override
-  State<_HeaderSearchField> createState() => _HeaderSearchFieldState();
+  ConsumerState<_HeaderSearchField> createState() => _HeaderSearchFieldState();
 }
 
-class _HeaderSearchFieldState extends State<_HeaderSearchField> {
+class _HeaderSearchFieldState extends ConsumerState<_HeaderSearchField> {
   late final FocusNode _focusNode;
   bool _focused = false;
 
@@ -426,14 +440,13 @@ class _HeaderSearchFieldState extends State<_HeaderSearchField> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ref.watch(uiStringsProvider);
     // Keep the border width identical in both states so focusing never
     // shifts the layout; only the color changes to the emerald ring.
     final borderColor = _focused ? PtTheme.emerald : Colors.transparent;
     final hint = widget.isCompact
-        ? (l10n?.platformSearchHintCompact ?? 'Search...')
-        : (l10n?.platformSearchHint ??
-              'Search platform assets, specs, workshop nodes...');
+        ? strings.tKey(PlatformAdminKeys.headerSearchHintCompact)
+        : strings.tKey(PlatformAdminKeys.headerSearchHint);
 
     return Container(
       constraints: const BoxConstraints(minHeight: 40, maxHeight: 40),
@@ -522,36 +535,35 @@ class _UserMenu extends ConsumerWidget {
 
   final bool showIdentity;
 
-  String _roleLabel(AppLocalizations? l10n, Session? session) {
+  String _roleLabel(dynamic strings, Session? session) {
     if (session == null) {
       return '';
     }
     if (session.user.platformAdmin) {
-      return l10n?.rolePlatformAdmin ?? 'Platform Admin';
+      return strings.tKey(CommonKeys.rolePlatformAdmin);
     }
     switch (session.role) {
       case Role.platformAdmin:
-        return l10n?.rolePlatformAdmin ?? 'Platform Admin';
+        return strings.tKey(CommonKeys.rolePlatformAdmin);
       case Role.workshopAdmin:
-        return l10n?.roleWorkshopAdmin ?? 'Workshop Admin';
+        return strings.tKey(CommonKeys.roleWorkshopAdmin);
       case Role.technician:
-        return l10n?.roleTechnician ?? 'Technician';
+        return strings.tKey(CommonKeys.roleTechnician);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ref.watch(uiStringsProvider);
     final auth = ref.watch(authControllerProvider);
     final session = auth.value;
     final displayName = session?.user.displayName.trim() ?? '';
     final email = session?.user.email.trim() ?? '';
-    final roleLabel = _roleLabel(l10n, session);
-    final locale = ref.watch(platformLocaleProvider);
-    final isAr = locale.languageCode == 'ar';
-    final languageActionLabel = isAr
-        ? (l10n?.platformSwitchToEnglish ?? 'Switch to English')
-        : (l10n?.platformSwitchToArabic ?? 'Switch to Arabic');
+    final roleLabel = _roleLabel(strings, session);
+    final uiState = ref.watch(uiMessageControllerProvider);
+    final manifest = ref.watch(platformUiManifestProvider);
+    final menuLanguages = manifest?.languages ?? const <UiMessageLanguage>[];
+    final activeCode = uiState.activeLanguage;
 
     final avatar = Container(
       width: 36,
@@ -610,7 +622,7 @@ class _UserMenu extends ConsumerWidget {
 
     return PopupMenuButton<String>(
       key: const Key('btn-header-user-menu'),
-      tooltip: l10n?.platformAccount ?? 'Account',
+      tooltip: strings.tKey(PlatformAdminKeys.headerAccount),
       offset: const Offset(0, 48),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (menuContext) {
@@ -647,40 +659,45 @@ class _UserMenu extends ConsumerWidget {
             ),
           if (displayName.isNotEmpty || email.isNotEmpty)
             const PopupMenuDivider(),
-          PopupMenuItem<String>(
-            key: const Key('menu-toggle-language'),
-            value: 'lang',
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.translate_rounded,
-                  size: 18,
-                  color: PtTheme.muted,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    '${l10n?.platformLanguage ?? 'Language'} • $languageActionLabel',
-                    style: PtTheme.font(
-                      13,
-                      lineHeight: 18,
-                      weight: FontWeight.w500,
-                      color: PtTheme.ink,
+          for (final language in menuLanguages)
+            PopupMenuItem<String>(
+              key: Key('menu-language-${language.code}'),
+              value: 'lang:${language.code}',
+              child: Row(
+                children: [
+                  Icon(
+                    language.code == activeCode
+                        ? Icons.check_rounded
+                        : Icons.translate_rounded,
+                    size: 18,
+                    color: language.code == activeCode
+                        ? PtTheme.deepGreen
+                        : PtTheme.muted,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      language.displayName,
+                      style: PtTheme.font(
+                        13,
+                        lineHeight: 18,
+                        weight: FontWeight.w500,
+                        color: PtTheme.ink,
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  locale.languageCode.toUpperCase(),
-                  style: PtTheme.font(
-                    12,
-                    lineHeight: 16,
-                    weight: FontWeight.w700,
-                    color: PtTheme.deepGreen,
+                  Text(
+                    language.code.toUpperCase(),
+                    style: PtTheme.font(
+                      12,
+                      lineHeight: 16,
+                      weight: FontWeight.w700,
+                      color: PtTheme.deepGreen,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           PopupMenuItem<String>(
             key: const Key('menu-sign-out'),
             value: 'signout',
@@ -694,7 +711,7 @@ class _UserMenu extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    l10n?.signOut ?? 'Sign out',
+                    strings.tKey(CommonKeys.buttonSignOut),
                     style: PtTheme.font(
                       13,
                       lineHeight: 18,
@@ -709,14 +726,12 @@ class _UserMenu extends ConsumerWidget {
         ];
       },
       onSelected: (value) async {
-        if (value == 'lang') {
-          final next = isAr ? 'en' : 'ar';
-          ref.read(platformLocaleProvider.notifier).toggle();
+        if (value.startsWith('lang:')) {
+          final code = value.substring('lang:'.length);
+          await ref.read(uiMessageSwitcherProvider).switchTo(code);
           try {
-            await ref.read(platformConfigApiProvider).setMeLanguage(next);
-          } catch (_) {
-            // Local toggle already applied; server sync is best-effort.
-          }
+            await ref.read(platformConfigApiProvider).setMeLanguage(code);
+          } catch (_) {}
           return;
         }
         if (value == 'signout') {
@@ -731,7 +746,7 @@ class _UserMenu extends ConsumerWidget {
       child: Semantics(
         button: true,
         label: displayName.isEmpty
-            ? (l10n?.platformAccount ?? 'Account')
+            ? strings.tKey(PlatformAdminKeys.headerAccount)
             : '$displayName${roleLabel.isEmpty ? '' : ', $roleLabel'}',
         child: Container(
           constraints: const BoxConstraints(minHeight: 40),

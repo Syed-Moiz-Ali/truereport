@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_chips.dart';
 import '../../components/platform_shell.dart';
@@ -10,6 +9,8 @@ import '../../components/platform_toolbar.dart';
 import '../../platform_catalogue_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Screen 9: Platform Audit Events Log, backed by the platform API.
 class AuditLogScreen extends ConsumerStatefulWidget {
@@ -26,7 +27,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final auditEvents = ref.watch(auditEventsProvider);
 
     return PlatformShell(
@@ -47,7 +48,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                   color: PtTheme.muted,
                 ),
                 Text(
-                  'TAMPER-PROOF LEDGER',
+                  strings.tKey(PlatformAdminKeys.pageAuditEyebrow),
                   style: PtTheme.font(
                     11,
                     lineHeight: 14,
@@ -60,17 +61,17 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
             ),
             const SizedBox(height: 6),
             PlatformPageHeader(
-              title: l10n.auditLog,
-              subtitle: 'Administrative operations and permission changes served by the platform API.',
+              title: strings.tKey(PlatformAdminKeys.pageAuditTitle),
+              subtitle: strings.tKey(PlatformAdminKeys.pageAuditSubtitle),
             ),
             const SizedBox(height: 20),
             auditEvents.when(
               loading: () => const PlatformLoadingView(),
               error: (error, stackTrace) => PlatformErrorView(
-                message: l10n.unhealthy,
+                message: strings.tKey(CommonKeys.statusUnhealthy),
                 onRetry: () => ref.invalidate(auditEventsProvider),
               ),
-              data: (events) => _buildData(l10n, events),
+              data: (events) => _buildData(strings, events),
             ),
           ],
         ),
@@ -78,7 +79,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
     );
   }
 
-  Widget _buildData(AppLocalizations l10n, List<PlatformAuditEvent> events) {
+  Widget _buildData(dynamic strings, List<PlatformAuditEvent> events) {
     final actions = _distinct(events.map((event) => event.action));
     final entities = _distinct(events.map((event) => event.entityType));
     final activeAction = actions.contains(_actionFilter) ? _actionFilter : null;
@@ -99,7 +100,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
     if (events.isEmpty) {
       return PlatformEmptyView(
         icon: Icons.history_toggle_off_rounded,
-        title: l10n.noData,
+        title: strings.tKey(CommonKeys.emptyTitle),
       );
     }
 
@@ -107,37 +108,38 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformToolbar(
-          searchHint: '${l10n.search} ${l10n.auditLog}...',
+          searchHint:
+              '${strings.tKey(CommonKeys.filterSearch)} ${strings.tKey(PlatformAdminKeys.pageAuditTitle)}...',
           onSearchChanged: (value) => setState(() => _query = value),
           filters: [
             _buildFilterGroup(
-              label: l10n.action,
+              label: strings.tKey(CommonKeys.tableAction),
               values: actions,
               selected: activeAction,
-              allLabel: l10n.filterAll,
+              allLabel: strings.tKey(CommonKeys.filterAll),
               onSelected: (value) => setState(() => _actionFilter = value),
             ),
             _buildFilterGroup(
-              label: l10n.entity,
+              label: strings.tKey(PlatformAdminKeys.tableAuditEntity),
               values: entities,
               selected: activeEntity,
-              allLabel: l10n.filterAll,
+              allLabel: strings.tKey(CommonKeys.filterAll),
               onSelected: (value) => setState(() => _entityFilter = value),
             ),
           ],
           countLabel:
-              '${l10n.auditLog} (${filtered.length}) • ${filtered.length} / ${events.length}',
+              '${strings.tKey(PlatformAdminKeys.pageAuditTitle)} (${filtered.length}) • ${filtered.length} / ${events.length}',
         ),
         const SizedBox(height: 20),
         if (filtered.isEmpty)
           PlatformEmptyView(
             icon: Icons.history_toggle_off_rounded,
-            title: l10n.noData,
+            title: strings.tKey(CommonKeys.emptyTitle),
           )
         else
           LayoutBuilder(
             builder: (context, constraints) =>
-                _buildEventGrid(l10n, filtered, constraints.maxWidth),
+                _buildEventGrid(strings, filtered, constraints.maxWidth),
           ),
       ],
     );
@@ -187,7 +189,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
   }
 
   Widget _buildEventGrid(
-    AppLocalizations l10n,
+    dynamic strings,
     List<PlatformAuditEvent> events,
     double maxWidth,
   ) {
@@ -200,12 +202,12 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
       runSpacing: spacing,
       children: [
         for (final event in events)
-          SizedBox(width: cardWidth, child: _buildEventCard(l10n, event)),
+          SizedBox(width: cardWidth, child: _buildEventCard(strings, event)),
       ],
     );
   }
 
-  Widget _buildEventCard(AppLocalizations l10n, PlatformAuditEvent event) {
+  Widget _buildEventCard(dynamic strings, PlatformAuditEvent event) {
     final metadata = event.metadataJson.trim();
 
     return PlatformSectionCard(
@@ -248,7 +250,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${l10n.entity}: '
+                      '${strings.tKey(PlatformAdminKeys.tableAuditEntity)}: '
                       '${event.entityType.isEmpty ? '-' : event.entityType} / '
                       '${event.entityId.isEmpty ? '-' : event.entityId}',
                       maxLines: 1,
@@ -276,15 +278,15 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                 status: event.entityType.isEmpty ? '-' : event.entityType,
               ),
               PlatformMetaPill(
-                label: 'Actor',
+                label: strings.tKey(PlatformAdminKeys.tableAuditActor),
                 value: event.actorRole.isEmpty ? '-' : event.actorRole,
               ),
               PlatformMetaPill(
-                label: l10n.reason,
+                label: strings.tKey(CommonKeys.fieldReason),
                 value: event.reasonCode.isEmpty ? '-' : event.reasonCode,
               ),
               PlatformMetaPill(
-                label: l10n.occurredAt,
+                label: strings.tKey(PlatformAdminKeys.tableAuditOccurredAt),
                 value: event.occurredAt.isEmpty ? '-' : event.occurredAt,
               ),
             ],

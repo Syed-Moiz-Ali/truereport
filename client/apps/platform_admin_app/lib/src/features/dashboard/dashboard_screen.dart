@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_form.dart';
@@ -11,12 +10,14 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 
+import 'package:l10n/l10n.dart';
+
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final overview = ref.watch(overviewProvider);
 
     return PlatformShell(
@@ -28,11 +29,11 @@ class DashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: l10n.dashboardTitle,
-              subtitle: l10n.dashboardSubtitle,
+              title: strings.tKey(PlatformAdminKeys.pageDashboardTitle),
+              subtitle: strings.tKey(PlatformAdminKeys.pageDashboardSubtitle),
               actions: [
                 PlatformSecondaryButton(
-                  label: l10n.refresh,
+                  label: strings.tKey(CommonKeys.buttonRefresh),
                   icon: Icons.refresh_rounded,
                   onPressed: () => ref.invalidate(overviewProvider),
                 ),
@@ -40,10 +41,12 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
             overview.when(
-              loading: () => PlatformLoadingView(message: l10n.loading),
+              loading: () => PlatformLoadingView(
+                message: strings.tKey(CommonKeys.stateLoading),
+              ),
               error: (error, stackTrace) => PlatformErrorView(
-                message: l10n.unhealthy,
-                retryLabel: l10n.retry,
+                message: strings.tKey(CommonKeys.statusUnhealthy),
+                retryLabel: strings.tKey(CommonKeys.buttonRetry),
                 onRetry: () => ref.invalidate(overviewProvider),
               ),
               data: (summary) => _DashboardContent(summary: summary),
@@ -55,19 +58,19 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _DashboardContent extends StatelessWidget {
+class _DashboardContent extends ConsumerWidget {
   const _DashboardContent({required this.summary});
 
   final OverviewSummary summary;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     if (summary.isEmpty) {
       return PlatformEmptyView(
         icon: Icons.dashboard_outlined,
-        title: l10n.dashEmpty,
-        actionLabel: l10n.registerWorkshop,
+        title: strings.tKey(PlatformAdminKeys.emptyDashboardTitle),
+        actionLabel: strings.tKey(PlatformAdminKeys.pageWorkshopsRegister),
         onAction: () => context.go('/workshops'),
       );
     }
@@ -76,7 +79,9 @@ class _DashboardContent extends StatelessWidget {
       children: [
         _HeroCard(summary: summary),
         const SizedBox(height: 24),
-        PlatformSectionHeader(title: l10n.dashboardKpis),
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.sectionDashboardKpis),
+        ),
         const SizedBox(height: 12),
         _KpiGrid(summary: summary),
         if (summary.jobs.byStatus.isNotEmpty ||
@@ -93,18 +98,18 @@ class _DashboardContent extends StatelessWidget {
   }
 }
 
-class _HeroCard extends StatelessWidget {
+class _HeroCard extends ConsumerWidget {
   const _HeroCard({required this.summary});
 
   final OverviewSummary summary;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final stats = <String>[
-      '${summary.workshops.total} ${l10n.dashTotalWorkshops}',
-      '${summary.workshops.active} ${l10n.dashActiveWorkshops}',
-      '${summary.staff.technicians} ${l10n.dashTechnicians}',
+      '${summary.workshops.total} ${strings.tKey(PlatformAdminKeys.kpiWorkshopsTotal)}',
+      '${summary.workshops.active} ${strings.tKey(PlatformAdminKeys.kpiWorkshopsActive)}',
+      '${summary.staff.technicians} ${strings.tKey(PlatformAdminKeys.kpiTechnicians)}',
     ];
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 20),
@@ -152,7 +157,7 @@ class _HeroCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          l10n.dashboardTitle,
+                          strings.tKey(PlatformAdminKeys.pageDashboardTitle),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
@@ -164,7 +169,7 @@ class _HeroCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          l10n.dashboardSubtitle,
+                          strings.tKey(PlatformAdminKeys.pageDashboardSubtitle),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: PtTheme.font(
@@ -214,7 +219,7 @@ class _HeroCard extends StatelessWidget {
             ],
           );
           final cta = PlatformSecondaryButton(
-            label: l10n.wsAdd,
+            label: strings.tKey(PlatformAdminKeys.pageWorkshopsAdd),
             icon: Icons.add_business_rounded,
             onPressed: () => context.go('/workshops/new'),
           );
@@ -257,18 +262,18 @@ class _KpiData {
   final Color tint;
 }
 
-class _KpiGrid extends StatelessWidget {
+class _KpiGrid extends ConsumerWidget {
   const _KpiGrid({required this.summary});
 
   final OverviewSummary summary;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final cards = <_KpiData>[
       _KpiData(
         value: '${summary.workshops.total}',
-        label: l10n.dashTotalWorkshops,
+        label: strings.tKey(PlatformAdminKeys.kpiWorkshopsTotal),
         icon: Icons.store_rounded,
         route: '/workshops',
         accent: PtTheme.deepGreen,
@@ -276,7 +281,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.workshops.active}',
-        label: l10n.dashActiveWorkshops,
+        label: strings.tKey(PlatformAdminKeys.kpiWorkshopsActive),
         icon: Icons.storefront_rounded,
         route: '/workshops',
         accent: PtTheme.deepGreen,
@@ -284,7 +289,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.staff.technicians}',
-        label: l10n.dashTechnicians,
+        label: strings.tKey(PlatformAdminKeys.kpiTechnicians),
         icon: Icons.engineering_rounded,
         route: '/workshops',
         accent: const Color(0xFF1D4ED8),
@@ -292,7 +297,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.jobs.active}',
-        label: l10n.dashActiveJobs,
+        label: strings.tKey(PlatformAdminKeys.kpiJobsActive),
         icon: Icons.assignment_rounded,
         route: '/audit-log',
         accent: const Color(0xFF7C3AED),
@@ -300,7 +305,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.jobs.pendingReview}',
-        label: l10n.dashPendingReviews,
+        label: strings.tKey(PlatformAdminKeys.kpiReviewsPending),
         icon: Icons.rate_review_rounded,
         route: '/audit-log',
         accent: PtTheme.amber,
@@ -308,7 +313,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.reports.published}',
-        label: l10n.dashPublishedReports,
+        label: strings.tKey(PlatformAdminKeys.kpiReportsPublished),
         icon: Icons.description_rounded,
         route: '/audit-log',
         accent: const Color(0xFF0E7490),
@@ -316,7 +321,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.checklist.issues}',
-        label: l10n.dashChecklistHealth,
+        label: strings.tKey(PlatformAdminKeys.kpiChecklistHealth),
         icon: Icons.health_and_safety_rounded,
         route: '/checklist/health',
         accent: summary.checklist.healthy ? PtTheme.deepGreen : PtTheme.rose,
@@ -324,7 +329,7 @@ class _KpiGrid extends StatelessWidget {
       ),
       _KpiData(
         value: '${summary.languages.live}/${summary.languages.translating}',
-        label: l10n.dashLanguagesLive,
+        label: strings.tKey(PlatformAdminKeys.kpiLanguagesLive),
         icon: Icons.translate_rounded,
         route: '/settings/languages',
         accent: const Color(0xFF4338CA),
@@ -357,13 +362,13 @@ class _KpiGrid extends StatelessWidget {
   }
 }
 
-class _KpiCard extends StatelessWidget {
+class _KpiCard extends ConsumerWidget {
   const _KpiCard({required this.data});
 
   final _KpiData data;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Semantics(
       button: true,
       label: data.label,
@@ -438,24 +443,24 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
-class _DistributionSection extends StatelessWidget {
+class _DistributionSection extends ConsumerWidget {
   const _DistributionSection({required this.summary});
 
   final OverviewSummary summary;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final jobsCard = summary.jobs.byStatus.isEmpty
         ? null
         : _BarsCard(
-            title: l10n.dashJobsByStatus,
+            title: strings.tKey(PlatformAdminKeys.chartJobsByStatus),
             entries: summary.jobs.byStatus,
           );
     final reportsCard = summary.reports.byMonth.isEmpty
         ? null
         : _BarsCard(
-            title: l10n.dashReportsByMonth,
+            title: strings.tKey(PlatformAdminKeys.chartReportsByMonth),
             entries: summary.reports.byMonth,
           );
     return LayoutBuilder(
@@ -486,14 +491,14 @@ class _DistributionSection extends StatelessWidget {
   }
 }
 
-class _BarsCard extends StatelessWidget {
+class _BarsCard extends ConsumerWidget {
   const _BarsCard({required this.title, required this.entries});
 
   final String title;
   final Map<String, int> entries;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final values = entries.values.toList(growable: false);
     final maxValue = values.fold<int>(
       1,
@@ -522,7 +527,7 @@ class _BarsCard extends StatelessWidget {
   }
 }
 
-class _BarRow extends StatelessWidget {
+class _BarRow extends ConsumerWidget {
   const _BarRow({
     required this.label,
     required this.value,
@@ -534,7 +539,7 @@ class _BarRow extends StatelessWidget {
   final double fraction;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -590,13 +595,13 @@ class _BarRow extends StatelessWidget {
   }
 }
 
-class _ActivityAlerts extends StatelessWidget {
+class _ActivityAlerts extends ConsumerWidget {
   const _ActivityAlerts({required this.summary});
 
   final OverviewSummary summary;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= 900) {
@@ -625,19 +630,19 @@ class _ActivityAlerts extends StatelessWidget {
   }
 }
 
-class _RecentActivity extends StatelessWidget {
+class _RecentActivity extends ConsumerWidget {
   const _RecentActivity({required this.entries});
 
   final List<OverviewActivityEntry> entries;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformSectionHeader(
-          title: l10n.dashRecentActivity,
+          title: strings.tKey(PlatformAdminKeys.sectionDashboardRecentActivity),
           action: const _ViewAll(route: '/audit-log'),
         ),
         const SizedBox(height: 12),
@@ -708,14 +713,14 @@ class _ActivityFallback extends ConsumerWidget {
   }
 }
 
-class _ActivityRow extends StatelessWidget {
+class _ActivityRow extends ConsumerWidget {
   const _ActivityRow({required this.title, required this.meta});
 
   final String title;
   final String meta;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -792,7 +797,7 @@ class _AlertsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final items = <_AlertItem>[
       for (final alert in summary.alerts)
         _AlertItem(
@@ -813,7 +818,7 @@ class _AlertsSection extends ConsumerWidget {
             .join(', ');
         items.add(
           _AlertItem(
-            title: l10n.unhealthy,
+            title: strings.tKey(CommonKeys.statusUnhealthy),
             body: codes,
             route: '/checklist/health',
             severity: 'ERROR',
@@ -830,7 +835,10 @@ class _AlertsSection extends ConsumerWidget {
             : language.code;
         items.add(
           _AlertItem(
-            title: l10n.dashTranslationIncomplete(display),
+            title: strings.tArgsKey(
+              PlatformAdminKeys.alertTranslationIncomplete,
+              {'language': display},
+            ),
             body: language.status,
             route: '/settings/languages',
             severity: 'WARNING',
@@ -841,12 +849,14 @@ class _AlertsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PlatformSectionHeader(title: l10n.dashAlerts),
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.sectionDashboardAlerts),
+        ),
         const SizedBox(height: 12),
         if (items.isEmpty)
           PlatformSectionCard(
             child: Text(
-              l10n.dashNoAlerts,
+              strings.tKey(PlatformAdminKeys.emptyAlertsBody),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: PtTheme.bodyMuted,
@@ -866,13 +876,13 @@ class _AlertsSection extends ConsumerWidget {
   }
 }
 
-class _AlertRow extends StatelessWidget {
+class _AlertRow extends ConsumerWidget {
   const _AlertRow({required this.item});
 
   final _AlertItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final normalized = item.severity.toUpperCase();
     final color = normalized == 'ERROR' || normalized == 'CRITICAL'
         ? PtTheme.rose
@@ -964,36 +974,36 @@ class _AlertRow extends StatelessWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends ConsumerWidget {
   const _QuickActions();
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final actions = <_QuickAction>[
       _QuickAction(
-        label: l10n.registerWorkshop,
+        label: strings.tKey(PlatformAdminKeys.pageWorkshopsRegister),
         icon: Icons.business_rounded,
         route: '/workshops',
         accent: PtTheme.deepGreen,
         tint: PtTheme.emerald,
       ),
       _QuickAction(
-        label: l10n.addItem,
+        label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
         icon: Icons.add_rounded,
         route: '/checklist/items',
         accent: const Color(0xFF1D4ED8),
         tint: const Color(0xFF3B82F6),
       ),
       _QuickAction(
-        label: l10n.createTemplate,
+        label: strings.tKey(PlatformAdminKeys.dialogTemplateCreateTitle),
         icon: Icons.description_rounded,
         route: '/checklist/templates',
         accent: const Color(0xFF7C3AED),
         tint: const Color(0xFF8B5CF6),
       ),
       _QuickAction(
-        label: l10n.addLanguage,
+        label: strings.tKey(PlatformAdminKeys.buttonLanguageAdd),
         icon: Icons.translate_rounded,
         route: '/settings/languages',
         accent: PtTheme.gold,
@@ -1003,7 +1013,9 @@ class _QuickActions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PlatformSectionHeader(title: l10n.dashQuickActions),
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.sectionDashboardQuickActions),
+        ),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -1033,13 +1045,13 @@ class _QuickActions extends StatelessWidget {
   }
 }
 
-class _QuickActionTile extends StatelessWidget {
+class _QuickActionTile extends ConsumerWidget {
   const _QuickActionTile({required this.action});
 
   final _QuickAction action;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Semantics(
       button: true,
       label: action.label,
@@ -1111,14 +1123,14 @@ class _QuickAction {
   final Color tint;
 }
 
-class _ViewAll extends StatelessWidget {
+class _ViewAll extends ConsumerWidget {
   const _ViewAll({required this.route});
 
   final String route;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return TextButton(
       onPressed: () => context.go(route),
       style: TextButton.styleFrom(
@@ -1126,7 +1138,7 @@ class _ViewAll extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
       ),
       child: Text(
-        l10n.dashViewAll,
+        strings.tKey(PlatformAdminKeys.buttonViewAll),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: PtTheme.font(

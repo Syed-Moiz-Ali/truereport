@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -10,6 +9,8 @@ import '../../components/platform_states.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 
+import 'package:l10n/l10n.dart';
+
 Future<void> showImpactDialog(
   BuildContext context,
   WidgetRef ref, {
@@ -17,14 +18,17 @@ Future<void> showImpactDialog(
   required String entityId,
 }) async {
   ref.invalidate(impactProvider(ImpactKey(entityType, entityId)));
-  final l10n = AppLocalizations.of(context);
+  final strings = ref.read(uiStringsProvider);
   await showPlatformDialog<void>(
     context: context,
-    title: l10n.impactAnalysis,
+    title: strings.tKey(PlatformAdminKeys.dialogImpactTitle),
     body: _ImpactBody(entityType: entityType, entityId: entityId),
     actionsBuilder: (dialogContext) => [
       PlatformSecondaryButton(
-        label: AppLocalizations.of(dialogContext).close,
+        label: ProviderScope.containerOf(
+          dialogContext,
+          listen: false,
+        ).read(uiStringsProvider).tKey(CommonKeys.buttonClose),
         onPressed: () => Navigator.of(dialogContext).pop(),
       ),
     ],
@@ -53,14 +57,14 @@ class _ImpactBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final impact = ref.watch(impactProvider(ImpactKey(entityType, entityId)));
 
     return impact.when(
       loading: () => const PlatformLoadingView(),
       error: (error, stackTrace) => PlatformErrorView(
-        message: l10n.unhealthy,
-        retryLabel: l10n.retry,
+        message: strings.tKey(CommonKeys.statusUnhealthy),
+        retryLabel: strings.tKey(CommonKeys.buttonRetry),
         onRetry: () =>
             ref.invalidate(impactProvider(ImpactKey(entityType, entityId))),
       ),
@@ -74,12 +78,11 @@ class _ImpactBody extends ConsumerWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               PlatformStatusChip(
-                status: data.blocked ? l10n.blocked : l10n.notBlocked,
+                status: data.blocked
+                    ? strings.tKey(CommonKeys.statusBlocked)
+                    : strings.tKey(CommonKeys.statusNotBlocked),
               ),
-              PlatformMetaPill(
-                label: data.entityType,
-                value: data.entityId,
-              ),
+              PlatformMetaPill(label: data.entityType, value: data.entityId),
             ],
           ),
           const SizedBox(height: 14),
@@ -88,22 +91,30 @@ class _ImpactBody extends ConsumerWidget {
             runSpacing: 8,
             children: [
               PlatformMetaPill(
-                label: l10n.affectedTemplates,
+                label: strings.tKey(
+                  PlatformAdminKeys.dialogImpactAffectedTemplates,
+                ),
                 value: '${data.affectedTemplates}',
               ),
               PlatformMetaPill(
-                label: l10n.affectedItems,
+                label: strings.tKey(
+                  PlatformAdminKeys.dialogImpactAffectedItems,
+                ),
                 value: '${data.affectedItems}',
               ),
               PlatformMetaPill(
-                label: l10n.affectedJobs,
+                label: strings.tKey(PlatformAdminKeys.dialogImpactAffectedJobs),
                 value: '${data.affectedJobs}',
               ),
             ],
           ),
           if (data.templateCodes.isNotEmpty) ...[
             const SizedBox(height: 16),
-            PlatformSectionHeader(title: l10n.affectedTemplates),
+            PlatformSectionHeader(
+              title: strings.tKey(
+                PlatformAdminKeys.dialogImpactAffectedTemplates,
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -116,7 +127,9 @@ class _ImpactBody extends ConsumerWidget {
           ],
           if (data.itemCodes.isNotEmpty) ...[
             const SizedBox(height: 16),
-            PlatformSectionHeader(title: l10n.affectedItems),
+            PlatformSectionHeader(
+              title: strings.tKey(PlatformAdminKeys.dialogImpactAffectedItems),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -129,10 +142,7 @@ class _ImpactBody extends ConsumerWidget {
           ],
           if (data.messageEn.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(
-              data.messageEn,
-              style: PtTheme.font(13, color: PtTheme.muted),
-            ),
+            Text(data.messageEn, style: PtTheme.font(13, color: PtTheme.muted)),
           ],
           if (data.messageAr.isNotEmpty) ...[
             const SizedBox(height: 6),

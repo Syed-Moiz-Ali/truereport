@@ -8,8 +8,13 @@ import com.truereport.localization.api.LanguageDtos.TranslationCoverageDto;
 import com.truereport.localization.api.LanguageDtos.UpdateLanguageRequest;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
+import com.truereport.shared.security.CurrentUser;
+import com.truereport.shared.security.CurrentUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +32,15 @@ public class LocalizationService {
 
     private final LanguageRepository languages;
     private final JdbcTemplate jdbc;
+    private final TranslationBacklogService backlog;
+    private final CurrentUserService currentUsers;
 
-    public LocalizationService(LanguageRepository languages, JdbcTemplate jdbc) {
+    public LocalizationService(LanguageRepository languages, JdbcTemplate jdbc,
+                               TranslationBacklogService backlog, CurrentUserService currentUsers) {
         this.languages = languages;
         this.jdbc = jdbc;
+        this.backlog = backlog;
+        this.currentUsers = currentUsers;
     }
 
     public static final List<String> LANGUAGE_STATUSES =
@@ -147,7 +157,12 @@ public class LocalizationService {
         }
         assertTransitionAllowed(existing.status(), target);
         if ("LIVE".equals(target)) {
-            languages.setLive(existing.code());
+            CurrentUser actor = null;
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof JwtAuthenticationToken) {
+                actor = currentUsers.require((JwtAuthenticationToken) authentication);
+            }
+            backlog.publish(actor, existing.code(), null);
         } else {
             if ("RETIRED".equals(target)) {
                 languages.update(new LanguageDto(existing.code(), existing.nameEn(), existing.nameAr(),

@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -14,19 +13,25 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 
+import 'package:l10n/l10n.dart';
+
 class DocumentTypesScreen extends ConsumerWidget {
   const DocumentTypesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
 
     return PlatformShell(
       currentRoute: '/reports/document-types',
       contextBar: PlatformContextBar(
         breadcrumbs: [
-          ContextBreadcrumbItem(label: l10n.reportsTitle),
-          ContextBreadcrumbItem(label: l10n.reportDocuments),
+          ContextBreadcrumbItem(
+            label: strings.tKey(PlatformAdminKeys.pageReportsTitle),
+          ),
+          ContextBreadcrumbItem(
+            label: strings.tKey(PlatformAdminKeys.sectionReportsDocuments),
+          ),
         ],
       ),
       child: PlatformPage(
@@ -34,11 +39,11 @@ class DocumentTypesScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: l10n.reportsTitle,
-              subtitle: l10n.documentTypes,
+              title: strings.tKey(PlatformAdminKeys.pageReportsTitle),
+              subtitle: strings.tKey(PlatformAdminKeys.pageDocumentTypesTitle),
               actions: [
                 PlatformPrimaryButton(
-                  label: l10n.addDocumentType,
+                  label: strings.tKey(PlatformAdminKeys.buttonDocumentTypeAdd),
                   icon: Icons.add_rounded,
                   onPressed: () => showDocumentTypeDialog(context, null),
                 ),
@@ -72,7 +77,12 @@ Future<void> showDocumentTypeDialog(
   if (result == true && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context).save),
+        content: Text(
+          ProviderScope.containerOf(
+            context,
+            listen: false,
+          ).read(uiStringsProvider).tKey(CommonKeys.buttonSave),
+        ),
         backgroundColor: PtTheme.deepGreen,
       ),
     );
@@ -92,26 +102,28 @@ class DocumentTypesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final types = ref.watch(documentTypesProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        PlatformSectionHeader(title: l10n.reportDocuments),
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.sectionReportsDocuments),
+        ),
         const SizedBox(height: 12),
         types.when(
           loading: () => const PlatformLoadingView(),
           error: (error, stackTrace) => PlatformErrorView(
-            message: l10n.unhealthy,
-            retryLabel: l10n.retry,
+            message: strings.tKey(CommonKeys.statusUnhealthy),
+            retryLabel: strings.tKey(CommonKeys.buttonRetry),
             onRetry: () => ref.invalidate(documentTypesProvider),
           ),
           data: (items) => items.isEmpty
               ? PlatformEmptyView(
                   icon: Icons.description_outlined,
-                  title: l10n.noData,
+                  title: strings.tKey(CommonKeys.emptyTitle),
                 )
               : _DocumentTypesContent(
                   items: items,
@@ -130,12 +142,12 @@ class DocumentTypesSection extends ConsumerWidget {
     WidgetRef ref,
     ReportDocumentType item,
   ) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.read(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retired,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retire,
+      title: strings.tKey(CommonKeys.statusRetired),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
       destructive: true,
     );
     if (!confirmed || !context.mounted) return;
@@ -147,8 +159,9 @@ class DocumentTypesSection extends ConsumerWidget {
           .showSnackBar(SnackBar(content: Text(failure.messageKey)));
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.genericError)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(strings.tKey(CommonKeys.errorGeneric))),
+      );
     }
   }
 
@@ -175,18 +188,22 @@ class DocumentTypesSection extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).genericError)),
+        SnackBar(
+          content: Text(
+            ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric),
+          ),
+        ),
       );
     }
   }
 }
 
-String _statusLabel(AppLocalizations l10n, String status) {
+String _statusLabel(dynamic strings, String status) {
   switch (status) {
     case 'ACTIVE':
-      return l10n.active;
+      return strings.tKey(CommonKeys.statusActive);
     case 'RETIRED':
-      return l10n.retired;
+      return strings.tKey(CommonKeys.statusRetired);
     default:
       return status;
   }
@@ -239,7 +256,7 @@ class _DocumentTypesContent extends StatelessWidget {
   }
 }
 
-class _DocumentTypesTable extends StatelessWidget {
+class _DocumentTypesTable extends ConsumerWidget {
   const _DocumentTypesTable({
     required this.items,
     required this.onEdit,
@@ -253,33 +270,41 @@ class _DocumentTypesTable extends StatelessWidget {
   final void Function(int index, int delta) onMove;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: EdgeInsets.zero,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
           columns: [
-            DataColumn(label: Text(l10n.documentTypeCode)),
             DataColumn(
               label: Text(
-                l10n.labelEn,
+                strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             DataColumn(
               label: Text(
-                l10n.labelAr,
+                strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            DataColumn(label: Text(l10n.required)),
-            DataColumn(label: Text(l10n.status)),
-            DataColumn(label: Text(l10n.categoryOrder)),
-            DataColumn(label: Text(l10n.actions)),
+            DataColumn(
+              label: Text(strings.tKey(CommonKeys.validationRequired)),
+            ),
+            DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
+            DataColumn(
+              label: Text(strings.tKey(PlatformAdminKeys.fieldCategoryOrder)),
+            ),
+            DataColumn(label: Text(strings.tKey(CommonKeys.tableActions))),
           ],
           rows: [
             for (var index = 0; index < items.length; index++)
@@ -306,10 +331,16 @@ class _DocumentTypesTable extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  DataCell(Text(items[index].required ? l10n.required : '-')),
+                  DataCell(
+                    Text(
+                      items[index].required
+                          ? strings.tKey(CommonKeys.validationRequired)
+                          : '-',
+                    ),
+                  ),
                   DataCell(
                     PlatformStatusChip(
-                      status: _statusLabel(l10n, items[index].status),
+                      status: _statusLabel(strings, items[index].status),
                     ),
                   ),
                   DataCell(
@@ -324,7 +355,7 @@ class _DocumentTypesTable extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          tooltip: l10n.moveUp,
+                          tooltip: strings.tKey(CommonKeys.buttonMoveUp),
                           onPressed: index > 0 ? () => onMove(index, -1) : null,
                           icon: const Icon(
                             Icons.keyboard_arrow_up_rounded,
@@ -332,7 +363,7 @@ class _DocumentTypesTable extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: l10n.moveDown,
+                          tooltip: strings.tKey(CommonKeys.buttonMoveDown),
                           onPressed: index < items.length - 1
                               ? () => onMove(index, 1)
                               : null,
@@ -342,12 +373,12 @@ class _DocumentTypesTable extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          tooltip: l10n.edit,
+                          tooltip: strings.tKey(CommonKeys.buttonEdit),
                           onPressed: () => onEdit(items[index]),
                           icon: const Icon(Icons.edit_outlined, size: 18),
                         ),
                         IconButton(
-                          tooltip: l10n.retire,
+                          tooltip: strings.tKey(PlatformAdminKeys.buttonRetire),
                           onPressed: () => onRetire(items[index]),
                           icon: const Icon(
                             Icons.archive_outlined,
@@ -367,7 +398,7 @@ class _DocumentTypesTable extends StatelessWidget {
   }
 }
 
-class _DocumentTypeCard extends StatelessWidget {
+class _DocumentTypeCard extends ConsumerWidget {
   const _DocumentTypeCard({
     required this.item,
     required this.canMoveUp,
@@ -387,8 +418,8 @@ class _DocumentTypeCard extends StatelessWidget {
   final VoidCallback onDown;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,11 +429,17 @@ class _DocumentTypeCard extends StatelessWidget {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              PlatformMetaPill(label: l10n.documentTypeCode, value: item.code),
-              PlatformStatusChip(status: _statusLabel(l10n, item.status)),
-              if (item.required) PlatformStatusChip(status: l10n.required),
               PlatformMetaPill(
-                label: l10n.categoryOrder,
+                label: strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
+                value: item.code,
+              ),
+              PlatformStatusChip(status: _statusLabel(strings, item.status)),
+              if (item.required)
+                PlatformStatusChip(
+                  status: strings.tKey(CommonKeys.validationRequired),
+                ),
+              PlatformMetaPill(
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                 value: '${item.sortOrder}',
               ),
             ],
@@ -433,22 +470,22 @@ class _DocumentTypeCard extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               IconButton(
-                tooltip: l10n.moveUp,
+                tooltip: strings.tKey(CommonKeys.buttonMoveUp),
                 onPressed: canMoveUp ? onUp : null,
                 icon: const Icon(Icons.keyboard_arrow_up_rounded, size: 20),
               ),
               IconButton(
-                tooltip: l10n.moveDown,
+                tooltip: strings.tKey(CommonKeys.buttonMoveDown),
                 onPressed: canMoveDown ? onDown : null,
                 icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
               ),
               PlatformSecondaryButton(
-                label: l10n.edit,
+                label: strings.tKey(CommonKeys.buttonEdit),
                 icon: Icons.edit_outlined,
                 onPressed: onEdit,
               ),
               PlatformSecondaryButton(
-                label: l10n.retire,
+                label: strings.tKey(PlatformAdminKeys.buttonRetire),
                 icon: Icons.archive_outlined,
                 destructive: true,
                 onPressed: onRetire,
@@ -523,7 +560,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
       _snack(failure.messageKey);
     } catch (_) {
       if (!mounted) return;
-      _snack(AppLocalizations.of(context).genericError);
+      _snack(ref.read(uiStringsProvider).tKey(CommonKeys.errorGeneric));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -536,9 +573,11 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformDialogShell(
-      title: widget.initial == null ? l10n.addDocumentType : l10n.documentTypes,
+      title: widget.initial == null
+          ? strings.tKey(PlatformAdminKeys.buttonDocumentTypeAdd)
+          : strings.tKey(PlatformAdminKeys.pageDocumentTypesTitle),
       body: Form(
         key: _formKey,
         child: Column(
@@ -547,32 +586,32 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
           children: [
             PlatformTextField(
               controller: _codeController,
-              label: l10n.documentTypeCode,
+              label: strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameEnController,
-              label: l10n.labelEn,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _nameArController,
-              label: l10n.labelAr,
+              label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
               textDirection: TextDirection.rtl,
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.required
+                  ? strings.tKey(CommonKeys.validationRequired)
                   : null,
             ),
             const SizedBox(height: 12),
             PlatformTextField(
               controller: _sortOrderController,
-              label: l10n.categoryOrder,
+              label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 8),
@@ -580,18 +619,18 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
               contentPadding: EdgeInsets.zero,
               value: _required,
               onChanged: (value) => setState(() => _required = value),
-              title: Text(l10n.required),
+              title: Text(strings.tKey(CommonKeys.validationRequired)),
             ),
           ],
         ),
       ),
       actions: [
         PlatformSecondaryButton(
-          label: l10n.cancel,
+          label: strings.tKey(CommonKeys.buttonCancel),
           onPressed: _saving ? null : () => Navigator.of(context).pop(false),
         ),
         PlatformPrimaryButton(
-          label: l10n.save,
+          label: strings.tKey(CommonKeys.buttonSave),
           isLoading: _saving,
           onPressed: _saving ? null : _submit,
         ),

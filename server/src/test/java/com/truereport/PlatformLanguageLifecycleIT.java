@@ -283,6 +283,37 @@ class PlatformLanguageLifecycleIT extends IntegrationTestBase {
         }
     }
 
+    @Test
+    void directStatusLiveRequiresApprovalsJustLikePublish() throws Exception {
+        Login platform = login("platform@test.local");
+        postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
+        postJson(platform, "/api/v1/platform/i18n/languages", """
+                {"code":"zh-Hans","nameEn":"Chinese","nameAr":"الصينية","nativeName":"中文"}
+                """);
+
+        mockMvc.perform(post("/api/v1/platform/i18n/languages/zh-Hans/status")
+                        .header("Authorization", bearer(platform))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"LIVE\"}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
+
+        mockMvc.perform(post("/api/v1/platform/i18n/languages/zh-Hans/publish")
+                        .header("Authorization", bearer(platform)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("TRANSLATION_REQUIRED"));
+
+        approveEverything(platform);
+
+        JsonNode live = postStatus(platform, "zh-Hans", "LIVE");
+        assertThat(live.get("status").asText()).isEqualTo("LIVE");
+
+        JsonNode publicList = getAnonymousJson("/api/v1/i18n/languages");
+        Set<String> codes = new HashSet<>();
+        publicList.forEach(node -> codes.add(node.get("code").asText()));
+        assertThat(codes).contains("zh-hans");
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private void approveEverything(Login login) throws Exception {

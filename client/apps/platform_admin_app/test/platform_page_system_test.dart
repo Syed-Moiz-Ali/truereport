@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
@@ -8,9 +8,17 @@ import 'package:platform_admin_app/src/components/platform_dialogs.dart';
 import 'package:platform_admin_app/src/components/platform_form.dart';
 import 'package:platform_admin_app/src/components/platform_states.dart';
 import 'package:platform_admin_app/src/components/platform_toolbar.dart';
+import 'package:platform_admin_app/src/platform_providers.dart';
+
+import 'support/ui_message_fixtures.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('en')}) {
   return ProviderScope(
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
+    ],
     child: MaterialApp(
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -149,9 +157,7 @@ void main() {
             PlatformDropdown<String>(
               label: 'Status',
               value: '',
-              items: const [
-                DropdownMenuItem(value: '', child: Text('All')),
-              ],
+              items: const [DropdownMenuItem(value: '', child: Text('All'))],
               onChanged: (_) {},
             ),
             const SizedBox(height: 12),
@@ -237,4 +243,3 @@ void main() {
     }
   });
 }
-

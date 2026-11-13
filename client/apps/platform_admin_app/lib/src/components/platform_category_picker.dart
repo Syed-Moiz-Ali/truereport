@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../platform_config_models.dart';
+import '../platform_providers.dart';
 import '../platform_theme.dart';
 import 'platform_dialogs.dart';
 import 'platform_form.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Searchable category picker contract (shared by the Checklist items tab
 /// and the template builder):
@@ -19,7 +22,7 @@ import 'platform_form.dart';
 ///
 /// Shows one removable chip for the selection (or the "all" label) and
 /// opens a searchable dialog. Never renders a wall of chips.
-class PlatformCategoryPicker extends StatelessWidget {
+class PlatformCategoryPicker extends ConsumerWidget {
   const PlatformCategoryPicker({
     super.key,
     required this.categories,
@@ -34,8 +37,8 @@ class PlatformCategoryPicker extends StatelessWidget {
   final String? label;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final id = (selectedId ?? '').isEmpty ? null : selectedId;
     PlatformCategory? selected;
     if (id != null) {
@@ -47,12 +50,12 @@ class PlatformCategoryPicker extends StatelessWidget {
       }
     }
     final display = selected == null
-        ? (l10n?.chkAllCategories ?? 'All categories')
+        ? strings.tKey(PlatformAdminKeys.filterAllCategories)
         : (selected.name.isEmpty ? selected.code : selected.name);
 
     return Semantics(
       button: true,
-      label: label ?? l10n?.chkCategoryFilter ?? 'Category filter',
+      label: label ?? strings.tKey(PlatformAdminKeys.filterCategory),
       child: InkWell(
         onTap: () => _openPicker(context),
         borderRadius: BorderRadius.circular(10),
@@ -121,10 +124,13 @@ class PlatformCategoryPicker extends StatelessWidget {
   }
 
   Future<void> _openPicker(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(uiStringsProvider);
     return showPlatformDialog<void>(
       context: context,
-      title: l10n?.chkCategoryFilter ?? 'Category filter',
+      title: strings.tKey(PlatformAdminKeys.filterCategory),
       body: _CategoryPickerBody(
         categories: categories,
         selectedId: (selectedId ?? '').isEmpty ? null : selectedId,
@@ -137,7 +143,7 @@ class PlatformCategoryPicker extends StatelessWidget {
   }
 }
 
-class _CategoryPickerBody extends StatefulWidget {
+class _CategoryPickerBody extends ConsumerStatefulWidget {
   const _CategoryPickerBody({
     required this.categories,
     required this.selectedId,
@@ -149,15 +155,16 @@ class _CategoryPickerBody extends StatefulWidget {
   final ValueChanged<String?> onSelected;
 
   @override
-  State<_CategoryPickerBody> createState() => _CategoryPickerBodyState();
+  ConsumerState<_CategoryPickerBody> createState() =>
+      _CategoryPickerBodyState();
 }
 
-class _CategoryPickerBodyState extends State<_CategoryPickerBody> {
+class _CategoryPickerBodyState extends ConsumerState<_CategoryPickerBody> {
   String _query = '';
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final strings = ref.watch(uiStringsProvider);
     final q = _query.trim().toLowerCase();
     final filtered = q.isEmpty
         ? widget.categories
@@ -172,7 +179,7 @@ class _CategoryPickerBodyState extends State<_CategoryPickerBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformTextField(
-          hint: l10n?.chkSearchCategories ?? 'Search categories',
+          hint: strings.tKey(PlatformAdminKeys.filterCategorySearch),
           onChanged: (value) => setState(() => _query = value),
         ),
         const SizedBox(height: 12),
@@ -184,7 +191,7 @@ class _CategoryPickerBodyState extends State<_CategoryPickerBody> {
               if (index == 0) {
                 final selected = widget.selectedId == null;
                 return _PickerTile(
-                  title: l10n?.chkAllCategories ?? 'All categories',
+                  title: strings.tKey(PlatformAdminKeys.filterAllCategories),
                   subtitle: null,
                   selected: selected,
                   onTap: () => widget.onSelected(null),
@@ -197,7 +204,7 @@ class _CategoryPickerBodyState extends State<_CategoryPickerBody> {
               return _PickerTile(
                 title: title,
                 subtitle:
-                    '${category.code} · ${category.itemCount} ${l10n?.items ?? 'items'}',
+                    '${category.code} · ${category.itemCount} ${strings.tKey(CommonKeys.labelItems)}',
                 selected: widget.selectedId == category.id,
                 onTap: () => widget.onSelected(category.id),
               );

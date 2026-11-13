@@ -3,8 +3,10 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+
 import '../../platform_providers.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Dedicated enterprise web login page for Platform Administrators.
 class PlatformLoginPage extends ConsumerStatefulWidget {
@@ -42,11 +44,11 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     try {
       final result = _challengeToken == null
           ? await ref
-              .read(authControllerProvider.notifier)
-              .signIn(_email.text, _password.text)
+                .read(authControllerProvider.notifier)
+                .signIn(_email.text, _password.text)
           : await ref
-              .read(authControllerProvider.notifier)
-              .verifyTwoFactor(_challengeToken!, _code.text);
+                .read(authControllerProvider.notifier)
+                .verifyTwoFactor(_challengeToken!, _code.text);
       if (!mounted) {
         return;
       }
@@ -87,19 +89,32 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
 
   String? _required(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return AppLocalizations.of(context).requiredField;
+      return ref
+          .read(uiStringsProvider)
+          .tKey(CommonKeys.validationRequiredField);
     }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final locale = ref.watch(platformLocaleProvider);
+    final strings = ref.watch(uiStringsProvider);
+    final uiState = ref.watch(uiMessageControllerProvider);
+    final manifest = uiState.manifest;
+    final languages = manifest == null
+        ? const <LanguageOption>[]
+        : [
+            for (final language in manifest.languages)
+              LanguageOption(
+                code: language.code,
+                displayName: language.displayName,
+                direction: language.direction,
+              ),
+          ];
     final errorText = switch (_errorKey) {
-      'invalidCredentials' => l10n.invalidCredentials,
-      'networkError' => l10n.networkError,
-      'genericError' => l10n.genericError,
+      'invalidCredentials' => strings.tKey(CommonKeys.errorInvalidCredentials),
+      'networkError' => strings.tKey(CommonKeys.errorNetwork),
+      'genericError' => strings.tKey(CommonKeys.errorGeneric),
       _ => null,
     };
 
@@ -109,10 +124,11 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
       passwordController: _password,
       codeController: _code,
       formKey: _formKey,
-      isArabic: locale.languageCode == 'ar',
-      onLocaleChanged: (isArabic) => ref
-          .read(platformLocaleProvider.notifier)
-          .setLocale(Locale(isArabic ? 'ar' : 'en')),
+      languages: languages,
+      selectedLanguageCode: uiState.activeLanguage,
+      onLanguageSelected: (code) {
+        ref.read(uiMessageSwitcherProvider).switchTo(code);
+      },
       onSubmit: _submit,
       onValidateEmail: (value) {
         final required = _required(value);
@@ -121,7 +137,9 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
         }
         return Validators.email(value) == null
             ? null
-            : AppLocalizations.of(context).invalidEmail;
+            : ref
+                  .read(uiStringsProvider)
+                  .tKey(CommonKeys.validationInvalidEmail);
       },
       onValidateRequired: _required,
       challenge: _challengeToken != null,

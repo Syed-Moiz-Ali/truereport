@@ -11,6 +11,7 @@ import 'package:platform_admin_app/src/features/master_library/option_sets_scree
 import 'package:platform_admin_app/src/platform_config_api.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 // Local test double only. Production screens call the real API client;
 // this fake keeps widget tests fast and deterministic.
@@ -358,7 +359,7 @@ Widget _app(
   List<Override> extra = const [],
 }) {
   return ProviderScope(
-    overrides: [platformConfigApiProvider.overrideWithValue(api), ...extra],
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), platformConfigApiProvider.overrideWithValue(api), ...extra],
     child: MaterialApp(
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -640,7 +641,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [platformConfigApiProvider.overrideWithValue(api)],
+        overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
         child: const MaterialApp(
           locale: Locale('ar'),
           supportedLocales: AppLocalizations.supportedLocales,
@@ -664,7 +665,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [platformConfigApiProvider.overrideWithValue(api)],
+        overrides: [uiStringsProvider.overrideWithValue(fakeArUiStrings()), platformConfigApiProvider.overrideWithValue(api)],
         child: const MaterialApp(
           locale: Locale('ar'),
           supportedLocales: AppLocalizations.supportedLocales,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:api_client/api_client.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,12 +48,12 @@ class _TranslationQueueScreenState
   bool _publishing = false;
 
   Future<void> _publish(TranslationBacklog backlog, String nativeName) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.read(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.queuePublishLanguage,
+      title: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
       body: '$nativeName (${widget.languageCode})',
-      confirmLabel: l10n.queuePublishLanguage,
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
     );
     if (!confirmed || !mounted) return;
     setState(() => _publishing = true);
@@ -66,17 +67,37 @@ class _TranslationQueueScreenState
       ref.invalidate(platformLanguagesProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${l10n.langStatusLive}: ${widget.languageCode}'),
+          content: Text(
+            '${strings.tKey(PlatformAdminKeys.statusLanguageLive)}: ${widget.languageCode}',
+          ),
         ),
       );
     } on AppFailure catch (failure) {
       if (!mounted) return;
+      // Surface backend TRANSLATION_REQUIRED field errors so the publish
+      // gate explains which entity still blocks going LIVE.
+      var message = failure.messageKey;
+      if (failure is ApiFailure && failure.errors.isNotEmpty) {
+        final details = failure.errors
+            .map((error) {
+              final field = '${error['field'] ?? ''}'.trim();
+              final detail = '${error['message'] ?? error['code'] ?? ''}'
+                  .trim();
+              if (field.isEmpty) return detail;
+              if (detail.isEmpty) return field;
+              return '$field: $detail';
+            })
+            .where((line) => line.isNotEmpty && line != ':')
+            .join('; ');
+        if (details.isNotEmpty) message = '$message ($details)';
+      }
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(failure.messageKey)));
+          .showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.error)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(strings.tKey(CommonKeys.stateError))),
+      );
     } finally {
       if (mounted) setState(() => _publishing = false);
     }
@@ -84,7 +105,7 @@ class _TranslationQueueScreenState
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final backlog = ref.watch(languageBacklogProvider(widget.languageCode));
     final languagesAsync = ref.watch(platformLanguagesProvider);
     PlatformLanguage? language;
@@ -97,29 +118,28 @@ class _TranslationQueueScreenState
         ? language.nativeName
         : widget.languageCode;
     final data = backlog.maybeWhen(data: (value) => value, orElse: () => null);
+    final canPublish = data != null && data.isComplete && !_publishing;
 
     return PlatformShell(
       currentRoute: '/settings/languages',
       contextBar: PlatformContextBar(
         breadcrumbs: [
           ContextBreadcrumbItem(
-            label: l10n.settings,
+            label: strings.tKey(PlatformAdminKeys.pageSettingsTitle),
             onTap: () => context.go('/settings'),
           ),
           ContextBreadcrumbItem(
-            label: l10n.languagesCoverage,
+            label: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
             onTap: () => context.go('/settings/languages'),
           ),
           ContextBreadcrumbItem(label: widget.languageCode),
         ],
         actions: [
           PlatformPrimaryButton(
-            label: l10n.queuePublishLanguage,
+            label: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
             icon: Icons.publish_rounded,
             isLoading: _publishing,
-            onPressed: (data != null && data.isComplete && !_publishing)
-                ? () => _publish(data, nativeName)
-                : null,
+            onPressed: canPublish ? () => _publish(data, nativeName) : null,
           ),
         ],
       ),
@@ -127,8 +147,8 @@ class _TranslationQueueScreenState
         child: backlog.when(
           loading: () => const PlatformLoadingView(),
           error: (error, stackTrace) => PlatformErrorView(
-            message: l10n.error,
-            retryLabel: l10n.retry,
+            message: strings.tKey(CommonKeys.stateError),
+            retryLabel: strings.tKey(CommonKeys.buttonRetry),
             onRetry: () {
               ref.invalidate(languageBacklogProvider(widget.languageCode));
               ref.invalidate(platformLanguagesProvider);
@@ -146,57 +166,58 @@ class _TranslationQueueScreenState
   }
 }
 
-String _entityLabel(AppLocalizations l10n, String entityType) {
+String _entityLabel(UiMessageStrings strings, String entityType) {
   switch (entityType.toUpperCase()) {
     case 'CATEGORY':
-      return l10n.categoriesTab;
+      return strings.tKey(PlatformAdminKeys.tabChecklistCategories);
     case 'ITEM':
-      return l10n.itemsTab;
+      return strings.tKey(PlatformAdminKeys.tabChecklistItems);
     case 'OPTION_SET':
-      return l10n.optionSetsTab;
+      return strings.tKey(PlatformAdminKeys.tabChecklistOptionSets);
     case 'TEMPLATE':
-      return l10n.templatesTab;
+      return strings.tKey(PlatformAdminKeys.tabTemplates);
     case 'DOCUMENT_TYPE':
-      return l10n.documentTypes;
+      return strings.tKey(PlatformAdminKeys.pageDocumentTypesTitle);
     case 'ISSUE_FIELD':
-      return l10n.issueFields;
+      return strings.tKey(PlatformAdminKeys.sectionItemIssueFields);
+    case 'OPTION_VALUE':
+      return strings.tKey(PlatformAdminKeys.labelOptionValue);
     default:
-      // No exact ARB key (e.g. OPTION_VALUE): render the raw backend type so
-      // new entity types keep working without code changes. Reported as an
-      // ARB gap alongside the implementation.
       return entityType;
   }
 }
 
-String _itemStatusLabel(AppLocalizations l10n, String status) {
+String _itemStatusLabel(UiMessageStrings strings, String status) {
   switch (status) {
     case TranslationStatus.approved:
-      return l10n.queueApproved;
+      return strings.tKey(PlatformAdminKeys.queueApproved);
     case TranslationStatus.reviewed:
-      return l10n.queueReviewed;
+      return strings.tKey(PlatformAdminKeys.queueReviewed);
     case TranslationStatus.draft:
     case TranslationStatus.translating:
-      return l10n.queueDraft;
+      return strings.tKey(PlatformAdminKeys.queueDraft);
     case TranslationStatus.missing:
     default:
-      return l10n.queueMissing;
+      return strings.tKey(PlatformAdminKeys.queueMissing);
   }
 }
 
-String _languageStatusLabel(AppLocalizations l10n, String status) {
+String _languageStatusLabel(UiMessageStrings strings, String status) {
   switch (status.toUpperCase()) {
     case 'DRAFT':
-      return l10n.langStatusDraft;
+      return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
     case 'TRANSLATING':
-      return l10n.langStatusTranslating;
+      return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
     case 'REVIEW':
-      return l10n.langStatusReview;
+      return strings.tKey(PlatformAdminKeys.statusLanguageReview);
     case 'LIVE':
-      return l10n.langStatusLive;
+      return strings.tKey(PlatformAdminKeys.statusLanguageLive);
     case 'RETIRED':
-      return l10n.langStatusRetired;
+      return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
     default:
-      return status.isEmpty ? l10n.langStatusDraft : status;
+      return status.isEmpty
+          ? strings.tKey(PlatformAdminKeys.statusLanguageDraft)
+          : status;
   }
 }
 
@@ -302,6 +323,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
   }
 
   Future<void> _approveSelected(List<TranslationItem> filtered) async {
+    final strings = ref.read(uiStringsProvider);
     final targets = filtered
         .where(
           (item) =>
@@ -332,7 +354,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).error)),
+        SnackBar(content: Text(strings.tKey(CommonKeys.stateError))),
       );
     } finally {
       if (mounted) setState(() => _bulkSaving = false);
@@ -345,7 +367,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${AppLocalizations.of(context).queueApproveSelected}: $done',
+            '${strings.tKey(PlatformAdminKeys.buttonQueueApproveSelected)}: $done',
           ),
         ),
       );
@@ -353,6 +375,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
   }
 
   Future<void> _export(List<TranslationItem> filtered) async {
+    final strings = ref.read(uiStringsProvider);
     final missing = filtered
         .where((item) => item.isMissing)
         .map((item) => item.toJson())
@@ -369,7 +392,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${AppLocalizations.of(context).queueExport}: ${AppLocalizations.of(context).done}',
+          '${strings.tKey(PlatformAdminKeys.buttonQueueExport)}: ${strings.tKey(CommonKeys.labelDone)}',
         ),
       ),
     );
@@ -377,7 +400,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final backlog = widget.backlog;
     final filtered = _filtered();
     final counts = _counts();
@@ -395,12 +418,12 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformPageHeader(
-          title: l10n.queueTitle,
+          title: strings.tKey(PlatformAdminKeys.pageTranslationQueueTitle),
           subtitle:
-              '${widget.nativeName} · ${_languageStatusLabel(l10n, status)} · ${percent.toStringAsFixed(0)}%',
+              '${widget.nativeName} · ${_languageStatusLabel(strings, status)} · ${percent.toStringAsFixed(0)}%',
           actions: [
             PlatformSecondaryButton(
-              label: l10n.queueExport,
+              label: strings.tKey(PlatformAdminKeys.buttonQueueExport),
               icon: Icons.ios_share_rounded,
               onPressed: _bulkSaving ? null : () => _export(filtered),
             ),
@@ -426,7 +449,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
           // (and new content while a language is LIVE) requires every
           // required translation to be approved.
           Text(
-            l10n.langPublishBlocked,
+            strings.tKey(PlatformAdminKeys.validationLanguagePublishBlocked),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(12, color: PtTheme.muted),
@@ -437,34 +460,49 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            _SummaryCard(label: l10n.queueMissing, value: counts.missing),
-            _SummaryCard(label: l10n.queueDraft, value: counts.draft),
-            _SummaryCard(label: l10n.queueReviewed, value: counts.reviewed),
-            _SummaryCard(label: l10n.queueApproved, value: counts.approved),
-            _SummaryCard(label: l10n.queueTotal, value: backlog.totalRequired),
+            _SummaryCard(
+              label: strings.tKey(PlatformAdminKeys.queueMissing),
+              value: counts.missing,
+            ),
+            _SummaryCard(
+              label: strings.tKey(PlatformAdminKeys.queueDraft),
+              value: counts.draft,
+            ),
+            _SummaryCard(
+              label: strings.tKey(PlatformAdminKeys.queueReviewed),
+              value: counts.reviewed,
+            ),
+            _SummaryCard(
+              label: strings.tKey(PlatformAdminKeys.queueApproved),
+              value: counts.approved,
+            ),
+            _SummaryCard(
+              label: strings.tKey(PlatformAdminKeys.queueTotal),
+              value: backlog.totalRequired,
+            ),
           ],
         ),
         const SizedBox(height: 16),
         PlatformToolbar(
           searchController: _searchController,
-          searchHint: l10n.queueSearchHint,
+          searchHint: strings.tKey(PlatformAdminKeys.filterQueueSearch),
           onSearchChanged: (value) => setState(() => _search = value),
           filters: [
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 240),
               child: PlatformDropdown<String>(
-                label: l10n.queueEntityType,
+                label: strings.tKey(PlatformAdminKeys.tableQueueEntityType),
                 value: _entityFilter,
                 items: [
                   DropdownMenuItem(
                     value: _allTypes,
-                    child: Text(l10n.filterAll),
+                    child: Text(strings.tKey(CommonKeys.filterAll)),
                   ),
                   for (final type in entityTypes)
                     DropdownMenuItem(
                       value: type,
                       child: Text(
-                        _entityLabel(l10n, type),
+                        _entityLabel(strings, type),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -476,14 +514,15 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
               ),
             ),
             PlatformFilterChip(
-              label: l10n.queueMissingOnly,
+              label: strings.tKey(PlatformAdminKeys.filterQueueMissingOnly),
               selected: _missingOnly,
               onTap: () => setState(() => _missingOnly = !_missingOnly),
             ),
           ],
-          countLabel: '${l10n.queueTotal}: ${filtered.length}',
+          countLabel:
+              '${strings.tKey(PlatformAdminKeys.queueTotal)}: ${filtered.length}',
           trailing: PlatformSecondaryButton(
-            label: l10n.queueApproveSelected,
+            label: strings.tKey(PlatformAdminKeys.buttonQueueApproveSelected),
             icon: Icons.check_rounded,
             onPressed: _selected.isEmpty || _bulkSaving
                 ? null
@@ -494,20 +533,20 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
         if (backlog.totalRequired == 0)
           PlatformEmptyView(
             icon: Icons.translate_rounded,
-            title: l10n.queueEmpty,
-            body: l10n.queueEmptyBody,
+            title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
+            body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
           )
         else if (filtered.isEmpty)
           if (_missingOnly && !backlog.allItems.any((item) => item.isMissing))
             PlatformEmptyView(
               icon: Icons.translate_rounded,
-              title: l10n.queueEmpty,
-              body: l10n.queueEmptyBody,
+              title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
+              body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
             )
           else
             PlatformEmptyView(
               icon: Icons.search_off_rounded,
-              title: l10n.noData,
+              title: strings.tKey(CommonKeys.emptyTitle),
             )
         else ...[
           for (final group in backlog.groups)
@@ -530,7 +569,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           PlatformSectionHeader(
-                            title: _entityLabel(l10n, group.entityType),
+                            title: _entityLabel(strings, group.entityType),
                             subtitle: '${group.approved}/${group.total}',
                           ),
                           const SizedBox(height: 8),
@@ -623,7 +662,7 @@ class _QueueRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     final translation = (item.text ?? '').trim();
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,7 +684,7 @@ class _QueueRow extends StatelessWidget {
                     value: item.field,
                   ),
                   PlatformStatusChip(
-                    status: _itemStatusLabel(l10n, item.status),
+                    status: _itemStatusLabel(strings, item.status),
                   ),
                 ],
               ),
@@ -671,7 +710,7 @@ class _QueueRow extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: l10n.queueEditTitle,
+          tooltip: strings.tKey(PlatformAdminKeys.dialogQueueEditTitle),
           onPressed: onEdit,
           icon: const Icon(Icons.edit_outlined, size: 18),
         ),
@@ -680,9 +719,6 @@ class _QueueRow extends StatelessWidget {
   }
 }
 
-/// Modal editor for one queue item with previous/next navigation through the
-/// filtered list. Saves via upsert; the queue refreshes when the dialog
-/// closes (returns the number of successful saves).
 class _TranslationEditorDialog extends ConsumerStatefulWidget {
   const _TranslationEditorDialog({
     required this.items,
@@ -771,7 +807,13 @@ class _TranslationEditorDialogState
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).error)),
+        SnackBar(
+          content: Text(
+            ProviderScope.containerOf(context)
+                .read(uiStringsProvider)
+                .tKey(CommonKeys.stateError),
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -780,10 +822,10 @@ class _TranslationEditorDialogState
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final item = _items[_index];
     return PlatformDialogShell(
-      title: l10n.queueEditTitle,
+      title: strings.tKey(PlatformAdminKeys.dialogQueueEditTitle),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -798,12 +840,14 @@ class _TranslationEditorDialogState
                     : item.entityCode,
                 value: item.field,
               ),
-              PlatformStatusChip(status: _itemStatusLabel(l10n, item.status)),
+              PlatformStatusChip(
+                status: _itemStatusLabel(strings, item.status),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            l10n.queueDefaultText,
+            strings.tKey(PlatformAdminKeys.tableQueueDefaultText),
             style: PtTheme.font(
               12,
               weight: FontWeight.w700,
@@ -818,26 +862,26 @@ class _TranslationEditorDialogState
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _textController,
-            label: l10n.queueTranslation,
+            label: strings.tKey(PlatformAdminKeys.tableQueueTranslation),
             maxLines: 3,
             enabled: !_saving,
           ),
           const SizedBox(height: 12),
           PlatformDropdown<String>(
-            label: l10n.status,
+            label: strings.tKey(CommonKeys.tableStatus),
             value: _status,
             items: [
               DropdownMenuItem(
                 value: TranslationStatus.draft,
-                child: Text(l10n.queueDraft),
+                child: Text(strings.tKey(PlatformAdminKeys.queueDraft)),
               ),
               DropdownMenuItem(
                 value: TranslationStatus.reviewed,
-                child: Text(l10n.queueReviewed),
+                child: Text(strings.tKey(PlatformAdminKeys.queueReviewed)),
               ),
               DropdownMenuItem(
                 value: TranslationStatus.approved,
-                child: Text(l10n.queueApproved),
+                child: Text(strings.tKey(PlatformAdminKeys.queueApproved)),
               ),
             ],
             onChanged: _saving
@@ -848,26 +892,26 @@ class _TranslationEditorDialogState
           ),
           const SizedBox(height: 8),
           Text(
-            '${_index + 1} ${l10n.commonOf} ${_items.length}',
+            '${_index + 1} ${strings.tKey(PlatformAdminKeys.paginationOf)} ${_items.length}',
             style: PtTheme.font(12, color: PtTheme.muted),
           ),
         ],
       ),
       actions: [
         PlatformSecondaryButton(
-          label: l10n.previous,
+          label: strings.tKey(CommonKeys.buttonPrevious),
           icon: Icons.arrow_back_rounded,
           onPressed: _index > 0 && !_saving ? () => _moveTo(_index - 1) : null,
         ),
         PlatformSecondaryButton(
-          label: l10n.next,
+          label: strings.tKey(CommonKeys.buttonNext),
           icon: Icons.arrow_forward_rounded,
           onPressed: _index < _items.length - 1 && !_saving
               ? () => _moveTo(_index + 1)
               : null,
         ),
         PlatformPrimaryButton(
-          label: l10n.save,
+          label: strings.tKey(CommonKeys.buttonSave),
           isLoading: _saving,
           onPressed: _saving ? null : _save,
         ),

@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -15,6 +14,8 @@ import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
 import 'impact_dialog.dart';
+
+import 'package:l10n/l10n.dart';
 
 class ConfigHealthScreen extends ConsumerStatefulWidget {
   const ConfigHealthScreen({super.key});
@@ -35,7 +36,7 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final health = ref.watch(configHealthProvider);
 
     return ChecklistPageFrame(
@@ -44,7 +45,7 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
       showSearch: false,
       actions: [
         PlatformPrimaryButton(
-          label: l10n.refresh,
+          label: strings.tKey(CommonKeys.buttonRefresh),
           icon: Icons.refresh_rounded,
           onPressed: () => ref.invalidate(configHealthProvider),
         ),
@@ -55,8 +56,8 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
           health.when(
             loading: () => const PlatformLoadingView(),
             error: (error, stackTrace) => PlatformErrorView(
-              message: l10n.unhealthy,
-              retryLabel: l10n.retry,
+              message: strings.tKey(CommonKeys.statusUnhealthy),
+              retryLabel: strings.tKey(CommonKeys.buttonRetry),
               onRetry: () => ref.invalidate(configHealthProvider),
             ),
             data: (data) => _HealthContent(health: data),
@@ -82,14 +83,14 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
   }
 }
 
-class _HealthContent extends StatelessWidget {
+class _HealthContent extends ConsumerWidget {
   const _HealthContent({required this.health});
 
   final ConfigHealth health;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final issueCount = health.checks.where((check) => !check.ok).length;
     final okCount = health.checks.length - issueCount;
     final groups = _groupBySeverity(health.checks);
@@ -128,12 +129,12 @@ class _HealthContent extends StatelessWidget {
                       children: [
                         PlatformStatusChip(
                           status: health.healthy
-                              ? l10n.healthy
-                              : l10n.unhealthy,
+                              ? strings.tKey(CommonKeys.statusHealthy)
+                              : strings.tKey(CommonKeys.statusUnhealthy),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          l10n.configHealth,
+                          strings.tKey(PlatformAdminKeys.pageHealthTitle),
                           style: PtTheme.font(
                             16,
                             lineHeight: 22,
@@ -201,13 +202,17 @@ class _HealthContent extends StatelessWidget {
 
                   final tiles = [
                     summaryTile(
-                      '${health.checks.length} ${l10n.configHealth}',
+                      '${health.checks.length} ${strings.tKey(PlatformAdminKeys.pageHealthTitle)}',
                       '${health.checks.length}',
                       PtTheme.muted,
                     ),
-                    summaryTile(l10n.healthy, '$okCount', PtTheme.emerald),
                     summaryTile(
-                      l10n.unhealthy,
+                      strings.tKey(CommonKeys.statusHealthy),
+                      '$okCount',
+                      PtTheme.emerald,
+                    ),
+                    summaryTile(
+                      strings.tKey(CommonKeys.statusUnhealthy),
                       '$issueCount',
                       issueCount == 0 ? PtTheme.muted : PtTheme.rose,
                     ),
@@ -238,7 +243,10 @@ class _HealthContent extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (health.checks.isEmpty)
-          PlatformEmptyView(icon: Icons.inbox_outlined, title: l10n.noData)
+          PlatformEmptyView(
+            icon: Icons.inbox_outlined,
+            title: strings.tKey(CommonKeys.emptyTitle),
+          )
         else
           for (final entry in groups.entries) ...[
             PlatformSectionHeader(
@@ -270,14 +278,14 @@ Map<String, List<HealthCheck>> _groupBySeverity(List<HealthCheck> checks) {
   return Map.fromEntries(entries);
 }
 
-class _HealthCheckCard extends StatelessWidget {
+class _HealthCheckCard extends ConsumerWidget {
   const _HealthCheckCard({required this.check});
 
   final HealthCheck check;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final severityColor = check.ok
         ? PtTheme.emerald
         : check.severity == 'WARNING'
@@ -327,7 +335,9 @@ class _HealthCheckCard extends StatelessWidget {
                     ),
                     PlatformStatusChip(status: check.severity),
                     PlatformMetaPill(
-                      label: l10n.affectedItems,
+                      label: strings.tKey(
+                        PlatformAdminKeys.dialogImpactAffectedItems,
+                      ),
                       value: '${check.affected}',
                     ),
                   ],
@@ -414,7 +424,7 @@ class _HealthCheckCard extends StatelessWidget {
   }
 }
 
-class _ImpactHelper extends StatelessWidget {
+class _ImpactHelper extends ConsumerWidget {
   const _ImpactHelper({
     required this.entityType,
     required this.entityIdController,
@@ -430,16 +440,16 @@ class _ImpactHelper extends StatelessWidget {
   final VoidCallback onOpen;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final hasId = entityIdController.text.trim().isNotEmpty;
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title: l10n.impactAnalysis,
-            subtitle: l10n.blocked,
+            title: strings.tKey(PlatformAdminKeys.dialogImpactTitle),
+            subtitle: strings.tKey(CommonKeys.statusBlocked),
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -454,17 +464,30 @@ class _ImpactHelper extends StatelessWidget {
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: fieldWidth),
                     child: PlatformDropdown<String>(
-                      label: l10n.category,
+                      label: strings.tKey(CommonKeys.labelCategory),
                       value: entityType,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'CATEGORY',
-                          child: Text('CATEGORY'),
+                          child: Text(
+                            strings.tKey(
+                              PlatformAdminKeys.labelEntityTypeCategory,
+                            ),
+                          ),
                         ),
-                        DropdownMenuItem(value: 'ITEM', child: Text('ITEM')),
+                        DropdownMenuItem(
+                          value: 'ITEM',
+                          child: Text(
+                            strings.tKey(PlatformAdminKeys.labelEntityTypeItem),
+                          ),
+                        ),
                         DropdownMenuItem(
                           value: 'TEMPLATE',
-                          child: Text('TEMPLATE'),
+                          child: Text(
+                            strings.tKey(
+                              PlatformAdminKeys.labelEntityTypeTemplate,
+                            ),
+                          ),
                         ),
                       ],
                       onChanged: (value) {
@@ -476,12 +499,12 @@ class _ImpactHelper extends StatelessWidget {
                     constraints: BoxConstraints(maxWidth: fieldWidth),
                     child: PlatformTextField(
                       controller: entityIdController,
-                      label: l10n.itemCode,
+                      label: strings.tKey(PlatformAdminKeys.fieldItemCode),
                       onChanged: onEntityIdChanged,
                     ),
                   ),
                   PlatformPrimaryButton(
-                    label: l10n.impactAnalysis,
+                    label: strings.tKey(PlatformAdminKeys.dialogImpactTitle),
                     icon: Icons.travel_explore_rounded,
                     onPressed: hasId ? onOpen : null,
                   ),
@@ -533,16 +556,16 @@ class _ReleasesSectionState extends ConsumerState<_ReleasesSection> {
     }
   }
 
-  String _actionLabel(AppLocalizations l10n, String status) {
+  String _actionLabel(dynamic strings, String status) {
     switch (status) {
       case 'DRAFT':
-        return l10n.releaseSubmit;
+        return strings.tKey(PlatformAdminKeys.buttonReleaseSubmit);
       case 'REVIEW':
-        return l10n.releaseApprove;
+        return strings.tKey(PlatformAdminKeys.buttonReleaseApprove);
       case 'APPROVED':
-        return l10n.releasePublish;
+        return strings.tKey(PlatformAdminKeys.buttonReleasePublish);
       case 'PUBLISHED':
-        return l10n.releaseDeprecate;
+        return strings.tKey(PlatformAdminKeys.buttonReleaseDeprecate);
       default:
         return '';
     }
@@ -569,16 +592,16 @@ class _ReleasesSectionState extends ConsumerState<_ReleasesSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final releases = ref.watch(configReleasesProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title: l10n.configReleases,
+            title: strings.tKey(PlatformAdminKeys.pageReleasesTitle),
             action: PlatformPrimaryButton(
-              label: l10n.createRelease,
+              label: strings.tKey(PlatformAdminKeys.buttonReleaseCreate),
               icon: Icons.add_rounded,
               onPressed: _busy ? null : _create,
             ),
@@ -598,7 +621,7 @@ class _ReleasesSectionState extends ConsumerState<_ReleasesSection> {
             data: (items) {
               if (items.isEmpty) {
                 return Text(
-                  l10n.noData,
+                  strings.tKey(CommonKeys.emptyTitle),
                   style: PtTheme.font(13, color: PtTheme.muted),
                 );
               }
@@ -643,7 +666,7 @@ class _ReleasesSectionState extends ConsumerState<_ReleasesSection> {
                             ),
                             if (_canTransition(release.status))
                               PlatformSecondaryButton(
-                                label: _actionLabel(l10n, release.status),
+                                label: _actionLabel(strings, release.status),
                                 onPressed: _busy
                                     ? null
                                     : () => _run(
@@ -712,23 +735,40 @@ class _CreateReleaseDialogState extends ConsumerState<_CreateReleaseDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformDialogShell(
-      title: l10n.createRelease,
+      title: strings.tKey(PlatformAdminKeys.buttonReleaseCreate),
       body: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformDropdown<String>(
-            label: l10n.releaseEntityType,
+            label: strings.tKey(PlatformAdminKeys.fieldReleaseEntityType),
             value: _entityType,
-            items: const [
-              DropdownMenuItem(value: 'TEMPLATE', child: Text('TEMPLATE')),
-              DropdownMenuItem(value: 'ITEM', child: Text('ITEM')),
-              DropdownMenuItem(value: 'CATEGORY', child: Text('CATEGORY')),
+            items: [
+              DropdownMenuItem(
+                value: 'TEMPLATE',
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.labelEntityTypeTemplate),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'ITEM',
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.labelEntityTypeItem),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'CATEGORY',
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.labelEntityTypeCategory),
+                ),
+              ),
               DropdownMenuItem(
                 value: 'SCORING_RULE',
-                child: Text('SCORING_RULE'),
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.labelEntityTypeScoringRule),
+                ),
               ),
             ],
             onChanged: (value) {
@@ -736,22 +776,25 @@ class _CreateReleaseDialogState extends ConsumerState<_CreateReleaseDialog> {
             },
           ),
           const SizedBox(height: 12),
-          PlatformTextField(controller: _entityId, label: l10n.releaseEntityId),
+          PlatformTextField(
+            controller: _entityId,
+            label: strings.tKey(PlatformAdminKeys.fieldReleaseEntityId),
+          ),
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _notes,
-            label: l10n.releaseNotes,
+            label: strings.tKey(PlatformAdminKeys.fieldReleaseNotes),
             maxLines: 3,
           ),
         ],
       ),
       actions: [
         PlatformSecondaryButton(
-          label: l10n.cancel,
+          label: strings.tKey(CommonKeys.buttonCancel),
           onPressed: () => Navigator.of(context).pop(false),
         ),
         PlatformPrimaryButton(
-          label: l10n.save,
+          label: strings.tKey(CommonKeys.buttonSave),
           isLoading: _saving,
           onPressed: _saving ? null : _submit,
         ),

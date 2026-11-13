@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_shell.dart';
+import '../../platform_providers.dart';
 import 'checklist_tab_bar.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Shared frame for the five Checklist tabs.
 ///
 /// Renders [PlatformShell] + [PlatformPage] + a page header with the
 /// checklist title/helper plus the per-tab primary action, followed by the
 /// [ChecklistTabBar] and the tab body.
-class ChecklistPageFrame extends StatelessWidget {
+class ChecklistPageFrame extends ConsumerWidget {
   const ChecklistPageFrame({
     super.key,
     required this.currentRoute,
@@ -29,8 +32,8 @@ class ChecklistPageFrame extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformShell(
       currentRoute: currentRoute,
       onSearchChanged: onSearchChanged,
@@ -41,8 +44,8 @@ class ChecklistPageFrame extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: l10n.checklistTitle,
-              subtitle: l10n.checklistHelper,
+              title: strings.tKey(PlatformAdminKeys.pageChecklistTitle),
+              subtitle: strings.tKey(PlatformAdminKeys.pageChecklistHelper),
               actions: actions,
             ),
             const SizedBox(height: 16),

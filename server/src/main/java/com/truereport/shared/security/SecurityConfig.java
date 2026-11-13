@@ -82,6 +82,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(problemWriter)
                         .accessDeniedHandler(problemWriter))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/refresh",
@@ -90,6 +91,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health/**", "/actuator/prometheus", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/r/**", "/report/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/i18n/languages").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/manifest").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/bundle").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/api/v1/workshop/**").hasRole("WORKSHOP_ADMIN")
                         .requestMatchers("/api/v1/technician/**").hasRole("TECHNICIAN")

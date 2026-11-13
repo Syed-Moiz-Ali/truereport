@@ -1,7 +1,6 @@
-﻿import 'package:core/core.dart';
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -14,6 +13,8 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
+
+import 'package:l10n/l10n.dart';
 
 const _resultCodes = <String>[
   'NO_ISSUE_OBSERVED',
@@ -29,6 +30,67 @@ const _inputTypes = <String>[
 ];
 const _evidenceTypes = <String>['PHOTO', 'VIDEO', 'DOCUMENT', ''];
 const _directions = <String>['HIGHER_IS_BETTER', 'LOWER_IS_BETTER'];
+
+String _resultLabel(UiMessageStrings strings, String code) {
+  switch (code) {
+    case 'NO_ISSUE_OBSERVED':
+      return strings.tKey(PlatformAdminKeys.labelResultCodeNoIssueObserved);
+    case 'ATTENTION_RECOMMENDED':
+      return strings.tKey(
+        PlatformAdminKeys.labelResultCodeAttentionRecommended,
+      );
+    case 'DEFECT_FOUND':
+      return strings.tKey(PlatformAdminKeys.labelResultCodeDefectFound);
+    default:
+      return code;
+  }
+}
+
+String _evidenceTypeLabel(UiMessageStrings strings, String type) {
+  switch (type) {
+    case 'PHOTO':
+      return strings.tKey(PlatformAdminKeys.labelEvidenceTypePhoto);
+    case 'VIDEO':
+      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeVideo);
+    case 'DOCUMENT':
+      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeDocument);
+    case '':
+      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeNone);
+    default:
+      return type;
+  }
+}
+
+String _inputTypeLabel(UiMessageStrings strings, String type) {
+  switch (type) {
+    case 'SELECT':
+      return strings.tKey(PlatformAdminKeys.labelInputTypeSelect);
+    case 'MULTI_SELECT':
+      return strings.tKey(PlatformAdminKeys.labelInputTypeMultiSelect);
+    case 'NUMBER':
+      return strings.tKey(PlatformAdminKeys.labelInputTypeNumber);
+    case 'BOOLEAN':
+      return strings.tKey(PlatformAdminKeys.labelInputTypeBoolean);
+    case 'TEXT':
+      return strings.tKey(PlatformAdminKeys.labelInputTypeText);
+    default:
+      return type;
+  }
+}
+
+String _directionLabel(UiMessageStrings strings, String direction) {
+  switch (direction) {
+    case 'HIGHER_IS_BETTER':
+      return strings.tKey(
+        PlatformAdminKeys.labelMeasureDirectionHigherIsBetter,
+      );
+    case 'LOWER_IS_BETTER':
+      return strings.tKey(PlatformAdminKeys.labelMeasureDirectionLowerIsBetter);
+    default:
+      return direction;
+  }
+}
+
 const _requiredForStatuses = <String>[
   'NO_ISSUE_OBSERVED',
   'ATTENTION_RECOMMENDED',
@@ -193,7 +255,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   }
 
   Future<void> _saveAll({required bool publish}) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.read(uiStringsProvider);
     if (_basicsFormKey.currentState?.validate() != true ||
         _categoryId.isEmpty) {
       setState(() => _step = 0);
@@ -207,9 +269,9 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     if (publish) {
       final confirmed = await showPlatformConfirmDialog(
         context: context,
-        title: l10n.publishItem,
-        body: l10n.publishItem,
-        confirmLabel: l10n.publish,
+        title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
+        body: strings.tKey(PlatformAdminKeys.buttonItemPublish),
+        confirmLabel: strings.tKey(PlatformAdminKeys.buttonPublish),
       );
       if (confirmed != true) return;
     }
@@ -281,9 +343,14 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       if (failed.isNotEmpty) {
         // Item and en/ar content are saved; extra-language translations can
         // be retried from the editor Content step.
-        _showSnack(context, l10n.error, isError: true);
+        _showSnack(context, strings.tKey(CommonKeys.stateError), isError: true);
       } else {
-        _showSnack(context, publish ? l10n.itemPublished : l10n.itemCreated);
+        _showSnack(
+          context,
+          publish
+              ? strings.tKey(PlatformAdminKeys.toastItemPublished)
+              : strings.tKey(PlatformAdminKeys.toastItemCreated),
+        );
       }
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
@@ -300,7 +367,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final categories =
         categoriesAsync.asData?.value ?? const <PlatformCategory>[];
@@ -315,12 +382,15 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeader(l10n),
+          _buildHeader(strings),
           const SizedBox(height: 18),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: Text(
-              l10n.stepCounter(_step + 1, 6),
+              strings.tArgsKey(PlatformAdminKeys.stepCounter, {
+                'current': _step + 1,
+                'total': 6,
+              }),
               style: PtTheme.font(
                 12,
                 weight: FontWeight.w700,
@@ -349,7 +419,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                     if (_step > 0)
                       PlatformSecondaryButton(
                         key: const Key('stepper-back'),
-                        label: l10n.previous,
+                        label: strings.tKey(CommonKeys.buttonPrevious),
                         onPressed: _saving
                             ? null
                             : () => setState(() => _step--),
@@ -357,18 +427,20 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                     if (!isLast)
                       PlatformPrimaryButton(
                         key: const Key('stepper-next'),
-                        label: l10n.next,
+                        label: strings.tKey(CommonKeys.buttonNext),
                         onPressed: _saving ? null : () => _continueFrom(_step),
                       ),
                     if (isLast) ...[
                       PlatformSecondaryButton(
-                        label: l10n.itemSaveDraft,
+                        label: strings.tKey(
+                          PlatformAdminKeys.buttonItemSaveDraft,
+                        ),
                         onPressed: _saving
                             ? null
                             : () => _saveAll(publish: false),
                       ),
                       PlatformPrimaryButton(
-                        label: l10n.publish,
+                        label: strings.tKey(PlatformAdminKeys.buttonPublish),
                         isLoading: _saving,
                         onPressed: _saving
                             ? null
@@ -381,29 +453,33 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
             },
             steps: [
               Step(
-                title: Text(l10n.stepBasics),
-                subtitle: Text(l10n.stepBasicsHelp),
+                title: Text(strings.tKey(PlatformAdminKeys.stepItemBasics)),
+                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepBasics)),
                 isActive: _step >= 0,
                 state: _step > 0 ? StepState.complete : StepState.indexed,
-                content: _buildBasicsStep(l10n, categories),
+                content: _buildBasicsStep(strings, categories),
               ),
               Step(
-                title: Text(l10n.stepContent),
-                subtitle: Text(l10n.stepContentHelp),
+                title: Text(strings.tKey(PlatformAdminKeys.stepItemContent)),
+                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepContent)),
                 isActive: _step >= 1,
                 state: _step > 1 ? StepState.complete : StepState.indexed,
-                content: _buildContentStep(l10n, extras),
+                content: _buildContentStep(strings, extras),
               ),
               Step(
-                title: Text(l10n.stepIssueOptions),
-                subtitle: Text(l10n.stepIssueHelp),
+                title: Text(
+                  strings.tKey(PlatformAdminKeys.stepItemIssueOptions),
+                ),
+                subtitle: Text(
+                  strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
+                ),
                 isActive: _step >= 2,
                 state: _step > 2 ? StepState.complete : StepState.indexed,
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.stepIssueHelp,
+                      strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
                       style: PtTheme.font(
                         13,
                         lineHeight: 19,
@@ -426,15 +502,17 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 ),
               ),
               Step(
-                title: Text(l10n.stepEvidence),
-                subtitle: Text(l10n.stepEvidenceHelp),
+                title: Text(strings.tKey(PlatformAdminKeys.stepItemEvidence)),
+                subtitle: Text(
+                  strings.tKey(PlatformAdminKeys.helpStepEvidence),
+                ),
                 isActive: _step >= 3,
                 state: _step > 3 ? StepState.complete : StepState.indexed,
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.stepEvidenceHelp,
+                      strings.tKey(PlatformAdminKeys.helpStepEvidence),
                       style: PtTheme.font(
                         13,
                         lineHeight: 19,
@@ -456,15 +534,19 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 ),
               ),
               Step(
-                title: Text(l10n.stepMeasurement),
-                subtitle: Text(l10n.stepMeasureHelp),
+                title: Text(
+                  strings.tKey(PlatformAdminKeys.stepItemMeasurements),
+                ),
+                subtitle: Text(
+                  strings.tKey(PlatformAdminKeys.helpStepMeasurements),
+                ),
                 isActive: _step >= 4,
                 state: _step > 4 ? StepState.complete : StepState.indexed,
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.stepMeasureHelp,
+                      strings.tKey(PlatformAdminKeys.helpStepMeasurements),
                       style: PtTheme.font(
                         13,
                         lineHeight: 19,
@@ -486,11 +568,11 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 ),
               ),
               Step(
-                title: Text(l10n.stepReview),
-                subtitle: Text(l10n.stepReviewHelp),
+                title: Text(strings.tKey(PlatformAdminKeys.stepItemReview)),
+                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepReview)),
                 isActive: _step >= 5,
                 state: StepState.indexed,
-                content: _buildCreateReview(l10n, categories, extras),
+                content: _buildCreateReview(strings, categories, extras),
               ),
             ],
           ),
@@ -499,17 +581,14 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     );
   }
 
-  Widget _buildBasicsStep(
-    AppLocalizations l10n,
-    List<PlatformCategory> categories,
-  ) {
+  Widget _buildBasicsStep(dynamic strings, List<PlatformCategory> categories) {
     return Form(
       key: _basicsFormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            l10n.stepBasicsHelp,
+            strings.tKey(PlatformAdminKeys.helpStepBasics),
             style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
           ),
           const SizedBox(height: 12),
@@ -525,19 +604,20 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                   for (final field in <Widget>[
                     PlatformTextField(
                       controller: _codeController,
-                      label: l10n.itemCode,
-                      validator: (value) => _required(value, l10n),
+                      label: strings.tKey(PlatformAdminKeys.fieldItemCode),
+                      validator: (value) => _required(value, strings),
                     ),
                     FormField<String>(
                       initialValue: _categoryId,
-                      validator: (value) =>
-                          value == null || value.isEmpty ? l10n.category : null,
+                      validator: (value) => value == null || value.isEmpty
+                          ? strings.tKey(CommonKeys.labelCategory)
+                          : null,
                       builder: (state) => Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           PlatformDropdown<String>(
-                            label: l10n.category,
+                            label: strings.tKey(CommonKeys.labelCategory),
                             value: state.value ?? '',
                             items: [
                               const DropdownMenuItem(
@@ -579,15 +659,19 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                     ),
                     PlatformTextField(
                       controller: _unitController,
-                      label: l10n.measurementUnit,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemMeasurementUnit,
+                      ),
                     ),
                     PlatformTextField(
                       controller: _sensorController,
-                      label: l10n.sensorTool,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemSensorTool,
+                      ),
                     ),
                     PlatformTextField(
                       controller: _sortOrderController,
-                      label: l10n.categoryOrder,
+                      label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                       keyboardType: TextInputType.number,
                     ),
                   ])
@@ -608,18 +692,24 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 children: [
                   for (final field in <Widget>[
                     _SwitchTile(
-                      label: l10n.safetyCritical,
+                      label: strings.tKey(
+                        PlatformAdminKeys.badgeSafetyCritical,
+                      ),
                       value: _safetyCritical,
                       onChanged: (value) =>
                           setState(() => _safetyCritical = value),
                     ),
                     _SwitchTile(
-                      label: l10n.multiPoint,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemMultiPoint,
+                      ),
                       value: _multiPoint,
                       onChanged: (value) => setState(() => _multiPoint = value),
                     ),
                     _SwitchTile(
-                      label: l10n.allowFreeText,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemAllowFreeText,
+                      ),
                       value: _allowFreeTextNote,
                       onChanged: (value) =>
                           setState(() => _allowFreeTextNote = value),
@@ -642,7 +732,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
               tilePadding: const EdgeInsets.symmetric(horizontal: 14),
               childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               title: Text(
-                l10n.itemAdvanced,
+                strings.tKey(PlatformAdminKeys.sectionItemAdvanced),
                 style: PtTheme.font(
                   14,
                   weight: FontWeight.w700,
@@ -662,16 +752,22 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                         for (final field in <Widget>[
                           PlatformTextField(
                             controller: _specEnController,
-                            label: l10n.standardSpecEn,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemStandardSpecEn,
+                            ),
                           ),
                           PlatformTextField(
                             controller: _specArController,
-                            label: l10n.standardSpecAr,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemStandardSpecAr,
+                            ),
                             textDirection: TextDirection.rtl,
                           ),
                           PlatformTextField(
                             controller: _maxTyreAgeController,
-                            label: l10n.maxTyreAge,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemMaxTyreAge,
+                            ),
                             keyboardType: TextInputType.number,
                           ),
                         ])
@@ -688,42 +784,39 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     );
   }
 
-  Widget _buildContentStep(
-    AppLocalizations l10n,
-    List<PlatformLanguage> extras,
-  ) {
+  Widget _buildContentStep(dynamic strings, List<PlatformLanguage> extras) {
     return Form(
       key: _contentFormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            l10n.stepContentHelp,
+            strings.tKey(PlatformAdminKeys.helpStepContent),
             style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
           ),
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _labelEnController,
-            label: l10n.labelEn,
-            validator: (value) => _required(value, l10n),
+            label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+            validator: (value) => _required(value, strings),
           ),
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _labelArController,
-            label: l10n.labelAr,
+            label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
             textDirection: TextDirection.rtl,
-            validator: (value) => _required(value, l10n),
+            validator: (value) => _required(value, strings),
           ),
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _instructionEnController,
-            label: l10n.instructionEn,
+            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
             maxLines: 3,
           ),
           const SizedBox(height: 12),
           PlatformTextField(
             controller: _instructionArController,
-            label: l10n.instructionAr,
+            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionAr),
             maxLines: 3,
             textDirection: TextDirection.rtl,
           ),
@@ -739,7 +832,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   }
 
   Widget _buildCreateReview(
-    AppLocalizations l10n,
+    dynamic strings,
     List<PlatformCategory> categories,
     List<PlatformLanguage> extras,
   ) {
@@ -760,7 +853,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.stepReviewHelp,
+          strings.tKey(PlatformAdminKeys.helpStepReview),
           style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
         ),
         const SizedBox(height: 12),
@@ -769,45 +862,50 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _ReviewRow(
-                label: l10n.itemCode,
+                label: strings.tKey(PlatformAdminKeys.fieldItemCode),
                 value: _codeController.text.trim().isEmpty
-                    ? '—'
+                    ? '�'
                     : _codeController.text.trim(),
               ),
-              _ReviewRow(label: l10n.category, value: categoryName),
               _ReviewRow(
-                label: l10n.labelEn,
+                label: strings.tKey(CommonKeys.labelCategory),
+                value: categoryName,
+              ),
+              _ReviewRow(
+                label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                 value: _labelEnController.text.trim().isEmpty
-                    ? '—'
+                    ? '�'
                     : _labelEnController.text.trim(),
               ),
               _ReviewRow(
-                label: l10n.labelAr,
+                label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
                 value: _labelArController.text.trim().isEmpty
-                    ? '—'
+                    ? '�'
                     : _labelArController.text.trim(),
               ),
               _ReviewRow(
-                label: l10n.measurementUnit,
+                label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
                 value: _unitController.text.trim().isEmpty
-                    ? '—'
+                    ? '�'
                     : _unitController.text.trim(),
               ),
               _ReviewRow(
-                label: l10n.issueFields,
+                label: strings.tKey(PlatformAdminKeys.sectionItemIssueFields),
                 value: '${_issueFields.length}',
               ),
               _ReviewRow(
-                label: l10n.evidenceRules,
+                label: strings.tKey(PlatformAdminKeys.sectionItemEvidenceRules),
                 value: '${_evidenceRules.length}',
               ),
               _ReviewRow(
-                label: l10n.measurementBands,
+                label: strings.tKey(
+                  PlatformAdminKeys.sectionItemMeasurementBands,
+                ),
                 value: '${_bands.length}',
               ),
               if (stagedExtras.isNotEmpty)
                 _ReviewRow(
-                  label: l10n.stepContent,
+                  label: strings.tKey(PlatformAdminKeys.stepItemContent),
                   value: stagedExtras.join(', '),
                 ),
             ],
@@ -817,7 +915,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n) {
+  Widget _buildHeader(dynamic strings) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -833,7 +931,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
               ),
               const SizedBox(width: 4),
               Text(
-                l10n.masterLibraryTitle,
+                strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
                 style: PtTheme.font(
                   11,
                   weight: FontWeight.w700,
@@ -846,7 +944,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
         ),
         const SizedBox(height: 10),
         Text(
-          l10n.itemEditor,
+          strings.tKey(PlatformAdminKeys.pageItemEditorTitle),
           style: PtTheme.font(
             26,
             lineHeight: 32,
@@ -859,7 +957,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
         ),
         const SizedBox(height: 4),
         Text(
-          l10n.addItem,
+          strings.tKey(PlatformAdminKeys.buttonItemAdd),
           style: PtTheme.font(13, lineHeight: 18, color: PtTheme.muted),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -918,7 +1016,7 @@ class _ReviewRow extends StatelessWidget {
 /// after the item is created. In edit mode they are saved explicitly via
 /// [onSave]; the overlay save is best-effort and failures are reported back
 /// to the review step.
-class _ExtraTranslationsCard extends StatefulWidget {
+class _ExtraTranslationsCard extends ConsumerStatefulWidget {
   const _ExtraTranslationsCard({
     required this.languages,
     this.initial = const {},
@@ -936,10 +1034,12 @@ class _ExtraTranslationsCard extends StatefulWidget {
   final ValueChanged<Map<String, _LangText>>? onChanged;
 
   @override
-  State<_ExtraTranslationsCard> createState() => _ExtraTranslationsCardState();
+  ConsumerState<_ExtraTranslationsCard> createState() =>
+      _ExtraTranslationsCardState();
 }
 
-class _ExtraTranslationsCardState extends State<_ExtraTranslationsCard> {
+class _ExtraTranslationsCardState
+    extends ConsumerState<_ExtraTranslationsCard> {
   final Map<String, TextEditingController> _labels = {};
   final Map<String, TextEditingController> _instructions = {};
 
@@ -1007,7 +1107,7 @@ class _ExtraTranslationsCardState extends State<_ExtraTranslationsCard> {
   @override
   Widget build(BuildContext context) {
     if (widget.languages.isEmpty) return const SizedBox.shrink();
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1035,7 +1135,7 @@ class _ExtraTranslationsCardState extends State<_ExtraTranslationsCard> {
                 const SizedBox(height: 10),
                 PlatformTextField(
                   controller: _labels[language.code]!,
-                  label: l10n.labelEn,
+                  label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                   enabled: widget.enabled,
                   textDirection: language.direction == 'rtl'
                       ? TextDirection.rtl
@@ -1044,7 +1144,7 @@ class _ExtraTranslationsCardState extends State<_ExtraTranslationsCard> {
                 const SizedBox(height: 10),
                 PlatformTextField(
                   controller: _instructions[language.code]!,
-                  label: l10n.instructionEn,
+                  label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
                   enabled: widget.enabled,
                   maxLines: 4,
                   textDirection: language.direction == 'rtl'
@@ -1060,7 +1160,7 @@ class _ExtraTranslationsCardState extends State<_ExtraTranslationsCard> {
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: PlatformPrimaryButton(
-              label: l10n.save,
+              label: strings.tKey(CommonKeys.buttonSave),
               isLoading: widget.saving,
               onPressed: widget.enabled && !widget.saving
                   ? () => widget.onSave!(_snapshot())
@@ -1107,12 +1207,13 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   }
 
   Future<void> _publish(PlatformItemVersion draft) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.read(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.publishItem,
-      body: '${l10n.publishItem} Â· v${draft.versionNo}',
-      confirmLabel: l10n.publishItem,
+      title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
+      body:
+          '${strings.tKey(PlatformAdminKeys.buttonItemPublish)} · v${draft.versionNo}',
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonItemPublish),
     );
     if (!confirmed) return;
     setState(() => _publishing = true);
@@ -1121,7 +1222,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           .read(platformConfigActionsProvider)
           .publishItem(widget.itemId, draft.id);
       if (!mounted) return;
-      _showSnack(context, l10n.itemPublished);
+      _showSnack(context, strings.tKey(PlatformAdminKeys.toastItemPublished));
       setState(() => _selectedVersionId = null);
       ref.invalidate(itemDetailProvider(widget.itemId));
     } catch (error) {
@@ -1133,12 +1234,12 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   }
 
   Future<void> _retire(PlatformItem item) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.read(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retireItem,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retire,
+      title: strings.tKey(PlatformAdminKeys.buttonItemRetire),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
       destructive: true,
     );
     if (!confirmed) return;
@@ -1146,7 +1247,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     try {
       await ref.read(platformConfigActionsProvider).retireItem(item.id);
       if (!mounted) return;
-      _showSnack(context, l10n.itemRetired);
+      _showSnack(context, strings.tKey(PlatformAdminKeys.toastItemRetired));
       Navigator.of(context).maybePop();
     } catch (error) {
       if (!mounted) return;
@@ -1158,11 +1259,14 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final detailAsync = ref.watch(itemDetailProvider(widget.itemId));
     return detailAsync.when(
-      loading: () =>
-          _EditorShell(child: PlatformLoadingView(message: l10n.loading)),
+      loading: () => _EditorShell(
+        child: PlatformLoadingView(
+          message: strings.tKey(CommonKeys.stateLoading),
+        ),
+      ),
       error: (error, _) => _EditorShell(
         child: PlatformErrorView(
           message: _failureMessage(error),
@@ -1173,18 +1277,18 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         contextBar: PlatformContextBar(
           breadcrumbs: [
             ContextBreadcrumbItem(
-              label: l10n.masterLibraryTitle,
+              label: strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
               onTap: () => Navigator.of(context).maybePop(),
             ),
             ContextBreadcrumbItem(label: detail.item.code),
           ],
         ),
-        child: _buildDetail(l10n, detail),
+        child: _buildDetail(strings, detail),
       ),
     );
   }
 
-  Widget _buildDetail(AppLocalizations l10n, PlatformItemDetail detail) {
+  Widget _buildDetail(dynamic strings, PlatformItemDetail detail) {
     final versions = detail.versions;
     final fallback = detail.draftVersion ?? detail.publishedVersion;
     final selectedId =
@@ -1202,25 +1306,25 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(l10n, detail, version),
+        _buildHeader(strings, detail, version),
         const SizedBox(height: 16),
         if (version == null)
           PlatformEmptyView(
-            title: l10n.noData,
-            actionLabel: l10n.createDraft,
+            title: strings.tKey(CommonKeys.emptyTitle),
+            actionLabel: strings.tKey(CommonKeys.buttonCreateDraft),
             onAction: _creatingDraft ? null : _createDraft,
           )
         else ...[
-          if (!editable) _buildImmutableBanner(l10n, detail),
+          if (!editable) _buildImmutableBanner(strings, detail),
           if (!editable) const SizedBox(height: 14),
-          _buildStepper(l10n, detail, version, editable, optionSets),
+          _buildStepper(strings, detail, version, editable, optionSets),
         ],
       ],
     );
   }
 
   Widget _buildHeader(
-    AppLocalizations l10n,
+    dynamic strings,
     PlatformItemDetail detail,
     PlatformItemVersion? version,
   ) {
@@ -1240,7 +1344,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
               ),
               const SizedBox(width: 4),
               Text(
-                l10n.masterLibraryTitle,
+                strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
                 style: PtTheme.font(
                   11,
                   weight: FontWeight.w700,
@@ -1334,7 +1438,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                         DropdownMenuItem(
                           value: itemVersion.id,
                           child: Text(
-                            'v${itemVersion.versionNo} Â· ${itemVersion.status}',
+                            'v${itemVersion.versionNo} · ${itemVersion.status}',
                           ),
                         ),
                     ],
@@ -1348,7 +1452,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
               ),
             if (item.status != 'RETIRED')
               PlatformSecondaryButton(
-                label: l10n.retireItem,
+                label: strings.tKey(PlatformAdminKeys.buttonItemRetire),
                 icon: Icons.archive_outlined,
                 destructive: true,
                 onPressed: _retiring ? null : () => _retire(item),
@@ -1359,10 +1463,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     );
   }
 
-  Widget _buildImmutableBanner(
-    AppLocalizations l10n,
-    PlatformItemDetail detail,
-  ) {
+  Widget _buildImmutableBanner(dynamic strings, PlatformItemDetail detail) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1384,7 +1485,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.versionImmutable,
+                  strings.tKey(PlatformAdminKeys.alertVersionImmutable),
                   style: PtTheme.font(
                     13,
                     lineHeight: 19,
@@ -1400,7 +1501,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             Align(
               alignment: AlignmentDirectional.centerEnd,
               child: PlatformSecondaryButton(
-                label: l10n.createDraft,
+                label: strings.tKey(CommonKeys.buttonCreateDraft),
                 icon: Icons.add_rounded,
                 onPressed: _creatingDraft ? null : _createDraft,
               ),
@@ -1411,22 +1512,22 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     );
   }
 
-  List<String> _stepTitles(AppLocalizations l10n) => [
-    l10n.stepBasics,
-    l10n.stepContent,
-    l10n.stepIssueOptions,
-    l10n.stepEvidence,
-    l10n.stepMeasurement,
-    l10n.stepReview,
+  List<String> _stepTitles(dynamic strings) => [
+    strings.tKey(PlatformAdminKeys.stepItemBasics),
+    strings.tKey(PlatformAdminKeys.stepItemContent),
+    strings.tKey(PlatformAdminKeys.stepItemIssueOptions),
+    strings.tKey(PlatformAdminKeys.stepItemEvidence),
+    strings.tKey(PlatformAdminKeys.stepItemMeasurements),
+    strings.tKey(PlatformAdminKeys.stepItemReview),
   ];
 
-  List<String> _stepHelps(AppLocalizations l10n) => [
-    l10n.stepBasicsHelp,
-    l10n.stepContentHelp,
-    l10n.stepIssueHelp,
-    l10n.stepEvidenceHelp,
-    l10n.stepMeasureHelp,
-    l10n.stepReviewHelp,
+  List<String> _stepHelps(dynamic strings) => [
+    strings.tKey(PlatformAdminKeys.helpStepBasics),
+    strings.tKey(PlatformAdminKeys.helpStepContent),
+    strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
+    strings.tKey(PlatformAdminKeys.helpStepEvidence),
+    strings.tKey(PlatformAdminKeys.helpStepMeasurements),
+    strings.tKey(PlatformAdminKeys.helpStepReview),
   ];
 
   /// Inline per-step validity on persisted state. Content requires saved
@@ -1457,7 +1558,11 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         _extras = texts;
       });
       if (failed.isNotEmpty) {
-        _showSnack(context, AppLocalizations.of(context).error, isError: true);
+        _showSnack(
+          context,
+          ref.read(uiStringsProvider).tKey(CommonKeys.stateError),
+          isError: true,
+        );
       }
     } catch (error) {
       if (!mounted) return;
@@ -1480,14 +1585,14 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   }
 
   Widget _buildStepper(
-    AppLocalizations l10n,
+    dynamic strings,
     PlatformItemDetail detail,
     PlatformItemVersion version,
     bool editable,
     List<OptionSet> optionSets,
   ) {
-    final titles = _stepTitles(l10n);
-    final helps = _stepHelps(l10n);
+    final titles = _stepTitles(strings);
+    final helps = _stepHelps(strings);
     final valid = _stepValid(_step, version);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1495,7 +1600,10 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: Text(
-            l10n.stepCounter(_step + 1, titles.length),
+            strings.tArgsKey(PlatformAdminKeys.stepCounter, {
+              'current': _step + 1,
+              'total': titles.length,
+            }),
             style: PtTheme.font(
               12,
               weight: FontWeight.w700,
@@ -1522,13 +1630,13 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                   if (_step > 0)
                     PlatformSecondaryButton(
                       key: const Key('stepper-back'),
-                      label: l10n.previous,
+                      label: strings.tKey(CommonKeys.buttonPrevious),
                       onPressed: () => setState(() => _step--),
                     ),
                   if (!isLast)
                     PlatformPrimaryButton(
                       key: const Key('stepper-next'),
-                      label: l10n.next,
+                      label: strings.tKey(CommonKeys.buttonNext),
                       onPressed: valid ? () => setState(() => _step++) : null,
                     ),
                 ],
@@ -1544,7 +1652,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                 state: _step > index ? StepState.complete : StepState.indexed,
                 content: _buildStepContent(
                   index,
-                  l10n,
+                  strings,
                   detail,
                   version,
                   editable,
@@ -1559,7 +1667,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
 
   Widget _buildStepContent(
     int index,
-    AppLocalizations l10n,
+    dynamic strings,
     PlatformItemDetail detail,
     PlatformItemVersion version,
     bool editable,
@@ -1577,7 +1685,9 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     switch (index) {
       case 0:
         return configAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, _) => PlatformErrorView(
             message: _failureMessage(error),
             onRetry: () => ref.invalidate(itemConfigProvider(key)),
@@ -1586,7 +1696,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.stepBasicsHelp,
+                strings.tKey(PlatformAdminKeys.helpStepBasics),
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
               ),
               const SizedBox(height: 12),
@@ -1606,7 +1716,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.stepContentHelp,
+              strings.tKey(PlatformAdminKeys.helpStepContent),
               style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
             ),
             const SizedBox(height: 12),
@@ -1635,7 +1745,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             if (!_stepValid(1, version)) ...[
               const SizedBox(height: 8),
               Text(
-                l10n.required,
+                strings.tKey(CommonKeys.validationRequired),
                 style: PtTheme.font(
                   12,
                   lineHeight: 16,
@@ -1648,7 +1758,9 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         );
       case 2:
         return configAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, _) => PlatformErrorView(
             message: _failureMessage(error),
             onRetry: () => ref.invalidate(itemConfigProvider(key)),
@@ -1657,7 +1769,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.stepIssueHelp,
+                strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
               ),
               const SizedBox(height: 12),
@@ -1678,7 +1790,9 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         );
       case 3:
         return configAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, _) => PlatformErrorView(
             message: _failureMessage(error),
             onRetry: () => ref.invalidate(itemConfigProvider(key)),
@@ -1687,7 +1801,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.stepEvidenceHelp,
+                strings.tKey(PlatformAdminKeys.helpStepEvidence),
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
               ),
               const SizedBox(height: 12),
@@ -1707,7 +1821,9 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         );
       case 4:
         return configAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, _) => PlatformErrorView(
             message: _failureMessage(error),
             onRetry: () => ref.invalidate(itemConfigProvider(key)),
@@ -1716,7 +1832,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.stepMeasureHelp,
+                strings.tKey(PlatformAdminKeys.helpStepMeasurements),
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
               ),
               const SizedBox(height: 12),
@@ -1735,16 +1851,16 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           ),
         );
       default:
-        return _buildEditReview(l10n, detail);
+        return _buildEditReview(strings, detail);
     }
   }
 
-  Widget _buildEditReview(AppLocalizations l10n, PlatformItemDetail detail) {
+  Widget _buildEditReview(dynamic strings, PlatformItemDetail detail) {
     final draft = detail.draftVersion;
     if (draft == null) {
       return PlatformEmptyView(
-        title: l10n.noData,
-        actionLabel: l10n.createDraft,
+        title: strings.tKey(CommonKeys.emptyTitle),
+        actionLabel: strings.tKey(CommonKeys.buttonCreateDraft),
         onAction: _creatingDraft ? null : _createDraft,
       );
     }
@@ -1754,15 +1870,17 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.stepReviewHelp,
+          strings.tKey(PlatformAdminKeys.helpStepReview),
           style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
         ),
         const SizedBox(height: 12),
         configAsync.when(
-          loading: () => PlatformLoadingView(message: l10n.loading),
+          loading: () => PlatformLoadingView(
+            message: strings.tKey(CommonKeys.stateLoading),
+          ),
           error: (error, _) => PlatformErrorView(
             message: _failureMessage(error),
-            retryLabel: l10n.retry,
+            retryLabel: strings.tKey(CommonKeys.buttonRetry),
             onRetry: () => ref.invalidate(itemConfigProvider(key)),
           ),
           data: (config) {
@@ -1811,21 +1929,29 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                     ),
                   const SizedBox(height: 8),
                   _ReviewRow(
-                    label: l10n.measurementUnit,
+                    label: strings.tKey(
+                      PlatformAdminKeys.fieldItemMeasurementUnit,
+                    ),
                     value: config.metadata.measurementUnit.isEmpty
-                        ? '—'
+                        ? '�'
                         : config.metadata.measurementUnit,
                   ),
                   _ReviewRow(
-                    label: l10n.issueFields,
+                    label: strings.tKey(
+                      PlatformAdminKeys.sectionItemIssueFields,
+                    ),
                     value: '${config.issueFields.length}',
                   ),
                   _ReviewRow(
-                    label: l10n.evidenceRules,
+                    label: strings.tKey(
+                      PlatformAdminKeys.sectionItemEvidenceRules,
+                    ),
                     value: '${config.evidenceRules.length}',
                   ),
                   _ReviewRow(
-                    label: l10n.measurementBands,
+                    label: strings.tKey(
+                      PlatformAdminKeys.sectionItemMeasurementBands,
+                    ),
                     value: '${config.measurementBands.length}',
                   ),
                   if (_extraFailed.isNotEmpty)
@@ -1840,7 +1966,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                         ),
                       ),
                       child: Text(
-                        '${l10n.error}: ${_extraFailed.join(', ')}',
+                        '${strings.tKey(CommonKeys.stateError)}: ${_extraFailed.join(', ')}',
                         style: PtTheme.font(
                           12,
                           lineHeight: 17,
@@ -1861,12 +1987,12 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           runSpacing: 10,
           children: [
             PlatformSecondaryButton(
-              label: l10n.itemSaveDraft,
+              label: strings.tKey(PlatformAdminKeys.buttonItemSaveDraft),
               icon: Icons.note_add_outlined,
               onPressed: _creatingDraft ? null : () => _ensureDraft(detail),
             ),
             PlatformPrimaryButton(
-              label: l10n.publish,
+              label: strings.tKey(PlatformAdminKeys.buttonPublish),
               icon: Icons.publish_rounded,
               isLoading: _publishing,
               onPressed: _publishing ? null : () => _publish(draft),
@@ -1878,7 +2004,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   }
 }
 
-class _BasicsSection extends StatefulWidget {
+class _BasicsSection extends ConsumerStatefulWidget {
   const _BasicsSection({
     required this.itemId,
     required this.metadata,
@@ -1892,10 +2018,10 @@ class _BasicsSection extends StatefulWidget {
   final Future<void> Function(ItemMetadata metadata) onSave;
 
   @override
-  State<_BasicsSection> createState() => _BasicsSectionState();
+  ConsumerState<_BasicsSection> createState() => _BasicsSectionState();
 }
 
-class _BasicsSectionState extends State<_BasicsSection> {
+class _BasicsSectionState extends ConsumerState<_BasicsSection> {
   late final TextEditingController _unit;
   late final TextEditingController _sensor;
   late final TextEditingController _specEn;
@@ -1956,7 +2082,7 @@ class _BasicsSectionState extends State<_BasicsSection> {
     super.dispose();
   }
 
-  Future<void> _save(AppLocalizations l10n) async {
+  Future<void> _save(dynamic strings) async {
     setState(() => _saving = true);
     try {
       await widget.onSave(
@@ -1984,12 +2110,14 @@ class _BasicsSectionState extends State<_BasicsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PlatformSectionHeader(title: l10n.basics),
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemBasics),
+          ),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -2003,12 +2131,16 @@ class _BasicsSectionState extends State<_BasicsSection> {
                   for (final field in <Widget>[
                     PlatformTextField(
                       controller: _unit,
-                      label: l10n.measurementUnit,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemMeasurementUnit,
+                      ),
                       enabled: widget.editable,
                     ),
                     PlatformTextField(
                       controller: _sensor,
-                      label: l10n.sensorTool,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemSensorTool,
+                      ),
                       enabled: widget.editable,
                     ),
                   ])
@@ -2029,7 +2161,7 @@ class _BasicsSectionState extends State<_BasicsSection> {
               tilePadding: const EdgeInsets.symmetric(horizontal: 14),
               childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               title: Text(
-                l10n.itemAdvanced,
+                strings.tKey(PlatformAdminKeys.sectionItemAdvanced),
                 style: PtTheme.font(
                   14,
                   weight: FontWeight.w700,
@@ -2049,30 +2181,40 @@ class _BasicsSectionState extends State<_BasicsSection> {
                         for (final field in <Widget>[
                           PlatformTextField(
                             controller: _specEn,
-                            label: l10n.standardSpecEn,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemStandardSpecEn,
+                            ),
                             enabled: widget.editable,
                           ),
                           PlatformTextField(
                             controller: _specAr,
-                            label: l10n.standardSpecAr,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemStandardSpecAr,
+                            ),
                             enabled: widget.editable,
                             textDirection: TextDirection.rtl,
                           ),
                           PlatformTextField(
                             controller: _maxTyreAge,
-                            label: l10n.maxTyreAge,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemMaxTyreAge,
+                            ),
                             enabled: widget.editable,
                             keyboardType: TextInputType.number,
                           ),
                           PlatformTextField(
                             controller: _sortOrder,
-                            label: l10n.categoryOrder,
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldCategoryOrder,
+                            ),
                             enabled: widget.editable,
                             keyboardType: TextInputType.number,
                           ),
                           PlatformTextField(
                             controller: _guideImage,
-                            label: l10n.guideImage,
+                            label: strings.tKey(
+                              PlatformAdminKeys.sectionItemGuideImage,
+                            ),
                             enabled: widget.editable,
                           ),
                         ])
@@ -2096,20 +2238,26 @@ class _BasicsSectionState extends State<_BasicsSection> {
                 children: [
                   for (final field in <Widget>[
                     _SwitchTile(
-                      label: l10n.safetyCritical,
+                      label: strings.tKey(
+                        PlatformAdminKeys.badgeSafetyCritical,
+                      ),
                       value: _safetyCritical,
                       enabled: widget.editable,
                       onChanged: (value) =>
                           setState(() => _safetyCritical = value),
                     ),
                     _SwitchTile(
-                      label: l10n.multiPoint,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemMultiPoint,
+                      ),
                       value: _multiPoint,
                       enabled: widget.editable,
                       onChanged: (value) => setState(() => _multiPoint = value),
                     ),
                     _SwitchTile(
-                      label: l10n.allowFreeText,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemAllowFreeText,
+                      ),
                       value: _allowFreeText,
                       enabled: widget.editable,
                       onChanged: (value) =>
@@ -2125,9 +2273,11 @@ class _BasicsSectionState extends State<_BasicsSection> {
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: PlatformPrimaryButton(
-              label: l10n.save,
+              label: strings.tKey(CommonKeys.buttonSave),
               isLoading: _saving,
-              onPressed: widget.editable && !_saving ? () => _save(l10n) : null,
+              onPressed: widget.editable && !_saving
+                  ? () => _save(strings)
+                  : null,
             ),
           ),
         ],
@@ -2136,7 +2286,7 @@ class _BasicsSectionState extends State<_BasicsSection> {
   }
 }
 
-class _TranslationsSection extends StatefulWidget {
+class _TranslationsSection extends ConsumerStatefulWidget {
   const _TranslationsSection({
     required this.translations,
     required this.editable,
@@ -2154,10 +2304,11 @@ class _TranslationsSection extends StatefulWidget {
   onSave;
 
   @override
-  State<_TranslationsSection> createState() => _TranslationsSectionState();
+  ConsumerState<_TranslationsSection> createState() =>
+      _TranslationsSectionState();
 }
 
-class _TranslationsSectionState extends State<_TranslationsSection> {
+class _TranslationsSectionState extends ConsumerState<_TranslationsSection> {
   late final TextEditingController _labelEn;
   late final TextEditingController _instructionEn;
   late final TextEditingController _labelAr;
@@ -2220,30 +2371,31 @@ class _TranslationsSectionState extends State<_TranslationsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformSectionHeader(
-            title: '${l10n.englishContent} / ${l10n.arabicContent}',
+            title:
+                '${strings.tKey(PlatformAdminKeys.tabItemEnglish)} / ${strings.tKey(PlatformAdminKeys.tabItemArabic)}',
           ),
           const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final en = _buildLanguageCard(
-                title: l10n.englishContent,
+                title: strings.tKey(PlatformAdminKeys.tabItemEnglish),
                 labelController: _labelEn,
                 instructionController: _instructionEn,
                 isRtl: false,
-                l10n: l10n,
+                strings: strings,
               );
               final ar = _buildLanguageCard(
-                title: l10n.arabicContent,
+                title: strings.tKey(PlatformAdminKeys.tabItemArabic),
                 labelController: _labelAr,
                 instructionController: _instructionAr,
                 isRtl: true,
-                l10n: l10n,
+                strings: strings,
               );
               if (constraints.maxWidth < 760) {
                 return Column(
@@ -2265,7 +2417,7 @@ class _TranslationsSectionState extends State<_TranslationsSection> {
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: PlatformPrimaryButton(
-              label: l10n.save,
+              label: strings.tKey(CommonKeys.buttonSave),
               isLoading: _saving,
               onPressed: widget.editable && !_saving ? _save : null,
             ),
@@ -2280,7 +2432,7 @@ class _TranslationsSectionState extends State<_TranslationsSection> {
     required TextEditingController labelController,
     required TextEditingController instructionController,
     required bool isRtl,
-    required AppLocalizations l10n,
+    required dynamic strings,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -2303,14 +2455,18 @@ class _TranslationsSectionState extends State<_TranslationsSection> {
           const SizedBox(height: 10),
           PlatformTextField(
             controller: labelController,
-            label: isRtl ? l10n.labelAr : l10n.labelEn,
+            label: isRtl
+                ? strings.tKey(PlatformAdminKeys.fieldItemLabelAr)
+                : strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
             enabled: widget.editable,
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
           ),
           const SizedBox(height: 10),
           PlatformTextField(
             controller: instructionController,
-            label: isRtl ? l10n.arabicContent : l10n.englishContent,
+            label: isRtl
+                ? strings.tKey(PlatformAdminKeys.tabItemArabic)
+                : strings.tKey(PlatformAdminKeys.tabItemEnglish),
             enabled: widget.editable,
             maxLines: 5,
             textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
@@ -2321,7 +2477,7 @@ class _TranslationsSectionState extends State<_TranslationsSection> {
   }
 }
 
-class _EvidenceRulesSection extends StatefulWidget {
+class _EvidenceRulesSection extends ConsumerStatefulWidget {
   const _EvidenceRulesSection({
     required this.rules,
     required this.editable,
@@ -2333,10 +2489,11 @@ class _EvidenceRulesSection extends StatefulWidget {
   final Future<void> Function(List<EvidenceRule> rules) onSave;
 
   @override
-  State<_EvidenceRulesSection> createState() => _EvidenceRulesSectionState();
+  ConsumerState<_EvidenceRulesSection> createState() =>
+      _EvidenceRulesSectionState();
 }
 
-class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
+class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   late List<_EvidenceRuleForm> _forms;
   bool _saving = false;
 
@@ -2399,15 +2556,17 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PlatformSectionHeader(title: l10n.evidenceRules),
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemEvidenceRules),
+          ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildRuleRow(l10n, index),
+            _buildRuleRow(strings, index),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -2416,7 +2575,7 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.addItem,
+                label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
                 onPressed: widget.editable
                     ? () => setState(
@@ -2435,7 +2594,7 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
                     : null,
               ),
               PlatformPrimaryButton(
-                label: l10n.save,
+                label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _saving,
                 onPressed: widget.editable && !_saving ? _save : null,
               ),
@@ -2446,7 +2605,7 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
     );
   }
 
-  Widget _buildRuleRow(AppLocalizations l10n, int index) {
+  Widget _buildRuleRow(dynamic strings, int index) {
     final form = _forms[index];
     return Container(
       padding: const EdgeInsets.all(12),
@@ -2466,11 +2625,14 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
                   child: Opacity(
                     opacity: widget.editable ? 1 : 0.6,
                     child: PlatformDropdown<String>(
-                      label: l10n.status,
+                      label: strings.tKey(CommonKeys.tableStatus),
                       value: form.resultCode,
                       items: [
                         for (final code in _resultCodes)
-                          DropdownMenuItem(value: code, child: Text(code)),
+                          DropdownMenuItem(
+                            value: code,
+                            child: Text(_resultLabel(strings, code)),
+                          ),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -2483,7 +2645,7 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: l10n.delete,
+                tooltip: strings.tKey(CommonKeys.buttonDelete),
                 icon: const Icon(
                   Icons.delete_outline_rounded,
                   size: 18,
@@ -2511,19 +2673,25 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
                   for (final field in <Widget>[
                     PlatformTextField(
                       controller: form.minPhotos,
-                      label: l10n.minPhotos,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldEvidenceMinPhotos,
+                      ),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
                     PlatformTextField(
                       controller: form.minVideos,
-                      label: l10n.minVideos,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldEvidenceMinVideos,
+                      ),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
                     PlatformTextField(
                       controller: form.minNotes,
-                      label: l10n.minNotes,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldEvidenceMinNotes,
+                      ),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
@@ -2532,7 +2700,9 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
-                          label: l10n.requiredEvidenceType,
+                          label: strings.tKey(
+                            PlatformAdminKeys.fieldEvidenceRequiredEvidenceType,
+                          ),
                           value:
                               _evidenceTypes.contains(form.requiredEvidenceType)
                               ? form.requiredEvidenceType
@@ -2541,7 +2711,7 @@ class _EvidenceRulesSectionState extends State<_EvidenceRulesSection> {
                             for (final type in _evidenceTypes)
                               DropdownMenuItem(
                                 value: type,
-                                child: Text(type.isEmpty ? 'none' : type),
+                                child: Text(_evidenceTypeLabel(strings, type)),
                               ),
                           ],
                           onChanged: (value) {
@@ -2661,15 +2831,17 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PlatformSectionHeader(title: l10n.issueFields),
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemIssueFields),
+          ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildFieldRow(l10n, index),
+            _buildFieldRow(strings, index),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -2678,7 +2850,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.addItem,
+                label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
                 onPressed: widget.editable
                     ? () => setState(
@@ -2687,7 +2859,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                     : null,
               ),
               PlatformPrimaryButton(
-                label: l10n.save,
+                label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _saving,
                 onPressed: widget.editable && !_saving ? _save : null,
               ),
@@ -2698,7 +2870,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
     );
   }
 
-  Widget _buildFieldRow(AppLocalizations l10n, int index) {
+  Widget _buildFieldRow(dynamic strings, int index) {
     final form = _forms[index];
     final optionCodes = widget.optionSets
         .map((optionSet) => optionSet.code)
@@ -2727,13 +2899,13 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
               Expanded(
                 child: PlatformTextField(
                   controller: form.fieldCode,
-                  label: l10n.fieldCode,
+                  label: strings.tKey(PlatformAdminKeys.fieldIssueCode),
                   enabled: widget.editable,
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: l10n.delete,
+                tooltip: strings.tKey(CommonKeys.buttonDelete),
                 icon: const Icon(
                   Icons.delete_outline_rounded,
                   size: 18,
@@ -2761,12 +2933,12 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                   for (final field in <Widget>[
                     PlatformTextField(
                       controller: form.labelEn,
-                      label: l10n.labelEn,
+                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                       enabled: widget.editable,
                     ),
                     PlatformTextField(
                       controller: form.labelAr,
-                      label: l10n.labelAr,
+                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
                       enabled: widget.editable,
                       textDirection: TextDirection.rtl,
                     ),
@@ -2775,11 +2947,16 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
-                          label: l10n.inputType,
+                          label: strings.tKey(
+                            PlatformAdminKeys.fieldIssueInputType,
+                          ),
                           value: form.inputType,
                           items: [
                             for (final type in _inputTypes)
-                              DropdownMenuItem(value: type, child: Text(type)),
+                              DropdownMenuItem(
+                                value: type,
+                                child: Text(_inputTypeLabel(strings, type)),
+                              ),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -2794,13 +2971,12 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
-                          label: l10n.optionSet,
+                          label: strings.tKey(
+                            PlatformAdminKeys.fieldIssueOptionSet,
+                          ),
                           value: form.optionSetCode,
                           items: [
-                            const DropdownMenuItem(
-                              value: '',
-                              child: Text('â€”'),
-                            ),
+                            const DropdownMenuItem(value: '', child: Text('—')),
                             for (final optionSet in widget.optionSets)
                               DropdownMenuItem(
                                 value: optionSet.code,
@@ -2827,7 +3003,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                     ),
                     PlatformTextField(
                       controller: form.minValue,
-                      label: l10n.minValue,
+                      label: strings.tKey(PlatformAdminKeys.fieldMeasureMin),
                       enabled: widget.editable,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -2835,7 +3011,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                     ),
                     PlatformTextField(
                       controller: form.maxValue,
-                      label: l10n.maxValue,
+                      label: strings.tKey(PlatformAdminKeys.fieldMeasureMax),
                       enabled: widget.editable,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -2843,23 +3019,29 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                     ),
                     PlatformTextField(
                       controller: form.decimalPlaces,
-                      label: l10n.decimalPlaces,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldIssueDecimalPlaces,
+                      ),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
                     PlatformTextField(
                       controller: form.dependsOnFieldCode,
-                      label: l10n.dependsOn,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldIssueDependsOn,
+                      ),
                       enabled: widget.editable,
                     ),
                     PlatformTextField(
                       controller: form.dependsOnValueCode,
-                      label: 'Depends on value',
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldIssueDependsOnValue,
+                      ),
                       enabled: widget.editable,
                     ),
                     PlatformTextField(
                       controller: form.sortOrder,
-                      label: l10n.categoryOrder,
+                      label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
@@ -2874,7 +3056,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
               selectedOptionSet.values.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
-              l10n.allowedValues,
+              strings.tKey(PlatformAdminKeys.fieldIssueAllowedValues),
               style: PtTheme.font(
                 12,
                 weight: FontWeight.w700,
@@ -2916,20 +3098,20 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _SwitchTile(
-                label: l10n.required,
+                label: strings.tKey(CommonKeys.validationRequired),
                 value: form.required,
                 enabled: widget.editable,
                 onChanged: (value) => setState(() => form.required = value),
               ),
               _SwitchTile(
-                label: l10n.allowMultiple,
+                label: strings.tKey(PlatformAdminKeys.fieldIssueAllowMultiple),
                 value: form.allowMultiple,
                 enabled: widget.editable,
                 onChanged: (value) =>
                     setState(() => form.allowMultiple = value),
               ),
               _SwitchTile(
-                label: l10n.allowFreeText,
+                label: strings.tKey(PlatformAdminKeys.fieldItemAllowFreeText),
                 value: form.allowFreeText,
                 enabled: widget.editable,
                 onChanged: (value) =>
@@ -2939,7 +3121,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
           ),
           const SizedBox(height: 10),
           Text(
-            l10n.requiredForStatuses,
+            strings.tKey(PlatformAdminKeys.fieldIssueRequiredForStatuses),
             style: PtTheme.font(
               12,
               weight: FontWeight.w700,
@@ -2957,7 +3139,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                 children: [
                   for (final status in _requiredForStatuses)
                     PlatformFilterChip(
-                      label: status,
+                      label: _resultLabel(strings, status),
                       selected: form.requiredForStatuses.contains(status),
                       onTap: () => setState(() {
                         if (form.requiredForStatuses.contains(status)) {
@@ -3079,7 +3261,7 @@ class _IssueFieldForm {
   }
 }
 
-class _MeasurementBandsSection extends StatefulWidget {
+class _MeasurementBandsSection extends ConsumerStatefulWidget {
   const _MeasurementBandsSection({
     required this.bands,
     required this.editable,
@@ -3091,11 +3273,12 @@ class _MeasurementBandsSection extends StatefulWidget {
   final Future<void> Function(List<MeasurementBand> bands) onSave;
 
   @override
-  State<_MeasurementBandsSection> createState() =>
+  ConsumerState<_MeasurementBandsSection> createState() =>
       _MeasurementBandsSectionState();
 }
 
-class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
+class _MeasurementBandsSectionState
+    extends ConsumerState<_MeasurementBandsSection> {
   late List<_MeasurementBandForm> _forms;
   bool _saving = false;
 
@@ -3140,15 +3323,17 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          PlatformSectionHeader(title: l10n.measurementBands),
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemMeasurementBands),
+          ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildBandRow(l10n, index),
+            _buildBandRow(strings, index),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -3157,7 +3342,7 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.addItem,
+                label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
                 onPressed: widget.editable
                     ? () => setState(
@@ -3180,7 +3365,7 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                     : null,
               ),
               PlatformPrimaryButton(
-                label: l10n.save,
+                label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _saving,
                 onPressed: widget.editable && !_saving ? _save : null,
               ),
@@ -3191,7 +3376,7 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
     );
   }
 
-  Widget _buildBandRow(AppLocalizations l10n, int index) {
+  Widget _buildBandRow(dynamic strings, int index) {
     final form = _forms[index];
     return Container(
       padding: const EdgeInsets.all(12),
@@ -3208,13 +3393,13 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
               Expanded(
                 child: PlatformTextField(
                   controller: form.fieldCode,
-                  label: l10n.fieldCode,
+                  label: strings.tKey(PlatformAdminKeys.fieldIssueCode),
                   enabled: widget.editable,
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: l10n.delete,
+                tooltip: strings.tKey(CommonKeys.buttonDelete),
                 icon: const Icon(
                   Icons.delete_outline_rounded,
                   size: 18,
@@ -3242,7 +3427,9 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                   for (final field in <Widget>[
                     PlatformTextField(
                       controller: form.unitCode,
-                      label: l10n.measurementUnit,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldItemMeasurementUnit,
+                      ),
                       enabled: widget.editable,
                     ),
                     IgnorePointer(
@@ -3250,13 +3437,17 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
-                          label: 'Direction',
+                          label: strings.tKey(
+                            PlatformAdminKeys.fieldMeasureDirection,
+                          ),
                           value: form.direction,
                           items: [
                             for (final direction in _directions)
                               DropdownMenuItem(
                                 value: direction,
-                                child: Text(direction),
+                                child: Text(
+                                  _directionLabel(strings, direction),
+                                ),
                               ),
                           ],
                           onChanged: (value) {
@@ -3269,7 +3460,7 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                     ),
                     PlatformTextField(
                       controller: form.minValue,
-                      label: l10n.minValue,
+                      label: strings.tKey(PlatformAdminKeys.fieldMeasureMin),
                       enabled: widget.editable,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -3277,7 +3468,7 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                     ),
                     PlatformTextField(
                       controller: form.maxValue,
-                      label: l10n.maxValue,
+                      label: strings.tKey(PlatformAdminKeys.fieldMeasureMax),
                       enabled: widget.editable,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -3288,11 +3479,14 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
-                          label: l10n.status,
+                          label: strings.tKey(CommonKeys.tableStatus),
                           value: form.resultCode,
                           items: [
                             for (final code in _resultCodes)
-                              DropdownMenuItem(value: code, child: Text(code)),
+                              DropdownMenuItem(
+                                value: code,
+                                child: Text(_resultLabel(strings, code)),
+                              ),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -3304,18 +3498,18 @@ class _MeasurementBandsSectionState extends State<_MeasurementBandsSection> {
                     ),
                     PlatformTextField(
                       controller: form.labelEn,
-                      label: l10n.labelEn,
+                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
                       enabled: widget.editable,
                     ),
                     PlatformTextField(
                       controller: form.labelAr,
-                      label: l10n.labelAr,
+                      label: strings.tKey(PlatformAdminKeys.fieldItemLabelAr),
                       enabled: widget.editable,
                       textDirection: TextDirection.rtl,
                     ),
                     PlatformTextField(
                       controller: form.sortOrder,
-                      label: l10n.categoryOrder,
+                      label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
                     ),
@@ -3380,8 +3574,10 @@ class _MeasurementBandForm {
   }
 }
 
-String? _required(String? value, AppLocalizations l10n) {
-  if (value == null || value.trim().isEmpty) return l10n.required;
+String? _required(String? value, dynamic strings) {
+  if (value == null || value.trim().isEmpty) {
+    return strings.tKey(CommonKeys.validationRequired);
+  }
   return null;
 }
 

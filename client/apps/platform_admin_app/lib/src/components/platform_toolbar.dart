@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../platform_providers.dart';
 import '../platform_theme.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Shared toolbar pattern: search field, filter controls, count summary.
 /// Compact widths wrap with search full-width. No fixed-width controls.
-class PlatformToolbar extends StatelessWidget {
+class PlatformToolbar extends ConsumerWidget {
   const PlatformToolbar({
     super.key,
     this.searchController,
@@ -24,8 +27,8 @@ class PlatformToolbar extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 600;
@@ -38,7 +41,7 @@ class PlatformToolbar extends StatelessWidget {
             onChanged: onSearchChanged,
             style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
             decoration: InputDecoration(
-              hintText: searchHint ?? l10n?.search ?? 'Search',
+              hintText: searchHint ?? strings.tKey(CommonKeys.filterSearch),
               hintStyle: PtTheme.font(14, lineHeight: 20, color: PtTheme.muted),
               prefixIcon: const Icon(
                 Icons.search_rounded,

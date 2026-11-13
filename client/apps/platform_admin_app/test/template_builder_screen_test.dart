@@ -5,6 +5,7 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 const _itemOne = TemplateItem(
   id: 'ti-1',
@@ -97,7 +98,7 @@ const _versionDetail = TemplateVersionDetail(
 
 Widget _app({Locale locale = const Locale('en')}) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       templateDetailProvider.overrideWith((ref, id) async => _template),
       templateVersionDetailProvider.overrideWith(
         (ref, key) async => _versionDetail,

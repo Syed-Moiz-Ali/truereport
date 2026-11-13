@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -15,6 +14,8 @@ import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import 'workshop_form.dart';
+
+import 'package:l10n/l10n.dart';
 
 class WorkshopDetailScreen extends ConsumerStatefulWidget {
   const WorkshopDetailScreen({super.key, required this.workshopId});
@@ -52,7 +53,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformShell(
       currentRoute: '/workshops',
       onNavigate: (route) => context.go(route),
@@ -64,7 +65,10 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
               return const PlatformLoadingView();
             }
             if (snapshot.hasError || !snapshot.hasData) {
-              return PlatformErrorView(message: l10n.error, onRetry: _refresh);
+              return PlatformErrorView(
+                message: strings.tKey(CommonKeys.stateError),
+                onRetry: _refresh,
+              );
             }
             return _buildDetail(context, snapshot.data!);
           },
@@ -74,12 +78,12 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 
   Widget _buildDetail(BuildContext context, HierarchyWorkshop workshop) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final tabs = [
-      l10n.wsOverview,
-      l10n.wsStaff,
-      l10n.wsWorkshopTemplates,
-      l10n.wsActivity,
+      strings.tKey(PlatformAdminKeys.tabWorkshopOverview),
+      strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
+      strings.tKey(PlatformAdminKeys.tabWorkshopTemplates),
+      strings.tKey(PlatformAdminKeys.tabWorkshopActivity),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,10 +110,10 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 
   void _editWorkshop(HierarchyWorkshop workshop) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     showPlatformDialog<void>(
       context: context,
-      title: l10n.wsEdit,
+      title: strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
       body: WorkshopForm(
         workshop: workshop,
         onSaved: (_) {
@@ -122,13 +126,19 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 
   Future<void> _toggleStatus(HierarchyWorkshop workshop) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     final reason = await showReasonDialog(
       context: context,
-      title: isActive ? l10n.wsDeactivate : l10n.wsReactivate,
-      body: isActive ? l10n.wsDeactivateConfirm : null,
-      confirmLabel: isActive ? l10n.wsDeactivate : l10n.wsReactivate,
+      title: isActive
+          ? strings.tKey(PlatformAdminKeys.buttonWorkshopDeactivate)
+          : strings.tKey(PlatformAdminKeys.buttonWorkshopReactivate),
+      body: isActive
+          ? strings.tKey(PlatformAdminKeys.dialogWorkshopDeactivateConfirm)
+          : null,
+      confirmLabel: isActive
+          ? strings.tKey(PlatformAdminKeys.buttonWorkshopDeactivate)
+          : strings.tKey(PlatformAdminKeys.buttonWorkshopReactivate),
       destructive: isActive,
     );
     if (reason == null || !mounted) return;
@@ -145,12 +155,12 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
       if (!mounted) return;
       await showPlatformDialog<void>(
         context: context,
-        title: l10n.error,
-        body: Text(l10n.error),
+        title: strings.tKey(CommonKeys.stateError),
+        body: Text(strings.tKey(CommonKeys.stateError)),
         actionsBuilder: (dialogContext) => [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.close),
+            child: Text(strings.tKey(CommonKeys.buttonClose)),
           ),
         ],
       );
@@ -158,7 +168,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 }
 
-class _HeaderCard extends StatelessWidget {
+class _HeaderCard extends ConsumerWidget {
   const _HeaderCard({
     required this.workshop,
     required this.tabs,
@@ -186,8 +196,8 @@ class _HeaderCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     return PlatformSectionCard(
       child: Column(
@@ -263,20 +273,24 @@ class _HeaderCard extends StatelessWidget {
                 alignment: compact ? WrapAlignment.start : WrapAlignment.end,
                 children: [
                   PlatformSecondaryButton(
-                    label: l10n.wsEdit,
+                    label: strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
                     icon: Icons.edit_outlined,
                     onPressed: onEdit,
                   ),
                   if (isActive)
                     PlatformSecondaryButton(
-                      label: l10n.wsDeactivate,
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonWorkshopDeactivate,
+                      ),
                       icon: Icons.block_outlined,
                       destructive: true,
                       onPressed: onToggleStatus,
                     )
                   else
                     PlatformSecondaryButton(
-                      label: l10n.wsReactivate,
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonWorkshopReactivate,
+                      ),
                       icon: Icons.check_circle_outlined,
                       onPressed: onToggleStatus,
                     ),
@@ -317,38 +331,40 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-class _SummaryStrip extends StatelessWidget {
+class _SummaryStrip extends ConsumerWidget {
   const _SummaryStrip({required this.workshop});
 
   final HierarchyWorkshop workshop;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final stats = <_SummaryStat>[
       _SummaryStat(
-        label: l10n.wsStaff,
+        label: strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
         value: '${workshop.memberCount}',
         icon: Icons.groups_rounded,
         accent: PtTheme.deepGreen,
         tint: PtTheme.emerald,
       ),
       _SummaryStat(
-        label: l10n.technicians,
+        label: strings.tKey(PlatformAdminKeys.sectionWorkshopTechnicians),
         value: '${workshop.technicians.length}',
         icon: Icons.engineering_rounded,
         accent: const Color(0xFF1D4ED8),
         tint: const Color(0xFF3B82F6),
       ),
       _SummaryStat(
-        label: l10n.admins,
+        label: strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
         value: '${workshop.admins.length}',
         icon: Icons.manage_accounts_rounded,
         accent: PtTheme.gold,
         tint: PtTheme.amber,
       ),
       _SummaryStat(
-        label: l10n.pendingInvitations,
+        label: strings.tKey(
+          PlatformAdminKeys.sectionWorkshopPendingInvitations,
+        ),
         value: '${workshop.pendingInvitations.length}',
         icon: Icons.mail_outline_rounded,
         accent: PtTheme.gold,
@@ -442,14 +458,14 @@ class _SummaryStat {
   final Color tint;
 }
 
-class _OverviewTab extends StatelessWidget {
+class _OverviewTab extends ConsumerWidget {
   const _OverviewTab({required this.workshop});
 
   final HierarchyWorkshop workshop;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final email = (workshop.contactEmail ?? '').trim();
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -457,39 +473,60 @@ class _OverviewTab extends StatelessWidget {
         final cards = [
           _InfoCard(
             icon: Icons.business_rounded,
-            title: l10n.wsOverview,
+            title: strings.tKey(PlatformAdminKeys.tabWorkshopOverview),
             rows: [
-              _InfoRow(label: l10n.wsName, value: workshop.name),
               _InfoRow(
-                label: l10n.wsBranch,
+                label: strings.tKey(PlatformAdminKeys.fieldWorkshopName),
+                value: workshop.name,
+              ),
+              _InfoRow(
+                label: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
                 value: (workshop.branchName ?? '').isEmpty
                     ? '—'
                     : workshop.branchName!,
               ),
-              _InfoRow(label: l10n.status, value: workshop.status),
+              _InfoRow(
+                label: strings.tKey(CommonKeys.tableStatus),
+                value: workshop.status,
+              ),
             ],
           ),
           _InfoCard(
             icon: Icons.groups_rounded,
-            title: l10n.wsCapacity,
+            title: strings.tKey(PlatformAdminKeys.fieldWorkshopCapacity),
             rows: [
-              _InfoRow(label: l10n.wsStaff, value: '${workshop.memberCount}'),
-              _InfoRow(label: l10n.admins, value: '${workshop.admins.length}'),
               _InfoRow(
-                label: l10n.technicians,
+                label: strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
+                value: '${workshop.memberCount}',
+              ),
+              _InfoRow(
+                label: strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
+                value: '${workshop.admins.length}',
+              ),
+              _InfoRow(
+                label: strings.tKey(
+                  PlatformAdminKeys.sectionWorkshopTechnicians,
+                ),
                 value: '${workshop.technicians.length}',
               ),
             ],
           ),
           _InfoCard(
             icon: Icons.mail_outline_rounded,
-            title: l10n.wsContact,
+            title: strings.tKey(PlatformAdminKeys.sectionWorkshopContact),
             rows: [
               _InfoRow(
-                label: l10n.wsContactEmail,
-                value: email.isNotEmpty ? email : l10n.noData,
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldWorkshopContactEmail,
+                ),
+                value: email.isNotEmpty
+                    ? email
+                    : strings.tKey(CommonKeys.emptyTitle),
               ),
-              _InfoRow(label: l10n.wsCreatedOn, value: '—'),
+              _InfoRow(
+                label: strings.tKey(PlatformAdminKeys.fieldWorkshopCreatedOn),
+                value: '—',
+              ),
             ],
           ),
         ];
@@ -515,7 +552,7 @@ class _OverviewTab extends StatelessWidget {
   }
 }
 
-class _InfoCard extends StatelessWidget {
+class _InfoCard extends ConsumerWidget {
   const _InfoCard({
     required this.icon,
     required this.title,
@@ -527,7 +564,7 @@ class _InfoCard extends StatelessWidget {
   final List<_InfoRow> rows;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,7 +640,7 @@ class _StaffTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -630,7 +667,7 @@ class _StaffTab extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      l10n.wsStaff,
+                      strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
                       style: PtTheme.sectionTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -646,7 +683,7 @@ class _StaffTab extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               PlatformSecondaryButton(
-                label: l10n.wsAddStaff,
+                label: strings.tKey(PlatformAdminKeys.buttonWorkshopAddStaff),
                 icon: Icons.person_add_alt_1_outlined,
                 onPressed: () => _addStaff(context, ref),
               ),
@@ -655,14 +692,14 @@ class _StaffTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _StaffGroup(
-          title: l10n.admins,
+          title: strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
           accounts: workshop.admins,
           workshopId: workshop.id,
           onChanged: onChanged,
         ),
         const SizedBox(height: 12),
         _StaffGroup(
-          title: l10n.technicians,
+          title: strings.tKey(PlatformAdminKeys.sectionWorkshopTechnicians),
           accounts: workshop.technicians,
           workshopId: workshop.id,
           onChanged: onChanged,
@@ -672,10 +709,10 @@ class _StaffTab extends ConsumerWidget {
   }
 
   void _addStaff(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     showPlatformDialog<void>(
       context: context,
-      title: l10n.wsAddStaff,
+      title: strings.tKey(PlatformAdminKeys.buttonWorkshopAddStaff),
       body: _AddStaffForm(
         workshopId: workshop.id,
         onSaved: () {
@@ -703,7 +740,7 @@ class _StaffGroup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -730,7 +767,7 @@ class _StaffGroup extends ConsumerWidget {
                 border: Border.all(color: PtTheme.border),
               ),
               child: Text(
-                l10n.noData,
+                strings.tKey(CommonKeys.emptyTitle),
                 textAlign: TextAlign.center,
                 style: PtTheme.bodyMuted,
               ),
@@ -783,13 +820,17 @@ class _StaffGroup extends ConsumerWidget {
     WidgetRef ref,
     PlatformAccount account,
   ) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final isActive = account.status.toUpperCase() == 'ACTIVE';
     final reason = await showReasonDialog(
       context: context,
-      title: isActive ? l10n.disable : l10n.reactivate,
+      title: isActive
+          ? strings.tKey(CommonKeys.buttonDisable)
+          : strings.tKey(CommonKeys.buttonReactivate),
       body: account.displayName,
-      confirmLabel: isActive ? l10n.disable : l10n.reactivate,
+      confirmLabel: isActive
+          ? strings.tKey(CommonKeys.buttonDisable)
+          : strings.tKey(CommonKeys.buttonReactivate),
       destructive: isActive,
     );
     if (reason == null || !context.mounted) return;
@@ -806,12 +847,12 @@ class _StaffGroup extends ConsumerWidget {
       if (!context.mounted) return;
       await showPlatformDialog<void>(
         context: context,
-        title: l10n.error,
-        body: Text(l10n.error),
+        title: strings.tKey(CommonKeys.stateError),
+        body: Text(strings.tKey(CommonKeys.stateError)),
         actionsBuilder: (dialogContext) => [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.close),
+            child: Text(strings.tKey(CommonKeys.buttonClose)),
           ),
         ],
       );
@@ -819,7 +860,7 @@ class _StaffGroup extends ConsumerWidget {
   }
 }
 
-class _StaffTile extends StatelessWidget {
+class _StaffTile extends ConsumerWidget {
   const _StaffTile({required this.account, required this.onToggleStatus});
 
   final PlatformAccount account;
@@ -836,8 +877,8 @@ class _StaffTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final isActive = account.status.toUpperCase() == 'ACTIVE';
     return Container(
       padding: const EdgeInsets.all(12),
@@ -885,7 +926,9 @@ class _StaffTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  account.email.isNotEmpty ? account.email : l10n.noData,
+                  account.email.isNotEmpty
+                      ? account.email
+                      : strings.tKey(CommonKeys.emptyTitle),
                   style: PtTheme.bodyMuted,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -896,7 +939,10 @@ class _StaffTile extends StatelessWidget {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    PlatformMetaPill(label: l10n.role, value: account.role),
+                    PlatformMetaPill(
+                      label: strings.tKey(CommonKeys.tableRole),
+                      value: account.role,
+                    ),
                     PlatformStatusChip(status: account.status),
                   ],
                 ),
@@ -905,7 +951,9 @@ class _StaffTile extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           IconButton(
-            tooltip: isActive ? l10n.disable : l10n.reactivate,
+            tooltip: isActive
+                ? strings.tKey(CommonKeys.buttonDisable)
+                : strings.tKey(CommonKeys.buttonReactivate),
             icon: Icon(
               isActive
                   ? Icons.person_off_outlined
@@ -950,7 +998,7 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
   }
 
   Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -972,7 +1020,7 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
       widget.onSaved();
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = l10n.error);
+      setState(() => _error = strings.tKey(CommonKeys.stateError));
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -982,7 +1030,7 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     return Form(
       key: _formKey,
       child: Column(
@@ -996,22 +1044,23 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
           PlatformTextField(
             key: const Key('input-staff-name'),
             controller: _nameController,
-            label: l10n.displayName,
-            hint: l10n.displayName,
-            validator: (value) =>
-                (value == null || value.trim().isEmpty) ? l10n.error : null,
+            label: strings.tKey(CommonKeys.fieldDisplayName),
+            hint: strings.tKey(CommonKeys.fieldDisplayName),
+            validator: (value) => (value == null || value.trim().isEmpty)
+                ? strings.tKey(CommonKeys.stateError)
+                : null,
           ),
           const SizedBox(height: 14),
           PlatformTextField(
             key: const Key('input-staff-email'),
             controller: _emailController,
-            label: l10n.email,
-            hint: l10n.email,
+            label: strings.tKey(CommonKeys.fieldEmail),
+            hint: strings.tKey(CommonKeys.fieldEmail),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               final text = value?.trim() ?? '';
               if (text.isEmpty || !text.contains('@')) {
-                return l10n.error;
+                return strings.tKey(CommonKeys.stateError);
               }
               return null;
             },
@@ -1020,27 +1069,27 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
           PlatformTextField(
             key: const Key('input-staff-password'),
             controller: _passwordController,
-            label: l10n.temporaryPassword,
-            hint: l10n.temporaryPassword,
+            label: strings.tKey(CommonKeys.fieldTemporaryPassword),
+            hint: strings.tKey(CommonKeys.fieldTemporaryPassword),
             validator: (value) {
               if ((value?.trim() ?? '').length < 6) {
-                return l10n.error;
+                return strings.tKey(CommonKeys.stateError);
               }
               return null;
             },
           ),
           const SizedBox(height: 14),
           PlatformDropdown<String>(
-            label: l10n.role,
+            label: strings.tKey(CommonKeys.tableRole),
             value: _role,
             items: [
               DropdownMenuItem(
                 value: 'WORKSHOP_ADMIN',
-                child: Text(l10n.roleWorkshopAdmin),
+                child: Text(strings.tKey(CommonKeys.roleWorkshopAdmin)),
               ),
               DropdownMenuItem(
                 value: 'TECHNICIAN',
-                child: Text(l10n.roleTechnician),
+                child: Text(strings.tKey(CommonKeys.roleTechnician)),
               ),
             ],
             onChanged: (value) {
@@ -1056,13 +1105,13 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
             runSpacing: 10,
             children: [
               PlatformSecondaryButton(
-                label: l10n.cancel,
+                label: strings.tKey(CommonKeys.buttonCancel),
                 onPressed: _submitting
                     ? null
                     : () => Navigator.of(context).pop(),
               ),
               PlatformPrimaryButton(
-                label: l10n.wsAddStaff,
+                label: strings.tKey(PlatformAdminKeys.buttonWorkshopAddStaff),
                 isLoading: _submitting,
                 onPressed: _submitting ? null : _submit,
               ),
@@ -1079,19 +1128,19 @@ class _TemplatesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final templates = ref.watch(templatesProvider);
     return templates.when(
       loading: () => const PlatformLoadingView(),
       error: (_, _) => PlatformErrorView(
-        message: l10n.error,
+        message: strings.tKey(CommonKeys.stateError),
         onRetry: () => ref.invalidate(templatesProvider),
       ),
       data: (items) {
         if (items.isEmpty) {
           return PlatformEmptyView(
             icon: Icons.description_outlined,
-            title: l10n.noData,
+            title: strings.tKey(CommonKeys.emptyTitle),
           );
         }
         return LayoutBuilder(
@@ -1119,14 +1168,14 @@ class _TemplatesTab extends ConsumerWidget {
   }
 }
 
-class _TemplateCard extends StatelessWidget {
+class _TemplateCard extends ConsumerWidget {
   const _TemplateCard({required this.template});
 
   final GlobalTemplate template;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final title = template.nameEn.isNotEmpty ? template.nameEn : template.code;
     final categoryCount = template.categories.length;
     var itemCount = 0;
@@ -1205,10 +1254,13 @@ class _TemplateCard extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     PlatformMetaPill(
-                      label: l10n.categories,
+                      label: strings.tKey(CommonKeys.labelCategories),
                       value: '$categoryCount',
                     ),
-                    PlatformMetaPill(label: l10n.items, value: '$itemCount'),
+                    PlatformMetaPill(
+                      label: strings.tKey(CommonKeys.labelItems),
+                      value: '$itemCount',
+                    ),
                   ],
                 ),
                 if (template.descriptionEn.isNotEmpty) ...[
@@ -1260,12 +1312,12 @@ class _ActivityTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final events = ref.watch(auditEventsProvider);
     return events.when(
       loading: () => const PlatformLoadingView(),
       error: (_, _) => PlatformErrorView(
-        message: l10n.error,
+        message: strings.tKey(CommonKeys.stateError),
         onRetry: () => ref.invalidate(auditEventsProvider),
       ),
       data: (all) {
@@ -1279,7 +1331,7 @@ class _ActivityTab extends ConsumerWidget {
         if (filtered.isEmpty) {
           return PlatformEmptyView(
             icon: Icons.history_toggle_off_rounded,
-            title: l10n.noData,
+            title: strings.tKey(CommonKeys.emptyTitle),
           );
         }
         return Column(
@@ -1296,14 +1348,14 @@ class _ActivityTab extends ConsumerWidget {
   }
 }
 
-class _AuditTile extends StatelessWidget {
+class _AuditTile extends ConsumerWidget {
   const _AuditTile({required this.event});
 
   final PlatformAuditEvent event;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       padding: const EdgeInsets.all(14),
       child: Row(
@@ -1341,7 +1393,9 @@ class _AuditTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  event.occurredAt.isNotEmpty ? event.occurredAt : l10n.noData,
+                  event.occurredAt.isNotEmpty
+                      ? event.occurredAt
+                      : strings.tKey(CommonKeys.emptyTitle),
                   style: PtTheme.bodyMuted,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1352,11 +1406,11 @@ class _AuditTile extends StatelessWidget {
                   runSpacing: 4,
                   children: [
                     PlatformMetaPill(
-                      label: l10n.role,
+                      label: strings.tKey(CommonKeys.tableRole),
                       value: event.actorRole.isNotEmpty ? event.actorRole : '—',
                     ),
                     PlatformMetaPill(
-                      label: l10n.reason,
+                      label: strings.tKey(CommonKeys.fieldReason),
                       value: event.reasonCode.isNotEmpty
                           ? event.reasonCode
                           : '—',

@@ -1,19 +1,26 @@
 import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import 'src/platform_providers.dart';
 import 'src/platform_router.dart';
 import 'src/platform_theme.dart';
+import 'src/ui_messages_bootstrap.dart';
 import 'src/web_url_strategy_stub.dart'
     if (dart.library.html) 'src/web_url_strategy_web.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureWebUrlStrategy();
-  runApp(const ProviderScope(child: PlatformAdminApp()));
+  final uiMessageStore = await createPlatformUiMessageStore();
+  runApp(
+    platformUiMessageScope(
+      store: uiMessageStore,
+      child: const PlatformAdminApp(),
+    ),
+  );
 }
 
 class PlatformAdminApp extends ConsumerWidget {
@@ -23,20 +30,26 @@ class PlatformAdminApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(platformLocaleProvider);
     final router = ref.watch(platformRouterProvider);
+    final manifest = ref.watch(platformUiManifestProvider);
+    final defaultLanguage = ref.watch(platformUiDefaultLanguageProvider);
+    final title = ref.watch(platformAppTitleProvider);
     ref.read(apiClientProvider).acceptLanguage = locale.languageCode;
 
     return MaterialApp.router(
-      onGenerateTitle: (context) =>
-          Localizations.of<AppLocalizations>(
-            context,
-            AppLocalizations,
-          )?.platformAdminTitle ??
-          'Platform Admin',
+      onGenerateTitle: (_) => title,
       debugShowCheckedModeBanner: false,
       theme: _platformTheme(),
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: platformSupportedLocales(manifest),
+      localeResolutionCallback: (device, supported) =>
+          resolvePlatformLocale(device, supported, defaultLanguage),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) =>
+          UiMessagesBootstrap(child: child ?? const SizedBox.shrink()),
       routerConfig: router,
     );
   }

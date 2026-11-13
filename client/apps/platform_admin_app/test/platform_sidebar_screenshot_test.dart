@@ -8,6 +8,7 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/components/platform_shell.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
+import 'support/ui_message_fixtures.dart';
 
 class _MockLocaleController extends LocaleController {
   _MockLocaleController(this._initial);
@@ -24,7 +25,7 @@ Widget _screenshotWrapper({
   Size surfaceSize = const Size(1280, 900),
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
     ],
     child: MaterialApp(

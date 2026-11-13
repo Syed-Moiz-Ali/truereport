@@ -6,6 +6,7 @@ import 'package:platform_admin_app/src/components/platform_category_picker.dart'
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+import 'support/ui_message_fixtures.dart';
 
 const _category = PlatformCategory(
   id: 'cat-1',
@@ -66,7 +67,7 @@ Widget _app({
   ConfigHealth health = _healthy,
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       categoriesProvider.overrideWith((ref) async => const [_category]),
       itemsProvider.overrideWith((ref, query) async => const [_item]),
       configHealthProvider.overrideWith((ref) async => health),

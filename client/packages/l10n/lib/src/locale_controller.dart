@@ -15,6 +15,8 @@ class LocaleController extends Notifier<Locale> {
   }
 
   void toggle() {
-    state = state.languageCode == 'ar' ? const Locale('en') : const Locale('ar');
+    state = state.languageCode == 'ar'
+        ? const Locale('en')
+        : const Locale('ar');
   }
 }

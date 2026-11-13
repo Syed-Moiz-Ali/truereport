@@ -62,9 +62,8 @@ class PlatformCatalogueEntry {
         labelAr: _s(json['labelAr']),
         values: (json['values'] as List<dynamic>? ?? const [])
             .map(
-              (item) => PlatformCatalogueValue.fromJson(
-                item as Map<String, dynamic>,
-              ),
+              (item) =>
+                  PlatformCatalogueValue.fromJson(item as Map<String, dynamic>),
             )
             .toList(growable: false),
       );

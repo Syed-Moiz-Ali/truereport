@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
+import '../platform_providers.dart';
 import '../platform_theme.dart';
 import 'platform_nav.dart';
 
@@ -13,7 +16,7 @@ const _brandIconSvg = '''
 ''';
 
 /// Shared Platform Admin Sidebar matching the Figma reference.
-class PlatformSidebar extends StatelessWidget {
+class PlatformSidebar extends ConsumerWidget {
   const PlatformSidebar({
     super.key,
     required this.currentRoute,
@@ -32,7 +35,8 @@ class PlatformSidebar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final screenWidth = MediaQuery.sizeOf(context).width;
     // Sidebar width: target ~260px, allowed range 248-272px.
     final sidebarWidth = (screenWidth * 0.2).clamp(248.0, 272.0);
@@ -99,7 +103,7 @@ class PlatformSidebar extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Platform Admin',
+                        strings.tKey(PlatformAdminKeys.headerTitle),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: PtTheme.font(

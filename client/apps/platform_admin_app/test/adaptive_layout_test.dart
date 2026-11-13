@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
@@ -16,13 +16,15 @@ import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 
+import 'support/ui_message_fixtures.dart';
+
 const _category = PlatformCategory(
   id: 'cat-1',
   code: 'CAT-BRK',
   nameEn: 'Braking Systems & Tyres',
-  nameAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  nameAr: 'أنظمة الفرامل والإطارات',
   labelEn: 'Braking Systems & Tyres',
-  labelAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  labelAr: 'أنظمة الفرامل والإطارات',
   status: 'ACTIVE',
   sortOrder: 1,
   active: true,
@@ -34,17 +36,17 @@ const _item = PlatformItem(
   code: 'BRK-PAD-01',
   categoryId: 'cat-1',
   categoryLabelEn: 'Braking Systems & Tyres',
-  categoryLabelAr: 'Ø£Ù†Ø¸Ù…Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„ ÙˆØ§Ù„Ø¥Ø·Ø§Ø±Ø§Øª',
+  categoryLabelAr: 'أنظمة الفرامل والإطارات',
   status: 'PUBLISHED',
   currentVersion: 1,
   labelEn: 'Brake Pad Thickness',
-  labelAr: 'Ø³Ù…Ùƒ Ø£Ù‚Ù…Ø´Ø© Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  labelAr: 'سمك أقمشة الفرامل',
   sampleData: false,
   updatedAt: '',
   measurementUnit: 'MM',
   sensorTool: 'Vernier Caliper',
   standardSpecEn: 'Above 3.0 mm',
-  standardSpecAr: 'Ø£Ø¹Ù„Ù‰ Ù…Ù† 3.0 Ù…Ù…',
+  standardSpecAr: 'أعلى من 3.0 مم',
   safetyCritical: true,
   multiPoint: true,
   maxTyreAgeYears: null,
@@ -57,7 +59,7 @@ const _optionSet = OptionSet(
   id: 'set-1',
   code: 'CONDITION',
   nameEn: 'Overall Condition',
-  nameAr: 'Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø¹Ø§Ù…Ø©',
+  nameAr: 'الحالة العامة',
   status: 'ACTIVE',
   sortOrder: 1,
   values: [
@@ -65,7 +67,7 @@ const _optionSet = OptionSet(
       id: 'value-1',
       code: 'GOOD',
       labelEn: 'Good',
-      labelAr: 'Ø¬ÙŠØ¯',
+      labelAr: 'جيد',
       status: 'ACTIVE',
       sortOrder: 1,
       metadataJson: '{}',
@@ -77,9 +79,9 @@ const _template = GlobalTemplate(
   id: 'template-1',
   code: 'TPL-BRK',
   nameEn: 'Braking Inspection Template',
-  nameAr: 'Ù‚Ø§Ù„Ø¨ ÙØ­Øµ Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  nameAr: 'قالب فحص الفرامل',
   descriptionEn: 'Braking inspection',
-  descriptionAr: 'ÙØ­Øµ Ø§Ù„ÙØ±Ø§Ù…Ù„',
+  descriptionAr: 'فحص الفرامل',
   status: 'PUBLISHED',
   currentPublishedVersionId: 'version-1',
   versionCount: 1,
@@ -97,7 +99,7 @@ const _template = GlobalTemplate(
       categoryId: 'cat-1',
       categoryCode: 'CAT-BRK',
       nameEn: 'Braking Systems & Tyres',
-      nameAr: 'أنظمة الفرامل والإطارات',
+      nameAr: '????? ??????? ?????????',
       sortOrder: 1,
       itemCount: 1,
       includedCount: 1,
@@ -111,7 +113,7 @@ const _documentType = ReportDocumentType(
   id: 'doc-1',
   code: 'DOC-PHOTO',
   nameEn: 'Photo Evidence',
-  nameAr: 'Ø¯Ù„ÙŠÙ„ Ù…ØµÙˆØ±',
+  nameAr: 'دليل مصور',
   status: 'ACTIVE',
   required: true,
   sortOrder: 1,
@@ -120,7 +122,7 @@ const _documentType = ReportDocumentType(
 const _language = PlatformLanguage(
   code: 'en',
   nameEn: 'English',
-  nameAr: 'Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©',
+  nameAr: 'الإنجليزية',
   nativeName: 'English',
   direction: 'LTR',
   active: true,
@@ -142,7 +144,7 @@ const _configHealth = ConfigHealth(
       code: 'TRANSLATIONS',
       severity: 'OK',
       messageEn: 'Category weights total 100%.',
-      messageAr: 'Ø£ÙˆØ²Ø§Ù† Ø§Ù„ÙØ¦Ø§Øª ØªØ³Ø§ÙˆÙŠ 100Ùª.',
+      messageAr: 'أوزان الفئات تساوي 100٪.',
       affected: 0,
       references: ['CAT-BRK'],
     ),
@@ -160,7 +162,10 @@ const _auditEvent = PlatformAuditEvent(
   metadataJson: '{"version":1}',
 );
 
-List<Override> _overrides() => [
+List<Override> _overrides(Locale locale) => [
+  uiStringsProvider.overrideWithValue(
+    locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+  ),
   categoriesProvider.overrideWith((ref) async => const [_category]),
   itemsProvider.overrideWith((ref, query) async => const [_item]),
   optionSetsProvider.overrideWith((ref) async => const [_optionSet]),
@@ -175,7 +180,7 @@ List<Override> _overrides() => [
 
 Widget _app(Widget screen, Locale locale, Size size) {
   return ProviderScope(
-    overrides: _overrides(),
+    overrides: _overrides(locale),
     child: MaterialApp(
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

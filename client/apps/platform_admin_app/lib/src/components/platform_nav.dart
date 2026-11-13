@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
+import '../platform_providers.dart';
 import '../platform_theme.dart';
 
-/// Navigation entry data model.
 class PlatformNavEntry {
   const PlatformNavEntry({
     required this.id,
     required this.route,
     required this.icon,
-    required this.getLabel,
+    required this.labelKey,
     this.isConfiguration = false,
   });
 
   final String id;
   final String route;
   final IconData icon;
-  final String Function(AppLocalizations?) getLabel;
+  final UiMessageKey labelKey;
   final bool isConfiguration;
 
   bool isActive(String currentRoute) {
@@ -53,42 +54,42 @@ class PlatformNavData {
   const PlatformNavData._();
 
   /// Primary navigation items, in sidebar order.
-  static final List<PlatformNavEntry> primaryItems = [
+  static const primaryItems = <PlatformNavEntry>[
     PlatformNavEntry(
       id: 'dashboard',
       route: '/dashboard',
       icon: Icons.dashboard_outlined,
-      getLabel: (l10n) => l10n?.navDashboard ?? 'Dashboard',
+      labelKey: PlatformAdminKeys.navDashboard,
     ),
     PlatformNavEntry(
       id: 'workshops',
       route: '/workshops',
       icon: Icons.apartment_rounded,
-      getLabel: (l10n) => l10n?.workshops ?? 'Workshops',
+      labelKey: PlatformAdminKeys.navWorkshops,
     ),
     PlatformNavEntry(
       id: 'checklist',
       route: '/checklist/items',
       icon: Icons.menu_book_rounded,
-      getLabel: (l10n) => l10n?.navChecklist ?? 'Checklist',
+      labelKey: PlatformAdminKeys.navChecklist,
     ),
     PlatformNavEntry(
       id: 'reports',
       route: '/reports/document-types',
       icon: Icons.description_outlined,
-      getLabel: (l10n) => l10n?.navReports ?? 'Reports',
+      labelKey: PlatformAdminKeys.navReports,
     ),
     PlatformNavEntry(
       id: 'audit-log',
       route: '/audit-log',
       icon: Icons.verified_user_outlined,
-      getLabel: (l10n) => l10n?.auditLog ?? 'Audit Log',
+      labelKey: PlatformAdminKeys.pageAuditTitle,
     ),
     PlatformNavEntry(
       id: 'settings',
       route: '/settings',
       icon: Icons.settings_outlined,
-      getLabel: (l10n) => l10n?.settings ?? 'Settings',
+      labelKey: PlatformAdminKeys.pageSettingsTitle,
     ),
   ];
 
@@ -96,7 +97,7 @@ class PlatformNavData {
 }
 
 /// Reusable navigation item widget used in desktop sidebar and mobile sheet.
-class PlatformNavItem extends StatelessWidget {
+class PlatformNavItem extends ConsumerWidget {
   const PlatformNavItem({
     super.key,
     required this.entry,
@@ -111,9 +112,9 @@ class PlatformNavItem extends StatelessWidget {
   final String keyPrefix;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
-    final label = entry.getLabel(l10n);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final label = strings.tKey(entry.labelKey);
     final fg = isActive ? PtTheme.ink : PtTheme.darkNavText;
     final iconColor = isActive ? PtTheme.emerald : PtTheme.muted;
     final bg = isActive ? PtTheme.canvas : Colors.transparent;

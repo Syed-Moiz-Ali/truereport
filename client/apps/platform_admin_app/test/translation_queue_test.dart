@@ -11,6 +11,7 @@ import 'package:platform_admin_app/src/platform_config_models.dart'
     hide TranslationCoverage;
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_translations.dart';
+import 'support/ui_message_fixtures.dart';
 
 // Local fake only: never imports test/support/fake_platform_api.dart.
 // Subclasses the real TranslationApi with the same constructor shape so the
@@ -208,7 +209,7 @@ Widget _buildTestApp({
   Locale locale = const Locale('en'),
 }) {
   return ProviderScope(
-    overrides: [
+    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
       translationApiProvider.overrideWithValue(fake),
       platformLanguagesProvider.overrideWith(
@@ -627,4 +628,5 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
 }

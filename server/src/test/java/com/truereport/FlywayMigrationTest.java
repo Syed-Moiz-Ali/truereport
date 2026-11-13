@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("108");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("114");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -70,6 +70,9 @@ class FlywayMigrationTest {
         assertThat(tableExists(url, "platform_job_signatures")).isTrue();
         assertThat(tableExists(url, "platform_sync_conflicts")).isTrue();
         assertThat(tableExists(url, "platform_translations")).isTrue();
+        assertThat(tableExists(url, "platform_ui_messages")).isFalse();
+        assertThat(tableExists(url, "platform_ui_message_versions")).isFalse();
+        assertThat(tableExists(url, "platform_ui_message_language_versions")).isFalse();
     }
 
     private boolean tableExists(String url, String table) throws Exception {

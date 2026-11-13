@@ -1,2 +1,10 @@
 export 'l10n/gen/app_localizations.dart';
 export 'src/locale_controller.dart';
+export 'src/ui_messages/ui_message_api.dart';
+export 'src/ui_messages/ui_message_cache.dart';
+export 'src/ui_messages/ui_message_catalog.dart';
+export 'src/ui_messages/ui_message_controller.dart';
+export 'src/ui_messages/ui_message_key.dart';
+export 'src/ui_messages/keys/common_keys.dart';
+export 'src/ui_messages/keys/platform_admin_keys.dart';
+export 'src/ui_messages/ui_message_manifest.dart';

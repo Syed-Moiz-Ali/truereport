@@ -118,10 +118,7 @@ class _Breadcrumbs extends StatelessWidget {
                 ),
               ),
             ],
-            _Crumb(
-              item: items[i],
-              isLast: i == items.length - 1,
-            ),
+            _Crumb(item: items[i], isLast: i == items.length - 1),
           ],
         ],
       ),
@@ -138,8 +135,19 @@ class _Crumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = isLast
-        ? PtTheme.font(15, lineHeight: 22, weight: FontWeight.w700, color: PtTheme.ink)
-        : PtTheme.font(11, lineHeight: 14, weight: FontWeight.w700, color: PtTheme.muted, tracking: 0.5);
+        ? PtTheme.font(
+            15,
+            lineHeight: 22,
+            weight: FontWeight.w700,
+            color: PtTheme.ink,
+          )
+        : PtTheme.font(
+            11,
+            lineHeight: 14,
+            weight: FontWeight.w700,
+            color: PtTheme.muted,
+            tracking: 0.5,
+          );
     final label = Text(
       item.label,
       style: style,
@@ -148,11 +156,7 @@ class _Crumb extends StatelessWidget {
     );
     if (item.onTap == null || isLast) {
       return Flexible(
-        child: Semantics(
-          header: isLast,
-          label: item.label,
-          child: label,
-        ),
+        child: Semantics(header: isLast, label: item.label, child: label),
       );
     }
     return Flexible(

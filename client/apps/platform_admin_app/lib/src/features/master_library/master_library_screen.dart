@@ -4,7 +4,6 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_category_picker.dart';
@@ -20,6 +19,8 @@ import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
 import 'master_item_editor_screen.dart';
+
+import 'package:l10n/l10n.dart';
 
 const _itemStatuses = <String>['ACTIVE', 'DRAFT', 'PUBLISHED', 'RETIRED'];
 
@@ -82,7 +83,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
 
   Future<void> _publishItem(PlatformItem item) async {
     if (_acting) return;
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     setState(() => _acting = true);
     try {
       final actions = ref.read(platformConfigActionsProvider);
@@ -95,20 +96,21 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
       draft ??= (await actions.createDraft(item.id)).draftVersion;
       if (draft == null) {
         if (!mounted) return;
-        _showMessage(l10n.error, isError: true);
+        _showMessage(strings.tKey(CommonKeys.stateError), isError: true);
         return;
       }
       if (!mounted) return;
       final confirmed = await showPlatformConfirmDialog(
         context: context,
-        title: l10n.publishItem,
-        body: '${l10n.publishItem} · v${draft.versionNo}',
-        confirmLabel: l10n.publish,
+        title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
+        body:
+            '${strings.tKey(PlatformAdminKeys.buttonItemPublish)} · v${draft.versionNo}',
+        confirmLabel: strings.tKey(PlatformAdminKeys.buttonPublish),
       );
       if (confirmed != true) return;
       await actions.publishItem(item.id, draft.id);
       if (!mounted) return;
-      _showMessage(l10n.itemPublished);
+      _showMessage(strings.tKey(PlatformAdminKeys.toastItemPublished));
       ref.invalidate(itemsProvider);
     } catch (error) {
       if (!mounted) return;
@@ -119,19 +121,19 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
   }
 
   Future<void> _confirmRetireItem(PlatformItem item) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retireItem,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retire,
+      title: strings.tKey(PlatformAdminKeys.buttonItemRetire),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
       destructive: true,
     );
     if (confirmed != true) return;
     try {
       await ref.read(platformConfigActionsProvider).retireItem(item.id);
       if (!mounted) return;
-      _showMessage(l10n.itemRetired);
+      _showMessage(strings.tKey(PlatformAdminKeys.toastItemRetired));
       ref.invalidate(itemsProvider);
     } catch (error) {
       if (!mounted) return;
@@ -156,7 +158,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final categories =
         categoriesAsync.asData?.value ?? const <PlatformCategory>[];
@@ -172,7 +174,10 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
       orElse: () => false,
     );
     final countLabel = itemsAsync.maybeWhen(
-      data: (items) => l10n.chkResultCount(items.length),
+      data: (items) => strings.tArgsKey(
+        PlatformAdminKeys.pageChecklistItemsResultCount,
+        {'count': items.length},
+      ),
       orElse: () => null,
     );
 
@@ -182,7 +187,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
       onSearchChanged: _onSearchChanged,
       actions: [
         PlatformPrimaryButton(
-          label: l10n.addItem,
+          label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
           icon: Icons.add_rounded,
           onPressed: () => _openEditor(),
         ),
@@ -193,11 +198,11 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (showHealthBanner) ...[
-                _buildHealthBanner(l10n),
+                _buildHealthBanner(strings),
                 const SizedBox(height: 20),
               ],
               Text(
-                l10n.chkItemsTitle,
+                strings.tKey(PlatformAdminKeys.pageChecklistItemsTitle),
                 style: PtTheme.font(
                   18,
                   lineHeight: 24,
@@ -209,9 +214,9 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 12),
-              _buildFilters(l10n, categories, countLabel),
+              _buildFilters(strings, categories, countLabel),
               const SizedBox(height: 20),
-              _buildItems(l10n, itemsAsync),
+              _buildItems(strings, itemsAsync),
             ],
           );
         },
@@ -219,7 +224,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
     );
   }
 
-  Widget _buildHealthBanner(AppLocalizations l10n) {
+  Widget _buildHealthBanner(dynamic strings) {
     return PlatformSectionCard(
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
@@ -244,7 +249,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                l10n.unhealthy,
+                strings.tKey(CommonKeys.statusUnhealthy),
                 style: PtTheme.font(
                   14,
                   lineHeight: 20,
@@ -255,7 +260,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
             ],
           ),
           PlatformPrimaryButton(
-            label: l10n.reviewHealth,
+            label: strings.tKey(PlatformAdminKeys.buttonHealthReview),
             icon: Icons.health_and_safety_outlined,
             onPressed: () => context.go('/checklist/health'),
           ),
@@ -265,23 +270,26 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
   }
 
   Widget _buildFilters(
-    AppLocalizations l10n,
+    dynamic strings,
     List<PlatformCategory> categories,
     String? countLabel,
   ) {
     return PlatformToolbar(
       searchController: _searchController,
-      searchHint: l10n.search,
+      searchHint: strings.tKey(CommonKeys.filterSearch),
       onSearchChanged: _onSearchChanged,
       countLabel: countLabel,
       filters: [
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 220),
           child: PlatformDropdown<String>(
-            label: l10n.status,
+            label: strings.tKey(CommonKeys.tableStatus),
             value: _status,
             items: [
-              DropdownMenuItem(value: '', child: Text(l10n.filterAll)),
+              DropdownMenuItem(
+                value: '',
+                child: Text(strings.tKey(CommonKeys.filterAll)),
+              ),
               for (final status in _itemStatuses)
                 DropdownMenuItem(value: status, child: Text(status)),
             ],
@@ -300,21 +308,22 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
   }
 
   Widget _buildItems(
-    AppLocalizations l10n,
+    dynamic strings,
     AsyncValue<List<PlatformItem>> itemsAsync,
   ) {
     return itemsAsync.when(
-      loading: () => PlatformLoadingView(message: l10n.loading),
+      loading: () =>
+          PlatformLoadingView(message: strings.tKey(CommonKeys.stateLoading)),
       error: (error, _) => PlatformErrorView(
         message: _failureMessage(error),
-        retryLabel: l10n.retry,
+        retryLabel: strings.tKey(CommonKeys.buttonRetry),
         onRetry: () => ref.invalidate(itemsProvider),
       ),
       data: (items) {
         if (items.isEmpty) {
           return PlatformEmptyView(
             icon: Icons.inbox_outlined,
-            title: l10n.noData,
+            title: strings.tKey(CommonKeys.emptyTitle),
           );
         }
         // Rich cards are the primary view on every breakpoint; two columns
@@ -327,7 +336,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (final item in items) ...[
-                    _buildItemCard(l10n, item),
+                    _buildItemCard(strings, item),
                     const SizedBox(height: 12),
                   ],
                 ],
@@ -339,11 +348,11 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildItemCard(l10n, items[index])),
+                    Expanded(child: _buildItemCard(strings, items[index])),
                     const SizedBox(width: 12),
                     Expanded(
                       child: index + 1 < items.length
-                          ? _buildItemCard(l10n, items[index + 1])
+                          ? _buildItemCard(strings, items[index + 1])
                           : const SizedBox.shrink(),
                     ),
                   ],
@@ -361,7 +370,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
     );
   }
 
-  Widget _buildItemCard(AppLocalizations l10n, PlatformItem item) {
+  Widget _buildItemCard(dynamic strings, PlatformItem item) {
     final retired = item.status == 'RETIRED';
     final categoryLabel = item.categoryLabelEn.isEmpty
         ? (item.categoryLabelAr.isEmpty
@@ -417,7 +426,7 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        l10n.safetyCritical,
+                        strings.tKey(PlatformAdminKeys.badgeSafetyCritical),
                         style: PtTheme.font(
                           11,
                           weight: FontWeight.w700,
@@ -464,10 +473,13 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
             spacing: 8,
             runSpacing: 6,
             children: [
-              PlatformMetaPill(label: l10n.category, value: categoryLabel),
+              PlatformMetaPill(
+                label: strings.tKey(CommonKeys.labelCategory),
+                value: categoryLabel,
+              ),
               Semantics(
                 label:
-                    '${l10n.measurementUnit}: '
+                    '${strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit)}: '
                     '${item.measurementUnit.isEmpty ? '—' : item.measurementUnit}',
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -494,14 +506,17 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
               ),
               if (item.sensorTool.isNotEmpty)
                 PlatformMetaPill(
-                  label: l10n.sensorTool,
+                  label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
                   value: item.sensorTool,
                 ),
               // Evidence counts are not in the items list payload; the
               // placeholder below marks the gap instead of inventing counts.
-              PlatformMetaPill(label: l10n.chkEvidence, value: '—'),
               PlatformMetaPill(
-                label: l10n.chkUpdated,
+                label: strings.tKey(PlatformAdminKeys.tableItemEvidence),
+                value: '—',
+              ),
+              PlatformMetaPill(
+                label: strings.tKey(PlatformAdminKeys.tableItemUpdated),
                 value: item.updatedAt.isEmpty ? '—' : item.updatedAt,
               ),
             ],
@@ -514,24 +529,24 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               IconButton(
-                tooltip: l10n.edit,
+                tooltip: strings.tKey(CommonKeys.buttonEdit),
                 onPressed: _acting ? null : () => _openEditor(item.id),
                 icon: const Icon(Icons.edit_outlined, size: 20),
               ),
               IconButton(
-                tooltip: l10n.createDraft,
+                tooltip: strings.tKey(CommonKeys.buttonCreateDraft),
                 onPressed: _acting ? null : () => _draftItem(item),
                 icon: const Icon(Icons.note_add_outlined, size: 20),
               ),
               if (!retired)
                 IconButton(
-                  tooltip: l10n.publishItem,
+                  tooltip: strings.tKey(PlatformAdminKeys.buttonItemPublish),
                   onPressed: _acting ? null : () => _publishItem(item),
                   icon: const Icon(Icons.publish_rounded, size: 20),
                 ),
               if (!retired)
                 IconButton(
-                  tooltip: l10n.retireItem,
+                  tooltip: strings.tKey(PlatformAdminKeys.buttonItemRetire),
                   onPressed: _acting ? null : () => _confirmRetireItem(item),
                   icon: const Icon(
                     Icons.archive_outlined,

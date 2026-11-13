@@ -1,7 +1,6 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -14,6 +13,8 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
+
+import 'package:l10n/l10n.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
@@ -63,7 +64,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   Future<void> _showCategoryDialog(PlatformCategory? category) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final codeController = TextEditingController(text: category?.code ?? '');
     final nameEnController = TextEditingController(
       text: category?.nameEn ?? '',
@@ -79,7 +80,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
     final shouldSave = await showPlatformDialog<bool>(
       context: context,
-      title: category == null ? l10n.addCategory : l10n.editCategory,
+      title: category == null
+          ? strings.tKey(PlatformAdminKeys.buttonCategoryAdd)
+          : strings.tKey(PlatformAdminKeys.dialogCategoryEditTitle),
       body: StatefulBuilder(
         builder: (dialogContext, setDialogState) {
           return Form(
@@ -90,30 +93,30 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               children: [
                 PlatformTextField(
                   controller: codeController,
-                  label: l10n.categoryCode,
-                  validator: (value) => _required(value, l10n),
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   controller: nameEnController,
-                  label: l10n.categoryNameEn,
-                  validator: (value) => _required(value, l10n),
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   controller: nameArController,
-                  label: l10n.categoryNameAr,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameAr),
                   textDirection: TextDirection.rtl,
-                  validator: (value) => _required(value, l10n),
+                  validator: (value) => _required(value, strings),
                 ),
                 const SizedBox(height: 12),
                 PlatformTextField(
                   controller: sortOrderController,
-                  label: l10n.categoryOrder,
+                  label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (int.tryParse((value ?? '').trim()) == null) {
-                      return l10n.categoryOrder;
+                      return strings.tKey(PlatformAdminKeys.fieldCategoryOrder);
                     }
                     return null;
                   },
@@ -123,7 +126,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   contentPadding: EdgeInsets.zero,
                   activeThumbColor: PtTheme.deepGreen,
                   title: Text(
-                    l10n.active,
+                    strings.tKey(CommonKeys.statusActive),
                     style: PtTheme.font(
                       13,
                       weight: FontWeight.w600,
@@ -144,7 +147,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
           child: Text(
-            l10n.cancel,
+            strings.tKey(CommonKeys.buttonCancel),
             style: PtTheme.font(
               13,
               weight: FontWeight.w700,
@@ -159,7 +162,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           },
           style: FilledButton.styleFrom(backgroundColor: PtTheme.deepGreen),
           child: Text(
-            l10n.save,
+            strings.tKey(CommonKeys.buttonSave),
             style: PtTheme.font(
               13,
               weight: FontWeight.w700,
@@ -197,12 +200,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   Future<void> _confirmRetire(PlatformCategory category) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final confirmed = await showPlatformConfirmDialog(
       context: context,
-      title: l10n.retireCategory,
-      body: l10n.retireConfirm,
-      confirmLabel: l10n.retireCategory,
+      title: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
+      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+      confirmLabel: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
       destructive: true,
     );
     if (confirmed != true) return;
@@ -228,7 +231,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return ChecklistPageFrame(
@@ -237,16 +240,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       showSearch: false,
       actions: [
         PlatformPrimaryButton(
-          label: l10n.addCategory,
+          label: strings.tKey(PlatformAdminKeys.buttonCategoryAdd),
           icon: Icons.add_rounded,
           onPressed: _busy ? null : () => _showCategoryDialog(null),
         ),
       ],
       child: categoriesAsync.when(
-        loading: () => PlatformLoadingView(message: l10n.loading),
+        loading: () =>
+            PlatformLoadingView(message: strings.tKey(CommonKeys.stateLoading)),
         error: (error, _) => PlatformErrorView(
           message: _failureMessage(error),
-          retryLabel: l10n.retry,
+          retryLabel: strings.tKey(CommonKeys.buttonRetry),
           onRetry: () => ref.invalidate(categoriesProvider),
         ),
         data: (categories) {
@@ -272,27 +276,27 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             children: [
               PlatformToolbar(
                 searchController: _searchController,
-                searchHint: l10n.search,
+                searchHint: strings.tKey(CommonKeys.filterSearch),
                 onSearchChanged: (value) => setState(() => _search = value),
                 countLabel: countLabel,
                 filters: [
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 220),
                     child: PlatformDropdown<String>(
-                      label: l10n.status,
+                      label: strings.tKey(CommonKeys.tableStatus),
                       value: _status,
                       items: [
                         DropdownMenuItem(
                           value: '',
-                          child: Text(l10n.filterAll),
+                          child: Text(strings.tKey(CommonKeys.filterAll)),
                         ),
                         DropdownMenuItem(
                           value: 'ACTIVE',
-                          child: Text(l10n.active),
+                          child: Text(strings.tKey(CommonKeys.statusActive)),
                         ),
                         DropdownMenuItem(
                           value: 'RETIRED',
-                          child: Text(l10n.retired),
+                          child: Text(strings.tKey(CommonKeys.statusRetired)),
                         ),
                       ],
                       onChanged: (value) {
@@ -306,7 +310,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               if (filtered.isEmpty)
                 PlatformEmptyView(
                   icon: Icons.category_outlined,
-                  title: l10n.noData,
+                  title: strings.tKey(CommonKeys.emptyTitle),
                 )
               else
                 LayoutBuilder(
@@ -321,7 +325,12 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             index < filtered.length;
                             index++
                           ) ...[
-                            _buildCategoryCard(l10n, filtered, ordered, index),
+                            _buildCategoryCard(
+                              strings,
+                              filtered,
+                              ordered,
+                              index,
+                            ),
                             const SizedBox(height: 12),
                           ],
                         ],
@@ -335,7 +344,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                           children: [
                             Expanded(
                               child: _buildCategoryCard(
-                                l10n,
+                                strings,
                                 filtered,
                                 ordered,
                                 index,
@@ -345,7 +354,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                             Expanded(
                               child: index + 1 < filtered.length
                                   ? _buildCategoryCard(
-                                      l10n,
+                                      strings,
                                       filtered,
                                       ordered,
                                       index + 1,
@@ -372,7 +381,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   Widget _buildCategoryCard(
-    AppLocalizations l10n,
+    dynamic strings,
     List<PlatformCategory> visible,
     List<PlatformCategory> ordered,
     int visibleIndex,
@@ -418,14 +427,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 children: [
                   _reorderButton(
                     icon: Icons.arrow_upward_rounded,
-                    tooltip: l10n.reorder,
+                    tooltip: strings.tKey(CommonKeys.buttonReorder),
                     onPressed: canMoveUp
                         ? () => _reorder(ordered, orderedIndex, -1)
                         : null,
                   ),
                   _reorderButton(
                     icon: Icons.arrow_downward_rounded,
-                    tooltip: l10n.reorder,
+                    tooltip: strings.tKey(CommonKeys.buttonReorder),
                     onPressed: canMoveDown
                         ? () => _reorder(ordered, orderedIndex, 1)
                         : null,
@@ -462,14 +471,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             runSpacing: 6,
             children: [
               PlatformMetaPill(
-                label: l10n.categoryOrder,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
                 value: '${category.sortOrder}',
               ),
               PlatformMetaPill(
-                label: l10n.itemsTab,
+                label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
                 value: '${category.itemCount}',
               ),
-              PlatformMetaPill(label: l10n.status, value: category.status),
+              PlatformMetaPill(
+                label: strings.tKey(CommonKeys.tableStatus),
+                value: category.status,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -480,12 +492,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               PlatformSecondaryButton(
-                label: l10n.edit,
+                label: strings.tKey(CommonKeys.buttonEdit),
                 icon: Icons.edit_outlined,
                 onPressed: _busy ? null : () => _showCategoryDialog(category),
               ),
               PlatformSecondaryButton(
-                label: l10n.retireCategory,
+                label: strings.tKey(
+                  PlatformAdminKeys.dialogCategoryRetireTitle,
+                ),
                 icon: Icons.archive_outlined,
                 destructive: true,
                 onPressed: _busy ? null : () => _confirmRetire(category),
@@ -530,8 +544,10 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 }
 
-String? _required(String? value, AppLocalizations l10n) {
-  if (value == null || value.trim().isEmpty) return l10n.required;
+String? _required(String? value, dynamic strings) {
+  if (value == null || value.trim().isEmpty) {
+    return strings.tKey(CommonKeys.validationRequired);
+  }
   return null;
 }
 

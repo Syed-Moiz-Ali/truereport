@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_chips.dart';
+import '../../platform_providers.dart';
+
+import 'package:l10n/l10n.dart';
 
 /// Checklist tabs. Items is the default landing tab.
 enum ChecklistTab {
@@ -17,18 +20,18 @@ enum ChecklistTab {
   final String route;
   final String key;
 
-  String label(AppLocalizations l10n) {
+  String label(dynamic strings) {
     switch (this) {
       case ChecklistTab.categories:
-        return l10n.categoriesTab;
+        return strings.tKey(PlatformAdminKeys.tabChecklistCategories);
       case ChecklistTab.items:
-        return l10n.itemsTab;
+        return strings.tKey(PlatformAdminKeys.tabChecklistItems);
       case ChecklistTab.templates:
-        return l10n.checklistTabTemplates;
+        return strings.tKey(PlatformAdminKeys.tabChecklistTemplates);
       case ChecklistTab.issueOptions:
-        return l10n.checklistTabIssueOptions;
+        return strings.tKey(PlatformAdminKeys.tabChecklistIssueOptions);
       case ChecklistTab.health:
-        return l10n.checklistTabHealth;
+        return strings.tKey(PlatformAdminKeys.tabChecklistHealth);
     }
   }
 
@@ -47,14 +50,14 @@ enum ChecklistTab {
 /// Tabs navigate to routes so the selected tab persists in the URL.
 /// Wraps on compact widths (no overflow) and follows the ambient
 /// [Directionality], so it is RTL-safe.
-class ChecklistTabBar extends StatelessWidget {
+class ChecklistTabBar extends ConsumerWidget {
   const ChecklistTabBar({super.key, required this.currentTab});
 
   final ChecklistTab currentTab;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -63,7 +66,7 @@ class ChecklistTabBar extends StatelessWidget {
         for (final tab in ChecklistTab.values)
           PlatformFilterChip(
             key: Key('checklist-tab-${tab.key}'),
-            label: tab.label(l10n),
+            label: tab.label(strings),
             selected: tab == currentTab,
             onTap: () {
               if (tab != currentTab) context.go(tab.route);

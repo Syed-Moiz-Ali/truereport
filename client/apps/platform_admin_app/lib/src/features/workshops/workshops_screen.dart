@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -14,6 +13,8 @@ import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import 'workshop_form.dart';
+
+import 'package:l10n/l10n.dart';
 
 class WorkshopsScreen extends ConsumerStatefulWidget {
   const WorkshopsScreen({super.key});
@@ -35,7 +36,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final hierarchy = ref.watch(hierarchyStateProvider);
     return PlatformShell(
       currentRoute: '/workshops',
@@ -45,11 +46,11 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlatformPageHeader(
-              title: l10n.workshops,
-              subtitle: l10n.wsSubtitle,
+              title: strings.tKey(PlatformAdminKeys.navWorkshops),
+              subtitle: strings.tKey(PlatformAdminKeys.pageWorkshopsSubtitle),
               actions: [
                 PlatformPrimaryButton(
-                  label: l10n.wsAdd,
+                  label: strings.tKey(PlatformAdminKeys.pageWorkshopsAdd),
                   icon: Icons.add_rounded,
                   onPressed: () => context.go('/workshops/new'),
                 ),
@@ -59,7 +60,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
             hierarchy.when(
               loading: () => const PlatformLoadingView(),
               error: (_, _) => PlatformErrorView(
-                message: l10n.error,
+                message: strings.tKey(CommonKeys.stateError),
                 onRetry: () => ref.invalidate(hierarchyStateProvider),
               ),
               data: (response) => _buildData(context, response),
@@ -71,7 +72,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
   }
 
   Widget _buildData(BuildContext context, HierarchyResponse response) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final workshops = response.workshops;
     final statuses = <String>{
       for (final workshop in workshops) workshop.status.toUpperCase(),
@@ -95,29 +96,41 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
       children: [
         PlatformToolbar(
           searchController: _searchController,
-          searchHint: l10n.wsSearchHint,
+          searchHint: strings.tKey(PlatformAdminKeys.filterWorkshopsSearch),
           onSearchChanged: (value) => setState(() => _query = value),
           filters: [
             PlatformDropdown<String>(
-              label: l10n.status,
+              label: strings.tKey(CommonKeys.tableStatus),
               value: _statusFilter,
               items: [
-                DropdownMenuItem(value: '', child: Text(l10n.filterAll)),
+                DropdownMenuItem(
+                  value: '',
+                  child: Text(strings.tKey(CommonKeys.filterAll)),
+                ),
                 for (final status in statuses)
                   DropdownMenuItem(value: status, child: Text(status)),
               ],
               onChanged: (value) => setState(() => _statusFilter = value ?? ''),
             ),
           ],
-          countLabel: l10n.wsResultCount(filtered.length),
+          countLabel: strings.tArgsKey(
+            PlatformAdminKeys.pageWorkshopsResultCount,
+            {'count': filtered.length},
+          ),
         ),
         const SizedBox(height: 16),
         if (filtered.isEmpty)
           PlatformEmptyView(
             icon: Icons.business_outlined,
-            title: workshops.isEmpty ? l10n.wsEmpty : l10n.noData,
-            body: workshops.isEmpty ? l10n.wsEmptyBody : null,
-            actionLabel: workshops.isEmpty ? l10n.wsAdd : null,
+            title: workshops.isEmpty
+                ? strings.tKey(PlatformAdminKeys.emptyWorkshopsTitle)
+                : strings.tKey(CommonKeys.emptyTitle),
+            body: workshops.isEmpty
+                ? strings.tKey(PlatformAdminKeys.emptyWorkshopsBody)
+                : null,
+            actionLabel: workshops.isEmpty
+                ? strings.tKey(PlatformAdminKeys.pageWorkshopsAdd)
+                : null,
             onAction: workshops.isEmpty
                 ? () => context.go('/workshops/new')
                 : null,
@@ -160,10 +173,10 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
   }
 
   void _editWorkshop(HierarchyWorkshop workshop) {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     showPlatformDialog<void>(
       context: context,
-      title: l10n.wsEdit,
+      title: strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
       body: WorkshopForm(
         workshop: workshop,
         onSaved: (_) {
@@ -175,13 +188,19 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
   }
 
   Future<void> _toggleStatus(HierarchyWorkshop workshop) async {
-    final l10n = AppLocalizations.of(context);
+    final strings = ref.watch(uiStringsProvider);
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     final reason = await showReasonDialog(
       context: context,
-      title: isActive ? l10n.wsDeactivate : l10n.wsReactivate,
-      body: isActive ? l10n.wsDeactivateConfirm : null,
-      confirmLabel: isActive ? l10n.wsDeactivate : l10n.wsReactivate,
+      title: isActive
+          ? strings.tKey(PlatformAdminKeys.buttonWorkshopDeactivate)
+          : strings.tKey(PlatformAdminKeys.buttonWorkshopReactivate),
+      body: isActive
+          ? strings.tKey(PlatformAdminKeys.dialogWorkshopDeactivateConfirm)
+          : null,
+      confirmLabel: isActive
+          ? strings.tKey(PlatformAdminKeys.buttonWorkshopDeactivate)
+          : strings.tKey(PlatformAdminKeys.buttonWorkshopReactivate),
       destructive: isActive,
     );
     if (reason == null || !mounted) return;
@@ -197,12 +216,12 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
       if (!mounted) return;
       await showPlatformDialog<void>(
         context: context,
-        title: l10n.error,
-        body: Text(l10n.error),
+        title: strings.tKey(CommonKeys.stateError),
+        body: Text(strings.tKey(CommonKeys.stateError)),
         actionsBuilder: (dialogContext) => [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.close),
+            child: Text(strings.tKey(CommonKeys.buttonClose)),
           ),
         ],
       );
@@ -210,7 +229,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
   }
 }
 
-class _WorkshopCard extends StatelessWidget {
+class _WorkshopCard extends ConsumerWidget {
   const _WorkshopCard({
     required this.workshop,
     required this.onOpen,
@@ -234,8 +253,8 @@ class _WorkshopCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     final email = (workshop.contactEmail ?? '').trim();
     return Semantics(
@@ -319,23 +338,31 @@ class _WorkshopCard extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     PlatformMetaPill(
-                      label: l10n.wsStaff,
+                      label: strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
                       value: '${workshop.memberCount}',
                     ),
                     PlatformMetaPill(
-                      label: l10n.technicians,
+                      label: strings.tKey(
+                        PlatformAdminKeys.sectionWorkshopTechnicians,
+                      ),
                       value: '${workshop.technicians.length}',
                     ),
                     PlatformMetaPill(
-                      label: l10n.admins,
+                      label: strings.tKey(
+                        PlatformAdminKeys.sectionWorkshopAdmins,
+                      ),
                       value: '${workshop.admins.length}',
                     ),
                     PlatformMetaPill(
-                      label: l10n.pendingInvitations,
+                      label: strings.tKey(
+                        PlatformAdminKeys.sectionWorkshopPendingInvitations,
+                      ),
                       value: '${workshop.pendingInvitations.length}',
                     ),
                     PlatformMetaPill(
-                      label: l10n.wsCapacity,
+                      label: strings.tKey(
+                        PlatformAdminKeys.fieldWorkshopCapacity,
+                      ),
                       value:
                           '${workshop.bayCount} • ${workshop.assignedCapacityPercent}%',
                     ),
@@ -368,19 +395,27 @@ class _WorkshopCard extends StatelessWidget {
                 Row(
                   children: [
                     IconButton(
-                      tooltip: l10n.details,
+                      tooltip: strings.tKey(CommonKeys.labelDetails),
                       icon: const Icon(Icons.visibility_outlined, size: 20),
                       color: PtTheme.muted,
                       onPressed: () => onOpen(workshop),
                     ),
                     IconButton(
-                      tooltip: l10n.wsEdit,
+                      tooltip: strings.tKey(
+                        PlatformAdminKeys.pageWorkshopsEdit,
+                      ),
                       icon: const Icon(Icons.edit_outlined, size: 20),
                       color: PtTheme.muted,
                       onPressed: () => onEdit(workshop),
                     ),
                     IconButton(
-                      tooltip: isActive ? l10n.wsDeactivate : l10n.wsReactivate,
+                      tooltip: isActive
+                          ? strings.tKey(
+                              PlatformAdminKeys.buttonWorkshopDeactivate,
+                            )
+                          : strings.tKey(
+                              PlatformAdminKeys.buttonWorkshopReactivate,
+                            ),
                       icon: Icon(
                         isActive
                             ? Icons.block_outlined
@@ -392,7 +427,7 @@ class _WorkshopCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      tooltip: l10n.details,
+                      tooltip: strings.tKey(CommonKeys.labelDetails),
                       icon: const Icon(Icons.arrow_forward_rounded, size: 20),
                       color: PtTheme.deepGreen,
                       onPressed: () => onOpen(workshop),
