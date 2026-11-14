@@ -34,6 +34,7 @@ class PlatformAdminApp extends ConsumerWidget {
     final defaultLanguage = ref.watch(platformUiDefaultLanguageProvider);
     final title = ref.watch(platformAppTitleProvider);
     ref.read(apiClientProvider).acceptLanguage = locale.languageCode;
+    ref.read(apiClientProvider).clientName = 'platform_admin';
 
     return MaterialApp.router(
       onGenerateTitle: (_) => title,

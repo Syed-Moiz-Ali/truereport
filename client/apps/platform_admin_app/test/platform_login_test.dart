@@ -59,21 +59,9 @@ UiMessageManifest _testManifest() => const UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(
-      code: 'en',
-      direction: 'ltr',
-      nativeName: 'English',
-    ),
-    UiMessageLanguage(
-      code: 'ar',
-      direction: 'rtl',
-      nativeName: 'العربية',
-    ),
-    UiMessageLanguage(
-      code: 'zh-hans',
-      direction: 'ltr',
-      nativeName: '中文',
-    ),
+    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
+    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
+    UiMessageLanguage(code: 'zh-hans', direction: 'ltr', nativeName: '中文'),
   ],
 );
 
@@ -121,7 +109,11 @@ Widget _buildLoginApp({
     child: MaterialApp.router(
       locale: locale,
       supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: AppTheme.light,
       routerConfig: _router(),
     ),
@@ -304,7 +296,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
-          localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+          localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
           home: AdminSignInView(
             portalType: AdminPortalType.platform,

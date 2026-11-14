@@ -6,6 +6,7 @@ import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.localization.api.LanguageDtos.MeLanguageDto;
 import com.truereport.localization.api.LanguageDtos.TranslationCoverageDto;
 import com.truereport.localization.api.LanguageDtos.UpdateLanguageRequest;
+import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
 import com.truereport.shared.security.CurrentUser;
@@ -34,13 +35,16 @@ public class LocalizationService {
     private final JdbcTemplate jdbc;
     private final TranslationBacklogService backlog;
     private final CurrentUserService currentUsers;
+    private final FieldAuditService audit;
 
     public LocalizationService(LanguageRepository languages, JdbcTemplate jdbc,
-                               TranslationBacklogService backlog, CurrentUserService currentUsers) {
+                               TranslationBacklogService backlog, CurrentUserService currentUsers,
+                               FieldAuditService audit) {
         this.languages = languages;
         this.jdbc = jdbc;
         this.backlog = backlog;
         this.currentUsers = currentUsers;
+        this.audit = audit;
     }
 
     public static final List<String> LANGUAGE_STATUSES =
@@ -225,6 +229,33 @@ public class LocalizationService {
         }
         languages.setDefault(code);
         return languages.find(code).orElse(existing);
+    }
+
+    @Transactional
+    public void deleteLanguage(CurrentUser actor, String code,
+                               jakarta.servlet.http.HttpServletRequest request) {
+        LanguageDto existing = languages.find(normalizeCode(code))
+                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
+        if (existing.isDefault()) {
+            throw ApiException.conflict("LANGUAGE_IS_DEFAULT",
+                    "The default language cannot be deleted");
+        }
+        Integer preferences = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_user_language_preferences WHERE language_code = ?
+                """, Integer.class, existing.code());
+        if (preferences != null && preferences > 0) {
+            throw ApiException.conflict("LANGUAGE_IN_USE",
+                    "Language is used by a user preference; retire it instead");
+        }
+        if (languages.countJobsUsing(existing.code()) > 0) {
+            throw ApiException.conflict("LANGUAGE_IN_USE",
+                    "Language is used by a job preference; retire it instead");
+        }
+        jdbc.update("DELETE FROM platform_translations WHERE lang = ?", existing.code());
+        jdbc.update("DELETE FROM platform_languages WHERE code = ?", existing.code());
+        audit.record(actor, "LANGUAGE_DELETED", "LANGUAGE", existing.code(),
+                Map.of("status", existing.status(), "nativeName", existing.nativeName()),
+                null, null, request);
     }
 
     @Transactional(readOnly = true)

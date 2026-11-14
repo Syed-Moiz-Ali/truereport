@@ -34,7 +34,7 @@ class PlatformAuditIT extends IntegrationTestBase {
         assertThat(actor.get("total").asInt()).isGreaterThanOrEqualTo(2);
 
         JsonNode search = getJson(platform,
-                "/api/v1/platform/audit-events?search=LANGUAGE&page=0&size=10");
+                "/api/v1/platform/audit-events?search=LANGUAGE_PUBLISHED&page=0&size=10");
         assertThat(search.get("total").asInt()).isEqualTo(1);
         assertThat(search.get("items").get(0).get("entityType").asText())
                 .isEqualTo("LANGUAGE");

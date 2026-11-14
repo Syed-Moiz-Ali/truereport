@@ -12,6 +12,7 @@ class ApiFailure extends AppFailure {
     required super.messageKey,
     super.traceId,
     super.statusCode,
+    super.detail,
     this.errors = const <Map<String, dynamic>>[],
   });
 
@@ -58,6 +59,10 @@ class ApiClient {
 
   /// BCP-47 language code sent as `Accept-Language` on every request.
   String? acceptLanguage;
+
+  /// Optional client marker sent as `X-Client` (for example
+  /// `platform_admin`) so the backend can scope error response fields.
+  String? clientName;
 
   Dio get raw => _dio;
 
@@ -232,6 +237,10 @@ class ApiClient {
     if (language != null && language.isNotEmpty) {
       headers['Accept-Language'] = language;
     }
+    final client = clientName;
+    if (client != null && client.isNotEmpty) {
+      headers['X-Client'] = client;
+    }
     return headers;
   }
 
@@ -244,6 +253,7 @@ class ApiClient {
         messageKey: problem.messageKey,
         traceId: problem.traceId,
         statusCode: problem.status ?? error.response?.statusCode,
+        detail: problem.detail,
         errors: _errorList(data['errors']),
       );
     }

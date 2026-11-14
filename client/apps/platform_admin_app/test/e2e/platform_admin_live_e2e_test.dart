@@ -40,7 +40,11 @@ Widget _app(Widget home, ApiClient client, ApiEndpoints endpoints) {
       child: MaterialApp(
         locale: const Locale('en'),
         supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-        localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+        localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: home,
       ),
     ),
@@ -58,6 +62,7 @@ Future<ApiClient> _login(String email, String password) async {
   client.accessToken =
       (response as Map<String, dynamic>)['accessToken'] as String;
   client.acceptLanguage = 'en';
+  client.clientName = 'platform_admin';
   return client;
 }
 
@@ -376,6 +381,15 @@ void main() {
       (row) => row['code'] == templateCode,
     );
     final templateId = template['id'] as String;
+    addTearDown(() async {
+      try {
+        await client.postDynamic(
+          '/api/v1/platform/master/templates/$templateId/retire',
+        );
+      } catch (_) {
+        // Best effort cleanup for live E2E data.
+      }
+    });
 
     await _pump(
       tester,

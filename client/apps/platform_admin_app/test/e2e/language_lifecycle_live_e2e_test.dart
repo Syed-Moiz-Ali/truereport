@@ -66,6 +66,7 @@ Future<ApiClient> _login() async {
   client.accessToken =
       (response as Map<String, dynamic>)['accessToken'] as String;
   client.acceptLanguage = 'en';
+  client.clientName = 'platform_admin';
   return client;
 }
 
@@ -156,6 +157,13 @@ bool _fileExists(String code) {
   return false;
 }
 
+List<String> _generatedUiMessagePaths(String code) {
+  return [
+    'generated_ui_messages/platform_admin/$code.json',
+    '../../server/src/main/resources/i18n/platform_admin/$code.json',
+  ];
+}
+
 void main() {
   LiveTestWidgetsFlutterBinding.ensureInitialized();
   if (!_runLive) {
@@ -191,6 +199,23 @@ void main() {
     final endpoints = ApiEndpoints(baseUrl: _baseUrl);
     final stamp = DateTime.now().millisecondsSinceEpoch;
     final code = 'e2e${(stamp % 100000).toString().padLeft(5, '0')}';
+    addTearDown(() async {
+      try {
+        await client.deleteDynamic('/api/v1/platform/i18n/languages/$code');
+      } catch (_) {
+        // Best effort: the language may already be removed by the test.
+      }
+      for (final path in _generatedUiMessagePaths(code)) {
+        final file = File(path);
+        if (file.existsSync()) {
+          try {
+            file.deleteSync();
+          } catch (_) {
+            // Best effort file cleanup.
+          }
+        }
+      }
+    });
 
     final created = await _post(
       tester,
@@ -382,5 +407,9 @@ void main() {
       endpoints,
     );
     await _shot(tester, 'generated_language_review_$code');
+
+    await client.deleteDynamic('/api/v1/platform/i18n/languages/$code');
+    await _pump(tester, const LanguagesScreen(), client, endpoints);
+    expect(find.text(code), findsNothing);
   }, timeout: const Timeout(Duration(minutes: 8)));
 }

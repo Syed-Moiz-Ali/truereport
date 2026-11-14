@@ -36,6 +36,20 @@ class ApiErrorContractTest {
         return request;
     }
 
+    private MockHttpServletRequest platformRequest() {
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "GET", "/api/v1/platform/i18n/languages");
+        request.setRequestURI("/api/v1/platform/i18n/languages");
+        return request;
+    }
+
+    private MockHttpServletRequest platformAdminClientRequest(String path) {
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        request.setRequestURI(path);
+        request.addHeader("X-Client", "platform_admin");
+        return request;
+    }
+
     @Test
     void apiExceptionPreservesStableCodeAndMessageKey() {
         ApiException exception = new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
@@ -98,5 +112,98 @@ class ApiErrorContractTest {
         assertThat(badRequest.getBody().getProperties().get("code")).isEqualTo("BAD_REQUEST");
         assertThat(badRequest.getBody().getProperties().get("messageKey"))
                 .isEqualTo("error.badRequest");
+    }
+
+    @Test
+    void platformAdminErrorsOmitLegacyBilingualFields() {
+        ApiException exception = new ApiException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "TRANSLATION_REQUIRED", "error.translation.required", "Translation required",
+                List.of(com.truereport.shared.error.FieldIssue.of("hi.label",
+                        "TRANSLATION_REQUIRED", "error.translation.required")));
+        ResponseEntity<ProblemDetail> response = handler.handleApi(exception, platformRequest());
+        Map<String, Object> properties = response.getBody().getProperties();
+
+        assertThat(properties.get("code")).isEqualTo("TRANSLATION_REQUIRED");
+        assertThat(properties.get("messageKey")).isEqualTo("error.translation.required");
+        assertThat(response.getBody().getDetail()).isNotBlank();
+        assertThat(properties).containsKey("traceId");
+        assertThat(properties).doesNotContainKeys("messageEn", "messageAr");
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> errors =
+                (List<Map<String, String>>) properties.get("errors");
+        assertThat(errors).hasSize(1);
+        assertThat(errors.get(0).get("messageKey")).isEqualTo("error.translation.required");
+        assertThat(errors.get(0)).doesNotContainKeys("messageEn", "messageAr");
+    }
+
+    @Test
+    void platformAdminValidationErrorsOmitLegacyBilingualFields() throws Exception {
+        BindingResult binding = new BeanPropertyBindingResult(new Object(), "request");
+        binding.addError(new FieldError("request", "channel", "BAD"));
+        MethodParameter parameter = new MethodParameter(
+                BeanUtils.class.getMethod("instantiateClass", Class.class), 0);
+        MethodArgumentNotValidException exception =
+                new MethodArgumentNotValidException(parameter, binding);
+
+        ResponseEntity<ProblemDetail> response = handler.handleValidation(
+                exception, platformRequest());
+        assertThat(response.getBody().getProperties().get("messageKey"))
+                .isEqualTo("error.validation.failed");
+        assertThat(response.getBody().getDetail()).isNotBlank();
+        assertThat(response.getBody().getProperties())
+                .doesNotContainKeys("messageEn", "messageAr");
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> fields =
+                (List<Map<String, String>>) response.getBody().getProperties().get("fieldErrors");
+        assertThat(fields.get(0)).doesNotContainKeys("messageEn", "messageAr");
+    }
+
+    @Test
+    void platformAdminClientHeaderScopesAuthEndpointErrors() {
+        ApiException exception = new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
+                "error.auth.invalidCredentials", "Invalid credentials");
+
+        ResponseEntity<ProblemDetail> response = handler.handleApi(
+                exception, platformAdminClientRequest("/api/v1/auth/login"));
+
+        Map<String, Object> properties = response.getBody().getProperties();
+        assertThat(properties.get("code")).isEqualTo("INVALID_CREDENTIALS");
+        assertThat(properties.get("messageKey")).isEqualTo("error.auth.invalidCredentials");
+        assertThat(response.getBody().getDetail()).isNotBlank();
+        assertThat(properties).doesNotContainKeys("messageEn", "messageAr");
+    }
+
+    @Test
+    void platformAdminClientHeaderScopesValidationErrors() throws Exception {
+        BindingResult binding = new BeanPropertyBindingResult(new Object(), "request");
+        binding.addError(new FieldError("request", "email", "BAD"));
+        MethodParameter parameter = new MethodParameter(
+                BeanUtils.class.getMethod("instantiateClass", Class.class), 0);
+        MethodArgumentNotValidException exception =
+                new MethodArgumentNotValidException(parameter, binding);
+
+        ResponseEntity<ProblemDetail> response = handler.handleValidation(
+                exception, platformAdminClientRequest("/api/v1/auth/login"));
+
+        assertThat(response.getBody().getProperties())
+                .doesNotContainKeys("messageEn", "messageAr");
+        @SuppressWarnings("unchecked")
+        List<Map<String, String>> fields =
+                (List<Map<String, String>>) response.getBody().getProperties().get("fieldErrors");
+        assertThat(fields.get(0)).doesNotContainKeys("messageEn", "messageAr");
+    }
+
+    @Test
+    void unmarkedClientStillReceivesLegacyBilingualFields() {
+        ApiException exception = new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
+                "error.auth.invalidCredentials", "Invalid credentials");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+        request.setRequestURI("/api/v1/auth/login");
+
+        ResponseEntity<ProblemDetail> response = handler.handleApi(exception, request);
+
+        assertThat(response.getBody().getProperties())
+                .containsKeys("messageEn", "messageAr");
     }
 }

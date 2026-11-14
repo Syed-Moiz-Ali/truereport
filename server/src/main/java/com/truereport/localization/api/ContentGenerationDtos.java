@@ -19,7 +19,9 @@ public final class ContentGenerationDtos {
             int translatedKeys,
             List<String> failedKeys,
             String status,
-            String error,
+            @com.fasterxml.jackson.annotation.JsonInclude(
+                    com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
+            String errorMessage,
             String startedAt,
             String finishedAt) {
     }

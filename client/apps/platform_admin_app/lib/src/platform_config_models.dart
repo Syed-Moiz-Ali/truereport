@@ -1510,6 +1510,8 @@ class ContentGeneration {
   static const String stateCompleted = 'COMPLETED';
   static const String stateFailed = 'FAILED';
   static const String stateSkipped = 'SKIPPED';
+  static const String stateNone = 'NONE';
+  static const String stateIdle = 'IDLE';
 
   final String language;
   final String jobId;
@@ -1525,6 +1527,11 @@ class ContentGeneration {
   bool get isCompleted =>
       jobStatus == stateCompleted || jobStatus == stateSkipped;
   bool get isFailed => jobStatus == stateFailed;
+  bool get isNone =>
+      jobStatus == stateNone ||
+      jobStatus == stateIdle ||
+      status == stateNone ||
+      status == stateIdle;
   bool get isFinished => !isRunning;
 
   double get progress {
@@ -1544,14 +1551,14 @@ class ContentGeneration {
         ),
         failedKeys: _strings(json['failedKeys']),
         entityTypes: _strings(json['entityTypes']),
-        error: _str(json['error']),
+        error: _str(json['errorMessage'] ?? json['error']),
       );
 
   static const ContentGeneration idle = ContentGeneration(
     language: '',
     jobId: '',
-    jobStatus: '',
-    status: '',
+    jobStatus: stateNone,
+    status: stateNone,
     total: 0,
     completed: 0,
     failedKeys: [],

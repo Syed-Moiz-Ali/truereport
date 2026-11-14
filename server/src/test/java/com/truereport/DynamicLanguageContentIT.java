@@ -127,6 +127,18 @@ class DynamicLanguageContentIT extends IntegrationTestBase {
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
         createLanguage(platform, "hi", "Hindi");
 
+        JsonNode noJob = getJson(platform,
+                "/api/v1/platform/i18n/languages/hi/content/generation");
+        assertThat(noJob.get("jobStatus").asText()).isEqualTo("NONE");
+        assertThat(noJob.get("status").asText()).isEqualTo("NONE");
+        assertThat(noJob.get("totalKeys").asInt()).isZero();
+        assertThat(noJob.get("translatedKeys").asInt()).isZero();
+        assertThat(noJob.get("failedKeys").isArray()).isTrue();
+        assertThat(noJob.get("errorMessage").isNull()).isTrue();
+        mockMvc.perform(get("/api/v1/platform/i18n/languages/unknown/content/generation")
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isNotFound());
+
         JsonNode generation = postJson(platform,
                 "/api/v1/platform/i18n/languages/hi/content/generate",
                 "{\"entityTypes\":[\"CATEGORY\",\"ITEM\"],\"force\":true}");

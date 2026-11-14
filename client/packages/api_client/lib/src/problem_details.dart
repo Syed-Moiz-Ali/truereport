@@ -31,5 +31,6 @@ class ProblemDetails {
     messageKey: messageKey,
     traceId: traceId,
     statusCode: status,
+    detail: detail,
   );
 }

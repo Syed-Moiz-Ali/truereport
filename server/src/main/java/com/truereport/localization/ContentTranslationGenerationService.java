@@ -144,10 +144,13 @@ public class ContentTranslationGenerationService {
     }
 
     public ContentGenerationDto status(String code) {
-        LanguageDto language = requireLanguage(code);
+        LanguageDto language = languages.find(code == null ? null
+                        : code.trim().toLowerCase(Locale.ROOT))
+                .orElseThrow(ApiException::notFound);
         JobRow job = latestJob(language.code());
         if (job == null) {
-            throw ApiException.notFound();
+            return new ContentGenerationDto(language.code(), "", "NONE", List.of(),
+                    0, 0, List.of(), "NONE", null, null, null);
         }
         return toDto(job, language);
     }

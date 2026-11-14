@@ -25,6 +25,8 @@ public class ApiExceptionHandler {
 
     private static final Locale ARABIC = Locale.forLanguageTag("ar");
     private static final Locale ENGLISH = Locale.ENGLISH;
+    private static final String CLIENT_HEADER = "X-Client";
+    private static final String PLATFORM_ADMIN_CLIENT = "platform_admin";
 
     private final MessageSource messageSource;
     private final org.springframework.web.servlet.LocaleResolver localeResolver;
@@ -44,9 +46,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> handleApi(ApiException exception, HttpServletRequest request) {
         Locale requested = resolveLocale(request);
+        boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve(exception.messageKey(), ENGLISH, exception.getMessage());
         String messageAr = resolve(exception.messageKey(), ARABIC, exception.getMessage());
-        String detailText = resolve(exception.messageKey(), requested, exception.getMessage());
+        String detailText = platformAdmin
+                ? messageEn
+                : resolve(exception.messageKey(), requested, exception.getMessage());
 
         ProblemDetail detail = problem(exception.status(), exception.code(), exception.messageKey(),
                 detailText, messageEn, messageAr, request);
@@ -63,8 +68,10 @@ public class ApiExceptionHandler {
                 mapped.put("field", issue.field());
                 mapped.put("code", issue.code());
                 mapped.put("messageKey", issue.messageKey());
-                mapped.put("messageEn", issueEn);
-                mapped.put("messageAr", issueAr);
+                if (!platformAdmin) {
+                    mapped.put("messageEn", issueEn);
+                    mapped.put("messageAr", issueAr);
+                }
                 errors.add(mapped);
             }
             detail.setProperty("errors", errors);
@@ -77,13 +84,16 @@ public class ApiExceptionHandler {
     public ResponseEntity<ProblemDetail> handleValidation(MethodArgumentNotValidException exception,
                                                           HttpServletRequest request) {
         Locale requested = resolveLocale(request);
+        boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.validation.failed", ENGLISH, "Validation failed");
         String messageAr = resolve("error.validation.failed", ARABIC, messageEn);
-        String detailText = resolve("error.validation.failed", requested, messageEn);
+        String detailText = platformAdmin
+                ? messageEn
+                : resolve("error.validation.failed", requested, messageEn);
         ProblemDetail detail = problem(HttpStatus.UNPROCESSABLE_ENTITY, "VALIDATION_FAILED",
                 "error.validation.failed", detailText, messageEn, messageAr, request);
         List<Map<String, String>> fields = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> fieldError(error, messageEn, messageAr))
+                .map(error -> fieldError(error, messageEn, messageAr, platformAdmin))
                 .toList();
         detail.setProperty("fieldErrors", fields);
         detail.setProperty("errors", fields);
@@ -94,10 +104,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNotFound(NoResourceFoundException exception,
                                                         HttpServletRequest request) {
         Locale requested = resolveLocale(request);
+        boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.notFound", ENGLISH, "Not found");
         String messageAr = resolve("error.notFound", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.NOT_FOUND, "NOT_FOUND", "error.notFound",
-                resolve("error.notFound", requested, messageEn), messageEn, messageAr, request);
+                platformAdmin ? messageEn : resolve("error.notFound", requested, messageEn),
+                messageEn, messageAr, request);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detail);
     }
 
@@ -105,10 +117,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<ProblemDetail> handleIllegalArgument(IllegalArgumentException exception,
                                                                HttpServletRequest request) {
         Locale requested = resolveLocale(request);
+        boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.badRequest", ENGLISH, "Invalid request");
         String messageAr = resolve("error.badRequest", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "error.badRequest",
-                resolve("error.badRequest", requested, messageEn), messageEn, messageAr, request);
+                platformAdmin ? messageEn : resolve("error.badRequest", requested, messageEn),
+                messageEn, messageAr, request);
         return ResponseEntity.badRequest().body(detail);
     }
 
@@ -117,21 +131,26 @@ public class ApiExceptionHandler {
             org.springframework.dao.DataIntegrityViolationException exception,
             HttpServletRequest request) {
         Locale requested = resolveLocale(request);
+        boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.dataIntegrity", ENGLISH, "The change violates a data constraint");
         String messageAr = resolve("error.dataIntegrity", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION",
-                "error.dataIntegrity", resolve("error.dataIntegrity", requested, messageEn),
+                "error.dataIntegrity",
+                platformAdmin ? messageEn : resolve("error.dataIntegrity", requested, messageEn),
                 messageEn, messageAr, request);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(detail);
     }
 
-    private Map<String, String> fieldError(FieldError error, String messageEn, String messageAr) {
+    private Map<String, String> fieldError(FieldError error, String messageEn,
+                                           String messageAr, boolean platformAdmin) {
         Map<String, String> mapped = new LinkedHashMap<>();
         mapped.put("field", error.getField());
         mapped.put("code", error.getCode() == null ? "INVALID" : error.getCode());
         mapped.put("messageKey", "error.field.invalid");
-        mapped.put("messageEn", messageEn);
-        mapped.put("messageAr", messageAr);
+        if (!platformAdmin) {
+            mapped.put("messageEn", messageEn);
+            mapped.put("messageAr", messageAr);
+        }
         return mapped;
     }
 
@@ -144,10 +163,21 @@ public class ApiExceptionHandler {
         detail.setInstance(URI.create(request.getRequestURI()));
         detail.setProperty("code", code);
         detail.setProperty("messageKey", messageKey);
-        detail.setProperty("messageEn", messageEn);
-        detail.setProperty("messageAr", messageAr);
+        if (!isPlatformAdmin(request)) {
+            detail.setProperty("messageEn", messageEn);
+            detail.setProperty("messageAr", messageAr);
+        }
         detail.setProperty("traceId", MDC.get(RequestIdFilter.MDC_KEY));
         return detail;
+    }
+
+    private boolean isPlatformAdmin(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri != null && uri.startsWith("/api/v1/platform/")) {
+            return true;
+        }
+        String client = request.getHeader(CLIENT_HEADER);
+        return PLATFORM_ADMIN_CLIENT.equalsIgnoreCase(client == null ? null : client.trim());
     }
 
     private Locale resolveLocale(HttpServletRequest request) {

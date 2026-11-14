@@ -112,7 +112,7 @@ public class SecurityConfig {
                 .map(String::trim).filter(value -> !value.isBlank()).toList();
         configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept-Language", "X-Request-Id", "Idempotency-Key", "If-Match"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept-Language", "X-Request-Id", "X-Client", "Idempotency-Key", "If-Match"));
         configuration.setExposedHeaders(List.of("X-Request-Id", "ETag", "Location"));
         configuration.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
