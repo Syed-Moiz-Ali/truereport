@@ -16,7 +16,9 @@ import '../../components/platform_toolbar.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../checklist/checklist_date.dart';
 import '../checklist/checklist_page_frame.dart';
+import '../checklist/checklist_status.dart';
 import '../checklist/checklist_tab_bar.dart';
 import 'master_item_editor_screen.dart';
 
@@ -291,7 +293,10 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
                 child: Text(strings.tKey(CommonKeys.filterAll)),
               ),
               for (final status in _itemStatuses)
-                DropdownMenuItem(value: status, child: Text(status)),
+                DropdownMenuItem(
+                  value: status,
+                  child: Text(checklistStatusLabel(strings, status)),
+                ),
             ],
             onChanged: (value) {
               setState(() => _status = value ?? '');
@@ -321,9 +326,42 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
       ),
       data: (items) {
         if (items.isEmpty) {
+          final isFiltered =
+              _search.isNotEmpty ||
+              _categoryId.isNotEmpty ||
+              _status.isNotEmpty;
+          if (isFiltered) {
+            return PlatformEmptyView(
+              icon: Icons.filter_alt_off_rounded,
+              title: strings.tKey(
+                PlatformAdminKeys.checklistItemsEmptyFilteredTitle,
+              ),
+              body: strings.tKey(
+                PlatformAdminKeys.checklistItemsEmptyFilteredBody,
+              ),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonClearFilters),
+              onAction: () {
+                _searchController.clear();
+                setState(() {
+                  _search = '';
+                  _categoryId = '';
+                  _status = '';
+                });
+              },
+            );
+          }
           return PlatformEmptyView(
-            icon: Icons.inbox_outlined,
-            title: strings.tKey(CommonKeys.emptyTitle),
+            icon: Icons.checklist_rounded,
+            title: strings.tKey(
+              PlatformAdminKeys.checklistItemsEmptyInitialTitle,
+            ),
+            body: strings.tKey(
+              PlatformAdminKeys.checklistItemsEmptyInitialBody,
+            ),
+            actionLabel: strings.tKey(
+              PlatformAdminKeys.checklistItemsButtonCreateFirst,
+            ),
+            onAction: () => _openEditor(),
           );
         }
         // Rich cards are the primary view on every breakpoint; two columns
@@ -375,176 +413,361 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
     final categoryLabel = item.categoryLabelEn.isEmpty
         ? item.categoryId
         : item.categoryLabelEn;
+    final accentColor = item.safetyCritical
+        ? PtTheme.rose
+        : (item.status == 'ACTIVE' || item.status == 'PUBLISHED'
+              ? PtTheme.deepGreen
+              : PtTheme.muted);
+
     return Container(
-      padding: const EdgeInsets.all(18),
       decoration: _surfaceDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 10,
-            runSpacing: 8,
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: PtTheme.canvas,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: PtTheme.border),
-                    ),
-                    child: Text(
-                      item.code,
-                      style: PtTheme.font(
-                        11,
-                        weight: FontWeight.w700,
-                        color: PtTheme.muted,
-                        tracking: 0.4,
-                      ),
-                    ),
-                  ),
-                  PlatformStatusChip(status: item.status),
-                  if (item.safetyCritical)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: PtTheme.rose.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        strings.tKey(PlatformAdminKeys.badgeSafetyCritical),
-                        style: PtTheme.font(
-                          11,
-                          weight: FontWeight.w700,
-                          color: PtTheme.rose,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 5, color: accentColor),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top row: category accent/icon, item label, status chip, overflow menu
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            item.safetyCritical
+                                ? Icons.warning_amber_rounded
+                                : Icons.fact_check_outlined,
+                            size: 18,
+                            color: accentColor,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _itemLabel(item),
+                                      style: PtTheme.font(
+                                        16,
+                                        lineHeight: 22,
+                                        weight: FontWeight.w700,
+                                        color: PtTheme.ink,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  PlatformStatusChip(
+                                    status: item.status,
+                                    label: checklistStatusLabel(
+                                      strings,
+                                      item.status,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  PopupMenuButton<String>(
+                                    tooltip: strings.tKey(
+                                      CommonKeys.tableActions,
+                                    ),
+                                    icon: const Icon(
+                                      Icons.more_vert_rounded,
+                                      size: 20,
+                                    ),
+                                    onSelected: (value) {
+                                      if (value == 'draft') {
+                                        _draftItem(item);
+                                      }
+                                      if (value == 'publish') {
+                                        _publishItem(item);
+                                      }
+                                      if (value == 'retire') {
+                                        _confirmRetireItem(item);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                        value: 'draft',
+                                        enabled: !_acting,
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.note_add_outlined,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              strings.tKey(
+                                                CommonKeys.buttonCreateDraft,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (!retired)
+                                        PopupMenuItem(
+                                          value: 'publish',
+                                          enabled: !_acting,
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.publish_rounded,
+                                                size: 18,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                strings.tKey(
+                                                  PlatformAdminKeys
+                                                      .buttonItemPublish,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      if (!retired)
+                                        PopupMenuItem(
+                                          value: 'retire',
+                                          enabled: !_acting,
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.archive_outlined,
+                                                size: 18,
+                                                color: PtTheme.rose,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                strings.tKey(
+                                                  PlatformAdminKeys
+                                                      .buttonItemRetire,
+                                                ),
+                                                style: const TextStyle(
+                                                  color: PtTheme.rose,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                ],
-              ),
-              Text(
-                item.currentVersion == null ? '' : 'v${item.currentVersion}',
-                style: PtTheme.font(
-                  12,
-                  weight: FontWeight.w600,
-                  color: PtTheme.muted,
+                    const SizedBox(height: 10),
+                    // Second row: code, version, category
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: PtTheme.border),
+                          ),
+                          child: Text(
+                            item.code,
+                            style: PtTheme.font(
+                              11,
+                              weight: FontWeight.w700,
+                              color: PtTheme.muted,
+                              tracking: 0.4,
+                            ),
+                          ),
+                        ),
+                        if (item.currentVersion != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PtTheme.canvas,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'v${item.currentVersion}',
+                              style: PtTheme.font(
+                                11,
+                                weight: FontWeight.w600,
+                                color: PtTheme.muted,
+                              ),
+                            ),
+                          ),
+                        PlatformMetaPill(
+                          label: strings.tKey(CommonKeys.labelCategory),
+                          value: categoryLabel,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Third row: safety-critical badge, measurement unit, sensor/tool, updated date
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (item.safetyCritical)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PtTheme.rose.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: PtTheme.rose.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.shield_outlined,
+                                  size: 14,
+                                  color: PtTheme.rose,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  strings.tKey(
+                                    PlatformAdminKeys.badgeSafetyCritical,
+                                  ),
+                                  style: PtTheme.font(
+                                    11,
+                                    weight: FontWeight.w700,
+                                    color: PtTheme.rose,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Semantics(
+                          label:
+                              '${strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit)}: ${item.measurementUnit.isEmpty ? '—' : item.measurementUnit}',
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PtTheme.canvas,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: PtTheme.border),
+                            ),
+                            child: Text(
+                              item.measurementUnit.isEmpty
+                                  ? '—'
+                                  : item.measurementUnit,
+                              style: PtTheme.font(
+                                11,
+                                lineHeight: 14,
+                                weight: FontWeight.w700,
+                                color: PtTheme.ink,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        if (item.sensorTool.isNotEmpty)
+                          PlatformMetaPill(
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldItemSensorTool,
+                            ),
+                            value: item.sensorTool,
+                          ),
+                        PlatformMetaPill(
+                          label: strings.tKey(
+                            PlatformAdminKeys.tableItemEvidence,
+                          ),
+                          value: '—',
+                        ),
+                        PlatformMetaPill(
+                          label: strings.tKey(
+                            PlatformAdminKeys.tableItemUpdated,
+                          ),
+                          value: item.updatedAt.isEmpty
+                              ? '—'
+                              : checklistUpdatedAtLabel(
+                                  item.updatedAt,
+                                  Localizations.localeOf(context).toString(),
+                                ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    // Action row: Edit (primary visible), Create draft, Publish
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        PlatformPrimaryButton(
+                          label: strings.tKey(CommonKeys.buttonEdit),
+                          icon: Icons.edit_outlined,
+                          onPressed: _acting
+                              ? null
+                              : () => _openEditor(item.id),
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            PlatformSecondaryButton(
+                              label: strings.tKey(CommonKeys.buttonCreateDraft),
+                              icon: Icons.note_add_outlined,
+                              onPressed: _acting
+                                  ? null
+                                  : () => _draftItem(item),
+                            ),
+                            if (!retired)
+                              PlatformSecondaryButton(
+                                label: strings.tKey(
+                                  PlatformAdminKeys.buttonItemPublish,
+                                ),
+                                icon: Icons.publish_rounded,
+                                onPressed: _acting
+                                    ? null
+                                    : () => _publishItem(item),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _itemLabel(item),
-            style: PtTheme.font(
-              16,
-              lineHeight: 22,
-              weight: FontWeight.w700,
-              color: PtTheme.ink,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              PlatformMetaPill(
-                label: strings.tKey(CommonKeys.labelCategory),
-                value: categoryLabel,
-              ),
-              Semantics(
-                label:
-                    '${strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit)}: '
-                    '${item.measurementUnit.isEmpty ? '—' : item.measurementUnit}',
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: PtTheme.canvas,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: PtTheme.border),
-                  ),
-                  child: Text(
-                    item.measurementUnit.isEmpty ? '—' : item.measurementUnit,
-                    style: PtTheme.font(
-                      11,
-                      lineHeight: 14,
-                      weight: FontWeight.w700,
-                      color: PtTheme.ink,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              if (item.sensorTool.isNotEmpty)
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
-                  value: item.sensorTool,
-                ),
-              // Evidence counts are not in the items list payload; the
-              // placeholder below marks the gap instead of inventing counts.
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.tableItemEvidence),
-                value: '—',
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.tableItemUpdated),
-                value: item.updatedAt.isEmpty ? '—' : item.updatedAt,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 4,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonEdit),
-                onPressed: _acting ? null : () => _openEditor(item.id),
-                icon: const Icon(Icons.edit_outlined, size: 20),
-              ),
-              IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonCreateDraft),
-                onPressed: _acting ? null : () => _draftItem(item),
-                icon: const Icon(Icons.note_add_outlined, size: 20),
-              ),
-              if (!retired)
-                IconButton(
-                  tooltip: strings.tKey(PlatformAdminKeys.buttonItemPublish),
-                  onPressed: _acting ? null : () => _publishItem(item),
-                  icon: const Icon(Icons.publish_rounded, size: 20),
-                ),
-              if (!retired)
-                IconButton(
-                  tooltip: strings.tKey(PlatformAdminKeys.buttonItemRetire),
-                  onPressed: _acting ? null : () => _confirmRetireItem(item),
-                  icon: const Icon(
-                    Icons.archive_outlined,
-                    size: 20,
-                    color: PtTheme.rose,
-                  ),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../platform_theme.dart';
 
-/// Selectable pill filter chip used in toolbars.
+/// Selectable filter chip used in toolbars and views.
 class PlatformFilterChip extends StatelessWidget {
   const PlatformFilterChip({
     super.key,
@@ -21,33 +21,39 @@ class PlatformFilterChip extends StatelessWidget {
       button: true,
       selected: selected,
       label: label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(9999),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-          decoration: BoxDecoration(
-            color: selected
-                ? PtTheme.deepGreen.withValues(alpha: 0.12)
-                : PtTheme.canvas,
-            borderRadius: BorderRadius.circular(9999),
-            border: Border.all(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6),
+          hoverColor: PtTheme.canvas,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
+            decoration: BoxDecoration(
               color: selected
-                  ? PtTheme.deepGreen.withValues(alpha: 0.35)
-                  : PtTheme.border,
+                  ? PtTheme.deepGreen.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: selected
+                    ? PtTheme.deepGreen.withValues(alpha: 0.35)
+                    : PtTheme.border,
+                width: 1,
+              ),
             ),
-          ),
-          child: Text(
-            label,
-            style: PtTheme.font(
-              12,
-              lineHeight: 16,
-              weight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? PtTheme.deepGreen : PtTheme.muted,
+            child: Text(
+              label,
+              style: PtTheme.font(
+                12,
+                lineHeight: 16,
+                weight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected ? PtTheme.deepGreen : PtTheme.muted,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -55,45 +61,50 @@ class PlatformFilterChip extends StatelessWidget {
   }
 }
 
-/// Status pill (ACTIVE/PUBLISHED green, DRAFT amber, RETIRED rose,
-/// everything else muted). Text + background convey state, never color alone.
+/// Status badge for lifecycle state (ACTIVE/PUBLISHED green, DRAFT/PENDING amber,
+/// RETIRED/DISABLED rose, others muted).
 class PlatformStatusChip extends StatelessWidget {
-  const PlatformStatusChip({super.key, required this.status});
+  const PlatformStatusChip({super.key, required this.status, this.label});
 
   final String status;
+
+  /// Localized display label. When omitted, [status] is shown as-is.
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
     final normalized = status.toUpperCase();
-    var foreground = PtTheme.muted;
-    var background = PtTheme.canvas;
+    Color foreground = PtTheme.muted;
+    Color background = PtTheme.canvas;
+
     if (normalized == 'ACTIVE' || normalized == 'PUBLISHED') {
       foreground = PtTheme.deepGreen;
-      background = PtTheme.emerald.withValues(alpha: 0.14);
+      background = PtTheme.emerald.withValues(alpha: 0.12);
     } else if (normalized == 'DRAFT' || normalized == 'PENDING') {
       foreground = PtTheme.amber;
-      background = const Color(0xFFFFF7E6);
+      background = const Color(0xFFFFFBEB);
     } else if (normalized == 'RETIRED' ||
         normalized == 'DISABLED' ||
         normalized == 'FAILED') {
       foreground = PtTheme.rose;
       background = PtTheme.rose.withValues(alpha: 0.08);
     }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: foreground.withValues(alpha: 0.25)),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: foreground.withValues(alpha: 0.2)),
       ),
       child: Text(
-        status.isEmpty ? '—' : status,
+        (label ?? status).isEmpty ? '—' : label ?? status,
         style: PtTheme.font(
-          10,
+          11,
           lineHeight: 14,
-          weight: FontWeight.w700,
+          weight: FontWeight.w600,
           color: foreground,
-          tracking: 0.4,
+          tracking: 0.3,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -128,6 +139,43 @@ class PlatformMetaPill extends StatelessWidget {
         ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+/// Metadata chip for secondary tags, counts, or attributes.
+class PlatformMetadataChip extends StatelessWidget {
+  const PlatformMetadataChip({super.key, required this.label, this.icon});
+
+  final String label;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: PtTheme.canvas,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: PtTheme.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: PtTheme.muted),
+            const SizedBox(width: 4),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: PtTheme.caption,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

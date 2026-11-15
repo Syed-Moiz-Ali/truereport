@@ -13,6 +13,7 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../checklist/checklist_status.dart';
 
 import 'package:l10n/l10n.dart';
 
@@ -98,9 +99,10 @@ const _requiredForStatuses = <String>[
 ];
 
 class MasterItemEditorScreen extends StatelessWidget {
-  const MasterItemEditorScreen({super.key, this.itemId});
+  const MasterItemEditorScreen({super.key, this.itemId, this.initialStep = 0});
 
   final String? itemId;
+  final int initialStep;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +110,7 @@ class MasterItemEditorScreen extends StatelessWidget {
     if (id == null) {
       return const _CreateItemStepper();
     }
-    return _EditItemView(itemId: id);
+    return _EditItemView(itemId: id, initialStep: initialStep);
   }
 }
 
@@ -320,6 +322,13 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
           const SizedBox(height: 8),
           Stepper(
             currentStep: _step,
+            margin: EdgeInsets.zero,
+            connectorThickness: 1,
+            stepIconHeight: 32,
+            stepIconWidth: 32,
+            stepIconMargin: const EdgeInsets.only(right: 12),
+            headerPadding: const EdgeInsets.symmetric(vertical: 4),
+            contentPadding: const EdgeInsets.only(left: 44, bottom: 8),
             onStepTapped: (index) {
               if (index < _step && !_saving) {
                 setState(() => _step = index);
@@ -342,21 +351,22 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                             ? null
                             : () => setState(() => _step--),
                       ),
+                    PlatformSecondaryButton(
+                      key: const Key('stepper-save-draft'),
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonItemSaveDraft,
+                      ),
+                      onPressed: _saving
+                          ? null
+                          : () => _saveAll(publish: false),
+                    ),
                     if (!isLast)
                       PlatformPrimaryButton(
                         key: const Key('stepper-next'),
                         label: strings.tKey(CommonKeys.buttonNext),
                         onPressed: _saving ? null : () => _continueFrom(_step),
                       ),
-                    if (isLast) ...[
-                      PlatformSecondaryButton(
-                        label: strings.tKey(
-                          PlatformAdminKeys.buttonItemSaveDraft,
-                        ),
-                        onPressed: _saving
-                            ? null
-                            : () => _saveAll(publish: false),
-                      ),
+                    if (isLast)
                       PlatformPrimaryButton(
                         label: strings.tKey(PlatformAdminKeys.buttonPublish),
                         isLoading: _saving,
@@ -364,7 +374,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                             ? null
                             : () => _saveAll(publish: true),
                       ),
-                    ],
                   ],
                 ),
               );
@@ -396,15 +405,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
-                      style: PtTheme.font(
-                        13,
-                        lineHeight: 19,
-                        color: PtTheme.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     _IssueFieldsSection(
                       fields: _issueFields,
                       optionSets: optionSets,
@@ -429,15 +429,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      strings.tKey(PlatformAdminKeys.helpStepEvidence),
-                      style: PtTheme.font(
-                        13,
-                        lineHeight: 19,
-                        color: PtTheme.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     _EvidenceRulesSection(
                       rules: _evidenceRules,
                       editable: true,
@@ -463,15 +454,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      strings.tKey(PlatformAdminKeys.helpStepMeasurements),
-                      style: PtTheme.font(
-                        13,
-                        lineHeight: 19,
-                        color: PtTheme.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     _MeasurementBandsSection(
                       bands: _bands,
                       editable: true,
@@ -505,11 +487,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            strings.tKey(PlatformAdminKeys.helpStepBasics),
-            style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-          ),
-          const SizedBox(height: 12),
           LayoutBuilder(
             builder: (context, constraints) {
               final fieldWidth = constraints.maxWidth >= 700
@@ -702,11 +679,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            strings.tKey(PlatformAdminKeys.helpStepContent),
-            style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-          ),
-          const SizedBox(height: 12),
           PlatformTextField(
             key: const Key('item-label'),
             controller: _labelController,
@@ -740,11 +712,6 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          strings.tKey(PlatformAdminKeys.helpStepReview),
-          style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-        ),
-        const SizedBox(height: 12),
         PlatformSectionCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -888,9 +855,10 @@ class _ReviewRow extends StatelessWidget {
 }
 
 class _EditItemView extends ConsumerStatefulWidget {
-  const _EditItemView({required this.itemId});
+  const _EditItemView({required this.itemId, this.initialStep = 0});
 
   final String itemId;
+  final int initialStep;
 
   @override
   ConsumerState<_EditItemView> createState() => _EditItemViewState();
@@ -902,6 +870,39 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
   bool _creatingDraft = false;
   bool _publishing = false;
   bool _retiring = false;
+  bool _savingStep = false;
+  final _basicsKey = GlobalKey<_BasicsSectionState>();
+  final _contentKey = GlobalKey<_SourceContentSectionState>();
+  final _issueFieldsKey = GlobalKey<_IssueFieldsSectionState>();
+  final _evidenceKey = GlobalKey<_EvidenceRulesSectionState>();
+  final _bandsKey = GlobalKey<_MeasurementBandsSectionState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _step = widget.initialStep.clamp(0, 5);
+  }
+
+  Future<void> _saveCurrentStep() async {
+    if (_savingStep) return;
+    setState(() => _savingStep = true);
+    try {
+      switch (_step) {
+        case 0:
+          await _basicsKey.currentState?.save();
+        case 1:
+          await _contentKey.currentState?.save();
+        case 2:
+          await _issueFieldsKey.currentState?.save();
+        case 3:
+          await _evidenceKey.currentState?.save();
+        case 4:
+          await _bandsKey.currentState?.save();
+      }
+    } finally {
+      if (mounted) setState(() => _savingStep = false);
+    }
+  }
 
   Future<void> _createDraft() async {
     setState(() => _creatingDraft = true);
@@ -1093,9 +1094,15 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                           tracking: 0.4,
                         ),
                       ),
-                      PlatformStatusChip(status: item.status),
+                      PlatformStatusChip(
+                        status: item.status,
+                        label: checklistStatusLabel(strings, item.status),
+                      ),
                       if (version != null)
-                        PlatformStatusChip(status: version.status),
+                        PlatformStatusChip(
+                          status: version.status,
+                          label: checklistStatusLabel(strings, version.status),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -1144,7 +1151,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                         DropdownMenuItem(
                           value: itemVersion.id,
                           child: Text(
-                            'v${itemVersion.versionNo} · ${itemVersion.status}',
+                            'v${itemVersion.versionNo} · ${checklistStatusLabel(strings, itemVersion.status)}',
                           ),
                         ),
                     ],
@@ -1287,8 +1294,15 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         const SizedBox(height: 8),
         Stepper(
           currentStep: _step,
+          margin: EdgeInsets.zero,
+          connectorThickness: 1,
+          stepIconHeight: 32,
+          stepIconWidth: 32,
+          stepIconMargin: const EdgeInsets.only(right: 12),
+          headerPadding: const EdgeInsets.symmetric(vertical: 4),
+          contentPadding: const EdgeInsets.only(left: 44, bottom: 8),
           onStepTapped: (index) {
-            if (index < _step) setState(() => _step = index);
+            if (index != _step) setState(() => _step = index);
           },
           controlsBuilder: (context, details) {
             final isLast = _step == titles.length - 1;
@@ -1303,7 +1317,17 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                     PlatformSecondaryButton(
                       key: const Key('stepper-back'),
                       label: strings.tKey(CommonKeys.buttonPrevious),
-                      onPressed: () => setState(() => _step--),
+                      onPressed: _savingStep
+                          ? null
+                          : () => setState(() => _step--),
+                    ),
+                  if (editable && !isLast)
+                    PlatformSecondaryButton(
+                      key: const Key('stepper-save-draft'),
+                      label: strings.tKey(
+                        PlatformAdminKeys.buttonItemSaveDraft,
+                      ),
+                      onPressed: _savingStep ? null : _saveCurrentStep,
                     ),
                   if (!isLast)
                     PlatformPrimaryButton(
@@ -1360,12 +1384,8 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           data: (config) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                strings.tKey(PlatformAdminKeys.helpStepBasics),
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              ),
-              const SizedBox(height: 12),
               _BasicsSection(
+                key: _basicsKey,
                 itemId: widget.itemId,
                 metadata: config.metadata,
                 editable: editable,
@@ -1380,12 +1400,8 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              strings.tKey(PlatformAdminKeys.helpStepContent),
-              style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-            ),
-            const SizedBox(height: 12),
             _SourceContentSection(
+              key: _contentKey,
               label: version.label,
               instruction: version.instruction,
               editable: editable,
@@ -1425,12 +1441,8 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           data: (config) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              ),
-              const SizedBox(height: 12),
               _IssueFieldsSection(
+                key: _issueFieldsKey,
                 fields: config.issueFields,
                 optionSets: optionSets,
                 editable: editable,
@@ -1457,12 +1469,8 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           data: (config) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                strings.tKey(PlatformAdminKeys.helpStepEvidence),
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              ),
-              const SizedBox(height: 12),
               _EvidenceRulesSection(
+                key: _evidenceKey,
                 rules: config.evidenceRules,
                 editable: editable,
                 onSave: (rules) => ref
@@ -1488,12 +1496,8 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
           data: (config) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                strings.tKey(PlatformAdminKeys.helpStepMeasurements),
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              ),
-              const SizedBox(height: 12),
               _MeasurementBandsSection(
+                key: _bandsKey,
                 bands: config.measurementBands,
                 editable: editable,
                 onSave: (bands) => ref
@@ -1526,11 +1530,6 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          strings.tKey(PlatformAdminKeys.helpStepReview),
-          style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-        ),
-        const SizedBox(height: 12),
         configAsync.when(
           loading: () => PlatformLoadingView(
             message: strings.tKey(CommonKeys.stateLoading),
@@ -1560,8 +1559,14 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                           tracking: 0.4,
                         ),
                       ),
-                      PlatformStatusChip(status: item.status),
-                      PlatformStatusChip(status: draft.status),
+                      PlatformStatusChip(
+                        status: item.status,
+                        label: checklistStatusLabel(strings, item.status),
+                      ),
+                      PlatformStatusChip(
+                        status: draft.status,
+                        label: checklistStatusLabel(strings, draft.status),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -1637,6 +1642,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
 
 class _BasicsSection extends ConsumerStatefulWidget {
   const _BasicsSection({
+    super.key,
     required this.itemId,
     required this.metadata,
     required this.editable,
@@ -1653,6 +1659,7 @@ class _BasicsSection extends ConsumerStatefulWidget {
 }
 
 class _BasicsSectionState extends ConsumerState<_BasicsSection> {
+  Future<void> save() => _save(ref.read(uiStringsProvider));
   late final TextEditingController _unit;
   late final TextEditingController _sensor;
   late final TextEditingController _standardSpec;
@@ -1907,6 +1914,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
 
 class _SourceContentSection extends ConsumerStatefulWidget {
   const _SourceContentSection({
+    super.key,
     required this.label,
     required this.instruction,
     required this.editable,
@@ -1924,6 +1932,7 @@ class _SourceContentSection extends ConsumerStatefulWidget {
 }
 
 class _SourceContentSectionState extends ConsumerState<_SourceContentSection> {
+  Future<void> save() => _save();
   late final TextEditingController _label;
   late final TextEditingController _instruction;
   bool _saving = false;
@@ -2005,6 +2014,7 @@ class _SourceContentSectionState extends ConsumerState<_SourceContentSection> {
 
 class _EvidenceRulesSection extends ConsumerStatefulWidget {
   const _EvidenceRulesSection({
+    super.key,
     required this.rules,
     required this.editable,
     required this.onSave,
@@ -2020,6 +2030,7 @@ class _EvidenceRulesSection extends ConsumerStatefulWidget {
 }
 
 class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
+  Future<void> save() => _save();
   late List<_EvidenceRuleForm> _forms;
   bool _saving = false;
 
@@ -2293,6 +2304,7 @@ class _EvidenceRuleForm {
 
 class _IssueFieldsSection extends ConsumerStatefulWidget {
   const _IssueFieldsSection({
+    super.key,
     required this.fields,
     required this.optionSets,
     required this.editable,
@@ -2310,6 +2322,7 @@ class _IssueFieldsSection extends ConsumerStatefulWidget {
 }
 
 class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
+  Future<void> save() => _save();
   late List<_IssueFieldForm> _forms;
   bool _saving = false;
 
@@ -2773,6 +2786,7 @@ class _IssueFieldForm {
 
 class _MeasurementBandsSection extends ConsumerStatefulWidget {
   const _MeasurementBandsSection({
+    super.key,
     required this.bands,
     required this.editable,
     required this.onSave,
@@ -2789,6 +2803,7 @@ class _MeasurementBandsSection extends ConsumerStatefulWidget {
 
 class _MeasurementBandsSectionState
     extends ConsumerState<_MeasurementBandsSection> {
+  Future<void> save() => _save();
   late List<_MeasurementBandForm> _forms;
   bool _saving = false;
 

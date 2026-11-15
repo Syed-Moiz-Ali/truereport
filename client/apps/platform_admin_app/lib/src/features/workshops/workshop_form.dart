@@ -73,7 +73,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
         templateId = templates.first.id;
         _selectedTemplateId = templateId;
       } else {
-        setState(() => _error = strings.tKey(CommonKeys.stateError));
         return;
       }
     }
@@ -121,6 +120,12 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
+    final templatesAsync = _isCreate ? ref.watch(templatesProvider) : null;
+    final hasTemplates = switch (templatesAsync) {
+      AsyncData(:final value) => value.isNotEmpty,
+      _ => false,
+    };
+    final canSave = !_submitting && (!_isCreate || hasTemplates);
     return Form(
       key: _formKey,
       child: Column(
@@ -173,7 +178,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
                       '${strings.tKey(PlatformAdminKeys.fieldWorkshopName)} *',
                   hint: strings.tKey(PlatformAdminKeys.fieldWorkshopName),
                   validator: (value) => (value == null || value.trim().isEmpty)
-                      ? strings.tKey(CommonKeys.stateError)
+                      ? strings.tKey(CommonKeys.validationRequiredField)
                       : null,
                 ),
                 const SizedBox(height: 14),
@@ -184,7 +189,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
                       '${strings.tKey(PlatformAdminKeys.fieldWorkshopBranch)} *',
                   hint: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
                   validator: (value) => (value == null || value.trim().isEmpty)
-                      ? strings.tKey(CommonKeys.stateError)
+                      ? strings.tKey(CommonKeys.validationRequiredField)
                       : null,
                 ),
               ],
@@ -203,8 +208,11 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 final text = value?.trim() ?? '';
-                if (text.isEmpty || !text.contains('@')) {
-                  return strings.tKey(CommonKeys.stateError);
+                if (text.isEmpty) {
+                  return strings.tKey(CommonKeys.validationRequiredField);
+                }
+                if (!text.contains('@')) {
+                  return strings.tKey(CommonKeys.validationInvalidEmail);
                 }
                 return null;
               },
@@ -234,7 +242,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
               PlatformPrimaryButton(
                 label: strings.tKey(CommonKeys.buttonSave),
                 isLoading: _submitting,
-                onPressed: _submitting ? null : _submit,
+                onPressed: canSave ? _submit : null,
               ),
             ],
           ),
@@ -339,7 +347,37 @@ class _TemplatePicker extends ConsumerWidget {
       ),
       data: (items) {
         if (items.isEmpty) {
-          return Text(strings.tKey(CommonKeys.emptyTitle));
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: PtTheme.canvas,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: PtTheme.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  strings.tKey(
+                    PlatformAdminKeys.emptyWorkshopTemplatesCreateFirst,
+                  ),
+                  style: PtTheme.font(
+                    13,
+                    lineHeight: 18,
+                    weight: FontWeight.w500,
+                    color: PtTheme.ink,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                PlatformSecondaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonTemplatesView),
+                  icon: Icons.description_outlined,
+                  onPressed: () => context.go('/checklist/templates'),
+                ),
+              ],
+            ),
+          );
         }
         final value = items.any((item) => item.id == selectedId)
             ? selectedId

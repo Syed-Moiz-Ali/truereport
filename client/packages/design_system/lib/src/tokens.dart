@@ -1,4 +1,4 @@
-﻿import 'package:design_system/src/fonts.dart';
+import 'package:design_system/src/fonts.dart';
 import 'package:design_system/src/generated/tokens.g.dart';
 import 'package:design_system/src/reduce_motion.dart';
 import 'package:flutter/material.dart';
@@ -803,6 +803,7 @@ abstract final class AppTheme {
         arabicFamily,
         TrFonts.cyrillicFallback,
         TrFonts.cjkFallback,
+        TrFonts.teluguFallback,
       ],
       fontSize: token.size,
       height: token.height,
@@ -1056,6 +1057,7 @@ extension AppThemeContext on BuildContext {
         TrFonts.arabicDefault,
         TrFonts.cyrillicFallback,
         TrFonts.cjkFallback,
+        TrFonts.teluguFallback,
       ],
       fontSize: token.size,
       height: token.height,

@@ -7,8 +7,8 @@ import 'platform_sidebar.dart';
 /// Shared Platform Admin shell.
 ///
 /// Keeps the desktop sidebar and header on every screen, hides the sidebar on
-/// compact widths (the header exposes the mobile navigation sheet), and gives
-/// pages one consistent top-aligned content frame.
+/// compact widths (<900px, where header exposes mobile nav trigger), and provides
+/// a calm, premium, consistent layout across all viewports.
 class PlatformShell extends StatelessWidget {
   const PlatformShell({
     super.key,
@@ -53,8 +53,7 @@ class PlatformShell extends StatelessWidget {
                       onSearchChanged: showSearch ? onSearchChanged : null,
                       onNavigate: onNavigate,
                     ),
-                    // ignore: use_null_aware_elements
-                    if (contextBar != null) contextBar!,
+                    ?contextBar,
                     Expanded(child: child),
                   ],
                 ),
@@ -90,10 +89,10 @@ class PlatformPage extends StatelessWidget {
           padding:
               padding ??
               EdgeInsets.fromLTRB(
-                compact ? 16 : 28,
-                compact ? 20 : 28,
-                compact ? 16 : 28,
-                40,
+                compact ? 16 : 24,
+                compact ? 16 : 24,
+                compact ? 16 : 24,
+                36,
               ),
           child: Align(
             alignment: Alignment.topCenter,
@@ -139,7 +138,7 @@ class PlatformPageHeader extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             if (subtitle != null && subtitle!.isNotEmpty) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 subtitle!,
                 style: PtTheme.bodyMuted,
@@ -157,13 +156,13 @@ class PlatformPageHeader extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (leading != null) ...[leading!, const SizedBox(width: 10)],
+                  if (leading != null) ...[leading!, const SizedBox(width: 8)],
                   Expanded(child: titleBlock),
                 ],
               ),
               if (actions.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                Wrap(spacing: 10, runSpacing: 10, children: actions),
+                const SizedBox(height: 12),
+                Wrap(spacing: 8, runSpacing: 8, children: actions),
               ],
             ],
           );
@@ -172,16 +171,14 @@ class PlatformPageHeader extends StatelessWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (leading != null) ...[leading!, const SizedBox(width: 12)],
+            if (leading != null) ...[leading!, const SizedBox(width: 10)],
             Expanded(child: titleBlock),
             if (actions.isNotEmpty) ...[
-              const SizedBox(width: 20),
-              // Flexible bounds the actions Wrap so buttons wrap instead of
-              // overflowing when the title and actions exceed the row width.
+              const SizedBox(width: 16),
               Flexible(
                 child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: 8,
+                  runSpacing: 8,
                   alignment: WrapAlignment.end,
                   children: actions,
                 ),
@@ -199,7 +196,7 @@ class PlatformSectionCard extends StatelessWidget {
   const PlatformSectionCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(20),
+    this.padding = const EdgeInsets.all(18),
   });
 
   final Widget child;
@@ -211,15 +208,8 @@ class PlatformSectionCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: PtTheme.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: PtTheme.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 14,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       child: child,
     );

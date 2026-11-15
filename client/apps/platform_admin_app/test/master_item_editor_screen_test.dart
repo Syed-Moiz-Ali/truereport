@@ -119,6 +119,12 @@ void main() {
     expect(find.text('中文'), findsNothing);
     expect(find.text('Arabic'), findsNothing);
     expect(find.text('English instruction'), findsOneWidget);
+    expect(
+      find.text(
+        'Write English instructions. Add translations in the Language Workspace.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('renders on compact width without overflow', (tester) async {

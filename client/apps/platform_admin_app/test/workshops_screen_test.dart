@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/components/platform_chips.dart';
 import 'package:platform_admin_app/src/features/workshops/workshop_detail_screen.dart';
@@ -13,6 +14,7 @@ import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 // ---------------------------------------------------------------------------
@@ -46,6 +48,8 @@ HierarchyWorkshop _workshop({
   required String status,
   List<PlatformAccount> admins = const [],
   List<PlatformAccount> technicians = const [],
+  List<PlatformAccount> pendingInvitations = const [],
+  int? memberCount,
   String contactEmail = '',
 }) {
   return HierarchyWorkshop(
@@ -53,10 +57,12 @@ HierarchyWorkshop _workshop({
     name: name,
     branchName: branch,
     status: status,
-    memberCount: admins.length + technicians.length,
+    memberCount:
+        memberCount ??
+        admins.length + technicians.length + pendingInvitations.length,
     admins: admins,
     technicians: technicians,
-    pendingInvitations: const [],
+    pendingInvitations: pendingInvitations,
     contactEmail: contactEmail,
   );
 }
@@ -397,7 +403,10 @@ Widget _buildListApp(
   Locale locale = const Locale('en'),
 }) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       platformApiProvider.overrideWithValue(api),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
@@ -421,10 +430,15 @@ Widget _buildDetailApp(
   String workshopId = 'workshop-1',
 }) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
-      availableTemplatesProvider.overrideWith((ref) => Future.value([_template])),
+      availableTemplatesProvider.overrideWith(
+        (ref) => Future.value([_template]),
+      ),
       auditEventsProvider.overrideWith((ref) => Future.value(_auditEvents)),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
@@ -449,10 +463,15 @@ Widget _buildFormApp(
   void Function(HierarchyWorkshop saved)? onSaved,
 }) {
   return ProviderScope(
-    overrides: [uiStringsProvider.overrideWithValue(locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings()), 
+    overrides: [
+      uiStringsProvider.overrideWithValue(
+        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
       platformApiProvider.overrideWithValue(api),
       templatesProvider.overrideWith((ref) => Future.value([_template])),
-      availableTemplatesProvider.overrideWith((ref) => Future.value([_template])),
+      availableTemplatesProvider.overrideWith(
+        (ref) => Future.value([_template]),
+      ),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
     child: MaterialApp(
@@ -496,6 +515,11 @@ void _setViewport(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    await initializeDateFormatting('en');
+    await initializeDateFormatting('ar');
+  });
 
   late _LocalFakePlatformAdminApi api;
 
@@ -554,15 +578,49 @@ void main() {
       await tester.pumpWidget(_buildListApp(api));
       await tester.pumpAndSettle();
 
-      // Open the status dropdown and pick ACTIVE.
+      // Open the status dropdown and pick Active.
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('ACTIVE').last);
+      await tester.tap(find.text('Active').last);
       await tester.pumpAndSettle();
 
       expect(find.text('Workshop A'), findsOneWidget);
       expect(find.text('Workshop B'), findsNothing);
       expect(find.text('1 workshops'), findsOneWidget);
+    });
+
+    testWidgets('Arabic list localizes status chips without raw values', (
+      tester,
+    ) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildListApp(api, locale: const Locale('ar')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('نشط'), findsWidgets);
+      expect(find.text('غير نشط'), findsOneWidget);
+      expect(find.text('ACTIVE'), findsNothing);
+      expect(find.text('INACTIVE'), findsNothing);
+    });
+
+    testWidgets('Arabic status filter uses localized labels', (tester) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildListApp(api, locale: const Locale('ar')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+
+      expect(find.text('نشط'), findsWidgets);
+      expect(find.text('غير نشط'), findsWidgets);
+      expect(find.text('ACTIVE'), findsNothing);
+      expect(find.text('INACTIVE'), findsNothing);
+
+      await tester.tap(find.text('نشط').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Workshop A'), findsOneWidget);
+      expect(find.text('Workshop B'), findsNothing);
+      expect(find.text('1 ورش'), findsOneWidget);
     });
 
     testWidgets('edit opens the form dialog and saves via updateWorkshop', (
@@ -633,6 +691,91 @@ void main() {
   });
 
   group('WorkshopForm', () {
+    testWidgets(
+      'create validates required fields and invalid email with proper messages',
+      (tester) async {
+        _setViewport(tester, width: 1280, height: 1024);
+        await tester.pumpWidget(_buildFormApp(api));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        // Required field validation messages
+        expect(find.text('This field is required.'), findsNWidgets(3));
+        expect(api.registered, isEmpty);
+
+        // Invalid email validation message
+        await tester.enterText(
+          find.byKey(const Key('input-workshop-name')),
+          'Workshop C',
+        );
+        await tester.enterText(
+          find.byKey(const Key('input-workshop-branch')),
+          'Central Depot Hub',
+        );
+        await tester.enterText(
+          find.byKey(const Key('input-workshop-email')),
+          'not-an-email',
+        );
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Enter a valid email address.'), findsOneWidget);
+        expect(api.registered, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'shows no-template empty state and disables save when no published templates exist',
+      (tester) async {
+        _setViewport(tester, width: 1280, height: 1024);
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+              platformApiProvider.overrideWithValue(api),
+              templatesProvider.overrideWith((ref) => Future.value([])),
+              availableTemplatesProvider.overrideWith(
+                (ref) => Future.value([]),
+              ),
+              platformLocaleProvider.overrideWith(
+                () => _TestLocaleNotifier(const Locale('en')),
+              ),
+            ],
+            child: MaterialApp(
+              locale: const Locale('en'),
+              supportedLocales: const [Locale('en'), Locale('ar')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              theme: AppTheme.light,
+              home: const Scaffold(
+                body: SingleChildScrollView(child: WorkshopForm()),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'No published templates available. Create and publish a template first.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('View templates'), findsOneWidget);
+
+        // Save button is disabled (has null onPressed)
+        final saveButton = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Save'),
+        );
+        expect(saveButton.onPressed, isNull);
+      },
+    );
+
     testWidgets('create validates and registers via registerWorkshop', (
       tester,
     ) async {
@@ -663,29 +806,6 @@ void main() {
       expect(api.registered.single['initialTemplate'], 'tpl-1');
       expect(saved?.name, 'Workshop C');
     });
-
-    testWidgets('create rejects an invalid email', (tester) async {
-      _setViewport(tester, width: 1280, height: 1024);
-      await tester.pumpWidget(_buildFormApp(api));
-      await tester.pumpAndSettle();
-
-      await tester.enterText(
-        find.byKey(const Key('input-workshop-name')),
-        'Workshop C',
-      );
-      await tester.enterText(
-        find.byKey(const Key('input-workshop-branch')),
-        'Central Depot Hub',
-      );
-      await tester.enterText(
-        find.byKey(const Key('input-workshop-email')),
-        'not-an-email',
-      );
-      await tester.tap(find.text('Save'));
-      await tester.pump();
-
-      expect(api.registered, isEmpty);
-    });
   });
 
   group('WorkshopDetailScreen', () {
@@ -701,12 +821,271 @@ void main() {
       expect(find.text('Available templates'), findsWidgets);
       expect(find.text('Activity'), findsOneWidget);
       expect(find.text('Edit workshop'), findsOneWidget);
+      // Deactivate is inside the overflow menu.
+      expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.more_vert_rounded));
+      await tester.pumpAndSettle();
       expect(find.text('Deactivate workshop'), findsOneWidget);
-      // Overview cards.
-      expect(find.text('Capacity'), findsOneWidget);
+      // Overview cards / summary.
+      expect(find.text('Capacity'), findsWidgets);
       expect(find.text('Contact'), findsOneWidget);
       expect(find.text('ops-a@example.test'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('edit workshop is the single primary header action', (
+      tester,
+    ) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(
+        find.widgetWithText(ElevatedButton, 'Edit workshop'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, 'Edit workshop'),
+        findsNothing,
+      );
+      expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
+    });
+
+    testWidgets('Arabic detail localizes status in header and overview', (
+      tester,
+    ) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api, locale: const Locale('ar')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('نشط'), findsWidgets);
+      expect(find.text('ACTIVE'), findsNothing);
+
+      await tester.tap(find.byType(PlatformFilterChip).at(1));
+      await tester.pumpAndSettle();
+      expect(find.text('نشط'), findsWidgets);
+      expect(find.text('ACTIVE'), findsNothing);
+    });
+
+    testWidgets('all detail tabs render without overflow', (tester) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      for (final index in [1, 2, 3]) {
+        await tester.tap(find.byType(PlatformFilterChip).at(index));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+
+      _setViewport(tester, width: 360, height: 900);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      for (final index in [1, 2, 3]) {
+        await tester.tap(find.byType(PlatformFilterChip).at(index));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+    });
+
+    testWidgets('add-staff dialog blocks invalid submission', (tester) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PlatformFilterChip).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add staff'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Display name *'), findsOneWidget);
+      expect(find.text('Email *'), findsOneWidget);
+      expect(find.text('Temporary password *'), findsOneWidget);
+      expect(find.text('Role *'), findsOneWidget);
+      expect(
+        find.text(
+          'The staff member will be asked to change this on first sign-in.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Workshop Admins manage staff, templates, and workshop settings.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Add staff').last);
+      await tester.pumpAndSettle();
+
+      expect(api.createdUsers, isEmpty);
+      expect(find.text('This field is required.'), findsNWidgets(3));
+
+      await tester.enterText(
+        find.byKey(const Key('input-staff-name')),
+        'Sara Tech',
+      );
+      await tester.enterText(
+        find.byKey(const Key('input-staff-email')),
+        'not-an-email',
+      );
+      await tester.enterText(
+        find.byKey(const Key('input-staff-password')),
+        'secret-1',
+      );
+      await tester.tap(find.text('Add staff').last);
+      await tester.pumpAndSettle();
+
+      expect(api.createdUsers, isEmpty);
+      expect(find.text('Enter a valid email address.'), findsOneWidget);
+      expect(find.text('Display name *'), findsOneWidget);
+      expect(find.text('Sara Tech'), findsOneWidget);
+    });
+
+    testWidgets('staff summary reconciles with mismatched memberCount', (
+      tester,
+    ) async {
+      api.workshops = [
+        _workshop(
+          id: 'workshop-1',
+          name: 'Workshop A',
+          branch: 'EMEA Industrial Hub',
+          status: 'ACTIVE',
+          memberCount: 14,
+          admins: [
+            _account(
+              userId: 'admin-1',
+              displayName: 'Amina Admin',
+              role: 'WORKSHOP_ADMIN',
+              status: 'ACTIVE',
+              workshopId: 'workshop-1',
+            ),
+          ],
+          technicians: [
+            _account(
+              userId: 'tech-1',
+              displayName: 'David Miller',
+              role: 'TECHNICIAN',
+              status: 'ACTIVE',
+              workshopId: 'workshop-1',
+            ),
+            _account(
+              userId: 'tech-2',
+              displayName: 'Omar Haddad',
+              role: 'TECHNICIAN',
+              status: 'ACTIVE',
+              workshopId: 'workshop-1',
+            ),
+          ],
+          pendingInvitations: [
+            _account(
+              userId: 'invite-1',
+              displayName: 'Invite One',
+              role: 'WORKSHOP_ADMIN',
+              status: 'INVITED',
+              workshopId: 'workshop-1',
+            ),
+            _account(
+              userId: 'invite-2',
+              displayName: 'Invite Two',
+              role: 'TECHNICIAN',
+              status: 'INVITED',
+              workshopId: 'workshop-1',
+            ),
+            _account(
+              userId: 'invite-3',
+              displayName: 'Invite Three',
+              role: 'TECHNICIAN',
+              status: 'INVITED',
+              workshopId: 'workshop-1',
+            ),
+          ],
+        ),
+      ];
+
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      final summary = tester.widget<Text>(
+        find.byKey(const Key('workshop_summary_staff_total')),
+      );
+      expect(summary.data, '6');
+
+      await tester.tap(find.byType(PlatformFilterChip).at(1));
+      await tester.pumpAndSettle();
+
+      final staffTotal = tester.widget<Text>(
+        find.byKey(const Key('workshop_staff_total')),
+      );
+      expect(staffTotal.data, '6');
+      expect(find.text('Workshop Admins (1)'), findsOneWidget);
+      expect(find.text('Technicians (2)'), findsOneWidget);
+      expect(find.text('Pending invitations (3)'), findsOneWidget);
+    });
+
+    testWidgets('staff tab uses group-specific empty states', (tester) async {
+      api.workshops = [
+        _workshop(
+          id: 'workshop-1',
+          name: 'Workshop A',
+          branch: 'EMEA Industrial Hub',
+          status: 'ACTIVE',
+          memberCount: 14,
+        ),
+      ];
+
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PlatformFilterChip).at(1));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No workshop admins yet.'), findsOneWidget);
+      expect(find.text('No technicians yet.'), findsOneWidget);
+      expect(find.text('No pending invitations.'), findsOneWidget);
+      expect(find.byIcon(Icons.admin_panel_settings_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.engineering_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.mark_email_unread_outlined), findsOneWidget);
+    });
+
+    testWidgets('activity tab humanizes codes, roles, reasons, and dates', (
+      tester,
+    ) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PlatformFilterChip).at(3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Workshop registered'), findsOneWidget);
+      expect(find.textContaining('Platform Admin'), findsWidgets);
+      expect(find.textContaining('Initial setup'), findsWidgets);
+      expect(find.text('WORKSHOP_REGISTERED'), findsNothing);
+      expect(find.text('PLATFORM_ADMIN'), findsNothing);
+      expect(find.text('INITIAL_SETUP'), findsNothing);
+      expect(find.text('2026-11-12T10:00:00Z'), findsNothing);
+    });
+
+    testWidgets('Arabic activity tab is fully localized', (tester) async {
+      _setViewport(tester, width: 1280, height: 1024);
+      await tester.pumpWidget(_buildDetailApp(api, locale: const Locale('ar')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PlatformFilterChip).at(3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('تم تسجيل الورشة'), findsOneWidget);
+      expect(find.textContaining('مدير المنصة'), findsWidgets);
+      expect(find.textContaining('الإعداد الأولي'), findsWidgets);
+      expect(find.text('WORKSHOP_REGISTERED'), findsNothing);
+      expect(find.text('PLATFORM_ADMIN'), findsNothing);
+      expect(find.text('INITIAL_SETUP'), findsNothing);
+      expect(find.text('2026-11-12T10:00:00Z'), findsNothing);
     });
 
     testWidgets('staff tab lists admins and technicians', (tester) async {
@@ -782,7 +1161,9 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(PlatformFilterChip, 'Available templates'));
+      await tester.tap(
+        find.widgetWithText(PlatformFilterChip, 'Available templates'),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('GCC Standard'), findsOneWidget);
@@ -797,7 +1178,7 @@ void main() {
       await tester.tap(find.widgetWithText(PlatformFilterChip, 'Activity'));
       await tester.pumpAndSettle();
 
-      expect(find.text('WORKSHOP_REGISTERED'), findsOneWidget);
+      expect(find.text('Workshop registered'), findsOneWidget);
       expect(find.text('workshop-9'), findsNothing);
     });
 

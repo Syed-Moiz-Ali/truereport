@@ -132,20 +132,23 @@ class PlatformNavItem extends ConsumerWidget {
           hoverColor: PtTheme.canvas.withValues(alpha: 0.6),
           focusColor: PtTheme.emerald.withValues(alpha: 0.08),
           child: Container(
-            constraints: const BoxConstraints(minHeight: 40),
-            padding: const EdgeInsetsDirectional.symmetric(
-              horizontal: 16,
-              vertical: 10,
-            ),
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 14, 10),
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(8),
+              border: BorderDirectional(
+                start: BorderSide(
+                  color: isActive ? PtTheme.deepGreen : Colors.transparent,
+                  width: 3.5,
+                ),
+              ),
               boxShadow: isActive
                   ? const [
                       BoxShadow(
-                        color: Color(0x08000000),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+                        color: Color(0x06000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 1),
                       ),
                     ]
                   : null,

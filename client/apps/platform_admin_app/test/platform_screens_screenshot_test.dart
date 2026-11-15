@@ -278,6 +278,12 @@ Future<void> _capture(
   GlobalKey key,
   String filename,
 ) async {
+  // This Ahem suite owns test/screenshots/ only. Real-font proof lives in
+  // test/screenshots/real/ and must never be overwritten from here.
+  expect(filename, isNot(startsWith('real/')));
+  expect(filename, isNot(contains('/')));
+  final targetPath = 'test/screenshots/$filename';
+  expect(targetPath, isNot(contains('test/screenshots/real/')));
   await tester.runAsync(() async {
     final boundary =
         key.currentContext?.findRenderObject() as RenderRepaintBoundary?;

@@ -1,6 +1,7 @@
 import '../ui_message_key.dart';
 
 abstract final class CommonKeys {
+  static const buttonBack = UiMessageKey.common('button.back');
   static const buttonCancel = UiMessageKey.common('button.cancel');
   static const buttonClose = UiMessageKey.common('button.close');
   static const buttonCopy = UiMessageKey.common('button.copy');
@@ -48,8 +49,10 @@ abstract final class CommonKeys {
   static const stateLoading = UiMessageKey.common('state.loading');
   static const statusActive = UiMessageKey.common('status.active');
   static const statusBlocked = UiMessageKey.common('status.blocked');
+  static const statusDisabled = UiMessageKey.common('status.disabled');
   static const statusDraft = UiMessageKey.common('status.draft');
   static const statusHealthy = UiMessageKey.common('status.healthy');
+  static const statusInactive = UiMessageKey.common('status.inactive');
   static const statusNotBlocked = UiMessageKey.common('status.notBlocked');
   static const statusPendingApproval = UiMessageKey.common(
     'status.pendingApproval',

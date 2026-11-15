@@ -110,9 +110,15 @@ public class PlatformOverviewService {
     private List<AlertDto> alerts(boolean healthy, LanguagesSummaryDto languages) {
         List<AlertDto> alerts = new ArrayList<>();
         if (!healthy) {
-            alerts.add(new AlertDto("warning", "Checklist configuration needs attention",
+            alerts.add(new AlertDto(
+                    "warning",
+                    "Checklist configuration needs attention",
                     "One or more configuration health checks are failing. Review the checklist health console.",
-                    "/checklist/health"));
+                    "/checklist/health",
+                    "dashboard.alert.checklist.title",
+                    "dashboard.alert.checklist.body",
+                    Map.of()
+            ));
         }
         try {
             List<Map<String, Object>> incomplete = jdbc.queryForList("""
@@ -122,26 +128,45 @@ public class PlatformOverviewService {
             if (!incomplete.isEmpty()) {
                 List<String> codes = incomplete.stream()
                         .map(row -> string(row.get("code"))).toList();
-                alerts.add(new AlertDto("info", "Languages waiting for translation",
-                        "Incomplete translations for: " + String.join(", ", codes) + ".",
-                        "/settings/languages"));
+                String joined = String.join(", ", codes);
+                alerts.add(new AlertDto(
+                        "info",
+                        "Languages waiting for translation",
+                        "Incomplete translations for: " + joined + ".",
+                        "/settings/languages",
+                        "dashboard.alert.languages.title",
+                        "dashboard.alert.languages.body",
+                        Map.of("languages", joined)
+                ));
             }
         } catch (RuntimeException ignored) {
         }
         int failedDocuments = count(
                 "SELECT COUNT(*) FROM platform_report_documents WHERE status = 'FAILED'");
         if (failedDocuments > 0) {
-            alerts.add(new AlertDto("error", "Report generation failures",
+            alerts.add(new AlertDto(
+                    "error",
+                    "Report generation failures",
                     failedDocuments + " report document(s) failed to generate and need retry.",
-                    "/reports"));
+                    "/reports",
+                    "dashboard.alert.reportsFailed.title",
+                    "dashboard.alert.reportsFailed.body",
+                    Map.of("count", failedDocuments)
+            ));
         }
         int unpublished = count(
                 "SELECT COUNT(*) FROM platform_jobs WHERE publication_status = 'PUBLISHED'"
                         + " AND id NOT IN (SELECT job_id FROM platform_public_links WHERE status = 'ACTIVE')");
         if (unpublished > 0) {
-            alerts.add(new AlertDto("warning", "Unpublished reports",
+            alerts.add(new AlertDto(
+                    "warning",
+                    "Unpublished reports",
                     unpublished + " published job(s) have no active public link.",
-                    "/reports"));
+                    "/reports",
+                    "dashboard.alert.reportsUnpublished.title",
+                    "dashboard.alert.reportsUnpublished.body",
+                    Map.of("count", unpublished)
+            ));
         }
         return alerts;
     }

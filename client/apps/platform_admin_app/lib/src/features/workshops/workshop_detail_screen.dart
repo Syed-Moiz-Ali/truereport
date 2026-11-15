@@ -13,9 +13,20 @@ import '../../platform_config_models.dart';
 import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import 'workshop_activity.dart';
 import 'workshop_form.dart';
+import 'workshop_status.dart';
 
 import 'package:l10n/l10n.dart';
+
+/// The backend `memberCount` may aggregate accounts outside the three groups
+/// shown on this screen. The staff summary is derived from the actual group
+/// arrays so the total always reconciles with what is listed.
+int _workshopStaffTotal(HierarchyWorkshop workshop) {
+  return workshop.admins.length +
+      workshop.technicians.length +
+      workshop.pendingInvitations.length;
+}
 
 class WorkshopDetailScreen extends ConsumerStatefulWidget {
   const WorkshopDetailScreen({super.key, required this.workshopId});
@@ -110,7 +121,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 
   void _editWorkshop(HierarchyWorkshop workshop) {
-    final strings = ref.watch(uiStringsProvider);
+    final strings = ref.read(uiStringsProvider);
     showPlatformDialog<void>(
       context: context,
       title: strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
@@ -126,7 +137,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   }
 
   Future<void> _toggleStatus(HierarchyWorkshop workshop) async {
-    final strings = ref.watch(uiStringsProvider);
+    final strings = ref.read(uiStringsProvider);
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     final reason = await showReasonDialog(
       context: context,
@@ -250,7 +261,13 @@ class _HeaderCard extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            PlatformStatusChip(status: workshop.status),
+                            PlatformStatusChip(
+                              status: workshop.status,
+                              label: workshopStatusLabel(
+                                strings,
+                                workshop.status,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -267,33 +284,65 @@ class _HeaderCard extends ConsumerWidget {
                   ),
                 ],
               );
-              final actions = Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: compact ? WrapAlignment.start : WrapAlignment.end,
+              final actions = Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  PlatformSecondaryButton(
+                  PlatformPrimaryButton(
                     label: strings.tKey(PlatformAdminKeys.pageWorkshopsEdit),
                     icon: Icons.edit_outlined,
                     onPressed: onEdit,
                   ),
-                  if (isActive)
-                    PlatformSecondaryButton(
-                      label: strings.tKey(
-                        PlatformAdminKeys.buttonWorkshopDeactivate,
+                  const SizedBox(width: 6),
+                  PopupMenuButton<String>(
+                    tooltip: strings.tKey(CommonKeys.tableActions),
+                    icon: const Icon(Icons.more_vert_rounded, size: 20),
+                    onSelected: (value) {
+                      if (value == 'status') {
+                        onToggleStatus();
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'status',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isActive
+                                  ? Icons.block_outlined
+                                  : Icons.check_circle_outlined,
+                              size: 18,
+                              color: isActive
+                                  ? PtTheme.rose
+                                  : PtTheme.deepGreen,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                isActive
+                                    ? strings.tKey(
+                                        PlatformAdminKeys
+                                            .buttonWorkshopDeactivate,
+                                      )
+                                    : strings.tKey(
+                                        PlatformAdminKeys
+                                            .buttonWorkshopReactivate,
+                                      ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isActive
+                                      ? PtTheme.rose
+                                      : PtTheme.deepGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      icon: Icons.block_outlined,
-                      destructive: true,
-                      onPressed: onToggleStatus,
-                    )
-                  else
-                    PlatformSecondaryButton(
-                      label: strings.tKey(
-                        PlatformAdminKeys.buttonWorkshopReactivate,
-                      ),
-                      icon: Icons.check_circle_outlined,
-                      onPressed: onToggleStatus,
-                    ),
+                    ],
+                  ),
                 ],
               );
               if (compact) {
@@ -307,7 +356,7 @@ class _HeaderCard extends ConsumerWidget {
                 children: [
                   Expanded(child: titleBlock),
                   const SizedBox(width: 20),
-                  Flexible(child: actions),
+                  actions,
                 ],
               );
             },
@@ -342,7 +391,8 @@ class _SummaryStrip extends ConsumerWidget {
     final stats = <_SummaryStat>[
       _SummaryStat(
         label: strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
-        value: '${workshop.memberCount}',
+        value: '${_workshopStaffTotal(workshop)}',
+        valueKey: const Key('workshop_summary_staff_total'),
         icon: Icons.groups_rounded,
         accent: PtTheme.deepGreen,
         tint: PtTheme.emerald,
@@ -355,13 +405,6 @@ class _SummaryStrip extends ConsumerWidget {
         tint: const Color(0xFF3B82F6),
       ),
       _SummaryStat(
-        label: strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
-        value: '${workshop.admins.length}',
-        icon: Icons.manage_accounts_rounded,
-        accent: PtTheme.gold,
-        tint: PtTheme.amber,
-      ),
-      _SummaryStat(
         label: strings.tKey(
           PlatformAdminKeys.sectionWorkshopPendingInvitations,
         ),
@@ -369,6 +412,13 @@ class _SummaryStrip extends ConsumerWidget {
         icon: Icons.mail_outline_rounded,
         accent: PtTheme.gold,
         tint: PtTheme.amber,
+      ),
+      _SummaryStat(
+        label: strings.tKey(PlatformAdminKeys.fieldWorkshopCapacity),
+        value: '${workshop.bayCount} • ${workshop.assignedCapacityPercent}%',
+        icon: Icons.garage_rounded,
+        accent: PtTheme.deepGreen,
+        tint: PtTheme.emerald,
       ),
     ];
     return LayoutBuilder(
@@ -412,6 +462,7 @@ class _SummaryStrip extends ConsumerWidget {
                           children: [
                             Text(
                               stat.value,
+                              key: stat.valueKey,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: PtTheme.font(
@@ -446,6 +497,7 @@ class _SummaryStat {
   const _SummaryStat({
     required this.label,
     required this.value,
+    this.valueKey,
     required this.icon,
     required this.accent,
     required this.tint,
@@ -453,6 +505,7 @@ class _SummaryStat {
 
   final String label;
   final String value;
+  final Key? valueKey;
   final IconData icon;
   final Color accent;
   final Color tint;
@@ -487,7 +540,7 @@ class _OverviewTab extends ConsumerWidget {
               ),
               _InfoRow(
                 label: strings.tKey(CommonKeys.tableStatus),
-                value: workshop.status,
+                value: workshopStatusLabel(strings, workshop.status),
               ),
             ],
           ),
@@ -496,18 +549,18 @@ class _OverviewTab extends ConsumerWidget {
             title: strings.tKey(PlatformAdminKeys.fieldWorkshopCapacity),
             rows: [
               _InfoRow(
-                label: strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
-                value: '${workshop.memberCount}',
+                label: strings.tKey(PlatformAdminKeys.fieldWorkshopBays),
+                value: '${workshop.bayCount}',
+              ),
+              _InfoRow(
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldWorkshopAssignedCapacity,
+                ),
+                value: '${workshop.assignedCapacityPercent}%',
               ),
               _InfoRow(
                 label: strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
                 value: '${workshop.admins.length}',
-              ),
-              _InfoRow(
-                label: strings.tKey(
-                  PlatformAdminKeys.sectionWorkshopTechnicians,
-                ),
-                value: '${workshop.technicians.length}',
               ),
             ],
           ),
@@ -673,7 +726,8 @@ class _StaffTab extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      '${workshop.memberCount}',
+                      '${_workshopStaffTotal(workshop)}',
+                      key: const Key('workshop_staff_total'),
                       style: PtTheme.bodyMuted,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -696,6 +750,9 @@ class _StaffTab extends ConsumerWidget {
           accounts: workshop.admins,
           workshopId: workshop.id,
           onChanged: onChanged,
+          emptyIcon: Icons.admin_panel_settings_outlined,
+          emptyTitle: strings.tKey(PlatformAdminKeys.emptyWorkshopAdminsTitle),
+          emptyBody: strings.tKey(PlatformAdminKeys.emptyWorkshopAdminsBody),
         ),
         const SizedBox(height: 12),
         _StaffGroup(
@@ -703,6 +760,29 @@ class _StaffTab extends ConsumerWidget {
           accounts: workshop.technicians,
           workshopId: workshop.id,
           onChanged: onChanged,
+          emptyIcon: Icons.engineering_outlined,
+          emptyTitle: strings.tKey(
+            PlatformAdminKeys.emptyWorkshopTechniciansTitle,
+          ),
+          emptyBody: strings.tKey(
+            PlatformAdminKeys.emptyWorkshopTechniciansBody,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _StaffGroup(
+          title: strings.tKey(
+            PlatformAdminKeys.sectionWorkshopPendingInvitations,
+          ),
+          accounts: workshop.pendingInvitations,
+          workshopId: workshop.id,
+          onChanged: onChanged,
+          emptyIcon: Icons.mark_email_unread_outlined,
+          emptyTitle: strings.tKey(
+            PlatformAdminKeys.emptyWorkshopPendingInvitationsTitle,
+          ),
+          emptyBody: strings.tKey(
+            PlatformAdminKeys.emptyWorkshopPendingInvitationsBody,
+          ),
         ),
       ],
     );
@@ -731,16 +811,21 @@ class _StaffGroup extends ConsumerWidget {
     required this.accounts,
     required this.workshopId,
     required this.onChanged,
+    required this.emptyIcon,
+    required this.emptyTitle,
+    required this.emptyBody,
   });
 
   final String title;
   final List<PlatformAccount> accounts;
   final String workshopId;
   final VoidCallback onChanged;
+  final IconData emptyIcon;
+  final String emptyTitle;
+  final String emptyBody;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -759,18 +844,10 @@ class _StaffGroup extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           if (accounts.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
-              decoration: BoxDecoration(
-                color: PtTheme.canvas,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: PtTheme.border),
-              ),
-              child: Text(
-                strings.tKey(CommonKeys.emptyTitle),
-                textAlign: TextAlign.center,
-                style: PtTheme.bodyMuted,
-              ),
+            PlatformEmptyView(
+              icon: emptyIcon,
+              title: emptyTitle,
+              body: emptyBody,
             )
           else
             LayoutBuilder(
@@ -943,7 +1020,10 @@ class _StaffTile extends ConsumerWidget {
                       label: strings.tKey(CommonKeys.tableRole),
                       value: account.role,
                     ),
-                    PlatformStatusChip(status: account.status),
+                    PlatformStatusChip(
+                      status: account.status,
+                      label: workshopMemberStatusLabel(strings, account.status),
+                    ),
                   ],
                 ),
               ],
@@ -1044,23 +1124,26 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
           PlatformTextField(
             key: const Key('input-staff-name'),
             controller: _nameController,
-            label: strings.tKey(CommonKeys.fieldDisplayName),
+            label: '${strings.tKey(CommonKeys.fieldDisplayName)} *',
             hint: strings.tKey(CommonKeys.fieldDisplayName),
             validator: (value) => (value == null || value.trim().isEmpty)
-                ? strings.tKey(CommonKeys.stateError)
+                ? strings.tKey(CommonKeys.validationRequiredField)
                 : null,
           ),
           const SizedBox(height: 14),
           PlatformTextField(
             key: const Key('input-staff-email'),
             controller: _emailController,
-            label: strings.tKey(CommonKeys.fieldEmail),
+            label: '${strings.tKey(CommonKeys.fieldEmail)} *',
             hint: strings.tKey(CommonKeys.fieldEmail),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               final text = value?.trim() ?? '';
-              if (text.isEmpty || !text.contains('@')) {
-                return strings.tKey(CommonKeys.stateError);
+              if (text.isEmpty) {
+                return strings.tKey(CommonKeys.validationRequiredField);
+              }
+              if (!text.contains('@')) {
+                return strings.tKey(CommonKeys.validationInvalidEmail);
               }
               return null;
             },
@@ -1069,18 +1152,27 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
           PlatformTextField(
             key: const Key('input-staff-password'),
             controller: _passwordController,
-            label: strings.tKey(CommonKeys.fieldTemporaryPassword),
+            label: '${strings.tKey(CommonKeys.fieldTemporaryPassword)} *',
             hint: strings.tKey(CommonKeys.fieldTemporaryPassword),
+            helperText: strings.tKey(
+              PlatformAdminKeys.addStaffHelperTemporaryPassword,
+            ),
             validator: (value) {
-              if ((value?.trim() ?? '').length < 6) {
-                return strings.tKey(CommonKeys.stateError);
+              final text = value?.trim() ?? '';
+              if (text.isEmpty) {
+                return strings.tKey(CommonKeys.validationRequiredField);
+              }
+              if (text.length < 6) {
+                return strings.tKey(
+                  PlatformAdminKeys.validationPasswordMinLength,
+                );
               }
               return null;
             },
           ),
           const SizedBox(height: 14),
           PlatformDropdown<String>(
-            label: strings.tKey(CommonKeys.tableRole),
+            label: '${strings.tKey(CommonKeys.tableRole)} *',
             value: _role,
             items: [
               DropdownMenuItem(
@@ -1097,6 +1189,15 @@ class _AddStaffFormState extends ConsumerState<_AddStaffForm> {
                 setState(() => _role = value);
               }
             },
+          ),
+          const SizedBox(height: 6),
+          Text(
+            strings.tKey(
+              _role == 'WORKSHOP_ADMIN'
+                  ? PlatformAdminKeys.addStaffRoleAdminDescription
+                  : PlatformAdminKeys.addStaffRoleTechnicianDescription,
+            ),
+            style: PtTheme.caption,
           ),
           const SizedBox(height: 20),
           Wrap(
@@ -1279,7 +1380,13 @@ class _TemplateCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    PlatformStatusChip(status: template.status),
+                    PlatformStatusChip(
+                      status: template.status,
+                      label: workshopTemplateStatusLabel(
+                        strings,
+                        template.status,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1299,37 +1406,32 @@ class _TemplateCard extends ConsumerWidget {
                 ),
                 if (template.descriptionEn.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          template.descriptionEn,
-                          style: PtTheme.bodyMuted,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: PtTheme.muted,
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  const SizedBox(height: 12),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: PtTheme.muted,
-                      ),
-                    ],
+                  Text(
+                    template.descriptionEn,
+                    style: PtTheme.bodyMuted,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
+                const SizedBox(height: 14),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    PlatformSecondaryButton(
+                      label: strings.tKey(PlatformAdminKeys.buttonTemplateView),
+                      icon: Icons.visibility_outlined,
+                      onPressed: () =>
+                          context.go('/checklist/templates/${template.id}'),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                      color: PtTheme.muted,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1365,12 +1467,25 @@ class _ActivityTab extends ConsumerWidget {
         if (filtered.isEmpty) {
           return PlatformEmptyView(
             icon: Icons.history_toggle_off_rounded,
-            title: strings.tKey(CommonKeys.emptyTitle),
+            title: strings.tKey(PlatformAdminKeys.emptyActivityTitle),
+            actionLabel: strings.tKey(PlatformAdminKeys.buttonAuditViewAll),
+            onAction: () => context.go('/audit'),
           );
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PlatformSecondaryButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonAuditViewAll),
+                  icon: Icons.arrow_outward_rounded,
+                  onPressed: () => context.go('/audit'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             for (final event in filtered) ...[
               _AuditTile(event: event),
               const SizedBox(height: 8),
@@ -1415,7 +1530,7 @@ class _AuditTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.action,
+                  auditActionLabel(strings, event.action),
                   style: PtTheme.font(
                     13,
                     lineHeight: 18,
@@ -1428,7 +1543,10 @@ class _AuditTile extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   event.occurredAt.isNotEmpty
-                      ? event.occurredAt
+                      ? auditTimestampLabel(
+                          event.occurredAt,
+                          Localizations.localeOf(context).toString(),
+                        )
                       : strings.tKey(CommonKeys.emptyTitle),
                   style: PtTheme.bodyMuted,
                   maxLines: 1,
@@ -1441,12 +1559,14 @@ class _AuditTile extends ConsumerWidget {
                   children: [
                     PlatformMetaPill(
                       label: strings.tKey(CommonKeys.tableRole),
-                      value: event.actorRole.isNotEmpty ? event.actorRole : '—',
+                      value: event.actorRole.isNotEmpty
+                          ? auditRoleLabel(strings, event.actorRole)
+                          : '—',
                     ),
                     PlatformMetaPill(
                       label: strings.tKey(CommonKeys.fieldReason),
                       value: event.reasonCode.isNotEmpty
-                          ? event.reasonCode
+                          ? auditReasonLabel(strings, event.reasonCode)
                           : '—',
                     ),
                   ],

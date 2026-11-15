@@ -376,6 +376,29 @@ class UiMessageStrings {
     return value;
   }
 
+  /// Resolves a runtime-qualified key such as `platform_admin.some.key`.
+  ///
+  /// Returns null when the key is malformed or absent from every catalog.
+  String? resolveQualifiedKey(String qualified) {
+    final dot = qualified.indexOf('.');
+    if (dot <= 0 || dot == qualified.length - 1) return null;
+    final namespace = qualified.substring(0, dot);
+    final key = qualified.substring(dot + 1);
+    return catalogs[activeLanguage]?[namespace]?[key] ??
+        catalogs[defaultLanguage]?[namespace]?[key];
+  }
+
+  /// Chooses one of two legacy bilingual messages for the active language.
+  String pickBilingual({required String en, required String ar}) {
+    final language = activeLanguage.toLowerCase();
+    final rtl =
+        language == 'ar' ||
+        language.startsWith('ar-') ||
+        language.startsWith('ar_');
+    if (rtl) return ar.isNotEmpty ? ar : en;
+    return en.isNotEmpty ? en : ar;
+  }
+
   String? _resolveKey(UiMessageKey key, String language) {
     return catalogs[language]?[key.namespace]?[key.key];
   }

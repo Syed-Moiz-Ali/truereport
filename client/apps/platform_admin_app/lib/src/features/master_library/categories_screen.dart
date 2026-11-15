@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -12,6 +13,7 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
+import '../checklist/checklist_status.dart';
 import '../checklist/checklist_tab_bar.dart';
 
 import 'package:l10n/l10n.dart';
@@ -300,17 +302,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                         ),
                         DropdownMenuItem(
                           value: 'ACTIVE',
-                          child: Text(strings.tKey(CommonKeys.statusActive)),
+                          child: Text(checklistStatusLabel(strings, 'ACTIVE')),
                         ),
                         DropdownMenuItem(
                           value: 'DRAFT',
-                          child: Text(
-                            strings.tKey(PlatformAdminKeys.statusContentDraft),
-                          ),
+                          child: Text(checklistStatusLabel(strings, 'DRAFT')),
                         ),
                         DropdownMenuItem(
                           value: 'RETIRED',
-                          child: Text(strings.tKey(CommonKeys.statusRetired)),
+                          child: Text(checklistStatusLabel(strings, 'RETIRED')),
                         ),
                       ],
                       onChanged: (value) {
@@ -323,8 +323,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               const SizedBox(height: 16),
               if (filtered.isEmpty)
                 PlatformEmptyView(
-                  icon: Icons.category_outlined,
-                  title: strings.tKey(CommonKeys.emptyTitle),
+                  icon: Icons.folder_open_outlined,
+                  title: strings.tKey(PlatformAdminKeys.checklistCategoriesEmptyTitle),
+                  body: strings.tKey(PlatformAdminKeys.checklistCategoriesEmptyBody),
+                  actionLabel: strings.tKey(PlatformAdminKeys.buttonCategoryAdd),
+                  onAction: () => _showCategoryDialog(null),
                 )
               else
                 LayoutBuilder(
@@ -404,119 +407,219 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     final orderedIndex = ordered.indexWhere((item) => item.id == category.id);
     final canMoveUp = orderedIndex > 0;
     final canMoveDown = orderedIndex >= 0 && orderedIndex < ordered.length - 1;
+    final accentColor = category.status == 'ACTIVE'
+        ? PtTheme.deepGreen
+        : (category.status == 'DRAFT' ? PtTheme.amber : PtTheme.muted);
+
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: _surfaceDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    category.code,
-                    style: PtTheme.font(
-                      12,
-                      weight: FontWeight.w700,
-                      color: PtTheme.muted,
-                      tracking: 0.4,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  PlatformStatusChip(status: category.status),
-                ],
-              ),
-              Wrap(
-                spacing: 0,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  _reorderButton(
-                    icon: Icons.arrow_upward_rounded,
-                    tooltip: strings.tKey(CommonKeys.buttonReorder),
-                    onPressed: canMoveUp
-                        ? () => _reorder(ordered, orderedIndex, -1)
-                        : null,
-                  ),
-                  _reorderButton(
-                    icon: Icons.arrow_downward_rounded,
-                    tooltip: strings.tKey(CommonKeys.buttonReorder),
-                    onPressed: canMoveDown
-                        ? () => _reorder(ordered, orderedIndex, 1)
-                        : null,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _categoryName(category),
-            style: PtTheme.font(
-              16,
-              lineHeight: 22,
-              weight: FontWeight.w700,
-              color: PtTheme.ink,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 5,
+              color: accentColor,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-                value: '${category.sortOrder}',
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
-                value: '${category.itemCount}',
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(CommonKeys.tableStatus),
-                value: category.status,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (category.status == 'DRAFT')
-                PlatformPrimaryButton(
-                  label: strings.tKey(PlatformAdminKeys.buttonContentActivate),
-                  icon: Icons.check_circle_outline_rounded,
-                  onPressed: _busy ? null : () => _activate(category),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top row: icon tile, category name, status, order controls
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.folder_outlined,
+                            size: 20,
+                            color: accentColor,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _categoryName(category),
+                                      style: PtTheme.font(
+                                        17,
+                                        lineHeight: 22,
+                                        weight: FontWeight.w700,
+                                        color: PtTheme.ink,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  PlatformStatusChip(
+                                    status: category.status,
+                                    label: checklistStatusLabel(strings, category.status),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                category.code,
+                                style: PtTheme.font(
+                                  12,
+                                  weight: FontWeight.w700,
+                                  color: PtTheme.muted,
+                                  tracking: 0.4,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _reorderButton(
+                              icon: Icons.arrow_upward_rounded,
+                              tooltip: strings.tKey(CommonKeys.buttonReorder),
+                              onPressed: canMoveUp
+                                  ? () => _reorder(ordered, orderedIndex, -1)
+                                  : null,
+                            ),
+                            _reorderButton(
+                              icon: Icons.arrow_downward_rounded,
+                              tooltip: strings.tKey(CommonKeys.buttonReorder),
+                              onPressed: canMoveDown
+                                  ? () => _reorder(ordered, orderedIndex, 1)
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    // Prominent stat & order row
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: PtTheme.border),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.format_list_bulleted_rounded, size: 15, color: PtTheme.deepGreen),
+                              const SizedBox(width: 5),
+                              Text(
+                                '${category.itemCount}',
+                                style: PtTheme.font(
+                                  14,
+                                  lineHeight: 16,
+                                  weight: FontWeight.w800,
+                                  color: PtTheme.ink,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                                style: PtTheme.font(
+                                  12,
+                                  weight: FontWeight.w500,
+                                  color: PtTheme.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: PtTheme.border),
+                          ),
+                          child: Text(
+                            strings.tArgsKey(PlatformAdminKeys.checklistCategoriesOrder, {
+                              'order': '${category.sortOrder}',
+                            }),
+                            style: PtTheme.font(
+                              12,
+                              weight: FontWeight.w600,
+                              color: PtTheme.muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    // Action row: Edit (primary), View items, Activate, Retire
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            PlatformPrimaryButton(
+                              label: strings.tKey(CommonKeys.buttonEdit),
+                              icon: Icons.edit_outlined,
+                              onPressed: _busy ? null : () => _showCategoryDialog(category),
+                            ),
+                            PlatformSecondaryButton(
+                              label: strings.tKey(PlatformAdminKeys.checklistCategoriesButtonViewItems),
+                              icon: Icons.filter_list_rounded,
+                              onPressed: () => context.go('/checklist/items?category=${category.id}'),
+                            ),
+                          ],
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            if (category.status == 'DRAFT')
+                              PlatformSecondaryButton(
+                                label: strings.tKey(PlatformAdminKeys.buttonContentActivate),
+                                icon: Icons.check_circle_outline_rounded,
+                                onPressed: _busy ? null : () => _activate(category),
+                              ),
+                            PlatformSecondaryButton(
+                              label: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
+                              icon: Icons.archive_outlined,
+                              destructive: true,
+                              onPressed: _busy ? null : () => _confirmRetire(category),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              PlatformSecondaryButton(
-                label: strings.tKey(CommonKeys.buttonEdit),
-                icon: Icons.edit_outlined,
-                onPressed: _busy ? null : () => _showCategoryDialog(category),
               ),
-              PlatformSecondaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.dialogCategoryRetireTitle,
-                ),
-                icon: Icons.archive_outlined,
-                destructive: true,
-                onPressed: _busy ? null : () => _confirmRetire(category),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

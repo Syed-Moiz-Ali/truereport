@@ -30,7 +30,18 @@ public final class OverviewDtos {
                                     String entityId, String actor, String occurredAt) {
     }
 
-    public record AlertDto(String severity, String title, String body, String route) {
+    public record AlertDto(
+            String severity,
+            String title,
+            String body,
+            String route,
+            String titleKey,
+            String bodyKey,
+            java.util.Map<String, Object> args
+    ) {
+        public AlertDto(String severity, String title, String body, String route) {
+            this(severity, title, body, route, null, null, java.util.Map.of());
+        }
     }
 
     public record OverviewDto(

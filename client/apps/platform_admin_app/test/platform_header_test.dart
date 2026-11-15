@@ -233,27 +233,7 @@ void main() {
     expect(find.text('support@truereport.test'), findsOneWidget);
   });
 
-  testWidgets('user menu lists every manifest language and sign out', (
-    tester,
-  ) async {
-    _setSize(tester, const Size(1280, 800));
-    await tester.pumpWidget(_app(session: _session()));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('btn-header-user-menu')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('menu-language-en')), findsOneWidget);
-    expect(find.byKey(const Key('menu-language-ar')), findsOneWidget);
-    expect(find.byKey(const Key('menu-language-zh-hans')), findsOneWidget);
-    expect(find.text('English'), findsOneWidget);
-    expect(find.text('العربية'), findsOneWidget);
-    expect(find.text('中文'), findsOneWidget);
-    expect(find.byKey(const Key('menu-sign-out')), findsOneWidget);
-    expect(find.byKey(const Key('menu-toggle-language')), findsNothing);
-  });
-
-  testWidgets('selecting a manifest language switches locale and persists', (
+  testWidgets('header language selector lists every manifest language and switches locale', (
     tester,
   ) async {
     _setSize(tester, const Size(1280, 800));
@@ -261,9 +241,19 @@ void main() {
     await tester.pumpWidget(_app(session: _session(), configApi: configApi));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('btn-header-user-menu')));
+    // The primary language selector in the header
+    expect(find.byKey(const Key('btn-header-language-selector')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('btn-header-language-selector')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('menu-language-zh-hans')));
+
+    expect(find.byKey(const Key('header-language-en')), findsOneWidget);
+    expect(find.byKey(const Key('header-language-ar')), findsOneWidget);
+    expect(find.byKey(const Key('header-language-zh-hans')), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
+    expect(find.text('العربية'), findsOneWidget);
+    expect(find.text('中文'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('header-language-zh-hans')));
     await tester.pumpAndSettle();
 
     final container = ProviderScope.containerOf(
@@ -278,6 +268,25 @@ void main() {
     );
     expect(container.read(apiClientProvider).acceptLanguage, 'zh-hans');
     expect(configApi.persistedLanguages, ['zh-hans']);
+  });
+
+  testWidgets('user menu has language info row with change link and no duplicate selector', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(1280, 800));
+    await tester.pumpWidget(_app(session: _session()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('btn-header-user-menu')));
+    await tester.pumpAndSettle();
+
+    // User menu has single language info row and sign out, but no duplicate language options
+    expect(find.byKey(const Key('menu-item-language-info')), findsOneWidget);
+    expect(find.byKey(const Key('menu-sign-out')), findsOneWidget);
+    expect(find.byKey(const Key('menu-language-en')), findsNothing);
+    expect(find.byKey(const Key('menu-language-ar')), findsNothing);
+    expect(find.byKey(const Key('menu-language-zh-hans')), findsNothing);
+    expect(find.byKey(const Key('menu-toggle-language')), findsNothing);
   });
 
   testWidgets('user menu sign out calls the auth controller', (tester) async {
@@ -300,7 +309,9 @@ void main() {
     tester,
   ) async {
     _setSize(tester, const Size(360, 800));
-    await tester.pumpWidget(_app(session: _session()));
+    await tester.pumpWidget(
+      _app(session: _session(), size: const Size(360, 800)),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('btn-header-user-menu')), findsOneWidget);

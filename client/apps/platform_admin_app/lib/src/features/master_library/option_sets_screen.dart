@@ -12,6 +12,7 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
+import '../checklist/checklist_status.dart';
 import '../checklist/checklist_tab_bar.dart';
 
 import 'package:l10n/l10n.dart';
@@ -684,8 +685,11 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                   const SizedBox(width: 8),
                   Semantics(
                     label:
-                        '${strings.tKey(CommonKeys.tableStatus)}: ${set.status}',
-                    child: PlatformStatusChip(status: set.status),
+                        '${strings.tKey(CommonKeys.tableStatus)}: ${checklistStatusLabel(strings, set.status)}',
+                    child: PlatformStatusChip(
+                      status: set.status,
+                      label: checklistStatusLabel(strings, set.status),
+                    ),
                   ),
                 ],
               ),
@@ -710,10 +714,6 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                       PlatformAdminKeys.sectionOptionSetValues,
                     ),
                     value: '${set.values.length}',
-                  ),
-                  PlatformMetaPill(
-                    label: strings.tKey(CommonKeys.tableStatus),
-                    value: set.status,
                   ),
                 ],
               ),
@@ -923,7 +923,10 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                                 tracking: 0.4,
                               ),
                             ),
-                            PlatformStatusChip(status: set.status),
+                            PlatformStatusChip(
+                              status: set.status,
+                              label: checklistStatusLabel(strings, set.status),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -1089,7 +1092,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             PlatformTextField(
               key: const Key('opt-value-code'),
               controller: _valueCodeController,
-              label: strings.tKey(PlatformAdminKeys.fieldIssueCode),
+              label: strings.tKey(PlatformAdminKeys.fieldOptionValueCode),
               enabled: !isEdit && !_busy,
               validator: (input) => _required(input, strings),
             ),
@@ -1097,7 +1100,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             PlatformTextField(
               key: const Key('opt-value-label'),
               controller: _valueLabelController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+              label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
               enabled: !_busy,
               validator: (input) => _required(input, strings),
             ),
@@ -1105,7 +1108,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
             PlatformTextField(
               key: const Key('opt-value-metadata'),
               controller: _valueMetadataController,
-              label: strings.tKey(CommonKeys.labelDetails),
+              label: strings.tKey(
+                PlatformAdminKeys.fieldOptionValueDescription,
+              ),
               hint: '{}',
               enabled: !_busy,
             ),
@@ -1165,7 +1170,10 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         tracking: 0.4,
                       ),
                     ),
-                    PlatformStatusChip(status: value.status),
+                    PlatformStatusChip(
+                      status: value.status,
+                      label: checklistStatusLabel(strings, value.status),
+                    ),
                     Text(
                       '${strings.tKey(PlatformAdminKeys.fieldCategoryOrder)}: ${value.sortOrder}',
                       style: PtTheme.font(11, color: PtTheme.muted),

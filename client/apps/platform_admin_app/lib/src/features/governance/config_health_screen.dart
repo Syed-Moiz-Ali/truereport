@@ -11,6 +11,7 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../checklist/checklist_health_labels.dart';
 import '../checklist/checklist_page_frame.dart';
 import '../checklist/checklist_tab_bar.dart';
 import 'impact_dialog.dart';
@@ -202,7 +203,9 @@ class _HealthContent extends ConsumerWidget {
 
                   final tiles = [
                     summaryTile(
-                      '${health.checks.length} ${strings.tKey(PlatformAdminKeys.pageHealthTitle)}',
+                      strings.tKey(
+                        PlatformAdminKeys.checklistHealthTotalChecks,
+                      ),
                       '${health.checks.length}',
                       PtTheme.muted,
                     ),
@@ -212,7 +215,9 @@ class _HealthContent extends ConsumerWidget {
                       PtTheme.emerald,
                     ),
                     summaryTile(
-                      strings.tKey(CommonKeys.statusUnhealthy),
+                      strings.tKey(
+                        PlatformAdminKeys.checklistHealthIssuesFound,
+                      ),
                       '$issueCount',
                       issueCount == 0 ? PtTheme.muted : PtTheme.rose,
                     ),
@@ -250,7 +255,8 @@ class _HealthContent extends ConsumerWidget {
         else
           for (final entry in groups.entries) ...[
             PlatformSectionHeader(
-              title: '${entry.key} · ${entry.value.length}',
+              title:
+                  '${healthSeverityLabel(strings, entry.key)} · ${entry.value.length}',
             ),
             const SizedBox(height: 8),
             for (final check in entry.value) ...[
@@ -315,60 +321,107 @@ class _HealthCheckCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Icon(severityIcon, size: 18, color: severityColor),
-                    Text(
-                      check.code,
-                      style: PtTheme.font(
-                        12,
-                        lineHeight: 17,
-                        weight: FontWeight.w700,
-                        color: PtTheme.ink,
-                        tracking: 0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    PlatformStatusChip(status: check.severity),
-                    PlatformMetaPill(
-                      label: strings.tKey(
-                        PlatformAdminKeys.dialogImpactAffectedItems,
-                      ),
-                      value: '${check.affected}',
-                    ),
-                  ],
+                LayoutBuilder(
+                  builder: (context, headerConstraints) {
+                    final isCompact = headerConstraints.maxWidth < 420;
+                    final titleBlock = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(severityIcon, size: 18, color: severityColor),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                healthCheckTitle(strings, check),
+                                style: PtTheme.font(
+                                  15,
+                                  lineHeight: 20,
+                                  weight: FontWeight.w700,
+                                  color: PtTheme.ink,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          check.code,
+                          style: PtTheme.font(
+                            11,
+                            weight: FontWeight.w700,
+                            color: PtTheme.muted,
+                            tracking: 0.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    );
+                    final chipsBlock = Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        PlatformStatusChip(
+                          status: check.severity,
+                          label: healthSeverityLabel(
+                            strings,
+                            check.severity,
+                            isOk: check.ok,
+                          ),
+                        ),
+                        PlatformMetaPill(
+                          label: strings.tKey(
+                            PlatformAdminKeys.dialogImpactAffectedItems,
+                          ),
+                          value: '${check.affected}',
+                        ),
+                      ],
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          titleBlock,
+                          const SizedBox(height: 8),
+                          chipsBlock,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: titleBlock),
+                        const SizedBox(width: 8),
+                        chipsBlock,
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 10),
-                if (check.messageEn.isNotEmpty)
-                  Text(
-                    check.messageEn,
-                    style: PtTheme.font(
-                      14,
-                      lineHeight: 20,
-                      weight: FontWeight.w600,
-                      color: PtTheme.ink,
-                    ),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                if (check.messageAr.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    check.messageAr,
-                    textDirection: TextDirection.rtl,
-                    style: PtTheme.font(
-                      13,
-                      lineHeight: 19,
-                      color: PtTheme.muted,
-                    ),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                Builder(
+                  builder: (context) {
+                    final message = healthCheckMessage(strings, check);
+                    if (message.isEmpty) return const SizedBox.shrink();
+                    return Text(
+                      message,
+                      key: Key('health-message-${check.code}'),
+                      style: PtTheme.font(
+                        14,
+                        lineHeight: 20,
+                        weight: FontWeight.w600,
+                        color: PtTheme.ink,
+                      ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                ),
                 if (preview.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   Container(

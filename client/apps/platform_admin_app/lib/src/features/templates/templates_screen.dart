@@ -7,12 +7,13 @@ import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_dialogs.dart';
 import '../../components/platform_form.dart';
-import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/checklist_page_frame.dart';
+import '../checklist/checklist_plural.dart';
+import '../checklist/checklist_status.dart';
 import '../checklist/checklist_tab_bar.dart';
 
 import 'package:l10n/l10n.dart';
@@ -340,91 +341,352 @@ class _TemplateCard extends ConsumerWidget {
     final strings = ref.watch(uiStringsProvider);
     final name = _templateName(template);
     final description = _templateDescription(template);
-    return InkWell(
-      onTap: busy ? null : onOpen,
-      borderRadius: BorderRadius.circular(14),
-      child: PlatformSectionCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final catCount = _categoryCount(template);
+    final itemCount = _itemCount(template);
+    final updatedLabel = _updatedLabel(strings, template);
+
+    // Readiness determination
+    final bool isReady;
+    final String readinessLabel;
+    final Color readinessColor;
+    if (template.status == 'RETIRED') {
+      isReady = false;
+      readinessLabel = strings.tKey(CommonKeys.statusRetired);
+      readinessColor = PtTheme.muted;
+    } else if (catCount == 0) {
+      isReady = false;
+      readinessLabel = strings.tKey(
+        PlatformAdminKeys.checklistTemplatesReadinessNeedsCategories,
+      );
+      readinessColor = PtTheme.amber;
+    } else if (itemCount == 0) {
+      isReady = false;
+      readinessLabel = strings.tKey(
+        PlatformAdminKeys.checklistTemplatesReadinessNeedsItems,
+      );
+      readinessColor = PtTheme.amber;
+    } else {
+      isReady = true;
+      readinessLabel = strings.tKey(
+        PlatformAdminKeys.checklistTemplatesReadinessReady,
+      );
+      readinessColor = PtTheme.deepGreen;
+    }
+
+    final accentColor = template.status == 'PUBLISHED'
+        ? PtTheme.deepGreen
+        : (template.status == 'DRAFT' ? PtTheme.amber : PtTheme.muted);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.fieldTemplateCode),
-                  value: template.code,
+            Container(width: 5, color: accentColor),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Top row: initial tile, template title, version pill, status, overflow actions
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'T',
+                            style: PtTheme.font(
+                              18,
+                              weight: FontWeight.w800,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: PtTheme.font(
+                                        17,
+                                        lineHeight: 22,
+                                        weight: FontWeight.w700,
+                                        color: PtTheme.ink,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  PlatformStatusChip(
+                                    status: template.status,
+                                    label: checklistStatusLabel(
+                                      strings,
+                                      template.status,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  PopupMenuButton<String>(
+                                    tooltip: strings.tKey(
+                                      CommonKeys.tableActions,
+                                    ),
+                                    icon: const Icon(
+                                      Icons.more_vert_rounded,
+                                      size: 20,
+                                    ),
+                                    onSelected: (value) {
+                                      if (value == 'duplicate') onDuplicate();
+                                      if (value == 'retire') onRetire();
+                                    },
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(
+                                        value: 'duplicate',
+                                        enabled: !busy,
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.copy_outlined,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              strings.tKey(
+                                                PlatformAdminKeys
+                                                    .buttonTemplateDuplicate,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'retire',
+                                        enabled: !busy,
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.archive_outlined,
+                                              size: 18,
+                                              color: PtTheme.rose,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              strings.tKey(
+                                                PlatformAdminKeys.buttonRetire,
+                                              ),
+                                              style: const TextStyle(
+                                                color: PtTheme.rose,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Text(
+                                    template.code,
+                                    style: PtTheme.font(
+                                      12,
+                                      weight: FontWeight.w700,
+                                      color: PtTheme.muted,
+                                      tracking: 0.4,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: PtTheme.canvas,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      template.currentVersionNo == null
+                                          ? 'v1.0'
+                                          : 'v${template.currentVersionNo}',
+                                      style: PtTheme.font(
+                                        11,
+                                        weight: FontWeight.w600,
+                                        color: PtTheme.muted,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (description.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        description,
+                        style: PtTheme.font(
+                          13,
+                          lineHeight: 19,
+                          color: PtTheme.muted,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    // Structure badges & Readiness Indicator
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: PtTheme.border),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.folder_outlined,
+                                size: 15,
+                                color: PtTheme.deepGreen,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                checklistCategoryCountLabel(strings, catCount),
+                                style: PtTheme.font(
+                                  12,
+                                  weight: FontWeight.w700,
+                                  color: PtTheme.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: PtTheme.border),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.checklist_rounded,
+                                size: 15,
+                                color: PtTheme.deepGreen,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                checklistItemCountLabel(strings, itemCount),
+                                style: PtTheme.font(
+                                  12,
+                                  weight: FontWeight.w700,
+                                  color: PtTheme.ink,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: readinessColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: readinessColor.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isReady
+                                    ? Icons.check_circle_outline_rounded
+                                    : Icons.info_outline_rounded,
+                                size: 15,
+                                color: readinessColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                readinessLabel,
+                                style: PtTheme.font(
+                                  12,
+                                  weight: FontWeight.w700,
+                                  color: readinessColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    // Action row: Open builder (primary visible)
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        PlatformPrimaryButton(
+                          label: strings.tKey(
+                            PlatformAdminKeys
+                                .checklistTemplatesButtonOpenBuilder,
+                          ),
+                          icon: Icons.open_in_new_rounded,
+                          onPressed: busy ? null : onOpen,
+                        ),
+                        if (updatedLabel.isNotEmpty)
+                          Text(
+                            updatedLabel,
+                            style: PtTheme.font(11, color: PtTheme.muted),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-                PlatformStatusChip(status: template.status),
-                PlatformMetaPill(
-                  label: strings.tKey(CommonKeys.labelVersions),
-                  value:
-                      '${template.versionCount}'
-                      '${template.currentVersionNo == null ? '' : ' / v${template.currentVersionNo}'}',
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.tabChecklistCategories),
-                  value: '${_categoryCount(template)}',
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
-                  value: '${_itemCount(template)}',
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.tableItemUpdated),
-                  value: _updatedLabel(strings, template),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              name,
-              style: PtTheme.font(
-                17,
-                lineHeight: 22,
-                weight: FontWeight.w700,
-                color: PtTheme.ink,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (description.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                description,
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                PlatformSecondaryButton(
-                  label: strings.tKey(
-                    PlatformAdminKeys.pageTemplateBuilderTitle,
-                  ),
-                  icon: Icons.open_in_new_rounded,
-                  onPressed: busy ? null : onOpen,
-                ),
-                PlatformSecondaryButton(
-                  label: strings.tKey(
-                    PlatformAdminKeys.buttonTemplateDuplicate,
-                  ),
-                  icon: Icons.copy_outlined,
-                  onPressed: busy ? null : onDuplicate,
-                ),
-                PlatformSecondaryButton(
-                  label: strings.tKey(PlatformAdminKeys.buttonRetire),
-                  icon: Icons.archive_outlined,
-                  destructive: true,
-                  onPressed: busy ? null : onRetire,
-                ),
-              ],
             ),
           ],
         ),
@@ -445,7 +707,7 @@ String _updatedLabel(dynamic strings, GlobalTemplate template) {
       latestPublished = version.publishedAt;
     }
   }
-  if (latestPublished.isEmpty) return '—';
+  if (latestPublished.isEmpty) return '';
   return strings.tArgsKey(PlatformAdminKeys.pageTemplatesUpdatedOn, {
     'date': latestPublished,
   });

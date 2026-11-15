@@ -56,6 +56,7 @@ abstract final class FigmaType {
         TrFonts.arabicAlternative,
         TrFonts.cyrillicFallback,
         TrFonts.cjkFallback,
+        TrFonts.teluguFallback,
       ],
       fontSize: size,
       height: lineHeight / size,

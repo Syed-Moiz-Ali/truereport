@@ -9,6 +9,7 @@ import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/components/platform_nav.dart';
 import 'package:platform_admin_app/src/components/platform_shell.dart';
 import 'package:platform_admin_app/src/components/platform_sidebar.dart';
+import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_router.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
@@ -30,7 +31,11 @@ Widget _buildTestApp({
     child: MaterialApp(
       locale: locale,
       supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         fontFamily: 'Plus Jakarta Sans',
         scaffoldBackgroundColor: PtTheme.canvas,
@@ -77,7 +82,7 @@ Session _testSession() {
 
 void main() {
   group('PlatformSidebar and Nav Unit/Widget Tests', () {
-    testWidgets('renders brand block with CoreOS and Platform Admin', (
+    testWidgets('renders brand block with TrueReport and Platform Admin', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
@@ -92,11 +97,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('CoreOS'), findsOneWidget);
+      expect(find.text('TrueReport'), findsOneWidget);
       expect(find.text('Platform Admin'), findsOneWidget);
     });
 
-    testWidgets('renders bottom status capsule: GRID V4.2 ONLINE', (
+    testWidgets('renders bottom status capsule: System Operational', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
@@ -111,7 +116,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('GRID V4.2 ONLINE'), findsOneWidget);
+      expect(find.text('System Operational'), findsOneWidget);
       expect(find.byIcon(Icons.verified_outlined), findsOneWidget);
     });
 
@@ -428,8 +433,15 @@ void main() {
               router = ref.watch(platformRouterProvider);
               return MaterialApp.router(
                 locale: const Locale('en'),
-                supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-                localizationsDelegates: <LocalizationsDelegate<dynamic>>[GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+                supportedLocales: <Locale>[
+                  const Locale('en'),
+                  const Locale('ar'),
+                ],
+                localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
                 routerConfig: router,
               );
             },
@@ -473,5 +485,543 @@ void main() {
       await tester.pumpAndSettle();
       expect(router.state.uri.path, equals('/workshops/workshop-1'));
     });
+
+    testWidgets(
+      'actionable sidebar language card shows correct status, action CTA and route',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        final languages = [
+          const PlatformLanguage(
+            code: 'en',
+            nativeName: 'English',
+            direction: 'ltr',
+            status: 'LIVE',
+            isDefault: true,
+            active: true,
+            sortOrder: 0,
+          ),
+          const PlatformLanguage(
+            code: 'es',
+            nativeName: 'Español',
+            direction: 'ltr',
+            status: 'DRAFT',
+            isDefault: false,
+            active: false,
+            sortOrder: 1,
+          ),
+        ];
+
+        const readiness = LanguageReadiness(
+          language: 'es',
+          status: 'DRAFT',
+          nativeName: 'Español',
+          direction: 'ltr',
+          isDefault: false,
+          uiMessagesPath: '',
+          readinessPercent: 40,
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 40,
+            missing: 60,
+            changed: 0,
+            path: '',
+            generationStatus: 'NONE',
+          ),
+          content: {},
+          blockers: [
+            ReadinessBlocker(
+              code: 'UI_MESSAGES_EMPTY',
+              tab: 'ui-text',
+              count: 60,
+              message: 'UI messages missing',
+            ),
+          ],
+        );
+
+        String? pushedRoute;
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+              platformLocaleProvider.overrideWith(
+                () => _MockLocaleController(const Locale('en')),
+              ),
+              platformLanguagesProvider.overrideWith((ref) async => languages),
+              readinessProvider('es').overrideWith((ref) async => readiness),
+              contentGenerationProvider('es').overrideWith(
+                (ref) async => const ContentGeneration(
+                  language: 'es',
+                  jobId: '',
+                  jobStatus: 'IDLE',
+                  status: 'IDLE',
+                  total: 0,
+                  completed: 0,
+                  failedKeys: [],
+                  entityTypes: [],
+                  error: '',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: PlatformSidebar(
+                  currentRoute: '/dashboard',
+                  onNavigate: (route) => pushedRoute = route,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Card appears with native name and status
+        expect(
+          find.byKey(const Key('sidebar-language-status-card')),
+          findsOneWidget,
+        );
+        expect(find.text('Español (ES)'), findsOneWidget);
+        expect(find.text('40 of 100 translated (40%)'), findsOneWidget);
+        expect(find.text('Generate translations'), findsOneWidget);
+
+        // Tap CTA -> routes directly to the ui-text tab
+        await tester.tap(find.text('Generate translations'));
+        await tester.pumpAndSettle();
+        expect(pushedRoute, equals('/settings/languages/es?tab=ui-text'));
+      },
+    );
+
+    testWidgets('sidebar language card shows +N more', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      // Multiple incomplete languages -> shows +N more
+      final multiLanguages = [
+        const PlatformLanguage(
+          code: 'en',
+          nativeName: 'English',
+          direction: 'ltr',
+          status: 'LIVE',
+          isDefault: true,
+          active: true,
+          sortOrder: 0,
+        ),
+        const PlatformLanguage(
+          code: 'es',
+          nativeName: 'Español',
+          direction: 'ltr',
+          status: 'DRAFT',
+          isDefault: false,
+          active: false,
+          sortOrder: 1,
+        ),
+        const PlatformLanguage(
+          code: 'fr',
+          nativeName: 'Français',
+          direction: 'ltr',
+          status: 'TRANSLATING',
+          isDefault: false,
+          active: false,
+          sortOrder: 2,
+        ),
+      ];
+
+      const readinessEs = LanguageReadiness(
+        language: 'es',
+        status: 'DRAFT',
+        nativeName: 'Español',
+        direction: 'ltr',
+        isDefault: false,
+        uiMessagesPath: '/assets/i18n/es.json',
+        readinessPercent: 100,
+        uiMessages: UiMessageCoverage(
+          total: 100,
+          approved: 100,
+          missing: 0,
+          changed: 0,
+          path: '/assets/i18n/es.json',
+          generationStatus: 'COMPLETED',
+        ),
+        content: {},
+        blockers: [],
+      );
+
+      String? pushedRoute;
+      await tester.pumpWidget(
+        ProviderScope(
+          key: const ValueKey('multi-incomplete-scope'),
+          overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+            platformLocaleProvider.overrideWith(
+              () => _MockLocaleController(const Locale('en')),
+            ),
+            platformLanguagesProvider.overrideWith(
+              (ref) async => multiLanguages,
+            ),
+            readinessProvider('es').overrideWith((ref) async => readinessEs),
+            contentGenerationProvider('es').overrideWith(
+              (ref) async => const ContentGeneration(
+                language: 'es',
+                jobId: '',
+                jobStatus: 'IDLE',
+                status: 'IDLE',
+                total: 0,
+                completed: 0,
+                failedKeys: [],
+                entityTypes: [],
+                error: '',
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: PlatformSidebar(
+                currentRoute: '/dashboard',
+                onNavigate: (route) => pushedRoute = route,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('+1 more'), findsOneWidget);
+      expect(find.text('View all languages'), findsOneWidget);
+      expect(find.text('Publish language'), findsOneWidget);
+
+      await tester.tap(find.text('Publish language'));
+      await tester.pumpAndSettle();
+      expect(pushedRoute, equals('/settings/languages/es?tab=publish'));
+    });
+
+    testWidgets('sidebar language card shows quiet all-live state', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final allLive = [
+        const PlatformLanguage(
+          code: 'en',
+          nativeName: 'English',
+          direction: 'ltr',
+          status: 'LIVE',
+          isDefault: true,
+          active: true,
+          sortOrder: 0,
+        ),
+        const PlatformLanguage(
+          code: 'ar',
+          nativeName: 'العربية',
+          direction: 'rtl',
+          status: 'LIVE',
+          isDefault: false,
+          active: true,
+          sortOrder: 1,
+        ),
+      ];
+
+      String? pushedRoute;
+      await tester.pumpWidget(
+        ProviderScope(
+          key: const ValueKey('all-live-scope'),
+          overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+            platformLocaleProvider.overrideWith(
+              () => _MockLocaleController(const Locale('en')),
+            ),
+            platformLanguagesProvider.overrideWith((ref) async => allLive),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: PlatformSidebar(
+                currentRoute: '/dashboard',
+                onNavigate: (route) => pushedRoute = route,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('All languages live'), findsOneWidget);
+      expect(find.text('View languages'), findsOneWidget);
+
+      await tester.tap(find.text('View languages'));
+      await tester.pumpAndSettle();
+      expect(pushedRoute, equals('/settings/languages'));
+    });
+
+    testWidgets('retired languages are excluded from setup and +N more count', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final languagesWithRetired = [
+        const PlatformLanguage(
+          code: 'en',
+          nativeName: 'English',
+          direction: 'ltr',
+          status: 'LIVE',
+          isDefault: true,
+          active: true,
+          sortOrder: 0,
+        ),
+        const PlatformLanguage(
+          code: 'es',
+          nativeName: 'Español',
+          direction: 'ltr',
+          status: 'DRAFT',
+          isDefault: false,
+          active: false,
+          sortOrder: 1,
+        ),
+        const PlatformLanguage(
+          code: 'de',
+          nativeName: 'Deutsch',
+          direction: 'ltr',
+          status: 'RETIRED',
+          isDefault: false,
+          active: false,
+          sortOrder: 2,
+        ),
+      ];
+
+      const readinessEs = LanguageReadiness(
+        language: 'es',
+        status: 'DRAFT',
+        nativeName: 'Español',
+        direction: 'ltr',
+        isDefault: false,
+        uiMessagesPath: '',
+        readinessPercent: 0,
+        uiMessages: UiMessageCoverage(
+          total: 100,
+          approved: 0,
+          missing: 100,
+          changed: 0,
+          path: '',
+          generationStatus: 'NONE',
+        ),
+        content: {},
+        blockers: [],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          key: const ValueKey('retired-exclusion-scope'),
+          overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+            platformLocaleProvider.overrideWith(
+              () => _MockLocaleController(const Locale('en')),
+            ),
+            platformLanguagesProvider.overrideWith(
+              (ref) async => languagesWithRetired,
+            ),
+            readinessProvider('es').overrideWith((ref) async => readinessEs),
+            contentGenerationProvider('es').overrideWith(
+              (ref) async => const ContentGeneration(
+                language: 'es',
+                jobId: '',
+                jobStatus: 'IDLE',
+                status: 'IDLE',
+                total: 0,
+                completed: 0,
+                failedKeys: [],
+                entityTypes: [],
+                error: '',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: PlatformSidebar(currentRoute: '/dashboard')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Only 'es' is in setup; 'de' is retired so moreCount is 0 (+N more not shown)
+      expect(find.text('Español (ES)'), findsOneWidget);
+      expect(find.textContaining('more'), findsNothing);
+      expect(find.text('Deutsch (DE)'), findsNothing);
+
+      // Now test: if all non-retired languages are LIVE, retired languages do not prevent all-live state
+      final liveAndRetiredOnly = [
+        const PlatformLanguage(
+          code: 'en',
+          nativeName: 'English',
+          direction: 'ltr',
+          status: 'LIVE',
+          isDefault: true,
+          active: true,
+          sortOrder: 0,
+        ),
+        const PlatformLanguage(
+          code: 'de',
+          nativeName: 'Deutsch',
+          direction: 'ltr',
+          status: 'RETIRED',
+          isDefault: false,
+          active: false,
+          sortOrder: 1,
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          key: const ValueKey('retired-all-live-scope'),
+          overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+            platformLocaleProvider.overrideWith(
+              () => _MockLocaleController(const Locale('en')),
+            ),
+            platformLanguagesProvider.overrideWith(
+              (ref) async => liveAndRetiredOnly,
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: PlatformSidebar(currentRoute: '/dashboard')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('All languages live'), findsOneWidget);
+    });
+
+    testWidgets(
+      'priority order selects the most urgent setup language regardless of list order',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        // Two incomplete languages:
+        // List has 'es' (DRAFT no UI path -> priority 5) before 'fr' (REVIEW no blockers -> priority 1)
+        final reversedLanguages = [
+          const PlatformLanguage(
+            code: 'es',
+            nativeName: 'Español',
+            direction: 'ltr',
+            status: 'DRAFT',
+            isDefault: false,
+            active: false,
+            sortOrder: 0,
+          ),
+          const PlatformLanguage(
+            code: 'fr',
+            nativeName: 'Français',
+            direction: 'ltr',
+            status: 'REVIEW',
+            isDefault: false,
+            active: false,
+            sortOrder: 1,
+          ),
+        ];
+
+        const readinessEs = LanguageReadiness(
+          language: 'es',
+          status: 'DRAFT',
+          nativeName: 'Español',
+          direction: 'ltr',
+          isDefault: false,
+          uiMessagesPath: '',
+          readinessPercent: 10,
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 10,
+            missing: 90,
+            changed: 0,
+            path: '',
+            generationStatus: 'NONE',
+          ),
+          content: {},
+          blockers: [],
+        );
+
+        const readinessFr = LanguageReadiness(
+          language: 'fr',
+          status: 'REVIEW',
+          nativeName: 'Français',
+          direction: 'ltr',
+          isDefault: false,
+          uiMessagesPath: '/assets/i18n/fr.json',
+          readinessPercent: 95,
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 95,
+            missing: 5,
+            changed: 0,
+            path: '/assets/i18n/fr.json',
+            generationStatus: 'COMPLETED',
+          ),
+          content: {},
+          blockers: [],
+        );
+
+        String? pushedRoute;
+        await tester.pumpWidget(
+          ProviderScope(
+            key: const ValueKey('priority-order-scope'),
+            overrides: [
+              uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+              platformLocaleProvider.overrideWith(
+                () => _MockLocaleController(const Locale('en')),
+              ),
+              platformLanguagesProvider.overrideWith(
+                (ref) async => reversedLanguages,
+              ),
+              readinessProvider('es').overrideWith((ref) async => readinessEs),
+              readinessProvider('fr').overrideWith((ref) async => readinessFr),
+              contentGenerationProvider('es').overrideWith(
+                (ref) async => const ContentGeneration(
+                  language: 'es',
+                  jobId: '',
+                  jobStatus: 'IDLE',
+                  status: 'IDLE',
+                  total: 0,
+                  completed: 0,
+                  failedKeys: [],
+                  entityTypes: [],
+                  error: '',
+                ),
+              ),
+              contentGenerationProvider('fr').overrideWith(
+                (ref) async => const ContentGeneration(
+                  language: 'fr',
+                  jobId: '',
+                  jobStatus: 'IDLE',
+                  status: 'IDLE',
+                  total: 0,
+                  completed: 0,
+                  failedKeys: [],
+                  entityTypes: [],
+                  error: '',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: PlatformSidebar(
+                  currentRoute: '/dashboard',
+                  onNavigate: (route) => pushedRoute = route,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert that 'Français (FR)' is selected despite 'es' being first in the array!
+        expect(find.text('Français (FR)'), findsOneWidget);
+        expect(find.text('Review and approve'), findsOneWidget);
+        expect(find.text('+1 more'), findsOneWidget);
+
+        await tester.tap(find.text('Review and approve'));
+        await tester.pumpAndSettle();
+        expect(pushedRoute, equals('/settings/languages/fr?tab=overview'));
+      },
+    );
   });
 }

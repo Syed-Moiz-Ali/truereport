@@ -13,9 +13,9 @@ import 'package:l10n/l10n.dart';
 
 /// Reusable Platform Admin app header.
 ///
-/// Two layers live in the shell: this app header (search, notifications,
-/// help, user menu) and [PlatformContextBar] below it (page-provided
-/// breadcrumbs + actions). Page-specific breadcrumbs never live here.
+/// Designed for a calm, compact, sticky header:
+/// - Left: Mobile nav trigger (compact), Search field
+/// - Right: Single primary Language selector, Notifications, Help, User profile menu
 class PlatformHeader extends ConsumerWidget {
   const PlatformHeader({
     super.key,
@@ -57,16 +57,17 @@ class PlatformHeader extends ConsumerWidget {
       builder: (context, constraints) {
         final showMobileNav = constraints.maxWidth < 900;
         final isCompact = constraints.maxWidth < 600;
+        final isVeryCompact = constraints.maxWidth < 420;
         final showIdentity = constraints.maxWidth >= 900;
-        final horizontalPadding = isCompact ? 14.0 : 24.0;
+        final horizontalPadding = isCompact ? 10.0 : 24.0;
 
         return Container(
-          constraints: const BoxConstraints(minHeight: 72, maxHeight: 80),
+          constraints: const BoxConstraints(minHeight: 64, maxHeight: 68),
           padding: EdgeInsetsDirectional.fromSTEB(
             horizontalPadding,
-            12,
+            10,
             horizontalPadding,
-            12,
+            10,
           ),
           decoration: const BoxDecoration(
             color: PtTheme.white,
@@ -81,24 +82,24 @@ class PlatformHeader extends ConsumerWidget {
                   tooltip: strings.tKey(PlatformAdminKeys.headerTitle),
                   icon: const Icon(
                     Icons.menu_rounded,
-                    size: 22,
+                    size: 20,
                     color: PtTheme.ink,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
+                  constraints: BoxConstraints(
+                    minWidth: isVeryCompact ? 32 : 40,
+                    minHeight: isVeryCompact ? 32 : 40,
                   ),
                   onPressed: () => _openMobileNav(context),
                 ),
-                SizedBox(width: isCompact ? 4 : 8),
+                SizedBox(width: isCompact ? 2 : 8),
               ],
               Expanded(
                 child: Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: isCompact ? 480 : 560,
+                      maxWidth: isCompact ? 480 : 440,
                     ),
                     child: _HeaderSearchField(
                       isCompact: isCompact,
@@ -107,7 +108,10 @@ class PlatformHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-              SizedBox(width: isCompact ? 6 : 12),
+              SizedBox(width: isVeryCompact ? 4 : (isCompact ? 6 : 10)),
+              // Sole primary language selector
+              const _HeaderLanguageSelector(),
+              SizedBox(width: isVeryCompact ? 2 : (isCompact ? 4 : 6)),
               _HeaderCircleAction(
                 key: const Key('btn-header-notifications'),
                 tooltip: strings.tKey(PlatformAdminKeys.headerNotifications),
@@ -117,7 +121,7 @@ class PlatformHeader extends ConsumerWidget {
                 ),
                 onPressed: () => _openNotificationsSheet(context),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: isVeryCompact ? 2 : 4),
               _HeaderCircleAction(
                 key: const Key('btn-header-help'),
                 tooltip: strings.tKey(PlatformAdminKeys.headerHelp),
@@ -125,8 +129,11 @@ class PlatformHeader extends ConsumerWidget {
                 semanticLabel: strings.tKey(PlatformAdminKeys.headerHelp),
                 onPressed: () => _openHelpSheet(context),
               ),
-              SizedBox(width: isCompact ? 4 : 8),
-              _UserMenu(showIdentity: showIdentity),
+              SizedBox(width: isVeryCompact ? 2 : (isCompact ? 4 : 8)),
+              _UserMenu(
+                showIdentity: showIdentity,
+                onNavigate: (route) => _navigate(context, route),
+              ),
             ],
           ),
         );
@@ -143,12 +150,12 @@ class PlatformHeader extends ConsumerWidget {
       context: context,
       backgroundColor: PtTheme.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 24),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
             child: Column(
               key: const Key('notifications-sheet'),
               mainAxisSize: MainAxisSize.min,
@@ -178,23 +185,24 @@ class PlatformHeader extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   decoration: BoxDecoration(
                     color: PtTheme.canvas,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: PtTheme.border),
                   ),
                   child: Column(
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 44,
+                        height: 44,
                         decoration: const BoxDecoration(
                           color: PtTheme.white,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.notifications_none_rounded,
-                          size: 24,
+                          size: 22,
                           color: PtTheme.muted,
                         ),
                       ),
@@ -211,7 +219,7 @@ class PlatformHeader extends ConsumerWidget {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         strings.tKey(
                           PlatformAdminKeys.headerNotificationsEmptyBody,
@@ -240,12 +248,12 @@ class PlatformHeader extends ConsumerWidget {
       context: context,
       backgroundColor: PtTheme.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 24),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
             child: Column(
               key: const Key('help-sheet'),
               mainAxisSize: MainAxisSize.min,
@@ -284,7 +292,8 @@ class PlatformHeader extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: PtTheme.canvas,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: PtTheme.border),
                   ),
                   child: Row(
                     children: [
@@ -318,7 +327,15 @@ class PlatformHeader extends ConsumerWidget {
                             );
                           }
                         },
-                        icon: const Icon(Icons.copy_rounded, size: 16),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(44, 36),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          side: const BorderSide(color: PtTheme.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.copy_rounded, size: 15),
                         label: Text(strings.tKey(CommonKeys.buttonCopy)),
                       ),
                     ],
@@ -355,12 +372,12 @@ class PlatformHeader extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: PtTheme.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -441,19 +458,17 @@ class _HeaderSearchFieldState extends ConsumerState<_HeaderSearchField> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    // Keep the border width identical in both states so focusing never
-    // shifts the layout; only the color changes to the emerald ring.
-    final borderColor = _focused ? PtTheme.emerald : Colors.transparent;
+    final borderColor = _focused ? PtTheme.deepGreen : PtTheme.border;
     final hint = widget.isCompact
         ? strings.tKey(PlatformAdminKeys.headerSearchHintCompact)
         : strings.tKey(PlatformAdminKeys.headerSearchHint);
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 40, maxHeight: 40),
+      constraints: const BoxConstraints(minHeight: 38, maxHeight: 38),
       decoration: BoxDecoration(
         color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(9999),
-        border: Border.all(color: borderColor, width: 1.5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: TextField(
         key: const Key('header-search'),
@@ -476,15 +491,15 @@ class _HeaderSearchFieldState extends ConsumerState<_HeaderSearchField> {
           ),
           prefixIcon: const Icon(
             Icons.search_rounded,
-            size: 18,
+            size: 17,
             color: PtTheme.muted,
           ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 10,
+            horizontal: 10,
+            vertical: 8,
           ),
           isDense: true,
         ),
@@ -513,16 +528,17 @@ class _HeaderCircleAction extends StatelessWidget {
       button: true,
       label: semanticLabel,
       child: Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
           color: PtTheme.canvas,
           shape: BoxShape.circle,
+          border: Border.all(color: PtTheme.border),
         ),
         child: IconButton(
           tooltip: tooltip,
           padding: EdgeInsets.zero,
-          icon: Icon(icon, size: 20, color: PtTheme.muted),
+          icon: Icon(icon, size: 18, color: PtTheme.muted),
           onPressed: onPressed,
         ),
       ),
@@ -530,10 +546,136 @@ class _HeaderCircleAction extends StatelessWidget {
   }
 }
 
+/// Sole primary language selector dropdown for the header.
+class _HeaderLanguageSelector extends ConsumerWidget {
+  const _HeaderLanguageSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final uiState = ref.watch(uiMessageControllerProvider);
+    final manifest = ref.watch(platformUiManifestProvider);
+    final languages = manifest?.languages ?? const <UiMessageLanguage>[];
+    final activeCode = uiState.activeLanguage;
+
+    final activeLang = languages.firstWhere(
+      (l) => l.code == activeCode,
+      orElse: () => UiMessageLanguage(
+        code: activeCode,
+        direction: 'ltr',
+        nativeName: activeCode.toUpperCase(),
+      ),
+    );
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 768;
+    final selectorText = isCompact
+        ? activeLang.code.toUpperCase()
+        : activeLang.nativeName.isNotEmpty &&
+                activeLang.nativeName != activeLang.code.toUpperCase()
+            ? '${activeLang.nativeName} (${activeLang.code.toUpperCase()})'
+            : activeLang.code.toUpperCase();
+
+    return PopupMenuButton<String>(
+      key: const Key('btn-header-language-selector'),
+      tooltip: strings.tKey(PlatformAdminKeys.headerLanguageSelector),
+      offset: const Offset(0, 42),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: PtTheme.border),
+      ),
+      elevation: 3,
+      itemBuilder: (ctx) => [
+        for (final language in languages)
+          PopupMenuItem<String>(
+            key: Key('header-language-${language.code}'),
+            value: language.code,
+            child: Row(
+              children: [
+                Icon(
+                  language.code == activeCode
+                      ? Icons.check_rounded
+                      : Icons.translate_rounded,
+                  size: 16,
+                  color: language.code == activeCode
+                      ? PtTheme.deepGreen
+                      : PtTheme.muted,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    language.nativeName.isNotEmpty
+                        ? language.nativeName
+                        : language.displayName,
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: language.code == activeCode
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: PtTheme.ink,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  language.code.toUpperCase(),
+                  style: PtTheme.font(
+                    11,
+                    lineHeight: 14,
+                    weight: FontWeight.w600,
+                    color: PtTheme.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+      onSelected: (code) async {
+        await ref.read(uiMessageSwitcherProvider).switchTo(code);
+        try {
+          await ref.read(platformConfigApiProvider).setMeLanguage(code);
+        } catch (_) {}
+      },
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: PtTheme.canvas,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: PtTheme.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.translate_rounded, size: 15, color: PtTheme.muted),
+            const SizedBox(width: 6),
+            Text(
+              selectorText,
+              style: PtTheme.font(
+                11,
+                lineHeight: 15,
+                weight: FontWeight.w700,
+                color: PtTheme.ink,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.arrow_drop_down_rounded, size: 16, color: PtTheme.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _UserMenu extends ConsumerWidget {
-  const _UserMenu({required this.showIdentity});
+  const _UserMenu({
+    required this.showIdentity,
+    this.onNavigate,
+  });
 
   final bool showIdentity;
+  final ValueChanged<String>? onNavigate;
 
   String _roleLabel(dynamic strings, Session? session) {
     if (session == null) {
@@ -565,15 +707,24 @@ class _UserMenu extends ConsumerWidget {
     final menuLanguages = manifest?.languages ?? const <UiMessageLanguage>[];
     final activeCode = uiState.activeLanguage;
 
+    final activeLang = menuLanguages.firstWhere(
+      (l) => l.code == activeCode,
+      orElse: () => UiMessageLanguage(
+        code: activeCode,
+        direction: 'ltr',
+        nativeName: activeCode.toUpperCase(),
+      ),
+    );
+
     final avatar = Container(
-      width: 36,
-      height: 36,
+      width: 34,
+      height: 34,
       decoration: const BoxDecoration(
-        color: PtTheme.emerald,
+        color: PtTheme.deepGreen,
         shape: BoxShape.circle,
       ),
       child: const Center(
-        child: Icon(Icons.person_rounded, size: 20, color: PtTheme.white),
+        child: Icon(Icons.person_rounded, size: 18, color: PtTheme.white),
       ),
     );
 
@@ -589,8 +740,8 @@ class _UserMenu extends ConsumerWidget {
                     Text(
                       displayName,
                       style: PtTheme.font(
-                        13,
-                        lineHeight: 16,
+                        12,
+                        lineHeight: 15,
                         weight: FontWeight.w600,
                         color: PtTheme.ink,
                       ),
@@ -601,12 +752,7 @@ class _UserMenu extends ConsumerWidget {
                     if (roleLabel.isNotEmpty)
                       Text(
                         roleLabel,
-                        style: PtTheme.font(
-                          11,
-                          lineHeight: 14,
-                          weight: FontWeight.w400,
-                          color: PtTheme.muted,
-                        ),
+                        style: PtTheme.caption,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.end,
@@ -614,7 +760,7 @@ class _UserMenu extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               avatar,
             ],
           )
@@ -623,8 +769,12 @@ class _UserMenu extends ConsumerWidget {
     return PopupMenuButton<String>(
       key: const Key('btn-header-user-menu'),
       tooltip: strings.tKey(PlatformAdminKeys.headerAccount),
-      offset: const Offset(0, 48),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      offset: const Offset(0, 44),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: PtTheme.border),
+      ),
+      elevation: 3,
       itemBuilder: (menuContext) {
         return [
           if (displayName.isNotEmpty || email.isNotEmpty)
@@ -648,8 +798,8 @@ class _UserMenu extends ConsumerWidget {
                     Text(
                       email,
                       style: PtTheme.font(
-                        12,
-                        lineHeight: 16,
+                        11,
+                        lineHeight: 15,
                         weight: FontWeight.w400,
                         color: PtTheme.muted,
                       ),
@@ -659,59 +809,28 @@ class _UserMenu extends ConsumerWidget {
             ),
           if (displayName.isNotEmpty || email.isNotEmpty)
             const PopupMenuDivider(),
-          for (final language in menuLanguages)
-            PopupMenuItem<String>(
-              key: Key('menu-language-${language.code}'),
-              value: 'lang:${language.code}',
-              child: Row(
-                children: [
-                  Icon(
-                    language.code == activeCode
-                        ? Icons.check_rounded
-                        : Icons.translate_rounded,
-                    size: 18,
-                    color: language.code == activeCode
-                        ? PtTheme.deepGreen
-                        : PtTheme.muted,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      language.displayName,
-                      style: PtTheme.font(
-                        13,
-                        lineHeight: 18,
-                        weight: FontWeight.w500,
-                        color: PtTheme.ink,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    language.code.toUpperCase(),
-                    style: PtTheme.font(
-                      12,
-                      lineHeight: 16,
-                      weight: FontWeight.w700,
-                      color: PtTheme.deepGreen,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // Single row showing active language and shortcut to languages settings
           PopupMenuItem<String>(
-            key: const Key('menu-sign-out'),
-            value: 'signout',
+            key: const Key('menu-item-language-info'),
+            value: 'languages-settings',
             child: Row(
               children: [
                 const Icon(
-                  Icons.logout_rounded,
-                  size: 18,
+                  Icons.translate_rounded,
+                  size: 16,
                   color: PtTheme.muted,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    strings.tKey(CommonKeys.buttonSignOut),
+                    strings.tArgsKey(
+                      PlatformAdminKeys.headerUserMenuLanguage,
+                      {
+                        'name': activeLang.nativeName.isNotEmpty
+                            ? activeLang.nativeName
+                            : activeLang.code.toUpperCase(),
+                      },
+                    ),
                     style: PtTheme.font(
                       13,
                       lineHeight: 18,
@@ -723,15 +842,43 @@ class _UserMenu extends ConsumerWidget {
               ],
             ),
           ),
+          const PopupMenuDivider(),
+          PopupMenuItem<String>(
+            key: const Key('menu-sign-out'),
+            value: 'signout',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.logout_rounded,
+                  size: 16,
+                  color: PtTheme.rose,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    strings.tKey(CommonKeys.buttonSignOut),
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: FontWeight.w600,
+                      color: PtTheme.rose,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ];
       },
       onSelected: (value) async {
-        if (value.startsWith('lang:')) {
-          final code = value.substring('lang:'.length);
-          await ref.read(uiMessageSwitcherProvider).switchTo(code);
-          try {
-            await ref.read(platformConfigApiProvider).setMeLanguage(code);
-          } catch (_) {}
+        if (value == 'languages-settings') {
+          if (onNavigate != null) {
+            onNavigate!('/settings/languages');
+          } else {
+            try {
+              context.go('/settings/languages');
+            } catch (_) {}
+          }
           return;
         }
         if (value == 'signout') {
@@ -749,12 +896,12 @@ class _UserMenu extends ConsumerWidget {
             ? strings.tKey(PlatformAdminKeys.headerAccount)
             : '$displayName${roleLabel.isEmpty ? '' : ', $roleLabel'}',
         child: Container(
-          constraints: const BoxConstraints(minHeight: 40),
+          constraints: const BoxConstraints(minHeight: 36),
           padding: const EdgeInsetsDirectional.symmetric(
             horizontal: 4,
             vertical: 2,
           ),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
           child: label,
         ),
       ),

@@ -515,9 +515,13 @@ void main() {
     final api = _FakeConfigApi();
     await _pump(api, tester);
     await tester.pumpAndSettle();
+    expect(find.text('Status: ACTIVE'), findsNothing);
 
     await tester.enterText(find.byKey(const Key('opt-value-code')), 'POOR');
     await tester.enterText(find.byKey(const Key('opt-value-label')), 'Poor');
+    expect(find.text('Value code'), findsOneWidget);
+    expect(find.text('Label'), findsOneWidget);
+    expect(find.text('Description'), findsOneWidget);
     // English-only: no Arabic source field in the value editor.
     expect(find.byKey(const Key('opt-value-label-ar')), findsNothing);
     await tester.pumpAndSettle();
@@ -602,11 +606,16 @@ void main() {
     await tester.pumpWidget(
       _app(
         api,
-        extra: [optionSetsProvider.overrideWith((ref) => loading.future)],
+        extra: [
+          platformLanguagesProvider.overrideWith((ref) async => const []),
+          optionSetsProvider.overrideWith((ref) => loading.future),
+        ],
       ),
     );
     await tester.pump();
     expect(find.text('Loading'), findsOneWidget);
+    loading.complete(const []);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('error state uses the shared error view with retry', (

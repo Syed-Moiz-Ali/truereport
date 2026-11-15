@@ -1,16 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
+import '../../components/platform_chips.dart';
 import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
+import '../languages/language_workspace_screen.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 
-import 'package:l10n/l10n.dart';
+UiMessageKey? _resolveAlertKey(String key) {
+  switch (key) {
+    case 'dashboard.alert.checklist.title':
+      return PlatformAdminKeys.dashboardAlertChecklistTitle;
+    case 'dashboard.alert.checklist.body':
+      return PlatformAdminKeys.dashboardAlertChecklistBody;
+    case 'dashboard.alert.languages.title':
+      return PlatformAdminKeys.dashboardAlertLanguagesTitle;
+    case 'dashboard.alert.languages.body':
+      return PlatformAdminKeys.dashboardAlertLanguagesBody;
+    case 'dashboard.alert.reportsFailed.title':
+      return PlatformAdminKeys.dashboardAlertReportsFailedTitle;
+    case 'dashboard.alert.reportsFailed.body':
+      return PlatformAdminKeys.dashboardAlertReportsFailedBody;
+    case 'dashboard.alert.reportsUnpublished.title':
+      return PlatformAdminKeys.dashboardAlertReportsUnpublishedTitle;
+    case 'dashboard.alert.reportsUnpublished.body':
+      return PlatformAdminKeys.dashboardAlertReportsUnpublishedBody;
+    default:
+      return null;
+  }
+}
+
+String _languageStatusLabel(UiMessageStrings strings, String status) {
+  switch (status.toUpperCase()) {
+    case 'DRAFT':
+      return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
+    case 'TRANSLATING':
+      return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
+    case 'REVIEW':
+      return strings.tKey(PlatformAdminKeys.statusLanguageReview);
+    case 'LIVE':
+      return strings.tKey(PlatformAdminKeys.statusLanguageLive);
+    case 'RETIRED':
+      return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
+    default:
+      return status;
+  }
+}
+
+String _formatLanguageDisplayName(PlatformLanguage lang) {
+  if (lang.code.toLowerCase() == 'zh-hans') {
+    return '中文 (ZH-HANS)';
+  }
+  final name = lang.nativeName.isNotEmpty ? lang.nativeName : lang.displayName;
+  return name.isNotEmpty
+      ? '$name (${lang.code.toUpperCase()})'
+      : lang.code.toUpperCase();
+}
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -28,14 +79,21 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // 1. Page Header (compact, with refresh and operational summary)
             PlatformPageHeader(
               title: strings.tKey(PlatformAdminKeys.pageDashboardTitle),
               subtitle: strings.tKey(PlatformAdminKeys.pageDashboardSubtitle),
               actions: [
                 PlatformSecondaryButton(
+                  key: const Key('btn-dashboard-refresh'),
                   label: strings.tKey(CommonKeys.buttonRefresh),
                   icon: Icons.refresh_rounded,
-                  onPressed: () => ref.invalidate(overviewProvider),
+                  onPressed: () {
+                    ref.invalidate(overviewProvider);
+                    ref.invalidate(configHealthProvider);
+                    ref.invalidate(platformLanguagesProvider);
+                    ref.invalidate(auditEventsProvider);
+                  },
                 ),
               ],
             ),
@@ -47,7 +105,12 @@ class DashboardScreen extends ConsumerWidget {
               error: (error, stackTrace) => PlatformErrorView(
                 message: strings.tKey(CommonKeys.statusUnhealthy),
                 retryLabel: strings.tKey(CommonKeys.buttonRetry),
-                onRetry: () => ref.invalidate(overviewProvider),
+                onRetry: () {
+                  ref.invalidate(overviewProvider);
+                  ref.invalidate(configHealthProvider);
+                  ref.invalidate(platformLanguagesProvider);
+                  ref.invalidate(auditEventsProvider);
+                },
               ),
               data: (summary) => _DashboardContent(summary: summary),
             ),
@@ -77,163 +140,160 @@ class _DashboardContent extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _HeroCard(summary: summary),
+        // 2. Operational Status / Welcome Strip
+        _OperationalStatusStrip(summary: summary),
+        const SizedBox(height: 20),
+
+        // 3. Primary KPI Grid & Secondary Metrics
+        _KpiSection(summary: summary),
         const SizedBox(height: 24),
-        PlatformSectionHeader(
-          title: strings.tKey(PlatformAdminKeys.sectionDashboardKpis),
-        ),
-        const SizedBox(height: 12),
-        _KpiGrid(summary: summary),
+
+        // 4. Needs Attention Section
+        _NeedsAttentionSection(summary: summary),
+        const SizedBox(height: 24),
+
+        // 5. Language Setup Action Center
+        const _LanguageSetupActionCenter(),
+        const SizedBox(height: 24),
+
+        // 6. Operations Snapshot
         if (summary.jobs.byStatus.isNotEmpty ||
             summary.reports.byMonth.isNotEmpty) ...[
+          _OperationsSnapshotSection(summary: summary),
           const SizedBox(height: 24),
-          _DistributionSection(summary: summary),
         ],
+
+        // 7. Recent Activity
+        _RecentActivitySection(summary: summary),
         const SizedBox(height: 24),
-        _ActivityAlerts(summary: summary),
-        const SizedBox(height: 24),
-        const _QuickActions(),
+
+        // 8. Quick Actions
+        const _QuickActionsSection(),
       ],
     );
   }
 }
 
-class _HeroCard extends ConsumerWidget {
-  const _HeroCard({required this.summary});
+// =============================================================================
+// 2. Operational Status / Welcome Strip
+// =============================================================================
+
+class _OperationalStatusStrip extends ConsumerWidget {
+  const _OperationalStatusStrip({required this.summary});
 
   final OverviewSummary summary;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final stats = <String>[
-      '${summary.workshops.total} ${strings.tKey(PlatformAdminKeys.kpiWorkshopsTotal)}',
-      '${summary.workshops.active} ${strings.tKey(PlatformAdminKeys.kpiWorkshopsActive)}',
-      '${summary.staff.technicians} ${strings.tKey(PlatformAdminKeys.kpiTechnicians)}',
-    ];
+    final health = ref.watch(configHealthProvider).asData?.value;
+    final languages = ref.watch(platformLanguagesProvider).asData?.value ?? [];
+
+    final hasChecklistIssue = health != null && !health.healthy;
+    final incompleteLangs = languages.where((l) => l.isInSetup).length;
+    final alertCount = summary.alerts.length;
+    final pendingReviews = summary.jobs.pendingReview;
+
+    final totalAttentionItems = (hasChecklistIssue ? 1 : 0) +
+        incompleteLangs +
+        alertCount +
+        (pendingReviews > 0 ? 1 : 0);
+
+    final isHealthy = totalAttentionItems == 0;
+
+    final bgColor = isHealthy ? PtTheme.canvas : const Color(0xFFFFFBEB);
+    final borderColor = isHealthy
+        ? PtTheme.border
+        : PtTheme.amber.withValues(alpha: 0.35);
+    final indicatorColor = isHealthy ? PtTheme.emerald : PtTheme.amber;
+    final title = strings.tKey(
+      isHealthy
+          ? PlatformAdminKeys.dashboardStatusHealthy
+          : PlatformAdminKeys.dashboardStatusAttention,
+    );
+    final subtitle = isHealthy
+        ? strings.tKey(PlatformAdminKeys.dashboardStatusHealthySubtitle)
+        : strings.tArgsKey(
+            PlatformAdminKeys.dashboardStatusAttentionSubtitle,
+            {'count': '$totalAttentionItems'},
+          );
+
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 20),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: AlignmentDirectional.topStart,
-          end: AlignmentDirectional.bottomEnd,
-          colors: [Color(0xFF006C49), Color(0xFF0A8A5F)],
-        ),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x22006C49),
-            blurRadius: 22,
-            offset: Offset(0, 8),
-          ),
-        ],
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < 600;
-          final heading = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          final isCompact = constraints.maxWidth < 640;
+          final statusInfo = Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.dashboard_rounded,
-                      size: 24,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          strings.tKey(PlatformAdminKeys.pageDashboardTitle),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: PtTheme.font(
-                            24,
-                            lineHeight: 30,
-                            weight: FontWeight.w800,
-                            color: PtTheme.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          strings.tKey(PlatformAdminKeys.pageDashboardSubtitle),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: PtTheme.font(
-                            13,
-                            lineHeight: 18,
-                            color: PtTheme.white.withValues(alpha: 0.85),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: indicatorColor,
+                  shape: BoxShape.circle,
+                ),
               ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final stat in stats)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: PtTheme.font(
+                        15,
+                        lineHeight: 20,
+                        weight: FontWeight.w700,
+                        color: PtTheme.ink,
                       ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFFFFF).withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(9999),
-                        border: Border.all(
-                          color: const Color(0xFFFFFFFF)
-                              .withValues(alpha: 0.22),
-                        ),
-                      ),
-                      child: Text(
-                        stat,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: PtTheme.font(
-                          12,
-                          lineHeight: 16,
-                          weight: FontWeight.w700,
-                          color: PtTheme.white,
-                        ),
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: PtTheme.caption,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           );
+
           final cta = PlatformSecondaryButton(
-            label: strings.tKey(PlatformAdminKeys.pageWorkshopsAdd),
-            icon: Icons.add_business_rounded,
-            onPressed: () => context.go('/workshops/new'),
+            key: const Key('btn-status-strip-action'),
+            label: isHealthy
+                ? strings.tKey(PlatformAdminKeys.pageHealthTitle)
+                : strings.tKey(PlatformAdminKeys.buttonHealthReview),
+            icon: isHealthy
+                ? Icons.health_and_safety_outlined
+                : Icons.warning_amber_rounded,
+            onPressed: () => context.go('/checklist/health'),
           );
-          if (compact) {
+
+          if (isCompact) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [heading, const SizedBox(height: 16), cta],
+              children: [
+                statusInfo,
+                const SizedBox(height: 12),
+                cta,
+              ],
             );
           }
+
           return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: heading),
-              const SizedBox(width: 20),
+              Expanded(child: statusInfo),
+              const SizedBox(width: 16),
               cta,
             ],
           );
@@ -243,15 +303,18 @@ class _HeroCard extends ConsumerWidget {
   }
 }
 
+// =============================================================================
+// 3. Primary KPI Grid & Secondary Compact Metric Strip
+// =============================================================================
+
 @immutable
-class _KpiData {
-  const _KpiData({
+class _KpiMetric {
+  const _KpiMetric({
     required this.value,
     required this.label,
     required this.icon,
     required this.route,
     required this.accent,
-    required this.tint,
   });
 
   final String value;
@@ -259,125 +322,178 @@ class _KpiData {
   final IconData icon;
   final String route;
   final Color accent;
-  final Color tint;
 }
 
-class _KpiGrid extends ConsumerWidget {
-  const _KpiGrid({required this.summary});
+class _KpiSection extends ConsumerWidget {
+  const _KpiSection({required this.summary});
 
   final OverviewSummary summary;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final cards = <_KpiData>[
-      _KpiData(
-        value: '${summary.workshops.total}',
-        label: strings.tKey(PlatformAdminKeys.kpiWorkshopsTotal),
-        icon: Icons.store_rounded,
-        route: '/workshops',
-        accent: PtTheme.deepGreen,
-        tint: PtTheme.emerald,
-      ),
-      _KpiData(
+
+    final primaryCards = [
+      _KpiMetric(
         value: '${summary.workshops.active}',
         label: strings.tKey(PlatformAdminKeys.kpiWorkshopsActive),
         icon: Icons.storefront_rounded,
         route: '/workshops',
         accent: PtTheme.deepGreen,
-        tint: PtTheme.emerald,
       ),
-      _KpiData(
+      _KpiMetric(
+        value: strings.tArgsKey(PlatformAdminKeys.dashboardKpiJobsActiveCount, {
+          'count': '${summary.jobs.active}',
+        }),
+        label: strings.tKey(PlatformAdminKeys.kpiJobsActive),
+        icon: Icons.assignment_rounded,
+        route: '/audit-log',
+        accent: const Color(0xFF1D4ED8),
+      ),
+      _KpiMetric(
+        value: strings.tArgsKey(PlatformAdminKeys.dashboardKpiReviewsPendingCount, {
+          'count': '${summary.jobs.pendingReview}',
+        }),
+        label: strings.tKey(PlatformAdminKeys.kpiReviewsPending),
+        icon: Icons.rate_review_rounded,
+        route: '/audit-log',
+        accent: PtTheme.amber,
+      ),
+      _KpiMetric(
+        value: strings.tArgsKey(PlatformAdminKeys.dashboardKpiReportsPublishedCount, {
+          'count': '${summary.reports.published}',
+        }),
+        label: strings.tKey(PlatformAdminKeys.kpiReportsPublished),
+        icon: Icons.description_rounded,
+        route: '/reports/document-types',
+        accent: const Color(0xFF0E7490),
+      ),
+    ];
+
+    final secondaryPills = [
+      _KpiMetric(
+        value: '${summary.workshops.total}',
+        label: strings.tKey(PlatformAdminKeys.kpiWorkshopsTotal),
+        icon: Icons.business_rounded,
+        route: '/workshops',
+        accent: PtTheme.deepGreen,
+      ),
+      _KpiMetric(
         value: '${summary.staff.technicians}',
         label: strings.tKey(PlatformAdminKeys.kpiTechnicians),
         icon: Icons.engineering_rounded,
         route: '/workshops',
         accent: const Color(0xFF1D4ED8),
-        tint: const Color(0xFF3B82F6),
       ),
-      _KpiData(
-        value: '${summary.jobs.active}',
-        label: strings.tKey(PlatformAdminKeys.kpiJobsActive),
-        icon: Icons.assignment_rounded,
-        route: '/audit-log',
-        accent: const Color(0xFF7C3AED),
-        tint: const Color(0xFF8B5CF6),
-      ),
-      _KpiData(
-        value: '${summary.jobs.pendingReview}',
-        label: strings.tKey(PlatformAdminKeys.kpiReviewsPending),
-        icon: Icons.rate_review_rounded,
-        route: '/audit-log',
-        accent: PtTheme.amber,
-        tint: PtTheme.gold,
-      ),
-      _KpiData(
-        value: '${summary.reports.published}',
-        label: strings.tKey(PlatformAdminKeys.kpiReportsPublished),
-        icon: Icons.description_rounded,
-        route: '/audit-log',
-        accent: const Color(0xFF0E7490),
-        tint: const Color(0xFF06B6D4),
-      ),
-      _KpiData(
-        value: '${summary.checklist.issues}',
+      _KpiMetric(
+        value: summary.checklist.healthy
+            ? strings.tKey(CommonKeys.statusHealthy)
+            : strings.tArgsKey(
+                PlatformAdminKeys.dashboardKpiChecklistIssuesCount,
+                {'count': '${summary.checklist.issues}'},
+              ),
         label: strings.tKey(PlatformAdminKeys.kpiChecklistHealth),
         icon: Icons.health_and_safety_rounded,
         route: '/checklist/health',
         accent: summary.checklist.healthy ? PtTheme.deepGreen : PtTheme.rose,
-        tint: summary.checklist.healthy ? PtTheme.emerald : PtTheme.rose,
       ),
-      _KpiData(
-        value: '${summary.languages.live}/${summary.languages.translating}',
+      _KpiMetric(
+        value: summary.languages.translating > 0
+            ? strings.tArgsKey(
+                PlatformAdminKeys.dashboardKpiLanguagesLiveWithSetup,
+                {
+                  'liveCount': '${summary.languages.live}',
+                  'setupCount': '${summary.languages.translating}',
+                },
+              )
+            : strings.tArgsKey(
+                PlatformAdminKeys.dashboardKpiLanguagesLiveCount,
+                {'count': '${summary.languages.live}'},
+              ),
         label: strings.tKey(PlatformAdminKeys.kpiLanguagesLive),
         icon: Icons.translate_rounded,
         route: '/settings/languages',
         accent: const Color(0xFF4338CA),
-        tint: const Color(0xFF6366F1),
       ),
     ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth;
-        final columns = maxWidth >= 1000
-            ? 4
-            : maxWidth >= 600
-            ? 2
-            : 1;
-        const spacing = 12.0;
-        final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [
-            for (final card in cards)
-              SizedBox(
-                width: cardWidth,
-                child: _KpiCard(data: card),
-              ),
-          ],
-        );
-      },
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.sectionDashboardKpis),
+        ),
+        const SizedBox(height: 12),
+        // Primary 4 Cards
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final columns = maxWidth >= 1000
+                ? 4
+                : maxWidth >= 600
+                    ? 2
+                    : 1;
+            const spacing = 12.0;
+            final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                for (final item in primaryCards)
+                  SizedBox(
+                    width: cardWidth,
+                    child: _PrimaryKpiCard(metric: item),
+                  ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        // Secondary Compact Metrics Strip
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final columns = maxWidth >= 1000
+                ? 4
+                : maxWidth >= 600
+                    ? 2
+                    : 1;
+            const spacing = 12.0;
+            final pillWidth = (maxWidth - spacing * (columns - 1)) / columns;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                for (final item in secondaryPills)
+                  SizedBox(
+                    width: pillWidth,
+                    child: _SecondaryMetricPill(metric: item),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _KpiCard extends ConsumerWidget {
-  const _KpiCard({required this.data});
+class _PrimaryKpiCard extends StatelessWidget {
+  const _PrimaryKpiCard({required this.metric});
 
-  final _KpiData data;
+  final _KpiMetric metric;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: data.label,
+      label: metric.label,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => context.go(data.route),
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => context.go(metric.route),
           child: PlatformSectionCard(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -385,53 +501,99 @@ class _KpiCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: data.tint.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: data.tint.withValues(alpha: 0.28),
-                        ),
+                        color: metric.accent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(data.icon, size: 22, color: data.accent),
+                      child: Icon(metric.icon, size: 20, color: metric.accent),
                     ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(top: 10),
-                      child: Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: PtTheme.muted.withValues(alpha: 0.7),
-                      ),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: PtTheme.muted.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 Text(
-                  data.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  metric.value,
                   style: PtTheme.font(
-                    28,
-                    lineHeight: 34,
+                    26,
+                    lineHeight: 32,
                     weight: FontWeight.w800,
                     color: PtTheme.ink,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  data.label,
+                  metric.label,
+                  style: PtTheme.caption,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: PtTheme.font(
-                    12,
-                    lineHeight: 16,
-                    weight: FontWeight.w600,
-                    color: PtTheme.muted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SecondaryMetricPill extends StatelessWidget {
+  const _SecondaryMetricPill({required this.metric});
+
+  final _KpiMetric metric;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: metric.label,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => context.go(metric.route),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: PtTheme.canvas,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: PtTheme.border),
+            ),
+            child: Row(
+              children: [
+                Icon(metric.icon, size: 16, color: metric.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    metric.label,
+                    style: PtTheme.caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    metric.value,
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: FontWeight.w700,
+                      color: PtTheme.ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -443,8 +605,587 @@ class _KpiCard extends ConsumerWidget {
   }
 }
 
-class _DistributionSection extends ConsumerWidget {
-  const _DistributionSection({required this.summary});
+// =============================================================================
+// 4. Needs Attention Section
+// =============================================================================
+
+@immutable
+class _AttentionItem {
+  const _AttentionItem({
+    required this.title,
+    required this.description,
+    required this.route,
+    required this.priority,
+    required this.severity,
+  });
+
+  final String title;
+  final String description;
+  final String route;
+  final int priority; // 1 = highest
+  final String severity;
+}
+
+class _NeedsAttentionSection extends ConsumerWidget {
+  const _NeedsAttentionSection({required this.summary});
+
+  final OverviewSummary summary;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final items = <_AttentionItem>[];
+
+    // 1. Config health issues (Highest priority)
+    final health = ref.watch(configHealthProvider).asData?.value;
+    if (health != null && !health.healthy) {
+      final failing = health.checks.where((c) => !c.ok).toList();
+      final summaryText = failing.length == 1
+          ? strings.tKey(PlatformAdminKeys.dashboardHealthSummarySingle)
+          : strings.tArgsKey(
+              PlatformAdminKeys.dashboardHealthSummaryMultiple,
+              {'count': '${failing.length}'},
+            );
+      items.add(
+        _AttentionItem(
+          title: strings.tArgsKey(
+            PlatformAdminKeys.dashboardNeedsAttentionChecklistIssues,
+            {'count': '${failing.length}'},
+          ),
+          description: summaryText,
+          route: '/checklist/health',
+          priority: 1,
+          severity: 'ERROR',
+        ),
+      );
+    }
+
+    // 2. Pending reviews
+    if (summary.jobs.pendingReview > 0) {
+      items.add(
+        _AttentionItem(
+          title: strings.tArgsKey(
+            PlatformAdminKeys.dashboardNeedsAttentionPendingReviews,
+            {'count': '${summary.jobs.pendingReview}'},
+          ),
+          description: strings.tKey(PlatformAdminKeys.kpiReviewsPending),
+          route: '/audit-log',
+          priority: 2,
+          severity: 'WARNING',
+        ),
+      );
+    }
+
+    // 3. Languages in setup
+    final languages = ref.watch(platformLanguagesProvider).asData?.value ?? [];
+    for (final lang in languages) {
+      if (lang.isInSetup) {
+        final langName = _formatLanguageDisplayName(lang);
+        final localizedStatus = _languageStatusLabel(strings, lang.status);
+        items.add(
+          _AttentionItem(
+            title: strings.tArgsKey(
+              PlatformAdminKeys.dashboardNeedsAttentionLanguageInSetup,
+              {'language': langName, 'status': localizedStatus},
+            ),
+            description: strings.tKey(PlatformAdminKeys.sidebarLanguagesContinueSetup),
+            route: '/settings/languages/${lang.code}?tab=overview',
+            priority: 3,
+            severity: 'WARNING',
+          ),
+        );
+      }
+    }
+
+    // 4. Overview alerts
+    for (final alert in summary.alerts) {
+      String alertTitle = alert.title;
+      String alertBody = alert.body;
+      if (alert.titleKey.isNotEmpty) {
+        final resolvedKey = _resolveAlertKey(alert.titleKey);
+        if (resolvedKey != null) {
+          alertTitle = alert.args.isNotEmpty
+              ? strings.tArgsKey(resolvedKey, alert.args)
+              : strings.tKey(resolvedKey);
+        }
+      }
+      if (alert.bodyKey.isNotEmpty) {
+        final resolvedKey = _resolveAlertKey(alert.bodyKey);
+        if (resolvedKey != null) {
+          alertBody = alert.args.isNotEmpty
+              ? strings.tArgsKey(resolvedKey, alert.args)
+              : strings.tKey(resolvedKey);
+        }
+      }
+
+      items.add(
+        _AttentionItem(
+          title: alertTitle,
+          description: alertBody,
+          route: alert.route,
+          priority: 4,
+          severity: alert.severity,
+        ),
+      );
+    }
+
+    // Sort by priority (ascending)
+    items.sort((a, b) => a.priority.compareTo(b.priority));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.dashboardNeedsAttentionTitle),
+          action: items.isNotEmpty
+              ? TextButton(
+                  key: const Key('btn-attention-view-all'),
+                  onPressed: () => context.go(items.first.route),
+                  child: Text(
+                    strings.tKey(PlatformAdminKeys.buttonViewAll),
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: FontWeight.w700,
+                      color: PtTheme.deepGreen,
+                    ),
+                  ),
+                )
+              : null,
+        ),
+        const SizedBox(height: 12),
+        if (items.isEmpty)
+          PlatformSectionCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: PtTheme.emerald.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline_rounded,
+                    size: 18,
+                    color: PtTheme.deepGreen,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    strings.tKey(PlatformAdminKeys.dashboardNeedsAttentionEmpty),
+                    style: PtTheme.caption,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          PlatformSectionCard(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final item in items.take(4))
+                  _AttentionRow(item: item),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _AttentionRow extends StatelessWidget {
+  const _AttentionRow({required this.item});
+
+  final _AttentionItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final isError = item.severity.toUpperCase() == 'ERROR';
+    final color = isError ? PtTheme.rose : PtTheme.amber;
+    final icon = isError ? Icons.error_outline_rounded : Icons.warning_amber_rounded;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: item.route.isNotEmpty ? () => context.go(item.route) : null,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, size: 18, color: color),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.title,
+                        style: PtTheme.font(
+                          13,
+                          lineHeight: 18,
+                          weight: FontWeight.w700,
+                          color: PtTheme.ink,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (item.description.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          item.description,
+                          style: PtTheme.caption,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (item.route.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: PtTheme.muted.withValues(alpha: 0.8),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// 5. Language Setup Action Center
+// =============================================================================
+
+class _LanguageSetupActionCenter extends ConsumerWidget {
+  const _LanguageSetupActionCenter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final languagesAsync = ref.watch(platformLanguagesProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.dashboardActionCenterTitle),
+          action: TextButton(
+            key: const Key('btn-action-center-view-all'),
+            onPressed: () => context.go('/settings/languages'),
+            child: Text(
+              strings.tKey(PlatformAdminKeys.sidebarLanguagesViewAll),
+              style: PtTheme.font(
+                13,
+                lineHeight: 18,
+                weight: FontWeight.w700,
+                color: PtTheme.deepGreen,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        languagesAsync.when(
+          data: (languages) {
+            final candidates = languages.where((l) => l.isInSetup).toList();
+            if (candidates.isEmpty) {
+              return PlatformSectionCard(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: PtTheme.emerald.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.check_circle_outline_rounded,
+                        size: 18,
+                        color: PtTheme.deepGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        strings.tKey(PlatformAdminKeys.dashboardActionCenterAllLive),
+                        style: PtTheme.caption,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return _PrioritizedLanguageCards(candidates: candidates);
+          },
+          loading: () => const PlatformLoadingView(),
+          error: (_, _) => const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _PrioritizedLanguageCards extends ConsumerWidget {
+  const _PrioritizedLanguageCards({required this.candidates});
+
+  final List<PlatformLanguage> candidates;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Score each candidate by urgency
+    final scored = <MapEntry<PlatformLanguage, int>>[];
+
+    for (final lang in candidates) {
+      final readiness = ref.watch(readinessProvider(lang.code)).asData?.value;
+      final genData = ref.watch(contentGenerationProvider(lang.code)).asData?.value;
+      final isGenerating = genData?.isRunning ?? false;
+
+      int score = 6;
+      if (readiness != null) {
+        if (readiness.status == 'REVIEW' && readiness.blockers.isEmpty) {
+          score = 1;
+        } else if (readiness.readinessPercent == 100 && readiness.status != 'LIVE') {
+          score = 2;
+        } else if (lang.status == 'TRANSLATING' || isGenerating) {
+          score = 3;
+        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isNotEmpty && readiness.readinessPercent < 100) {
+          score = 4;
+        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isEmpty) {
+          score = 5;
+        } else {
+          score = 6;
+        }
+      } else {
+        if (lang.status == 'REVIEW') {
+          score = 1;
+        } else if (lang.status == 'TRANSLATING' || isGenerating) {
+          score = 3;
+        } else if (lang.status == 'DRAFT') {
+          score = 5;
+        }
+      }
+      scored.add(MapEntry(lang, score));
+    }
+
+    scored.sort((a, b) => a.value.compareTo(b.value));
+
+    final topLanguages = scored.take(3).map((e) => e.key).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final columns = maxWidth >= 960
+            ? topLanguages.length.clamp(1, 3)
+            : maxWidth >= 600
+                ? 2
+                : 1;
+        const spacing = 12.0;
+        final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final lang in topLanguages)
+              SizedBox(
+                width: cardWidth,
+                child: _ActionCenterLanguageCard(language: lang),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ActionCenterLanguageCard extends ConsumerWidget {
+  const _ActionCenterLanguageCard({required this.language});
+
+  final PlatformLanguage language;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final readinessAsync = ref.watch(readinessProvider(language.code));
+    final genAsync = ref.watch(contentGenerationProvider(language.code));
+
+    final genData = genAsync.asData?.value;
+    final isGenerating = genData?.isRunning ?? false;
+    final genProgress = ((genData?.progress ?? 0) * 100).round();
+
+    final readiness = readinessAsync.asData?.value;
+
+    String targetTab = LanguageWorkspaceTab.overview;
+    UiMessageKey actionKey = PlatformAdminKeys.sidebarLanguagesActionView;
+
+    if (readiness != null) {
+      if (isGenerating) {
+        targetTab = LanguageWorkspaceTab.overview;
+      } else if (readiness.blockers.isNotEmpty) {
+        final firstBlocker = readiness.blockers.first;
+        targetTab = firstBlocker.tab;
+        if (firstBlocker.tab == LanguageWorkspaceTab.uiText) {
+          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
+        } else if (firstBlocker.tab == LanguageWorkspaceTab.publish) {
+          actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
+        } else {
+          actionKey = readiness.status == 'REVIEW'
+              ? PlatformAdminKeys.sidebarLanguagesActionReview
+              : PlatformAdminKeys.sidebarLanguagesActionGenerate;
+        }
+      } else if (readiness.status == 'DRAFT') {
+        if (readiness.uiMessagesPath.isEmpty) {
+          targetTab = LanguageWorkspaceTab.uiText;
+          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
+        } else if (readiness.readinessPercent < 100) {
+          targetTab = LanguageWorkspaceTab.categories;
+          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerateMissing;
+        } else {
+          targetTab = LanguageWorkspaceTab.publish;
+          actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
+        }
+      } else if (readiness.status == 'TRANSLATING') {
+        targetTab = LanguageWorkspaceTab.categories;
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
+      } else if (readiness.status == 'REVIEW') {
+        targetTab = LanguageWorkspaceTab.overview;
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
+      } else if (readiness.readinessPercent == 100) {
+        targetTab = LanguageWorkspaceTab.publish;
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
+      }
+    } else {
+      if (language.status == 'REVIEW') {
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
+      } else if (language.status == 'TRANSLATING' || isGenerating) {
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
+      } else if (language.status == 'DRAFT') {
+        actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
+      }
+    }
+
+    final targetRoute = '/settings/languages/${language.code}?tab=$targetTab';
+    final langName = _formatLanguageDisplayName(language);
+
+    return PlatformSectionCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isGenerating ? PtTheme.deepGreen : PtTheme.amber,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  langName,
+                  style: PtTheme.font(
+                    14,
+                    lineHeight: 18,
+                    weight: FontWeight.w700,
+                    color: PtTheme.ink,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              PlatformStatusChip(status: language.status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (isGenerating)
+            Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.sidebarLanguagesGenerating,
+                {'percent': '$genProgress'},
+              ),
+              style: PtTheme.font(
+                12,
+                lineHeight: 16,
+                weight: FontWeight.w600,
+                color: PtTheme.deepGreen,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          else if (readiness != null)
+            Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.sidebarLanguagesProgress,
+                {
+                  'translated': '${readiness.readinessPercent}',
+                  'total': '100',
+                  'percent': '${readiness.readinessPercent}',
+                },
+              ),
+              style: PtTheme.caption,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          else
+            Text(
+              _languageStatusLabel(strings, language.status),
+              style: PtTheme.caption,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          const SizedBox(height: 14),
+          PlatformPrimaryButton(
+            key: Key('btn-action-center-${language.code}'),
+            label: strings.tKey(actionKey),
+            icon: Icons.arrow_forward_rounded,
+            onPressed: isGenerating ? null : () => context.go(targetRoute),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// 6. Operations Snapshot (Jobs by status & Reports by month)
+// =============================================================================
+
+class _OperationsSnapshotSection extends ConsumerWidget {
+  const _OperationsSnapshotSection({required this.summary});
 
   final OverviewSummary summary;
 
@@ -463,30 +1204,40 @@ class _DistributionSection extends ConsumerWidget {
             title: strings.tKey(PlatformAdminKeys.chartReportsByMonth),
             entries: summary.reports.byMonth,
           );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 900 &&
-            jobsCard != null &&
-            reportsCard != null) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: jobsCard),
-              const SizedBox(width: 16),
-              Expanded(child: reportsCard),
-            ],
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ?jobsCard,
-            if (jobsCard != null && reportsCard != null)
-              const SizedBox(height: 16),
-            ?reportsCard,
-          ],
-        );
-      },
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PlatformSectionHeader(
+          title: strings.tKey(PlatformAdminKeys.dashboardSnapshotTitle),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 900 &&
+                jobsCard != null &&
+                reportsCard != null) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: jobsCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: reportsCard),
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ?jobsCard,
+                if (jobsCard != null && reportsCard != null)
+                  const SizedBox(height: 16),
+                ?reportsCard,
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -595,55 +1346,38 @@ class _BarRow extends ConsumerWidget {
   }
 }
 
-class _ActivityAlerts extends ConsumerWidget {
-  const _ActivityAlerts({required this.summary});
+// =============================================================================
+// 7. Recent Activity Section
+// =============================================================================
+
+class _RecentActivitySection extends ConsumerWidget {
+  const _RecentActivitySection({required this.summary});
 
   final OverviewSummary summary;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 900) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: _RecentActivity(entries: summary.recentActivity),
-              ),
-              const SizedBox(width: 16),
-              Expanded(flex: 2, child: _AlertsSection(summary: summary)),
-            ],
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _RecentActivity(entries: summary.recentActivity),
-            const SizedBox(height: 24),
-            _AlertsSection(summary: summary),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _RecentActivity extends ConsumerWidget {
-  const _RecentActivity({required this.entries});
-
-  final List<OverviewActivityEntry> entries;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
+    final entries = summary.recentActivity;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformSectionHeader(
           title: strings.tKey(PlatformAdminKeys.sectionDashboardRecentActivity),
-          action: const _ViewAll(route: '/audit-log'),
+          action: TextButton(
+            key: const Key('btn-activity-view-audit-log'),
+            onPressed: () => context.go('/audit-log'),
+            child: Text(
+              strings.tKey(PlatformAdminKeys.buttonViewAll),
+              style: PtTheme.font(
+                13,
+                lineHeight: 18,
+                weight: FontWeight.w700,
+                color: PtTheme.deepGreen,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
         if (entries.isNotEmpty)
@@ -653,7 +1387,7 @@ class _RecentActivity extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (final entry in entries.take(8))
+                for (final entry in entries.take(6))
                   _ActivityRow(
                     title: entry.action,
                     meta: _joinMeta([
@@ -694,10 +1428,10 @@ class _ActivityFallback extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final event in items.take(8))
+              for (final event in items.take(6))
                 _ActivityRow(
                   title: event.action,
-                  meta: _RecentActivity._joinMeta([
+                  meta: _RecentActivitySection._joinMeta([
                     event.entityType.isEmpty
                         ? ''
                         : '${event.entityType}/${event.entityId}',
@@ -727,16 +1461,16 @@ class _ActivityRow extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: PtTheme.canvas,
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: PtTheme.border),
             ),
             child: const Icon(
               Icons.history_rounded,
-              size: 17,
+              size: 16,
               color: PtTheme.deepGreen,
             ),
           ),
@@ -775,258 +1509,89 @@ class _ActivityRow extends ConsumerWidget {
   }
 }
 
+// =============================================================================
+// 8. Quick Actions Section
+// =============================================================================
+
 @immutable
-class _AlertItem {
-  const _AlertItem({
-    required this.title,
-    required this.body,
+class _DashboardQuickAction {
+  const _DashboardQuickAction({
+    required this.label,
+    required this.description,
+    required this.icon,
     required this.route,
-    required this.severity,
+    required this.accent,
   });
 
-  final String title;
-  final String body;
+  final String label;
+  final String description;
+  final IconData icon;
   final String route;
-  final String severity;
+  final Color accent;
 }
 
-class _AlertsSection extends ConsumerWidget {
-  const _AlertsSection({required this.summary});
-
-  final OverviewSummary summary;
+class _QuickActionsSection extends ConsumerWidget {
+  const _QuickActionsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final items = <_AlertItem>[
-      for (final alert in summary.alerts)
-        _AlertItem(
-          title: alert.title,
-          body: alert.body,
-          route: alert.route,
-          severity: alert.severity,
-        ),
-    ];
-    final health = ref.watch(configHealthProvider);
-    health.whenData((data) {
-      if (!data.healthy) {
-        final codes = data.checks
-            .where((check) => !check.ok)
-            .map((check) => check.code)
-            .where((code) => code.isNotEmpty)
-            .take(3)
-            .join(', ');
-        items.add(
-          _AlertItem(
-            title: strings.tKey(CommonKeys.statusUnhealthy),
-            body: codes,
-            route: '/checklist/health',
-            severity: 'ERROR',
-          ),
-        );
-      }
-    });
-    final languages = ref.watch(platformLanguagesProvider);
-    languages.whenData((list) {
-      for (final language in list) {
-        if (language.status == 'LIVE') continue;
-        final display = language.nativeName.isNotEmpty
-            ? language.nativeName
-            : language.code;
-        items.add(
-          _AlertItem(
-            title: strings.tArgsKey(
-              PlatformAdminKeys.alertTranslationIncomplete,
-              {'language': display},
-            ),
-            body: language.status,
-            route: '/settings/languages',
-            severity: 'WARNING',
-          ),
-        );
-      }
-    });
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PlatformSectionHeader(
-          title: strings.tKey(PlatformAdminKeys.sectionDashboardAlerts),
-        ),
-        const SizedBox(height: 12),
-        if (items.isEmpty)
-          PlatformSectionCard(
-            child: Text(
-              strings.tKey(PlatformAdminKeys.emptyAlertsBody),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.bodyMuted,
-            ),
-          )
-        else
-          PlatformSectionCard(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [for (final item in items) _AlertRow(item: item)],
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _AlertRow extends ConsumerWidget {
-  const _AlertRow({required this.item});
-
-  final _AlertItem item;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final normalized = item.severity.toUpperCase();
-    final color = normalized == 'ERROR' || normalized == 'CRITICAL'
-        ? PtTheme.rose
-        : normalized == 'WARNING'
-        ? PtTheme.amber
-        : PtTheme.deepGreen;
-    final icon = normalized == 'ERROR' || normalized == 'CRITICAL'
-        ? Icons.error_outline_rounded
-        : normalized == 'WARNING'
-        ? Icons.warning_amber_rounded
-        : Icons.info_outline_rounded;
-    final content = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(icon, size: 18, color: color),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  item.title.isEmpty ? '—' : item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: PtTheme.font(
-                    13,
-                    lineHeight: 18,
-                    weight: FontWeight.w700,
-                    color: PtTheme.ink,
-                  ),
-                ),
-                if (item.body.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    item.body,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: PtTheme.caption,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (item.route.isNotEmpty)
-            const Padding(
-              padding: EdgeInsetsDirectional.only(start: 8, top: 6),
-              child: Icon(
-                Icons.arrow_forward_rounded,
-                size: 18,
-                color: PtTheme.muted,
-              ),
-            ),
-        ],
-      ),
-    );
-    if (item.route.isEmpty) return content;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Semantics(
-        button: true,
-        label: item.title,
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(10),
-            onTap: () => context.go(item.route),
-            child: content,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActions extends ConsumerWidget {
-  const _QuickActions();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final actions = <_QuickAction>[
-      _QuickAction(
-        label: strings.tKey(PlatformAdminKeys.pageWorkshopsRegister),
-        icon: Icons.business_rounded,
-        route: '/workshops',
+    final actions = <_DashboardQuickAction>[
+      _DashboardQuickAction(
+        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddWorkshop),
+        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddWorkshopDesc),
+        icon: Icons.add_business_rounded,
+        route: '/workshops/new',
         accent: PtTheme.deepGreen,
-        tint: PtTheme.emerald,
       ),
-      _QuickAction(
-        label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
-        icon: Icons.add_rounded,
-        route: '/checklist/items',
+      _DashboardQuickAction(
+        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddChecklistItem),
+        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddChecklistItemDesc),
+        icon: Icons.post_add_rounded,
+        route: '/checklist/items/new',
         accent: const Color(0xFF1D4ED8),
-        tint: const Color(0xFF3B82F6),
       ),
-      _QuickAction(
-        label: strings.tKey(PlatformAdminKeys.dialogTemplateCreateTitle),
-        icon: Icons.description_rounded,
-        route: '/checklist/templates',
+      _DashboardQuickAction(
+        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsCreateTemplate),
+        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsCreateTemplateDesc),
+        icon: Icons.playlist_add_rounded,
+        route: '/checklist/templates/new',
         accent: const Color(0xFF7C3AED),
-        tint: const Color(0xFF8B5CF6),
       ),
-      _QuickAction(
-        label: strings.tKey(PlatformAdminKeys.buttonLanguageAdd),
+      _DashboardQuickAction(
+        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddLanguage),
+        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddLanguageDesc),
         icon: Icons.translate_rounded,
         route: '/settings/languages',
-        accent: PtTheme.gold,
-        tint: PtTheme.amber,
+        accent: PtTheme.amber,
+      ),
+      _DashboardQuickAction(
+        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsViewHealth),
+        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsViewHealthDesc),
+        icon: Icons.health_and_safety_rounded,
+        route: '/checklist/health',
+        accent: PtTheme.emerald,
       ),
     ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformSectionHeader(
-          title: strings.tKey(PlatformAdminKeys.sectionDashboardQuickActions),
+          title: strings.tKey(PlatformAdminKeys.dashboardQuickActionsTitle),
         ),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 1000
-                ? 4
-                : constraints.maxWidth >= 600
-                ? 2
-                : 1;
+            final maxWidth = constraints.maxWidth;
+            final columns = maxWidth >= 1100
+                ? 3
+                : maxWidth >= 640
+                    ? 2
+                    : 1;
             const spacing = 12.0;
             final tileWidth =
-                (constraints.maxWidth - spacing * (columns - 1)) / columns;
+                (maxWidth - spacing * (columns - 1)) / columns;
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
@@ -1034,7 +1599,7 @@ class _QuickActions extends ConsumerWidget {
                 for (final action in actions)
                   SizedBox(
                     width: tileWidth,
-                    child: _QuickActionTile(action: action),
+                    child: _QuickActionCard(action: action),
                   ),
               ],
             );
@@ -1045,107 +1610,71 @@ class _QuickActions extends ConsumerWidget {
   }
 }
 
-class _QuickActionTile extends ConsumerWidget {
-  const _QuickActionTile({required this.action});
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({required this.action});
 
-  final _QuickAction action;
+  final _DashboardQuickAction action;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Semantics(
       button: true,
       label: action.label,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           onTap: () => context.go(action.route),
           child: PlatformSectionCard(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: action.tint.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: action.tint.withValues(alpha: 0.28),
-                    ),
+                    color: action.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(action.icon, size: 22, color: action.accent),
+                  child: Icon(action.icon, size: 20, color: action.accent),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    action.label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: PtTheme.font(
-                      14,
-                      lineHeight: 20,
-                      weight: FontWeight.w700,
-                      color: PtTheme.ink,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        action.label,
+                        style: PtTheme.font(
+                          14,
+                          lineHeight: 18,
+                          weight: FontWeight.w700,
+                          color: PtTheme.ink,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        action.description,
+                        style: PtTheme.caption,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_rounded,
-                  size: 18,
-                  color: PtTheme.muted,
+                  size: 16,
+                  color: PtTheme.muted.withValues(alpha: 0.7),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-@immutable
-class _QuickAction {
-  const _QuickAction({
-    required this.label,
-    required this.icon,
-    required this.route,
-    required this.accent,
-    required this.tint,
-  });
-
-  final String label;
-  final IconData icon;
-  final String route;
-  final Color accent;
-  final Color tint;
-}
-
-class _ViewAll extends ConsumerWidget {
-  const _ViewAll({required this.route});
-
-  final String route;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    return TextButton(
-      onPressed: () => context.go(route),
-      style: TextButton.styleFrom(
-        minimumSize: const Size(44, 44),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-      ),
-      child: Text(
-        strings.tKey(PlatformAdminKeys.buttonViewAll),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: PtTheme.font(
-          13,
-          lineHeight: 18,
-          weight: FontWeight.w700,
-          color: PtTheme.deepGreen,
         ),
       ),
     );

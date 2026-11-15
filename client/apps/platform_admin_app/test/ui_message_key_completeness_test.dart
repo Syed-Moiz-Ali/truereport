@@ -57,7 +57,7 @@ _GeneratedKeys _loadGeneratedKeys(Directory dir) {
     final namespace = nsForClass(classMatch!.group(1)!);
     expect(namespace, isNotNull, reason: 'unknown keys class in ${file.path}');
     final fieldPattern = RegExp(
-      r"static const (\w+) = UiMessageKey\.\w+\(\s*'([^']+)'\s*,?\s*\)",
+      r"static const (\w+) =\s*UiMessageKey\.\w+\(\s*'([^']+)'\s*,?\s*\)",
     );
     final entries = <String, String>{};
     for (final match in fieldPattern.allMatches(text)) {
@@ -74,6 +74,7 @@ _GeneratedKeys _loadGeneratedKeys(Directory dir) {
 /// Mirrors `technicalTokenAllowlist` in
 /// `client/packages/l10n/tool/generate_ui_keys.dart`.
 const Set<String> _technicalTokenAllowlist = {
+  'TrueReport',
   'CoreOS',
   'GRID V4.2 ONLINE',
   'Production Cluster EU-West',

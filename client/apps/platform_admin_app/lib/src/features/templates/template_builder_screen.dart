@@ -14,6 +14,8 @@ import '../../components/platform_toolbar.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../checklist/checklist_plural.dart';
+import '../checklist/checklist_status.dart';
 
 import 'package:l10n/l10n.dart';
 
@@ -44,6 +46,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
   List<_CategoryState> _categories = [];
   String? _loadedVersionId;
   String? _prefilledTemplateId;
+  String _itemsQuery = '';
   bool _busy = false;
 
   @override
@@ -196,7 +199,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
         const SizedBox(height: 16),
         LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 1100;
+            final wide = constraints.maxWidth >= 900;
             final sidePanel = _buildSidePanel(
               strings,
               template,
@@ -263,14 +266,24 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   const SizedBox(width: 16),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 340),
-                    child: SizedBox(width: 320, child: sidePanel),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: SizedBox(width: 320, child: sidePanel),
+                    ),
                   ),
                 ],
               );
             }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [sidePanel, const SizedBox(height: 12), mainColumn],
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: sidePanel,
+                ),
+                const SizedBox(height: 12),
+                mainColumn,
+              ],
             );
           },
         ),
@@ -307,6 +320,50 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
             },
           ),
         ),
+        const SizedBox(height: 12),
+        if (compact) ...[
+          PlatformSectionCard(
+            child: Row(
+              children: [
+                Icon(
+                  includedCategories > 0 && includedCount > 0
+                      ? Icons.check_circle_outline_rounded
+                      : Icons.warning_amber_rounded,
+                  size: 16,
+                  color: includedCategories > 0 && includedCount > 0
+                      ? PtTheme.deepGreen
+                      : PtTheme.amber,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    includedCategories == 0
+                        ? strings.tKey(
+                            PlatformAdminKeys
+                                .checklistTemplatesReadinessNeedsCategories,
+                          )
+                        : includedCount == 0
+                        ? strings.tKey(
+                            PlatformAdminKeys
+                                .checklistTemplatesReadinessNeedsItems,
+                          )
+                        : strings.tKey(
+                            PlatformAdminKeys.checklistTemplatesReadinessReady,
+                          ),
+                    style: PtTheme.font(
+                      12,
+                      weight: FontWeight.w700,
+                      color: PtTheme.ink,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         // Progress counts live in the sticky rail on wide viewports; on
         // compact widths the steps toolbar and review step already show
         // them, so the extra card is omitted to keep Next in view.
@@ -333,6 +390,46 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                     PlatformMetaPill(
                       label: strings.tKey(PlatformAdminKeys.tabChecklistItems),
                       value: '$includedCount',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(
+                      includedCategories > 0 && includedCount > 0
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.warning_amber_rounded,
+                      size: 16,
+                      color: includedCategories > 0 && includedCount > 0
+                          ? PtTheme.deepGreen
+                          : PtTheme.amber,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        includedCategories == 0
+                            ? strings.tKey(
+                                PlatformAdminKeys
+                                    .checklistTemplatesReadinessNeedsCategories,
+                              )
+                            : includedCount == 0
+                            ? strings.tKey(
+                                PlatformAdminKeys
+                                    .checklistTemplatesReadinessNeedsItems,
+                              )
+                            : strings.tKey(
+                                PlatformAdminKeys
+                                    .checklistTemplatesReadinessReady,
+                              ),
+                        style: PtTheme.font(
+                          12,
+                          weight: FontWeight.w700,
+                          color: PtTheme.ink,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -547,8 +644,8 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${category.categoryCode} · $included / '
-                  '${category.items.length} ${strings.tKey(PlatformAdminKeys.tabChecklistItems)}',
+                  '${category.categoryCode} · '
+                  '${checklistItemCountLabel(strings, included)}',
                   style: PtTheme.font(12, color: PtTheme.muted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -596,35 +693,61 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     int includedCategories,
     int includedCount,
   ) {
+    final filter = _itemsQuery.trim().toLowerCase();
+    final visibleCategories = filter.isEmpty
+        ? _categories
+        : _categories
+              .where(
+                (category) => category.items.any(
+                  (item) =>
+                      item.itemCode.toLowerCase().contains(filter) ||
+                      item.label.toLowerCase().contains(filter),
+                ),
+              )
+              .toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformToolbar(
           searchHint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
-          onSearchChanged: (_) {},
+          onSearchChanged: (value) => setState(() => _itemsQuery = value),
           countLabel:
-              '${strings.tArgsKey(PlatformAdminKeys.pageTemplateProgressCategories, {'count': includedCategories})}'
-              '  ·  ${strings.tArgsKey(PlatformAdminKeys.pageTemplateProgressItems, {'count': includedCount})}',
+              '${checklistCategoryCountLabel(strings, includedCategories)}'
+              ' · ${checklistItemCountLabel(strings, includedCount)}',
         ),
         const SizedBox(height: 14),
-        if (_categories.isEmpty)
+        if (_categories.isEmpty || visibleCategories.isEmpty)
           PlatformEmptyView(title: strings.tKey(CommonKeys.emptyTitle))
         else
-          for (var index = 0; index < _categories.length; index++) ...[
+          for (var index = 0; index < visibleCategories.length; index++) ...[
             _CategoryItemsSection(
-              key: ValueKey('${_categories[index].categoryId}-$index-$editing'),
-              category: _categories[index],
+              key: ValueKey(
+                '${visibleCategories[index].categoryId}-$index-$editing',
+              ),
+              category: visibleCategories[index],
               editing: editing,
+              globalQuery: _itemsQuery,
               canMoveUp: editing && index > 0,
-              canMoveDown: editing && index < _categories.length - 1,
-              onMoveUp: () => setState(() => _moveCategory(index, -1)),
-              onMoveDown: () => setState(() => _moveCategory(index, 1)),
+              canMoveDown: editing && index < visibleCategories.length - 1,
+              onMoveUp: () => setState(
+                () => _moveCategory(
+                  _categories.indexOf(visibleCategories[index]),
+                  -1,
+                ),
+              ),
+              onMoveDown: () => setState(
+                () => _moveCategory(
+                  _categories.indexOf(visibleCategories[index]),
+                  1,
+                ),
+              ),
               onRemoveCategory: () =>
-                  setState(() => _categories.removeAt(index)),
+                  setState(() => _categories.remove(visibleCategories[index])),
               onChanged: () => setState(() {}),
-              onAddItem: () => _addItemDialog(_categories[index]),
+              onAddItem: () => _addItemDialog(visibleCategories[index]),
             ),
-            if (index != _categories.length - 1) const SizedBox(height: 12),
+            if (index != visibleCategories.length - 1)
+              const SizedBox(height: 12),
           ],
       ],
     );
@@ -640,6 +763,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
     int includedCount,
   ) {
     final displayName = _templateName(template);
+    final canPublish = includedCategories > 0 && includedCount > 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -662,10 +786,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      strings.tArgsKey(
-                        PlatformAdminKeys.pageTemplateProgressCategories,
-                        {'count': includedCategories},
-                      ),
+                      checklistCategoryCountLabel(strings, includedCategories),
                       style: PtTheme.font(
                         14,
                         weight: FontWeight.w600,
@@ -686,10 +807,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      strings.tArgsKey(
-                        PlatformAdminKeys.pageTemplateProgressItems,
-                        {'count': includedCount},
-                      ),
+                      checklistItemCountLabel(strings, includedCount),
                       style: PtTheme.font(
                         14,
                         weight: FontWeight.w600,
@@ -744,7 +862,7 @@ class _TemplateBuilderScreenState extends ConsumerState<TemplateBuilderScreen> {
                         PlatformAdminKeys.buttonTemplatePublish,
                       ),
                       icon: Icons.publish_rounded,
-                      onPressed: _busy
+                      onPressed: _busy || !canPublish
                           ? null
                           : () => _publish(selected?.id ?? ''),
                     ),
@@ -1089,7 +1207,9 @@ class _ItemPickerBodyState extends ConsumerState<_ItemPickerBody> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlatformTextField(
-            hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
+            hint: strings.tKey(
+              PlatformAdminKeys.filterTemplateSearchCategoryItems,
+            ),
             onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: 12),
@@ -1105,7 +1225,9 @@ class _ItemPickerBodyState extends ConsumerState<_ItemPickerBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PlatformTextField(
-          hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
+          hint: strings.tKey(
+            PlatformAdminKeys.filterTemplateSearchCategoryItems,
+          ),
           onChanged: (value) => setState(() => _query = value),
         ),
         const SizedBox(height: 12),
@@ -1133,6 +1255,7 @@ class _CategoryItemsSection extends ConsumerStatefulWidget {
     super.key,
     required this.category,
     required this.editing,
+    required this.globalQuery,
     required this.canMoveUp,
     required this.canMoveDown,
     required this.onMoveUp,
@@ -1144,6 +1267,7 @@ class _CategoryItemsSection extends ConsumerStatefulWidget {
 
   final _CategoryState category;
   final bool editing;
+  final String globalQuery;
   final bool canMoveUp;
   final bool canMoveDown;
   final VoidCallback onMoveUp;
@@ -1165,15 +1289,20 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
     final strings = ref.watch(uiStringsProvider);
     final category = widget.category;
     final query = _query.trim().toLowerCase();
-    final visibleItems = query.isEmpty
-        ? category.items
-        : category.items
-              .where(
-                (item) =>
-                    item.itemCode.toLowerCase().contains(query) ||
-                    item.label.toLowerCase().contains(query),
-              )
-              .toList(growable: false);
+    final global = widget.globalQuery.trim().toLowerCase();
+    final visibleItems = category.items
+        .where((item) {
+          final localMatch =
+              query.isEmpty ||
+              item.itemCode.toLowerCase().contains(query) ||
+              item.label.toLowerCase().contains(query);
+          final globalMatch =
+              global.isEmpty ||
+              item.itemCode.toLowerCase().contains(global) ||
+              item.label.toLowerCase().contains(global);
+          return localMatch && globalMatch;
+        })
+        .toList(growable: false);
     final included = category.items.where((item) => item.included).length;
     final displayName = category.name.isEmpty
         ? category.categoryCode
@@ -1185,8 +1314,7 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
         children: [
           PlatformSectionHeader(
             title: displayName,
-            subtitle:
-                '$included / ${category.items.length} ${strings.tKey(PlatformAdminKeys.tabChecklistItems)}',
+            subtitle: checklistItemCountLabel(strings, included),
             action: widget.editing
                 ? Wrap(
                     spacing: 0,
@@ -1233,7 +1361,9 @@ class _CategoryItemsSectionState extends ConsumerState<_CategoryItemsSection> {
           ),
           const SizedBox(height: 8),
           PlatformTextField(
-            hint: strings.tKey(PlatformAdminKeys.filterTemplateSearchItems),
+            hint: strings.tKey(
+              PlatformAdminKeys.filterTemplateSearchCategoryItems,
+            ),
             onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: 8),
@@ -1419,7 +1549,10 @@ class _TemplateSummary extends ConsumerWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             PlatformStatusChip(status: template.code),
-            PlatformStatusChip(status: template.status),
+            PlatformStatusChip(
+              status: template.status,
+              label: checklistStatusLabel(strings, template.status),
+            ),
             PlatformMetaPill(
               label: strings.tKey(CommonKeys.labelVersions),
               value: '${template.versionCount}',
@@ -1482,14 +1615,20 @@ class _VersionSelector extends ConsumerWidget {
               for (final version in versions)
                 DropdownMenuItem(
                   value: version.id,
-                  child: Text('v${version.versionNo} · ${version.status}'),
+                  child: Text(
+                    'v${version.versionNo} · ${checklistStatusLabel(strings, version.status)}',
+                  ),
                 ),
             ],
             onChanged: (value) {
               if (enabled && value != null) onChanged(value);
             },
           ),
-        if (current != null) PlatformStatusChip(status: current.status),
+        if (current != null)
+          PlatformStatusChip(
+            status: current.status,
+            label: checklistStatusLabel(strings, current.status),
+          ),
       ],
     );
   }

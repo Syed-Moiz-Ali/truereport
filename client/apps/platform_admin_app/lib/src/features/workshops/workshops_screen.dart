@@ -13,6 +13,7 @@ import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import 'workshop_form.dart';
+import 'workshop_status.dart';
 
 import 'package:l10n/l10n.dart';
 
@@ -32,6 +33,14 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _searchController.clear();
+      _query = '';
+      _statusFilter = '';
+    });
   }
 
   @override
@@ -78,6 +87,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
       for (final workshop in workshops) workshop.status.toUpperCase(),
     }.toList()..sort();
     final query = _query.trim().toLowerCase();
+    final hasActiveFilter = query.isNotEmpty || _statusFilter.isNotEmpty;
     final filtered = workshops
         .where((workshop) {
           if (_statusFilter.isNotEmpty &&
@@ -108,7 +118,10 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
                   child: Text(strings.tKey(CommonKeys.filterAll)),
                 ),
                 for (final status in statuses)
-                  DropdownMenuItem(value: status, child: Text(status)),
+                  DropdownMenuItem(
+                    value: status,
+                    child: Text(workshopStatusLabel(strings, status)),
+                  ),
               ],
               onChanged: (value) => setState(() => _statusFilter = value ?? ''),
             ),
@@ -117,6 +130,22 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
             PlatformAdminKeys.pageWorkshopsResultCount,
             {'count': filtered.length},
           ),
+          trailing: hasActiveFilter
+              ? TextButton.icon(
+                  onPressed: _clearFilters,
+                  icon: const Icon(Icons.clear_rounded, size: 16),
+                  label: Text(
+                    strings.tKey(PlatformAdminKeys.buttonClearFilters),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: PtTheme.muted,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                )
+              : null,
         ),
         const SizedBox(height: 16),
         if (filtered.isEmpty)
@@ -124,16 +153,16 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
             icon: Icons.business_outlined,
             title: workshops.isEmpty
                 ? strings.tKey(PlatformAdminKeys.emptyWorkshopsTitle)
-                : strings.tKey(CommonKeys.emptyTitle),
+                : strings.tKey(PlatformAdminKeys.emptyWorkshopsFilteredTitle),
             body: workshops.isEmpty
                 ? strings.tKey(PlatformAdminKeys.emptyWorkshopsBody)
-                : null,
+                : strings.tKey(PlatformAdminKeys.emptyWorkshopsFilteredBody),
             actionLabel: workshops.isEmpty
                 ? strings.tKey(PlatformAdminKeys.pageWorkshopsAdd)
-                : null,
+                : strings.tKey(PlatformAdminKeys.buttonClearFilters),
             onAction: workshops.isEmpty
                 ? () => context.go('/workshops/new')
-                : null,
+                : _clearFilters,
           )
         else
           LayoutBuilder(
@@ -144,7 +173,7 @@ class _WorkshopsScreenState extends ConsumerState<WorkshopsScreen> {
                   : maxWidth >= 700
                   ? 2
                   : 1;
-              const spacing = 14.0;
+              const spacing = 16.0;
               final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
               return Wrap(
                 spacing: spacing,
@@ -329,10 +358,63 @@ class _WorkshopCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    PlatformStatusChip(status: workshop.status),
+                    PlatformStatusChip(
+                      status: workshop.status,
+                      label: workshopStatusLabel(strings, workshop.status),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
+                // Bays / capacity with progress bar
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${workshop.bayCount} ${strings.tKey(PlatformAdminKeys.fieldWorkshopBays)}',
+                          style: PtTheme.font(
+                            12,
+                            lineHeight: 16,
+                            weight: FontWeight.w600,
+                            color: PtTheme.ink,
+                          ),
+                        ),
+                        Text(
+                          '${workshop.assignedCapacityPercent}%',
+                          style: PtTheme.font(
+                            12,
+                            lineHeight: 16,
+                            weight: FontWeight.w700,
+                            color: workshop.assignedCapacityPercent >= 90
+                                ? PtTheme.amber
+                                : PtTheme.deepGreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: (workshop.assignedCapacityPercent / 100.0).clamp(
+                          0.0,
+                          1.0,
+                        ),
+                        minHeight: 6,
+                        backgroundColor: PtTheme.canvas,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          workshop.assignedCapacityPercent >= 90
+                              ? PtTheme.amber
+                              : PtTheme.deepGreen,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                // 4 metrics: Staff, Technicians, Admins, Pending
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -359,13 +441,6 @@ class _WorkshopCard extends ConsumerWidget {
                       ),
                       value: '${workshop.pendingInvitations.length}',
                     ),
-                    PlatformMetaPill(
-                      label: strings.tKey(
-                        PlatformAdminKeys.fieldWorkshopCapacity,
-                      ),
-                      value:
-                          '${workshop.bayCount} • ${workshop.assignedCapacityPercent}%',
-                    ),
                   ],
                 ),
                 if (email.isNotEmpty) ...[
@@ -391,46 +466,128 @@ class _WorkshopCard extends ConsumerWidget {
                 ],
                 const SizedBox(height: 14),
                 const Divider(height: 1),
-                const SizedBox(height: 6),
-                Row(
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      tooltip: strings.tKey(CommonKeys.labelDetails),
-                      icon: const Icon(Icons.visibility_outlined, size: 20),
-                      color: PtTheme.muted,
-                      onPressed: () => onOpen(workshop),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PlatformPrimaryButton(
+                          label: strings.tKey(
+                            PlatformAdminKeys.buttonViewDetails,
+                          ),
+                          icon: Icons.visibility_outlined,
+                          onPressed: () => onOpen(workshop),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          tooltip: strings.tKey(
+                            PlatformAdminKeys.pageWorkshopsEdit,
+                          ),
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                          color: PtTheme.muted,
+                          onPressed: () => onEdit(workshop),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: strings.tKey(
-                        PlatformAdminKeys.pageWorkshopsEdit,
-                      ),
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      color: PtTheme.muted,
-                      onPressed: () => onEdit(workshop),
-                    ),
-                    IconButton(
-                      tooltip: isActive
-                          ? strings.tKey(
-                              PlatformAdminKeys.buttonWorkshopDeactivate,
-                            )
-                          : strings.tKey(
-                              PlatformAdminKeys.buttonWorkshopReactivate,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: isActive
+                              ? strings.tKey(
+                                  PlatformAdminKeys.buttonWorkshopDeactivate,
+                                )
+                              : strings.tKey(
+                                  PlatformAdminKeys.buttonWorkshopReactivate,
+                                ),
+                          icon: Icon(
+                            isActive
+                                ? Icons.block_outlined
+                                : Icons.check_circle_outlined,
+                            size: 20,
+                          ),
+                          color: isActive ? PtTheme.rose : PtTheme.deepGreen,
+                          onPressed: () => onToggleStatus(workshop),
+                        ),
+                        PopupMenuButton<String>(
+                          tooltip: strings.tKey(CommonKeys.tableActions),
+                          icon: const Icon(
+                            Icons.more_vert_rounded,
+                            size: 20,
+                            color: PtTheme.muted,
+                          ),
+                          onSelected: (action) {
+                            if (action == 'edit') {
+                              onEdit(workshop);
+                            } else if (action == 'toggleStatus') {
+                              onToggleStatus(workshop);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color: PtTheme.ink,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    strings.tKey(CommonKeys.buttonEdit),
+                                    style: PtTheme.font(
+                                      13,
+                                      color: PtTheme.ink,
+                                      weight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                      icon: Icon(
-                        isActive
-                            ? Icons.block_outlined
-                            : Icons.check_circle_outlined,
-                        size: 20,
-                      ),
-                      color: isActive ? PtTheme.rose : PtTheme.deepGreen,
-                      onPressed: () => onToggleStatus(workshop),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: strings.tKey(CommonKeys.labelDetails),
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                      color: PtTheme.deepGreen,
-                      onPressed: () => onOpen(workshop),
+                            PopupMenuItem(
+                              value: 'toggleStatus',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isActive
+                                        ? Icons.block_outlined
+                                        : Icons.check_circle_outlined,
+                                    size: 18,
+                                    color: isActive
+                                        ? PtTheme.rose
+                                        : PtTheme.deepGreen,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    isActive
+                                        ? strings.tKey(
+                                            PlatformAdminKeys
+                                                .buttonWorkshopDeactivate,
+                                          )
+                                        : strings.tKey(
+                                            PlatformAdminKeys
+                                                .buttonWorkshopReactivate,
+                                          ),
+                                    style: PtTheme.font(
+                                      13,
+                                      color: isActive
+                                          ? PtTheme.rose
+                                          : PtTheme.deepGreen,
+                                      weight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),

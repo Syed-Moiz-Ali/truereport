@@ -1232,12 +1232,14 @@ class HealthCheck {
     required this.messageAr,
     required this.affected,
     required this.references,
+    this.messageKey = '',
   });
 
   final String code;
   final String severity;
   final String messageEn;
   final String messageAr;
+  final String messageKey;
   final int affected;
   final List<String> references;
 
@@ -1248,6 +1250,7 @@ class HealthCheck {
     severity: _str(json['severity']),
     messageEn: _str(json['messageEn']),
     messageAr: _str(json['messageAr']),
+    messageKey: _str(json['messageKey']),
     affected: _int(json['affected']),
     references: _strings(json['references']),
   );
@@ -1343,6 +1346,9 @@ class PlatformLanguage {
   final String reviewedBy;
 
   bool get isLive => status == 'LIVE';
+  bool get isRetired => status == 'RETIRED';
+  bool get isInSetup =>
+      status == 'DRAFT' || status == 'TRANSLATING' || status == 'REVIEW';
 
   /// Native name is the display name; the code is the only fallback.
   String get displayName => nativeName.isNotEmpty ? nativeName : code;
@@ -1880,12 +1886,18 @@ class OverviewAlert {
     required this.title,
     required this.body,
     required this.route,
+    this.titleKey = '',
+    this.bodyKey = '',
+    this.args = const {},
   });
 
   final String severity;
   final String title;
   final String body;
   final String route;
+  final String titleKey;
+  final String bodyKey;
+  final Map<String, dynamic> args;
 
   factory OverviewAlert.fromJson(Map<String, dynamic> json) => OverviewAlert(
     severity: _str(json['severity']),
@@ -1896,6 +1908,9 @@ class OverviewAlert {
         : _str(json['link']).isNotEmpty
         ? _str(json['link'])
         : _str(json['path']),
+    titleKey: _str(json['titleKey'] ?? json['title_key']),
+    bodyKey: _str(json['bodyKey'] ?? json['body_key']),
+    args: _safeMap(json['args']),
   );
 }
 

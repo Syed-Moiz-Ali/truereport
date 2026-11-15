@@ -12,4 +12,5 @@ abstract final class TrFonts {
   static const String arabicAlternative = '${_prefix}IBM Plex Sans Arabic';
   static const String cyrillicFallback = '${_prefix}Noto Sans';
   static const String cjkFallback = '${_prefix}Noto Sans SC';
+  static const String teluguFallback = '${_prefix}Noto Sans Telugu';
 }
