@@ -280,7 +280,9 @@ class _ActionableSidebarLanguageCard extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Text(
-                        strings.tKey(PlatformAdminKeys.sidebarLanguagesViewLanguages),
+                        strings.tKey(
+                          PlatformAdminKeys.sidebarLanguagesViewLanguages,
+                        ),
                         style: PtTheme.font(
                           11,
                           lineHeight: 14,
@@ -333,18 +335,24 @@ class _PrioritySetupSelector extends ConsumerWidget {
 
     for (final lang in candidates) {
       final readiness = ref.watch(readinessProvider(lang.code)).asData?.value;
-      final genData = ref.watch(contentGenerationProvider(lang.code)).asData?.value;
+      final genData = ref
+          .watch(contentGenerationProvider(lang.code))
+          .asData
+          ?.value;
       final isGenerating = genData?.isRunning ?? false;
 
       int score = 6;
       if (readiness != null) {
         if (readiness.status == 'REVIEW' && readiness.blockers.isEmpty) {
           score = 1;
-        } else if (readiness.readinessPercent == 100 && readiness.status != 'LIVE') {
+        } else if (readiness.readinessPercent == 100 &&
+            readiness.status != 'LIVE') {
           score = 2;
         } else if (lang.status == 'TRANSLATING' || isGenerating) {
           score = 3;
-        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isNotEmpty && readiness.readinessPercent < 100) {
+        } else if (lang.status == 'DRAFT' &&
+            readiness.uiMessagesPath.isNotEmpty &&
+            readiness.readinessPercent < 100) {
           score = 4;
         } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isEmpty) {
           score = 5;
@@ -398,6 +406,23 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
     final isGenerating = genData?.isRunning ?? false;
     final genProgress = ((genData?.progress ?? 0) * 100).round();
 
+    String lifecycleStatusLabel(String status) {
+      switch (status.toUpperCase()) {
+        case 'DRAFT':
+          return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
+        case 'TRANSLATING':
+          return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
+        case 'REVIEW':
+          return strings.tKey(PlatformAdminKeys.statusLanguageReview);
+        case 'LIVE':
+          return strings.tKey(PlatformAdminKeys.statusLanguageLive);
+        case 'RETIRED':
+          return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
+        default:
+          return status;
+      }
+    }
+
     return readinessAsync.when(
       data: (readiness) {
         String targetTab = LanguageWorkspaceTab.overview;
@@ -430,7 +455,8 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
           }
         } else if (readiness.status == 'TRANSLATING') {
           targetTab = LanguageWorkspaceTab.categories;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
+          actionKey =
+              PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
         } else if (readiness.status == 'REVIEW') {
           targetTab = LanguageWorkspaceTab.overview;
           actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
@@ -439,7 +465,8 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
           actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
         }
 
-        final targetRoute = '/settings/languages/${language.code}?tab=$targetTab';
+        final targetRoute =
+            '/settings/languages/${language.code}?tab=$targetTab';
 
         return Container(
           key: const Key('sidebar-language-status-card'),
@@ -480,7 +507,10 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                   ),
                   if (moreCount > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
                       decoration: BoxDecoration(
                         color: PtTheme.white,
                         borderRadius: BorderRadius.circular(4),
@@ -495,6 +525,24 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                       ),
                     ),
                 ],
+              ),
+              const SizedBox(height: 3),
+
+              // Localized lifecycle status badge / label
+              Text(
+                lifecycleStatusLabel(
+                  readiness.status.isNotEmpty
+                      ? readiness.status
+                      : language.status,
+                ),
+                style: PtTheme.font(
+                  10,
+                  lineHeight: 14,
+                  weight: FontWeight.w600,
+                  color: PtTheme.muted,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
 
@@ -516,14 +564,11 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                 )
               else
                 Text(
-                  strings.tArgsKey(
-                    PlatformAdminKeys.sidebarLanguagesProgress,
-                    {
-                      'translated': '${readiness.readinessPercent}',
-                      'total': '100',
-                      'percent': '${readiness.readinessPercent}',
-                    },
-                  ),
+                  strings.tArgsKey(PlatformAdminKeys.sidebarLanguagesProgress, {
+                    'translated': '${readiness.readinessPercent}',
+                    'total': '100',
+                    'percent': '${readiness.readinessPercent}',
+                  }),
                   style: PtTheme.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -548,7 +593,9 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                             11,
                             lineHeight: 14,
                             weight: FontWeight.w600,
-                            color: isGenerating ? PtTheme.muted : PtTheme.deepGreen,
+                            color: isGenerating
+                                ? PtTheme.muted
+                                : PtTheme.deepGreen,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -592,17 +639,144 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
       },
       loading: () => Container(
         key: const Key('sidebar-language-status-card'),
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
         decoration: BoxDecoration(
           color: PtTheme.canvas,
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: PtTheme.border),
         ),
-        child: Text(
-          language.code.toUpperCase(),
-          style: PtTheme.caption,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: PtTheme.amber,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${language.nativeName.isNotEmpty ? language.nativeName : language.code.toUpperCase()} (${language.code.toUpperCase()})',
+                    style: PtTheme.font(
+                      11,
+                      lineHeight: 15,
+                      weight: FontWeight.w700,
+                      color: PtTheme.ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(
+              lifecycleStatusLabel(language.status),
+              style: PtTheme.font(
+                10,
+                lineHeight: 14,
+                weight: FontWeight.w600,
+                color: PtTheme.muted,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+            const LinearProgressIndicator(
+              key: Key('sidebar-language-loading'),
+              minHeight: 2,
+              backgroundColor: PtTheme.border,
+              color: PtTheme.deepGreen,
+            ),
+          ],
         ),
       ),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, _) => Container(
+        key: const Key('sidebar-language-status-card'),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: PtTheme.canvas,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: PtTheme.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: PtTheme.rose,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${language.nativeName.isNotEmpty ? language.nativeName : language.code.toUpperCase()} (${language.code.toUpperCase()})',
+                    style: PtTheme.font(
+                      11,
+                      lineHeight: 15,
+                      weight: FontWeight.w700,
+                      color: PtTheme.ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              strings.tKey(CommonKeys.statusUnhealthy),
+              style: PtTheme.font(
+                10,
+                lineHeight: 14,
+                weight: FontWeight.w500,
+                color: PtTheme.rose,
+              ),
+            ),
+            const SizedBox(height: 6),
+            InkWell(
+              key: const Key('btn-sidebar-retry-readiness'),
+              onTap: () => ref.invalidate(readinessProvider(language.code)),
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      strings.tKey(CommonKeys.buttonRetry),
+                      style: PtTheme.font(
+                        11,
+                        lineHeight: 14,
+                        weight: FontWeight.w600,
+                        color: PtTheme.deepGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.refresh_rounded,
+                      size: 13,
+                      color: PtTheme.deepGreen,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -647,7 +821,11 @@ class _SidebarUserAccount extends ConsumerWidget {
             border: Border.all(color: PtTheme.border),
           ),
           child: const Center(
-            child: Icon(Icons.person_outline_rounded, size: 18, color: PtTheme.muted),
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: 18,
+              color: PtTheme.muted,
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -684,7 +862,11 @@ class _SidebarUserAccount extends ConsumerWidget {
           tooltip: strings.tKey(CommonKeys.buttonSignOut),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          icon: const Icon(Icons.logout_rounded, size: 17, color: PtTheme.muted),
+          icon: const Icon(
+            Icons.logout_rounded,
+            size: 17,
+            color: PtTheme.muted,
+          ),
           onPressed: onSignOut,
         ),
       ],

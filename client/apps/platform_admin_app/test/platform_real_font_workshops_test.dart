@@ -349,7 +349,15 @@ Future<void> _capture(
       dir.createSync(recursive: true);
     }
     final file = File('${dir.path}/$filename');
-    await file.writeAsBytes(bytes);
+    for (var attempt = 0; attempt < 6; attempt++) {
+      try {
+        await file.writeAsBytes(bytes, flush: true);
+        break;
+      } on FileSystemException {
+        if (attempt == 5) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+    }
     expect(file.existsSync(), isTrue, reason: 'missing $filename');
     expect(file.lengthSync(), greaterThan(2000), reason: 'empty $filename');
   });

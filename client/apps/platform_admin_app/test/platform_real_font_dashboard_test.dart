@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -13,6 +14,7 @@ import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 class _MockLocaleController extends LocaleController {
@@ -55,7 +57,10 @@ Future<void> _loadRealFonts() async {
 
     // Register bare family name as well for fallback lookups
     final bareFamily = family.replaceFirst('packages/design_system/', '');
-    final bareLoader = families.putIfAbsent(bareFamily, () => FontLoader(bareFamily));
+    final bareLoader = families.putIfAbsent(
+      bareFamily,
+      () => FontLoader(bareFamily),
+    );
     bareLoader.addFont(Future.value(ByteData.sublistView(bytes)));
   }
 
@@ -63,7 +68,9 @@ Future<void> _loadRealFonts() async {
     await loader.load();
   }
 
-  final iconFile = File('build/unit_test_assets/fonts/MaterialIcons-Regular.otf');
+  final iconFile = File(
+    'build/unit_test_assets/fonts/MaterialIcons-Regular.otf',
+  );
   if (iconFile.existsSync()) {
     final iconBytes = await iconFile.readAsBytes();
     final iconLoader = FontLoader('MaterialIcons');
@@ -80,10 +87,7 @@ const _dashboardSummary = OverviewSummary(
     pendingReview: 4,
     byStatus: {'ASSIGNED': 8, 'IN_PROGRESS': 9, 'PENDING_REVIEW': 4},
   ),
-  reports: OverviewReports(
-    published: 38,
-    byMonth: {'Nov': 14, 'Oct': 24},
-  ),
+  reports: OverviewReports(published: 38, byMonth: {'Nov': 14, 'Oct': 24}),
   checklist: OverviewChecklist(
     categories: 6,
     items: 42,
@@ -262,9 +266,13 @@ Widget _dashboardRealFontHarness({
       overviewProvider.overrideWith((ref) async => _dashboardSummary),
       configHealthProvider.overrideWith((ref) async => _configHealth),
       platformLanguagesProvider.overrideWith((ref) async => _testLanguages),
-      auditEventsProvider.overrideWith((ref) async => const <PlatformAuditEvent>[]),
-      readinessProvider('zh-Hans').overrideWith((ref) async => _testReadinessZh),
-      contentGenerationProvider('zh-Hans').overrideWith((ref) async => _idleGen),
+      auditEventsProvider.overrideWith(
+        (ref) async => const <PlatformAuditEvent>[],
+      ),
+      readinessProvider('zh-Hans')
+          .overrideWith((ref) async => _testReadinessZh),
+      contentGenerationProvider('zh-Hans')
+          .overrideWith((ref) async => _idleGen),
       readinessProvider('en').overrideWith((ref) async => _testReadinessLive),
       contentGenerationProvider('en').overrideWith((ref) async => _idleGen),
       readinessProvider('ar').overrideWith((ref) async => _testReadinessLive),
@@ -311,7 +319,7 @@ Future<void> _capture(
     final bytes = byteData.buffer.asUint8List();
 
     final outDirs = [
-      Directory('test/screenshots'),
+      Directory('test/screenshots/real'),
       Directory(
         r'C:\Users\sanja\.gemini\antigravity\brain\cca80726-f50d-4167-b93e-5a699c602442\screenshots',
       ),
@@ -321,7 +329,16 @@ Future<void> _capture(
       if (!dir.existsSync()) {
         dir.createSync(recursive: true);
       }
-      File('${dir.path}/$filename').writeAsBytesSync(bytes);
+      final file = File('${dir.path}/$filename');
+      for (var attempt = 0; attempt < 6; attempt++) {
+        try {
+          file.writeAsBytesSync(bytes, flush: true);
+          break;
+        } on FileSystemException {
+          if (attempt == 5) rethrow;
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        }
+      }
     }
   });
 }
@@ -334,110 +351,120 @@ void main() {
   });
 
   group('Phase 2 Real Font Dashboard Verification', () {
-    testWidgets('Capture real font dashboard screenshots across viewports & RTL', (
-      tester,
-    ) async {
-      final key = GlobalKey();
+    testWidgets(
+      'Capture real font dashboard screenshots across viewports & RTL',
+      (tester) async {
+        final key = GlobalKey();
 
-      // 1. 1440 Desktop
-      await tester.binding.setSurfaceSize(const Size(1440, 1100));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          surfaceSize: const Size(1440, 1100),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'dashboard_1440.png');
-
-      // 2. 1280 Desktop
-      await tester.binding.setSurfaceSize(const Size(1280, 1100));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          surfaceSize: const Size(1280, 1100),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'dashboard_1280.png');
-
-      // 3. 768 Tablet
-      await tester.binding.setSurfaceSize(const Size(768, 1200));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          surfaceSize: const Size(768, 1200),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'dashboard_768.png');
-
-      // 4. 360 Mobile
-      await tester.binding.setSurfaceSize(const Size(360, 1400));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          surfaceSize: const Size(360, 1400),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'dashboard_360.png');
-
-      // 5. Arabic RTL 1280 Desktop
-      await tester.binding.setSurfaceSize(const Size(1280, 1100));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 1100),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('btn-header-language-selector')), findsOneWidget);
-      expect(find.text('العربية (AR)'), findsOneWidget);
-      // Assert directionality is RTL
-      expect(tester.getTopLeft(find.byKey(const Key('btn-header-language-selector'))).dx, greaterThan(0));
-      await _capture(tester, key, 'dashboard_ar_1280.png');
-
-      // 6. Arabic RTL 360 Mobile
-      await tester.binding.setSurfaceSize(const Size(360, 1400));
-      await tester.pumpWidget(
-        _dashboardRealFontHarness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(360, 1400),
-        ),
-      );
-      await tester.pumpAndSettle();
-      // On compact screen (< 768px), header selector shows AR
-      expect(find.text('AR'), findsOneWidget);
-      await _capture(tester, key, 'dashboard_ar_360.png');
-
-      // 7. Telugu font coverage verification
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            fontFamily: TrFonts.latin,
+        // 1. 1440 Desktop
+        await tester.binding.setSurfaceSize(const Size(1440, 1100));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            surfaceSize: const Size(1440, 1100),
           ),
-          home: const Scaffold(
-            body: Center(
-              child: Text(
-                'ట్రూరిపోర్ట్ (తెలుగు)',
-                key: Key('telugu-text'),
-                style: TextStyle(
-                  fontFamily: TrFonts.latin,
-                  fontFamilyFallback: [TrFonts.teluguFallback, 'Noto Sans Telugu'],
+        );
+        await tester.pumpAndSettle();
+        await _capture(tester, key, 'dashboard_1440.png');
+
+        // 2. 1280 Desktop
+        await tester.binding.setSurfaceSize(const Size(1280, 1100));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            surfaceSize: const Size(1280, 1100),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _capture(tester, key, 'dashboard_1280.png');
+
+        // 3. 768 Tablet
+        await tester.binding.setSurfaceSize(const Size(768, 1200));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            surfaceSize: const Size(768, 1200),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _capture(tester, key, 'dashboard_768.png');
+
+        // 4. 360 Mobile
+        await tester.binding.setSurfaceSize(const Size(360, 1400));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            surfaceSize: const Size(360, 1400),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _capture(tester, key, 'dashboard_360.png');
+
+        // 5. Arabic RTL 1280 Desktop
+        await tester.binding.setSurfaceSize(const Size(1280, 1100));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            locale: const Locale('ar'),
+            surfaceSize: const Size(1280, 1100),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('btn-header-language-selector')),
+          findsOneWidget,
+        );
+        expect(find.text('العربية (AR)'), findsOneWidget);
+        // Assert directionality is RTL
+        expect(
+          tester
+              .getTopLeft(find.byKey(const Key('btn-header-language-selector')))
+              .dx,
+          greaterThan(0),
+        );
+        await _capture(tester, key, 'dashboard_ar_1280.png');
+
+        // 6. Arabic RTL 360 Mobile
+        await tester.binding.setSurfaceSize(const Size(360, 1400));
+        await tester.pumpWidget(
+          _dashboardRealFontHarness(
+            boundaryKey: key,
+            locale: const Locale('ar'),
+            surfaceSize: const Size(360, 1400),
+          ),
+        );
+        await tester.pumpAndSettle();
+        // On compact screen (< 768px), header selector shows AR
+        expect(find.text('AR'), findsOneWidget);
+        await _capture(tester, key, 'dashboard_ar_360.png');
+
+        // 7. Telugu font coverage verification
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(fontFamily: TrFonts.latin),
+            home: const Scaffold(
+              body: Center(
+                child: Text(
+                  'ట్రూరిపోర్ట్ (తెలుగు)',
+                  key: Key('telugu-text'),
+                  style: TextStyle(
+                    fontFamily: TrFonts.latin,
+                    fontFamilyFallback: [
+                      TrFonts.teluguFallback,
+                      'Noto Sans Telugu',
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('telugu-text')), findsOneWidget);
-      expect(find.text('ట్రూరిపోర్ట్ (తెలుగు)'), findsOneWidget);
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('telugu-text')), findsOneWidget);
+        expect(find.text('ట్రూరిపోర్ట్ (తెలుగు)'), findsOneWidget);
 
-      tester.binding.setSurfaceSize(null);
-    });
+        tester.binding.setSurfaceSize(null);
+      },
+    );
   });
 }

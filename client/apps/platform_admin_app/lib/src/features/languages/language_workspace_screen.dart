@@ -507,12 +507,16 @@ class _WorkspaceHeader extends StatelessWidget {
               ),
               PlatformPrimaryButton(
                 key: const ValueKey('languageHeaderPublish'),
-                label: strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceButtonPublish,
-                ),
+                label: readiness?.status == 'LIVE'
+                    ? strings.tKey(PlatformAdminKeys.statusPublished)
+                    : strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceButtonPublish,
+                      ),
                 icon: Icons.publish_rounded,
                 isLoading: publishing,
-                onPressed: publishEnabled && !publishing ? onPublish : null,
+                onPressed: readiness?.status == 'LIVE'
+                    ? null
+                    : (publishEnabled && !publishing ? onPublish : null),
               ),
             ],
           ),
@@ -630,7 +634,10 @@ class _OverviewTab extends ConsumerWidget {
                       )
                     else
                       for (final entry in data.content.entries)
-                        _EntityReadinessRow(entry: entry),
+                        _EntityReadinessRow(
+                          entry: entry,
+                          onOpenTab: () => onOpenTab(_tabForEntityType(entry.key)),
+                        ),
                   ],
                 ),
               ),
@@ -647,9 +654,15 @@ class _OverviewTab extends ConsumerWidget {
                     const SizedBox(height: 8),
                     if (data.blockers.isEmpty)
                       Text(
-                        strings.tKey(
-                          PlatformAdminKeys.languageWorkspaceOverviewNoBlockers,
-                        ),
+                        data.status == 'LIVE'
+                            ? strings.tKey(
+                                PlatformAdminKeys
+                                    .languageWorkspaceOverviewNoBlockersLive,
+                              )
+                            : strings.tKey(
+                                PlatformAdminKeys
+                                    .languageWorkspaceOverviewNoBlockers,
+                              ),
                         style: PtTheme.font(12, color: PtTheme.muted),
                       )
                     else
@@ -669,40 +682,100 @@ class _OverviewTab extends ConsumerWidget {
   }
 }
 
+String _tabForEntityType(String entityType) {
+  switch (entityType.toUpperCase()) {
+    case 'CATEGORY':
+      return LanguageWorkspaceTab.categories;
+    case 'ITEM':
+      return LanguageWorkspaceTab.items;
+    case 'OPTION_SET':
+      return LanguageWorkspaceTab.optionSets;
+    case 'OPTION_VALUE':
+      return LanguageWorkspaceTab.optionValues;
+    case 'TEMPLATE':
+      return LanguageWorkspaceTab.templates;
+    case 'DOCUMENT_TYPE':
+      return LanguageWorkspaceTab.documentTypes;
+    case 'ISSUE_FIELD':
+      return LanguageWorkspaceTab.issueFields;
+    default:
+      return LanguageWorkspaceTab.overview;
+  }
+}
+
+String _localizedEntityName(UiMessageStrings strings, String entityType) {
+  switch (entityType.toUpperCase()) {
+    case 'CATEGORY':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabCategories);
+    case 'ITEM':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabChecklistItems);
+    case 'OPTION_SET':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabOptionSets);
+    case 'OPTION_VALUE':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabOptionValues);
+    case 'TEMPLATE':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabTemplates);
+    case 'DOCUMENT_TYPE':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabDocumentTypes);
+    case 'ISSUE_FIELD':
+      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabIssueFields);
+    default:
+      return entityType;
+  }
+}
+
 class _EntityReadinessRow extends StatelessWidget {
-  const _EntityReadinessRow({required this.entry});
+  const _EntityReadinessRow({
+    required this.entry,
+    required this.onOpenTab,
+  });
 
   final MapEntry<String, EntityReadiness> entry;
+  final VoidCallback onOpenTab;
 
   @override
   Widget build(BuildContext context) {
     final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
+    final localizedLabel = _localizedEntityName(strings, entry.key);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
         children: [
-          Text(
-            entry.key,
-            style: PtTheme.font(
-              13,
-              weight: FontWeight.w700,
-              color: PtTheme.ink,
+          Expanded(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  localizedLabel,
+                  style: PtTheme.font(
+                    13,
+                    weight: FontWeight.w700,
+                    color: PtTheme.ink,
+                  ),
+                ),
+                Text(
+                  '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldApproved)}: '
+                  '${entry.value.approved}/${entry.value.total}',
+                  style: PtTheme.font(12, color: PtTheme.muted),
+                ),
+                if (entry.value.missing > 0)
+                  PlatformStatusChip(
+                    status:
+                        '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldMissing)}: '
+                        '${entry.value.missing}',
+                  ),
+              ],
             ),
           ),
-          Text(
-            '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldApproved)}: '
-            '${entry.value.approved}/${entry.value.total}',
-            style: PtTheme.font(12, color: PtTheme.muted),
-          ),
-          if (entry.value.missing > 0)
-            PlatformStatusChip(
-              status:
-                  '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldMissing)}: '
-                  '${entry.value.missing}',
+          const SizedBox(width: 8),
+          PlatformSecondaryButton(
+            label: strings.tKey(
+              PlatformAdminKeys.languageWorkspaceOverviewOpenTab,
             ),
+            onPressed: onOpenTab,
+          ),
         ],
       ),
     );
@@ -1875,12 +1948,17 @@ class _PublishTab extends ConsumerWidget {
                         ),
                         PlatformPrimaryButton(
                           key: const ValueKey('languagePublishButton'),
-                          label: strings.tKey(
-                            PlatformAdminKeys.languageWorkspaceButtonPublish,
-                          ),
+                          label: data.status == 'LIVE'
+                              ? strings.tKey(PlatformAdminKeys.statusPublished)
+                              : strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonPublish,
+                                ),
                           icon: Icons.publish_rounded,
                           isLoading: publishing,
-                          onPressed: enabled && !publishing ? onPublish : null,
+                          onPressed: data.status == 'LIVE'
+                              ? null
+                              : (enabled && !publishing ? onPublish : null),
                         ),
                       ],
                     ),

@@ -225,10 +225,14 @@ class FakeWorkspaceTranslationApi extends TranslationApi {
   }
 }
 
-LanguageReadiness _readiness({int percent = 60, bool withBlockers = true}) =>
+LanguageReadiness _readiness({
+  int percent = 60,
+  bool withBlockers = true,
+  String status = 'REVIEW',
+}) =>
     LanguageReadiness(
       language: _languageCode,
-      status: 'REVIEW',
+      status: status,
       nativeName: 'العربية',
       direction: 'rtl',
       isDefault: false,
@@ -504,7 +508,7 @@ void main() {
 
     expect(find.textContaining('60%'), findsWidgets);
     expect(find.text('1 UI message key(s) are missing'), findsOneWidget);
-    expect(find.text('CATEGORY'), findsOneWidget);
+    expect(find.text('Categories'), findsWidgets);
     expect(find.textContaining('Readiness'), findsWidgets);
   });
 
@@ -613,5 +617,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(api.publishCalls, 1);
     expect(find.text('Language published.'), findsOneWidget);
+  });
+
+  testWidgets('shows published state and disabled publish button when language is LIVE', (tester) async {
+    final api = FakeWorkspaceTranslationApi(items: _contentFixture());
+    await tester.pumpWidget(
+      _workspaceApp(
+        api: api,
+        readiness: _readiness(percent: 100, withBlockers: false, status: 'LIVE'),
+        initialTab: LanguageWorkspaceTab.overview,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No blockers. Language is live.'), findsOneWidget);
+    final headerPublish = tester.widget<PlatformPrimaryButton>(
+      find.byKey(const ValueKey('languageHeaderPublish')),
+    );
+    expect(headerPublish.onPressed, isNull);
+    expect(headerPublish.label, 'Published');
   });
 }

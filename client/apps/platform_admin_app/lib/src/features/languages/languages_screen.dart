@@ -4,6 +4,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
@@ -563,7 +564,7 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
                           if (fallback != null)
                             PlatformStatusChip(
                               status:
-                                  '${strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage)}: ${fallback.code}',
+                                  '${strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage)}: ${fallback.displayName}',
                             ),
                           PlatformStatusChip(
                             status: healthy
@@ -608,7 +609,7 @@ class LanguagesCoverageSummaryCard extends ConsumerWidget {
 
 String _activeLabel(UiMessageStrings strings, bool active) => active
     ? strings.tKey(CommonKeys.statusActive)
-    : strings.tKey(CommonKeys.statusRetired);
+    : strings.tKey(CommonKeys.statusInactive);
 
 /// Readiness-driven coverage pills for a single language.
 ///
@@ -659,40 +660,6 @@ class _LanguageCoveragePills extends ConsumerWidget {
             PlatformStatusChip(status: genStatus),
           ],
         );
-      },
-      orElse: () => Text('-', style: PtTheme.font(12, color: PtTheme.muted)),
-    );
-  }
-}
-
-enum _CoverageMetric { uiText, content, generation }
-
-class _LanguageCoverageCell extends ConsumerWidget {
-  const _LanguageCoverageCell({required this.code, required this.metric});
-
-  final String code;
-  final _CoverageMetric metric;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final readiness = ref.watch(readinessProvider(code));
-    final generation = ref.watch(contentGenerationProvider(code));
-    return readiness.maybeWhen(
-      data: (data) {
-        switch (metric) {
-          case _CoverageMetric.uiText:
-            return Text('${data.uiMessages.approved}/${data.uiMessages.total}');
-          case _CoverageMetric.content:
-            return Text('${data.contentApproved}/${data.contentTotal}');
-          case _CoverageMetric.generation:
-            return PlatformStatusChip(
-              status: _generationLabel(
-                strings,
-                generation.asData?.value.jobStatus ?? '',
-              ),
-            );
-        }
       },
       orElse: () => Text('-', style: PtTheme.font(12, color: PtTheme.muted)),
     );
@@ -775,357 +742,30 @@ class _LanguagesContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 1180) {
-          return _LanguagesTable(
-            items: items,
-            onManage: onManage,
-            onEdit: onEdit,
-            onGenerateUiMessages: onGenerateUiMessages,
-            onReviewUiMessages: onReviewUiMessages,
-            onApproveUiMessages: onApproveUiMessages,
-            onPublish: onPublish,
-            onToggleActive: onToggleActive,
-            onRetire: onRetire,
-            onReopen: onReopen,
-            onDeleteOrRetire: onDeleteOrRetire,
-            onSetDefault: onSetDefault,
-            onReorder: onReorder,
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var index = 0; index < items.length; index++) ...[
-              _LanguageCard(
-                language: items[index],
-                onManage: () => onManage(items[index]),
-                onEdit: () => onEdit(items[index]),
-                onGenerateUiMessages: () => onGenerateUiMessages(items[index]),
-                onReviewUiMessages: () => onReviewUiMessages(items[index]),
-                onApproveUiMessages: () => onApproveUiMessages(items[index]),
-                onPublish: () => onPublish(items[index]),
-                onToggleActive: () => onToggleActive(items[index]),
-                onRetire: () => onRetire(items[index]),
-                onReopen: () => onReopen(items[index]),
-                onDeleteOrRetire: () => onDeleteOrRetire(items[index]),
-                onSetDefault: () => onSetDefault(items[index]),
-                onMoveUp: index == 0 ? null : () => onReorder(items, index, -1),
-                onMoveDown: index == items.length - 1
-                    ? null
-                    : () => onReorder(items, index, 1),
-              ),
-              if (index != items.length - 1) const SizedBox(height: 12),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _LanguagesTable extends StatelessWidget {
-  const _LanguagesTable({
-    required this.items,
-    required this.onManage,
-    required this.onEdit,
-    required this.onGenerateUiMessages,
-    required this.onReviewUiMessages,
-    required this.onApproveUiMessages,
-    required this.onPublish,
-    required this.onToggleActive,
-    required this.onRetire,
-    required this.onReopen,
-    required this.onDeleteOrRetire,
-    required this.onSetDefault,
-    required this.onReorder,
-  });
-
-  final List<PlatformLanguage> items;
-  final ValueChanged<PlatformLanguage> onManage;
-  final ValueChanged<PlatformLanguage> onEdit;
-  final ValueChanged<PlatformLanguage> onGenerateUiMessages;
-  final ValueChanged<PlatformLanguage> onReviewUiMessages;
-  final ValueChanged<PlatformLanguage> onApproveUiMessages;
-  final ValueChanged<PlatformLanguage> onPublish;
-  final ValueChanged<PlatformLanguage> onToggleActive;
-  final ValueChanged<PlatformLanguage> onRetire;
-  final ValueChanged<PlatformLanguage> onReopen;
-  final ValueChanged<PlatformLanguage> onDeleteOrRetire;
-  final ValueChanged<PlatformLanguage> onSetDefault;
-  final void Function(List<PlatformLanguage> items, int index, int delta)
-  onReorder;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
-    return PlatformSectionCard(
-      padding: EdgeInsets.zero,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: [
-            DataColumn(
-              label: Text(strings.tKey(PlatformAdminKeys.fieldLanguageCode)),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(PlatformAdminKeys.fieldLanguageNativeName),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
-              ),
-            ),
-            DataColumn(label: Text(strings.tKey(CommonKeys.tableStatus))),
-            DataColumn(
-              label: Text(
-                strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
-                ),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceFieldContentCoverage,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceFieldGenerationStatus,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            DataColumn(label: Text(strings.tKey(CommonKeys.tableActions))),
-          ],
-          rows: [
-            for (var index = 0; index < items.length; index++)
-              _row(context, strings, items[index], index),
-          ],
-        ),
-      ),
-    );
-  }
-
-  DataRow _row(
-    BuildContext context,
-    UiMessageStrings strings,
-    PlatformLanguage language,
-    int index,
-  ) {
-    return DataRow(
-      cells: [
-        DataCell(
-          Text(language.code, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
-        DataCell(
-          Text(
-            language.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < items.length; index++) ...[
+          _LanguageCard(
+            language: items[index],
+            onManage: () => onManage(items[index]),
+            onEdit: () => onEdit(items[index]),
+            onGenerateUiMessages: () => onGenerateUiMessages(items[index]),
+            onReviewUiMessages: () => onReviewUiMessages(items[index]),
+            onApproveUiMessages: () => onApproveUiMessages(items[index]),
+            onPublish: () => onPublish(items[index]),
+            onToggleActive: () => onToggleActive(items[index]),
+            onRetire: () => onRetire(items[index]),
+            onReopen: () => onReopen(items[index]),
+            onDeleteOrRetire: () => onDeleteOrRetire(items[index]),
+            onSetDefault: () => onSetDefault(items[index]),
+            onMoveUp: index == 0 ? null : () => onReorder(items, index, -1),
+            onMoveDown: index == items.length - 1
+                ? null
+                : () => onReorder(items, index, 1),
           ),
-        ),
-        DataCell(Text(language.direction)),
-        DataCell(
-          PlatformStatusChip(
-            status: _languageStatusLabel(strings, language.status),
-          ),
-        ),
-        DataCell(
-          language.isDefault
-              ? PlatformStatusChip(
-                  status: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceFieldDefaultFlag,
-                  ),
-                )
-              : const Text('-'),
-        ),
-        DataCell(
-          Text(
-            language.uiMessagesPath.isEmpty ? '-' : language.uiMessagesPath,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        DataCell(
-          _LanguageCoverageCell(
-            code: language.code,
-            metric: _CoverageMetric.uiText,
-          ),
-        ),
-        DataCell(
-          _LanguageCoverageCell(
-            code: language.code,
-            metric: _CoverageMetric.content,
-          ),
-        ),
-        DataCell(
-          _LanguageCoverageCell(
-            code: language.code,
-            metric: _CoverageMetric.generation,
-          ),
-        ),
-        DataCell(
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PlatformPrimaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceButtonManage,
-                ),
-                onPressed: () => onManage(language),
-              ),
-              PopupMenuButton<String>(
-                tooltip: strings.tKey(CommonKeys.tableActions),
-                onSelected: (action) {
-                  switch (action) {
-                    case 'edit':
-                      onEdit(language);
-                    case 'default':
-                      onSetDefault(language);
-                    case 'up':
-                      onReorder(items, index, -1);
-                    case 'down':
-                      onReorder(items, index, 1);
-                    case 'active':
-                      onToggleActive(language);
-                    case 'retire':
-                      onRetire(language);
-                    case 'reopen':
-                      onReopen(language);
-                    case 'deleteRetire':
-                      onDeleteOrRetire(language);
-                    case 'generate':
-                      onGenerateUiMessages(language);
-                    case 'review':
-                      onReviewUiMessages(language);
-                    case 'approve':
-                      onApproveUiMessages(language);
-                    case 'publish':
-                      onPublish(language);
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Text(
-                      strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonEditMetadata,
-                      ),
-                    ),
-                  ),
-                  if (language.code == 'en' && !language.isDefault)
-                    PopupMenuItem(
-                      value: 'default',
-                      child: Text(
-                        strings.tKey(
-                          PlatformAdminKeys.languageWorkspaceButtonSetDefault,
-                        ),
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'up',
-                    enabled: index > 0,
-                    child: Text(strings.tKey(CommonKeys.buttonMoveUp)),
-                  ),
-                  PopupMenuItem(
-                    value: 'down',
-                    enabled: index < items.length - 1,
-                    child: Text(strings.tKey(CommonKeys.buttonMoveDown)),
-                  ),
-                  PopupMenuItem(
-                    value: 'active',
-                    child: Text(
-                      language.active
-                          ? strings.tKey(
-                              PlatformAdminKeys
-                                  .languageWorkspaceButtonDeactivate,
-                            )
-                          : strings.tKey(
-                              PlatformAdminKeys.languageWorkspaceButtonActivate,
-                            ),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: language.status == 'RETIRED' ? 'reopen' : 'retire',
-                    child: Text(
-                      language.status == 'RETIRED'
-                          ? strings.tKey(
-                              PlatformAdminKeys.languageWorkspaceButtonReopen,
-                            )
-                          : strings.tKey(
-                              PlatformAdminKeys.languageWorkspaceButtonRetire,
-                            ),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'deleteRetire',
-                    child: Text(
-                      strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonDeleteOrRetire,
-                      ),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'generate',
-                    child: Text(
-                      strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonGenerateUiText,
-                      ),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'review',
-                    child: Text(
-                      strings.tKey(PlatformAdminKeys.buttonLanguageReview),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'approve',
-                    child: Text(
-                      strings.tKey(
-                        PlatformAdminKeys.buttonUiMessagesReviewApprove,
-                      ),
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'publish',
-                    child: Text(
-                      strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonPublish,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+          if (index != items.length - 1) const SizedBox(height: 12),
+        ],
       ],
     );
   }
@@ -1223,22 +863,24 @@ class _LanguageCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldLastReviewed)}: '
-              '${language.reviewedBy} · ${language.reviewedAt}',
+              '${language.reviewedBy} · ${_reviewedAtLabel(context, language.reviewedAt)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: PtTheme.font(12, color: PtTheme.muted),
             ),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               PlatformPrimaryButton(
+                key: ValueKey('manage-${language.code}'),
                 label: strings.tKey(
                   PlatformAdminKeys.languageWorkspaceButtonManage,
                 ),
+                icon: Icons.tune_rounded,
                 onPressed: onManage,
               ),
               PlatformSecondaryButton(
@@ -1248,82 +890,197 @@ class _LanguageCard extends StatelessWidget {
                 icon: Icons.edit_outlined,
                 onPressed: onEdit,
               ),
-              if (language.code == 'en' && !language.isDefault)
-                PlatformSecondaryButton(
-                  label: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceButtonSetDefault,
+              if (onMoveUp != null || onMoveDown != null) ...[
+                IconButton(
+                  tooltip: strings.tKey(CommonKeys.buttonMoveUp),
+                  onPressed: onMoveUp,
+                  icon: const Icon(Icons.arrow_upward_rounded, size: 18),
+                ),
+                IconButton(
+                  tooltip: strings.tKey(CommonKeys.buttonMoveDown),
+                  onPressed: onMoveDown,
+                  icon: const Icon(Icons.arrow_downward_rounded, size: 18),
+                ),
+              ],
+              PopupMenuButton<String>(
+                tooltip: strings.tKey(CommonKeys.tableActions),
+                icon: const Icon(Icons.more_vert_rounded, size: 20),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'default':
+                      onSetDefault();
+                      break;
+                    case 'toggleActive':
+                      onToggleActive();
+                      break;
+                    case 'retireOrReopen':
+                      if (retired) {
+                        onReopen();
+                      } else {
+                        onRetire();
+                      }
+                      break;
+                    case 'deleteOrRetire':
+                      onDeleteOrRetire();
+                      break;
+                    case 'generate':
+                      onGenerateUiMessages();
+                      break;
+                    case 'review':
+                      onReviewUiMessages();
+                      break;
+                    case 'approve':
+                      onApproveUiMessages();
+                      break;
+                    case 'publish':
+                      onPublish();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (language.code == 'en' && !language.isDefault)
+                    PopupMenuItem(
+                      value: 'default',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star_outline_rounded, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            strings.tKey(
+                              PlatformAdminKeys
+                                  .languageWorkspaceButtonSetDefault,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  PopupMenuItem(
+                    value: 'toggleActive',
+                    child: Row(
+                      children: [
+                        Icon(
+                          language.active
+                              ? Icons.toggle_off_rounded
+                              : Icons.toggle_on_rounded,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          language.active
+                              ? strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonDeactivate,
+                                )
+                              : strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonActivate,
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
-                  icon: Icons.star_outline_rounded,
-                  onPressed: onSetDefault,
-                ),
-              IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonMoveUp),
-                onPressed: onMoveUp,
-                icon: const Icon(Icons.arrow_upward_rounded, size: 18),
-              ),
-              IconButton(
-                tooltip: strings.tKey(CommonKeys.buttonMoveDown),
-                onPressed: onMoveDown,
-                icon: const Icon(Icons.arrow_downward_rounded, size: 18),
-              ),
-              PlatformSecondaryButton(
-                label: language.active
-                    ? strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonDeactivate,
-                      )
-                    : strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonActivate,
-                      ),
-                icon: language.active
-                    ? Icons.toggle_on_rounded
-                    : Icons.toggle_off_rounded,
-                onPressed: onToggleActive,
-              ),
-              PlatformSecondaryButton(
-                label: retired
-                    ? strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonReopen,
-                      )
-                    : strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceButtonRetire,
-                      ),
-                icon: retired
-                    ? Icons.lock_open_rounded
-                    : Icons.lock_outline_rounded,
-                onPressed: retired ? onReopen : onRetire,
-              ),
-              PlatformSecondaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceButtonDeleteOrRetire,
-                ),
-                icon: Icons.delete_outline_rounded,
-                onPressed: onDeleteOrRetire,
-              ),
-              PlatformSecondaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceButtonGenerateUiText,
-                ),
-                icon: Icons.cloud_download_rounded,
-                onPressed: onGenerateUiMessages,
-              ),
-              PlatformSecondaryButton(
-                label: strings.tKey(PlatformAdminKeys.buttonLanguageReview),
-                icon: Icons.rate_review_outlined,
-                onPressed: onReviewUiMessages,
-              ),
-              PlatformSecondaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.buttonUiMessagesReviewApprove,
-                ),
-                icon: Icons.verified_rounded,
-                onPressed: onApproveUiMessages,
-              ),
-              PlatformSecondaryButton(
-                label: strings.tKey(
-                  PlatformAdminKeys.languageWorkspaceButtonPublish,
-                ),
-                icon: Icons.publish_rounded,
-                onPressed: onPublish,
+                  PopupMenuItem(
+                    value: 'retireOrReopen',
+                    child: Row(
+                      children: [
+                        Icon(
+                          retired
+                              ? Icons.lock_open_rounded
+                              : Icons.lock_outline_rounded,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          retired
+                              ? strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonReopen,
+                                )
+                              : strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonRetire,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'generate',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome_rounded, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys
+                                .languageWorkspaceButtonGenerateUiText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'review',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.rate_review_outlined, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.tKey(PlatformAdminKeys.buttonLanguageReview),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'approve',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.verified_rounded, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys.buttonUiMessagesReviewApprove,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'publish',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.publish_rounded, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys.languageWorkspaceButtonPublish,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'deleteOrRetire',
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                          color: PtTheme.rose,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys
+                                .languageWorkspaceButtonDeleteOrRetire,
+                          ),
+                          style: const TextStyle(color: PtTheme.rose),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1926,5 +1683,18 @@ class _UiMessageGenerationDialogState
         ),
       ),
     );
+  }
+}
+
+String _reviewedAtLabel(BuildContext context, String raw) {
+  final text = raw.trim();
+  if (text.isEmpty) return text;
+  final parsed = DateTime.tryParse(text);
+  if (parsed == null) return text;
+  final locale = Localizations.localeOf(context).languageCode;
+  try {
+    return DateFormat.yMd(locale).add_Hm().format(parsed.toLocal());
+  } on Exception {
+    return text;
   }
 }

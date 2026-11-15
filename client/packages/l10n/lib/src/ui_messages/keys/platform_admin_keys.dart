@@ -1,14 +1,344 @@
 import '../ui_message_key.dart';
 
 abstract final class PlatformAdminKeys {
+  static const activityActionCategoryCreated = UiMessageKey.platformAdmin(
+    'activity.action.categoryCreated',
+  );
+  static const activityActionContentGenerationCancelled = UiMessageKey.platformAdmin(
+    'activity.action.contentGenerationCancelled',
+  );
+  static const activityActionContentTranslationsGenerated = UiMessageKey.platformAdmin(
+    'activity.action.contentTranslationsGenerated',
+  );
+  static const activityActionCreateCategory = UiMessageKey.platformAdmin(
+    'activity.action.createCategory',
+  );
+  static const activityActionDocumentTypeCreated = UiMessageKey.platformAdmin(
+    'activity.action.documentTypeCreated',
+  );
+  static const activityActionDocumentTypeReordered = UiMessageKey.platformAdmin(
+    'activity.action.documentTypeReordered',
+  );
+  static const activityActionDocumentTypeRetired = UiMessageKey.platformAdmin(
+    'activity.action.documentTypeRetired',
+  );
+  static const activityActionDocumentTypeUpdated = UiMessageKey.platformAdmin(
+    'activity.action.documentTypeUpdated',
+  );
+  static const activityActionJobApproved = UiMessageKey.platformAdmin(
+    'activity.action.jobApproved',
+  );
+  static const activityActionJobAssigned = UiMessageKey.platformAdmin(
+    'activity.action.jobAssigned',
+  );
+  static const activityActionJobCancelled = UiMessageKey.platformAdmin(
+    'activity.action.jobCancelled',
+  );
+  static const activityActionJobCompleted = UiMessageKey.platformAdmin(
+    'activity.action.jobCompleted',
+  );
+  static const activityActionJobCreated = UiMessageKey.platformAdmin(
+    'activity.action.jobCreated',
+  );
+  static const activityActionJobEvidenceDeleted = UiMessageKey.platformAdmin(
+    'activity.action.jobEvidenceDeleted',
+  );
+  static const activityActionJobPublished = UiMessageKey.platformAdmin(
+    'activity.action.jobPublished',
+  );
+  static const activityActionJobRejected = UiMessageKey.platformAdmin(
+    'activity.action.jobRejected',
+  );
+  static const activityActionJobResultProjected = UiMessageKey.platformAdmin(
+    'activity.action.jobResultProjected',
+  );
+  static const activityActionJobSigned = UiMessageKey.platformAdmin(
+    'activity.action.jobSigned',
+  );
+  static const activityActionJobUnpublished = UiMessageKey.platformAdmin(
+    'activity.action.jobUnpublished',
+  );
+  static const activityActionJobUpdated = UiMessageKey.platformAdmin(
+    'activity.action.jobUpdated',
+  );
+  static const activityActionLanguageDeleted = UiMessageKey.platformAdmin(
+    'activity.action.languageDeleted',
+  );
+  static const activityActionLanguagePublished = UiMessageKey.platformAdmin(
+    'activity.action.languagePublished',
+  );
+  static const activityActionLogin2faRequired = UiMessageKey.platformAdmin(
+    'activity.action.login2faRequired',
+  );
+  static const activityActionLoginFailed = UiMessageKey.platformAdmin(
+    'activity.action.loginFailed',
+  );
+  static const activityActionLoginLocked = UiMessageKey.platformAdmin(
+    'activity.action.loginLocked',
+  );
+  static const activityActionLogout = UiMessageKey.platformAdmin(
+    'activity.action.logout',
+  );
+  static const activityActionLogoutAll = UiMessageKey.platformAdmin(
+    'activity.action.logoutAll',
+  );
+  static const activityActionMasterCategoryCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterCategoryCreated',
+  );
+  static const activityActionMasterCategoryReordered = UiMessageKey.platformAdmin(
+    'activity.action.masterCategoryReordered',
+  );
+  static const activityActionMasterCategoryRetired = UiMessageKey.platformAdmin(
+    'activity.action.masterCategoryRetired',
+  );
+  static const activityActionMasterCategoryUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterCategoryUpdated',
+  );
+  static const activityActionMasterDropdownCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterDropdownCreated',
+  );
+  static const activityActionMasterDropdownValueCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterDropdownValueCreated',
+  );
+  static const activityActionMasterEquipmentCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterEquipmentCreated',
+  );
+  static const activityActionMasterGuideImageRetired = UiMessageKey.platformAdmin(
+    'activity.action.masterGuideImageRetired',
+  );
+  static const activityActionMasterGuideImageUploaded = UiMessageKey.platformAdmin(
+    'activity.action.masterGuideImageUploaded',
+  );
+  static const activityActionMasterItemCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemCreated',
+  );
+  static const activityActionMasterItemDraftCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemDraftCreated',
+  );
+  static const activityActionMasterItemEvidenceRulesUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemEvidenceRulesUpdated',
+  );
+  static const activityActionMasterItemIssueFieldsUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemIssueFieldsUpdated',
+  );
+  static const activityActionMasterItemMeasurementBandsUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemMeasurementBandsUpdated',
+  );
+  static const activityActionMasterItemMetadataUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemMetadataUpdated',
+  );
+  static const activityActionMasterItemPublished = UiMessageKey.platformAdmin(
+    'activity.action.masterItemPublished',
+  );
+  static const activityActionMasterItemRetired = UiMessageKey.platformAdmin(
+    'activity.action.masterItemRetired',
+  );
+  static const activityActionMasterItemRulesUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterItemRulesUpdated',
+  );
+  static const activityActionMasterReasonCreated = UiMessageKey.platformAdmin(
+    'activity.action.masterReasonCreated',
+  );
+  static const activityActionMasterTranslationUpdated = UiMessageKey.platformAdmin(
+    'activity.action.masterTranslationUpdated',
+  );
+  static const activityActionOptionSetCreated = UiMessageKey.platformAdmin(
+    'activity.action.optionSetCreated',
+  );
+  static const activityActionOptionSetRetired = UiMessageKey.platformAdmin(
+    'activity.action.optionSetRetired',
+  );
+  static const activityActionOptionSetUpdated = UiMessageKey.platformAdmin(
+    'activity.action.optionSetUpdated',
+  );
+  static const activityActionOptionValueCreated = UiMessageKey.platformAdmin(
+    'activity.action.optionValueCreated',
+  );
+  static const activityActionOptionValueRetired = UiMessageKey.platformAdmin(
+    'activity.action.optionValueRetired',
+  );
+  static const activityActionOptionValueUpdated = UiMessageKey.platformAdmin(
+    'activity.action.optionValueUpdated',
+  );
+  static const activityActionPublicLinkRevoked = UiMessageKey.platformAdmin(
+    'activity.action.publicLinkRevoked',
+  );
+  static const activityActionPublicLinkRotated = UiMessageKey.platformAdmin(
+    'activity.action.publicLinkRotated',
+  );
+  static const activityActionPublishItem = UiMessageKey.platformAdmin(
+    'activity.action.publishItem',
+  );
+  static const activityActionRefreshReuseDetected = UiMessageKey.platformAdmin(
+    'activity.action.refreshReuseDetected',
+  );
+  static const activityActionReportDocumentRetried = UiMessageKey.platformAdmin(
+    'activity.action.reportDocumentRetried',
+  );
+  static const activityActionTemplateCategoriesReplaced = UiMessageKey.platformAdmin(
+    'activity.action.templateCategoriesReplaced',
+  );
+  static const activityActionTemplateCreated = UiMessageKey.platformAdmin(
+    'activity.action.templateCreated',
+  );
+  static const activityActionTemplateDraftCreated = UiMessageKey.platformAdmin(
+    'activity.action.templateDraftCreated',
+  );
+  static const activityActionTemplateItemsReplaced = UiMessageKey.platformAdmin(
+    'activity.action.templateItemsReplaced',
+  );
+  static const activityActionTemplatePublishRejected = UiMessageKey.platformAdmin(
+    'activity.action.templatePublishRejected',
+  );
+  static const activityActionTemplatePublishRequested = UiMessageKey.platformAdmin(
+    'activity.action.templatePublishRequested',
+  );
+  static const activityActionTemplatePublished = UiMessageKey.platformAdmin(
+    'activity.action.templatePublished',
+  );
+  static const activityActionTemplateRetired = UiMessageKey.platformAdmin(
+    'activity.action.templateRetired',
+  );
+  static const activityActionTemplateUpdated = UiMessageKey.platformAdmin(
+    'activity.action.templateUpdated',
+  );
+  static const activityActionTotpConfirmFailed = UiMessageKey.platformAdmin(
+    'activity.action.totpConfirmFailed',
+  );
+  static const activityActionTotpEnabled = UiMessageKey.platformAdmin(
+    'activity.action.totpEnabled',
+  );
+  static const activityActionTotpEnrollmentStarted = UiMessageKey.platformAdmin(
+    'activity.action.totpEnrollmentStarted',
+  );
+  static const activityActionTotpFailed = UiMessageKey.platformAdmin(
+    'activity.action.totpFailed',
+  );
+  static const activityActionTotpLocked = UiMessageKey.platformAdmin(
+    'activity.action.totpLocked',
+  );
+  static const activityActionTotpRecoveryCodesRegenerated = UiMessageKey.platformAdmin(
+    'activity.action.totpRecoveryCodesRegenerated',
+  );
+  static const activityActionTotpRecoverySucceeded = UiMessageKey.platformAdmin(
+    'activity.action.totpRecoverySucceeded',
+  );
+  static const activityActionTotpSucceeded = UiMessageKey.platformAdmin(
+    'activity.action.totpSucceeded',
+  );
+  static const activityActionUiMessagesGenerated = UiMessageKey.platformAdmin(
+    'activity.action.uiMessagesGenerated',
+  );
+  static const activityActionUiMessagesGenerationCancelled = UiMessageKey.platformAdmin(
+    'activity.action.uiMessagesGenerationCancelled',
+  );
+  static const activityActionUiMessagesReviewApproved = UiMessageKey.platformAdmin(
+    'activity.action.uiMessagesReviewApproved',
+  );
+  static const activityActionUiMessagesReviewSaved = UiMessageKey.platformAdmin(
+    'activity.action.uiMessagesReviewSaved',
+  );
+  static const activityActionWorkshopDeactivated = UiMessageKey.platformAdmin(
+    'activity.action.workshopDeactivated',
+  );
+  static const activityActionWorkshopReactivated = UiMessageKey.platformAdmin(
+    'activity.action.workshopReactivated',
+  );
   static const activityActionWorkshopRegistered = UiMessageKey.platformAdmin(
     'activity.action.workshopRegistered',
+  );
+  static const activityActionWorkshopUpdated = UiMessageKey.platformAdmin(
+    'activity.action.workshopUpdated',
+  );
+  static const activityEntityCategory = UiMessageKey.platformAdmin(
+    'activity.entity.category',
+  );
+  static const activityEntityDocumentType = UiMessageKey.platformAdmin(
+    'activity.entity.documentType',
+  );
+  static const activityEntityDropdown = UiMessageKey.platformAdmin(
+    'activity.entity.dropdown',
+  );
+  static const activityEntityDropdownValue = UiMessageKey.platformAdmin(
+    'activity.entity.dropdownValue',
+  );
+  static const activityEntityEquipment = UiMessageKey.platformAdmin(
+    'activity.entity.equipment',
+  );
+  static const activityEntityGuideImage = UiMessageKey.platformAdmin(
+    'activity.entity.guideImage',
+  );
+  static const activityEntityItem = UiMessageKey.platformAdmin(
+    'activity.entity.item',
+  );
+  static const activityEntityJob = UiMessageKey.platformAdmin(
+    'activity.entity.job',
+  );
+  static const activityEntityLanguage = UiMessageKey.platformAdmin(
+    'activity.entity.language',
+  );
+  static const activityEntityMasterItem = UiMessageKey.platformAdmin(
+    'activity.entity.masterItem',
+  );
+  static const activityEntityMasterItemVersion = UiMessageKey.platformAdmin(
+    'activity.entity.masterItemVersion',
+  );
+  static const activityEntityMasterTemplate = UiMessageKey.platformAdmin(
+    'activity.entity.masterTemplate',
+  );
+  static const activityEntityOptionSet = UiMessageKey.platformAdmin(
+    'activity.entity.optionSet',
+  );
+  static const activityEntityOptionValue = UiMessageKey.platformAdmin(
+    'activity.entity.optionValue',
+  );
+  static const activityEntityReason = UiMessageKey.platformAdmin(
+    'activity.entity.reason',
+  );
+  static const activityEntityTemplate = UiMessageKey.platformAdmin(
+    'activity.entity.template',
+  );
+  static const activityEntityTemplateVersion = UiMessageKey.platformAdmin(
+    'activity.entity.templateVersion',
+  );
+  static const activityEntityUser = UiMessageKey.platformAdmin(
+    'activity.entity.user',
+  );
+  static const activityEntityWorkshop = UiMessageKey.platformAdmin(
+    'activity.entity.workshop',
+  );
+  static const activityReasonExpansion = UiMessageKey.platformAdmin(
+    'activity.reason.expansion',
   );
   static const activityReasonInitialSetup = UiMessageKey.platformAdmin(
     'activity.reason.initialSetup',
   );
+  static const activityReasonInvalidCode = UiMessageKey.platformAdmin(
+    'activity.reason.invalidCode',
+  );
+  static const activityReasonInvalidCredentials = UiMessageKey.platformAdmin(
+    'activity.reason.invalidCredentials',
+  );
+  static const activityReasonLocked = UiMessageKey.platformAdmin(
+    'activity.reason.locked',
+  );
+  static const activityReasonManualCorrection = UiMessageKey.platformAdmin(
+    'activity.reason.manualCorrection',
+  );
+  static const activityReasonPublish = UiMessageKey.platformAdmin(
+    'activity.reason.publish',
+  );
+  static const activityReasonRotatedTokenReused = UiMessageKey.platformAdmin(
+    'activity.reason.rotatedTokenReused',
+  );
   static const activityRolePlatformAdmin = UiMessageKey.platformAdmin(
     'activity.role.platformAdmin',
+  );
+  static const activityRoleTechnician = UiMessageKey.platformAdmin(
+    'activity.role.technician',
+  );
+  static const activityRoleWorkshopAdmin = UiMessageKey.platformAdmin(
+    'activity.role.workshopAdmin',
   );
   static const addStaffHelperTemporaryPassword = UiMessageKey.platformAdmin(
     'addStaff.helper.temporaryPassword',
@@ -24,6 +354,12 @@ abstract final class PlatformAdminKeys {
   );
   static const alertVersionImmutable = UiMessageKey.platformAdmin(
     'alert.version.immutable',
+  );
+  static const auditDetailsHide = UiMessageKey.platformAdmin(
+    'audit.details.hide',
+  );
+  static const auditDetailsView = UiMessageKey.platformAdmin(
+    'audit.details.view',
   );
   static const badgeSafetyCritical = UiMessageKey.platformAdmin(
     'badge.safetyCritical',
@@ -179,8 +515,9 @@ abstract final class PlatformAdminKeys {
   static const checklistBuilderEmptyCategoryItems = UiMessageKey.platformAdmin(
     'checklist.builder.emptyCategoryItems',
   );
-  static const checklistBuilderItemPickerDialogTitle =
-      UiMessageKey.platformAdmin('checklist.builder.itemPickerDialogTitle');
+  static const checklistBuilderItemPickerDialogTitle = UiMessageKey.platformAdmin(
+    'checklist.builder.itemPickerDialogTitle',
+  );
   static const checklistBuilderNoCategorySelected = UiMessageKey.platformAdmin(
     'checklist.builder.noCategorySelected',
   );
@@ -217,8 +554,9 @@ abstract final class PlatformAdminKeys {
   static const checklistCategoriesOrder = UiMessageKey.platformAdmin(
     'checklist.categories.order',
   );
-  static const checklistEditorButtonCreateDraftToEdit =
-      UiMessageKey.platformAdmin('checklist.editor.buttonCreateDraftToEdit');
+  static const checklistEditorButtonCreateDraftToEdit = UiMessageKey.platformAdmin(
+    'checklist.editor.buttonCreateDraftToEdit',
+  );
   static const checklistEditorPublishedBannerBody = UiMessageKey.platformAdmin(
     'checklist.editor.publishedBannerBody',
   );
@@ -234,12 +572,6 @@ abstract final class PlatformAdminKeys {
   static const checklistHealthAffectedCount = UiMessageKey.platformAdmin(
     'checklist.health.affectedCount',
   );
-  static const checklistHealthIssuesFound = UiMessageKey.platformAdmin(
-    'checklist.health.issuesFound',
-  );
-  static const checklistHealthTotalChecks = UiMessageKey.platformAdmin(
-    'checklist.health.totalChecks',
-  );
   static const checklistHealthAllHealthyBody = UiMessageKey.platformAdmin(
     'checklist.health.allHealthyBody',
   );
@@ -249,10 +581,12 @@ abstract final class PlatformAdminKeys {
   static const checklistHealthCheckGeneric = UiMessageKey.platformAdmin(
     'checklist.health.check.generic',
   );
-  static const checklistHealthCheckMeasurementBands =
-      UiMessageKey.platformAdmin('checklist.health.check.measurementBands');
-  static const checklistHealthCheckNumericMeasurements =
-      UiMessageKey.platformAdmin('checklist.health.check.numericMeasurements');
+  static const checklistHealthCheckMeasurementBands = UiMessageKey.platformAdmin(
+    'checklist.health.check.measurementBands',
+  );
+  static const checklistHealthCheckNumericMeasurements = UiMessageKey.platformAdmin(
+    'checklist.health.check.numericMeasurements',
+  );
   static const checklistHealthCheckRetiredOptions = UiMessageKey.platformAdmin(
     'checklist.health.check.retiredOptions',
   );
@@ -264,6 +598,9 @@ abstract final class PlatformAdminKeys {
   );
   static const checklistHealthCheckTranslations = UiMessageKey.platformAdmin(
     'checklist.health.check.translations',
+  );
+  static const checklistHealthIssuesFound = UiMessageKey.platformAdmin(
+    'checklist.health.issuesFound',
   );
   static const checklistHealthSeverityBadgeError = UiMessageKey.platformAdmin(
     'checklist.health.severityBadgeError',
@@ -282,6 +619,9 @@ abstract final class PlatformAdminKeys {
   );
   static const checklistHealthSeverityWarnings = UiMessageKey.platformAdmin(
     'checklist.health.severityWarnings',
+  );
+  static const checklistHealthTotalChecks = UiMessageKey.platformAdmin(
+    'checklist.health.totalChecks',
   );
   static const checklistItemsButtonCreateFirst = UiMessageKey.platformAdmin(
     'checklist.items.buttonCreateFirst',
@@ -343,12 +683,12 @@ abstract final class PlatformAdminKeys {
   static const checklistTemplatesReadinessBlocked = UiMessageKey.platformAdmin(
     'checklist.templates.readinessBlocked',
   );
-  static const checklistTemplatesReadinessNeedsCategories =
-      UiMessageKey.platformAdmin(
-        'checklist.templates.readinessNeedsCategories',
-      );
-  static const checklistTemplatesReadinessNeedsItems =
-      UiMessageKey.platformAdmin('checklist.templates.readinessNeedsItems');
+  static const checklistTemplatesReadinessNeedsCategories = UiMessageKey.platformAdmin(
+    'checklist.templates.readinessNeedsCategories',
+  );
+  static const checklistTemplatesReadinessNeedsItems = UiMessageKey.platformAdmin(
+    'checklist.templates.readinessNeedsItems',
+  );
   static const checklistTemplatesReadinessReady = UiMessageKey.platformAdmin(
     'checklist.templates.readinessReady',
   );
@@ -382,10 +722,12 @@ abstract final class PlatformAdminKeys {
   static const dashboardAlertReportsFailedTitle = UiMessageKey.platformAdmin(
     'dashboard.alert.reportsFailed.title',
   );
-  static const dashboardAlertReportsUnpublishedBody =
-      UiMessageKey.platformAdmin('dashboard.alert.reportsUnpublished.body');
-  static const dashboardAlertReportsUnpublishedTitle =
-      UiMessageKey.platformAdmin('dashboard.alert.reportsUnpublished.title');
+  static const dashboardAlertReportsUnpublishedBody = UiMessageKey.platformAdmin(
+    'dashboard.alert.reportsUnpublished.body',
+  );
+  static const dashboardAlertReportsUnpublishedTitle = UiMessageKey.platformAdmin(
+    'dashboard.alert.reportsUnpublished.title',
+  );
   static const dashboardHealthSummaryMultiple = UiMessageKey.platformAdmin(
     'dashboard.healthSummary.multiple',
   );
@@ -413,37 +755,45 @@ abstract final class PlatformAdminKeys {
   static const dashboardKpiReviewsPendingCount = UiMessageKey.platformAdmin(
     'dashboard.kpi.reviews.pendingCount',
   );
-  static const dashboardNeedsAttentionChecklistIssues =
-      UiMessageKey.platformAdmin('dashboard.needsAttention.checklistIssues');
+  static const dashboardNeedsAttentionChecklistIssues = UiMessageKey.platformAdmin(
+    'dashboard.needsAttention.checklistIssues',
+  );
   static const dashboardNeedsAttentionEmpty = UiMessageKey.platformAdmin(
     'dashboard.needsAttention.empty',
   );
-  static const dashboardNeedsAttentionLanguageInSetup =
-      UiMessageKey.platformAdmin('dashboard.needsAttention.languageInSetup');
-  static const dashboardNeedsAttentionPendingReviews =
-      UiMessageKey.platformAdmin('dashboard.needsAttention.pendingReviews');
+  static const dashboardNeedsAttentionLanguageInSetup = UiMessageKey.platformAdmin(
+    'dashboard.needsAttention.languageInSetup',
+  );
+  static const dashboardNeedsAttentionPendingReviews = UiMessageKey.platformAdmin(
+    'dashboard.needsAttention.pendingReviews',
+  );
   static const dashboardNeedsAttentionTitle = UiMessageKey.platformAdmin(
     'dashboard.needsAttention.title',
   );
-  static const dashboardQuickActionsAddChecklistItem =
-      UiMessageKey.platformAdmin('dashboard.quickActions.addChecklistItem');
-  static const dashboardQuickActionsAddChecklistItemDesc =
-      UiMessageKey.platformAdmin('dashboard.quickActions.addChecklistItemDesc');
+  static const dashboardQuickActionsAddChecklistItem = UiMessageKey.platformAdmin(
+    'dashboard.quickActions.addChecklistItem',
+  );
+  static const dashboardQuickActionsAddChecklistItemDesc = UiMessageKey.platformAdmin(
+    'dashboard.quickActions.addChecklistItemDesc',
+  );
   static const dashboardQuickActionsAddLanguage = UiMessageKey.platformAdmin(
     'dashboard.quickActions.addLanguage',
   );
-  static const dashboardQuickActionsAddLanguageDesc =
-      UiMessageKey.platformAdmin('dashboard.quickActions.addLanguageDesc');
+  static const dashboardQuickActionsAddLanguageDesc = UiMessageKey.platformAdmin(
+    'dashboard.quickActions.addLanguageDesc',
+  );
   static const dashboardQuickActionsAddWorkshop = UiMessageKey.platformAdmin(
     'dashboard.quickActions.addWorkshop',
   );
-  static const dashboardQuickActionsAddWorkshopDesc =
-      UiMessageKey.platformAdmin('dashboard.quickActions.addWorkshopDesc');
+  static const dashboardQuickActionsAddWorkshopDesc = UiMessageKey.platformAdmin(
+    'dashboard.quickActions.addWorkshopDesc',
+  );
   static const dashboardQuickActionsCreateTemplate = UiMessageKey.platformAdmin(
     'dashboard.quickActions.createTemplate',
   );
-  static const dashboardQuickActionsCreateTemplateDesc =
-      UiMessageKey.platformAdmin('dashboard.quickActions.createTemplateDesc');
+  static const dashboardQuickActionsCreateTemplateDesc = UiMessageKey.platformAdmin(
+    'dashboard.quickActions.createTemplateDesc',
+  );
   static const dashboardQuickActionsTitle = UiMessageKey.platformAdmin(
     'dashboard.quickActions.title',
   );
@@ -529,8 +879,9 @@ abstract final class PlatformAdminKeys {
   static const emptyWorkshopPendingInvitationsBody = UiMessageKey.platformAdmin(
     'empty.workshopPendingInvitations.body',
   );
-  static const emptyWorkshopPendingInvitationsTitle =
-      UiMessageKey.platformAdmin('empty.workshopPendingInvitations.title');
+  static const emptyWorkshopPendingInvitationsTitle = UiMessageKey.platformAdmin(
+    'empty.workshopPendingInvitations.title',
+  );
   static const emptyWorkshopTechniciansBody = UiMessageKey.platformAdmin(
     'empty.workshopTechnicians.body',
   );
@@ -644,15 +995,6 @@ abstract final class PlatformAdminKeys {
   static const fieldItemStandardSpecEn = UiMessageKey.platformAdmin(
     'field.item.standardSpecEn',
   );
-  static const fieldOptionValueCode = UiMessageKey.platformAdmin(
-    'field.optionValue.code',
-  );
-  static const fieldOptionValueDescription = UiMessageKey.platformAdmin(
-    'field.optionValue.description',
-  );
-  static const fieldOptionValueLabel = UiMessageKey.platformAdmin(
-    'field.optionValue.label',
-  );
   static const fieldLanguageCode = UiMessageKey.platformAdmin(
     'field.language.code',
   );
@@ -673,6 +1015,15 @@ abstract final class PlatformAdminKeys {
   );
   static const fieldMeasureMin = UiMessageKey.platformAdmin(
     'field.measure.min',
+  );
+  static const fieldOptionValueCode = UiMessageKey.platformAdmin(
+    'field.optionValue.code',
+  );
+  static const fieldOptionValueDescription = UiMessageKey.platformAdmin(
+    'field.optionValue.description',
+  );
+  static const fieldOptionValueLabel = UiMessageKey.platformAdmin(
+    'field.optionValue.label',
   );
   static const fieldReleaseEntityId = UiMessageKey.platformAdmin(
     'field.release.entityId',
@@ -960,18 +1311,21 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceButtonDeactivate = UiMessageKey.platformAdmin(
     'languageWorkspace.button.deactivate',
   );
-  static const languageWorkspaceButtonDeleteOrRetire =
-      UiMessageKey.platformAdmin('languageWorkspace.button.deleteOrRetire');
+  static const languageWorkspaceButtonDeleteOrRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.deleteOrRetire',
+  );
   static const languageWorkspaceButtonEditMetadata = UiMessageKey.platformAdmin(
     'languageWorkspace.button.editMetadata',
   );
   static const languageWorkspaceButtonGenerateAll = UiMessageKey.platformAdmin(
     'languageWorkspace.button.generateAll',
   );
-  static const languageWorkspaceButtonGenerateEntity =
-      UiMessageKey.platformAdmin('languageWorkspace.button.generateEntity');
-  static const languageWorkspaceButtonGenerateUiText =
-      UiMessageKey.platformAdmin('languageWorkspace.button.generateUiText');
+  static const languageWorkspaceButtonGenerateEntity = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.generateEntity',
+  );
+  static const languageWorkspaceButtonGenerateUiText = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.generateUiText',
+  );
   static const languageWorkspaceButtonManage = UiMessageKey.platformAdmin(
     'languageWorkspace.button.manage',
   );
@@ -1011,10 +1365,12 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceContentTitle = UiMessageKey.platformAdmin(
     'languageWorkspace.content.title',
   );
-  static const languageWorkspaceDialogDeleteOrRetire =
-      UiMessageKey.platformAdmin('languageWorkspace.dialog.deleteOrRetire');
-  static const languageWorkspaceDialogDeleteOrRetireBody =
-      UiMessageKey.platformAdmin('languageWorkspace.dialog.deleteOrRetireBody');
+  static const languageWorkspaceDialogDeleteOrRetire = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.deleteOrRetire',
+  );
+  static const languageWorkspaceDialogDeleteOrRetireBody = UiMessageKey.platformAdmin(
+    'languageWorkspace.dialog.deleteOrRetireBody',
+  );
   static const languageWorkspaceDialogEditMetadata = UiMessageKey.platformAdmin(
     'languageWorkspace.dialog.editMetadata',
   );
@@ -1036,16 +1392,18 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceFieldChanged = UiMessageKey.platformAdmin(
     'languageWorkspace.field.changed',
   );
-  static const languageWorkspaceFieldContentCoverage =
-      UiMessageKey.platformAdmin('languageWorkspace.field.contentCoverage');
+  static const languageWorkspaceFieldContentCoverage = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.contentCoverage',
+  );
   static const languageWorkspaceFieldDefaultFlag = UiMessageKey.platformAdmin(
     'languageWorkspace.field.defaultFlag',
   );
   static const languageWorkspaceFieldFailedKeys = UiMessageKey.platformAdmin(
     'languageWorkspace.field.failedKeys',
   );
-  static const languageWorkspaceFieldGenerationStatus =
-      UiMessageKey.platformAdmin('languageWorkspace.field.generationStatus');
+  static const languageWorkspaceFieldGenerationStatus = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.generationStatus',
+  );
   static const languageWorkspaceFieldLastGenerated = UiMessageKey.platformAdmin(
     'languageWorkspace.field.lastGenerated',
   );
@@ -1067,13 +1425,15 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceFieldTotal = UiMessageKey.platformAdmin(
     'languageWorkspace.field.total',
   );
-  static const languageWorkspaceFieldUiTextCoverage =
-      UiMessageKey.platformAdmin('languageWorkspace.field.uiTextCoverage');
+  static const languageWorkspaceFieldUiTextCoverage = UiMessageKey.platformAdmin(
+    'languageWorkspace.field.uiTextCoverage',
+  );
   static const languageWorkspaceFilterFailed = UiMessageKey.platformAdmin(
     'languageWorkspace.filter.failed',
   );
-  static const languageWorkspaceGenerationCompleted =
-      UiMessageKey.platformAdmin('languageWorkspace.generation.completed');
+  static const languageWorkspaceGenerationCompleted = UiMessageKey.platformAdmin(
+    'languageWorkspace.generation.completed',
+  );
   static const languageWorkspaceGenerationFailed = UiMessageKey.platformAdmin(
     'languageWorkspace.generation.failed',
   );
@@ -1098,10 +1458,14 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceOverviewGeneration = UiMessageKey.platformAdmin(
     'languageWorkspace.overview.generation',
   );
-  static const languageWorkspaceOverviewGenerationIdle =
-      UiMessageKey.platformAdmin('languageWorkspace.overview.generationIdle');
+  static const languageWorkspaceOverviewGenerationIdle = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.generationIdle',
+  );
   static const languageWorkspaceOverviewNoBlockers = UiMessageKey.platformAdmin(
     'languageWorkspace.overview.noBlockers',
+  );
+  static const languageWorkspaceOverviewNoBlockersLive = UiMessageKey.platformAdmin(
+    'languageWorkspace.overview.noBlockersLive',
   );
   static const languageWorkspaceOverviewOpenTab = UiMessageKey.platformAdmin(
     'languageWorkspace.overview.openTab',
@@ -1112,8 +1476,9 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceOverviewUiText = UiMessageKey.platformAdmin(
     'languageWorkspace.overview.uiText',
   );
-  static const languageWorkspacePublishActiveGeneration =
-      UiMessageKey.platformAdmin('languageWorkspace.publish.activeGeneration');
+  static const languageWorkspacePublishActiveGeneration = UiMessageKey.platformAdmin(
+    'languageWorkspace.publish.activeGeneration',
+  );
   static const languageWorkspacePublishBlocked = UiMessageKey.platformAdmin(
     'languageWorkspace.publish.blocked',
   );
@@ -1180,12 +1545,15 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceToastDefaultSet = UiMessageKey.platformAdmin(
     'languageWorkspace.toast.defaultSet',
   );
-  static const languageWorkspaceToastDeletedOrRetired =
-      UiMessageKey.platformAdmin('languageWorkspace.toast.deletedOrRetired');
-  static const languageWorkspaceToastGenerationRetried =
-      UiMessageKey.platformAdmin('languageWorkspace.toast.generationRetried');
-  static const languageWorkspaceToastGenerationStarted =
-      UiMessageKey.platformAdmin('languageWorkspace.toast.generationStarted');
+  static const languageWorkspaceToastDeletedOrRetired = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.deletedOrRetired',
+  );
+  static const languageWorkspaceToastGenerationRetried = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.generationRetried',
+  );
+  static const languageWorkspaceToastGenerationStarted = UiMessageKey.platformAdmin(
+    'languageWorkspace.toast.generationStarted',
+  );
   static const languageWorkspaceToastNoFailedKeys = UiMessageKey.platformAdmin(
     'languageWorkspace.toast.noFailedKeys',
   );
@@ -1213,10 +1581,9 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceToastValidated = UiMessageKey.platformAdmin(
     'languageWorkspace.toast.validated',
   );
-  static const languageWorkspaceUiTextPlaceholderMismatch =
-      UiMessageKey.platformAdmin(
-        'languageWorkspace.uiText.placeholderMismatch',
-      );
+  static const languageWorkspaceUiTextPlaceholderMismatch = UiMessageKey.platformAdmin(
+    'languageWorkspace.uiText.placeholderMismatch',
+  );
   static const languageWorkspaceUiTextSubtitle = UiMessageKey.platformAdmin(
     'languageWorkspace.uiText.subtitle',
   );
@@ -1397,26 +1764,6 @@ abstract final class PlatformAdminKeys {
   static const pageTemplatesTitle = UiMessageKey.platformAdmin(
     'page.templates.title',
   );
-  static const pluralCategoriesOne = UiMessageKey.platformAdmin(
-    'plural.categories.one',
-  );
-  static const pluralCategoriesOther = UiMessageKey.platformAdmin(
-    'plural.categories.other',
-  );
-  static const pluralCategoriesTwo = UiMessageKey.platformAdmin(
-    'plural.categories.two',
-  );
-  static const pluralCategoriesZero = UiMessageKey.platformAdmin(
-    'plural.categories.zero',
-  );
-  static const pluralItemsOne = UiMessageKey.platformAdmin('plural.items.one');
-  static const pluralItemsOther = UiMessageKey.platformAdmin(
-    'plural.items.other',
-  );
-  static const pluralItemsTwo = UiMessageKey.platformAdmin('plural.items.two');
-  static const pluralItemsZero = UiMessageKey.platformAdmin(
-    'plural.items.zero',
-  );
   static const pageTemplatesUpdatedOn = UiMessageKey.platformAdmin(
     'page.templates.updatedOn',
   );
@@ -1451,11 +1798,74 @@ abstract final class PlatformAdminKeys {
   static const paginationPageInfo = UiMessageKey.platformAdmin(
     'pagination.pageInfo',
   );
+  static const pluralCategoriesOne = UiMessageKey.platformAdmin(
+    'plural.categories.one',
+  );
+  static const pluralCategoriesOther = UiMessageKey.platformAdmin(
+    'plural.categories.other',
+  );
+  static const pluralCategoriesTwo = UiMessageKey.platformAdmin(
+    'plural.categories.two',
+  );
+  static const pluralCategoriesZero = UiMessageKey.platformAdmin(
+    'plural.categories.zero',
+  );
+  static const pluralItemsOne = UiMessageKey.platformAdmin('plural.items.one');
+  static const pluralItemsOther = UiMessageKey.platformAdmin(
+    'plural.items.other',
+  );
+  static const pluralItemsTwo = UiMessageKey.platformAdmin('plural.items.two');
+  static const pluralItemsZero = UiMessageKey.platformAdmin(
+    'plural.items.zero',
+  );
   static const queueApproved = UiMessageKey.platformAdmin('queue.approved');
   static const queueDraft = UiMessageKey.platformAdmin('queue.draft');
   static const queueMissing = UiMessageKey.platformAdmin('queue.missing');
   static const queueReviewed = UiMessageKey.platformAdmin('queue.reviewed');
   static const queueTotal = UiMessageKey.platformAdmin('queue.total');
+  static const reportsDialogEditTitle = UiMessageKey.platformAdmin(
+    'reports.dialog.editTitle',
+  );
+  static const reportsFormActiveStatusDesc = UiMessageKey.platformAdmin(
+    'reports.form.activeStatusDesc',
+  );
+  static const reportsFormActiveStatusLabel = UiMessageKey.platformAdmin(
+    'reports.form.activeStatusLabel',
+  );
+  static const reportsFormFieldCodeHelper = UiMessageKey.platformAdmin(
+    'reports.form.fieldCodeHelper',
+  );
+  static const reportsFormFieldNameHelper = UiMessageKey.platformAdmin(
+    'reports.form.fieldNameHelper',
+  );
+  static const reportsFormOptionalAtPublication = UiMessageKey.platformAdmin(
+    'reports.form.optionalAtPublication',
+  );
+  static const reportsFormOptionalFieldDesc = UiMessageKey.platformAdmin(
+    'reports.form.optionalFieldDesc',
+  );
+  static const reportsFormRequiredAtPublication = UiMessageKey.platformAdmin(
+    'reports.form.requiredAtPublication',
+  );
+  static const reportsFormRequiredFieldDesc = UiMessageKey.platformAdmin(
+    'reports.form.requiredFieldDesc',
+  );
+  static const reportsFormReviewEnglishName = UiMessageKey.platformAdmin(
+    'reports.form.reviewEnglishName',
+  );
+  static const reportsFormSectionIdentity = UiMessageKey.platformAdmin(
+    'reports.form.sectionIdentity',
+  );
+  static const reportsFormSectionPublicationRequirement = UiMessageKey.platformAdmin(
+    'reports.form.sectionPublicationRequirement',
+  );
+  static const reportsFormSectionReview = UiMessageKey.platformAdmin(
+    'reports.form.sectionReview',
+  );
+  static const reportsFormSectionSettings = UiMessageKey.platformAdmin(
+    'reports.form.sectionSettings',
+  );
+  static const reportsSubtitle = UiMessageKey.platformAdmin('reports.subtitle');
   static const sectionDashboardAlerts = UiMessageKey.platformAdmin(
     'section.dashboard.alerts',
   );
@@ -1522,16 +1932,42 @@ abstract final class PlatformAdminKeys {
   static const sectionWorkshopTechnicians = UiMessageKey.platformAdmin(
     'section.workshop.technicians',
   );
+  static const settingsAuditBody = UiMessageKey.platformAdmin(
+    'settings.audit.body',
+  );
+  static const settingsAuditEventOne = UiMessageKey.platformAdmin(
+    'settings.audit.eventOne',
+  );
+  static const settingsAuditEventsCount = UiMessageKey.platformAdmin(
+    'settings.audit.eventsCount',
+  );
+  static const settingsAuditNoEvents = UiMessageKey.platformAdmin(
+    'settings.audit.noEvents',
+  );
+  static const settingsAuditTitle = UiMessageKey.platformAdmin(
+    'settings.audit.title',
+  );
+  static const settingsHealthBody = UiMessageKey.platformAdmin(
+    'settings.health.body',
+  );
+  static const settingsMaintenanceBody = UiMessageKey.platformAdmin(
+    'settings.maintenance.body',
+  );
+  static const settingsMaintenanceTitle = UiMessageKey.platformAdmin(
+    'settings.maintenance.title',
+  );
   static const settingsScopeBadge = UiMessageKey.platformAdmin(
     'settings.scopeBadge',
   );
-  static const sidebarLanguagesActionContinueGeneration =
-      UiMessageKey.platformAdmin('sidebar.languages.actionContinueGeneration');
+  static const sidebarLanguagesActionContinueGeneration = UiMessageKey.platformAdmin(
+    'sidebar.languages.actionContinueGeneration',
+  );
   static const sidebarLanguagesActionGenerate = UiMessageKey.platformAdmin(
     'sidebar.languages.actionGenerate',
   );
-  static const sidebarLanguagesActionGenerateMissing =
-      UiMessageKey.platformAdmin('sidebar.languages.actionGenerateMissing');
+  static const sidebarLanguagesActionGenerateMissing = UiMessageKey.platformAdmin(
+    'sidebar.languages.actionGenerateMissing',
+  );
   static const sidebarLanguagesActionPublish = UiMessageKey.platformAdmin(
     'sidebar.languages.actionPublish',
   );

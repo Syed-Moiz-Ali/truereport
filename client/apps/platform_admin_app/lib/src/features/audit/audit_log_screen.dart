@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +12,7 @@ import '../../download_file_stub.dart'
 import '../../platform_catalogue_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../workshops/workshop_activity.dart';
 
 /// Screen 9: Platform Audit Events Log, backed by the platform API.
 class AuditLogScreen extends ConsumerStatefulWidget {
@@ -31,12 +30,10 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
   final _dateTo = TextEditingController();
   final _search = TextEditingController();
   AuditQuery _query = const AuditQuery();
-  Timer? _debounce;
   bool _exporting = false;
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _action.dispose();
     _entityType.dispose();
     _actor.dispose();
@@ -48,14 +45,6 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
 
   void _apply(AuditQuery next) {
     setState(() => _query = next.copyWith(page: 0));
-  }
-
-  void _searchChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      _apply(_query.copyWith(search: value.trim()));
-    });
   }
 
   Future<void> _export(String format) async {
@@ -178,7 +167,8 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
               hintText: strings.tKey(PlatformAdminKeys.filterAuditSearch),
               prefixIcon: const Icon(Icons.search_rounded, size: 18),
             ),
-            onChanged: _searchChanged,
+            onSubmitted: (value) =>
+                _apply(_query.copyWith(search: value.trim())),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -335,14 +325,42 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
         for (final event in events)
           SizedBox(
             width: columns == 1 ? double.infinity : cardWidth,
-            child: _buildEventCard(strings, event),
+            child: _AuditCard(strings: strings, event: event),
           ),
       ],
     );
   }
+}
 
-  Widget _buildEventCard(UiMessageStrings strings, PlatformAuditEvent event) {
+class _AuditCard extends StatefulWidget {
+  const _AuditCard({required this.strings, required this.event});
+
+  final UiMessageStrings strings;
+  final PlatformAuditEvent event;
+
+  @override
+  State<_AuditCard> createState() => _AuditCardState();
+}
+
+class _AuditCardState extends State<_AuditCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = widget.strings;
+    final event = widget.event;
     final metadata = event.metadataJson.trim();
+    final locale = Localizations.localeOf(context).languageCode;
+    final formattedAction = auditActionLabel(strings, event.action);
+    final formattedRole = auditRoleLabel(strings, event.actorRole);
+    final formattedReason = auditReasonLabel(strings, event.reasonCode);
+    final formattedDate = auditTimestampLabel(event.occurredAt, locale);
+    final formattedEntity = auditEntityLabel(strings, event.entityType);
+
+    // Initial avatar letters
+    final initials = formattedAction.isNotEmpty
+        ? formattedAction.substring(0, 1).toUpperCase()
+        : 'A';
 
     return PlatformSectionCard(
       padding: const EdgeInsets.all(16),
@@ -360,10 +378,15 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: PtTheme.border),
                 ),
-                child: const Icon(
-                  Icons.history_rounded,
-                  size: 19,
-                  color: PtTheme.deepGreen,
+                child: Center(
+                  child: Text(
+                    initials,
+                    style: PtTheme.font(
+                      14,
+                      weight: FontWeight.w700,
+                      color: PtTheme.deepGreen,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -372,7 +395,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      event.action.isEmpty ? '-' : event.action,
+                      formattedAction,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -385,8 +408,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                     const SizedBox(height: 3),
                     Text(
                       '${strings.tKey(PlatformAdminKeys.tableAuditEntity)}: '
-                      '${event.entityType.isEmpty ? '-' : event.entityType} / '
-                      '${event.entityId.isEmpty ? '-' : event.entityId}',
+                      '$formattedEntity${event.entityId.isNotEmpty ? ' #${event.entityId}' : ''}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: PtTheme.font(
@@ -408,40 +430,71 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              PlatformStatusChip(
-                status: event.entityType.isEmpty ? '-' : event.entityType,
-              ),
+              PlatformStatusChip(status: formattedEntity),
               PlatformMetaPill(
                 label: strings.tKey(PlatformAdminKeys.tableAuditActor),
-                value: event.actorRole.isEmpty ? '-' : event.actorRole,
+                value: formattedRole,
               ),
-              PlatformMetaPill(
-                label: strings.tKey(CommonKeys.fieldReason),
-                value: event.reasonCode.isEmpty ? '-' : event.reasonCode,
-              ),
+              if (formattedReason != '—')
+                PlatformMetaPill(
+                  label: strings.tKey(CommonKeys.fieldReason),
+                  value: formattedReason,
+                ),
               PlatformMetaPill(
                 label: strings.tKey(PlatformAdminKeys.tableAuditOccurredAt),
-                value: event.occurredAt.isEmpty ? '-' : event.occurredAt,
+                value: formattedDate,
               ),
             ],
           ),
           if (metadata.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: PtTheme.canvas,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: PtTheme.border),
-              ),
-              child: Text(
-                metadata,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: PtTheme.font(11, lineHeight: 16, color: PtTheme.muted),
+            const SizedBox(height: 10),
+            InkWell(
+              key: ValueKey('audit-details-${event.id}'),
+              borderRadius: BorderRadius.circular(6),
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _expanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      size: 18,
+                      color: PtTheme.deepGreen,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _expanded
+                          ? strings.tKey(PlatformAdminKeys.auditDetailsHide)
+                          : strings.tKey(PlatformAdminKeys.auditDetailsView),
+                      style: PtTheme.font(
+                        12,
+                        weight: FontWeight.w600,
+                        color: PtTheme.deepGreen,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+            if (_expanded) ...[
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: PtTheme.canvas,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: PtTheme.border),
+                ),
+                child: SelectableText(
+                  metadata,
+                  style: PtTheme.font(11, lineHeight: 16, color: PtTheme.muted),
+                ),
+              ),
+            ],
           ],
         ],
       ),

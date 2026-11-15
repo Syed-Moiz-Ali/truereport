@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auth/auth.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
@@ -592,6 +594,159 @@ void main() {
       },
     );
 
+    testWidgets('sidebar loading language card is visibly distinct', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      const languages = [
+        PlatformLanguage(
+          code: 'de',
+          nativeName: 'Deutsch',
+          direction: 'ltr',
+          status: 'TRANSLATING',
+          isDefault: false,
+          active: false,
+          sortOrder: 1,
+        ),
+      ];
+      final pendingReadiness = Completer<LanguageReadiness>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          key: const ValueKey('loading-scope'),
+          overrides: [
+            uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+            platformLocaleProvider.overrideWith(
+              () => _MockLocaleController(const Locale('en')),
+            ),
+            platformLanguagesProvider.overrideWith((ref) async => languages),
+            readinessProvider('de')
+                .overrideWith((ref) => pendingReadiness.future),
+            contentGenerationProvider('de').overrideWith(
+              (ref) async => const ContentGeneration(
+                language: 'de',
+                jobId: '',
+                jobStatus: 'IDLE',
+                status: 'IDLE',
+                total: 0,
+                completed: 0,
+                failedKeys: [],
+                entityTypes: [],
+                error: '',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: PlatformSidebar(currentRoute: '/dashboard')),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('sidebar-language-loading')), findsOneWidget);
+      expect(find.text('Deutsch (DE)'), findsOneWidget);
+      expect(find.text('Continue generation'), findsNothing);
+      expect(
+        find.byKey(const Key('btn-sidebar-language-action')),
+        findsNothing,
+      );
+    });
+
+    testWidgets(
+      'sidebar TRANSLATING language shows progress and continue CTA',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        const languages = [
+          PlatformLanguage(
+            code: 'en',
+            nativeName: 'English',
+            direction: 'ltr',
+            status: 'LIVE',
+            isDefault: true,
+            active: true,
+            sortOrder: 0,
+          ),
+          PlatformLanguage(
+            code: 'de',
+            nativeName: 'Deutsch',
+            direction: 'ltr',
+            status: 'TRANSLATING',
+            isDefault: false,
+            active: false,
+            sortOrder: 1,
+          ),
+        ];
+        const readiness = LanguageReadiness(
+          language: 'de',
+          status: 'TRANSLATING',
+          nativeName: 'Deutsch',
+          direction: 'ltr',
+          isDefault: false,
+          uiMessagesPath: 'de.json',
+          readinessPercent: 42,
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 42,
+            missing: 58,
+            changed: 0,
+            path: 'de.json',
+            generationStatus: 'NONE',
+          ),
+          content: {},
+          blockers: [],
+        );
+
+        String? pushedRoute;
+        await tester.pumpWidget(
+          ProviderScope(
+            key: const ValueKey('translating-scope'),
+            overrides: [
+              uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
+              platformLocaleProvider.overrideWith(
+                () => _MockLocaleController(const Locale('en')),
+              ),
+              platformLanguagesProvider.overrideWith((ref) async => languages),
+              readinessProvider('de').overrideWith((ref) async => readiness),
+              contentGenerationProvider('de').overrideWith(
+                (ref) async => const ContentGeneration(
+                  language: 'de',
+                  jobId: '',
+                  jobStatus: 'IDLE',
+                  status: 'IDLE',
+                  total: 0,
+                  completed: 0,
+                  failedKeys: [],
+                  entityTypes: [],
+                  error: '',
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: PlatformSidebar(
+                  currentRoute: '/dashboard',
+                  onNavigate: (route) => pushedRoute = route,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Deutsch (DE)'), findsOneWidget);
+        expect(find.text('Translating'), findsOneWidget);
+        expect(find.text('42 of 100 translated (42%)'), findsOneWidget);
+        expect(find.text('Continue generation'), findsOneWidget);
+
+        await tester.tap(find.text('Continue generation'));
+        await tester.pumpAndSettle();
+        expect(pushedRoute, equals('/settings/languages/de?tab=categories'));
+      },
+    );
     testWidgets('sidebar language card shows +N more', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));

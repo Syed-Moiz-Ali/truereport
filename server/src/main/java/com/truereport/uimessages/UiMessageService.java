@@ -187,7 +187,7 @@ public class UiMessageService {
                 hex.append(Character.forDigit((value >> 4) & 0xF, 16));
                 hex.append(Character.forDigit(value & 0xF, 16));
             }
-            return "\"" + hex + "\"";
+            return "W/\"" + hex + "\"";
         } catch (NoSuchAlgorithmException error) {
             throw new IllegalStateException(error);
         }

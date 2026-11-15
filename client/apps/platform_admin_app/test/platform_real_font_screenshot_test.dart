@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -16,6 +17,7 @@ import 'package:platform_admin_app/src/components/platform_toolbar.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 class _MockLocaleController extends LocaleController {
@@ -58,7 +60,10 @@ Future<void> _loadRealFonts() async {
 
     // Also register unprefixed family name for theme lookups
     final bareFamily = family.replaceFirst('packages/design_system/', '');
-    final bareLoader = families.putIfAbsent(bareFamily, () => FontLoader(bareFamily));
+    final bareLoader = families.putIfAbsent(
+      bareFamily,
+      () => FontLoader(bareFamily),
+    );
     bareLoader.addFont(Future.value(ByteData.sublistView(bytes)));
   }
 
@@ -67,7 +72,10 @@ Future<void> _loadRealFonts() async {
   final materialFile = File(materialPath);
   if (materialFile.existsSync()) {
     final bytes = await materialFile.readAsBytes();
-    final loader = families.putIfAbsent('MaterialIcons', () => FontLoader('MaterialIcons'));
+    final loader = families.putIfAbsent(
+      'MaterialIcons',
+      () => FontLoader('MaterialIcons'),
+    );
     loader.addFont(Future.value(ByteData.sublistView(bytes)));
   }
 
@@ -96,15 +104,44 @@ final _testLanguages = [
     sortOrder: 1,
   ),
   const PlatformLanguage(
+    code: 'de',
+    nativeName: 'Deutsch',
+    direction: 'ltr',
+    status: 'TRANSLATING',
+    isDefault: false,
+    active: false,
+    sortOrder: 2,
+  ),
+  const PlatformLanguage(
     code: 'ar',
     nativeName: 'العربية',
     direction: 'rtl',
     status: 'LIVE',
     isDefault: false,
     active: true,
-    sortOrder: 2,
+    sortOrder: 3,
   ),
 ];
+
+const _testReadinessDe = LanguageReadiness(
+  language: 'de',
+  status: 'TRANSLATING',
+  nativeName: 'Deutsch',
+  direction: 'ltr',
+  isDefault: false,
+  uiMessagesPath: 'de.json',
+  readinessPercent: 42,
+  uiMessages: UiMessageCoverage(
+    total: 100,
+    approved: 42,
+    missing: 58,
+    changed: 0,
+    path: 'de.json',
+    generationStatus: 'NONE',
+  ),
+  content: {},
+  blockers: [],
+);
 
 const _testReadinessEs = LanguageReadiness(
   language: 'es',
@@ -259,9 +296,23 @@ Widget _screenshotHarness({
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
       platformLanguagesProvider.overrideWith((ref) async => _testLanguages),
       readinessProvider('es').overrideWith((ref) async => _testReadinessEs),
+      readinessProvider('de').overrideWith((ref) async => _testReadinessDe),
       contentGenerationProvider('es').overrideWith(
         (ref) async => const ContentGeneration(
           language: 'es',
+          jobId: '',
+          jobStatus: 'IDLE',
+          status: 'IDLE',
+          total: 0,
+          completed: 0,
+          failedKeys: [],
+          entityTypes: [],
+          error: '',
+        ),
+      ),
+      contentGenerationProvider('de').overrideWith(
+        (ref) async => const ContentGeneration(
+          language: 'de',
           jobId: '',
           jobStatus: 'IDLE',
           status: 'IDLE',
@@ -304,6 +355,7 @@ Future<void> _capture(
   GlobalKey key,
   String filename,
 ) async {
+  _expectActionableSidebarIfVisible(tester);
   await tester.runAsync(() async {
     final boundary =
         key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
@@ -325,7 +377,16 @@ Future<void> _capture(
       if (!dir.existsSync()) {
         dir.createSync(recursive: true);
       }
-      File('${dir.path}/$filename').writeAsBytesSync(bytes);
+      final file = File('${dir.path}/$filename');
+      for (var attempt = 0; attempt < 6; attempt++) {
+        try {
+          file.writeAsBytesSync(bytes, flush: true);
+          break;
+        } on FileSystemException {
+          if (attempt == 5) rethrow;
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        }
+      }
     }
   });
 }
@@ -474,4 +535,24 @@ void main() {
       tester.binding.setSurfaceSize(null);
     });
   });
+}
+
+void _expectActionableSidebarIfVisible(WidgetTester tester) {
+  if (find
+      .byKey(const Key('sidebar-language-status-card'))
+      .evaluate()
+      .isEmpty) {
+    return;
+  }
+  expect(find.byKey(const Key('sidebar-language-loading')), findsNothing);
+  expect(find.text('Deutsch (DE)'), findsOneWidget);
+  expect(find.byKey(const Key('btn-sidebar-language-action')), findsOneWidget);
+  if (find.text('Translating').evaluate().isNotEmpty) {
+    expect(find.text('42 of 100 translated (42%)'), findsOneWidget);
+    expect(find.text('Continue generation'), findsOneWidget);
+  } else {
+    expect(find.text('قيد الترجمة'), findsWidgets);
+    expect(find.text('42 من 100 مترجم (42%)'), findsOneWidget);
+    expect(find.text('متابعة التوليد'), findsOneWidget);
+  }
 }

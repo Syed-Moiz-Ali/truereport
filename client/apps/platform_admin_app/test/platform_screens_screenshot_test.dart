@@ -198,9 +198,9 @@ const _auditEvent = PlatformAuditEvent(
   action: 'PUBLISH_ITEM',
   entityType: 'ITEM',
   entityId: 'item-1',
-  actorRole: 'PRINCIPAL_ADMIN',
+  actorRole: 'PLATFORM_ADMIN',
   occurredAt: '2026-01-01T10:00:00Z',
-  reasonCode: 'REASON-WEAR',
+  reasonCode: 'MANUAL_CORRECTION',
   metadataJson: '{"version":1}',
 );
 
@@ -212,6 +212,40 @@ class _MockLocaleController extends LocaleController {
   Locale build() => _initial;
 }
 
+const _testManifest = UiMessageManifest(
+  defaultLanguage: 'en',
+  namespaceVersions: {'platform_admin': 1, 'common': 1},
+  languages: [
+    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
+    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
+  ],
+);
+
+class _TestUiMessageController extends UiMessageController {
+  _TestUiMessageController(this.lang);
+  final String lang;
+
+  @override
+  UiMessageState build() => UiMessageState(
+    manifest: _testManifest,
+    activeLanguage: lang,
+    defaultLanguage: 'en',
+    ready: true,
+    revision: 1,
+  );
+}
+
+void _expectArabicActive(WidgetTester tester, Type screenType) {
+  final finder = find.byType(screenType);
+  expect(finder, findsOneWidget);
+  final element = tester.element(finder);
+  final container = ProviderScope.containerOf(element, listen: false);
+  expect(container.read(uiMessageControllerProvider).activeLanguage, 'ar');
+  expect(Localizations.localeOf(element).languageCode, 'ar');
+  expect(Directionality.of(element), TextDirection.rtl);
+  expect(find.text('العربية (AR)'), findsOneWidget);
+}
+
 Widget _screenshotApp({
   required Widget child,
   required GlobalKey boundaryKey,
@@ -221,9 +255,15 @@ Widget _screenshotApp({
   List<PlatformLanguage> languages = const [_language],
 }) {
   return ProviderScope(
+    key: ValueKey(
+      'shot-${locale.languageCode}-${surfaceSize.width}-${child.runtimeType}',
+    ),
     overrides: [
       uiStringsProvider.overrideWithValue(
         locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+      ),
+      uiMessageControllerProvider.overrideWith(
+        () => _TestUiMessageController(locale.languageCode),
       ),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
       categoriesProvider.overrideWith((ref) async => const [_category]),
@@ -296,7 +336,16 @@ Future<void> _capture(
     if (!dir.existsSync()) {
       dir.createSync(recursive: true);
     }
-    File('${dir.path}/$filename').writeAsBytesSync(bytes);
+    final file = File('${dir.path}/$filename');
+    for (var attempt = 0; attempt < 6; attempt++) {
+      try {
+        file.writeAsBytesSync(bytes, flush: true);
+        return;
+      } on FileSystemException {
+        if (attempt == 5) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+    }
   });
 }
 
@@ -345,6 +394,9 @@ Future<void> _shoot(
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: '$name@${entry.key}');
+    if (entry.key == 'ar_1280') {
+      _expectArabicActive(tester, screen.runtimeType);
+    }
     await _capture(tester, key, '${name}_${entry.key}.png');
   }
   await tester.binding.setSurfaceSize(null);

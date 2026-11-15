@@ -644,7 +644,15 @@ Future<void> _capture(
       dir.createSync(recursive: true);
     }
     final file = File('${dir.path}/$filename');
-    file.writeAsBytesSync(bytes);
+    for (var attempt = 0; attempt < 6; attempt++) {
+      try {
+        file.writeAsBytesSync(bytes, flush: true);
+        break;
+      } on FileSystemException {
+        if (attempt == 5) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+    }
   });
 }
 

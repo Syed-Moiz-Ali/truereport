@@ -12,11 +12,21 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../checklist/checklist_status.dart';
 
 import 'package:l10n/l10n.dart';
 
 class DocumentTypesScreen extends ConsumerWidget {
   const DocumentTypesScreen({super.key});
+
+  /// Exposed for real-font and harness testing.
+  static Widget buildDialog({ReportDocumentType? initial}) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: _DocumentTypeDialog(initial: initial),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -554,6 +564,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _sortOrderController;
   late bool _required;
+  late bool _active;
   bool _saving = false;
 
   @override
@@ -566,6 +577,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
       text: '${initial?.sortOrder ?? 0}',
     );
     _required = initial?.required ?? false;
+    _active = initial == null || initial.status == 'ACTIVE';
   }
 
   @override
@@ -580,20 +592,15 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     try {
-      final api = ref.read(platformConfigApiProvider);
-      final body = <String, dynamic>{
-        'code': _codeController.text.trim(),
-        'name': _nameController.text.trim(),
-        'required': _required,
-        'sortOrder': int.tryParse(_sortOrderController.text.trim()) ?? 0,
-      };
-      final id = widget.initial?.id;
-      if (id == null) {
-        await api.createDocumentType(body);
-      } else {
-        await api.updateDocumentType(id, body);
-      }
-      ref.invalidate(documentTypesProvider);
+      final actions = ref.read(platformConfigActionsProvider);
+      await actions.saveDocumentType(
+        id: widget.initial?.id,
+        code: _codeController.text.trim().toUpperCase(),
+        name: _nameController.text.trim(),
+        required: _required,
+        sortOrder: int.tryParse(_sortOrderController.text.trim()) ?? 0,
+        active: _active,
+      );
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } on AppFailure catch (failure) {
@@ -615,60 +622,447 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    return PlatformDialogShell(
-      title: widget.initial == null
-          ? strings.tKey(PlatformAdminKeys.buttonDocumentTypeAdd)
-          : strings.tKey(PlatformAdminKeys.pageDocumentTypesTitle),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            PlatformTextField(
-              key: const Key('doc-type-code'),
-              controller: _codeController,
-              label: strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? strings.tKey(CommonKeys.validationRequired)
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              key: const Key('doc-type-name'),
-              controller: _nameController,
-              label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? strings.tKey(CommonKeys.validationRequired)
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            PlatformTextField(
-              controller: _sortOrderController,
-              label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _required,
-              onChanged: (value) => setState(() => _required = value),
-              title: Text(strings.tKey(CommonKeys.validationRequired)),
-            ),
-          ],
-        ),
+    final isCreate = widget.initial == null;
+    final reviewStatus = _active
+        ? 'ACTIVE'
+        : widget.initial?.status == 'RETIRED'
+        ? 'RETIRED'
+        : 'DRAFT';
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 620, maxHeight: 780),
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.border),
       ),
-      actions: [
-        PlatformSecondaryButton(
-          label: strings.tKey(CommonKeys.buttonCancel),
-          onPressed: _saving ? null : () => Navigator.of(context).pop(false),
-        ),
-        PlatformPrimaryButton(
-          label: strings.tKey(CommonKeys.buttonSave),
-          isLoading: _saving,
-          onPressed: _saving ? null : _submit,
-        ),
-      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCreate
+                            ? strings.tKey(
+                                PlatformAdminKeys.buttonDocumentTypeAdd,
+                              )
+                            : strings.tKey(
+                                PlatformAdminKeys.reportsDialogEditTitle,
+                              ),
+                        style: PtTheme.font(
+                          18,
+                          lineHeight: 24,
+                          weight: FontWeight.w700,
+                          color: PtTheme.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        strings.tKey(PlatformAdminKeys.reportsSubtitle),
+                        style: PtTheme.font(
+                          13,
+                          lineHeight: 18,
+                          color: PtTheme.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: strings.tKey(CommonKeys.buttonClose),
+                  onPressed: () => Navigator.of(context).pop(false),
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: PtTheme.border),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _FormSectionCard(
+                      stepNumber: '1',
+                      title: strings.tKey(
+                        PlatformAdminKeys.reportsFormSectionIdentity,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          PlatformTextField(
+                            key: const Key('doc-type-code'),
+                            controller: _codeController,
+                            onChanged: (_) => setState(() {}),
+                            label:
+                                '${strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode)} *',
+                            hint: 'e.g. INSPECTION_REPORT',
+                            helperText: strings.tKey(
+                              PlatformAdminKeys.reportsFormFieldCodeHelper,
+                            ),
+                            enabled: isCreate,
+                            validator: (value) =>
+                                (value == null || value.trim().isEmpty)
+                                ? strings.tKey(
+                                    CommonKeys.validationRequiredField,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+                          PlatformTextField(
+                            key: const Key('doc-type-name'),
+                            controller: _nameController,
+                            onChanged: (_) => setState(() {}),
+                            label:
+                                '${strings.tKey(PlatformAdminKeys.fieldItemLabelEn)} *',
+                            hint: 'e.g. Periodic Inspection Certificate',
+                            helperText: strings.tKey(
+                              PlatformAdminKeys.reportsFormFieldNameHelper,
+                            ),
+                            validator: (value) =>
+                                (value == null || value.trim().isEmpty)
+                                ? strings.tKey(
+                                    CommonKeys.validationRequiredField,
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _FormSectionCard(
+                      stepNumber: '2',
+                      title: strings.tKey(
+                        PlatformAdminKeys
+                            .reportsFormSectionPublicationRequirement,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PtTheme.canvas,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: PtTheme.border),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    strings.tKey(
+                                      PlatformAdminKeys
+                                          .reportsFormRequiredAtPublication,
+                                    ),
+                                    style: PtTheme.font(
+                                      13,
+                                      lineHeight: 18,
+                                      weight: FontWeight.w600,
+                                      color: PtTheme.ink,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _required
+                                        ? strings.tKey(
+                                            PlatformAdminKeys
+                                                .reportsFormRequiredFieldDesc,
+                                          )
+                                        : strings.tKey(
+                                            PlatformAdminKeys
+                                                .reportsFormOptionalFieldDesc,
+                                          ),
+                                    style: PtTheme.font(
+                                      12,
+                                      lineHeight: 16,
+                                      color: PtTheme.muted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              key: const Key('doc-type-required-switch'),
+                              value: _required,
+                              activeTrackColor: PtTheme.deepGreen,
+                              onChanged: (value) =>
+                                  setState(() => _required = value),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _FormSectionCard(
+                      stepNumber: '3',
+                      title: strings.tKey(
+                        PlatformAdminKeys.reportsFormSectionSettings,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          PlatformTextField(
+                            key: const Key('doc-type-sort-order'),
+                            controller: _sortOrderController,
+                            onChanged: (_) => setState(() {}),
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldCategoryOrder,
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PtTheme.canvas,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: PtTheme.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        strings.tKey(
+                                          PlatformAdminKeys
+                                              .reportsFormActiveStatusLabel,
+                                        ),
+                                        style: PtTheme.font(
+                                          13,
+                                          lineHeight: 18,
+                                          weight: FontWeight.w600,
+                                          color: PtTheme.ink,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        strings.tKey(
+                                          PlatformAdminKeys
+                                              .reportsFormActiveStatusDesc,
+                                        ),
+                                        style: PtTheme.font(
+                                          12,
+                                          lineHeight: 16,
+                                          color: PtTheme.muted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Switch(
+                                  key: const Key('doc-type-active-switch'),
+                                  value: _active,
+                                  activeTrackColor: PtTheme.deepGreen,
+                                  onChanged: (value) =>
+                                      setState(() => _active = value),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _FormSectionCard(
+                      stepNumber: '4',
+                      title: strings.tKey(
+                        PlatformAdminKeys.reportsFormSectionReview,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _FormReviewRow(
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldDocumentTypeCode,
+                            ),
+                            value: _codeController.text.trim().isEmpty
+                                ? '—'
+                                : _codeController.text.trim().toUpperCase(),
+                          ),
+                          _FormReviewRow(
+                            label: strings.tKey(
+                              PlatformAdminKeys.reportsFormReviewEnglishName,
+                            ),
+                            value: _nameController.text.trim().isEmpty
+                                ? '—'
+                                : _nameController.text.trim(),
+                          ),
+                          _FormReviewRow(
+                            label: strings.tKey(
+                              PlatformAdminKeys
+                                  .reportsFormSectionPublicationRequirement,
+                            ),
+                            value: _required
+                                ? strings.tKey(
+                                    PlatformAdminKeys
+                                        .reportsFormRequiredAtPublication,
+                                  )
+                                : strings.tKey(
+                                    PlatformAdminKeys
+                                        .reportsFormOptionalAtPublication,
+                                  ),
+                          ),
+                          _FormReviewRow(
+                            label: strings.tKey(CommonKeys.tableStatus),
+                            value: checklistStatusLabel(strings, reviewStatus),
+                          ),
+                          _FormReviewRow(
+                            label: strings.tKey(
+                              PlatformAdminKeys.fieldCategoryOrder,
+                            ),
+                            value: _sortOrderController.text.trim().isEmpty
+                                ? '0'
+                                : _sortOrderController.text.trim(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: PtTheme.border),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PlatformSecondaryButton(
+                  label: strings.tKey(CommonKeys.buttonCancel),
+                  onPressed: _saving
+                      ? null
+                      : () => Navigator.of(context).pop(false),
+                ),
+                const SizedBox(width: 10),
+                PlatformPrimaryButton(
+                  key: const Key('doc-type-save'),
+                  label: strings.tKey(CommonKeys.buttonSave),
+                  isLoading: _saving,
+                  onPressed: _saving ? null : _submit,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FormSectionCard extends StatelessWidget {
+  const _FormSectionCard({
+    required this.stepNumber,
+    required this.title,
+    required this.child,
+  });
+
+  final String stepNumber;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: PtTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: PtTheme.deepGreen.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  stepNumber,
+                  style: PtTheme.font(
+                    11,
+                    weight: FontWeight.w700,
+                    color: PtTheme.deepGreen,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: PtTheme.font(
+                    14,
+                    lineHeight: 20,
+                    weight: FontWeight.w700,
+                    color: PtTheme.ink,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _FormReviewRow extends StatelessWidget {
+  const _FormReviewRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(label, style: PtTheme.font(12, color: PtTheme.muted)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: PtTheme.font(
+                12,
+                weight: FontWeight.w600,
+                color: PtTheme.ink,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
