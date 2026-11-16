@@ -2,7 +2,9 @@
 
 **Goal:** Full EN/AR language support across Platform Admin, Workshop Admin, Technician, public report, PDFs, generated documents, notifications, and API errors — not only Flutter static text.
 
-**Status:** Approved 2026-11-11. No code starts until the Platform phase start is approved.
+**Status:** Approved 2026-11-11. Updated: static UI languages are JSON
+manifest-backed; automatic static UI text generation and the static
+add/generate/review/approve/publish lifecycle were removed.
 
 ---
 
@@ -139,24 +141,62 @@ PUT  /api/v1/i18n/me
 { "language": "ar" }
 ```
 
-### 4.2 Platform Admin language CRUD
+### 4.2 Static UI languages are manifest-backed
+
+Static UI languages are no longer created or published from Platform Admin.
+
+Platform Admin currently ships an English-only baseline:
+
+```text
+server/src/main/resources/i18n/platform_admin/
+  manifest.json
+  en.json
+```
+
+`manifest.json` is the source of truth for static languages:
+
+```json
+{
+  "defaultLanguage": "en",
+  "languages": [
+    {"code": "en", "nativeName": "English", "direction": "ltr", "file": "en.json"}
+  ]
+}
+```
+
+Adding a future language means adding its JSON file and a manifest entry, then
+restarting the backend. Startup inserts or updates the matching
+`platform_languages` row so dynamic translation, readiness and coverage work
+immediately. Shared rows for other apps are retained even when they are not in
+the Platform Admin manifest. There is no database UI-text row, generation job,
+review screen, approval step or publish gate for static UI text.
+
+Scope note: `/api/v1/platform/i18n/languages` is filtered to the Platform Admin
+manifest (currently English only). The shared public endpoint
+`/api/v1/i18n/languages` intentionally keeps serving shared LIVE languages used
+by Workshop Admin, Technician, and Public Report. This reset does not remove
+those shared rows.
+
+The Platform Admin language endpoints are read-only for the registry:
 
 ```text
 GET    /api/v1/platform/i18n/languages
-POST   /api/v1/platform/i18n/languages
-PUT    /api/v1/platform/i18n/languages/{code}
-POST   /api/v1/platform/i18n/languages/{code}/activate
-POST   /api/v1/platform/i18n/languages/{code}/deactivate
-PUT    /api/v1/platform/i18n/languages/reorder
-PUT    /api/v1/platform/i18n/languages/default
 GET    /api/v1/platform/i18n/coverage
+GET    /api/v1/platform/i18n/coverage?language={code}
+GET    /api/v1/platform/i18n/languages/{code}/backlog
+GET    /api/v1/platform/i18n/languages/{code}/readiness
+PUT    /api/v1/platform/i18n/translations
 ```
 
-Rules:
-- Only Platform Admin can create/activate/deactivate languages.
-- Cannot deactivate the default language.
-- Cannot deactivate a language used as a job/customer preference without a replacement.
-- `coverage` returns missing translations by namespace/entity.
+Dynamic content translations (categories, checklist items, option sets, option
+values, templates, document types, issue fields) remain editable and
+approvable. Missing dynamic translations fall back to English.
+
+Platform Admin no longer creates, builds, lists, or selects templates.
+Workshop Admin owns template creation and publication. Platform Admin workshop
+detail has no Templates tab or template cards, and workshop registration does
+not require a template. Dynamic TEMPLATE translation remains available in
+Language Workspace, and the backend/Workshop Admin template APIs remain intact.
 
 ### 4.3 Translation coverage response
 
@@ -264,23 +304,11 @@ spring:
 - Public page/PDF uses `?lang` first.
 - API responses use `Accept-Language`.
 
-### 6.2.1 Google Translate provider overrides
+### 6.2.1 Static UI text
 
-`truereport.i18n.translation.target-languages` is an **optional override
-map**, not an allowlist of supported app languages.
-
-- Any language code from the language registry is accepted.
-- Resolution order: exact override, case-insensitive override, canonicalized
-  provider code, then the original code.
-- Canonicalization lowercases the language, title-cases the script, and
-  uppercases the region (`pt-br` -> `pt-BR`, `zh-hans` -> `zh-Hans`).
-- Add an override only when Google expects a different code. Examples:
-  `zh-Hans: zh-CN`, `zh-Hant: zh-TW`, and `pt-BR: pt` only if required.
-- A missing override never rejects a language.
-- If Google rejects an unsupported target, generation fails clearly and the
-  language stays non-LIVE. The provider may retry once with the base language
-  (`pt-BR` -> `pt`, `zh-Hans` -> `zh`, `es-MX` -> `es`) only for an
-  unsupported-target error.
+Static UI text is stored only in the manifest-declared JSON catalogs. There is
+no Google/provider configuration, generation job table, review queue or publish
+gate. Coverage is computed by comparing each catalog against `en.json`.
 
 ### 6.3 Master content
 
@@ -414,6 +442,7 @@ map**, not an allowlist of supported app languages.
 | D-039 | EN/AR mandatory at publish; CI parity tests; coverage dashboard |
 | D-040 | Western digits in both languages |
 | D-041 | Manual bilingual entry in V1; LLM auto-translation deferred |
+| D-042 | Static UI text is JSON-manifest-only; adding a language means adding a JSON file plus a manifest entry and restarting the backend |
 
 ---
 

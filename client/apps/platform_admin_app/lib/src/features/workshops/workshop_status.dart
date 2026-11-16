@@ -43,11 +43,6 @@ String workshopMemberStatusLabel(UiMessageStrings strings, String status) {
   return _relatedStatusLabel(strings, status);
 }
 
-/// Localized template status used inside workshop detail.
-String workshopTemplateStatusLabel(UiMessageStrings strings, String status) {
-  return _relatedStatusLabel(strings, status);
-}
-
 String _relatedStatusLabel(UiMessageStrings strings, String status) {
   final normalized = normalizeWorkshopStatus(status);
   if (normalized.isEmpty) return '—';

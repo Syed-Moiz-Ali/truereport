@@ -335,37 +335,12 @@ class _PrioritySetupSelector extends ConsumerWidget {
 
     for (final lang in candidates) {
       final readiness = ref.watch(readinessProvider(lang.code)).asData?.value;
-      final genData = ref
-          .watch(contentGenerationProvider(lang.code))
-          .asData
-          ?.value;
-      final isGenerating = genData?.isRunning ?? false;
-
-      int score = 6;
+      var score = 6;
       if (readiness != null) {
-        if (readiness.status == 'REVIEW' && readiness.blockers.isEmpty) {
-          score = 1;
-        } else if (readiness.readinessPercent == 100 &&
-            readiness.status != 'LIVE') {
-          score = 2;
-        } else if (lang.status == 'TRANSLATING' || isGenerating) {
+        if (readiness.blockers.isNotEmpty) {
           score = 3;
-        } else if (lang.status == 'DRAFT' &&
-            readiness.uiMessagesPath.isNotEmpty &&
-            readiness.readinessPercent < 100) {
+        } else if (readiness.readinessPercent < 100) {
           score = 4;
-        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isEmpty) {
-          score = 5;
-        } else {
-          score = 6;
-        }
-      } else {
-        if (lang.status == 'REVIEW') {
-          score = 1;
-        } else if (lang.status == 'TRANSLATING' || isGenerating) {
-          score = 3;
-        } else if (lang.status == 'DRAFT') {
-          score = 5;
         }
       }
       scored.add(MapEntry(lang, score));
@@ -400,70 +375,14 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
     final readinessAsync = ref.watch(readinessProvider(language.code));
-    final genAsync = ref.watch(contentGenerationProvider(language.code));
-
-    final genData = genAsync.asData?.value;
-    final isGenerating = genData?.isRunning ?? false;
-    final genProgress = ((genData?.progress ?? 0) * 100).round();
-
-    String lifecycleStatusLabel(String status) {
-      switch (status.toUpperCase()) {
-        case 'DRAFT':
-          return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
-        case 'TRANSLATING':
-          return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
-        case 'REVIEW':
-          return strings.tKey(PlatformAdminKeys.statusLanguageReview);
-        case 'LIVE':
-          return strings.tKey(PlatformAdminKeys.statusLanguageLive);
-        case 'RETIRED':
-          return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
-        default:
-          return status;
-      }
-    }
 
     return readinessAsync.when(
       data: (readiness) {
-        String targetTab = LanguageWorkspaceTab.overview;
-        UiMessageKey actionKey = PlatformAdminKeys.sidebarLanguagesActionView;
-
-        if (isGenerating) {
-          targetTab = LanguageWorkspaceTab.overview;
-        } else if (readiness.blockers.isNotEmpty) {
-          final firstBlocker = readiness.blockers.first;
-          targetTab = firstBlocker.tab;
-          if (firstBlocker.tab == LanguageWorkspaceTab.uiText) {
-            actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
-          } else if (firstBlocker.tab == LanguageWorkspaceTab.publish) {
-            actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
-          } else {
-            actionKey = readiness.status == 'REVIEW'
-                ? PlatformAdminKeys.sidebarLanguagesActionReview
-                : PlatformAdminKeys.sidebarLanguagesActionGenerate;
-          }
-        } else if (readiness.status == 'DRAFT') {
-          if (readiness.uiMessagesPath.isEmpty) {
-            targetTab = LanguageWorkspaceTab.uiText;
-            actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
-          } else if (readiness.readinessPercent < 100) {
-            targetTab = LanguageWorkspaceTab.categories;
-            actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerateMissing;
-          } else {
-            targetTab = LanguageWorkspaceTab.publish;
-            actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
-          }
-        } else if (readiness.status == 'TRANSLATING') {
-          targetTab = LanguageWorkspaceTab.categories;
-          actionKey =
-              PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
-        } else if (readiness.status == 'REVIEW') {
-          targetTab = LanguageWorkspaceTab.overview;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
-        } else if (readiness.readinessPercent == 100) {
-          targetTab = LanguageWorkspaceTab.publish;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
+        var targetTab = LanguageWorkspaceTab.overview;
+        if (readiness.blockers.isNotEmpty) {
+          targetTab = readiness.blockers.first.tab;
         }
+        const actionKey = PlatformAdminKeys.sidebarLanguagesActionView;
 
         final targetRoute =
             '/settings/languages/${language.code}?tab=$targetTab';
@@ -486,8 +405,8 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: BoxDecoration(
-                      color: isGenerating ? PtTheme.deepGreen : PtTheme.amber,
+                    decoration: const BoxDecoration(
+                      color: PtTheme.amber,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -528,13 +447,10 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
               ),
               const SizedBox(height: 3),
 
-              // Localized lifecycle status badge / label
               Text(
-                lifecycleStatusLabel(
-                  readiness.status.isNotEmpty
-                      ? readiness.status
-                      : language.status,
-                ),
+                readiness.status.isNotEmpty
+                    ? readiness.status
+                    : language.status,
                 style: PtTheme.font(
                   10,
                   lineHeight: 14,
@@ -546,40 +462,23 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
 
-              // Progress or Generating status
-              if (isGenerating)
-                Text(
-                  strings.tArgsKey(
-                    PlatformAdminKeys.sidebarLanguagesGenerating,
-                    {'percent': '$genProgress'},
-                  ),
-                  style: PtTheme.font(
-                    10,
-                    lineHeight: 14,
-                    weight: FontWeight.w500,
-                    color: PtTheme.deepGreen,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              else
-                Text(
-                  strings.tArgsKey(PlatformAdminKeys.sidebarLanguagesProgress, {
-                    'translated': '${readiness.readinessPercent}',
-                    'total': '100',
-                    'percent': '${readiness.readinessPercent}',
-                  }),
-                  style: PtTheme.caption,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                strings.tArgsKey(PlatformAdminKeys.sidebarLanguagesProgress, {
+                  'translated': '${readiness.readinessPercent}',
+                  'total': '100',
+                  'percent': '${readiness.readinessPercent}',
+                }),
+                style: PtTheme.caption,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
 
               const SizedBox(height: 8),
 
               // Primary Actionable CTA
               InkWell(
                 key: const Key('btn-sidebar-language-action'),
-                onTap: isGenerating ? null : () => onNavigate(targetRoute),
+                onTap: () => onNavigate(targetRoute),
                 borderRadius: BorderRadius.circular(4),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
@@ -593,19 +492,17 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
                             11,
                             lineHeight: 14,
                             weight: FontWeight.w600,
-                            color: isGenerating
-                                ? PtTheme.muted
-                                : PtTheme.deepGreen,
+                            color: PtTheme.deepGreen,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Icon(
+                      const Icon(
                         Icons.arrow_forward_rounded,
                         size: 13,
-                        color: isGenerating ? PtTheme.muted : PtTheme.deepGreen,
+                        color: PtTheme.deepGreen,
                       ),
                     ],
                   ),
@@ -677,7 +574,7 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
             ),
             const SizedBox(height: 3),
             Text(
-              lifecycleStatusLabel(language.status),
+              language.status,
               style: PtTheme.font(
                 10,
                 lineHeight: 14,

@@ -1,0 +1,46 @@
+- generic [active] [ref=f1e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f1e29]: TrueReport
+          - generic [ref=f1e30]: Platform Admin
+          - button "Platform Admin" [ref=f1e31]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=f1e33]
+          - generic [ref=f1e34]: English
+          - button "Notifications":
+            - button "Notifications" [ref=f1e35]
+          - button "Help":
+            - button "Help" [ref=f1e36]
+          - button "Account Platform Admin, Platform Admin" [ref=f1e37]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=f1e38]
+              - button "Workshops Workshops" [ref=f1e40]
+              - button "Checklist Checklist" [ref=f1e42]
+              - button "Reports Reports" [ref=f1e44]
+              - button "Audit Log Audit Log" [ref=f1e46]
+              - button "Settings Settings" [ref=f1e48]
+          - generic [ref=f1e49]: All languages live
+          - button "View languages" [ref=f1e50]
+          - generic [ref=f1e51]: System Operational
+          - generic [ref=f1e52]: Platform Admin
+          - generic [ref=f1e53]: Platform Admin
+          - button "Sign out" [ref=f1e54]
+          - group:
+            - generic [ref=f1e55]: Workshops
+            - generic [ref=f1e56]: Manage workshops, staff, and their templates
+            - button "Add workshop" [ref=f1e57]
+            - textbox "Search workshops by name, branch, or status" [ref=f1e59]
+            - button "Status All" [ref=f1e60]
+            - generic [ref=f1e61]: 2 workshops
+            - 'progressbar "Workshop A WA Workshop A — Active 8 Bays 88% Staff: 2 Technicians: 1 Workshop Admins: 1 Pending invitations: 0 88"':
+              - button "View details" [ref=f1e62]
+              - button "Edit workshop" [ref=f1e63]
+              - button "Deactivate workshop" [ref=f1e64]
+              - button "Actions" [ref=f1e65]
+            - 'progressbar "Workshop B WB Workshop B — Active 8 Bays 88% Staff: 1 Technicians: 0 Workshop Admins: 1 Pending invitations: 0 88"':
+              - button "View details" [ref=f1e66]
+              - button "Edit workshop" [ref=f1e67]
+              - button "Deactivate workshop" [ref=f1e68]
+              - button "Actions" [ref=f1e69]

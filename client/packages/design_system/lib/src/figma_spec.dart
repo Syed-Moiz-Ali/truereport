@@ -154,12 +154,7 @@ abstract final class FigmaGeometry {
   static const double planeSelectorTop = 12;
 }
 
-enum FigmaPrimaryButtonOption {
-  figmaExact,
-  pressedGreen,
-  inkLabel,
-  deepGreen,
-}
+enum FigmaPrimaryButtonOption { figmaExact, pressedGreen, inkLabel, deepGreen }
 
 @immutable
 class FigmaPrimaryButtonSpec {

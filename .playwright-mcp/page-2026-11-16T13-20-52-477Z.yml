@@ -1,0 +1,22 @@
+- generic [ref=f2e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f2e148]: Published
+          - generic [ref=f2e149]: STANDARD OPERATING PROCEDURE
+          - generic [ref=f2e150]: Final Smoke Template
+          - button "Preview" [disabled]:
+            - button "Preview" [disabled] [ref=f2e151]
+          - button "Publish template" [disabled]:
+            - button "Publish template" [disabled] [ref=f2e152]
+          - button "Retire" [ref=f2e153]
+          - generic:
+            - group:
+              - button "Template Parameters & Classification Comprehensive Inspection · SUV / 4WD" [ref=f2e154]
+              - generic:
+                - generic:
+                  - button "Read-only version Create draft Create draft":
+                    - button "Create draft" [ref=f2e156]
+              - button "Version history v1 · Published 3 items selected · 2026-11-16T13:20:51.623501" [ref=f2e158]
+          - generic [ref=f2e159]: Template published

@@ -5,6 +5,10 @@ class UiMessageLanguage {
     this.version = 0,
     this.versions = const <String, int>{},
     this.nativeName = '',
+    this.path = '',
+    this.totalKeys = 0,
+    this.missingKeys = 0,
+    this.placeholderMismatch = 0,
   });
 
   final String code;
@@ -12,6 +16,10 @@ class UiMessageLanguage {
   final int version;
   final Map<String, int> versions;
   final String nativeName;
+  final String path;
+  final int totalKeys;
+  final int missingKeys;
+  final int placeholderMismatch;
 
   bool get isRtl => direction.toLowerCase() == 'rtl';
 
@@ -32,6 +40,10 @@ class UiMessageLanguage {
       version: _asInt(json['version']),
       versions: _asVersionMap(json['versions']),
       nativeName: rawNativeName is String ? rawNativeName : '',
+      path: json['path'] is String ? json['path'] as String : '',
+      totalKeys: _asInt(json['totalKeys']),
+      missingKeys: _asInt(json['missingKeys']),
+      placeholderMismatch: _asInt(json['placeholderMismatch']),
     );
   }
 
@@ -41,6 +53,10 @@ class UiMessageLanguage {
     'version': version,
     'versions': Map<String, dynamic>.from(versions),
     'nativeName': nativeName,
+    'path': path,
+    'totalKeys': totalKeys,
+    'missingKeys': missingKeys,
+    'placeholderMismatch': placeholderMismatch,
   };
 }
 

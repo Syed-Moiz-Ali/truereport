@@ -5,10 +5,11 @@ import 'package:l10n/l10n.dart';
 
 const String _catalogDir =
     '../../../server/src/main/resources/i18n/platform_admin';
+const String _fixtureCatalogDir = 'test/support/catalogs';
 
-Map<String, Map<String, String>> _loadCatalog(String file) {
+Map<String, Map<String, String>> _loadCatalog(String file, {String? fromDir}) {
   final decoded = jsonDecode(
-    File('$_catalogDir/$file').readAsStringSync(),
+    File('${fromDir ?? _catalogDir}/$file').readAsStringSync(),
   ) as Map<String, dynamic>;
   final catalogs = <String, Map<String, String>>{};
   for (final entry in decoded.entries) {
@@ -30,10 +31,8 @@ final Map<String, Map<String, String>> platformEnCatalogs = _loadCatalog(
   'en.json',
 );
 final Map<String, Map<String, String>> platformArCatalogs = _loadCatalog(
-  'ar.json',
-);
-final Map<String, Map<String, String>> platformZhHansCatalogs = _loadCatalog(
-  'zh-Hans.json',
+  'platform_admin_ar.json',
+  fromDir: _fixtureCatalogDir,
 );
 
 UiMessageStrings fakeEnUiStrings() => UiMessageStrings(

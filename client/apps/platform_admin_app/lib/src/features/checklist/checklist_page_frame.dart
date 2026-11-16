@@ -12,8 +12,8 @@ import 'package:l10n/l10n.dart';
 
 /// Redesigned shared frame for the Checklist section:
 /// - Page header with title, subtitle, and primary action
-/// - Catalog snapshot strip: Items, Categories, Option Sets, Templates, Health
-/// - Explanatory helper: "Categories group items. Templates order categories and items for jobs."
+/// - Catalog snapshot strip: Items, Categories, Option Sets, Health
+/// - Explanatory helper copy comes from the backend catalog.
 /// - Scrollable tab bar with icon + label + count + active state
 /// - Section body
 class ChecklistPageFrame extends ConsumerWidget {
@@ -40,7 +40,6 @@ class ChecklistPageFrame extends ConsumerWidget {
     final itemsAsync = ref.watch(itemsProvider(const ItemQuery()));
     final categoriesAsync = ref.watch(categoriesProvider);
     final optionsAsync = ref.watch(optionSetsProvider);
-    final templatesAsync = ref.watch(templatesProvider);
     final healthAsync = ref.watch(configHealthProvider);
 
     return PlatformShell(
@@ -62,7 +61,6 @@ class ChecklistPageFrame extends ConsumerWidget {
               itemsCount: itemsAsync.asData?.value.length,
               categoriesCount: categoriesAsync.asData?.value.length,
               optionsCount: optionsAsync.asData?.value.length,
-              templatesCount: templatesAsync.asData?.value.length,
               health: healthAsync.asData?.value,
             ),
             const SizedBox(height: 16),
@@ -81,14 +79,12 @@ class _ChecklistCatalogSnapshot extends ConsumerWidget {
     required this.itemsCount,
     required this.categoriesCount,
     required this.optionsCount,
-    required this.templatesCount,
     required this.health,
   });
 
   final int? itemsCount;
   final int? categoriesCount;
   final int? optionsCount;
-  final int? templatesCount;
   final ConfigHealth? health;
 
   @override
@@ -161,18 +157,14 @@ class _ChecklistCatalogSnapshot extends ConsumerWidget {
                 ),
                 _SnapshotTile(
                   icon: Icons.tune_rounded,
-                  label: strings.tKey(PlatformAdminKeys.tabChecklistIssueOptions),
+                  label: strings.tKey(
+                    PlatformAdminKeys.tabChecklistIssueOptions,
+                  ),
                   value: optionsCount != null ? '$optionsCount' : '—',
                   color: PtTheme.darkNavText,
                   onTap: () => context.go('/checklist/option-sets'),
                 ),
-                _SnapshotTile(
-                  icon: Icons.assignment_outlined,
-                  label: strings.tKey(PlatformAdminKeys.tabChecklistTemplates),
-                  value: templatesCount != null ? '$templatesCount' : '—',
-                  color: PtTheme.gold,
-                  onTap: () => context.go('/checklist/templates'),
-                ),
+
                 _SnapshotTile(
                   icon: isHealthy
                       ? Icons.check_circle_outline_rounded
@@ -181,8 +173,8 @@ class _ChecklistCatalogSnapshot extends ConsumerWidget {
                   value: health == null
                       ? '—'
                       : (isHealthy
-                          ? strings.tKey(CommonKeys.statusHealthy)
-                          : '$healthIssues issues'),
+                            ? strings.tKey(CommonKeys.statusHealthy)
+                            : '$healthIssues issues'),
                   color: isHealthy ? PtTheme.emerald : PtTheme.rose,
                   onTap: () => context.go('/checklist/health'),
                 ),

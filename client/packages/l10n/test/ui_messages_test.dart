@@ -697,6 +697,31 @@ void main() {
       expect(container.read(uiMessageControllerProvider).activeLanguage, 'en');
     });
 
+    test('English-only manifest downloads and caches only English', () async {
+      final manifest = manifestJson();
+      final languages = manifest['languages'] as List<dynamic>;
+      languages.removeWhere(
+        (language) =>
+            language is Map<String, dynamic> && language['code'] == 'ar',
+      );
+      final fetcher = FakeFetcher(
+        manifest: manifest,
+        bundles: {'en': bundleJson('en')},
+      );
+      final store = CountingStore();
+      final container = makeContainer(fetcher, store);
+      addTearDown(container.dispose);
+      final controller = container.read(uiMessageControllerProvider.notifier);
+
+      await controller.bootstrap();
+
+      expect(fetcher.requestedBundles, ['en']);
+      expect(store.writtenKeys, contains('ui_messages_en'));
+      expect(container.read(uiMessageControllerProvider).manifest!.codes, [
+        'en',
+      ]);
+    });
+
     test('localeForLanguage parses script and region codes', () {
       expect(localeForLanguage('en').languageCode, 'en');
       final hans = localeForLanguage('zh-Hans');

@@ -1,0 +1,38 @@
+- generic [ref=f1e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic [ref=f1e97]: v1
+            - generic [ref=f1e98]: STANDARD OPERATING PROCEDURE
+            - generic [ref=f1e99]: Live Ownership Verification Template
+            - button "Save draft" [ref=f1e100]
+            - button "Preview":
+              - button "Preview" [ref=f1e101]
+            - button "Publish template":
+              - button "Publish template" [ref=f1e102]
+            - button "Retire" [ref=f1e103]
+            - generic:
+              - group:
+                - button "Template Parameters & Classification Comprehensive Inspection · SUV / 4WD" [ref=f1e104]
+                - generic [ref=f1e106]:
+                  - textbox "Master items · 30 Inspection Diagnostic Checkpoints 30 In Catalog Search approved items Engine Oil Condition & Level Powertrain & Mechanical · v1 Engine Air Filter & Intake System Powertrain & Mechanical · v1 Template sequence 2 items selected Sequence Ready" [disabled] [ref=f1e130]
+                  - textbox "Search approved items" [ref=f1e109]
+                  - button "All categories" [active] [ref=f1e110]
+                  - button "Add" [disabled] [ref=f1e131]
+                  - button [disabled] [ref=f1e132]:
+                    - text: Add
+                    - generic: Add
+                  - group "Transmission Fluid & Drivetrain Health Powertrain & Mechanical · v1" [ref=f1e115]:
+                    - button "Add" [ref=f1e116]
+                  - group "Cooling System, Radiator & Hoses Powertrain & Mechanical · v1" [ref=f1e117]:
+                    - button "Add" [ref=f1e118]
+                  - group "Drive Belts, Pulleys & Tensioners Powertrain & Mechanical · v1" [ref=f1e119]:
+                    - button "Add" [ref=f1e120]
+                  - group "Exhaust System, Catalytic Converter & Emissions Powertrain & Mechanical · v1" [ref=f1e121]:
+                    - button "Add" [ref=f1e122]
+                  - group "Front Shocks, Struts & Springs Suspension, Steering & Underbody · v1" [ref=f1e123]:
+                    - button "Add" [ref=f1e124]
+                  - group "Rear Dampers & Linkages Suspension, Steering & Underbody · v1" [ref=f1e125]:
+                    - button "Add" [ref=f1e126]

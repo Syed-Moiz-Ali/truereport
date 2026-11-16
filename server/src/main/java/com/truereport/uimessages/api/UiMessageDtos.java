@@ -10,7 +10,10 @@ public final class UiMessageDtos {
 
     public record ManifestLanguageDto(String code, String direction, String nativeName,
                                       Map<String, Integer> versions,
-                                      String path) {
+                                      String path,
+                                      int totalKeys,
+                                      int missingKeys,
+                                      int placeholderMismatch) {
     }
 
     public record UiMessageManifestDto(

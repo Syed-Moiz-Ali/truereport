@@ -29,7 +29,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   late final TextEditingController _branchController;
   late final TextEditingController _emailController;
 
-  String? _selectedTemplateId;
   bool _submitting = false;
   String? _error;
 
@@ -63,20 +62,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
     final branch = _branchController.text.trim();
     final email = _emailController.text.trim();
 
-    String? templateId = _selectedTemplateId;
-    if (_isCreate && templateId == null) {
-      final templates = switch (ref.read(templatesProvider)) {
-        AsyncData(:final value) => value,
-        _ => null,
-      };
-      if (templates != null && templates.isNotEmpty) {
-        templateId = templates.first.id;
-        _selectedTemplateId = templateId;
-      } else {
-        return;
-      }
-    }
-
     setState(() {
       _submitting = true;
       _error = null;
@@ -88,7 +73,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
               name: name,
               location: branch,
               contactEmail: email,
-              initialTemplate: templateId!,
             )
           : await api.updateWorkshop(
               widget.workshop!.id,
@@ -120,12 +104,7 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    final templatesAsync = _isCreate ? ref.watch(templatesProvider) : null;
-    final hasTemplates = switch (templatesAsync) {
-      AsyncData(:final value) => value.isNotEmpty,
-      _ => false,
-    };
-    final canSave = !_submitting && (!_isCreate || hasTemplates);
+    final canSave = !_submitting;
     return Form(
       key: _formKey,
       child: Column(
@@ -218,17 +197,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
               },
             ),
           ),
-          if (_isCreate) ...[
-            const SizedBox(height: 14),
-            _FormSection(
-              step: '3',
-              title: strings.tKey(PlatformAdminKeys.pageTemplatesTitle),
-              child: _TemplatePicker(
-                selectedId: _selectedTemplateId,
-                onSelected: (id) => setState(() => _selectedTemplateId = id),
-              ),
-            ),
-          ],
           const SizedBox(height: 20),
           Wrap(
             alignment: WrapAlignment.end,
@@ -317,88 +285,6 @@ class _FormSection extends ConsumerWidget {
           child,
         ],
       ),
-    );
-  }
-}
-
-class _TemplatePicker extends ConsumerWidget {
-  const _TemplatePicker({required this.selectedId, required this.onSelected});
-
-  final String? selectedId;
-  final ValueChanged<String?> onSelected;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final templates = ref.watch(templatesProvider);
-    return templates.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: LinearProgressIndicator(),
-      ),
-      error: (_, _) => Row(
-        children: [
-          Expanded(child: Text(strings.tKey(CommonKeys.stateError))),
-          TextButton(
-            onPressed: () => ref.invalidate(templatesProvider),
-            child: Text(strings.tKey(CommonKeys.buttonRetry)),
-          ),
-        ],
-      ),
-      data: (items) {
-        if (items.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: PtTheme.canvas,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: PtTheme.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  strings.tKey(
-                    PlatformAdminKeys.emptyWorkshopTemplatesCreateFirst,
-                  ),
-                  style: PtTheme.font(
-                    13,
-                    lineHeight: 18,
-                    weight: FontWeight.w500,
-                    color: PtTheme.ink,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                PlatformSecondaryButton(
-                  label: strings.tKey(PlatformAdminKeys.buttonTemplatesView),
-                  icon: Icons.description_outlined,
-                  onPressed: () => context.go('/checklist/templates'),
-                ),
-              ],
-            ),
-          );
-        }
-        final value = items.any((item) => item.id == selectedId)
-            ? selectedId
-            : items.first.id;
-        return PlatformDropdown<String>(
-          label: '${strings.tKey(PlatformAdminKeys.pageTemplatesTitle)} *',
-          value: value!,
-          items: [
-            for (final item in items)
-              DropdownMenuItem(
-                value: item.id,
-                child: Text(
-                  item.nameEn.isNotEmpty ? item.nameEn : item.code,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
-          onChanged: onSelected,
-        );
-      },
     );
   }
 }

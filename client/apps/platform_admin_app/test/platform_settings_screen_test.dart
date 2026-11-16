@@ -69,6 +69,21 @@ Widget _buildTestApp({Locale locale = const Locale('en')}) {
       platformLanguagesProvider.overrideWith(
         (ref) async => const [_testLanguage],
       ),
+      platformUiManifestProvider.overrideWithValue(
+        const UiMessageManifest(
+          defaultLanguage: 'en',
+          namespaceVersions: {'platform_admin': 1, 'common': 1},
+          languages: [
+            UiMessageLanguage(
+              code: 'en',
+              direction: 'ltr',
+              nativeName: 'English',
+              path: 'platform_admin/en.json',
+              totalKeys: 3,
+            ),
+          ],
+        ),
+      ),
       translationCoverageProvider.overrideWith((ref) async => _testCoverage),
       configHealthProvider.overrideWith((ref) async => _testHealth),
       auditEventsProvider.overrideWith((ref) async => _testAudit),

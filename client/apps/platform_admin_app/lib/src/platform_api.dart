@@ -19,8 +19,6 @@ abstract class PlatformAdminApi {
     required String name,
     required String location,
     required String contactEmail,
-    required String initialTemplate,
-    bool autoSyncMasterCatalog = true,
   });
   Future<PlatformAccount> disableUser(String userId, String reason);
   Future<PlatformAccount> reactivateUser(String userId, String reason);
@@ -94,19 +92,11 @@ class HttpPlatformAdminApi implements PlatformAdminApi {
     required String name,
     required String location,
     required String contactEmail,
-    required String initialTemplate,
-    bool autoSyncMasterCatalog = true,
   }) async {
     final data = await _api.postDynamic(
       _endpoints.platformWorkshops,
       headers: {'Idempotency-Key': const Uuid().v7()},
-      body: {
-        'name': name,
-        'location': location,
-        'contactEmail': contactEmail,
-        'initialTemplate': initialTemplate,
-        'autoSyncMasterCatalog': autoSyncMasterCatalog,
-      },
+      body: {'name': name, 'location': location, 'contactEmail': contactEmail},
     );
     return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
   }

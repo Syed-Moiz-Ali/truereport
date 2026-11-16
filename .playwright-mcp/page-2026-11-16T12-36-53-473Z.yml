@@ -1,0 +1,35 @@
+- generic [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Workshop Admin" [active] [level=2] [ref=e24]
+            - button "العربية":
+              - button "العربية" [ref=e25]
+            - button "Sign out" [ref=e26]
+          - generic:
+            - button "Overview Tab 1 of 6" [ref=e27]
+            - button "Jobs Tab 2 of 6" [ref=e28]
+            - button "Staff Tab 3 of 6" [ref=e29]
+            - button "Templates Tab 4 of 6" [ref=e30]
+            - button "Job board Tab 5 of 6" [ref=e31]
+            - button "Notifications Tab 6 of 6" [ref=e32]
+          - generic:
+            - generic:
+              - tabpanel:
+                - generic:
+                  - group:
+                    - group "Overview":
+                      - heading "Overview" [level=2] [ref=e33]
+                      - generic [ref=e34]:
+                        - textbox "Search jobs" [disabled] [ref=e35]
+                        - textbox "Search jobs" [ref=e37]
+                      - generic [ref=e38]: Live Owner, Live Ownership Workshop LO Live Owner Live Ownership Workshop
+                    - generic [ref=e39]: 0, Active jobs 0 Active jobs
+                    - generic [ref=e40]: 0, New & scheduled 0 New & scheduled
+                    - generic [ref=e41]: 0, In progress 0 In progress
+                    - generic [ref=e42]: 0, Ready to finalize 0 Ready to finalize
+                    - generic [ref=e43]: 0, Finalized today 0 Finalized today
+                    - heading "Recent jobs" [level=2] [ref=e44]
+                    - heading "No results" [level=2] [ref=e45]

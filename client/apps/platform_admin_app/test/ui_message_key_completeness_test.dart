@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 const String _catalogDir =
     '../../../server/src/main/resources/i18n/platform_admin';
 const String _catalogPath = '$_catalogDir/en.json';
-const String _arCatalogPath = '$_catalogDir/ar.json';
 const String _keysDir = '../../packages/l10n/lib/src/ui_messages/keys';
 
 Set<String> _catalogKeys(Map<String, dynamic> catalog) => catalog.keys.toSet();
@@ -436,10 +435,16 @@ void main() {
     expect(platformAdmin, greaterThan(200));
   });
 
-  test('backend EN/AR JSON catalogs have identical key sets', () {
-    final enKeys = _readCatalog(_catalogPath).keys.toSet();
-    final arKeys = _readCatalog(_arCatalogPath).keys.toSet();
-    expect(enKeys, isNotEmpty);
-    expect(arKeys, equals(enKeys));
+  test('backend Platform Admin static catalog is English-only', () {
+    final en = _readCatalog(_catalogPath);
+    expect(en, isNotEmpty);
+    final manifest = _readCatalog('$_catalogDir/manifest.json');
+    expect(manifest['defaultLanguage'], 'en');
+    final languages = manifest['languages'] as List<dynamic>;
+    expect(languages.length, 1);
+    expect((languages.single as Map<String, dynamic>)['code'], 'en');
+    for (final removed in const ['ar', 'zh-Hans', 'ta']) {
+      expect(File('$_catalogDir/$removed.json').existsSync(), isFalse);
+    }
   });
 }

@@ -12,7 +12,6 @@ enum ChecklistTab {
   items('/checklist/items', 'items', Icons.checklist_rounded),
   categories('/checklist/categories', 'categories', Icons.folder_outlined),
   issueOptions('/checklist/option-sets', 'issue-options', Icons.tune_rounded),
-  templates('/checklist/templates', 'templates', Icons.assignment_outlined),
   health('/checklist/health', 'health', Icons.health_and_safety_outlined);
 
   const ChecklistTab(this.route, this.key, this.icon);
@@ -27,8 +26,6 @@ enum ChecklistTab {
         return strings.tKey(PlatformAdminKeys.tabChecklistCategories);
       case ChecklistTab.items:
         return strings.tKey(PlatformAdminKeys.tabChecklistItems);
-      case ChecklistTab.templates:
-        return strings.tKey(PlatformAdminKeys.tabChecklistTemplates);
       case ChecklistTab.issueOptions:
         return strings.tKey(PlatformAdminKeys.tabChecklistIssueOptions);
       case ChecklistTab.health:
@@ -59,11 +56,13 @@ class ChecklistTabBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final itemsCount =
-        ref.watch(itemsProvider(const ItemQuery())).asData?.value.length;
+    final itemsCount = ref
+        .watch(itemsProvider(const ItemQuery()))
+        .asData
+        ?.value
+        .length;
     final categoriesCount = ref.watch(categoriesProvider).asData?.value.length;
     final optionsCount = ref.watch(optionSetsProvider).asData?.value.length;
-    final templatesCount = ref.watch(templatesProvider).asData?.value.length;
     final healthData = ref.watch(configHealthProvider).asData?.value;
     final healthIssueCount = healthData?.checks.where((c) => !c.ok).length;
 
@@ -75,8 +74,6 @@ class ChecklistTabBar extends ConsumerWidget {
           return categoriesCount;
         case ChecklistTab.issueOptions:
           return optionsCount;
-        case ChecklistTab.templates:
-          return templatesCount;
         case ChecklistTab.health:
           return healthIssueCount;
       }
@@ -149,10 +146,7 @@ class _ChecklistTabButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: activeBg,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: borderColor,
-              width: isSelected ? 1.5 : 1,
-            ),
+            border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -171,22 +165,25 @@ class _ChecklistTabButton extends StatelessWidget {
               if (count != null) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? (hasIssues
-                            ? PtTheme.rose.withValues(alpha: 0.15)
-                            : PtTheme.deepGreen.withValues(alpha: 0.12))
+                              ? PtTheme.rose.withValues(alpha: 0.15)
+                              : PtTheme.deepGreen.withValues(alpha: 0.12))
                         : (hasIssues
-                            ? PtTheme.rose.withValues(alpha: 0.12)
-                            : PtTheme.canvas),
+                              ? PtTheme.rose.withValues(alpha: 0.12)
+                              : PtTheme.canvas),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: hasIssues
                           ? PtTheme.rose.withValues(alpha: 0.3)
                           : (isSelected
-                              ? PtTheme.deepGreen.withValues(alpha: 0.25)
-                              : PtTheme.border),
+                                ? PtTheme.deepGreen.withValues(alpha: 0.25)
+                                : PtTheme.border),
                     ),
                   ),
                   child: Text(

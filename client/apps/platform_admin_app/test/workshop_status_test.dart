@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:l10n/l10n.dart';
 import 'package:platform_admin_app/src/features/workshops/workshop_status.dart';
 
 import 'support/ui_message_fixtures.dart';
@@ -41,12 +42,10 @@ void main() {
       expect(workshopStatusLabel(fakeEnUiStrings(), '   '), '—');
     });
 
-    test('localizes member and template statuses in Arabic', () {
+    test('localizes member statuses in Arabic', () {
       final strings = fakeArUiStrings();
-      expect(workshopMemberStatusLabel(strings, 'ACTIVE'), 'نشط');
-      expect(workshopMemberStatusLabel(strings, 'DISABLED'), 'معطّل');
-      expect(workshopTemplateStatusLabel(strings, 'PUBLISHED'), 'منشور');
-      expect(workshopTemplateStatusLabel(strings, 'DRAFT'), 'مسودة');
+      expect(workshopMemberStatusLabel(strings, 'ACTIVE'), strings.tKey(CommonKeys.statusActive));
+      expect(workshopMemberStatusLabel(strings, 'DISABLED'), strings.tKey(CommonKeys.statusDisabled));
     });
   });
 }

@@ -32,11 +32,9 @@ const _expectedReportsRealScreenshots = <String>[
   'reports_document_types_1280.png',
   'reports_document_types_768.png',
   'reports_document_types_360.png',
-  'reports_document_types_ar_1280.png',
   'reports_document_type_form_1280.png',
   'reports_document_type_review_1280.png',
   'reports_document_type_form_360.png',
-  'reports_document_type_form_ar_1280.png',
   'reports_document_type_validation_1280.png',
 ];
 
@@ -154,23 +152,18 @@ const _testLanguages = [
     sortOrder: 1,
     status: 'LIVE',
   ),
-  PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    active: true,
-    isDefault: false,
-    sortOrder: 2,
-    status: 'LIVE',
-  ),
 ];
-
 const _testManifest = UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 450,
+    ),
   ],
 );
 
@@ -188,17 +181,6 @@ class _TestUiMessageController extends UiMessageController {
   );
 }
 
-void _expectArabicActive(WidgetTester tester, Type screenType) {
-  final finder = find.byType(screenType);
-  expect(finder, findsOneWidget);
-  final element = tester.element(finder);
-  final container = ProviderScope.containerOf(element, listen: false);
-  expect(container.read(uiMessageControllerProvider).activeLanguage, 'ar');
-  expect(Localizations.localeOf(element).languageCode, 'ar');
-  expect(Directionality.of(element), TextDirection.rtl);
-  expect(find.text('العربية (AR)'), findsOneWidget);
-}
-
 Widget _realFontHarness({
   required Widget child,
   required GlobalKey boundaryKey,
@@ -213,7 +195,7 @@ Widget _realFontHarness({
     ),
     overrides: [
       uiStringsProvider.overrideWithValue(
-        langCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+        fakeEnUiStrings(),
       ),
       uiMessageControllerProvider.overrideWith(
         () => _TestUiMessageController(langCode),
@@ -228,7 +210,7 @@ Widget _realFontHarness({
         data: MediaQueryData(size: surfaceSize),
         child: MaterialApp(
           locale: locale,
-          supportedLocales: const [Locale('en'), Locale('ar')],
+          supportedLocales: const [Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -236,9 +218,7 @@ Widget _realFontHarness({
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            fontFamily: locale.languageCode == 'ar'
-                ? TrFonts.arabicDefault
-                : TrFonts.latin,
+            fontFamily: TrFonts.latin,
             scaffoldBackgroundColor: PtTheme.canvas,
           ),
           home: child,
@@ -288,7 +268,6 @@ void main() {
     await _loadMaterialIcons();
     await _loadRealFonts();
     await initializeDateFormatting('en');
-    await initializeDateFormatting('ar');
   });
 
   group('Reports Document Types Real Font Screenshots', () {
@@ -345,19 +324,6 @@ void main() {
       await tester.pumpAndSettle();
       await _capture(tester, key, 'reports_document_types_360.png');
 
-      // 5. Arabic RTL 1280
-      await tester.binding.setSurfaceSize(const Size(1280, 950));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const DocumentTypesScreen(),
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 950),
-        ),
-      );
-      await tester.pumpAndSettle();
-      _expectArabicActive(tester, DocumentTypesScreen);
-      await _capture(tester, key, 'reports_document_types_ar_1280.png');
 
       tester.binding.setSurfaceSize(null);
     });
@@ -403,23 +369,6 @@ void main() {
       await tester.pumpAndSettle();
       await _capture(tester, formKey360, 'reports_document_type_form_360.png');
 
-      // 3. Form Arabic 1280
-      final formKeyAr = GlobalKey();
-      await tester.binding.setSurfaceSize(const Size(1280, 950));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: DocumentTypesScreen.buildDialog(initial: _testDocTypes.first),
-          boundaryKey: formKeyAr,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 950),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(
-        tester,
-        formKeyAr,
-        'reports_document_type_form_ar_1280.png',
-      );
 
       // 4. Form Validation Error at 1280
       final valKey = GlobalKey();

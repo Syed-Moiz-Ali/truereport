@@ -851,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @queueTitle.
   ///
   /// In en, this message translates to:
-  /// **'Translation queue'**
+  /// **'Job queue'**
   String get queueTitle;
 
   /// No description provided for @scheduleJobTitle.

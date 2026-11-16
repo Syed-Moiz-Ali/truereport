@@ -95,7 +95,7 @@ const _dashboardSummary = OverviewSummary(
     healthy: false,
     issues: 2,
   ),
-  languages: OverviewLanguages(live: 2, translating: 1),
+  languages: OverviewLanguages(live: 1, translating: 0),
   recentActivity: [
     OverviewActivityEntry(
       id: 'evt-1',
@@ -128,19 +128,18 @@ const _dashboardSummary = OverviewSummary(
 );
 
 const _configHealth = ConfigHealth(
-  healthy: false,
+  healthy: true,
   checks: [
     HealthCheck(
-      code: 'TRANSLATION_GAP_AR',
-      severity: 'ERROR',
-      messageEn: 'Arabic translations missing for 2 items',
-      messageAr: 'تسميات عربية مفقودة لعنصرين',
-      affected: 2,
-      references: ['BRK-PAD-01', 'OIL-FLTR-02'],
+      code: 'TRANSLATIONS_COMPLETE',
+      severity: 'OK',
+      messageEn: 'All translations complete',
+      messageAr: 'All translations complete',
+      affected: 0,
+      references: [],
     ),
   ],
 );
-
 const _testLanguages = [
   PlatformLanguage(
     code: 'en',
@@ -151,47 +150,8 @@ const _testLanguages = [
     sortOrder: 0,
     status: 'LIVE',
   ),
-  PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    active: true,
-    isDefault: false,
-    sortOrder: 1,
-    status: 'LIVE',
-  ),
-  PlatformLanguage(
-    code: 'zh-Hans',
-    nativeName: '中文',
-    direction: 'ltr',
-    active: true,
-    isDefault: false,
-    sortOrder: 2,
-    status: 'TRANSLATING',
-  ),
 ];
-
-const _testReadinessZh = LanguageReadiness(
-  language: 'zh-Hans',
-  nativeName: '中文',
-  direction: 'ltr',
-  isDefault: false,
-  status: 'TRANSLATING',
-  readinessPercent: 65,
-  uiMessagesPath: 'assets/i18n/zh-Hans.json',
-  uiMessages: UiMessageCoverage(
-    total: 100,
-    approved: 65,
-    missing: 35,
-    changed: 0,
-    path: 'assets/i18n/zh-Hans.json',
-    generationStatus: 'NONE',
-  ),
-  content: {},
-  blockers: [],
-);
-
-const _testReadinessLive = LanguageReadiness(
+const _testReadinessEn = LanguageReadiness(
   language: 'en',
   nativeName: 'English',
   direction: 'ltr',
@@ -211,28 +171,19 @@ const _testReadinessLive = LanguageReadiness(
   blockers: [],
 );
 
-const _idleGen = ContentGeneration(
-  language: 'zh-Hans',
-  jobId: '',
-  jobStatus: 'IDLE',
-  status: 'IDLE',
-  total: 0,
-  completed: 0,
-  failedKeys: [],
-  entityTypes: [],
-  error: '',
-);
-
 const _testManifest = UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
-    UiMessageLanguage(code: 'zh-hans', direction: 'ltr', nativeName: '中文'),
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 450,
+    ),
   ],
 );
-
 class _TestUiMessageController extends UiMessageController {
   _TestUiMessageController(this.lang);
   final String lang;
@@ -257,7 +208,7 @@ Widget _dashboardRealFontHarness({
     key: ValueKey('scope-$langCode-${surfaceSize.width}'),
     overrides: [
       uiStringsProvider.overrideWithValue(
-        langCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+        fakeEnUiStrings(),
       ),
       uiMessageControllerProvider.overrideWith(
         () => _TestUiMessageController(langCode),
@@ -269,18 +220,11 @@ Widget _dashboardRealFontHarness({
       auditEventsProvider.overrideWith(
         (ref) async => const <PlatformAuditEvent>[],
       ),
-      readinessProvider('zh-Hans')
-          .overrideWith((ref) async => _testReadinessZh),
-      contentGenerationProvider('zh-Hans')
-          .overrideWith((ref) async => _idleGen),
-      readinessProvider('en').overrideWith((ref) async => _testReadinessLive),
-      contentGenerationProvider('en').overrideWith((ref) async => _idleGen),
-      readinessProvider('ar').overrideWith((ref) async => _testReadinessLive),
-      contentGenerationProvider('ar').overrideWith((ref) async => _idleGen),
+      readinessProvider('en').overrideWith((ref) async => _testReadinessEn),
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: const [Locale('en'), Locale('ar')],
+      supportedLocales: const [Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -288,9 +232,7 @@ Widget _dashboardRealFontHarness({
       ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: locale.languageCode == 'ar'
-            ? TrFonts.arabicDefault
-            : TrFonts.latin,
+        fontFamily: TrFonts.latin,
         scaffoldBackgroundColor: PtTheme.canvas,
       ),
       home: RepaintBoundary(
@@ -352,7 +294,7 @@ void main() {
 
   group('Phase 2 Real Font Dashboard Verification', () {
     testWidgets(
-      'Capture real font dashboard screenshots across viewports & RTL',
+      'Capture real font dashboard screenshots across viewports',
       (tester) async {
         final key = GlobalKey();
 
@@ -400,43 +342,7 @@ void main() {
         await tester.pumpAndSettle();
         await _capture(tester, key, 'dashboard_360.png');
 
-        // 5. Arabic RTL 1280 Desktop
-        await tester.binding.setSurfaceSize(const Size(1280, 1100));
-        await tester.pumpWidget(
-          _dashboardRealFontHarness(
-            boundaryKey: key,
-            locale: const Locale('ar'),
-            surfaceSize: const Size(1280, 1100),
-          ),
-        );
-        await tester.pumpAndSettle();
-        expect(
-          find.byKey(const Key('btn-header-language-selector')),
-          findsOneWidget,
-        );
-        expect(find.text('العربية (AR)'), findsOneWidget);
-        // Assert directionality is RTL
-        expect(
-          tester
-              .getTopLeft(find.byKey(const Key('btn-header-language-selector')))
-              .dx,
-          greaterThan(0),
-        );
-        await _capture(tester, key, 'dashboard_ar_1280.png');
 
-        // 6. Arabic RTL 360 Mobile
-        await tester.binding.setSurfaceSize(const Size(360, 1400));
-        await tester.pumpWidget(
-          _dashboardRealFontHarness(
-            boundaryKey: key,
-            locale: const Locale('ar'),
-            surfaceSize: const Size(360, 1400),
-          ),
-        );
-        await tester.pumpAndSettle();
-        // On compact screen (< 768px), header selector shows AR
-        expect(find.text('AR'), findsOneWidget);
-        await _capture(tester, key, 'dashboard_ar_360.png');
 
         // 7. Telugu font coverage verification
         await tester.pumpWidget(

@@ -189,6 +189,7 @@ public class WorkshopTemplateService {
         }
         prepared.sort(Comparator.comparingInt(PreparedItem::sortOrder));
         items.deleteByTemplateVersionId(draft.getId());
+        items.flush();
         for (PreparedItem preparedItem : prepared) {
             items.save(new TemplateItem(draft.getId(), workshopId,
                     preparedItem.published().versionId(), preparedItem.sortOrder(), true, "{}",

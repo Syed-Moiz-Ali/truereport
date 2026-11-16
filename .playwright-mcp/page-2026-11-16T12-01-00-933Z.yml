@@ -1,0 +1,23 @@
+- generic [ref=f2e45]:
+  - alertdialog:
+    - generic "Alert":
+      - generic [ref=f2e46]:
+        - generic [active]: New template
+      - generic:
+        - group:
+          - generic [ref=f2e47]:
+            - textbox "Template name" [disabled] [ref=f2e48]
+            - textbox "Template name" [ref=f2e50]
+          - generic [ref=f2e51]:
+            - textbox "Description" [disabled] [ref=f2e52]
+            - textbox "Description" [ref=f2e54]
+          - generic [ref=f2e55]:
+            - textbox "Service type" [disabled] [ref=f2e56]
+            - textbox "Service type" [ref=f2e58]
+          - generic [ref=f2e59]:
+            - textbox "Vehicle type" [disabled] [ref=f2e60]
+            - textbox "Vehicle type" [ref=f2e62]
+      - button "Cancel":
+        - button "Cancel" [ref=f2e63]
+      - button "Create":
+        - button "Create" [ref=f2e64]

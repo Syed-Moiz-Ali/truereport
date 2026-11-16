@@ -1,21 +1,12 @@
 package com.truereport.localization;
 
 import com.truereport.localization.api.LanguageDtos.CoverageNamespace;
-import com.truereport.localization.api.LanguageDtos.CreateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.localization.api.LanguageDtos.MeLanguageDto;
 import com.truereport.localization.api.LanguageDtos.TranslationCoverageDto;
-import com.truereport.localization.api.LanguageDtos.UpdateLanguageRequest;
-import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
-import com.truereport.shared.security.CurrentUser;
-import com.truereport.shared.security.CurrentUserService;
-import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import com.truereport.uimessages.PlatformUiMessageCatalog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,34 +16,34 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * Read-only language registry plus per-user language preference.
+ *
+ * <p>Static UI languages are declared by the JSON manifest and synchronized
+ * into the registry at startup. Platform Admin cannot add, edit, publish or
+ * retire languages from the UI; changing the manifest and restarting is the
+ * only supported workflow.</p>
+ */
 @Service
 public class LocalizationService {
 
-    private static final Set<String> DIRECTIONS = Set.of("ltr", "rtl");
-
     private final LanguageRepository languages;
-    private final JdbcTemplate jdbc;
     private final TranslationBacklogService backlog;
-    private final CurrentUserService currentUsers;
-    private final FieldAuditService audit;
+    private final PlatformUiMessageCatalog catalog;
 
-    public LocalizationService(LanguageRepository languages, JdbcTemplate jdbc,
-                               TranslationBacklogService backlog, CurrentUserService currentUsers,
-                               FieldAuditService audit) {
+    public LocalizationService(LanguageRepository languages, TranslationBacklogService backlog,
+                               PlatformUiMessageCatalog catalog) {
         this.languages = languages;
-        this.jdbc = jdbc;
         this.backlog = backlog;
-        this.currentUsers = currentUsers;
-        this.audit = audit;
+        this.catalog = catalog;
     }
-
-    public static final List<String> LANGUAGE_STATUSES =
-            List.of("DRAFT", "TRANSLATING", "REVIEW", "LIVE", "RETIRED");
 
     @Transactional(readOnly = true)
     public List<LanguageDto> activeLanguages() {
-        // User-facing surfaces expose ONLY live languages.
+        // User-facing surfaces expose only languages that the manifest sync
+        // marked LIVE and active.
         List<LanguageDto> live = new ArrayList<>(languages.findLive());
         String fallback = languages.defaultCode();
         if (fallback != null && live.stream().noneMatch(l -> l.code().equals(fallback))) {
@@ -63,9 +54,19 @@ public class LocalizationService {
         return live;
     }
 
+    /**
+     * Platform Admin registry view: only languages declared by its static
+     * manifest. Shared DB rows used by other apps are intentionally not
+     * exposed here while Platform Admin is English-only.
+     */
     @Transactional(readOnly = true)
     public List<LanguageDto> allLanguages() {
-        return languages.findAll();
+        Set<String> manifestCodes = catalog.manifest().languages().stream()
+                .map(language -> language.code().toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        return languages.findLive().stream()
+                .filter(language -> manifestCodes.contains(language.code().toLowerCase(Locale.ROOT)))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -86,8 +87,9 @@ public class LocalizationService {
         if (code == null || code.isBlank()) {
             throw validation("language", "LANGUAGE_REQUIRED", "error.validation.failed");
         }
-        LanguageDto language = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("language", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
+        LanguageDto language = languages.find(code.trim().toLowerCase(Locale.ROOT))
+                .orElseThrow(() -> validation("language", "LANGUAGE_UNKNOWN",
+                        "error.locale.invalid"));
         if (!language.active() || !"LIVE".equals(language.status())) {
             throw validation("language", "LANGUAGE_INACTIVE", "error.locale.invalid");
         }
@@ -96,174 +98,11 @@ public class LocalizationService {
                 languages.defaultCode() == null ? "en" : languages.defaultCode());
     }
 
-    @Transactional
-    public LanguageDto create(CreateLanguageRequest request) {
-        if (request.code() == null || request.code().isBlank()) {
-            throw validation("code", "LANGUAGE_CODE_REQUIRED", "error.validation.failed");
-        }
-        String code = request.code().trim().toLowerCase(Locale.ROOT);
-        if (languages.find(code).isPresent()) {
-            throw ApiException.conflict("LANGUAGE_EXISTS", "Language already exists");
-        }
-        String nativeName = request.nativeName();
-        validateNativeName(nativeName);
-        String direction = normalizeDirection(request.direction());
-        // New languages always start as inactive DRAFT; they become selectable
-        // only after the translation backlog is approved and the language is published.
-        LanguageDto dto = new LanguageDto(code, nativeName.trim(), direction,
-                false, false, request.sortOrder() == null ? 99 : request.sortOrder(),
-                "DRAFT", null, null, null, null);
-        languages.insert(dto);
-        if (Boolean.TRUE.equals(request.isDefault()) && !"en".equals(code)) {
-            throw ApiException.validation("LANGUAGE_DEFAULT_FIXED",
-                    "English is the only default/source language",
-                    List.of(FieldIssue.of("isDefault", "LANGUAGE_DEFAULT_FIXED",
-                            "error.validation.failed")));
-        }
-        return languages.find(code).orElse(dto);
-    }
-
-    @Transactional
-    public LanguageDto update(String code, UpdateLanguageRequest request) {
-        LanguageDto existing = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
-        if (request.active() != null && !request.active()) {
-            assertCanDeactivate(existing);
-        }
-        LanguageDto updated = new LanguageDto(existing.code(),
-                blankTo(request.nativeName(), existing.nativeName()),
-                normalizeDirection(request.direction() == null ? existing.direction() : request.direction()),
-                request.active() == null ? existing.active() : request.active(),
-                existing.isDefault(),
-                request.sortOrder() == null ? existing.sortOrder() : request.sortOrder(),
-                existing.status(), existing.uiMessagesPath(), existing.uiMessagesHash(),
-                existing.reviewedAt(), existing.reviewedBy());
-        validateNativeName(updated.nativeName());
-        languages.update(updated);
-        return languages.find(updated.code()).orElse(updated);
-    }
-
-    @Transactional
-    public LanguageDto setActive(String code, boolean active) {
-        LanguageDto existing = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
-        if (!active) {
-            assertCanDeactivate(existing);
-        }
-        languages.update(new LanguageDto(existing.code(), existing.nativeName(),
-                existing.direction(), active, existing.isDefault(),
-                existing.sortOrder(), existing.status(), existing.uiMessagesPath(),
-                existing.uiMessagesHash(), existing.reviewedAt(), existing.reviewedBy()));
-        return languages.find(code).orElse(existing);
-    }
-
-    @Transactional
-    public LanguageDto setStatus(String code, String targetStatus) {
-        LanguageDto existing = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
-        String target = targetStatus == null ? "" : targetStatus.trim().toUpperCase(Locale.ROOT);
-        if (!LANGUAGE_STATUSES.contains(target)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "LANGUAGE_STATUS_INVALID",
-                    "error.validation.failed", "Unknown language status: " + targetStatus);
-        }
-        assertTransitionAllowed(existing.status(), target);
-        if ("LIVE".equals(target)) {
-            CurrentUser actor = null;
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication instanceof JwtAuthenticationToken) {
-                actor = currentUsers.require((JwtAuthenticationToken) authentication);
-            }
-            backlog.publish(actor, existing.code(), null);
-        } else {
-            if ("RETIRED".equals(target)) {
-                languages.update(new LanguageDto(existing.code(), existing.nativeName(),
-                        existing.direction(), false, existing.isDefault(),
-                        existing.sortOrder(), existing.status(), existing.uiMessagesPath(),
-                        existing.uiMessagesHash(), existing.reviewedAt(), existing.reviewedBy()));
-            }
-            languages.setStatus(existing.code(), target);
-        }
-        return languages.find(existing.code()).orElse(existing);
-    }
-
-    private void assertTransitionAllowed(String current, String target) {
-        if (current == null || current.isBlank()) {
-            current = "DRAFT";
-        }
-        if (current.equals(target)) {
-            throw ApiException.conflict("LANGUAGE_STATUS_TRANSITION_INVALID",
-                    "Language is already " + current);
-        }
-        if ("RETIRED".equals(current)) {
-            // Reopening a retired language restarts the lifecycle as DRAFT.
-            if (!"DRAFT".equals(target)) {
-                throw ApiException.conflict("LANGUAGE_STATUS_TRANSITION_INVALID",
-                        "Retired languages can only be reopened as DRAFT");
-            }
-            return;
-        }
-        if ("RETIRED".equals(target)) {
-            return;
-        }
-        int from = LANGUAGE_STATUSES.indexOf(current);
-        int to = LANGUAGE_STATUSES.indexOf(target);
-        if (from < 0 || to < 0 || to <= from) {
-            throw ApiException.conflict("LANGUAGE_STATUS_TRANSITION_INVALID",
-                    "Invalid language transition from " + current + " to " + target);
-        }
-    }
-    @Transactional
-    public List<LanguageDto> reorder(List<String> orderedCodes) {
-        if (orderedCodes != null && !orderedCodes.isEmpty()) {
-            languages.reorder(orderedCodes);
-        }
-        return languages.findAll();
-    }
-
-    @Transactional
-    public LanguageDto setDefault(String code) {
-        LanguageDto existing = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
-        if (!existing.active()) {
-            throw validation("code", "LANGUAGE_INACTIVE", "error.locale.invalid");
-        }
-        languages.setDefault(code);
-        return languages.find(code).orElse(existing);
-    }
-
-    @Transactional
-    public void deleteLanguage(CurrentUser actor, String code,
-                               jakarta.servlet.http.HttpServletRequest request) {
-        LanguageDto existing = languages.find(normalizeCode(code))
-                .orElseThrow(() -> validation("code", "LANGUAGE_UNKNOWN", "error.locale.invalid"));
-        if (existing.isDefault()) {
-            throw ApiException.conflict("LANGUAGE_IS_DEFAULT",
-                    "The default language cannot be deleted");
-        }
-        Integer preferences = jdbc.queryForObject("""
-                SELECT COUNT(*) FROM platform_user_language_preferences WHERE language_code = ?
-                """, Integer.class, existing.code());
-        if (preferences != null && preferences > 0) {
-            throw ApiException.conflict("LANGUAGE_IN_USE",
-                    "Language is used by a user preference; retire it instead");
-        }
-        if (languages.countJobsUsing(existing.code()) > 0) {
-            throw ApiException.conflict("LANGUAGE_IN_USE",
-                    "Language is used by a job preference; retire it instead");
-        }
-        jdbc.update("DELETE FROM platform_translations WHERE lang = ?", existing.code());
-        jdbc.update("DELETE FROM platform_languages WHERE code = ?", existing.code());
-        audit.record(actor, "LANGUAGE_DELETED", "LANGUAGE", existing.code(),
-                Map.of("status", existing.status(), "nativeName", existing.nativeName()),
-                null, null, request);
-    }
-
     @Transactional(readOnly = true)
     public TranslationCoverageDto coverage() {
-        List<String> codes = languages.findAll().stream().map(LanguageDto::code).toList();
-        List<LanguageDto> targets = languages.findAll().stream()
+        List<String> codes = languages.findLive().stream().map(LanguageDto::code).toList();
+        List<LanguageDto> targets = languages.findLive().stream()
                 .filter(language -> !language.isDefault())
-                .filter(language -> !"RETIRED".equals(language.status()))
                 .toList();
         Map<String, Integer> totals = new LinkedHashMap<>();
         Map<String, List<String>> missing = new LinkedHashMap<>();
@@ -293,45 +132,10 @@ public class LocalizationService {
         Map<String, CoverageNamespace> result = new LinkedHashMap<>();
         for (String namespace : namespaces) {
             result.put(namespace, new CoverageNamespace(
-                    totals.getOrDefault(namespace, 0), missing.getOrDefault(namespace, List.of())));
+                    totals.getOrDefault(namespace, 0),
+                    missing.getOrDefault(namespace, List.of())));
         }
         return new TranslationCoverageDto(codes, result);
-    }
-
-    private void assertCanDeactivate(LanguageDto language) {
-        if (language.isDefault()) {
-            throw ApiException.conflict("LANGUAGE_IS_DEFAULT", "The default language cannot be deactivated");
-        }
-        if (languages.countActive() <= 1) {
-            throw ApiException.conflict("LANGUAGE_LAST_ACTIVE", "At least one language must remain active");
-        }
-        if (languages.countJobsUsing(language.code()) > 0) {
-            throw ApiException.conflict("LANGUAGE_IN_USE", "Language is used by a job preference");
-        }
-    }
-
-    private void validateNativeName(String nativeName) {
-        if (nativeName == null || nativeName.isBlank()) {
-            throw ApiException.validation("LANGUAGE_INVALID", "A native name is required",
-                    List.of(FieldIssue.of("nativeName", "REQUIRED", "error.field.invalid")));
-        }
-    }
-
-    private String normalizeDirection(String direction) {
-        String normalized = direction == null || direction.isBlank() ? "ltr" : direction.trim().toLowerCase(Locale.ROOT);
-        if (!DIRECTIONS.contains(normalized)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "DIRECTION_INVALID",
-                    "error.validation.failed", "Direction must be ltr or rtl");
-        }
-        return normalized;
-    }
-
-    private static String blankTo(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value.trim();
-    }
-
-    private static String normalizeCode(String code) {
-        return code == null ? "" : code.trim().toLowerCase(Locale.ROOT);
     }
 
     private static ApiException validation(String field, String code, String messageKey) {

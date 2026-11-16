@@ -33,16 +33,12 @@ const _realScreenshotDir = 'test/screenshots/real';
 
 const _expectedSettingsRealScreenshots = <String>[
   'settings_1280.png',
-  'settings_ar_1280.png',
   'languages_1280.png',
-  'languages_ar_1280.png',
   'language_workspace_1280.png',
-  'language_workspace_ar_1280.png',
   'language_workspace_360.png',
   'audit_log_1280.png',
   'audit_log_768.png',
   'audit_log_360.png',
-  'audit_log_ar_1280.png',
 ];
 
 Future<void> _loadMaterialIcons() async {
@@ -120,32 +116,10 @@ const _testLanguages = [
     isDefault: true,
     sortOrder: 1,
     status: 'LIVE',
-    uiMessagesPath: 'en.json',
-  ),
-  PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    active: true,
-    isDefault: false,
-    sortOrder: 2,
-    status: 'LIVE',
-    uiMessagesPath: 'ar.json',
-  ),
-  PlatformLanguage(
-    code: 'de',
-    nativeName: 'Deutsch',
-    direction: 'ltr',
-    active: false,
-    isDefault: false,
-    sortOrder: 3,
-    status: 'TRANSLATING',
-    uiMessagesPath: 'de.json',
   ),
 ];
-
 const _testCoverage = TranslationCoverage(
-  languages: ['en', 'ar', 'de'],
+  languages: ['en'],
   namespaces: {
     'platform_admin': CoverageNamespace(total: 450, missing: []),
     'common': CoverageNamespace(total: 58, missing: []),
@@ -200,20 +174,20 @@ const _testAuditEvents = [
   ),
 ];
 
-const _testReadinessAr = LanguageReadiness(
-  language: 'ar',
-  nativeName: 'العربية',
-  direction: 'rtl',
-  isDefault: false,
+const _testReadinessEn = LanguageReadiness(
+  language: 'en',
+  nativeName: 'English',
+  direction: 'ltr',
+  isDefault: true,
   status: 'LIVE',
-  uiMessagesPath: 'ar.json',
   readinessPercent: 100,
+  uiMessagesPath: 'en.json',
   uiMessages: UiMessageCoverage(
     approved: 450,
     total: 450,
     missing: 0,
     changed: 0,
-    path: 'ar.json',
+    path: 'en.json',
     generationStatus: 'COMPLETED',
   ),
   content: {
@@ -228,57 +202,17 @@ const _testReadinessAr = LanguageReadiness(
   blockers: [],
 );
 
-const _testContentGenerationAr = ContentGeneration(
-  language: 'ar',
-  jobId: 'job-1',
-  jobStatus: 'COMPLETED',
-  status: 'COMPLETED',
-  total: 210,
-  completed: 210,
-  failedKeys: [],
-  entityTypes: [],
-  error: '',
-);
-
-const _testReadinessDe = LanguageReadiness(
-  language: 'de',
-  nativeName: 'Deutsch',
-  direction: 'ltr',
-  isDefault: false,
-  status: 'TRANSLATING',
-  uiMessagesPath: 'de.json',
-  readinessPercent: 42,
-  uiMessages: UiMessageCoverage(
-    approved: 42,
-    total: 100,
-    missing: 58,
-    changed: 0,
-    path: 'de.json',
-    generationStatus: 'NONE',
-  ),
-  content: {},
-  blockers: [],
-);
-
-const _testContentGenerationDe = ContentGeneration(
-  language: 'de',
-  jobId: '',
-  jobStatus: 'IDLE',
-  status: 'IDLE',
-  total: 0,
-  completed: 0,
-  failedKeys: [],
-  entityTypes: [],
-  error: '',
-);
-
 const _testManifest = UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
-    UiMessageLanguage(code: 'de', direction: 'ltr', nativeName: 'Deutsch'),
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 450,
+    ),
   ],
 );
 
@@ -306,9 +240,7 @@ Widget _realFontHarness({
   return ProviderScope(
     key: ValueKey('real-$langCode-${surfaceSize.width}-${child.runtimeType}'),
     overrides: [
-      uiStringsProvider.overrideWithValue(
-        langCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
-      ),
+      uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
       uiMessageControllerProvider.overrideWith(
         () => _TestUiMessageController(langCode),
       ),
@@ -325,15 +257,7 @@ Widget _realFontHarness({
           size: 25,
         ),
       ),
-      readinessProvider('ar').overrideWith((ref) async => _testReadinessAr),
-      contentGenerationProvider('ar')
-          .overrideWith((ref) async => _testContentGenerationAr),
-      readinessProvider('en').overrideWith((ref) async => _testReadinessAr),
-      contentGenerationProvider('en')
-          .overrideWith((ref) async => _testContentGenerationAr),
-      readinessProvider('de').overrideWith((ref) async => _testReadinessDe),
-      contentGenerationProvider('de')
-          .overrideWith((ref) async => _testContentGenerationDe),
+      readinessProvider('en').overrideWith((ref) async => _testReadinessEn),
     ],
     child: RepaintBoundary(
       key: boundaryKey,
@@ -341,7 +265,7 @@ Widget _realFontHarness({
         data: MediaQueryData(size: surfaceSize),
         child: MaterialApp(
           locale: locale,
-          supportedLocales: const [Locale('en'), Locale('ar')],
+          supportedLocales: const [Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -349,9 +273,7 @@ Widget _realFontHarness({
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            fontFamily: locale.languageCode == 'ar'
-                ? TrFonts.arabicDefault
-                : TrFonts.latin,
+            fontFamily: TrFonts.latin,
             scaffoldBackgroundColor: PtTheme.canvas,
           ),
           home: child,
@@ -359,17 +281,6 @@ Widget _realFontHarness({
       ),
     ),
   );
-}
-
-void _expectArabicActive(WidgetTester tester, Type screenType) {
-  final finder = find.byType(screenType);
-  expect(finder, findsOneWidget);
-  final element = tester.element(finder);
-  final container = ProviderScope.containerOf(element, listen: false);
-  expect(container.read(uiMessageControllerProvider).activeLanguage, 'ar');
-  expect(Localizations.localeOf(element).languageCode, 'ar');
-  expect(Directionality.of(element), TextDirection.rtl);
-  expect(find.text('العربية (AR)'), findsOneWidget);
 }
 
 Future<void> _capture(
@@ -413,7 +324,6 @@ void main() {
     await _loadMaterialIcons();
     await _loadRealFonts();
     await initializeDateFormatting('en');
-    await initializeDateFormatting('ar');
   });
 
   group('Phase 6 Settings, Languages, Workspace, and Audit Real-Font Screenshots', () {
@@ -437,20 +347,6 @@ void main() {
       expect(find.text('Configuration health'), findsOneWidget);
       expect(find.text('Developer / Maintenance'), findsOneWidget);
       await _capture(tester, key, 'settings_1280.png');
-
-      // 1280 Arabic RTL
-      final keyAr = GlobalKey();
-      await tester.pumpWidget(
-        _realFontHarness(
-          boundaryKey: keyAr,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 950),
-          child: const PlatformSettingsScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-      _expectArabicActive(tester, PlatformSettingsScreen);
-      await _capture(tester, keyAr, 'settings_ar_1280.png');
     });
 
     testWidgets('captures Languages registry real-font screenshots', (
@@ -469,20 +365,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, key, 'languages_1280.png');
-
-      // 1280 Arabic RTL
-      final keyAr = GlobalKey();
-      await tester.pumpWidget(
-        _realFontHarness(
-          boundaryKey: keyAr,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 1100),
-          child: const LanguagesScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-      _expectArabicActive(tester, LanguagesScreen);
-      await _capture(tester, keyAr, 'languages_ar_1280.png');
     });
 
     testWidgets('captures Language Workspace real-font screenshots', (
@@ -496,25 +378,11 @@ void main() {
         _realFontHarness(
           boundaryKey: key,
           surfaceSize: const Size(1280, 1000),
-          child: const LanguageWorkspaceScreen(languageCode: 'ar'),
+          child: const LanguageWorkspaceScreen(languageCode: 'en'),
         ),
       );
       await tester.pumpAndSettle();
       await _capture(tester, key, 'language_workspace_1280.png');
-
-      // 1280 Arabic RTL
-      final keyAr = GlobalKey();
-      await tester.pumpWidget(
-        _realFontHarness(
-          boundaryKey: keyAr,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 1000),
-          child: const LanguageWorkspaceScreen(languageCode: 'ar'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      _expectArabicActive(tester, LanguageWorkspaceScreen);
-      await _capture(tester, keyAr, 'language_workspace_ar_1280.png');
 
       // 360 Mobile
       final keyMobile = GlobalKey();
@@ -523,7 +391,7 @@ void main() {
         _realFontHarness(
           boundaryKey: keyMobile,
           surfaceSize: const Size(360, 900),
-          child: const LanguageWorkspaceScreen(languageCode: 'ar'),
+          child: const LanguageWorkspaceScreen(languageCode: 'en'),
         ),
       );
       await tester.pumpAndSettle();
@@ -570,21 +438,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, key360, 'audit_log_360.png');
-
-      // 1280 Arabic RTL
-      final keyAr = GlobalKey();
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _realFontHarness(
-          boundaryKey: keyAr,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: const AuditLogScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-      _expectArabicActive(tester, AuditLogScreen);
-      await _capture(tester, keyAr, 'audit_log_ar_1280.png');
     });
 
     test('verifies all expected Phase 6 real-font screenshots exist and are valid', () {
@@ -615,14 +468,6 @@ void _expectActionableSidebarIfVisible(WidgetTester tester) {
     return;
   }
   expect(find.byKey(const Key('sidebar-language-loading')), findsNothing);
-  expect(find.text('Deutsch (DE)'), findsOneWidget);
-  expect(find.byKey(const Key('btn-sidebar-language-action')), findsOneWidget);
-  if (find.text('Translating').evaluate().isNotEmpty) {
-    expect(find.text('42 of 100 translated (42%)'), findsOneWidget);
-    expect(find.text('Continue generation'), findsOneWidget);
-  } else {
-    expect(find.text('قيد الترجمة'), findsWidgets);
-    expect(find.text('42 من 100 مترجم (42%)'), findsOneWidget);
-    expect(find.text('متابعة التوليد'), findsOneWidget);
-  }
+  // English-only baseline: the sidebar is quiet and may expose no action.
+  expect(find.byKey(const Key('btn-sidebar-language-action')), findsNothing);
 }

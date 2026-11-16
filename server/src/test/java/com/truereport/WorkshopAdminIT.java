@@ -12,6 +12,7 @@ import com.truereport.shared.security.CurrentUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -30,6 +31,49 @@ class WorkshopAdminIT extends IntegrationTestBase {
 
     @Autowired
     MasterContentService masterContent;
+
+    @Autowired
+    JdbcTemplate jdbc;
+
+    @Test
+    void draftSavesAreIdempotentAndPublishAfterSaveSucceeds() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        UUID categoryId = category("idempotent");
+        MasterItem item = publishedItem(categoryId, "SAMPLE-IDEMPOTENT-001",
+                "Idempotent item", "OPTIONAL", "NONE", 0);
+        String templateId = createTemplate(adminA, "Idempotent template");
+        String body = draftBody("Idempotent template", List.of(item.versionId()));
+
+        JsonNode first = putJson(adminA, "/api/v1/workshop/templates/" + templateId + "/draft", body);
+        String draftVersionId = first.get("draft").get("id").asText();
+        assertThat(templateItemCount(draftVersionId)).isEqualTo(1);
+
+        JsonNode second = putJson(adminA, "/api/v1/workshop/templates/" + templateId + "/draft", body);
+        assertThat(second.get("draft").get("id").asText()).isEqualTo(draftVersionId);
+        assertThat(templateItemCount(draftVersionId)).isEqualTo(1);
+
+        JsonNode published = postJson(adminA,
+                "/api/v1/workshop/templates/" + templateId + "/publish", "{}");
+        assertThat(published.get("status").asText()).isEqualTo("PUBLISHED");
+        assertThat(templateItemCount(draftVersionId)).isEqualTo(1);
+    }
+
+    @Test
+    void newTemplatePublishesAfterSingleDraftSave() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        UUID categoryId = category("direct-publish");
+        MasterItem item = publishedItem(categoryId, "SAMPLE-DIRECT-001",
+                "Direct publish item", "OPTIONAL", "NONE", 0);
+        String templateId = createTemplate(adminA, "Direct publish template");
+        JsonNode saved = saveDraft(adminA, templateId, List.of(item.versionId()),
+                "Direct publish template");
+        String draftVersionId = saved.get("draft").get("id").asText();
+
+        JsonNode published = postJson(adminA,
+                "/api/v1/workshop/templates/" + templateId + "/publish", "{}");
+        assertThat(published.get("status").asText()).isEqualTo("PUBLISHED");
+        assertThat(templateItemCount(draftVersionId)).isEqualTo(1);
+    }
 
     @Test
     void templatePinsMasterVersionAndExistingJobKeepsItAfterPublishAndRetirement() throws Exception {
@@ -260,6 +304,13 @@ class WorkshopAdminIT extends IntegrationTestBase {
                         .contentType(MediaType.APPLICATION_JSON).content("{}")
                 : get(path).header("Authorization", "Bearer " + platform.accessToken());
         mockMvc.perform(request).andExpect(status().isForbidden());
+    }
+
+    private int templateItemCount(String templateVersionId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM template_items WHERE template_version_id = ?",
+                Integer.class, UUID.fromString(templateVersionId));
+        return count == null ? 0 : count;
     }
 
     private UUID category(String suffix) {

@@ -11,7 +11,6 @@ import 'package:platform_admin_app/src/features/master_library/categories_screen
 import 'package:platform_admin_app/src/features/master_library/master_item_editor_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/option_sets_screen.dart';
-import 'package:platform_admin_app/src/features/templates/templates_screen.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
@@ -75,40 +74,6 @@ const _optionSet = OptionSet(
   ],
 );
 
-const _template = GlobalTemplate(
-  id: 'template-1',
-  code: 'TPL-BRK',
-  nameEn: 'Braking Inspection Template',
-  nameAr: 'قالب فحص الفرامل',
-  descriptionEn: 'Braking inspection',
-  descriptionAr: 'فحص الفرامل',
-  status: 'PUBLISHED',
-  currentPublishedVersionId: 'version-1',
-  versionCount: 1,
-  currentVersionNo: 1,
-  versions: [
-    TemplateVersionSummary(
-      id: 'version-1',
-      versionNo: 1,
-      status: 'PUBLISHED',
-      publishedAt: '2026-01-01',
-    ),
-  ],
-  categories: [
-    TemplateCategory(
-      categoryId: 'cat-1',
-      categoryCode: 'CAT-BRK',
-      nameEn: 'Braking Systems & Tyres',
-      nameAr: '????? ??????? ?????????',
-      sortOrder: 1,
-      itemCount: 1,
-      includedCount: 1,
-      included: true,
-      items: [],
-    ),
-  ],
-);
-
 const _documentType = ReportDocumentType(
   id: 'doc-1',
   code: 'DOC-PHOTO',
@@ -167,7 +132,6 @@ List<Override> _overrides(Locale locale) => [
   categoriesProvider.overrideWith((ref) async => const [_category]),
   itemsProvider.overrideWith((ref, query) async => const [_item]),
   optionSetsProvider.overrideWith((ref) async => const [_optionSet]),
-  templatesProvider.overrideWith((ref) async => const [_template]),
   documentTypesProvider.overrideWith((ref) async => const [_documentType]),
   platformLanguagesProvider.overrideWith((ref) async => const [_language]),
   translationCoverageProvider.overrideWith((ref) async => _coverage),
@@ -204,7 +168,6 @@ final _screens = <String, Widget>{
   'MasterItemEditorScreen': const MasterItemEditorScreen(),
   'CategoriesScreen': const CategoriesScreen(),
   'OptionSetsScreen': const OptionSetsScreen(),
-  'TemplatesScreen': const TemplatesScreen(),
   'DocumentTypesScreen': const DocumentTypesScreen(),
   'LanguagesScreen': const LanguagesScreen(),
   'ConfigHealthScreen': const ConfigHealthScreen(),

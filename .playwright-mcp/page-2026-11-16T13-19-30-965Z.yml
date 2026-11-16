@@ -1,0 +1,36 @@
+- generic [ref=f2e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Workshop Admin" [level=2] [ref=f2e24]
+            - button "العربية":
+              - button "العربية" [ref=f2e25]
+            - button "Sign out" [ref=f2e26]
+          - generic:
+            - button "Overview Tab 1 of 6" [ref=f2e27]
+            - button "Jobs Tab 2 of 6" [ref=f2e28]
+            - button "Staff Tab 3 of 6" [ref=f2e29]
+            - button "Templates Tab 4 of 6" [active] [ref=f2e30]
+            - button "Job board Tab 5 of 6" [ref=f2e31]
+            - button "Notifications Tab 6 of 6" [ref=f2e32]
+          - generic:
+            - generic:
+              - tabpanel:
+                - button "New template":
+                  - heading "Inspection templates" [level=2] [ref=f2e46]
+                  - generic [ref=f2e47]:
+                    - textbox "Search" [disabled] [ref=f2e48]
+                    - textbox "Search" [ref=f2e50]
+                  - button "New template" [ref=f2e51]
+                - group:
+                  - generic [ref=f2e52]: 0, Total checkpoints 0 Total checkpoints
+                  - button "All (0) All (0)" [ref=f2e53]
+                  - generic:
+                    - button "Grid" [ref=f2e54]
+                    - button "List" [ref=f2e55]
+                  - generic:
+                    - button "No results New template New template":
+                      - button "New template" [ref=f2e56]
+                  - generic [ref=f2e57]: Locked by platform

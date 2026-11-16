@@ -1,0 +1,42 @@
+- generic [active] [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e67]: TrueReport
+          - generic [ref=e68]: Platform Admin
+          - button "Platform Admin" [ref=e69]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=e71]
+          - generic [ref=e72]: English
+          - button "Notifications":
+            - button "Notifications" [ref=e73]
+          - button "Help":
+            - button "Help" [ref=e74]
+          - button "Account Platform Admin, Platform Admin" [ref=e75]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=e76]
+              - button "Workshops Workshops" [ref=e78]
+              - button "Checklist Checklist" [ref=e80]
+              - button "Reports Reports" [ref=e82]
+              - button "Audit Log Audit Log" [ref=e84]
+              - button "Settings Settings" [ref=e86]
+          - generic [ref=e87]: All languages live
+          - button "View languages" [ref=e88]
+          - generic [ref=e89]: System Operational
+          - generic [ref=e90]: Platform Admin
+          - generic [ref=e91]: Platform Admin
+          - button "Sign out" [ref=e92]
+          - group:
+            - generic [ref=e93]: Add workshop
+            - generic [ref=e94]: Manage workshops, staff, and their templates
+            - generic:
+              - generic [ref=e95]: "1"
+              - generic [ref=e96]: Overview
+              - textbox "Workshop name *" [ref=e98]
+              - textbox "Branch *" [ref=e100]
+              - generic [ref=e101]: "2"
+              - generic [ref=e102]: Contact
+              - textbox "Contact email *" [ref=e104]
+              - button "Cancel" [ref=e105]
+              - button "Save" [ref=e106]

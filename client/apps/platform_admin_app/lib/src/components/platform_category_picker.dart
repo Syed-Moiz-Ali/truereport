@@ -9,8 +9,7 @@ import 'platform_form.dart';
 
 import 'package:l10n/l10n.dart';
 
-/// Searchable category picker contract (shared by the Checklist items tab
-/// and the template builder):
+/// Searchable category picker contract for the Checklist items tab:
 ///
 /// ```dart
 /// PlatformCategoryPicker(

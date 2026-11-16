@@ -15,52 +15,18 @@ public final class LanguageDtos {
             boolean active,
             boolean isDefault,
             int sortOrder,
-            String status,
-            String uiMessagesPath,
-            String uiMessagesHash,
-            String reviewedAt,
-            String reviewedBy
+            String status
     ) {
         /**
          * Display name rule: native name first, then the code. Arabic is not
-         * special; every added language follows the same rule.
+         * special; every manifest language follows the same rule.
          */
         public String displayName() {
             return nativeName == null || nativeName.isBlank() ? code : nativeName;
         }
     }
 
-    public record CreateLanguageRequest(
-            String code,
-            String nativeName,
-            String direction,
-            Boolean active,
-            Integer sortOrder,
-            Boolean isDefault,
-            // Legacy compatibility input from older clients. Never stored as a
-            // fixed language column; used only as a nativeName fallback.
-            String nameEn,
-            String nameAr
-    ) {
-    }
-
-    public record UpdateLanguageRequest(
-            String nativeName,
-            String direction,
-            Boolean active,
-            Integer sortOrder,
-            String nameEn,
-            String nameAr
-    ) {
-    }
-
-    public record ReorderLanguagesRequest(List<String> orderedCodes) {
-    }
-
     public record SetLanguageRequest(String language) {
-    }
-
-    public record SetLanguageStatusRequest(String status) {
     }
 
     public record UpsertTranslationRequest(
@@ -117,9 +83,6 @@ public final class LanguageDtos {
             int coveragePercent,
             java.util.Map<String, EntityCoverageDto> byEntity
     ) {
-    }
-
-    public record PublishLanguageResultDto(String code, String status, int coveragePercent) {
     }
 
     public record MeLanguageDto(String language, String direction, String fallback) {

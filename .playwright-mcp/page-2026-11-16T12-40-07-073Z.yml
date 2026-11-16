@@ -1,0 +1,55 @@
+- generic [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e246]: TrueReport
+          - generic [ref=e247]: Platform Admin
+          - button "Platform Admin" [ref=e248]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=e250]
+          - generic [ref=e251]: English
+          - button "Notifications":
+            - button "Notifications" [ref=e252]
+          - button "Help":
+            - button "Help" [ref=e253]
+          - button "Account Platform Admin, Platform Admin" [ref=e254]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=e255]
+              - button "Workshops Workshops" [ref=e257]
+              - button "Checklist Checklist" [ref=e259]
+              - button "Reports Reports" [ref=e261]
+              - button "Audit Log Audit Log" [ref=e263]
+              - button "Settings Settings" [ref=e265]
+          - generic [ref=e266]: All languages live
+          - button "View languages" [ref=e267]
+          - generic [ref=e268]: System Operational
+          - generic [ref=e269]: Platform Admin
+          - generic [ref=e270]: Platform Admin
+          - button "Sign out" [ref=e271]
+          - group:
+            - generic [ref=e272]: LO
+            - generic [ref=e273]: Live Ownership Workshop
+            - generic [ref=e274]: Active
+            - button "Edit workshop" [ref=e275]
+            - button "Actions" [ref=e276]
+            - generic [ref=e277]: Verification Bay
+            - button "Overview Overview" [ref=e278]
+            - button "Staff Staff" [ref=e279]
+            - button "Available templates Available templates" [active] [ref=e280]
+            - button "Activity Activity" [ref=e281]
+            - generic [ref=e282]: "1"
+            - generic [ref=e283]: "0"
+            - generic [ref=e284]: Staff
+            - generic [ref=e285]: Technicians
+            - generic [ref=e286]: "0"
+            - generic [ref=e287]: 8 • 88%
+            - generic [ref=e288]: Pending invitations
+            - generic [ref=e289]: Capacity
+            - generic [ref=e306]: Published templates created by Workshop Admin and available for this workshop.
+            - generic [ref=e307]: Comprehensive 30-Point GCC Standard
+            - generic [ref=e308]: Active
+            - generic [ref=e309]: TPL-30-GCC
+            - generic [ref=e310]: "Categories: 0"
+            - generic [ref=e311]: "Inspection items: 0"
+            - generic [ref=e312]: Full 6-category, 30-item inspection package.

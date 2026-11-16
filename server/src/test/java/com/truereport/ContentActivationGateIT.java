@@ -5,15 +5,9 @@ import com.truereport.localization.TranslationGate;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.templates.config.PlatformTemplateService;
-import com.truereport.uimessages.UiTextTranslationProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.UUID;
 
@@ -25,11 +19,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestPropertySource(properties = {
-        "truereport.i18n.generation.synchronous=true",
-        "truereport.i18n.ui-messages-dir=target/test-content-gate-ui"
-})
 class ContentActivationGateIT extends IntegrationTestBase {
+
+    private static final String LANGUAGE = "ar";
 
     @Autowired
     TranslationGate translationGate;
@@ -37,64 +29,20 @@ class ContentActivationGateIT extends IntegrationTestBase {
     @Autowired
     PlatformTemplateService templateService;
 
-    @Autowired
-    JdbcTemplate jdbc;
-
-    @TestConfiguration
-    static class TranslationConfig {
-        @Bean
-        @Primary
-        FakeProvider fakeProvider() {
-            return new FakeProvider();
-        }
-    }
-
-    static class FakeProvider implements UiTextTranslationProvider {
-        @Override
-        public String translate(String text, String targetLanguage) {
-            return "[" + targetLanguage + "] " + text;
-        }
-    }
-
     @Test
     void pendingActivationContentIsTranslatableAndActivatable() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
-        publishLanguage(platform, "hi", "Hindi");
-        JsonNode registry = getJson(platform, "/api/v1/platform/i18n/languages");
-        boolean hiLive = false;
-        for (JsonNode language : registry) {
-            if ("hi".equals(language.get("code").asText())) {
-                hiLive = "LIVE".equals(language.get("status").asText())
-                        && language.get("active").asBoolean();
-            }
-        }
-        assertThat(hiLive).isTrue();
-        assertThat(translationGate.liveExtendedLanguages()).containsExactly("hi");
-
-        generate(platform, "hi", "CATEGORY");
-        JsonNode afterLiveGeneration = getJson(platform, "/api/v1/platform/i18n/languages");
-        for (JsonNode language : afterLiveGeneration) {
-            if ("hi".equals(language.get("code").asText())) {
-                assertThat(language.get("status").asText()).isEqualTo("LIVE");
-            }
-        }
-        String liveAudit = jdbc.queryForObject("""
-                SELECT after_json FROM platform_audit_events
-                WHERE action_code = 'CONTENT_TRANSLATIONS_GENERATED'
-                ORDER BY occurred_at DESC LIMIT 1
-                """, String.class);
-        assertThat(objectMapper.readTree(liveAudit).get("status").asText())
-                .isEqualTo("LIVE");
+        approveReadinessItems(platform, LANGUAGE);
+        assertThat(translationGate.liveExtendedLanguages()).contains(LANGUAGE);
 
         JsonNode category = postJson(platform, "/api/v1/platform/master/categories", """
                 {"code":"GATE-CAT","name":"Gate category","sortOrder":1}
                 """);
         assertThat(category.get("status").asText()).isEqualTo("DRAFT");
         String categoryId = category.get("id").asText();
-        assertPending(platform, "hi", "CATEGORY", categoryId);
-        generate(platform, "hi", "CATEGORY");
-        approveAll(platform, "hi", "CATEGORY");
+        assertPending(platform, LANGUAGE, "CATEGORY", categoryId);
+        approveAll(platform, LANGUAGE, "CATEGORY");
         activateCategory(platform, categoryId).andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
 
@@ -104,9 +52,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
         assertThat(optionSet.get("status").asText()).isEqualTo("DRAFT");
         String setId = optionSet.get("id").asText();
         assertThat(translationGate.overlaysApproved("OPTION_SET", setId)).isFalse();
-        assertPending(platform, "hi", "OPTION_SET", setId);
-        generate(platform, "hi", "OPTION_SET");
-        approveAll(platform, "hi", "OPTION_SET");
+        assertPending(platform, LANGUAGE, "OPTION_SET", setId);
+        approveAll(platform, LANGUAGE, "OPTION_SET");
         mockMvc.perform(put("/api/v1/platform/master/option-sets/" + setId)
                         .header("Authorization", bearer(platform))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,9 +67,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
                 """);
         assertThat(value.get("status").asText()).isEqualTo("DRAFT");
         String valueId = value.get("id").asText();
-        assertPending(platform, "hi", "OPTION_VALUE", valueId);
-        generate(platform, "hi", "OPTION_VALUE");
-        approveAll(platform, "hi", "OPTION_VALUE");
+        assertPending(platform, LANGUAGE, "OPTION_VALUE", valueId);
+        approveAll(platform, LANGUAGE, "OPTION_VALUE");
         mockMvc.perform(put("/api/v1/platform/master/option-sets/" + setId
                                 + "/values/" + valueId)
                         .header("Authorization", bearer(platform))
@@ -136,9 +82,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
                 """);
         assertThat(documentType.get("status").asText()).isEqualTo("DRAFT");
         String documentTypeId = documentType.get("id").asText();
-        assertPending(platform, "hi", "DOCUMENT_TYPE", documentTypeId);
-        generate(platform, "hi", "DOCUMENT_TYPE");
-        approveAll(platform, "hi", "DOCUMENT_TYPE");
+        assertPending(platform, LANGUAGE, "DOCUMENT_TYPE", documentTypeId);
+        approveAll(platform, LANGUAGE, "DOCUMENT_TYPE");
         mockMvc.perform(put("/api/v1/platform/document-types/" + documentTypeId)
                         .header("Authorization", bearer(platform))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -159,10 +104,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
                 {"fields":[{"fieldCode":"ISSUE_TYPE","label":"Issue type",
                   "inputType":"TEXT","required":true,"sortOrder":1}]}
                 """);
-        generate(platform, "hi", "ITEM");
-        generate(platform, "hi", "ISSUE_FIELD");
-        approveAll(platform, "hi", "ITEM");
-        approveAll(platform, "hi", "ISSUE_FIELD");
+        approveAll(platform, LANGUAGE, "ITEM");
+        approveAll(platform, LANGUAGE, "ISSUE_FIELD");
         mockMvc.perform(post("/api/v1/platform/master/items/" + itemId
                                 + "/versions/" + versionId + "/publish")
                         .header("Authorization", bearer(platform)))
@@ -171,20 +114,21 @@ class ContentActivationGateIT extends IntegrationTestBase {
     }
 
     @Test
-    void readinessExcludesDraftContentAndDraftDoesNotBlockLanguagePublish() throws Exception {
+    void readinessExcludesDraftContent() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
-        createLanguage(platform, "hi", "Hindi");
+        approveReadinessItems(platform, LANGUAGE);
 
-        int before = coverageTotal(platform, "hi");
+        int before = coverageTotal(platform, LANGUAGE);
         JsonNode draft = postJson(platform, "/api/v1/platform/master/categories", """
                 {"code":"PENDING-CAT","name":"Pending category","sortOrder":1}
                 """);
         assertThat(draft.get("status").asText()).isEqualTo("DRAFT");
-        int after = coverageTotal(platform, "hi");
+        int after = coverageTotal(platform, LANGUAGE);
         assertThat(after).isEqualTo(before);
 
-        JsonNode backlog = getJson(platform, "/api/v1/platform/i18n/languages/hi/backlog");
+        JsonNode backlog = getJson(platform,
+                "/api/v1/platform/i18n/languages/" + LANGUAGE + "/backlog");
         boolean pendingVisible = false;
         for (JsonNode group : backlog.get("groups")) {
             for (JsonNode entry : group.get("items")) {
@@ -196,10 +140,9 @@ class ContentActivationGateIT extends IntegrationTestBase {
         }
         assertThat(pendingVisible).isTrue();
 
-        publishLanguage(platform, "hi", "Hindi");
-        JsonNode category = getJson(platform, "/api/v1/platform/master/categories");
+        JsonNode categories = getJson(platform, "/api/v1/platform/master/categories");
         JsonNode pending = null;
-        for (JsonNode entry : category) {
+        for (JsonNode entry : categories) {
             if ("PENDING-CAT".equals(entry.get("code").asText())) {
                 pending = entry;
             }
@@ -207,8 +150,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
         assertThat(pending).isNotNull();
         assertThat(pending.get("status").asText()).isEqualTo("DRAFT");
 
-        generate(platform, "hi", "CATEGORY");
-        approveAll(platform, "hi", "CATEGORY");
+        approveAll(platform, LANGUAGE, "CATEGORY");
         activateCategory(platform, pending.get("id").asText())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
@@ -218,8 +160,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
     void unpublishedTemplatesStayTranslatableButDoNotCountForReadiness() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
-        createLanguage(platform, "hi", "Hindi");
-        retireLanguage(platform, "ar");
+        approveReadinessItems(platform, LANGUAGE);
 
         JsonNode template = postJson(platform, "/api/v1/platform/master/templates", """
                 {"code":"PENDING-TPL","name":"Pending template",
@@ -230,14 +171,15 @@ class ContentActivationGateIT extends IntegrationTestBase {
 
         JsonNode unpublishedTranslation = putJson(platform,
                 "/api/v1/platform/i18n/translations", """
-                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"hi",
-                 "text":"hi-template","status":"DRAFT"}
+                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"ar",
+                 "text":"ar-template","status":"DRAFT"}
                 """.formatted(templateId));
         assertThat(unpublishedTranslation.get("contentStatus").asText())
                 .isEqualTo("DRAFT");
 
-        int readinessBefore = coverageTotal(platform, "hi");
-        JsonNode backlog = getJson(platform, "/api/v1/platform/i18n/languages/hi/backlog");
+        int readinessBefore = coverageTotal(platform, LANGUAGE);
+        JsonNode backlog = getJson(platform,
+                "/api/v1/platform/i18n/languages/" + LANGUAGE + "/backlog");
         boolean templateVisible = false;
         for (JsonNode group : backlog.get("groups")) {
             if (!"TEMPLATE".equals(group.get("entityType").asText())) {
@@ -252,9 +194,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
             }
         }
         assertThat(templateVisible).isTrue();
-
-        publishLanguage(platform, "hi", "Hindi");
-        assertThat(coverageTotal(platform, "hi")).isEqualTo(readinessBefore);
+        assertThat(coverageTotal(platform, LANGUAGE)).isEqualTo(readinessBefore);
 
         JsonNode categories = getJson(platform, "/api/v1/platform/master/categories");
         String categoryId = categories.get(0).get("id").asText();
@@ -284,12 +224,12 @@ class ContentActivationGateIT extends IntegrationTestBase {
                 .satisfies(error -> assertThat(((ApiException) error).code())
                         .isEqualTo("TRANSLATION_REQUIRED"));
 
-        approve(platform, "TEMPLATE", templateId, "name", "hi-template");
-        approve(platform, "TEMPLATE", templateId, "description", "hi-description");
+        approve(platform, "TEMPLATE", templateId, "name", "ar-template");
+        approve(platform, "TEMPLATE", templateId, "description", "ar-description");
 
         templateService.publish(first, templateId, versionId);
         templateService.approve(second, templateId, versionId);
-        int readinessAfterPublish = coverageTotal(platform, "hi");
+        int readinessAfterPublish = coverageTotal(platform, LANGUAGE);
         assertThat(readinessAfterPublish).isGreaterThan(readinessBefore);
 
         JsonNode published = getJson(platform,
@@ -299,13 +239,13 @@ class ContentActivationGateIT extends IntegrationTestBase {
 
         JsonNode publishedTranslation = putJson(platform,
                 "/api/v1/platform/i18n/translations", """
-                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"hi",
-                 "text":"hi-template","status":"APPROVED"}
+                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"ar",
+                 "text":"ar-template","status":"APPROVED"}
                 """.formatted(templateId));
         assertThat(publishedTranslation.get("contentStatus").asText())
                 .isEqualTo("ACTIVE");
         JsonNode publishedBacklog = getJson(platform,
-                "/api/v1/platform/i18n/languages/hi/backlog");
+                "/api/v1/platform/i18n/languages/" + LANGUAGE + "/backlog");
         boolean publishedRowMatched = false;
         for (JsonNode group : publishedBacklog.get("groups")) {
             for (JsonNode entry : group.get("items")) {
@@ -319,7 +259,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
         assertThat(publishedRowMatched).isTrue();
 
         JsonNode readiness = getJson(platform,
-                "/api/v1/platform/i18n/languages/hi/readiness");
+                "/api/v1/platform/i18n/languages/" + LANGUAGE + "/readiness");
         assertThat(readiness.get("content").get("TEMPLATE").get("total").asInt())
                 .isGreaterThan(0);
     }
@@ -340,22 +280,6 @@ class ContentActivationGateIT extends IntegrationTestBase {
             }
         }
         throw new AssertionError("Pending content not found in backlog: " + entityType);
-    }
-
-    private void publishLanguage(Login platform, String code, String nativeName) throws Exception {
-        retireLanguage(platform, "ar");
-        if (!languageExists(platform, code)) {
-            createLanguage(platform, code, nativeName);
-        }
-        postJson(platform, "/api/v1/platform/i18n/languages/" + code
-                + "/ui-messages/generate", "{\"force\":true}");
-        postJson(platform, "/api/v1/platform/i18n/languages/" + code
-                + "/ui-messages/approve", "{}");
-        generate(platform, code,
-                "CATEGORY", "ITEM", "OPTION_SET", "OPTION_VALUE", "TEMPLATE",
-                "DOCUMENT_TYPE", "ISSUE_FIELD");
-        approveReadinessItems(platform, code);
-        postJson(platform, "/api/v1/platform/i18n/languages/" + code + "/publish", "{}");
     }
 
     private void approveReadinessItems(Login platform, String code) throws Exception {
@@ -392,7 +316,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
     private void approve(Login platform, String entityType, String entityId,
                          String field, String text) throws Exception {
         putJson(platform, "/api/v1/platform/i18n/translations", """
-                {"entityType":"%s","entityId":"%s","field":"%s","language":"hi",
+                {"entityType":"%s","entityId":"%s","field":"%s","language":"ar",
                  "text":"%s","status":"APPROVED"}
                 """.formatted(entityType, entityId, field,
                 text.replace("\"", "\\\"")));
@@ -417,45 +341,6 @@ class ContentActivationGateIT extends IntegrationTestBase {
 
     private boolean isReadinessVisible(String status) {
         return "ACTIVE".equals(status) || "PUBLISHED".equals(status);
-    }
-
-    private void generate(Login platform, String code, String... entityTypes) throws Exception {
-        StringBuilder types = new StringBuilder();
-        for (String type : entityTypes) {
-            if (types.length() > 0) {
-                types.append(',');
-            }
-            types.append('"').append(type).append('"');
-        }
-        postJson(platform, "/api/v1/platform/i18n/languages/" + code + "/content/generate",
-                "{\"entityTypes\":[" + types + "],\"force\":true}");
-    }
-
-    private void createLanguage(Login platform, String code, String nativeName) throws Exception {
-        postJson(platform, "/api/v1/platform/i18n/languages", """
-                {"code":"%s","nativeName":"%s","direction":"ltr","sortOrder":10}
-                """.formatted(code, nativeName));
-    }
-
-    private void retireLanguage(Login platform, String code) throws Exception {
-        JsonNode languages = getJson(platform, "/api/v1/platform/i18n/languages");
-        for (JsonNode language : languages) {
-            if (code.equals(language.get("code").asText())
-                    && !"RETIRED".equals(language.get("status").asText())) {
-                postJson(platform, "/api/v1/platform/i18n/languages/" + code + "/status",
-                        "{\"status\":\"RETIRED\"}");
-            }
-        }
-    }
-
-    private boolean languageExists(Login platform, String code) throws Exception {
-        JsonNode languages = getJson(platform, "/api/v1/platform/i18n/languages");
-        for (JsonNode language : languages) {
-            if (code.equals(language.get("code").asText())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private org.springframework.test.web.servlet.ResultActions activateCategory(

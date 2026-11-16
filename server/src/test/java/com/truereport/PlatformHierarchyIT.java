@@ -41,6 +41,43 @@ class PlatformHierarchyIT extends IntegrationTestBase {
     }
 
     @Test
+    void platformAdminRegistersWorkshopWithoutTemplate() throws Exception {
+        Login platform = login("platform@test.local");
+
+        var result = mockMvc.perform(post("/api/v1/platform/workshops")
+                        .header("Authorization", "Bearer " + platform.accessToken())
+                        .header("Idempotency-Key", "register-workshop-1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Registered Workshop","location":"Central Depot",
+                                 "contactEmail":"ops@registered.test"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Registered Workshop"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.memberCount").value(0))
+                .andReturn();
+        JsonNode created = objectMapper.readTree(result.getResponse().getContentAsString());
+        String workshopId = created.get("id").asText();
+
+        var detailResult = mockMvc.perform(get("/api/v1/platform/workshops/" + workshopId + "/hierarchy")
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode detail = objectMapper.readTree(detailResult.getResponse().getContentAsString());
+        assertThat(detail.get("name").asText()).isEqualTo("Registered Workshop");
+        assertThat(detail.get("branchName").asText()).isEqualTo("Central Depot");
+        assertThat(detail.get("status").asText()).isEqualTo("ACTIVE");
+
+        var auditResult = mockMvc.perform(get("/api/v1/platform/audit-events")
+                        .header("Authorization", "Bearer " + platform.accessToken()))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertThat(auditResult.getResponse().getContentAsString())
+                .contains("WORKSHOP_REGISTERED");
+    }
+
+    @Test
     void platformCannotCreateTechniciansStrictChainA1() throws Exception {
         Login platform = login("platform@test.local");
         mockMvc.perform(post("/api/v1/platform/users")

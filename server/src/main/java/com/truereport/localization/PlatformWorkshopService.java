@@ -8,9 +8,11 @@ import com.truereport.tenancy.WorkshopMembershipRepository;
 import com.truereport.tenancy.WorkshopRepository;
 import com.truereport.localization.api.WorkshopDtos.WorkshopDto;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +23,10 @@ import java.util.UUID;
  */
 @Service
 public class PlatformWorkshopService {
+
+    public record WorkshopCreateRequest(String name, String location, String branchName,
+                                        String contactEmail, String timezone) {
+    }
 
     public record WorkshopUpdateRequest(String name, String location, String branchName,
                                         String contactEmail, String timezone) {
@@ -39,6 +45,35 @@ public class PlatformWorkshopService {
         this.workshops = workshops;
         this.memberships = memberships;
         this.audit = audit;
+    }
+
+    @Transactional
+    public WorkshopDto create(CurrentUser actor, WorkshopCreateRequest request,
+                              HttpServletRequest http) {
+        if (request == null || request.name() == null || request.name().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "WORKSHOP_NAME_REQUIRED",
+                    "error.workshop.nameRequired", "Workshop name is required");
+        }
+        Workshop workshop = new Workshop(request.name().trim());
+        String branch = request.branchName() != null ? request.branchName() : request.location();
+        if (branch != null && !branch.isBlank()) {
+            workshop.setBranchName(branch.trim());
+        }
+        workshops.save(workshop);
+        String contactEmail = request.contactEmail() == null
+                ? null : request.contactEmail().trim();
+        Map<String, String> after = new LinkedHashMap<>();
+        after.put("name", workshop.getName());
+        after.put("status", workshop.getStatus());
+        if (workshop.getBranchName() != null) {
+            after.put("branchName", workshop.getBranchName());
+        }
+        if (contactEmail != null && !contactEmail.isBlank()) {
+            after.put("contactEmail", contactEmail);
+        }
+        audit.record(actor, "WORKSHOP_REGISTERED", "WORKSHOP", workshop.getId().toString(),
+                null, after, null, http);
+        return toDto(workshop);
     }
 
     @Transactional

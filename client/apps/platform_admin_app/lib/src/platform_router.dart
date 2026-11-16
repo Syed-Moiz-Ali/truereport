@@ -10,13 +10,10 @@ import 'features/documents/document_types_screen.dart';
 import 'features/languages/language_workspace_screen.dart';
 import 'features/languages/languages_screen.dart';
 import 'features/languages/translation_queue_screen.dart';
-import 'features/languages/ui_message_review_screen.dart';
 import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
 import 'features/master_library/categories_screen.dart';
 import 'features/master_library/option_sets_screen.dart';
-import 'features/templates/templates_screen.dart';
-import 'features/templates/template_builder_screen.dart';
 import 'features/governance/config_health_screen.dart';
 import 'features/settings/platform_settings_screen.dart';
 import 'features/workshops/workshop_detail_screen.dart';
@@ -93,17 +90,6 @@ List<RouteBase> _buildRoutes() {
       builder: (context, state) => const OptionSetsScreen(),
     ),
     GoRoute(
-      path: '/checklist/templates',
-      builder: (context, state) => const TemplatesScreen(),
-      routes: [
-        GoRoute(
-          path: ':id',
-          builder: (context, state) =>
-              TemplateBuilderScreen(templateId: state.pathParameters['id']!),
-        ),
-      ],
-    ),
-    GoRoute(
       path: '/checklist/health',
       builder: (context, state) => const ConfigHealthScreen(),
     ),
@@ -133,11 +119,6 @@ List<RouteBase> _buildRoutes() {
           TranslationQueueScreen(languageCode: state.pathParameters['code']!),
     ),
     GoRoute(
-      path: '/settings/languages/:code/review',
-      builder: (context, state) =>
-          UiMessageReviewScreen(languageCode: state.pathParameters['code']!),
-    ),
-    GoRoute(
       path: '/audit-log',
       builder: (context, state) => const AuditLogScreen(),
     ),
@@ -159,12 +140,6 @@ List<RouteBase> _buildRoutes() {
       path: '/master-library/:id/edit',
       redirect: (context, state) =>
           '/checklist/items/${state.pathParameters['id']}/edit',
-    ),
-    GoRoute(path: '/templates', redirect: (_, _) => '/checklist/templates'),
-    GoRoute(
-      path: '/templates/:id',
-      redirect: (context, state) =>
-          '/checklist/templates/${state.pathParameters['id']}',
     ),
     GoRoute(path: '/config-health', redirect: (_, _) => '/checklist/health'),
     GoRoute(

@@ -129,18 +129,6 @@ const _fakeReadinessZh = LanguageReadiness(
   blockers: [],
 );
 
-const _fakeGenZh = ContentGeneration(
-  language: 'zh-Hans',
-  jobId: '',
-  jobStatus: 'IDLE',
-  status: 'IDLE',
-  total: 0,
-  completed: 0,
-  failedKeys: [],
-  entityTypes: [],
-  error: '',
-);
-
 Widget _app({
   Locale locale = const Locale('en'),
   double width = 1280,
@@ -158,7 +146,6 @@ Widget _app({
       platformLanguagesProvider.overrideWith((ref) async => languages),
       auditEventsProvider.overrideWith((ref) async => _events),
       readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
-      contentGenerationProvider('zh-Hans').overrideWith((ref) async => _fakeGenZh),
       readinessProvider('en').overrideWith((ref) async => const LanguageReadiness(
         language: 'en',
         nativeName: 'English',
@@ -178,17 +165,6 @@ Widget _app({
         content: {},
         blockers: [],
       )),
-      contentGenerationProvider('en').overrideWith((ref) async => const ContentGeneration(
-        language: 'en',
-        jobId: '',
-        jobStatus: 'IDLE',
-        status: 'IDLE',
-        total: 0,
-        completed: 0,
-        failedKeys: [],
-        entityTypes: [],
-        error: '',
-      )),
       readinessProvider('ar').overrideWith((ref) async => const LanguageReadiness(
         language: 'ar',
         nativeName: 'العربية',
@@ -207,17 +183,6 @@ Widget _app({
         ),
         content: {},
         blockers: [],
-      )),
-      contentGenerationProvider('ar').overrideWith((ref) async => const ContentGeneration(
-        language: 'ar',
-        jobId: '',
-        jobStatus: 'IDLE',
-        status: 'IDLE',
-        total: 0,
-        completed: 0,
-        failedKeys: [],
-        entityTypes: [],
-        error: '',
       )),
     ],
     child: MaterialApp(
@@ -304,7 +269,6 @@ void main() {
             ),
             platformLanguagesProvider.overrideWith((ref) async => _languages),
             readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
-            contentGenerationProvider('zh-Hans').overrideWith((ref) async => _fakeGenZh),
           ],
           child: const MaterialApp(
             supportedLocales: <Locale>[Locale('en'), Locale('ar')],
@@ -341,7 +305,6 @@ void main() {
             platformLanguagesProvider.overrideWith((ref) async => _languages),
             auditEventsProvider.overrideWith((ref) async => _events),
             readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
-            contentGenerationProvider('zh-Hans').overrideWith((ref) async => _fakeGenZh),
           ],
           child: const MaterialApp(
             supportedLocales: <Locale>[Locale('en'), Locale('ar')],
@@ -442,7 +405,6 @@ void main() {
       expect(find.text('Quick actions'), findsOneWidget);
       expect(find.text('Add workshop'), findsOneWidget);
       expect(find.text('Add checklist item'), findsOneWidget);
-      expect(find.text('Create template'), findsOneWidget);
       expect(find.text('Add language'), findsOneWidget);
       expect(find.text('View checklist health'), findsOneWidget);
 

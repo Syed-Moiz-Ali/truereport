@@ -1,0 +1,22 @@
+- generic [active] [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e240]: Published
+          - generic [ref=e241]: STANDARD OPERATING PROCEDURE
+          - generic [ref=e242]: Live Ownership Published Template
+          - button "Preview" [disabled]:
+            - button "Preview" [disabled] [ref=e243]
+          - button "Publish template" [disabled]:
+            - button "Publish template" [disabled] [ref=e244]
+          - button "Retire" [ref=e245]
+          - generic:
+            - group:
+              - button "Template Parameters & Classification FULL · CAR" [ref=e246]
+              - generic:
+                - generic:
+                  - button "Read-only version Create draft Create draft":
+                    - button "Create draft" [ref=e248]
+              - button "Version history v1 · Published 3 items selected · 2026-11-16T12:38:42.761591" [ref=e250]
+          - generic [ref=e251]: Template published

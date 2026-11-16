@@ -256,28 +256,6 @@ final optionSetsProvider = FutureProvider.autoDispose<List<OptionSet>>(
   (ref) => ref.watch(platformConfigApiProvider).optionSets(),
 );
 
-final templatesProvider = FutureProvider.autoDispose<List<GlobalTemplate>>(
-  (ref) => ref.watch(platformConfigApiProvider).templates(),
-);
-
-final availableTemplatesProvider =
-    FutureProvider.autoDispose<List<GlobalTemplate>>(
-      (ref) =>
-          ref.watch(platformConfigApiProvider).templates(publishedOnly: true),
-    );
-
-final templateDetailProvider = FutureProvider.autoDispose
-    .family<GlobalTemplate, String>(
-      (ref, id) => ref.watch(platformConfigApiProvider).templateDetail(id),
-    );
-
-final templateVersionDetailProvider = FutureProvider.autoDispose
-    .family<TemplateVersionDetail, ItemVersionKey>(
-      (ref, key) => ref
-          .watch(platformConfigApiProvider)
-          .templateVersionDetail(key.itemId, key.versionId),
-    );
-
 final documentTypesProvider =
     FutureProvider.autoDispose<List<ReportDocumentType>>(
       (ref) => ref.watch(platformConfigApiProvider).documentTypes(),
@@ -297,13 +275,6 @@ final translationCoverageProvider =
 final readinessProvider = FutureProvider.autoDispose
     .family<LanguageReadiness, String>(
       (ref, code) => ref.watch(platformConfigApiProvider).readiness(code),
-    );
-
-/// Current dynamic-content generation job for a language.
-final contentGenerationProvider = FutureProvider.autoDispose
-    .family<ContentGeneration, String>(
-      (ref, code) =>
-          ref.watch(platformConfigApiProvider).contentGeneration(code),
     );
 
 final configHealthProvider = FutureProvider.autoDispose<ConfigHealth>(
@@ -334,15 +305,10 @@ class PlatformConfigActions {
     _ref.invalidate(itemDetailProvider);
     _ref.invalidate(itemConfigProvider);
     _ref.invalidate(optionSetsProvider);
-    _ref.invalidate(templatesProvider);
-    _ref.invalidate(availableTemplatesProvider);
-    _ref.invalidate(templateDetailProvider);
-    _ref.invalidate(templateVersionDetailProvider);
     _ref.invalidate(documentTypesProvider);
     _ref.invalidate(platformLanguagesProvider);
     _ref.invalidate(translationCoverageProvider);
     _ref.invalidate(readinessProvider);
-    _ref.invalidate(contentGenerationProvider);
     _ref.invalidate(configHealthProvider);
     _ref.invalidate(configReleasesProvider);
     _ref.invalidate(impactProvider);
@@ -512,78 +478,6 @@ class PlatformConfigActions {
     return result;
   }
 
-  Future<GlobalTemplate> createTemplate(Map<String, dynamic> body) async {
-    final result = await _api.createTemplate(body);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> updateTemplate(
-    String id,
-    Map<String, dynamic> body,
-  ) async {
-    final result = await _api.updateTemplate(id, body);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> createTemplateDraft(String id) async {
-    final result = await _api.createTemplateDraft(id);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> replaceTemplateCategories(
-    String id,
-    String versionId,
-    List<Map<String, dynamic>> categories,
-  ) async {
-    final result = await _api.replaceTemplateCategories(
-      id,
-      versionId,
-      categories,
-    );
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> replaceTemplateItems(
-    String id,
-    String versionId,
-    List<Map<String, dynamic>> items,
-  ) async {
-    final result = await _api.replaceTemplateItems(id, versionId, items);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> publishTemplate(String id, String versionId) async {
-    final result = await _api.publishTemplate(id, versionId);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> approveTemplate(String id, String versionId) async {
-    final result = await _api.approveTemplate(id, versionId);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<GlobalTemplate> rejectTemplate(
-    String id,
-    String versionId, {
-    String reason = '',
-  }) async {
-    final result = await _api.rejectTemplate(id, versionId, reason: reason);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<void> retireTemplate(String id) async {
-    await _api.retireTemplate(id);
-    _invalidateAll();
-  }
-
   Future<ReportDocumentType> saveDocumentType({
     String? id,
     required String code,
@@ -609,71 +503,6 @@ class PlatformConfigActions {
   Future<void> retireDocumentType(String id) async {
     await _api.retireDocumentType(id);
     _invalidateAll();
-  }
-
-  Future<PlatformLanguage> saveLanguage({
-    required String code,
-    required String nativeName,
-    required String direction,
-    required bool active,
-    required int sortOrder,
-    required bool isDefault,
-    bool isNew = false,
-  }) async {
-    final body = <String, dynamic>{
-      'nativeName': nativeName,
-      'direction': direction,
-      'active': active,
-      'sortOrder': sortOrder,
-    };
-    final result = isNew
-        ? await _api.createLanguage({
-            ...body,
-            'code': code,
-            'isDefault': isDefault,
-          })
-        : await _api.updateLanguage(code, body);
-    if (isDefault && !result.isDefault) {
-      await _api.setDefaultLanguage(code);
-    }
-    _invalidateAll();
-    return result;
-  }
-
-  Future<void> setDefaultLanguage(String code) async {
-    await _api.setDefaultLanguage(code);
-    _invalidateAll();
-  }
-
-  Future<void> reorderLanguages(List<String> codes) async {
-    await _api.reorderLanguages(codes);
-    _invalidateAll();
-  }
-
-  Future<ContentGeneration> generateContent(
-    String code, {
-    required List<String> entityTypes,
-    bool force = false,
-  }) async {
-    final result = await _api.generateContent(
-      code,
-      entityTypes: entityTypes,
-      force: force,
-    );
-    _invalidateAll();
-    return result;
-  }
-
-  Future<ContentGeneration> cancelContentGeneration(String code) async {
-    final result = await _api.cancelContentGeneration(code);
-    _invalidateAll();
-    return result;
-  }
-
-  Future<ContentGeneration> retryFailedContentGeneration(String code) async {
-    final result = await _api.retryFailedContentGeneration(code);
-    _invalidateAll();
-    return result;
   }
 
   Future<ConfigRelease> createRelease(Map<String, dynamic> body) async {

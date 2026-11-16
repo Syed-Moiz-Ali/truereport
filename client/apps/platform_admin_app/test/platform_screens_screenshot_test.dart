@@ -13,21 +13,15 @@ import 'package:platform_admin_app/src/features/dashboard/dashboard_screen.dart'
 import 'package:platform_admin_app/src/features/documents/document_types_screen.dart';
 import 'package:platform_admin_app/src/features/governance/config_health_screen.dart';
 import 'package:platform_admin_app/src/features/languages/languages_screen.dart';
-import 'package:platform_admin_app/src/features/languages/translation_queue_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/categories_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/option_sets_screen.dart';
 import 'package:platform_admin_app/src/features/settings/platform_settings_screen.dart';
-import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
-import 'package:platform_admin_app/src/features/templates/templates_screen.dart';
 import 'package:platform_admin_app/src/features/workshops/workshop_detail_screen.dart';
 import 'package:platform_admin_app/src/features/workshops/workshops_screen.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
-import 'package:platform_admin_app/src/platform_translations.dart'
-    as translations
-    hide TranslationCoverage;
 
 import 'support/fake_platform_api.dart';
 import 'support/ui_message_fixtures.dart';
@@ -93,65 +87,6 @@ const _optionSet = OptionSet(
   ],
 );
 
-const _templateCategory = TemplateCategory(
-  categoryId: 'cat-1',
-  categoryCode: 'CAT-BRK',
-  nameEn: 'Braking Systems & Tyres',
-  nameAr: 'أنظمة الفرامل والإطارات',
-  sortOrder: 1,
-  itemCount: 1,
-  includedCount: 1,
-  included: true,
-  items: [
-    TemplateItem(
-      id: 'ti-1',
-      itemId: 'item-1',
-      itemVersionId: 'v-1',
-      itemCode: 'BRK-PAD-01',
-      labelEn: 'Brake Pad Thickness',
-      labelAr: 'سمك أقمشة الفرامل',
-      categoryId: 'cat-1',
-      categoryCode: 'CAT-BRK',
-      categoryNameEn: 'Braking',
-      categoryNameAr: 'الفرامل',
-      sortOrder: 1,
-      included: true,
-      itemStatus: 'PUBLISHED',
-    ),
-  ],
-);
-
-const _template = GlobalTemplate(
-  id: 'template-1',
-  code: 'TPL-BRK',
-  nameEn: 'Braking Inspection Template',
-  nameAr: 'قالب فحص الفرامل',
-  descriptionEn: 'Braking inspection',
-  descriptionAr: 'فحص الفرامل',
-  status: 'PUBLISHED',
-  currentPublishedVersionId: 'version-1',
-  versionCount: 1,
-  currentVersionNo: 1,
-  versions: [
-    TemplateVersionSummary(
-      id: 'version-1',
-      versionNo: 1,
-      status: 'PUBLISHED',
-      publishedAt: '2026-01-01',
-    ),
-  ],
-  categories: [_templateCategory],
-);
-
-const _versionDetail = TemplateVersionDetail(
-  id: 'version-1',
-  templateId: 'template-1',
-  versionNo: 1,
-  status: 'PUBLISHED',
-  categoryCount: 1,
-  itemCount: 1,
-  categories: [_templateCategory],
-);
 
 const _documentType = ReportDocumentType(
   id: 'doc-1',
@@ -173,7 +108,7 @@ const _language = PlatformLanguage(
 );
 
 const _coverage = TranslationCoverage(
-  languages: ['en', 'ar'],
+  languages: ['en'],
   namespaces: {
     'common': CoverageNamespace(total: 12, missing: ['missing.key']),
   },
@@ -217,7 +152,6 @@ const _testManifest = UiMessageManifest(
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
     UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
   ],
 );
 
@@ -235,24 +169,12 @@ class _TestUiMessageController extends UiMessageController {
   );
 }
 
-void _expectArabicActive(WidgetTester tester, Type screenType) {
-  final finder = find.byType(screenType);
-  expect(finder, findsOneWidget);
-  final element = tester.element(finder);
-  final container = ProviderScope.containerOf(element, listen: false);
-  expect(container.read(uiMessageControllerProvider).activeLanguage, 'ar');
-  expect(Localizations.localeOf(element).languageCode, 'ar');
-  expect(Directionality.of(element), TextDirection.rtl);
-  expect(find.text('العربية (AR)'), findsOneWidget);
-}
-
 Widget _screenshotApp({
   required Widget child,
   required GlobalKey boundaryKey,
   Locale locale = const Locale('en'),
   Size surfaceSize = const Size(1280, 900),
   List<Override> extraOverrides = const [],
-  List<PlatformLanguage> languages = const [_language],
 }) {
   return ProviderScope(
     key: ValueKey(
@@ -269,13 +191,8 @@ Widget _screenshotApp({
       categoriesProvider.overrideWith((ref) async => const [_category]),
       itemsProvider.overrideWith((ref, query) async => const [_item]),
       optionSetsProvider.overrideWith((ref) async => const [_optionSet]),
-      templatesProvider.overrideWith((ref) async => const [_template]),
-      templateDetailProvider.overrideWith((ref, id) async => _template),
-      templateVersionDetailProvider.overrideWith(
-        (ref, key) async => _versionDetail,
-      ),
       documentTypesProvider.overrideWith((ref) async => const [_documentType]),
-      platformLanguagesProvider.overrideWith((ref) async => languages),
+      platformLanguagesProvider.overrideWith((ref) async => const [_language]),
       translationCoverageProvider.overrideWith((ref) async => _coverage),
       configHealthProvider.overrideWith((ref) async => _configHealth),
       configReleasesProvider.overrideWith(
@@ -295,7 +212,7 @@ Widget _screenshotApp({
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      supportedLocales: <Locale>[const Locale('en')],
       localizationsDelegates: <LocalizationsDelegate<dynamic>>[
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -355,7 +272,6 @@ Future<void> _shoot(
   Widget screen,
   String name, {
   List<Override> extraOverrides = const [],
-  List<PlatformLanguage> languages = const [_language],
 }) async {
   final viewports = <String, Size>{
     '1280': const Size(1280, 900),
@@ -376,30 +292,7 @@ Future<void> _shoot(
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: '$name@${entry.key}');
     await _capture(tester, key, '${name}_${entry.key}.png');
-  }
-  for (final entry in {
-    'ar_1280': const Size(1280, 900),
-    'ar_360': const Size(360, 800),
-  }.entries) {
-    await tester.binding.setSurfaceSize(entry.value);
-    await tester.pumpWidget(
-      _screenshotApp(
-        boundaryKey: key,
-        locale: const Locale('ar'),
-        surfaceSize: entry.value,
-        child: screen,
-        extraOverrides: extraOverrides,
-        languages: languages,
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull, reason: '$name@${entry.key}');
-    if (entry.key == 'ar_1280') {
-      _expectArabicActive(tester, screen.runtimeType);
-    }
-    await _capture(tester, key, '${name}_${entry.key}.png');
-  }
-  await tester.binding.setSurfaceSize(null);
+  }  await tester.binding.setSurfaceSize(null);
 }
 
 void main() {
@@ -410,18 +303,10 @@ void main() {
     await _shoot(tester, key, const OptionSetsScreen(), 'checklist_options');
   });
 
-  testWidgets('Screenshots: templates + builder + health', (tester) async {
+  testWidgets('Screenshots: health', (tester) async {
     final key = GlobalKey();
-    await _shoot(tester, key, const TemplatesScreen(), 'checklist_templates');
-    await _shoot(
-      tester,
-      key,
-      const TemplateBuilderScreen(templateId: 'template-1'),
-      'checklist_builder',
-    );
     await _shoot(tester, key, const ConfigHealthScreen(), 'checklist_health');
   });
-
   testWidgets('Screenshots: reports + settings + audit', (tester) async {
     final key = GlobalKey();
     await _shoot(tester, key, const DocumentTypesScreen(), 'reports_documents');
@@ -448,7 +333,7 @@ void main() {
         healthy: true,
         issues: 0,
       ),
-      languages: OverviewLanguages(live: 2, translating: 0),
+      languages: OverviewLanguages(live: 1, translating: 0),
       recentActivity: [
         OverviewActivityEntry(
           id: 'a1',
@@ -485,80 +370,4 @@ void main() {
     );
   });
 
-  testWidgets('Screenshots: translation queue + zh-Hans fixture', (
-    tester,
-  ) async {
-    final key = GlobalKey();
-    const zhBacklog = translations.TranslationBacklog(
-      languageCode: 'zh-hans',
-      languageStatus: 'TRANSLATING',
-      totalRequired: 3,
-      approvedCount: 1,
-      coveragePercent: 33.3,
-      groups: [
-        translations.TranslationBacklogGroup(
-          entityType: 'CATEGORY',
-          total: 1,
-          approved: 1,
-          items: [
-            translations.TranslationItem(
-              entityType: 'CATEGORY',
-              entityId: 'cat-1',
-              entityCode: 'CAT-BRK',
-              field: 'name',
-              defaultText: 'Braking Systems & Tyres',
-              text: '???????',
-              status: 'APPROVED',
-            ),
-          ],
-        ),
-        translations.TranslationBacklogGroup(
-          entityType: 'ITEM',
-          total: 2,
-          approved: 0,
-          items: [
-            translations.TranslationItem(
-              entityType: 'ITEM',
-              entityId: 'v-1',
-              entityCode: 'BRK-PAD-01',
-              field: 'label',
-              defaultText: 'Brake Pad Thickness',
-              text: '?????',
-              status: 'DRAFT',
-            ),
-            translations.TranslationItem(
-              entityType: 'ITEM',
-              entityId: 'v-1',
-              entityCode: 'BRK-PAD-01',
-              field: 'instruction',
-              defaultText: 'Measure with a digital caliper.',
-              text: null,
-              status: 'MISSING',
-            ),
-          ],
-        ),
-      ],
-    );
-    const zhLanguage = PlatformLanguage(
-      code: 'zh-hans',
-      nativeName: '??',
-      direction: 'ltr',
-      active: false,
-      isDefault: false,
-      sortOrder: 3,
-      status: 'TRANSLATING',
-    );
-    await _shoot(
-      tester,
-      key,
-      const TranslationQueueScreen(languageCode: 'zh-hans'),
-      'queue_zh',
-      extraOverrides: [
-        translations.languageBacklogProvider.overrideWith(
-          (ref, code) async => zhBacklog,
-        ),
-      ],
-      languages: const [_language, zhLanguage],
-    );
-  });
 }

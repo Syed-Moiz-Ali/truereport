@@ -1,0 +1,51 @@
+- generic [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e78]: v1
+          - generic [ref=e79]: STANDARD OPERATING PROCEDURE
+          - generic [ref=e80]: Live Ownership Published Template
+          - button "Save draft" [ref=e81]
+          - button "Preview":
+            - button "Preview" [ref=e82]
+          - button "Publish template":
+            - button "Publish template" [ref=e83]
+          - button "Retire" [ref=e84]
+          - generic:
+            - group:
+              - generic [ref=e87]:
+                - textbox "Master items · 30 Inspection Diagnostic Checkpoints 30 In Catalog Search approved items Exterior & Interior Lighting Systems Electrical, Battery & Diagnostics · v1 Template sequence 1 items selected Sequence Ready" [disabled] [ref=e133]
+                - button "Diagnostic Trouble Codes (OBD-II Full Scan) Electrical, Battery & Diagnostics · v1" [ref=e108]
+                - button "Add" [disabled] [ref=e110]
+                - group "Infotainment, Cameras, Radar & ADAS Sensors Electrical, Battery & Diagnostics · v1" [ref=e111]:
+                  - button "Add" [ref=e112]
+                - group "Paint Thickness & Body Panel Integrity Body, Glass & Interior · v1" [ref=e113]:
+                  - button "Add" [ref=e114]
+                - group "Windshield, Windows & Mirror Glass Body, Glass & Interior · v1" [ref=e115]:
+                  - button "Add" [ref=e116]
+                - group "Air Conditioning & Climate Performance Body, Glass & Interior · v1" [ref=e117]:
+                  - button "Add" [ref=e118]
+                - group "Seat Belts, Airbags & Restraint Systems Body, Glass & Interior · v1" [ref=e119]:
+                  - button "Add" [ref=e120]
+                - group "Sunroof, Weatherstripping & Cabin Seals Body, Glass & Interior · v1" [ref=e121]:
+                  - button "Add" [ref=e122]
+                - group "Cold Start, Cranking & Idle Smoothness Road Test & Dynamic Performance · v1" [ref=e123]:
+                  - button "Add" [ref=e124]
+                - group "Transmission Shift Quality & Clutch Engagement Road Test & Dynamic Performance · v1" [ref=e125]:
+                  - button "Add" [ref=e126]
+                - group "Steering Centering, Tracking & Drift Road Test & Dynamic Performance · v1" [ref=e127]:
+                  - button "Add" [ref=e128]
+                - group "Dynamic Emergency Braking & ABS Cycling Road Test & Dynamic Performance · v1" [ref=e129]:
+                  - button "Add" [ref=e130]
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - group "01, 01 Electrical, Battery & Diagnostics":
+                          - generic [ref=e134]: OPTIONAL/REQUIRED_MIN_N · Locked by platform
+                          - generic [ref=e135]: Electrical, Battery & Diagnostics · v1
+                          - button "Move up" [disabled] [ref=e136]
+                          - button "Move down" [disabled] [ref=e137]
+                          - button "Remove" [ref=e138]
+                - button "Drop checkpoint here Drop checkpoint here Add items" [ref=e132]

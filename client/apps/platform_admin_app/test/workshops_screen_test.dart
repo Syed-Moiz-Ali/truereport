@@ -11,7 +11,7 @@ import 'package:platform_admin_app/src/features/workshops/workshop_form.dart';
 import 'package:platform_admin_app/src/features/workshops/workshops_screen.dart';
 import 'package:platform_admin_app/src/platform_api.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
-import 'package:platform_admin_app/src/platform_config_models.dart';
+
 import 'package:platform_admin_app/src/platform_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 
@@ -157,14 +157,11 @@ class _LocalFakePlatformAdminApi implements PlatformAdminApi {
     required String name,
     required String location,
     required String contactEmail,
-    required String initialTemplate,
-    bool autoSyncMasterCatalog = true,
   }) async {
     registered.add({
       'name': name,
       'location': location,
       'contactEmail': contactEmail,
-      'initialTemplate': initialTemplate,
     });
     final workshop = _workshop(
       id: 'workshop-${workshops.length + 1}',
@@ -360,21 +357,6 @@ class _LocalFakePlatformAdminApi implements PlatformAdminApi {
   }
 }
 
-const _template = GlobalTemplate(
-  id: 'tpl-1',
-  code: 'TPL-30-GCC',
-  nameEn: 'GCC Standard',
-  nameAr: 'GCC Standard',
-  descriptionEn: '',
-  descriptionAr: '',
-  status: 'PUBLISHED',
-  currentPublishedVersionId: 'v1',
-  versionCount: 1,
-  currentVersionNo: 1,
-  versions: [],
-  categories: [],
-);
-
 const _auditEvents = [
   PlatformAuditEvent(
     id: 'audit-1',
@@ -435,10 +417,6 @@ Widget _buildDetailApp(
         locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
       ),
       platformApiProvider.overrideWithValue(api),
-      templatesProvider.overrideWith((ref) => Future.value([_template])),
-      availableTemplatesProvider.overrideWith(
-        (ref) => Future.value([_template]),
-      ),
       auditEventsProvider.overrideWith((ref) => Future.value(_auditEvents)),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
@@ -468,10 +446,6 @@ Widget _buildFormApp(
         locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
       ),
       platformApiProvider.overrideWithValue(api),
-      templatesProvider.overrideWith((ref) => Future.value([_template])),
-      availableTemplatesProvider.overrideWith(
-        (ref) => Future.value([_template]),
-      ),
       platformLocaleProvider.overrideWith(() => _TestLocaleNotifier(locale)),
     ],
     child: MaterialApp(
@@ -727,7 +701,7 @@ void main() {
     );
 
     testWidgets(
-      'shows no-template empty state and disables save when no published templates exist',
+      'registration has no template picker and saves without templates',
       (tester) async {
         _setViewport(tester, width: 1280, height: 1024);
         await tester.pumpWidget(
@@ -735,10 +709,6 @@ void main() {
             overrides: [
               uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
               platformApiProvider.overrideWithValue(api),
-              templatesProvider.overrideWith((ref) => Future.value([])),
-              availableTemplatesProvider.overrideWith(
-                (ref) => Future.value([]),
-              ),
               platformLocaleProvider.overrideWith(
                 () => _TestLocaleNotifier(const Locale('en')),
               ),
@@ -760,19 +730,18 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        expect(find.text('Global templates'), findsNothing);
         expect(
           find.text(
-            'No published templates available. Create and publish a template first.',
+            'No published templates are available yet. Workshop Admin creates and publishes inspection templates.',
           ),
-          findsOneWidget,
+          findsNothing,
         );
-        expect(find.text('View templates'), findsOneWidget);
 
-        // Save button is disabled (has null onPressed)
         final saveButton = tester.widget<ElevatedButton>(
           find.widgetWithText(ElevatedButton, 'Save'),
         );
-        expect(saveButton.onPressed, isNull);
+        expect(saveButton.onPressed, isNotNull);
       },
     );
 
@@ -803,13 +772,13 @@ void main() {
 
       expect(api.registered.single['name'], 'Workshop C');
       expect(api.registered.single['location'], 'Central Depot Hub');
-      expect(api.registered.single['initialTemplate'], 'tpl-1');
+      expect(api.registered.single.containsKey('initialTemplate'), isFalse);
       expect(saved?.name, 'Workshop C');
     });
   });
 
   group('WorkshopDetailScreen', () {
-    testWidgets('renders header and all four tabs', (tester) async {
+    testWidgets('renders header and remaining tabs only', (tester) async {
       _setViewport(tester, width: 1280, height: 1024);
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
@@ -818,8 +787,9 @@ void main() {
       expect(find.text('EMEA Industrial Hub'), findsWidgets);
       expect(find.text('Overview'), findsWidgets);
       expect(find.text('Staff'), findsWidgets);
-      expect(find.text('Available templates'), findsWidgets);
       expect(find.text('Activity'), findsOneWidget);
+      expect(find.text('Available templates'), findsNothing);
+      expect(find.text('TPL-30-GCC'), findsNothing);
       expect(find.text('Edit workshop'), findsOneWidget);
       // Deactivate is inside the overflow menu.
       expect(find.byIcon(Icons.more_vert_rounded), findsOneWidget);
@@ -873,7 +843,7 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
 
-      for (final index in [1, 2, 3]) {
+      for (final index in [1, 2]) {
         await tester.tap(find.byType(PlatformFilterChip).at(index));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
@@ -883,7 +853,7 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
 
-      for (final index in [1, 2, 3]) {
+      for (final index in [1, 2]) {
         await tester.tap(find.byType(PlatformFilterChip).at(index));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
@@ -1059,7 +1029,7 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(PlatformFilterChip).at(3));
+      await tester.tap(find.byType(PlatformFilterChip).at(2));
       await tester.pumpAndSettle();
 
       expect(find.text('Workshop registered'), findsOneWidget);
@@ -1076,7 +1046,7 @@ void main() {
       await tester.pumpWidget(_buildDetailApp(api, locale: const Locale('ar')));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(PlatformFilterChip).at(3));
+      await tester.tap(find.byType(PlatformFilterChip).at(2));
       await tester.pumpAndSettle();
 
       expect(find.text('تم تسجيل الورشة'), findsOneWidget);
@@ -1154,20 +1124,6 @@ void main() {
 
       expect(api.disabledUsers.single.$1, 'admin-1');
       expect(api.disabledUsers.single.$2, 'Left the workshop');
-    });
-
-    testWidgets('templates tab lists templates with links', (tester) async {
-      _setViewport(tester, width: 1280, height: 1024);
-      await tester.pumpWidget(_buildDetailApp(api));
-      await tester.pumpAndSettle();
-
-      await tester.tap(
-        find.widgetWithText(PlatformFilterChip, 'Available templates'),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('GCC Standard'), findsOneWidget);
-      expect(find.text('TPL-30-GCC'), findsOneWidget);
     });
 
     testWidgets('activity tab filters events to this workshop', (tester) async {

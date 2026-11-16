@@ -386,7 +386,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardRecentJobs => 'Recent jobs';
 
   @override
-  String get queueTitle => 'Translation queue';
+  String get queueTitle => 'Job queue';
 
   @override
   String get scheduleJobTitle => 'Schedule new job';

@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PlatformUiMessagesIT extends IntegrationTestBase {
 
     @Test
-    void manifestLoadsFromLanguageRegistryAndJsonPaths() throws Exception {
+    void manifestLoadsFromStaticManifestAndJsonPaths() throws Exception {
         JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
         assertThat(manifest.get("defaultLanguage").asText()).isEqualTo("en");
         assertThat(manifest.get("namespaces").get("common").asInt()).isGreaterThanOrEqualTo(1);
@@ -35,7 +35,26 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
             assertThat(language.get("versions").get("platform_admin").asInt())
                     .isGreaterThanOrEqualTo(1);
         }
-        assertThat(codes).contains("en", "ar");
+        assertThat(codes).containsExactly("en");
+    }
+
+    @Test
+    void manifestAndRegistryExposeEnglishOnly() throws Exception {
+        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
+        assertThat(manifest.get("languages").size()).isEqualTo(1);
+        assertThat(manifest.get("languages").get(0).get("code").asText()).isEqualTo("en");
+
+        JsonNode bundle = getAnonymousJson(
+                "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
+        assertThat(bundle.get("language").asText()).isEqualTo("en");
+        assertThat(bundle.get("catalogs").get("common").get("button.save").asText())
+                .isEqualTo("Save");
+
+        Login platform = login("platform@test.local");
+        JsonNode registry = getJson(platform, "/api/v1/platform/i18n/languages");
+        assertThat(registry.size()).isEqualTo(1);
+        assertThat(registry.get(0).get("code").asText()).isEqualTo("en");
+        assertThat(registry.get(0).get("status").asText()).isEqualTo("LIVE");
     }
 
     @Test
@@ -122,16 +141,15 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
     }
 
     @Test
-    void registeredEnArPathsAreFlatAndHaveKeyParity() throws Exception {
-        Login platform = login("platform@test.local");
-        JsonNode languages = getJson(platform, "/api/v1/platform/i18n/languages");
+    void manifestEnArPathsAreFlatAndHaveKeyParity() throws Exception {
+        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
         Set<String> enKeys = null;
-        for (JsonNode language : languages) {
+        for (JsonNode language : manifest.get("languages")) {
             String code = language.get("code").asText();
             if (!"en".equals(code) && !"ar".equals(code)) {
                 continue;
             }
-            String path = language.get("uiMessagesPath").asText();
+            String path = language.get("path").asText();
             assertThat(path).isNotBlank();
             JsonNode catalog = readResource(path);
             assertThat(catalog.isObject()).isTrue();
@@ -151,6 +169,17 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
             }
         }
         assertThat(enKeys).isNotNull();
+    }
+
+    @Test
+    void platformAdminHasOnlyTheEnglishCatalog() throws Exception {
+        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
+        assertThat(manifest.get("languages").size()).isEqualTo(1);
+        assertThat(manifest.get("defaultLanguage").asText()).isEqualTo("en");
+        assertThat(flatKeys(readResource("platform_admin/en.json"))).isNotEmpty();
+        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/ar.json")).isNull();
+        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/zh-Hans.json")).isNull();
+        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/ta.json")).isNull();
     }
 
     private JsonNode readResource(String path) throws Exception {

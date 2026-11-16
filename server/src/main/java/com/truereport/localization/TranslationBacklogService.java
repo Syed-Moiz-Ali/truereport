@@ -6,14 +6,12 @@ import com.truereport.localization.api.LanguageDtos.LanguageBacklogDto;
 import com.truereport.localization.api.LanguageDtos.LanguageCoverageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageRefDto;
-import com.truereport.localization.api.LanguageDtos.PublishLanguageResultDto;
 import com.truereport.localization.api.LanguageDtos.TranslationItemDto;
 import com.truereport.localization.api.LanguageDtos.UpsertTranslationRequest;
 import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
 import com.truereport.shared.security.CurrentUser;
-import com.truereport.uimessages.api.UiMessagePublishGuard;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,8 +32,7 @@ import java.util.Set;
  * <ul>
  *   <li>{@link Scope#TRANSLATION} covers every non-retired source record,
  *   including DRAFT categories/options/document types, the latest draft item
- *   version, and its issue fields. This is what the workspace edits and what
- *   Google generation translates.</li>
+ *   version, and its issue fields. This is what the workspace edits.</li>
  *   <li>{@link Scope#READINESS} covers only content that is currently visible:
  *   ACTIVE categories/options/document types, published item versions, and
  *   their issue fields. This is what can block a language from going LIVE.</li>
@@ -63,16 +60,14 @@ public class TranslationBacklogService {
     private final LanguageRepository languages;
     private final TranslationRepository translations;
     private final FieldAuditService audit;
-    private final UiMessagePublishGuard uiMessageGuard;
 
     public TranslationBacklogService(JdbcTemplate jdbc, LanguageRepository languages,
-                                     TranslationRepository translations, FieldAuditService audit,
-                                     UiMessagePublishGuard uiMessageGuard) {
+                                     TranslationRepository translations,
+                                     FieldAuditService audit) {
         this.jdbc = jdbc;
         this.languages = languages;
         this.translations = translations;
         this.audit = audit;
-        this.uiMessageGuard = uiMessageGuard;
     }
 
     @Transactional
@@ -114,9 +109,6 @@ public class TranslationBacklogService {
         }
         translations.upsert(entityType, entityId, field, target.code(),
                 request.text().trim(), status);
-        if ("DRAFT".equals(target.status())) {
-            languages.setStatus(target.code(), "TRANSLATING");
-        }
         audit.record(actor, "TRANSLATION_UPSERTED", entityType, entityId,
                 null, Map.of("field", field, "language", target.code(), "status", status),
                 null, http);
@@ -171,36 +163,6 @@ public class TranslationBacklogService {
         }
         return new LanguageCoverageDto(language.code(), all.size(), approvedTotal,
                 percent(approvedTotal, all.size()), byEntity);
-    }
-
-    @Transactional
-    public PublishLanguageResultDto publish(CurrentUser actor, String code, HttpServletRequest http) {
-        LanguageDto language = requireLanguage(code);
-        LanguageCoverageDto coverage = coverage(language.code());
-        if (coverage.totalRequired() > 0
-                && coverage.approvedCount() < coverage.totalRequired()) {
-            List<FieldIssue> missing = new ArrayList<>();
-            for (Map.Entry<String, EntityCoverageDto> entry : coverage.byEntity().entrySet()) {
-                int open = entry.getValue().total() - entry.getValue().approved();
-                if (open > 0) {
-                    missing.add(new FieldIssue(entry.getKey(), "TRANSLATION_REQUIRED",
-                            "error.translation.required",
-                            open + " " + entry.getKey() + " translation(s) missing",
-                            null, "missing=" + open));
-                }
-            }
-            throw ApiException.validation("TRANSLATION_REQUIRED",
-                    "Language " + language.code() + " is not fully translated", missing);
-        }
-        String defaultCode = languages.defaultCode();
-        LanguageDto defaultLanguage =
-                defaultCode == null ? null : languages.find(defaultCode).orElse(null);
-        uiMessageGuard.requirePublishable(language.code(), language.uiMessagesPath(),
-                defaultLanguage == null ? null : defaultLanguage.uiMessagesPath());
-        languages.setLive(language.code());
-        audit.record(actor, "LANGUAGE_PUBLISHED", "LANGUAGE", language.code(),
-                Map.of("status", language.status()), Map.of("status", "LIVE"), null, http);
-        return new PublishLanguageResultDto(language.code(), "LIVE", coverage.coveragePercent());
     }
 
     // ------------------------------------------------------------ required set

@@ -45,57 +45,6 @@ class PlatformConfigApi {
     return MeLanguage.fromJson(_map(data));
   }
 
-  Future<PlatformLanguage> createLanguage(Map<String, dynamic> body) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguages,
-      body: body,
-    );
-    return PlatformLanguage.fromJson(_map(data));
-  }
-
-  Future<PlatformLanguage> updateLanguage(
-    String code,
-    Map<String, dynamic> body,
-  ) async {
-    final data = await _api.putDynamic(
-      _endpoints.platformLanguage(code),
-      body: body,
-    );
-    return PlatformLanguage.fromJson(_map(data));
-  }
-
-  Future<PlatformLanguage> activateLanguage(String code) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguageActivate(code),
-    );
-    return PlatformLanguage.fromJson(_map(data));
-  }
-
-  Future<PlatformLanguage> deactivateLanguage(String code) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguageDeactivate(code),
-    );
-    return PlatformLanguage.fromJson(_map(data));
-  }
-
-  Future<List<PlatformLanguage>> reorderLanguages(List<String> codes) async {
-    final data = await _api.putDynamic(
-      _endpoints.platformLanguagesReorder,
-      body: {'orderedCodes': codes},
-    );
-    return _list(data)
-        .map((item) => PlatformLanguage.fromJson(item as Map<String, dynamic>))
-        .toList(growable: false);
-  }
-
-  Future<PlatformLanguage> setDefaultLanguage(String code) async {
-    final data = await _api.putDynamic(
-      _endpoints.platformLanguagesDefault,
-      body: {'language': code},
-    );
-    return PlatformLanguage.fromJson(_map(data));
-  }
-
   Future<TranslationCoverage> translationCoverage() async {
     final data = await _api.getDynamic(_endpoints.platformLanguageCoverage);
     return TranslationCoverage.fromJson(_map(data));
@@ -106,39 +55,6 @@ class PlatformConfigApi {
       _endpoints.platformLanguageReadiness(code),
     );
     return LanguageReadiness.fromJson(_map(data));
-  }
-
-  Future<ContentGeneration> generateContent(
-    String code, {
-    required List<String> entityTypes,
-    bool force = false,
-  }) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguageContentGenerate(code),
-      body: {'entityTypes': entityTypes, 'force': force},
-    );
-    return ContentGeneration.fromJson(_map(data));
-  }
-
-  Future<ContentGeneration> contentGeneration(String code) async {
-    final data = await _api.getDynamic(
-      _endpoints.platformLanguageContentGeneration(code),
-    );
-    return ContentGeneration.fromJson(_map(data));
-  }
-
-  Future<ContentGeneration> cancelContentGeneration(String code) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguageContentGenerationCancel(code),
-    );
-    return ContentGeneration.fromJson(_map(data));
-  }
-
-  Future<ContentGeneration> retryFailedContentGeneration(String code) async {
-    final data = await _api.postDynamic(
-      _endpoints.platformLanguageContentGenerationRetryFailed(code),
-    );
-    return ContentGeneration.fromJson(_map(data));
   }
 
   // ------------------------------------------------------------- categories
@@ -393,109 +309,6 @@ class PlatformConfigApi {
     return _list(data)
         .map((item) => OptionValue.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
-  }
-
-  // --------------------------------------------------------------- templates
-
-  Future<List<GlobalTemplate>> templates({bool publishedOnly = false}) async {
-    final data = await _api.getDynamic(
-      _endpoints.masterTemplates,
-      query: publishedOnly ? {'publishedOnly': true} : null,
-    );
-    return _list(data)
-        .map((item) => GlobalTemplate.fromJson(item as Map<String, dynamic>))
-        .toList(growable: false);
-  }
-
-  Future<GlobalTemplate> templateDetail(String id) async {
-    final data = await _api.getDynamic(_endpoints.masterTemplate(id));
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<TemplateVersionDetail> templateVersionDetail(
-    String id,
-    String versionId,
-  ) async {
-    final data = await _api.getDynamic(
-      _endpoints.masterTemplateVersion(id, versionId),
-    );
-    return TemplateVersionDetail.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> createTemplate(Map<String, dynamic> body) async {
-    final data = await _api.postDynamic(_endpoints.masterTemplates, body: body);
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> updateTemplate(
-    String id,
-    Map<String, dynamic> body,
-  ) async {
-    final data = await _api.putDynamic(
-      _endpoints.masterTemplate(id),
-      body: body,
-    );
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> createTemplateDraft(String id) async {
-    final data = await _api.postDynamic(_endpoints.masterTemplateVersions(id));
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> replaceTemplateCategories(
-    String id,
-    String versionId,
-    List<Map<String, dynamic>> categories,
-  ) async {
-    await _api.putDynamic(
-      _endpoints.masterTemplateVersionCategories(id, versionId),
-      body: {'categories': categories},
-    );
-    return templateDetail(id);
-  }
-
-  Future<GlobalTemplate> replaceTemplateItems(
-    String id,
-    String versionId,
-    List<Map<String, dynamic>> items,
-  ) async {
-    final data = await _api.putDynamic(
-      _endpoints.masterTemplateVersionItems(id, versionId),
-      body: {'items': items},
-    );
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> publishTemplate(String id, String versionId) async {
-    final data = await _api.postDynamic(
-      _endpoints.publishMasterTemplate(id, versionId),
-    );
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> approveTemplate(String id, String versionId) async {
-    final data = await _api.postDynamic(
-      _endpoints.approveMasterTemplate(id, versionId),
-    );
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> rejectTemplate(
-    String id,
-    String versionId, {
-    String reason = '',
-  }) async {
-    final data = await _api.postDynamic(
-      _endpoints.rejectMasterTemplate(id, versionId),
-      body: {'reason': reason},
-    );
-    return GlobalTemplate.fromJson(_map(data));
-  }
-
-  Future<GlobalTemplate> retireTemplate(String id) async {
-    final data = await _api.postDynamic(_endpoints.retireMasterTemplate(id));
-    return GlobalTemplate.fromJson(_map(data));
   }
 
   // ------------------------------------------------------------ doc types

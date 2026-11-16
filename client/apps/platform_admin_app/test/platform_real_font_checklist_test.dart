@@ -10,14 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:l10n/l10n.dart';
-import 'package:platform_admin_app/src/components/platform_chips.dart';
-import 'package:platform_admin_app/src/features/governance/config_health_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/categories_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/master_item_editor_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/option_sets_screen.dart';
-import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
-import 'package:platform_admin_app/src/features/templates/templates_screen.dart';
+
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
 import 'package:platform_admin_app/src/platform_theme.dart';
@@ -39,7 +36,6 @@ const _expectedChecklistRealScreenshots = <String>[
   'checklist_items_1280.png',
   'checklist_items_768.png',
   'checklist_items_360.png',
-  'checklist_items_ar_1280.png',
   'checklist_item_editor_1440.png',
   'checklist_item_editor_1280.png',
   'checklist_item_editor_768.png',
@@ -49,25 +45,12 @@ const _expectedChecklistRealScreenshots = <String>[
   'checklist_categories_1280.png',
   'checklist_categories_768.png',
   'checklist_categories_360.png',
-  'checklist_categories_ar_1280.png',
   'checklist_options_1280.png',
   'checklist_options_768.png',
   'checklist_options_360.png',
-  'checklist_options_ar_1280.png',
-  'checklist_templates_1280.png',
-  'checklist_templates_768.png',
-  'checklist_templates_360.png',
-  'checklist_templates_ar_1280.png',
-  'checklist_builder_1440.png',
-  'checklist_builder_1280.png',
-  'checklist_builder_768.png',
-  'checklist_builder_360.png',
-  'checklist_builder_ar_1280.png',
-  'checklist_builder_publish_blocked_1280.png',
   'checklist_health_1280.png',
   'checklist_health_768.png',
   'checklist_health_360.png',
-  'checklist_health_ar_1280.png',
 ];
 
 bool _materialIconsLoaded = false;
@@ -332,163 +315,13 @@ const _optionSet = OptionSet(
   values: _optionValues,
 );
 
-const _templateCategory = TemplateCategory(
-  categoryId: 'cat-1',
-  categoryCode: 'CAT-BRK',
-  name: 'Braking Systems & Tyres',
-  nameEn: 'Braking Systems & Tyres',
-  nameAr: 'أنظمة الفرامل والإطارات',
-  sortOrder: 1,
-  itemCount: 1,
-  includedCount: 1,
-  included: true,
-  items: [
-    TemplateItem(
-      id: 'tpl-item-1',
-      itemVersionId: 'ver-draft',
-      itemId: 'item-1',
-      itemCode: 'BRK-PAD-01',
-      label: 'Brake Pad Thickness',
-      labelEn: 'Brake Pad Thickness',
-      labelAr: 'سمك أقمشة الفرامل',
-      categoryId: 'cat-1',
-      categoryCode: 'CAT-BRK',
-      categoryNameEn: 'Braking Systems & Tyres',
-      categoryNameAr: 'أنظمة الفرامل والإطارات',
-      sortOrder: 1,
-      included: true,
-      itemStatus: 'PUBLISHED',
-    ),
-  ],
-);
-
-const _templateCategory2 = TemplateCategory(
-  categoryId: 'cat-2',
-  categoryCode: 'CAT-SUS',
-  name: 'Suspension & Steering',
-  nameEn: 'Suspension & Steering',
-  nameAr: 'التعليق والتوجيه',
-  sortOrder: 2,
-  itemCount: 2,
-  includedCount: 2,
-  included: true,
-  items: [
-    TemplateItem(
-      id: 'tpl-item-2',
-      itemVersionId: 'ver-sus-1',
-      itemId: 'item-2',
-      itemCode: 'SUS-SHOCK-01',
-      label: 'Shock Absorber Leakage',
-      labelEn: 'Shock Absorber Leakage',
-      labelAr: 'تسرب ممتص الصدمات',
-      categoryId: 'cat-2',
-      categoryCode: 'CAT-SUS',
-      categoryNameEn: 'Suspension & Steering',
-      categoryNameAr: 'التعليق والتوجيه',
-      sortOrder: 1,
-      included: true,
-      itemStatus: 'PUBLISHED',
-    ),
-    TemplateItem(
-      id: 'tpl-item-3',
-      itemVersionId: 'ver-sus-2',
-      itemId: 'item-3',
-      itemCode: 'SUS-BOOT-02',
-      label: 'CV Boot Condition',
-      labelEn: 'CV Boot Condition',
-      labelAr: 'حالة غطاء المفصل',
-      categoryId: 'cat-2',
-      categoryCode: 'CAT-SUS',
-      categoryNameEn: 'Suspension & Steering',
-      categoryNameAr: 'التعليق والتوجيه',
-      sortOrder: 2,
-      included: true,
-      itemStatus: 'PUBLISHED',
-    ),
-  ],
-);
-
-const _template = GlobalTemplate(
-  id: 'template-1',
-  code: 'TPL-BRK-STANDARD',
-  name: 'Standard Comprehensive Fleet Inspection',
-  nameEn: 'Standard Comprehensive Fleet Inspection',
-  nameAr: 'الفحص القياسي الشامل للأسطول',
-  description: 'Full statutory vehicle roadworthiness checklist.',
-  descriptionEn: 'Full statutory vehicle roadworthiness checklist.',
-  descriptionAr: 'قائمة فحص شاملة لصلاحية المركبات للسير.',
-  status: 'PUBLISHED',
-  currentPublishedVersionId: 'version-1',
-  versionCount: 2,
-  currentVersionNo: 1,
-  versions: [
-    TemplateVersionSummary(
-      id: 'version-1',
-      versionNo: 1,
-      status: 'PUBLISHED',
-      publishedAt: '2026-01-15',
-    ),
-    TemplateVersionSummary(
-      id: 'version-2',
-      versionNo: 2,
-      status: 'DRAFT',
-      publishedAt: '',
-    ),
-  ],
-  categories: [_templateCategory, _templateCategory2],
-);
-
-const _versionDetail = TemplateVersionDetail(
-  id: 'version-2',
-  templateId: 'template-1',
-  versionNo: 2,
-  status: 'DRAFT',
-  categoryCount: 2,
-  itemCount: 3,
-  categories: [_templateCategory, _templateCategory2],
-);
-
-const _blockedVersionDetail = TemplateVersionDetail(
-  id: 'version-2',
-  templateId: 'template-1',
-  versionNo: 3,
-  status: 'DRAFT',
-  categoryCount: 2,
-  itemCount: 0,
-  categories: [
-    TemplateCategory(
-      categoryId: 'cat-1',
-      categoryCode: 'CAT-BRK',
-      nameEn: 'Braking Systems & Tyres',
-      nameAr: 'أنظمة الفرامل والإطارات',
-      sortOrder: 1,
-      itemCount: 0,
-      includedCount: 0,
-      included: true,
-      items: [],
-    ),
-    TemplateCategory(
-      categoryId: 'cat-2',
-      categoryCode: 'CAT-SUS',
-      nameEn: 'Suspension & Steering',
-      nameAr: 'التعليق والتوجيه',
-      sortOrder: 2,
-      itemCount: 0,
-      includedCount: 0,
-      included: true,
-      items: [],
-    ),
-  ],
-);
-
 const _configHealth = ConfigHealth(
   healthy: false,
   checks: [
     HealthCheck(
       code: 'TRANSLATIONS',
       severity: 'OK',
-      messageEn:
-          'English and Arabic content is complete across active catalogues.',
+      messageEn: 'English content is complete across active catalogues.',
       messageAr: 'المحتوى الإنجليزي والعربي مكتمل في كافة الكتالوجات النشطة.',
       affected: 0,
       references: ['CAT-BRK', 'BRK-PAD-01'],
@@ -523,24 +356,18 @@ const _languages = [
     sortOrder: 1,
     status: 'LIVE',
   ),
-  PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    active: true,
-    isDefault: false,
-    sortOrder: 2,
-    status: 'LIVE',
-  ),
 ];
-
 const _testManifest = UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
-    UiMessageLanguage(code: 'zh-hans', direction: 'ltr', nativeName: '中文'),
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 450,
+    ),
   ],
 );
 
@@ -566,15 +393,12 @@ Widget _harness({
   PlatformItemDetail itemDetail = _itemDetail,
   ItemConfig itemConfig = _itemConfig,
   List<OptionSet> optionSets = const [_optionSet],
-  TemplateVersionDetail templateVersionDetail = _versionDetail,
 }) {
   final langCode = locale.languageCode;
   return ProviderScope(
     key: UniqueKey(),
     overrides: [
-      uiStringsProvider.overrideWithValue(
-        langCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
-      ),
+      uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
       uiMessageControllerProvider.overrideWith(
         () => _TestUiMessageController(langCode),
       ),
@@ -587,16 +411,6 @@ Widget _harness({
       itemConfigProvider(const ItemVersionKey('item-1', 'ver-draft'))
           .overrideWith((ref) async => itemConfig),
       optionSetsProvider.overrideWith((ref) async => optionSets),
-      templatesProvider.overrideWith((ref) async => const [_template]),
-      templateDetailProvider('template-1')
-          .overrideWith((ref) async => _template),
-      availableTemplatesProvider.overrideWith((ref) async => const [_template]),
-      templateVersionDetailProvider(
-        const ItemVersionKey('template-1', 'version-1'),
-      ).overrideWith((ref) async => _versionDetail),
-      templateVersionDetailProvider(
-        const ItemVersionKey('template-1', 'version-2'),
-      ).overrideWith((ref) async => templateVersionDetail),
       configHealthProvider.overrideWith((ref) async => _configHealth),
     ],
     child: RepaintBoundary(
@@ -605,7 +419,7 @@ Widget _harness({
         data: MediaQueryData(size: surfaceSize),
         child: MaterialApp(
           locale: locale,
-          supportedLocales: const [Locale('en'), Locale('ar')],
+          supportedLocales: const [Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -613,9 +427,7 @@ Widget _harness({
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            fontFamily: langCode == 'ar'
-                ? TrFonts.arabicDefault
-                : TrFonts.latin,
+            fontFamily: TrFonts.latin,
             scaffoldBackgroundColor: PtTheme.canvas,
           ),
           home: child,
@@ -661,7 +473,6 @@ Future<void> _captureAcrossViewports(
   GlobalKey key,
   Widget Function() builder,
   String prefix, {
-  bool includeAr = true,
   PlatformItemDetail itemDetail = _itemDetail,
   List<OptionSet> optionSets = const [_optionSet],
 }) async {
@@ -687,263 +498,72 @@ Future<void> _captureAcrossViewports(
     expect(tester.takeException(), isNull, reason: '$prefix@${entry.key}');
     await _capture(tester, key, '${prefix}_${entry.key}.png');
   }
-
-  if (includeAr) {
-    await tester.binding.setSurfaceSize(const Size(1280, 900));
-    await tester.pumpWidget(
-      _harness(
-        boundaryKey: key,
-        locale: const Locale('ar'),
-        surfaceSize: const Size(1280, 900),
-        itemDetail: itemDetail,
-        optionSets: optionSets,
-        child: builder(),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull, reason: '$prefix@ar_1280');
-    await _capture(tester, key, '${prefix}_ar_1280.png');
-  }
 }
 
 void main() {
   setUpAll(() async {
     initializeDateFormatting('en', null);
-    initializeDateFormatting('ar', null);
     await _loadRealFonts();
   });
 
   group('Checklist Real-Font Visual Proof', () {
-    testWidgets(
-      'captures real-font checklist items list across viewports & AR',
-      (tester) async {
-        final key = GlobalKey();
-        await _captureAcrossViewports(
-          tester,
-          key,
-          () => const MasterLibraryScreen(),
-          'checklist_items',
-        );
-        tester.binding.setSurfaceSize(null);
-      },
-    );
+    testWidgets('captures real-font checklist items list across viewports', (
+      tester,
+    ) async {
+      final key = GlobalKey();
+      await _captureAcrossViewports(
+        tester,
+        key,
+        () => const MasterLibraryScreen(),
+        'checklist_items',
+      );
+      tester.binding.setSurfaceSize(null);
+    });
 
-    testWidgets(
-      'captures real-font checklist categories across viewports & AR',
-      (tester) async {
-        final key = GlobalKey();
-        for (final entry in {
-          '1280': const Size(1280, 900),
-          '768': const Size(768, 1024),
-          '360': const Size(360, 800),
-        }.entries) {
-          await tester.binding.setSurfaceSize(entry.value);
-          await tester.pumpWidget(
-            _harness(
-              boundaryKey: key,
-              surfaceSize: entry.value,
-              child: const CategoriesScreen(),
-            ),
-          );
-          await tester.pumpAndSettle();
-          await _capture(tester, key, 'checklist_categories_${entry.key}.png');
-        }
-
-        await tester.binding.setSurfaceSize(const Size(1280, 900));
+    testWidgets('captures real-font checklist categories across viewports', (
+      tester,
+    ) async {
+      final key = GlobalKey();
+      for (final entry in {
+        '1280': const Size(1280, 900),
+        '768': const Size(768, 1024),
+        '360': const Size(360, 800),
+      }.entries) {
+        await tester.binding.setSurfaceSize(entry.value);
         await tester.pumpWidget(
           _harness(
             boundaryKey: key,
-            locale: const Locale('ar'),
-            surfaceSize: const Size(1280, 900),
+            surfaceSize: entry.value,
             child: const CategoriesScreen(),
           ),
         );
         await tester.pumpAndSettle();
-        await _capture(tester, key, 'checklist_categories_ar_1280.png');
+        await _capture(tester, key, 'checklist_categories_${entry.key}.png');
+      }
 
-        tester.binding.setSurfaceSize(null);
-      },
-    );
+      tester.binding.setSurfaceSize(null);
+    });
 
-    testWidgets(
-      'captures real-font option sets & values across viewports & AR',
-      (tester) async {
-        final key = GlobalKey();
-        for (final entry in {
-          '1280': const Size(1280, 900),
-          '768': const Size(768, 1024),
-          '360': const Size(360, 800),
-        }.entries) {
-          await tester.binding.setSurfaceSize(entry.value);
-          await tester.pumpWidget(
-            _harness(
-              boundaryKey: key,
-              surfaceSize: entry.value,
-              child: const OptionSetsScreen(),
-            ),
-          );
-          await tester.pumpAndSettle();
-          await _capture(tester, key, 'checklist_options_${entry.key}.png');
-        }
-
-        await tester.binding.setSurfaceSize(const Size(1280, 900));
+    testWidgets('captures real-font option sets & values across viewports', (
+      tester,
+    ) async {
+      final key = GlobalKey();
+      for (final entry in {
+        '1280': const Size(1280, 900),
+        '768': const Size(768, 1024),
+        '360': const Size(360, 800),
+      }.entries) {
+        await tester.binding.setSurfaceSize(entry.value);
         await tester.pumpWidget(
           _harness(
             boundaryKey: key,
-            locale: const Locale('ar'),
-            surfaceSize: const Size(1280, 900),
+            surfaceSize: entry.value,
             child: const OptionSetsScreen(),
           ),
         );
         await tester.pumpAndSettle();
-        await _capture(tester, key, 'checklist_options_ar_1280.png');
-
-        tester.binding.setSurfaceSize(null);
-      },
-    );
-
-    testWidgets('captures real-font templates list across viewports & AR', (
-      tester,
-    ) async {
-      final key = GlobalKey();
-      for (final entry in {
-        '1280': const Size(1280, 900),
-        '768': const Size(768, 1024),
-        '360': const Size(360, 800),
-      }.entries) {
-        await tester.binding.setSurfaceSize(entry.value);
-        await tester.pumpWidget(
-          _harness(
-            boundaryKey: key,
-            surfaceSize: entry.value,
-            child: const TemplatesScreen(),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await _capture(tester, key, 'checklist_templates_${entry.key}.png');
+        await _capture(tester, key, 'checklist_options_${entry.key}.png');
       }
-
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _harness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: const TemplatesScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'checklist_templates_ar_1280.png');
-
-      tester.binding.setSurfaceSize(null);
-    });
-
-    testWidgets('captures real-font template builder across viewports & AR', (
-      tester,
-    ) async {
-      final key = GlobalKey();
-      final viewports = <String, Size>{
-        '1440': const Size(1440, 900),
-        '1280': const Size(1280, 900),
-        '768': const Size(768, 1024),
-        '360': const Size(360, 800),
-      };
-
-      for (final entry in viewports.entries) {
-        await tester.binding.setSurfaceSize(entry.value);
-        await tester.pumpWidget(
-          _harness(
-            boundaryKey: key,
-            surfaceSize: entry.value,
-            child: const TemplateBuilderScreen(templateId: 'template-1'),
-          ),
-        );
-        await tester.pumpAndSettle();
-        final itemsStep = find.text('3. Inspection items');
-        if (entry.value.width < 500) {
-          await tester.ensureVisible(itemsStep);
-        }
-        await tester.tap(itemsStep);
-        await tester.pumpAndSettle();
-        expect(find.textContaining('Step 3 of 4'), findsOneWidget);
-        expect(find.text('Braking Systems & Tyres'), findsWidgets);
-        expect(find.text('Suspension & Steering'), findsWidgets);
-        expect(find.text('Brake Pad Thickness'), findsWidgets);
-        expect(find.text('Shock Absorber Leakage'), findsWidgets);
-        expect(find.text('Search items'), findsOneWidget);
-        expect(find.text('Filter items in this category'), findsNWidgets(2));
-        expect(find.textContaining('2 categories'), findsWidgets);
-        expect(find.textContaining('3 items'), findsWidgets);
-        expect(find.textContaining(' / '), findsNothing);
-        await _capture(tester, key, 'checklist_builder_${entry.key}.png');
-      }
-
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _harness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: const TemplateBuilderScreen(templateId: 'template-1'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(PlatformFilterChip).at(2));
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'checklist_builder_ar_1280.png');
-
-      tester.binding.setSurfaceSize(null);
-    });
-
-    testWidgets('captures blocked template builder readiness', (tester) async {
-      final key = GlobalKey();
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _harness(
-          boundaryKey: key,
-          surfaceSize: const Size(1280, 900),
-          templateVersionDetail: _blockedVersionDetail,
-          child: const TemplateBuilderScreen(templateId: 'template-1'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.textContaining('Needs'), findsWidgets);
-      await _capture(tester, key, 'checklist_builder_publish_blocked_1280.png');
-      tester.binding.setSurfaceSize(null);
-    });
-
-    testWidgets('captures real-font config health across viewports & AR', (
-      tester,
-    ) async {
-      final key = GlobalKey();
-      for (final entry in {
-        '1280': const Size(1280, 900),
-        '768': const Size(768, 1024),
-        '360': const Size(360, 800),
-      }.entries) {
-        await tester.binding.setSurfaceSize(entry.value);
-        await tester.pumpWidget(
-          _harness(
-            boundaryKey: key,
-            surfaceSize: entry.value,
-            child: const ConfigHealthScreen(),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await _capture(tester, key, 'checklist_health_${entry.key}.png');
-      }
-
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _harness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: const ConfigHealthScreen(),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'checklist_health_ar_1280.png');
 
       tester.binding.setSurfaceSize(null);
     });

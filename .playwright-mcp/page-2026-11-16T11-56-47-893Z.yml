@@ -1,0 +1,49 @@
+- generic [active] [ref=f1e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f1e119]: TrueReport
+          - generic [ref=f1e120]: Platform Admin
+          - button "Platform Admin" [ref=f1e121]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=f1e123]
+          - generic [ref=f1e124]: English
+          - button "Notifications":
+            - button "Notifications" [ref=f1e125]
+          - button "Help":
+            - button "Help" [ref=f1e126]
+          - button "Account Platform Admin, Platform Admin" [ref=f1e127]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=f1e128]
+              - button "Workshops Workshops" [ref=f1e130]
+              - button "Checklist Checklist" [ref=f1e132]
+              - button "Reports Reports" [ref=f1e134]
+              - button "Audit Log Audit Log" [ref=f1e136]
+              - button "Settings Settings" [ref=f1e138]
+          - generic [ref=f1e139]: All languages live
+          - button "View languages" [ref=f1e140]
+          - generic [ref=f1e141]: System Operational
+          - generic [ref=f1e142]: Platform Admin
+          - generic [ref=f1e143]: Platform Admin
+          - button "Sign out" [ref=f1e144]
+          - group:
+            - generic [ref=f1e145]: Checklist
+            - generic [ref=f1e146]: The Checklist is the reusable master catalog for categories, items, and option sets. Workshop Admin builds and publishes inspection templates.
+            - button "Add category" [ref=f1e147]
+            - generic [ref=f1e148]: Categories group items and option sets. Workshop Admin builds inspection templates from them.
+            - button "0 Items" [ref=f1e149]
+            - button "0 Categories" [ref=f1e150]
+            - button "0 Issue Options" [ref=f1e151]
+            - button "Healthy Health" [ref=f1e152]
+            - group:
+              - button "Items 0" [ref=f1e153]
+              - button "Categories 0" [ref=f1e154]
+              - button "Issue Options 0" [ref=f1e155]
+              - button "Health 0" [ref=f1e156]
+            - textbox "Search" [ref=f1e158]
+            - button "Status All" [ref=f1e159]
+            - generic [ref=f1e160]: "0"
+            - generic [ref=f1e161]: No categories yet
+            - generic [ref=f1e162]: Categories organize inspection checkpoints into logical vehicle systems.
+            - button "Add category" [ref=f1e163]

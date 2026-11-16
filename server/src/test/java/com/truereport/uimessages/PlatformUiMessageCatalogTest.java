@@ -1,14 +1,11 @@
 package com.truereport.uimessages;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.truereport.shared.error.ApiException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -83,31 +80,42 @@ class PlatformUiMessageCatalogTest {
     }
 
     @Test
-    void atomicWriteValidatesAndReplacesFile() throws Exception {
-        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello\"}");
+    void manifestDeclaresStaticLanguagesAndNormalizesFiles() throws Exception {
+        write("platform_admin/manifest.json", """
+                {"defaultLanguage":"en","languages":[
+                  {"code":"en","nativeName":"English","direction":"ltr","file":"en.json"},
+                  {"code":"ta","nativeName":"Tamil","direction":"ltr","file":"ta.json"}
+                ]}
+                """);
         PlatformUiMessageCatalog catalog = catalog();
-        Map<String, String> values = new LinkedHashMap<>();
-        values.put("platform_admin.hello", "Bonjour");
-        Path target = catalog.writeAtomic("platform_admin/fr.json", values);
-        assertThat(Files.exists(target)).isTrue();
-        catalog.invalidate();
-        assertThat(catalog.load("platform_admin/fr.json").flat())
-                .containsEntry("platform_admin.hello", "Bonjour");
+        PlatformUiMessageCatalog.StaticManifest manifest = catalog.manifest();
+        assertThat(manifest.defaultLanguage()).isEqualTo("en");
+        assertThat(manifest.languages()).extracting(PlatformUiMessageCatalog.StaticLanguage::code)
+                .containsExactly("en", "ta");
+        assertThat(manifest.find("ta").file()).isEqualTo("platform_admin/ta.json");
     }
 
     @Test
-    void publishGuardRequiresKeyAndPlaceholderParity() throws Exception {
-        write("platform_admin/en.json", "{\"platform_admin.hello\":\"Hello {name}\"}");
-        write("platform_admin/fr.json", "{\"platform_admin.hello\":\"Bonjour\"}");
+    void coverageReportsMissingKeysAndPlaceholderMismatch() throws Exception {
+        write("platform_admin/en.json", """
+                {"platform_admin.hello":"Hello {name}","platform_admin.bye":"Bye"}
+                """);
+        write("platform_admin/ta.json", "{\"platform_admin.hello\":\"Vanakkam\"}");
         PlatformUiMessageCatalog catalog = catalog();
-        assertThatThrownBy(() -> catalog.requirePublishable("fr",
-                "platform_admin/fr.json", "platform_admin/en.json"))
-                .isInstanceOf(ApiException.class);
+        PlatformUiMessageCatalog.StaticCoverage coverage =
+                catalog.coverage("platform_admin/ta.json");
+        assertThat(coverage.total()).isEqualTo(2);
+        assertThat(coverage.missing()).isEqualTo(1);
+        assertThat(coverage.placeholderMismatch()).isEqualTo(1);
 
-        write("platform_admin/fr.json", "{\"platform_admin.hello\":\"Bonjour {name}\"}");
+        write("platform_admin/ta.json", """
+                {"platform_admin.hello":"Vanakkam {name}","platform_admin.bye":"Bye"}
+                """);
         catalog.invalidate();
-        catalog.requirePublishable("fr", "platform_admin/fr.json",
-                "platform_admin/en.json");
+        PlatformUiMessageCatalog.StaticCoverage complete =
+                catalog.coverage("platform_admin/ta.json");
+        assertThat(complete.missing()).isZero();
+        assertThat(complete.placeholderMismatch()).isZero();
     }
 
     private PlatformUiMessageCatalog catalog() {

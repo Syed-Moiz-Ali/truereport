@@ -30,13 +30,13 @@ Widget _screenshotWrapper({
   return ProviderScope(
     overrides: [
       uiStringsProvider.overrideWithValue(
-        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
+        fakeEnUiStrings(),
       ),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
+      supportedLocales: <Locale>[const Locale('en')],
       localizationsDelegates: <LocalizationsDelegate<dynamic>>[
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -183,47 +183,7 @@ void main() {
       await tester.pumpAndSettle();
       await _capture(tester, key, 'compact_360.png');
 
-      // 5. Arabic RTL 1280
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _screenshotWrapper(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: const PlatformShell(
-            currentRoute: '/workshops',
-            child: Center(
-              child: Text(
-                'لوحة تحكم المنصة — الورش',
-                style: TextStyle(fontSize: 18, color: PtTheme.ink),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'arabic_rtl_1280.png');
 
-      // 6. Arabic RTL 360
-      await tester.binding.setSurfaceSize(const Size(360, 800));
-      await tester.pumpWidget(
-        _screenshotWrapper(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(360, 800),
-          child: const PlatformShell(
-            currentRoute: '/workshops',
-            child: Center(
-              child: Text(
-                'عرض الجوال باللغة العربية',
-                style: TextStyle(fontSize: 14, color: PtTheme.ink),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'arabic_rtl_360.png');
 
       tester.binding.setSurfaceSize(null);
     },

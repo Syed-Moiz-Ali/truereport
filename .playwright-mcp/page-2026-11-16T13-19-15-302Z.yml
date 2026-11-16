@@ -1,0 +1,35 @@
+- generic [ref=f2e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Workshop Admin" [active] [level=2] [ref=f2e24]
+            - button "العربية":
+              - button "العربية" [ref=f2e25]
+            - button "Sign out" [ref=f2e26]
+          - generic:
+            - button "Overview Tab 1 of 6" [ref=f2e27]
+            - button "Jobs Tab 2 of 6" [ref=f2e28]
+            - button "Staff Tab 3 of 6" [ref=f2e29]
+            - button "Templates Tab 4 of 6" [ref=f2e30]
+            - button "Job board Tab 5 of 6" [ref=f2e31]
+            - button "Notifications Tab 6 of 6" [ref=f2e32]
+          - generic:
+            - generic:
+              - tabpanel:
+                - generic:
+                  - group:
+                    - group "Overview":
+                      - heading "Overview" [level=2] [ref=f2e33]
+                      - generic [ref=f2e34]:
+                        - textbox "Search jobs" [disabled] [ref=f2e35]
+                        - textbox "Search jobs" [ref=f2e37]
+                      - generic [ref=f2e38]: Workshop Admin A, Workshop A WA Workshop Admin A Workshop A
+                    - generic [ref=f2e39]: 0, Active jobs 0 Active jobs
+                    - generic [ref=f2e40]: 0, New & scheduled 0 New & scheduled
+                    - generic [ref=f2e41]: 0, In progress 0 In progress
+                    - generic [ref=f2e42]: 0, Ready to finalize 0 Ready to finalize
+                    - generic [ref=f2e43]: 0, Finalized today 0 Finalized today
+                    - heading "Recent jobs" [level=2] [ref=f2e44]
+                    - heading "No results" [level=2] [ref=f2e45]

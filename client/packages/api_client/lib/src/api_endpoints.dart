@@ -225,47 +225,11 @@ class ApiEndpoints {
   String get i18nLanguages => '$_root/i18n/languages';
   String get i18nMe => '$_root/i18n/me';
   String get platformLanguages => '$_root/platform/i18n/languages';
-  String platformLanguage(String code) =>
-      '$_root/platform/i18n/languages/$code';
-  String platformLanguageActivate(String code) =>
-      '$_root/platform/i18n/languages/$code/activate';
-  String platformLanguageDeactivate(String code) =>
-      '$_root/platform/i18n/languages/$code/deactivate';
-  String get platformLanguagesReorder =>
-      '$_root/platform/i18n/languages/reorder';
-  String get platformLanguagesDefault =>
-      '$_root/platform/i18n/languages/default';
   String get platformLanguageCoverage => '$_root/platform/i18n/coverage';
   String platformLanguageReadiness(String code) =>
       '$_root/platform/i18n/languages/$code/readiness';
-  String platformLanguageContentGenerate(String code) =>
-      '$_root/platform/i18n/languages/$code/content/generate';
-  String platformLanguageContentGeneration(String code) =>
-      '$_root/platform/i18n/languages/$code/content/generation';
-  String platformLanguageContentGenerationCancel(String code) =>
-      '$_root/platform/i18n/languages/$code/content/generation/cancel';
-  String platformLanguageContentGenerationRetryFailed(String code) =>
-      '$_root/platform/i18n/languages/$code/content/generation/retry-failed';
-  String platformLanguageStatus(String code) =>
-      '$_root/platform/i18n/languages/$code/status';
-  String platformLanguagePublish(String code) =>
-      '$_root/platform/i18n/languages/$code/publish';
   String platformLanguageBacklog(String code) =>
       '$_root/platform/i18n/languages/$code/backlog';
-  String platformLanguageUiMessagesGenerate(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/generate';
-  String platformLanguageUiMessagesGeneration(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/generation';
-  String platformLanguageUiMessagesGenerationCancel(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/generation/cancel';
-  String platformLanguageUiMessagesGenerationRetryFailed(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/generation/retry-failed';
-  String platformLanguageUiMessagesReview(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/review';
-  String platformLanguageUiMessagesApprove(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/approve';
-  String platformLanguageUiMessagesDownload(String code) =>
-      '$_root/platform/i18n/languages/$code/ui-messages/download';
   String platformLanguageCoverageFor(String code) =>
       '$_root/platform/i18n/coverage?language=$code';
   String get platformTranslations => '$_root/platform/i18n/translations';

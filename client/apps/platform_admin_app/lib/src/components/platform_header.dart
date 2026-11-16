@@ -185,7 +185,10 @@ class PlatformHeader extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 24,
+                  ),
                   decoration: BoxDecoration(
                     color: PtTheme.canvas,
                     borderRadius: BorderRadius.circular(12),
@@ -572,9 +575,42 @@ class _HeaderLanguageSelector extends ConsumerWidget {
     final selectorText = isCompact
         ? activeLang.code.toUpperCase()
         : activeLang.nativeName.isNotEmpty &&
-                activeLang.nativeName != activeLang.code.toUpperCase()
-            ? '${activeLang.nativeName} (${activeLang.code.toUpperCase()})'
-            : activeLang.code.toUpperCase();
+              activeLang.nativeName != activeLang.code.toUpperCase()
+        ? '${activeLang.nativeName} (${activeLang.code.toUpperCase()})'
+        : activeLang.code.toUpperCase();
+
+    // A single-language manifest must not render an empty/broken dropdown.
+    if (languages.length <= 1) {
+      final label = activeLang.nativeName.isNotEmpty
+          ? activeLang.nativeName
+          : activeLang.code.toUpperCase();
+      return Container(
+        key: const Key('header-language-static'),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: PtTheme.canvas,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: PtTheme.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.translate_rounded, size: 15, color: PtTheme.muted),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: PtTheme.font(
+                11,
+                lineHeight: 15,
+                weight: FontWeight.w700,
+                color: PtTheme.ink,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return PopupMenuButton<String>(
       key: const Key('btn-header-language-selector'),
@@ -660,7 +696,11 @@ class _HeaderLanguageSelector extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down_rounded, size: 16, color: PtTheme.muted),
+            const Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 16,
+              color: PtTheme.muted,
+            ),
           ],
         ),
       ),
@@ -669,10 +709,7 @@ class _HeaderLanguageSelector extends ConsumerWidget {
 }
 
 class _UserMenu extends ConsumerWidget {
-  const _UserMenu({
-    required this.showIdentity,
-    this.onNavigate,
-  });
+  const _UserMenu({required this.showIdentity, this.onNavigate});
 
   final bool showIdentity;
   final ValueChanged<String>? onNavigate;
@@ -823,14 +860,11 @@ class _UserMenu extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    strings.tArgsKey(
-                      PlatformAdminKeys.headerUserMenuLanguage,
-                      {
-                        'name': activeLang.nativeName.isNotEmpty
-                            ? activeLang.nativeName
-                            : activeLang.code.toUpperCase(),
-                      },
-                    ),
+                    strings.tArgsKey(PlatformAdminKeys.headerUserMenuLanguage, {
+                      'name': activeLang.nativeName.isNotEmpty
+                          ? activeLang.nativeName
+                          : activeLang.code.toUpperCase(),
+                    }),
                     style: PtTheme.font(
                       13,
                       lineHeight: 18,
@@ -848,11 +882,7 @@ class _UserMenu extends ConsumerWidget {
             value: 'signout',
             child: Row(
               children: [
-                const Icon(
-                  Icons.logout_rounded,
-                  size: 16,
-                  color: PtTheme.rose,
-                ),
+                const Icon(Icons.logout_rounded, size: 16, color: PtTheme.rose),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

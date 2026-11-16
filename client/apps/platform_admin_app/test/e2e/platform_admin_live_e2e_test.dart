@@ -12,17 +12,11 @@ import 'package:platform_admin_app/src/features/master_library/categories_screen
 import 'package:platform_admin_app/src/features/master_library/master_item_editor_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/master_library_screen.dart';
 import 'package:platform_admin_app/src/features/master_library/option_sets_screen.dart';
-import 'package:platform_admin_app/src/features/templates/template_builder_screen.dart';
-import 'package:platform_admin_app/src/features/templates/templates_screen.dart';
 
 final _baseUrl =
     Platform.environment['LIVE_BASE_URL'] ?? 'http://localhost:8080';
 final _email = Platform.environment['LIVE_E2E_EMAIL'];
 final _password = Platform.environment['LIVE_E2E_PASSWORD'];
-final _secondEmail =
-    Platform.environment['LIVE_E2E_SECOND_EMAIL'] ?? 'platform@truereport.test';
-final _secondPassword =
-    Platform.environment['LIVE_E2E_SECOND_PASSWORD'] ?? _password;
 final _runLive = Platform.environment['LIVE_E2E'] == '1';
 
 GlobalKey? _shotKey;
@@ -198,7 +192,6 @@ void main() {
     final itemCode = 'LIVE-ITEM-$stamp';
     final optionSetCode = 'LIVE-SET-$stamp';
     final optionSetName = 'Live Set $stamp';
-    final templateCode = 'LIVE-TPL-$stamp';
 
     await _pump(tester, const MasterLibraryScreen(), client, endpoints);
     await _tapText(tester, 'Load default checklist');
@@ -363,93 +356,6 @@ void main() {
     expect(publishedVersion['status'], 'PUBLISHED');
     await _shot(tester, '04_item_published');
 
-    await _pump(tester, const TemplatesScreen(), client, endpoints);
-    await _tapText(tester, 'Create template');
-    await _enterByLabel(tester, 'Template code', templateCode);
-    await _enterByLabel(tester, 'Template name (English)', 'Live template');
-    await _enterByLabel(tester, 'Template name (Arabic)', 'قالب مباشر');
-    await _enterByLabel(tester, 'Description (English)', 'Live flow');
-    await _enterByLabel(tester, 'Description (Arabic)', 'تدفق مباشر');
-    await _tapButton(tester, find.widgetWithText(FilledButton, 'Create'));
-
-    final templates = await _list(
-      tester,
-      client,
-      '/api/v1/platform/master/templates',
-    );
-    final template = templates.cast<Map<String, dynamic>>().firstWhere(
-      (row) => row['code'] == templateCode,
-    );
-    final templateId = template['id'] as String;
-    addTearDown(() async {
-      try {
-        await client.postDynamic(
-          '/api/v1/platform/master/templates/$templateId/retire',
-        );
-      } catch (_) {
-        // Best effort cleanup for live E2E data.
-      }
-    });
-
-    await _pump(
-      tester,
-      TemplateBuilderScreen(templateId: templateId),
-      client,
-      endpoints,
-    );
-    await _shot(tester, '05_template_builder');
-    await _tapButton(tester, find.text(categoryName).last);
-    await _tapButton(
-      tester,
-      find.widgetWithText(OutlinedButton, 'Add item').first,
-    );
-    await _tapButton(tester, find.textContaining(itemCode).last);
-    await _tapButton(tester, find.widgetWithText(FilledButton, 'Save'));
-    final grouped = await _live(
-      tester,
-      () => client.getDynamic('/api/v1/platform/master/templates/$templateId'),
-    );
-    final groupedCategories =
-        (grouped as Map<String, dynamic>)['categories'] as List<dynamic>;
-    expect(groupedCategories, isNotEmpty);
-    expect(
-      (groupedCategories.first as Map<String, dynamic>)['items'],
-      isNotEmpty,
-    );
-
-    await _tapButton(
-      tester,
-      find.widgetWithText(FilledButton, 'Publish template'),
-    );
-
-    final secondClient = await _live(
-      tester,
-      () => _login(_secondEmail, _secondPassword!),
-    );
-    await _pump(
-      tester,
-      TemplateBuilderScreen(templateId: templateId),
-      secondClient,
-      endpoints,
-    );
-    await _tapButton(tester, find.widgetWithText(FilledButton, 'Approve'));
-
-    final approved = await _live(
-      tester,
-      () => secondClient.getDynamic(
-        '/api/v1/platform/master/templates/$templateId',
-      ),
-    );
-    final approvedVersions =
-        (approved as Map<String, dynamic>)['versions'] as List<dynamic>;
-    expect(
-      approvedVersions.cast<Map<String, dynamic>>().any(
-        (row) => row['status'] == 'PUBLISHED',
-      ),
-      isTrue,
-    );
-    expect(approved['categories'], isNotEmpty);
-
     final finalItems = await _list(
       tester,
       client,
@@ -458,6 +364,6 @@ void main() {
     expect(finalItems, isNotEmpty);
     final audit = await _list(tester, client, '/api/v1/platform/audit-events');
     expect(audit, isNotEmpty);
-    await _shot(tester, '06_template_approved');
+    await _shot(tester, '06_final_audit');
   }, timeout: const Timeout(Duration(minutes: 8)));
 }

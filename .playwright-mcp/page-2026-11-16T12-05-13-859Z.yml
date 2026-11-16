@@ -1,0 +1,46 @@
+- generic [ref=f3e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f3e52]: TrueReport
+          - generic [ref=f3e53]: Platform Admin
+          - button "Platform Admin" [ref=f3e54]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=f3e56]
+          - generic [ref=f3e57]: English
+          - button "Notifications":
+            - button "Notifications" [ref=f3e58]
+          - button "Help":
+            - button "Help" [ref=f3e59]
+          - button "Account Platform Admin, Platform Admin" [ref=f3e60]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=f3e61]
+              - button "Workshops Workshops" [ref=f3e63]
+              - button "Checklist Checklist" [ref=f3e65]
+              - button "Reports Reports" [ref=f3e67]
+              - button "Audit Log Audit Log" [ref=f3e69]
+              - button "Settings Settings" [ref=f3e71]
+          - generic [ref=f3e72]: All languages live
+          - button "View languages" [ref=f3e73]
+          - generic [ref=f3e74]: System Operational
+          - generic [ref=f3e75]: Platform Admin
+          - generic [ref=f3e76]: Platform Admin
+          - button "Sign out" [ref=f3e77]
+          - group:
+            - generic [ref=f3e78]: Add workshop
+            - generic [ref=f3e79]: Manage workshops, staff, and their templates
+            - generic:
+              - generic [ref=f3e95]: Something went wrong
+              - generic [ref=f3e80]: "1"
+              - generic [ref=f3e81]: Overview
+              - textbox "Workshop name *" [ref=f3e83]: Live Ownership Test Workshop
+              - textbox "Branch *" [ref=f3e85]: Live Verification Bay
+              - generic [ref=f3e86]: "2"
+              - generic [ref=f3e87]: Contact
+              - textbox "Contact email *" [ref=f3e89]: live.ownership@truereport.test
+              - generic [ref=f3e90]: "3"
+              - generic [ref=f3e91]: Global templates
+              - button "Global templates * Comprehensive 30-Point GCC Standard" [ref=f3e92]
+              - button "Cancel" [ref=f3e93]
+              - button "Save" [ref=f3e96]

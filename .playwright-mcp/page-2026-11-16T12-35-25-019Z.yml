@@ -1,0 +1,67 @@
+- generic [active] [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e156]: TrueReport
+          - generic [ref=e157]: Platform Admin
+          - button "Platform Admin" [ref=e158]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=e160]
+          - generic [ref=e161]: English
+          - button "Notifications":
+            - button "Notifications" [ref=e162]
+          - button "Help":
+            - button "Help" [ref=e163]
+          - button "Account Platform Admin, Platform Admin" [ref=e164]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=e165]
+              - button "Workshops Workshops" [ref=e167]
+              - button "Checklist Checklist" [ref=e169]
+              - button "Reports Reports" [ref=e171]
+              - button "Audit Log Audit Log" [ref=e173]
+              - button "Settings Settings" [ref=e175]
+          - generic [ref=e176]: All languages live
+          - button "View languages" [ref=e177]
+          - generic [ref=e178]: System Operational
+          - generic [ref=e179]: Platform Admin
+          - generic [ref=e180]: Platform Admin
+          - button "Sign out" [ref=e181]
+          - group:
+            - generic [ref=e182]: LO
+            - generic [ref=e183]: Live Ownership Workshop
+            - generic [ref=e184]: Active
+            - button "Edit workshop" [ref=e185]
+            - button "Actions" [ref=e186]
+            - generic [ref=e187]: Verification Bay
+            - button "Overview Overview" [ref=e188]
+            - button "Staff Staff" [ref=e189]
+            - button "Available templates Available templates" [ref=e190]
+            - button "Activity Activity" [ref=e191]
+            - generic [ref=e192]: "0"
+            - generic [ref=e193]: "0"
+            - generic [ref=e194]: Staff
+            - generic [ref=e195]: Technicians
+            - generic [ref=e196]: "0"
+            - generic [ref=e197]: 8 • 88%
+            - generic [ref=e198]: Pending invitations
+            - generic [ref=e199]: Capacity
+            - generic [ref=e200]: Overview
+            - generic [ref=e201]: Workshop name
+            - generic [ref=e202]: Live Ownership Workshop
+            - generic [ref=e203]: Branch
+            - generic [ref=e204]: Verification Bay
+            - generic [ref=e205]: Status
+            - generic [ref=e206]: Active
+            - generic [ref=e207]: Capacity
+            - generic [ref=e208]: Bays
+            - generic [ref=e209]: "8"
+            - generic [ref=e210]: Assigned capacity
+            - generic [ref=e211]: 88%
+            - generic [ref=e212]: Workshop Admins
+            - generic [ref=e213]: "0"
+            - generic [ref=e214]: Contact
+            - generic [ref=e215]: Contact email
+            - generic [ref=e216]: No data yet
+            - generic [ref=e217]: Created
+            - generic [ref=e218]: —

@@ -1,0 +1,42 @@
+- generic [ref=f2e4] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Workshop Admin" [level=2] [ref=f2e5]
+            - button "العربية":
+              - button "العربية" [ref=f2e6]
+            - button "Sign out" [ref=f2e7]
+          - generic:
+            - button "Overview Tab 1 of 6" [ref=f2e8]
+            - button "Jobs Tab 2 of 6" [ref=f2e9]
+            - button "Staff Tab 3 of 6" [ref=f2e10]
+            - button "Templates Tab 4 of 6" [active] [ref=f2e11]
+            - button "Job board Tab 5 of 6" [ref=f2e12]
+            - button "Notifications Tab 6 of 6" [ref=f2e13]
+          - generic:
+            - generic:
+              - tabpanel:
+                - button "New template":
+                  - heading "Inspection templates" [level=2] [ref=f2e27]
+                  - generic [ref=f2e28]:
+                    - textbox "Search" [disabled] [ref=f2e29]
+                    - textbox "Search" [ref=f2e31]
+                  - button "New template" [ref=f2e32]
+                - group:
+                  - generic [ref=f2e33]: 0, Total checkpoints 0 Total checkpoints
+                  - button "All (1) All (1)" [ref=f2e34]
+                  - button "Draft (1) Draft (1)" [ref=f2e35]
+                  - generic:
+                    - button "Grid" [ref=f2e36]
+                    - button "List" [ref=f2e37]
+                  - button "Live Ownership Verification Template, v- · 0 items selected":
+                    - button "Live Ownership Verification Template v- · 0 items selected Updated 11/16/2026 Edit" [ref=f2e38]:
+                      - generic [ref=f2e39]: Draft
+                      - generic [ref=f2e40]: Comprehensive Inspection
+                      - button "Edit" [ref=f2e41]
+                  - button "New template New template" [ref=f2e42]
+                  - generic [ref=f2e43]: Locked by platform
+                  - button "Version history":
+                    - button "Version history" [ref=f2e44]

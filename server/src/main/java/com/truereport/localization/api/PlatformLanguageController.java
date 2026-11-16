@@ -1,34 +1,22 @@
 package com.truereport.localization.api;
 
-import com.truereport.localization.ContentTranslationGenerationService;
 import com.truereport.localization.LanguageReadinessService;
 import com.truereport.localization.LocalizationService;
 import com.truereport.localization.TranslationBacklogService;
-import com.truereport.localization.api.ContentGenerationDtos.ContentGenerationDto;
-import com.truereport.localization.api.ContentGenerationDtos.GenerateContentRequest;
-import com.truereport.localization.ContentTranslationGenerationService.StartResult;
-import com.truereport.localization.api.LanguageDtos.CreateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.LanguageBacklogDto;
 import com.truereport.localization.api.LanguageDtos.LanguageCoverageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageReadinessDto;
-import com.truereport.localization.api.LanguageDtos.PublishLanguageResultDto;
-import com.truereport.localization.api.LanguageDtos.ReorderLanguagesRequest;
-import com.truereport.localization.api.LanguageDtos.SetLanguageStatusRequest;
 import com.truereport.localization.api.LanguageDtos.TranslationCoverageDto;
 import com.truereport.localization.api.LanguageDtos.TranslationItemDto;
-import com.truereport.localization.api.LanguageDtos.UpdateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.UpsertTranslationRequest;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Read-only language registry plus the dynamic content translation queue.
+ *
+ * <p>Static UI languages are added by editing the JSON manifest and
+ * restarting; there is intentionally no create, generate, review, approve,
+ * publish or status endpoint here.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/platform/i18n")
 @PreAuthorize("hasRole('PLATFORM_ADMIN')")
@@ -45,69 +40,21 @@ public class PlatformLanguageController {
     private final LocalizationService localization;
     private final TranslationBacklogService backlog;
     private final LanguageReadinessService readiness;
-    private final ContentTranslationGenerationService contentGeneration;
     private final CurrentUserService currentUserService;
 
     public PlatformLanguageController(LocalizationService localization,
                                       TranslationBacklogService backlog,
                                       LanguageReadinessService readiness,
-                                      ContentTranslationGenerationService contentGeneration,
                                       CurrentUserService currentUserService) {
         this.localization = localization;
         this.backlog = backlog;
         this.readiness = readiness;
-        this.contentGeneration = contentGeneration;
         this.currentUserService = currentUserService;
     }
 
     @GetMapping("/languages")
     public List<LanguageDto> languages() {
         return localization.allLanguages();
-    }
-
-    @PostMapping("/languages")
-    public ResponseEntity<LanguageDto> create(@RequestBody CreateLanguageRequest request) {
-        return ResponseEntity.status(201).body(localization.create(request));
-    }
-
-    @DeleteMapping("/languages/{code}")
-    public ResponseEntity<Void> delete(JwtAuthenticationToken authentication,
-                                       @PathVariable String code,
-                                       HttpServletRequest http) {
-        localization.deleteLanguage(currentUserService.require(authentication), code, http);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/languages/{code}")
-    public LanguageDto update(@PathVariable String code,
-                              @RequestBody UpdateLanguageRequest request) {
-        return localization.update(code, request);
-    }
-
-    @PostMapping("/languages/{code}/status")
-    public LanguageDto setStatus(@PathVariable String code,
-                                 @RequestBody SetLanguageStatusRequest request) {
-        return localization.setStatus(code, request == null ? null : request.status());
-    }
-
-    @PostMapping("/languages/{code}/activate")
-    public LanguageDto activate(@PathVariable String code) {
-        return localization.setActive(code, true);
-    }
-
-    @PostMapping("/languages/{code}/deactivate")
-    public LanguageDto deactivate(@PathVariable String code) {
-        return localization.setActive(code, false);
-    }
-
-    @PutMapping("/languages/reorder")
-    public List<LanguageDto> reorder(@RequestBody ReorderLanguagesRequest request) {
-        return localization.reorder(request == null ? List.of() : request.orderedCodes());
-    }
-
-    @PutMapping("/languages/default")
-    public LanguageDto setDefault(@RequestBody com.truereport.localization.api.LanguageDtos.SetLanguageRequest request) {
-        return localization.setDefault(request == null ? null : request.language());
     }
 
     @GetMapping("/coverage")
@@ -136,43 +83,5 @@ public class PlatformLanguageController {
     @GetMapping("/languages/{code}/readiness")
     public LanguageReadinessDto readiness(@PathVariable String code) {
         return readiness.readiness(code);
-    }
-
-    @PostMapping("/languages/{code}/publish")
-    public PublishLanguageResultDto publish(JwtAuthenticationToken authentication,
-                                            @PathVariable String code,
-                                            HttpServletRequest http) {
-        CurrentUser actor = currentUserService.require(authentication);
-        return backlog.publish(actor, code, http);
-    }
-
-    @PostMapping("/languages/{code}/content/generate")
-    public ResponseEntity<ContentGenerationDto> generateContent(
-            JwtAuthenticationToken authentication,
-            @PathVariable String code,
-            @RequestBody(required = false) GenerateContentRequest request) {
-        CurrentUser actor = currentUserService.require(authentication);
-        StartResult result = contentGeneration.generate(actor, code, request);
-        return ResponseEntity.status(result.accepted() ? 202 : 200)
-                .body(result.generation());
-    }
-
-    @GetMapping("/languages/{code}/content/generation")
-    public ContentGenerationDto contentGeneration(@PathVariable String code) {
-        return contentGeneration.status(code);
-    }
-
-    @PostMapping("/languages/{code}/content/generation/cancel")
-    public ContentGenerationDto cancelContentGeneration(JwtAuthenticationToken authentication,
-                                                        @PathVariable String code) {
-        return contentGeneration.cancel(currentUserService.require(authentication), code);
-    }
-
-    @PostMapping("/languages/{code}/content/generation/retry-failed")
-    public ResponseEntity<ContentGenerationDto> retryContentGeneration(
-            JwtAuthenticationToken authentication, @PathVariable String code) {
-        return ResponseEntity.status(202)
-                .body(contentGeneration.retryFailed(
-                        currentUserService.require(authentication), code));
     }
 }

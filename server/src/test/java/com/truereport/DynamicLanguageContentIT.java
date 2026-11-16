@@ -1,15 +1,10 @@
 package com.truereport;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.truereport.uimessages.UiTextTranslationProvider;
+import com.truereport.localization.DynamicContentTranslations;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -17,184 +12,148 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestPropertySource(properties = {
-        "truereport.i18n.generation.synchronous=true"
-})
 class DynamicLanguageContentIT extends IntegrationTestBase {
 
     @Autowired
-    JdbcTemplate jdbc;
-
-    @TestConfiguration
-    static class TranslationConfig {
-        @Bean
-        @Primary
-        FakeProvider fakeProvider() {
-            return new FakeProvider();
-        }
-    }
-
-    static class FakeProvider implements UiTextTranslationProvider {
-        @Override
-        public String translate(String text, String targetLanguage) {
-            return "[" + targetLanguage + "] " + text;
-        }
-    }
+    DynamicContentTranslations translations;
 
     @Test
-    void addingLanguagesExposesSourceAndTranslationsForEveryContentType() throws Exception {
+    void seededContentExposesTranslationsForEveryContentType() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
-        createLanguage(platform, "hi", "Hindi");
-        createLanguage(platform, "fr", "French");
 
         JsonNode category = postJson(platform, "/api/v1/platform/master/categories", """
                 {"code":"CAT-I18N","name":"Engine",
-                 "translations":{"name":{"ar":"ar-engine","hi":"hi-engine","fr":"fr-engine"}},
+                 "translations":{"name":{"ar":"ar-engine"}},
                  "sortOrder":50}
                 """);
         String categoryId = category.get("id").asText();
         assertThat(category.get("name").asText()).isEqualTo("Engine");
-        assertThat(category.get("translations").get("name").get("hi").asText())
-                .isEqualTo("hi-engine");
-        assertThat(category.get("translations").get("name").get("fr").asText())
-                .isEqualTo("fr-engine");
+        assertThat(category.get("translations").get("name").get("ar").asText())
+                .isEqualTo("ar-engine");
 
         JsonNode item = postJson(platform, "/api/v1/platform/master/items", """
                 {"stableCode":"I18N-ITEM-01","categoryId":"%s","label":"Check oil",
                  "instruction":"Verify the dipstick","standardSpec":"Above 3 mm","sampleData":false,
-                 "translations":{
-                   "label":{"hi":"hi-oil","fr":"fr-oil"},
-                   "instruction":{"hi":"hi-dipstick","fr":"fr-jauge"}
-                 },
+                 "translations":{"label":{"ar":"ar-oil"},"instruction":{"ar":"ar-dipstick"}},
                  "resultOptions":["NO_ISSUE_OBSERVED","DEFECT_FOUND"]}
                 """.formatted(categoryId));
         String itemId = item.get("item").get("id").asText();
         JsonNode version = item.get("versions").get(0);
         assertThat(version.get("label").asText()).isEqualTo("Check oil");
-        assertThat(version.get("translations").get("label").get("hi").asText())
-                .isEqualTo("hi-oil");
-        assertThat(version.get("translations").get("instruction").get("fr").asText())
-                .isEqualTo("fr-jauge");
+        assertThat(version.get("translations").get("label").get("ar").asText())
+                .isEqualTo("ar-oil");
+        assertThat(version.get("translations").get("instruction").get("ar").asText())
+                .isEqualTo("ar-dipstick");
 
         JsonNode optionSet = postJson(platform, "/api/v1/platform/master/option-sets", """
                 {"code":"I18N-SET","name":"Condition",
-                 "translations":{"name":{"hi":"hi-condition","fr":"fr-etat"}}}
+                 "translations":{"name":{"ar":"ar-condition"}}}
                 """);
-        assertThat(optionSet.get("translations").get("name").get("hi").asText())
-                .isEqualTo("hi-condition");
+        assertThat(optionSet.get("translations").get("name").get("ar").asText())
+                .isEqualTo("ar-condition");
         String setId = optionSet.get("id").asText();
         postJson(platform, "/api/v1/platform/master/option-sets/" + setId + "/values", """
                 {"code":"GOOD","label":"Good",
-                 "translations":{"label":{"hi":"hi-good","fr":"fr-bon"}}}
+                 "translations":{"label":{"ar":"ar-good"}}}
                 """);
 
         JsonNode template = postJson(platform, "/api/v1/platform/master/templates", """
                 {"code":"I18N-TPL","name":"Inspection",
                  "description":"Full inspection",
-                 "translations":{
-                   "name":{"hi":"hi-inspection","fr":"fr-inspection"},
-                   "description":{"hi":"hi-full","fr":"fr-complete"}
-                 }}
+                 "translations":{"name":{"ar":"ar-inspection"},"description":{"ar":"ar-full"}}}
                 """);
-        assertThat(template.get("translations").get("name").get("hi").asText())
-                .isEqualTo("hi-inspection");
+        assertThat(template.get("translations").get("name").get("ar").asText())
+                .isEqualTo("ar-inspection");
 
         JsonNode documentType = postJson(platform, "/api/v1/platform/document-types", """
                 {"code":"I18N-DOC","name":"Invoice",
-                 "translations":{"name":{"hi":"hi-invoice","fr":"fr-facture"}}}
+                 "translations":{"name":{"ar":"ar-invoice"}}}
                 """);
-        assertThat(documentType.get("translations").get("name").get("fr").asText())
-                .isEqualTo("fr-facture");
+        assertThat(documentType.get("translations").get("name").get("ar").asText())
+                .isEqualTo("ar-invoice");
 
         String versionId = version.get("id").asText();
         putJson(platform, "/api/v1/platform/master/items/" + itemId + "/versions/"
                 + versionId + "/issue-fields", """
                 {"fields":[{"fieldCode":"ISSUE_TYPE","label":"Issue type","inputType":"TEXT",
                   "required":true,"sortOrder":1,
-                  "translations":{"label":{"hi":"hi-issue","fr":"fr-probleme"}}}]}
+                  "translations":{"label":{"ar":"ar-issue"}}}]}
                 """);
         JsonNode config = getJson(platform, "/api/v1/platform/master/items/" + itemId
                 + "/versions/" + versionId + "/issue-fields");
         assertThat(config.get(0).get("label").asText()).isEqualTo("Issue type");
-        assertThat(config.get(0).get("translations").get("label").get("hi").asText())
-                .isEqualTo("hi-issue");
+        assertThat(config.get(0).get("translations").get("label").get("ar").asText())
+                .isEqualTo("ar-issue");
     }
 
     @Test
-    void generationProducesDraftTranslationsAndReadinessListsBlockers() throws Exception {
+    void manualQueueStoresDraftsAndMissingTranslationsFallBackToEnglish() throws Exception {
         Login platform = login("platform@test.local");
         postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
-        createLanguage(platform, "hi", "Hindi");
-
-        JsonNode noJob = getJson(platform,
-                "/api/v1/platform/i18n/languages/hi/content/generation");
-        assertThat(noJob.get("jobStatus").asText()).isEqualTo("NONE");
-        assertThat(noJob.get("status").asText()).isEqualTo("NONE");
-        assertThat(noJob.get("totalKeys").asInt()).isZero();
-        assertThat(noJob.get("translatedKeys").asInt()).isZero();
-        assertThat(noJob.get("failedKeys").isArray()).isTrue();
-        assertThat(noJob.get("errorMessage").isNull()).isTrue();
-        mockMvc.perform(get("/api/v1/platform/i18n/languages/unknown/content/generation")
-                        .header("Authorization", "Bearer " + platform.accessToken()))
-                .andExpect(status().isNotFound());
-
-        JsonNode generation = postJson(platform,
-                "/api/v1/platform/i18n/languages/hi/content/generate",
-                "{\"entityTypes\":[\"CATEGORY\",\"ITEM\"],\"force\":true}");
-        assertThat(generation.get("jobStatus").asText()).isEqualTo("COMPLETED");
-        assertThat(generation.get("totalKeys").asInt()).isGreaterThan(0);
-        assertThat(generation.get("translatedKeys").asInt())
-                .isEqualTo(generation.get("totalKeys").asInt());
-
-        JsonNode languages = getJson(platform, "/api/v1/platform/i18n/languages");
-        for (JsonNode language : languages) {
-            if ("hi".equals(language.get("code").asText())) {
-                assertThat(language.get("status").asText()).isEqualTo("TRANSLATING");
-            }
-        }
-        String translatingAudit = jdbc.queryForObject("""
-                SELECT after_json FROM platform_audit_events
-                WHERE action_code = 'CONTENT_TRANSLATIONS_GENERATED'
-                ORDER BY occurred_at DESC LIMIT 1
-                """, String.class);
-        assertThat(objectMapper.readTree(translatingAudit).get("status").asText())
-                .isEqualTo("TRANSLATING");
+        JsonNode created = postJson(platform, "/api/v1/platform/master/categories", """
+                {"code":"MANUAL-CAT","name":"Manual category","sortOrder":1}
+                """);
+        String createdCategoryId = created.get("id").asText();
 
         JsonNode backlog = getJson(platform,
-                "/api/v1/platform/i18n/languages/hi/backlog");
-        int drafting = 0;
+                "/api/v1/platform/i18n/languages/ar/backlog");
+        assertThat(backlog.get("totalRequired").asInt()).isGreaterThan(0);
+        JsonNode first = null;
         for (JsonNode group : backlog.get("groups")) {
-            if (!"CATEGORY".equals(group.get("entityType").asText())
-                    && !"ITEM".equals(group.get("entityType").asText())) {
-                continue;
+            for (JsonNode entry : group.get("items")) {
+                if (createdCategoryId.equals(entry.get("entityId").asText())
+                        && "CATEGORY".equals(entry.get("entityType").asText())
+                        && !entry.hasNonNull("text")) {
+                    first = entry;
+                    break;
+                }
             }
-            for (JsonNode item : group.get("items")) {
-                if ("TRANSLATING".equals(item.get("status").asText())) {
-                    drafting++;
-                    assertThat(item.get("text").asText()).startsWith("[hi] ");
+            if (first != null) {
+                break;
+            }
+        }
+        assertThat(first).isNotNull();
+        String entityId = first.get("entityId").asText();
+        String field = first.get("field").asText();
+        String english = first.get("defaultText").asText();
+        assertThat(english).isNotBlank();
+
+        // Missing overlay resolves to the English source.
+        assertThat(translations.resolve("CATEGORY", entityId, field, "ar", english))
+                .isEqualTo(english);
+
+        JsonNode saved = putJson(platform, "/api/v1/platform/i18n/translations", """
+                {"entityType":"CATEGORY","entityId":"%s","field":"%s","language":"ar",
+                 "text":"manual-ar","status":"DRAFT"}
+                """.formatted(entityId, field));
+        assertThat(saved.get("text").asText()).isEqualTo("manual-ar");
+        assertThat(saved.get("status").asText()).isEqualTo("DRAFT");
+
+        JsonNode updated = getJson(platform,
+                "/api/v1/platform/i18n/languages/ar/backlog");
+        boolean found = false;
+        for (JsonNode group : updated.get("groups")) {
+            for (JsonNode entry : group.get("items")) {
+                if (entityId.equals(entry.get("entityId").asText())
+                        && field.equals(entry.get("field").asText())) {
+                    found = true;
+                    assertThat(entry.get("text").asText()).isEqualTo("manual-ar");
+                    assertThat(entry.get("status").asText()).isEqualTo("DRAFT");
                 }
             }
         }
-        assertThat(drafting).isGreaterThan(0);
+        assertThat(found).isTrue();
+
+        JsonNode coverage = getJson(platform,
+                "/api/v1/platform/i18n/coverage?language=ar");
+        assertThat(coverage.get("totalRequired").asInt()).isGreaterThan(0);
 
         JsonNode readiness = getJson(platform,
-                "/api/v1/platform/i18n/languages/hi/readiness");
-        assertThat(readiness.get("language").asText()).isEqualTo("hi");
+                "/api/v1/platform/i18n/languages/ar/readiness");
+        assertThat(readiness.get("language").asText()).isEqualTo("ar");
         assertThat(readiness.get("content").get("CATEGORY").get("total").asInt())
                 .isGreaterThan(0);
-        assertThat(readiness.get("blockers").size()).isGreaterThan(0);
-        assertThat(readiness.get("readinessPercent").asInt()).isLessThan(100);
-
-        mockMvc.perform(post("/api/v1/platform/i18n/languages/hi/publish")
-                        .header("Authorization", bearer(platform)))
-                .andExpect(status().isUnprocessableEntity());
-    }
-
-    private void createLanguage(Login login, String code, String nativeName) throws Exception {
-        postJson(login, "/api/v1/platform/i18n/languages", """
-                {"code":"%s","nativeName":"%s","direction":"ltr","sortOrder":50}
-                """.formatted(code, nativeName));
     }
 
     private JsonNode postJson(Login login, String path, String body) throws Exception {

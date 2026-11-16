@@ -387,7 +387,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboardRecentJobs => 'أحدث المهام';
 
   @override
-  String get queueTitle => 'قائمة الترجمة';
+  String get queueTitle => 'قائمة المهام';
 
   @override
   String get scheduleJobTitle => 'جدولة مهمة جديدة';

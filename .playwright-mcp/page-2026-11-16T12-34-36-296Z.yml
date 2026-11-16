@@ -1,0 +1,46 @@
+- generic [active] [ref=e5]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e25]: TrueReport
+          - generic [ref=e26]: Platform Admin
+          - button "Platform Admin" [ref=e27]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=e29]
+          - generic [ref=e30]: English
+          - button "Notifications":
+            - button "Notifications" [ref=e31]
+          - button "Help":
+            - button "Help" [ref=e32]
+          - button "Account Platform Admin, Platform Admin" [ref=e33]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=e34]
+              - button "Workshops Workshops" [ref=e36]
+              - button "Checklist Checklist" [ref=e38]
+              - button "Reports Reports" [ref=e40]
+              - button "Audit Log Audit Log" [ref=e42]
+              - button "Settings Settings" [ref=e44]
+          - generic [ref=e45]: All languages live
+          - button "View languages" [ref=e46]
+          - generic [ref=e47]: System Operational
+          - generic [ref=e48]: Platform Admin
+          - generic [ref=e49]: Platform Admin
+          - button "Sign out" [ref=e50]
+          - group:
+            - generic [ref=e51]: Workshops
+            - generic [ref=e52]: Manage workshops, staff, and their templates
+            - button "Add workshop" [ref=e53]
+            - textbox "Search workshops by name, branch, or status" [ref=e55]
+            - button "Status All" [ref=e56]
+            - generic [ref=e57]: 2 workshops
+            - 'progressbar "Workshop A WA Workshop A — Active 8 Bays 88% Staff: 2 Technicians: 1 Workshop Admins: 1 Pending invitations: 0 88"':
+              - button "View details" [ref=e58]
+              - button "Edit workshop" [ref=e59]
+              - button "Deactivate workshop" [ref=e60]
+              - button "Actions" [ref=e61]
+            - 'progressbar "Workshop B WB Workshop B — Active 8 Bays 88% Staff: 1 Technicians: 0 Workshop Admins: 1 Pending invitations: 0 88"':
+              - button "View details" [ref=e62]
+              - button "Edit workshop" [ref=e63]
+              - button "Deactivate workshop" [ref=e64]
+              - button "Actions" [ref=e65]

@@ -30,7 +30,20 @@ public class TranslationGate {
         return languages.findLive().stream()
                 .map(LanguageDto::code)
                 .filter(code -> defaultCode == null || !code.equalsIgnoreCase(defaultCode))
+                // A manifest language becomes a required gate only after its
+                // first approved translation exists. This keeps newly added
+                // manifest languages usable immediately while missing dynamic
+                // translations continue to fall back to English.
+                .filter(this::hasApprovedTranslations)
                 .toList();
+    }
+
+    private boolean hasApprovedTranslations(String language) {
+        Integer approved = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_translations
+                WHERE lang = ? AND status = 'APPROVED'
+                """, Integer.class, language);
+        return approved != null && approved > 0;
     }
 
     /** Creation is always allowed; activation/publish is gated. */

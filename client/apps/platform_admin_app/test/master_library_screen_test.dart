@@ -102,7 +102,6 @@ void main() {
     // Checklist tab bar: Items is the default landing tab.
     expect(find.byKey(const Key('checklist-tab-categories')), findsOneWidget);
     expect(find.byKey(const Key('checklist-tab-items')), findsOneWidget);
-    expect(find.byKey(const Key('checklist-tab-templates')), findsOneWidget);
     expect(
       find.byKey(const Key('checklist-tab-issue-options')),
       findsOneWidget,

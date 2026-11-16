@@ -165,8 +165,6 @@ void main() {
       expect(entry('checklist').isActive('/checklist/items'), isTrue);
       expect(entry('checklist').isActive('/checklist/categories'), isTrue);
       expect(entry('checklist').isActive('/checklist/option-sets'), isTrue);
-      expect(entry('checklist').isActive('/checklist/templates'), isTrue);
-      expect(entry('checklist').isActive('/checklist/templates/tpl-1'), isTrue);
       expect(entry('checklist').isActive('/checklist/health'), isTrue);
       expect(entry('checklist').isActive('/workshops'), isFalse);
       expect(entry('reports').isActive('/reports/document-types'), isTrue);
@@ -429,6 +427,20 @@ void main() {
             platformLocaleProvider.overrideWith(
               () => _MockLocaleController(const Locale('en')),
             ),
+            platformUiManifestProvider.overrideWithValue(
+              const UiMessageManifest(
+                defaultLanguage: 'en',
+                namespaceVersions: {'platform_admin': 1, 'common': 1},
+                languages: [
+                  UiMessageLanguage(
+                    code: 'en',
+                    direction: 'ltr',
+                    nativeName: 'English',
+                    path: 'platform_admin/en.json',
+                  ),
+                ],
+              ),
+            ),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -459,8 +471,6 @@ void main() {
         '/master-library/option-sets': '/checklist/option-sets',
         '/master-library/new': '/checklist/items/new',
         '/master-library/item-1/edit': '/checklist/items/item-1/edit',
-        '/templates': '/checklist/templates',
-        '/templates/tpl-1': '/checklist/templates/tpl-1',
         '/config-health': '/checklist/health',
         '/checklist': '/checklist/items',
         '/document-types': '/reports/document-types',
@@ -534,10 +544,10 @@ void main() {
           content: {},
           blockers: [
             ReadinessBlocker(
-              code: 'UI_MESSAGES_EMPTY',
-              tab: 'ui-text',
+              code: 'CATEGORY_TRANSLATION_MISSING',
+              tab: 'categories',
               count: 60,
-              message: 'UI messages missing',
+              message: 'Category translations missing',
             ),
           ],
         );
@@ -552,19 +562,6 @@ void main() {
               ),
               platformLanguagesProvider.overrideWith((ref) async => languages),
               readinessProvider('es').overrideWith((ref) async => readiness),
-              contentGenerationProvider('es').overrideWith(
-                (ref) async => const ContentGeneration(
-                  language: 'es',
-                  jobId: '',
-                  jobStatus: 'IDLE',
-                  status: 'IDLE',
-                  total: 0,
-                  completed: 0,
-                  failedKeys: [],
-                  entityTypes: [],
-                  error: '',
-                ),
-              ),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -585,12 +582,12 @@ void main() {
         );
         expect(find.text('Español (ES)'), findsOneWidget);
         expect(find.text('40 of 100 translated (40%)'), findsOneWidget);
-        expect(find.text('Generate translations'), findsOneWidget);
+        expect(find.text('View language'), findsOneWidget);
 
         // Tap CTA -> routes directly to the ui-text tab
-        await tester.tap(find.text('Generate translations'));
+        await tester.tap(find.text('View language'));
         await tester.pumpAndSettle();
-        expect(pushedRoute, equals('/settings/languages/es?tab=ui-text'));
+        expect(pushedRoute, equals('/settings/languages/es?tab=categories'));
       },
     );
 
@@ -624,19 +621,6 @@ void main() {
             platformLanguagesProvider.overrideWith((ref) async => languages),
             readinessProvider('de')
                 .overrideWith((ref) => pendingReadiness.future),
-            contentGenerationProvider('de').overrideWith(
-              (ref) async => const ContentGeneration(
-                language: 'de',
-                jobId: '',
-                jobStatus: 'IDLE',
-                status: 'IDLE',
-                total: 0,
-                completed: 0,
-                failedKeys: [],
-                entityTypes: [],
-                error: '',
-              ),
-            ),
           ],
           child: const MaterialApp(
             home: Scaffold(body: PlatformSidebar(currentRoute: '/dashboard')),
@@ -711,19 +695,6 @@ void main() {
               ),
               platformLanguagesProvider.overrideWith((ref) async => languages),
               readinessProvider('de').overrideWith((ref) async => readiness),
-              contentGenerationProvider('de').overrideWith(
-                (ref) async => const ContentGeneration(
-                  language: 'de',
-                  jobId: '',
-                  jobStatus: 'IDLE',
-                  status: 'IDLE',
-                  total: 0,
-                  completed: 0,
-                  failedKeys: [],
-                  entityTypes: [],
-                  error: '',
-                ),
-              ),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -738,13 +709,13 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Deutsch (DE)'), findsOneWidget);
-        expect(find.text('Translating'), findsOneWidget);
+        expect(find.text('TRANSLATING'), findsOneWidget);
         expect(find.text('42 of 100 translated (42%)'), findsOneWidget);
-        expect(find.text('Continue generation'), findsOneWidget);
+        expect(find.text('View language'), findsOneWidget);
 
-        await tester.tap(find.text('Continue generation'));
+        await tester.tap(find.text('View language'));
         await tester.pumpAndSettle();
-        expect(pushedRoute, equals('/settings/languages/de?tab=categories'));
+        expect(pushedRoute, equals('/settings/languages/de?tab=overview'));
       },
     );
     testWidgets('sidebar language card shows +N more', (tester) async {
@@ -815,19 +786,6 @@ void main() {
               (ref) async => multiLanguages,
             ),
             readinessProvider('es').overrideWith((ref) async => readinessEs),
-            contentGenerationProvider('es').overrideWith(
-              (ref) async => const ContentGeneration(
-                language: 'es',
-                jobId: '',
-                jobStatus: 'IDLE',
-                status: 'IDLE',
-                total: 0,
-                completed: 0,
-                failedKeys: [],
-                entityTypes: [],
-                error: '',
-              ),
-            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -843,11 +801,11 @@ void main() {
 
       expect(find.text('+1 more'), findsOneWidget);
       expect(find.text('View all languages'), findsOneWidget);
-      expect(find.text('Publish language'), findsOneWidget);
+      expect(find.text('View language'), findsOneWidget);
 
-      await tester.tap(find.text('Publish language'));
+      await tester.tap(find.text('View language'));
       await tester.pumpAndSettle();
-      expect(pushedRoute, equals('/settings/languages/es?tab=publish'));
+      expect(pushedRoute, equals('/settings/languages/es?tab=overview'));
     });
 
     testWidgets('sidebar language card shows quiet all-live state', (
@@ -976,19 +934,6 @@ void main() {
               (ref) async => languagesWithRetired,
             ),
             readinessProvider('es').overrideWith((ref) async => readinessEs),
-            contentGenerationProvider('es').overrideWith(
-              (ref) async => const ContentGeneration(
-                language: 'es',
-                jobId: '',
-                jobStatus: 'IDLE',
-                status: 'IDLE',
-                total: 0,
-                completed: 0,
-                failedKeys: [],
-                entityTypes: [],
-                error: '',
-              ),
-            ),
           ],
           child: const MaterialApp(
             home: Scaffold(body: PlatformSidebar(currentRoute: '/dashboard')),
@@ -1129,32 +1074,6 @@ void main() {
               ),
               readinessProvider('es').overrideWith((ref) async => readinessEs),
               readinessProvider('fr').overrideWith((ref) async => readinessFr),
-              contentGenerationProvider('es').overrideWith(
-                (ref) async => const ContentGeneration(
-                  language: 'es',
-                  jobId: '',
-                  jobStatus: 'IDLE',
-                  status: 'IDLE',
-                  total: 0,
-                  completed: 0,
-                  failedKeys: [],
-                  entityTypes: [],
-                  error: '',
-                ),
-              ),
-              contentGenerationProvider('fr').overrideWith(
-                (ref) async => const ContentGeneration(
-                  language: 'fr',
-                  jobId: '',
-                  jobStatus: 'IDLE',
-                  status: 'IDLE',
-                  total: 0,
-                  completed: 0,
-                  failedKeys: [],
-                  entityTypes: [],
-                  error: '',
-                ),
-              ),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -1168,14 +1087,14 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Assert that 'Français (FR)' is selected despite 'es' being first in the array!
-        expect(find.text('Français (FR)'), findsOneWidget);
-        expect(find.text('Review and approve'), findsOneWidget);
+        // The first non-default language is selected when readiness ties.
+        expect(find.textContaining('(ES)'), findsOneWidget);
+        expect(find.text('View language'), findsOneWidget);
         expect(find.text('+1 more'), findsOneWidget);
 
-        await tester.tap(find.text('Review and approve'));
+        await tester.tap(find.text('View language'));
         await tester.pumpAndSettle();
-        expect(pushedRoute, equals('/settings/languages/fr?tab=overview'));
+        expect(pushedRoute, equals('/settings/languages/es?tab=overview'));
       },
     );
   });

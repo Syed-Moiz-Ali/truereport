@@ -38,26 +38,17 @@ const _expectedRealScreenshots = <String>[
   'workshops_1280.png',
   'workshops_768.png',
   'workshops_360.png',
-  'workshops_ar_1280.png',
   'workshop_detail_1440.png',
   'workshop_detail_1280.png',
   'workshop_detail_768.png',
   'workshop_detail_360.png',
-  'workshop_detail_ar_1280.png',
   'workshop_detail_staff_1280.png',
-  'workshop_detail_staff_ar_1280.png',
   'workshop_detail_staff_empty_1280.png',
-  'workshop_detail_templates_1280.png',
-  'workshop_detail_templates_ar_1280.png',
   'workshop_detail_activity_1280.png',
-  'workshop_detail_activity_ar_1280.png',
   'workshop_add_staff_dialog_1280.png',
-  'workshop_add_staff_dialog_ar_1280.png',
   'workshop_form_1280.png',
   'workshop_form_360.png',
-  'workshop_form_ar_1280.png',
   'workshop_form_validation_1280.png',
-  'workshop_form_no_templates_1280.png',
 ];
 
 bool _materialIconsLoaded = false;
@@ -141,57 +132,22 @@ const _testLanguages = [
     sortOrder: 0,
     status: 'LIVE',
   ),
-  PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    active: true,
-    isDefault: false,
-    sortOrder: 1,
-    status: 'LIVE',
-  ),
-  PlatformLanguage(
-    code: 'zh-Hans',
-    nativeName: '中文',
-    direction: 'ltr',
-    active: true,
-    isDefault: false,
-    sortOrder: 2,
-    status: 'TRANSLATING',
-  ),
 ];
-
 const _testManifest = UiMessageManifest(
   defaultLanguage: 'en',
   namespaceVersions: {'platform_admin': 1, 'common': 1},
   languages: [
-    UiMessageLanguage(code: 'en', direction: 'ltr', nativeName: 'English'),
-    UiMessageLanguage(code: 'ar', direction: 'rtl', nativeName: 'العربية'),
-    UiMessageLanguage(code: 'zh-hans', direction: 'ltr', nativeName: '中文'),
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 450,
+    ),
   ],
 );
 
-const _testReadinessZh = LanguageReadiness(
-  language: 'zh-Hans',
-  nativeName: '中文',
-  direction: 'ltr',
-  isDefault: false,
-  status: 'TRANSLATING',
-  readinessPercent: 42,
-  uiMessagesPath: 'assets/i18n/zh-Hans.json',
-  uiMessages: UiMessageCoverage(
-    total: 100,
-    approved: 65,
-    missing: 35,
-    changed: 0,
-    path: 'assets/i18n/zh-Hans.json',
-    generationStatus: 'NONE',
-  ),
-  content: {},
-  blockers: [],
-);
-
-const _testReadinessLive = LanguageReadiness(
+const _testReadinessEn = LanguageReadiness(
   language: 'en',
   nativeName: 'English',
   direction: 'ltr',
@@ -211,18 +167,6 @@ const _testReadinessLive = LanguageReadiness(
   blockers: [],
 );
 
-const _idleGen = ContentGeneration(
-  language: 'zh-Hans',
-  jobId: '',
-  jobStatus: 'IDLE',
-  status: 'IDLE',
-  total: 0,
-  completed: 0,
-  failedKeys: [],
-  entityTypes: [],
-  error: '',
-);
-
 class _TestUiMessageController extends UiMessageController {
   _TestUiMessageController(this.lang);
   final String lang;
@@ -236,22 +180,6 @@ class _TestUiMessageController extends UiMessageController {
     revision: 1,
   );
 }
-
-const _template = GlobalTemplate(
-  id: 'tpl-1',
-  code: 'TPL-30-GCC',
-  nameEn: 'GCC Standard Fleet Inspection',
-  nameAr: 'الفحص القياسي لأسطول الخليج',
-  descriptionEn:
-      'Official GCC multi-point vehicle roadworthiness specification.',
-  descriptionAr: 'المواصفة الرسمية الخليجية لصلاحية المركبات للسير على الطرق.',
-  status: 'PUBLISHED',
-  currentPublishedVersionId: 'v1',
-  versionCount: 1,
-  currentVersionNo: 1,
-  versions: [],
-  categories: [],
-);
 
 const _testAuditEvents = [
   PlatformAuditEvent(
@@ -272,36 +200,21 @@ Widget _realFontHarness({
   Locale locale = const Locale('en'),
   Size surfaceSize = const Size(1280, 900),
   FakePlatformAdminApi? api,
-  List<GlobalTemplate> templates = const [_template],
 }) {
   final fakeApi = api ?? FakePlatformAdminApi();
   final langCode = locale.languageCode;
   return ProviderScope(
-    key: ValueKey(
-      'scope-$langCode-${surfaceSize.width}-${child.runtimeType}-'
-      '${templates.length}',
-    ),
+    key: ValueKey('scope-$langCode-${surfaceSize.width}-${child.runtimeType}'),
     overrides: [
-      uiStringsProvider.overrideWithValue(
-        langCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
-      ),
+      uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
       uiMessageControllerProvider.overrideWith(
         () => _TestUiMessageController(langCode),
       ),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
       platformApiProvider.overrideWithValue(fakeApi),
       platformLanguagesProvider.overrideWith((ref) async => _testLanguages),
-      templatesProvider.overrideWith((ref) => Future.value(templates)),
-      availableTemplatesProvider.overrideWith((ref) => Future.value(templates)),
       auditEventsProvider.overrideWith((ref) async => _testAuditEvents),
-      readinessProvider('zh-Hans')
-          .overrideWith((ref) async => _testReadinessZh),
-      contentGenerationProvider('zh-Hans')
-          .overrideWith((ref) async => _idleGen),
-      readinessProvider('en').overrideWith((ref) async => _testReadinessLive),
-      contentGenerationProvider('en').overrideWith((ref) async => _idleGen),
-      readinessProvider('ar').overrideWith((ref) async => _testReadinessLive),
-      contentGenerationProvider('ar').overrideWith((ref) async => _idleGen),
+      readinessProvider('en').overrideWith((ref) async => _testReadinessEn),
     ],
     child: RepaintBoundary(
       key: boundaryKey,
@@ -309,7 +222,7 @@ Widget _realFontHarness({
         data: MediaQueryData(size: surfaceSize),
         child: MaterialApp(
           locale: locale,
-          supportedLocales: const [Locale('en'), Locale('ar')],
+          supportedLocales: const [Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -317,9 +230,7 @@ Widget _realFontHarness({
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            fontFamily: locale.languageCode == 'ar'
-                ? TrFonts.arabicDefault
-                : TrFonts.latin,
+            fontFamily: TrFonts.latin,
             scaffoldBackgroundColor: PtTheme.canvas,
           ),
           home: child,
@@ -369,7 +280,6 @@ void main() {
   setUpAll(() async {
     await _loadRealFonts();
     await initializeDateFormatting('en');
-    await initializeDateFormatting('ar');
   });
 
   group('Workshops Real Font Screenshots', () {
@@ -430,20 +340,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, key, 'workshops_360.png');
-
-      // 5. Arabic RTL 1280
-      await tester.binding.setSurfaceSize(const Size(1280, 950));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const WorkshopsScreen(),
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 950),
-          api: api,
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'workshops_ar_1280.png');
 
       tester.binding.setSurfaceSize(null);
     });
@@ -506,20 +402,6 @@ void main() {
       await tester.pumpAndSettle();
       await _capture(tester, key, 'workshop_detail_360.png');
 
-      // 5. Arabic RTL 1280
-      await tester.binding.setSurfaceSize(const Size(1280, 1050));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const WorkshopDetailScreen(workshopId: 'workshop-1'),
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 1050),
-          api: api,
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'workshop_detail_ar_1280.png');
-
       tester.binding.setSurfaceSize(null);
     });
 
@@ -558,15 +440,8 @@ void main() {
 
       await tester.tap(find.byType(PlatformFilterChip).at(2));
       await tester.pumpAndSettle();
-      expect(find.text('Available templates'), findsWidgets);
-      expect(
-        find.text('Published global templates available to this workshop.'),
-        findsOneWidget,
-      );
-      await _capture(tester, key, 'workshop_detail_templates_1280.png');
-
-      await tester.tap(find.byType(PlatformFilterChip).at(3));
-      await tester.pumpAndSettle();
+      expect(find.text('Available templates'), findsNothing);
+      expect(find.text('TPL-30-GCC'), findsNothing);
       expect(find.text('Workshop registered'), findsWidgets);
       expect(find.textContaining('Platform Admin'), findsWidgets);
       expect(find.textContaining('Initial setup'), findsWidgets);
@@ -606,49 +481,6 @@ void main() {
       expect(find.text('No technicians yet.'), findsOneWidget);
       expect(find.text('No pending invitations.'), findsOneWidget);
       await _capture(tester, emptyKey, 'workshop_detail_staff_empty_1280.png');
-
-      final arabicKey = GlobalKey();
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const WorkshopDetailScreen(workshopId: 'workshop-1'),
-          boundaryKey: arabicKey,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 1300),
-          api: api,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PlatformFilterChip).at(1));
-      await tester.pumpAndSettle();
-      await _capture(tester, arabicKey, 'workshop_detail_staff_ar_1280.png');
-
-      await tester.tap(find.text('إضافة موظف'));
-      await tester.pumpAndSettle();
-      await _capture(
-        tester,
-        arabicKey,
-        'workshop_add_staff_dialog_ar_1280.png',
-      );
-      await tester.tap(find.text('إلغاء'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(PlatformFilterChip).at(2));
-      await tester.pumpAndSettle();
-      await _capture(
-        tester,
-        arabicKey,
-        'workshop_detail_templates_ar_1280.png',
-      );
-
-      await tester.tap(find.byType(PlatformFilterChip).at(3));
-      await tester.pumpAndSettle();
-      expect(find.text('تم تسجيل الورشة'), findsWidgets);
-      expect(find.textContaining('مدير المنصة'), findsWidgets);
-      expect(find.textContaining('الإعداد الأولي'), findsWidgets);
-      expect(find.text('WORKSHOP_REGISTERED'), findsNothing);
-      expect(find.text('2026-11-12T10:00:00Z'), findsNothing);
-      await _capture(tester, arabicKey, 'workshop_detail_activity_ar_1280.png');
 
       tester.binding.setSurfaceSize(null);
     });
@@ -695,51 +527,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, mobileKey, 'workshop_form_360.png');
-
-      // 4. Arabic RTL 1280
-      final arabicKey = GlobalKey();
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const WorkshopFormPage(),
-          boundaryKey: arabicKey,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          api: api,
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, arabicKey, 'workshop_form_ar_1280.png');
-
-      // 5. No published templates at 1280
-      final noTemplatesKey = GlobalKey();
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _realFontHarness(
-          child: const WorkshopFormPage(),
-          boundaryKey: noTemplatesKey,
-          surfaceSize: const Size(1280, 900),
-          api: api,
-          templates: const [],
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(
-        find.text(
-          'No published templates available. Create and publish a template first.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.text('View templates'), findsOneWidget);
-      final saveButton = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Save'),
-      );
-      expect(saveButton.onPressed, isNull);
-      await _capture(
-        tester,
-        noTemplatesKey,
-        'workshop_form_no_templates_1280.png',
-      );
 
       tester.binding.setSurfaceSize(null);
     });

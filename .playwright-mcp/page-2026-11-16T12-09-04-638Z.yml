@@ -1,0 +1,93 @@
+- generic [ref=f9e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f9e7]: TrueReport
+          - generic [ref=f9e8]: Platform Admin
+          - button "Platform Admin" [ref=f9e9]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=f9e11]
+          - generic [ref=f9e12]: English
+          - button "Notifications":
+            - button "Notifications" [ref=f9e13]
+          - button "Help":
+            - button "Help" [ref=f9e14]
+          - button "Account Platform Admin, Platform Admin" [ref=f9e15]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=f9e16]
+              - button "Workshops Workshops" [ref=f9e18]
+              - button "Checklist Checklist" [ref=f9e20]
+              - button "Reports Reports" [ref=f9e22]
+              - button "Audit Log Audit Log" [ref=f9e24]
+              - button "Settings Settings" [ref=f9e26]
+          - generic [ref=f9e27]: All languages live
+          - button "View languages" [ref=f9e28]
+          - generic [ref=f9e29]: System Operational
+          - generic [ref=f9e30]: Platform Admin
+          - generic [ref=f9e31]: Platform Admin
+          - button "Sign out" [ref=f9e32]
+          - group:
+            - button "Back" [ref=f9e33]
+            - button "Settings Settings" [ref=f9e34]
+            - generic [ref=f9e35]: /
+            - button "Language registry Language registry" [ref=f9e36]
+            - generic [ref=f9e37]: /
+            - heading "en en en" [level=2] [ref=f9e38]
+          - group:
+            - generic [ref=f9e39]: English
+            - generic [ref=f9e40]: "Language code: en"
+            - generic [ref=f9e41]: "Direction: ltr"
+            - generic [ref=f9e42]: LIVE
+            - generic [ref=f9e43]: "UI text coverage: 812/812"
+            - generic [ref=f9e44]: "Content coverage: 397/397"
+            - generic [ref=f9e45]: Manage UI text, content, readiness, and publishing for this language.
+            - generic [ref=f9e46]: "UI messages file: platform_admin/en.json"
+            - group:
+              - tablist:
+                - tab "Overview" [ref=f9e47]
+                - tab "Categories" [ref=f9e48]
+                - tab "Checklist Items" [ref=f9e49]
+                - tab "Option Sets" [ref=f9e50]
+                - tab "Option Values" [ref=f9e51]
+                - tab "Templates" [active] [selected] [ref=f9e52]
+                - tab "Document Types" [ref=f9e53]
+                - tab "Issue Fields" [ref=f9e54]
+            - generic:
+              - generic:
+                - tabpanel:
+                  - group:
+                    - generic [ref=f9e79]: Content translations
+                    - generic [ref=f9e80]: Translate the source text and approve it before publishing.
+                    - generic [ref=f9e81]: "Total: 2"
+                    - generic [ref=f9e82]: "Approved: 2"
+                    - generic [ref=f9e83]: "Missing: 0"
+                    - textbox "Search translations" [ref=f9e85]
+                    - checkbox "All" [checked] [ref=f9e86]
+                    - checkbox "Missing" [ref=f9e87]
+                    - checkbox "Pending activation" [ref=f9e88]
+                    - checkbox "Active" [ref=f9e89]
+                    - button "Approve selected" [disabled] [ref=f9e90]
+                    - button "Bulk approve" [ref=f9e91]
+                    - checkbox "Select row" [ref=f9e92]
+                    - generic [ref=f9e93]: TPL-30-GCC
+                    - generic [ref=f9e94]: name
+                    - generic [ref=f9e95]: Approved
+                    - generic [ref=f9e96]: Active
+                    - generic [ref=f9e97]: Default text
+                    - generic [ref=f9e98]: Comprehensive 30-Point GCC Standard
+                    - generic [ref=f9e99]: Translation
+                    - textbox [ref=f9e101]
+                    - button "Save draft" [ref=f9e102]
+                    - button "Approve" [ref=f9e103]
+                    - checkbox "Select row" [ref=f9e104]
+                    - generic [ref=f9e105]: TPL-30-GCC
+                    - generic [ref=f9e106]: description
+                    - generic [ref=f9e107]: Approved
+                    - generic [ref=f9e108]: Active
+                    - generic [ref=f9e109]: Default text
+                    - generic [ref=f9e110]: Full 6-category, 30-item inspection package.
+                    - generic [ref=f9e111]: Translation
+                    - textbox [ref=f9e113]
+                    - button "Save draft" [ref=f9e114]
+                    - button "Approve" [ref=f9e115]

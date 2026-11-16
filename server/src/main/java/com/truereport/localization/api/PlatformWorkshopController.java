@@ -1,12 +1,15 @@
 package com.truereport.localization.api;
 
 import com.truereport.localization.PlatformWorkshopService;
+import com.truereport.localization.PlatformWorkshopService.WorkshopCreateRequest;
 import com.truereport.localization.PlatformWorkshopService.WorkshopReasonRequest;
 import com.truereport.localization.PlatformWorkshopService.WorkshopUpdateRequest;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import com.truereport.localization.api.WorkshopDtos.WorkshopDto;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +33,16 @@ public class PlatformWorkshopController {
                                       CurrentUserService currentUserService) {
         this.workshops = workshops;
         this.currentUserService = currentUserService;
+    }
+
+    @PostMapping
+    public ResponseEntity<WorkshopDto> create(
+            JwtAuthenticationToken authentication,
+            @RequestBody(required = false) WorkshopCreateRequest request,
+            HttpServletRequest http) {
+        CurrentUser actor = currentUserService.require(authentication);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(workshops.create(actor, request, http));
     }
 
     @PutMapping("/{id}")

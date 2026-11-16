@@ -3,7 +3,8 @@ package com.truereport.uimessages;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
 import com.truereport.uimessages.PlatformUiMessageCatalog.LanguageCatalog;
-import com.truereport.uimessages.UiMessageLanguageGateway.Language;
+import com.truereport.uimessages.PlatformUiMessageCatalog.StaticLanguage;
+import com.truereport.uimessages.PlatformUiMessageCatalog.StaticManifest;
 import com.truereport.uimessages.api.UiMessageDtos.ManifestLanguageDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageBundleDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageManifestDto;
@@ -19,6 +20,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Serves the static UI-message manifest and catalogs.
+ *
+ * <p>The static language list and its JSON files are the only sources of
+ * truth. No database registry, generation job, review or publish step is
+ * involved: adding a language means adding a JSON file and a manifest entry,
+ * then reloading the backend.</p>
+ */
 @Service
 public class UiMessageService {
 
@@ -32,33 +41,34 @@ public class UiMessageService {
     }
 
     private final PlatformUiMessageCatalog catalog;
-    private final UiMessageLanguageGateway languages;
 
-    public UiMessageService(PlatformUiMessageCatalog catalog, UiMessageLanguageGateway languages) {
+    public UiMessageService(PlatformUiMessageCatalog catalog) {
         this.catalog = catalog;
-        this.languages = languages;
     }
 
     public ManifestResult manifest(List<String> requestedNamespaces) {
         List<String> namespaces = resolveNamespaces(requestedNamespaces);
-        String fallback = defaultCode();
+        StaticManifest source = catalog.manifest();
+        String fallback = source.defaultLanguage();
         List<ManifestLanguageDto> live = new ArrayList<>();
         Map<String, LanguageCatalog> loaded = new LinkedHashMap<>();
-        for (Language language : languages.findLive()) {
-            if (language.uiMessagesPath() == null || language.uiMessagesPath().isBlank()) {
-                continue;
-            }
+        for (StaticLanguage language : source.languages()) {
             LanguageCatalog languageCatalog;
             try {
-                languageCatalog = catalog.load(language.uiMessagesPath());
+                languageCatalog = catalog.load(language.file());
             } catch (RuntimeException broken) {
+                // A missing or invalid catalog is skipped from the picker;
+                // clients fall back to the default language.
                 continue;
             }
             loaded.put(language.code(), languageCatalog);
+            PlatformUiMessageCatalog.StaticCoverage coverage =
+                    catalog.coverage(language.file());
             live.add(new ManifestLanguageDto(language.code(), language.direction(),
                     language.nativeName(),
                     subset(languageCatalog.versions(), namespaces),
-                    language.uiMessagesPath()));
+                    language.file(), coverage.total(), coverage.missing(),
+                    coverage.placeholderMismatch()));
         }
         Map<String, Integer> versions = new LinkedHashMap<>();
         LanguageCatalog defaultCatalog = loaded.get(fallback);
@@ -81,35 +91,36 @@ public class UiMessageService {
         if (language == null || language.isBlank()) {
             throw validation("language", "LANGUAGE_REQUIRED", "error.validation.failed");
         }
-        Language targetLanguage = languages.find(language)
-                .orElseThrow(ApiException::notFound);
-        if (!targetLanguage.active() || !"LIVE".equals(targetLanguage.status())) {
-            throw ApiException.notFound();
-        }
-        if (targetLanguage.uiMessagesPath() == null
-                || targetLanguage.uiMessagesPath().isBlank()) {
+        StaticManifest source = catalog.manifest();
+        StaticLanguage targetLanguage = source.find(language);
+        if (targetLanguage == null) {
             throw ApiException.notFound();
         }
         LanguageCatalog target;
         try {
-            target = catalog.load(targetLanguage.uiMessagesPath());
+            target = catalog.load(targetLanguage.file());
         } catch (RuntimeException broken) {
-            throw ApiException.notFound();
+            target = null;
         }
-        List<String> namespaces = resolveNamespaces(requestedNamespaces);
-        String fallback = defaultCode();
+        String fallback = source.defaultLanguage();
+        StaticLanguage fallbackLanguage = source.find(fallback);
         LanguageCatalog fallbackCatalog = null;
-        if (!targetLanguage.code().equalsIgnoreCase(fallback)) {
-            Language fallbackLanguage = languages.find(fallback).orElse(null);
-            if (fallbackLanguage != null && fallbackLanguage.uiMessagesPath() != null
-                    && !fallbackLanguage.uiMessagesPath().isBlank()) {
-                try {
-                    fallbackCatalog = catalog.load(fallbackLanguage.uiMessagesPath());
-                } catch (RuntimeException broken) {
-                    fallbackCatalog = null;
-                }
+        if (fallbackLanguage != null
+                && !fallbackLanguage.code().equalsIgnoreCase(targetLanguage.code())) {
+            try {
+                fallbackCatalog = catalog.load(fallbackLanguage.file());
+            } catch (RuntimeException broken) {
+                fallbackCatalog = null;
             }
         }
+        if (target == null) {
+            // Missing catalog falls back to the default language catalog.
+            if (fallbackCatalog == null) {
+                throw ApiException.notFound();
+            }
+            target = fallbackCatalog;
+        }
+        List<String> namespaces = resolveNamespaces(requestedNamespaces);
         Map<String, Integer> versions = new LinkedHashMap<>();
         Map<String, Map<String, String>> catalogs = new LinkedHashMap<>();
         Map<String, List<String>> missingKeys = new LinkedHashMap<>();
@@ -137,11 +148,6 @@ public class UiMessageService {
         UiMessageBundleDto dto = new UiMessageBundleDto(targetLanguage.code(), fallback,
                 versions, catalogs, missingKeys);
         return new BundleResult(dto, etag(target.etag() + "|" + String.join(",", namespaces)));
-    }
-
-    private String defaultCode() {
-        String fallback = languages.defaultCode();
-        return fallback == null ? "en" : fallback;
     }
 
     private Map<String, Integer> subset(Map<String, Integer> versions, List<String> namespaces) {

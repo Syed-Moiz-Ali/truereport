@@ -7,9 +7,9 @@ import com.truereport.localization.api.LanguageDtos.LanguageReadinessDto;
 import com.truereport.localization.api.LanguageDtos.ReadinessBlockerDto;
 import com.truereport.localization.api.LanguageDtos.UiMessageCoverageDto;
 import com.truereport.shared.error.ApiException;
-import com.truereport.uimessages.PlatformUiMessageReviewService;
-import com.truereport.uimessages.api.UiMessageReviewDtos.ReviewEntryDto;
-import com.truereport.uimessages.api.UiMessageReviewDtos.ReviewResponseDto;
+import com.truereport.uimessages.PlatformUiMessageCatalog;
+import com.truereport.uimessages.PlatformUiMessageCatalog.StaticCoverage;
+import com.truereport.uimessages.PlatformUiMessageCatalog.StaticLanguage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +20,10 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Aggregates the UI-text review and master-content translation backlog into a
- * single publish-readiness view for a dynamically registered language.
+ * Aggregates static JSON coverage and the dynamic content translation backlog
+ * into a single read-only language overview. There is no publish gate: static
+ * text ships with the backend, and dynamic translations fall back to English
+ * when a translation is missing.
  */
 @Service
 public class LanguageReadinessService {
@@ -36,14 +38,14 @@ public class LanguageReadinessService {
             "ISSUE_FIELD", "issue-fields");
 
     private final LanguageRepository languages;
-    private final PlatformUiMessageReviewService uiReview;
+    private final PlatformUiMessageCatalog catalog;
     private final TranslationBacklogService backlog;
 
     public LanguageReadinessService(LanguageRepository languages,
-                                    PlatformUiMessageReviewService uiReview,
+                                    PlatformUiMessageCatalog catalog,
                                     TranslationBacklogService backlog) {
         this.languages = languages;
-        this.uiReview = uiReview;
+        this.catalog = catalog;
         this.backlog = backlog;
     }
 
@@ -56,7 +58,6 @@ public class LanguageReadinessService {
                                 "LANGUAGE_UNKNOWN", "error.locale.invalid"))));
 
         List<ReadinessBlockerDto> blockers = new ArrayList<>();
-
         UiMessageCoverageDto ui = uiCoverage(language, blockers);
         Map<String, EntityCoverageDto> content = contentCoverage(language, blockers);
 
@@ -71,33 +72,25 @@ public class LanguageReadinessService {
 
         return new LanguageReadinessDto(language.code(), language.status(),
                 language.nativeName(), language.direction(), language.isDefault(),
-                language.uiMessagesPath(), readinessPercent, ui, content, blockers);
+                ui.path(), readinessPercent, ui, content, blockers);
     }
 
     private UiMessageCoverageDto uiCoverage(LanguageDto language,
                                             List<ReadinessBlockerDto> blockers) {
-        if (language.uiMessagesPath() == null || language.uiMessagesPath().isBlank()) {
-            return new UiMessageCoverageDto(0, 0, 0, 0, null, null);
+        StaticLanguage staticLanguage = catalog.manifest().find(language.code());
+        if (staticLanguage == null) {
+            return new UiMessageCoverageDto(0, 0, 0, 0, "", null);
         }
-        ReviewResponseDto review = uiReview.review(language.code());
-        int total = review.totalKeys();
-        int missing = review.missingKeys();
-        int approved = Math.max(0, total - missing);
-        int changed = review.changedKeys();
-        int placeholderMismatch = (int) review.entries().stream()
-                .filter(ReviewEntryDto::placeholderMismatch)
-                .count();
-        if (missing > 0) {
-            blockers.add(new ReadinessBlockerDto("UI_TEXT_MISSING", "ui-text", missing,
-                    missing + " UI message key(s) are missing"));
+        StaticCoverage coverage = catalog.coverage(staticLanguage.file());
+        int approved = Math.max(0, coverage.total() - coverage.missing());
+        if (coverage.placeholderMismatch() > 0) {
+            blockers.add(new ReadinessBlockerDto("UI_TEXT_PLACEHOLDER_MISMATCH", "overview",
+                    coverage.placeholderMismatch(),
+                    coverage.placeholderMismatch()
+                            + " static UI message key(s) have placeholder mismatches"));
         }
-        if (placeholderMismatch > 0) {
-            blockers.add(new ReadinessBlockerDto("UI_TEXT_PLACEHOLDER_MISMATCH", "ui-text",
-                    placeholderMismatch,
-                    placeholderMismatch + " UI message key(s) have placeholder mismatches"));
-        }
-        return new UiMessageCoverageDto(total, approved, missing, changed,
-                language.uiMessagesPath(), null);
+        return new UiMessageCoverageDto(coverage.total(), approved, coverage.missing(),
+                coverage.changed(), staticLanguage.file(), null);
     }
 
     private Map<String, EntityCoverageDto> contentCoverage(LanguageDto language,
@@ -110,9 +103,11 @@ public class LanguageReadinessService {
             ordered.put(entry.getKey(), value);
             int missing = value.total() - value.approved();
             if (missing > 0) {
-                String tab = CONTENT_TABS.getOrDefault(entry.getKey(), entry.getKey().toLowerCase(Locale.ROOT));
+                String tab = CONTENT_TABS.getOrDefault(entry.getKey(),
+                        entry.getKey().toLowerCase(Locale.ROOT));
                 blockers.add(new ReadinessBlockerDto(entry.getKey() + "_TRANSLATION_MISSING",
-                        tab, missing, missing + " " + entry.getKey() + " translation(s) missing"));
+                        tab, missing, missing + " " + entry.getKey()
+                        + " translation(s) missing"));
             }
         }
         return ordered;

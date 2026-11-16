@@ -2,12 +2,18 @@ package com.truereport.localization;
 
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Read-only access to the manifest-synchronized language registry.
+ *
+ * <p>Rows are created and updated only by {@code StaticLanguageSync}. No
+ * admin write path exists.</p>
+ */
 @Repository
 public class LanguageRepository {
 
@@ -18,11 +24,10 @@ public class LanguageRepository {
     }
 
     private static final String COLUMNS = """
-            code, native_name, direction, active, is_default, sort_order, status,
-            ui_messages_path, ui_messages_hash, ui_messages_reviewed_at, ui_messages_reviewed_by
+            code, native_name, direction, active, is_default, sort_order, status
             """;
 
-    private static final org.springframework.jdbc.core.RowMapper<LanguageDto> MAPPER = (rs, i) ->
+    private static final RowMapper<LanguageDto> MAPPER = (rs, i) ->
             new LanguageDto(
                     rs.getString("code"),
                     rs.getString("native_name"),
@@ -30,30 +35,12 @@ public class LanguageRepository {
                     rs.getBoolean("active"),
                     rs.getBoolean("is_default"),
                     rs.getInt("sort_order"),
-                    statusOf(rs),
-                    rs.getString("ui_messages_path"),
-                    rs.getString("ui_messages_hash"),
-                    timestamp(rs.getTimestamp("ui_messages_reviewed_at")),
-                    rs.getString("ui_messages_reviewed_by")
+                    statusOf(rs)
             );
-
-    private static String timestamp(Timestamp value) {
-        return value == null ? null : value.toInstant().toString();
-    }
 
     private static String statusOf(java.sql.ResultSet rs) throws java.sql.SQLException {
         String status = rs.getString("status");
-        return status == null ? "DRAFT" : status;
-    }
-
-    public List<LanguageDto> findAll() {
-        return jdbc.query("SELECT " + COLUMNS
-                + " FROM platform_languages ORDER BY sort_order, code", MAPPER);
-    }
-
-    public List<LanguageDto> findActive() {
-        return jdbc.query("SELECT " + COLUMNS
-                + " FROM platform_languages WHERE active = TRUE ORDER BY sort_order, code", MAPPER);
+        return status == null ? "LIVE" : status;
     }
 
     public List<LanguageDto> findLive() {
@@ -71,79 +58,6 @@ public class LanguageRepository {
         return jdbc.query("""
                 SELECT code FROM platform_languages WHERE is_default = TRUE
                 """, rs -> rs.next() ? rs.getString(1) : null);
-    }
-
-    public void insert(LanguageDto language) {
-        jdbc.update("""
-                INSERT INTO platform_languages
-                    (code, native_name, direction, active, is_default, sort_order, status,
-                     ui_messages_path, created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """,
-                language.code(), language.nativeName(), language.direction(), language.active(),
-                language.isDefault(), language.sortOrder(),
-                language.status() == null ? "DRAFT" : language.status(),
-                language.uiMessagesPath());
-    }
-
-    public void update(LanguageDto language) {
-        jdbc.update("""
-                UPDATE platform_languages
-                SET native_name = ?, direction = ?, active = ?, sort_order = ?,
-                    updated_at = CURRENT_TIMESTAMP, version = version + 1
-                WHERE code = ?
-                """,
-                language.nativeName(), language.direction(), language.active(),
-                language.sortOrder(), language.code());
-    }
-
-    public void setStatus(String code, String status) {
-        jdbc.update("""
-                UPDATE platform_languages
-                SET status = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
-                WHERE code = ?
-                """, status, code);
-    }
-
-    public void setUiMessagesReview(String code, String hash, String reviewedBy) {
-        jdbc.update("""
-                UPDATE platform_languages
-                SET ui_messages_hash = ?, ui_messages_reviewed_at = CURRENT_TIMESTAMP,
-                    ui_messages_reviewed_by = ?, updated_at = CURRENT_TIMESTAMP,
-                    version = version + 1
-                WHERE code = ?
-                """, hash, reviewedBy, code);
-    }
-
-    public void setUiMessagesPath(String code, String path) {
-        jdbc.update("""
-                UPDATE platform_languages
-                SET ui_messages_path = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
-                WHERE code = ?
-                """, path, code);
-    }
-
-    public void setLive(String code) {
-        jdbc.update("""
-                UPDATE platform_languages
-                SET status = 'LIVE', active = TRUE, updated_at = CURRENT_TIMESTAMP,
-                    version = version + 1
-                WHERE code = ?
-                """, code);
-    }
-
-    public void setDefault(String code) {
-        jdbc.update("UPDATE platform_languages SET is_default = FALSE WHERE is_default = TRUE");
-        jdbc.update("UPDATE platform_languages SET is_default = TRUE,"
-                + " updated_at = CURRENT_TIMESTAMP WHERE code = ?", code);
-    }
-
-    public void reorder(List<String> codes) {
-        int order = 1;
-        for (String code : codes) {
-            jdbc.update("UPDATE platform_languages SET sort_order = ?,"
-                    + " updated_at = CURRENT_TIMESTAMP WHERE code = ?", order++, code);
-        }
     }
 
     public Optional<String> preferredLanguage(String userId) {
@@ -165,19 +79,4 @@ public class LanguageRepository {
         }
     }
 
-    public int countActive() {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM platform_languages WHERE active = TRUE",
-                Integer.class);
-        return count == null ? 0 : count;
-    }
-
-    public int countJobsUsing(String code) {
-        try {
-            Integer count = jdbc.queryForObject(
-                    "SELECT COUNT(*) FROM inspection_jobs WHERE preferred_language = ?", Integer.class, code);
-            return count == null ? 0 : count;
-        } catch (RuntimeException ex) {
-            return 0;
-        }
-    }
 }

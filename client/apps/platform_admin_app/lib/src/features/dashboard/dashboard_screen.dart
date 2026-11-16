@@ -194,7 +194,8 @@ class _OperationalStatusStrip extends ConsumerWidget {
     final alertCount = summary.alerts.length;
     final pendingReviews = summary.jobs.pendingReview;
 
-    final totalAttentionItems = (hasChecklistIssue ? 1 : 0) +
+    final totalAttentionItems =
+        (hasChecklistIssue ? 1 : 0) +
         incompleteLangs +
         alertCount +
         (pendingReviews > 0 ? 1 : 0);
@@ -213,10 +214,9 @@ class _OperationalStatusStrip extends ConsumerWidget {
     );
     final subtitle = isHealthy
         ? strings.tKey(PlatformAdminKeys.dashboardStatusHealthySubtitle)
-        : strings.tArgsKey(
-            PlatformAdminKeys.dashboardStatusAttentionSubtitle,
-            {'count': '$totalAttentionItems'},
-          );
+        : strings.tArgsKey(PlatformAdminKeys.dashboardStatusAttentionSubtitle, {
+            'count': '$totalAttentionItems',
+          });
 
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 16),
@@ -282,11 +282,7 @@ class _OperationalStatusStrip extends ConsumerWidget {
           if (isCompact) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                statusInfo,
-                const SizedBox(height: 12),
-                cta,
-              ],
+              children: [statusInfo, const SizedBox(height: 12), cta],
             );
           }
 
@@ -351,18 +347,20 @@ class _KpiSection extends ConsumerWidget {
         accent: const Color(0xFF1D4ED8),
       ),
       _KpiMetric(
-        value: strings.tArgsKey(PlatformAdminKeys.dashboardKpiReviewsPendingCount, {
-          'count': '${summary.jobs.pendingReview}',
-        }),
+        value: strings.tArgsKey(
+          PlatformAdminKeys.dashboardKpiReviewsPendingCount,
+          {'count': '${summary.jobs.pendingReview}'},
+        ),
         label: strings.tKey(PlatformAdminKeys.kpiReviewsPending),
         icon: Icons.rate_review_rounded,
         route: '/audit-log',
         accent: PtTheme.amber,
       ),
       _KpiMetric(
-        value: strings.tArgsKey(PlatformAdminKeys.dashboardKpiReportsPublishedCount, {
-          'count': '${summary.reports.published}',
-        }),
+        value: strings.tArgsKey(
+          PlatformAdminKeys.dashboardKpiReportsPublishedCount,
+          {'count': '${summary.reports.published}'},
+        ),
         label: strings.tKey(PlatformAdminKeys.kpiReportsPublished),
         icon: Icons.description_rounded,
         route: '/reports/document-types',
@@ -431,8 +429,8 @@ class _KpiSection extends ConsumerWidget {
             final columns = maxWidth >= 1000
                 ? 4
                 : maxWidth >= 600
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             const spacing = 12.0;
             final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
             return Wrap(
@@ -456,8 +454,8 @@ class _KpiSection extends ConsumerWidget {
             final columns = maxWidth >= 1000
                 ? 4
                 : maxWidth >= 600
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             const spacing = 12.0;
             final pillWidth = (maxWidth - spacing * (columns - 1)) / columns;
             return Wrap(
@@ -642,10 +640,9 @@ class _NeedsAttentionSection extends ConsumerWidget {
       final failing = health.checks.where((c) => !c.ok).toList();
       final summaryText = failing.length == 1
           ? strings.tKey(PlatformAdminKeys.dashboardHealthSummarySingle)
-          : strings.tArgsKey(
-              PlatformAdminKeys.dashboardHealthSummaryMultiple,
-              {'count': '${failing.length}'},
-            );
+          : strings.tArgsKey(PlatformAdminKeys.dashboardHealthSummaryMultiple, {
+              'count': '${failing.length}',
+            });
       items.add(
         _AttentionItem(
           title: strings.tArgsKey(
@@ -688,7 +685,9 @@ class _NeedsAttentionSection extends ConsumerWidget {
               PlatformAdminKeys.dashboardNeedsAttentionLanguageInSetup,
               {'language': langName, 'status': localizedStatus},
             ),
-            description: strings.tKey(PlatformAdminKeys.sidebarLanguagesContinueSetup),
+            description: strings.tKey(
+              PlatformAdminKeys.sidebarLanguagesContinueSetup,
+            ),
             route: '/settings/languages/${lang.code}?tab=overview',
             priority: 3,
             severity: 'WARNING',
@@ -775,7 +774,9 @@ class _NeedsAttentionSection extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    strings.tKey(PlatformAdminKeys.dashboardNeedsAttentionEmpty),
+                    strings.tKey(
+                      PlatformAdminKeys.dashboardNeedsAttentionEmpty,
+                    ),
                     style: PtTheme.caption,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -791,8 +792,7 @@ class _NeedsAttentionSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                for (final item in items.take(4))
-                  _AttentionRow(item: item),
+                for (final item in items.take(4)) _AttentionRow(item: item),
               ],
             ),
           ),
@@ -810,7 +810,9 @@ class _AttentionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isError = item.severity.toUpperCase() == 'ERROR';
     final color = isError ? PtTheme.rose : PtTheme.amber;
-    final icon = isError ? Icons.error_outline_rounded : Icons.warning_amber_rounded;
+    final icon = isError
+        ? Icons.error_outline_rounded
+        : Icons.warning_amber_rounded;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -915,7 +917,10 @@ class _LanguageSetupActionCenter extends ConsumerWidget {
             final candidates = languages.where((l) => l.isInSetup).toList();
             if (candidates.isEmpty) {
               return PlatformSectionCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -934,7 +939,9 @@ class _LanguageSetupActionCenter extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        strings.tKey(PlatformAdminKeys.dashboardActionCenterAllLive),
+                        strings.tKey(
+                          PlatformAdminKeys.dashboardActionCenterAllLive,
+                        ),
                         style: PtTheme.caption,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -967,31 +974,12 @@ class _PrioritizedLanguageCards extends ConsumerWidget {
 
     for (final lang in candidates) {
       final readiness = ref.watch(readinessProvider(lang.code)).asData?.value;
-      final genData = ref.watch(contentGenerationProvider(lang.code)).asData?.value;
-      final isGenerating = genData?.isRunning ?? false;
-
-      int score = 6;
+      var score = 6;
       if (readiness != null) {
-        if (readiness.status == 'REVIEW' && readiness.blockers.isEmpty) {
-          score = 1;
-        } else if (readiness.readinessPercent == 100 && readiness.status != 'LIVE') {
-          score = 2;
-        } else if (lang.status == 'TRANSLATING' || isGenerating) {
+        if (readiness.blockers.isNotEmpty) {
           score = 3;
-        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isNotEmpty && readiness.readinessPercent < 100) {
+        } else if (readiness.readinessPercent < 100) {
           score = 4;
-        } else if (lang.status == 'DRAFT' && readiness.uiMessagesPath.isEmpty) {
-          score = 5;
-        } else {
-          score = 6;
-        }
-      } else {
-        if (lang.status == 'REVIEW') {
-          score = 1;
-        } else if (lang.status == 'TRANSLATING' || isGenerating) {
-          score = 3;
-        } else if (lang.status == 'DRAFT') {
-          score = 5;
         }
       }
       scored.add(MapEntry(lang, score));
@@ -1007,8 +995,8 @@ class _PrioritizedLanguageCards extends ConsumerWidget {
         final columns = maxWidth >= 960
             ? topLanguages.length.clamp(1, 3)
             : maxWidth >= 600
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         const spacing = 12.0;
         final cardWidth = (maxWidth - spacing * (columns - 1)) / columns;
 
@@ -1037,62 +1025,14 @@ class _ActionCenterLanguageCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
     final readinessAsync = ref.watch(readinessProvider(language.code));
-    final genAsync = ref.watch(contentGenerationProvider(language.code));
-
-    final genData = genAsync.asData?.value;
-    final isGenerating = genData?.isRunning ?? false;
-    final genProgress = ((genData?.progress ?? 0) * 100).round();
 
     final readiness = readinessAsync.asData?.value;
 
-    String targetTab = LanguageWorkspaceTab.overview;
-    UiMessageKey actionKey = PlatformAdminKeys.sidebarLanguagesActionView;
-
-    if (readiness != null) {
-      if (isGenerating) {
-        targetTab = LanguageWorkspaceTab.overview;
-      } else if (readiness.blockers.isNotEmpty) {
-        final firstBlocker = readiness.blockers.first;
-        targetTab = firstBlocker.tab;
-        if (firstBlocker.tab == LanguageWorkspaceTab.uiText) {
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
-        } else if (firstBlocker.tab == LanguageWorkspaceTab.publish) {
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
-        } else {
-          actionKey = readiness.status == 'REVIEW'
-              ? PlatformAdminKeys.sidebarLanguagesActionReview
-              : PlatformAdminKeys.sidebarLanguagesActionGenerate;
-        }
-      } else if (readiness.status == 'DRAFT') {
-        if (readiness.uiMessagesPath.isEmpty) {
-          targetTab = LanguageWorkspaceTab.uiText;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
-        } else if (readiness.readinessPercent < 100) {
-          targetTab = LanguageWorkspaceTab.categories;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerateMissing;
-        } else {
-          targetTab = LanguageWorkspaceTab.publish;
-          actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
-        }
-      } else if (readiness.status == 'TRANSLATING') {
-        targetTab = LanguageWorkspaceTab.categories;
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
-      } else if (readiness.status == 'REVIEW') {
-        targetTab = LanguageWorkspaceTab.overview;
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
-      } else if (readiness.readinessPercent == 100) {
-        targetTab = LanguageWorkspaceTab.publish;
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionPublish;
-      }
-    } else {
-      if (language.status == 'REVIEW') {
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionReview;
-      } else if (language.status == 'TRANSLATING' || isGenerating) {
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionContinueGeneration;
-      } else if (language.status == 'DRAFT') {
-        actionKey = PlatformAdminKeys.sidebarLanguagesActionGenerate;
-      }
+    var targetTab = LanguageWorkspaceTab.overview;
+    if (readiness != null && readiness.blockers.isNotEmpty) {
+      targetTab = readiness.blockers.first.tab;
     }
+    const actionKey = PlatformAdminKeys.sidebarLanguagesActionView;
 
     final targetRoute = '/settings/languages/${language.code}?tab=$targetTab';
     final langName = _formatLanguageDisplayName(language);
@@ -1108,8 +1048,8 @@ class _ActionCenterLanguageCard extends ConsumerWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(
-                  color: isGenerating ? PtTheme.deepGreen : PtTheme.amber,
+                decoration: const BoxDecoration(
+                  color: PtTheme.amber,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -1131,31 +1071,13 @@ class _ActionCenterLanguageCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          if (isGenerating)
+          if (readiness != null)
             Text(
-              strings.tArgsKey(
-                PlatformAdminKeys.sidebarLanguagesGenerating,
-                {'percent': '$genProgress'},
-              ),
-              style: PtTheme.font(
-                12,
-                lineHeight: 16,
-                weight: FontWeight.w600,
-                color: PtTheme.deepGreen,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          else if (readiness != null)
-            Text(
-              strings.tArgsKey(
-                PlatformAdminKeys.sidebarLanguagesProgress,
-                {
-                  'translated': '${readiness.readinessPercent}',
-                  'total': '100',
-                  'percent': '${readiness.readinessPercent}',
-                },
-              ),
+              strings.tArgsKey(PlatformAdminKeys.sidebarLanguagesProgress, {
+                'translated': '${readiness.readinessPercent}',
+                'total': '100',
+                'percent': '${readiness.readinessPercent}',
+              }),
               style: PtTheme.caption,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1172,7 +1094,7 @@ class _ActionCenterLanguageCard extends ConsumerWidget {
             key: Key('btn-action-center-${language.code}'),
             label: strings.tKey(actionKey),
             icon: Icons.arrow_forward_rounded,
-            onPressed: isGenerating ? null : () => context.go(targetRoute),
+            onPressed: () => context.go(targetRoute),
           ),
         ],
       ),
@@ -1539,35 +1461,38 @@ class _QuickActionsSection extends ConsumerWidget {
     final actions = <_DashboardQuickAction>[
       _DashboardQuickAction(
         label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddWorkshop),
-        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddWorkshopDesc),
+        description: strings.tKey(
+          PlatformAdminKeys.dashboardQuickActionsAddWorkshopDesc,
+        ),
         icon: Icons.add_business_rounded,
         route: '/workshops/new',
         accent: PtTheme.deepGreen,
       ),
       _DashboardQuickAction(
-        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddChecklistItem),
-        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddChecklistItemDesc),
+        label: strings.tKey(
+          PlatformAdminKeys.dashboardQuickActionsAddChecklistItem,
+        ),
+        description: strings.tKey(
+          PlatformAdminKeys.dashboardQuickActionsAddChecklistItemDesc,
+        ),
         icon: Icons.post_add_rounded,
         route: '/checklist/items/new',
         accent: const Color(0xFF1D4ED8),
       ),
       _DashboardQuickAction(
-        label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsCreateTemplate),
-        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsCreateTemplateDesc),
-        icon: Icons.playlist_add_rounded,
-        route: '/checklist/templates/new',
-        accent: const Color(0xFF7C3AED),
-      ),
-      _DashboardQuickAction(
         label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddLanguage),
-        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddLanguageDesc),
+        description: strings.tKey(
+          PlatformAdminKeys.dashboardQuickActionsAddLanguageDesc,
+        ),
         icon: Icons.translate_rounded,
         route: '/settings/languages',
         accent: PtTheme.amber,
       ),
       _DashboardQuickAction(
         label: strings.tKey(PlatformAdminKeys.dashboardQuickActionsViewHealth),
-        description: strings.tKey(PlatformAdminKeys.dashboardQuickActionsViewHealthDesc),
+        description: strings.tKey(
+          PlatformAdminKeys.dashboardQuickActionsViewHealthDesc,
+        ),
         icon: Icons.health_and_safety_rounded,
         route: '/checklist/health',
         accent: PtTheme.emerald,
@@ -1587,11 +1512,10 @@ class _QuickActionsSection extends ConsumerWidget {
             final columns = maxWidth >= 1100
                 ? 3
                 : maxWidth >= 640
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             const spacing = 12.0;
-            final tileWidth =
-                (maxWidth - spacing * (columns - 1)) / columns;
+            final tileWidth = (maxWidth - spacing * (columns - 1)) / columns;
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,

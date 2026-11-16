@@ -1,0 +1,63 @@
+- generic [ref=f2e4]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic [ref=f2e172]: v1
+            - generic [ref=f2e173]: STANDARD OPERATING PROCEDURE
+            - generic [ref=f2e174]: Live Ownership Published Template
+            - button "Save draft" [ref=f2e175]
+            - button "Preview":
+              - button "Preview" [ref=f2e176]
+            - button "Publish template":
+              - button "Publish template" [ref=f2e177]
+            - button "Retire" [ref=f2e178]
+            - generic:
+              - group:
+                - button "Template Parameters & Classification Comprehensive Inspection · SUV / 4WD" [ref=f2e179]
+                - generic [ref=f2e181]:
+                  - textbox "Master items · 3 Inspection Diagnostic Checkpoints 3 In Catalog Search approved items Brake Pad Thickness (All 4 Corners) Braking Systems & Tyres · v1 Template sequence 4 items selected Sequence Ready" [disabled] [ref=f2e208]
+                  - textbox "Search approved items" [ref=f2e184]
+                  - button "All categories" [ref=f2e185]
+                  - button [disabled] [ref=f2e209]:
+                    - text: Add
+                    - generic: Add
+                  - group "Brake Disc Rotors & Runout Braking Systems & Tyres · v1" [ref=f2e188]:
+                    - button "Add" [ref=f2e189]
+                  - group "Brake Fluid Moisture & Hydraulic Lines Braking Systems & Tyres · v1" [ref=f2e190]:
+                    - button "Add" [ref=f2e191]
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - group "01, 01 Powertrain & Mechanical":
+                            - generic [ref=f2e192]: OPTIONAL/REQUIRED_MIN_N · Locked by platform
+                            - generic [ref=f2e193]: Powertrain & Mechanical · v1
+                            - button "Move up" [disabled] [ref=f2e194]
+                            - button "Move down" [ref=f2e195]
+                            - button "Remove" [ref=f2e196]
+                      - generic:
+                        - generic:
+                          - group "02, 02 Powertrain & Mechanical":
+                            - generic [ref=f2e197]: OPTIONAL/REQUIRED_MIN_N · Locked by platform
+                            - generic [ref=f2e198]: Powertrain & Mechanical · v1
+                            - button "Move up" [ref=f2e199]
+                            - button "Move down" [ref=f2e200]
+                            - button "Remove" [ref=f2e201]
+                      - generic:
+                        - generic:
+                          - group "03, 03 Powertrain & Mechanical":
+                            - generic [ref=f2e202]: OPTIONAL/REQUIRED_MIN_N · Locked by platform
+                            - generic [ref=f2e203]: Powertrain & Mechanical · v1
+                            - button "Move up" [ref=f2e204]
+                            - button "Move down" [ref=f2e205]
+                            - button "Remove" [ref=f2e206]
+                      - generic:
+                        - generic:
+                          - group "04, 04 Braking Systems & Tyres":
+                            - generic [ref=f2e211]: OPTIONAL/REQUIRED_MIN_N · Locked by platform
+                            - generic [ref=f2e212]: Braking Systems & Tyres · v1
+                            - button "Move up" [ref=f2e213]
+                            - button "Move down" [disabled] [ref=f2e214]
+                            - button "Remove" [ref=f2e215]

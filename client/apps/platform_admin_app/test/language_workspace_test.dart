@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
-import 'package:platform_admin_app/src/components/platform_buttons.dart';
 import 'package:platform_admin_app/src/features/languages/language_workspace_screen.dart';
 import 'package:platform_admin_app/src/features/languages/languages_screen.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
@@ -29,121 +28,7 @@ class FakeWorkspaceTranslationApi extends TranslationApi {
       );
 
   final List<TranslationItem> _items;
-  final Map<String, String> savedReview = {};
   final List<TranslationItem> upserts = [];
-  int approveCalls = 0;
-  int publishCalls = 0;
-  int retryCalls = 0;
-  int generateUiCalls = 0;
-
-  UiMessageReviewEntry _entry(
-    String key,
-    String source,
-    String target, {
-    bool changed = false,
-    bool missing = false,
-  }) => UiMessageReviewEntry(
-    key: key,
-    sourceText: source,
-    targetText: target,
-    changed: changed,
-    missing: missing,
-    untranslated: target.isEmpty,
-    placeholderMismatch: false,
-  );
-
-  List<UiMessageReviewEntry> get _reviewEntries => [
-    _entry('common.button.save', 'Save', 'حفظ'),
-    _entry('common.button.cancel', 'Cancel', 'إلغاء', changed: true),
-    _entry('common.empty.title', 'No data yet', '', missing: true),
-  ];
-
-  UiMessageReview _review() {
-    final entries = _reviewEntries
-        .map(
-          (entry) => entry.copyWith(
-            targetText: savedReview[entry.key] ?? entry.targetText,
-          ),
-        )
-        .toList(growable: false);
-    return UiMessageReview(
-      language: _languageCode,
-      status: 'REVIEW',
-      path: 'i18n/platform_admin/ar.json',
-      totalKeys: entries.length,
-      changedKeys: entries.where((entry) => entry.changed).length,
-      missingKeys: entries.where((entry) => entry.missing).length,
-      entries: entries,
-    );
-  }
-
-  @override
-  Future<UiMessageReview> fetchUiMessageReview(String code) async => _review();
-
-  @override
-  Future<UiMessageReview> saveUiMessageReview(
-    String code,
-    Map<String, String> translations,
-  ) async {
-    savedReview.addAll(translations);
-    return _review();
-  }
-
-  @override
-  Future<UiMessageApproval> approveUiMessageReview(String code) async {
-    approveCalls++;
-    return UiMessageApproval(
-      language: code,
-      status: 'APPROVED',
-      path: 'i18n/platform_admin/ar.json',
-      hash: 'hash',
-      totalKeys: _reviewEntries.length,
-    );
-  }
-
-  @override
-  Future<UiMessageGeneration> retryFailedUiMessageGeneration(
-    String code,
-  ) async {
-    retryCalls++;
-    return const UiMessageGeneration(
-      language: _languageCode,
-      jobId: 'ui-job',
-      jobStatus: UiMessageGeneration.completed,
-      status: 'COMPLETED',
-      path: 'i18n/platform_admin/ar.json',
-      keysTranslated: 3,
-      failedKeys: [],
-      totalKeys: 3,
-      completedKeys: 3,
-      error: '',
-    );
-  }
-
-  @override
-  Future<UiMessageGeneration> generateUiMessages({
-    required String code,
-    bool force = false,
-    String reviewStatus = 'TRANSLATING',
-  }) async {
-    generateUiCalls++;
-    return const UiMessageGeneration(
-      language: _languageCode,
-      jobId: 'ui-job',
-      jobStatus: UiMessageGeneration.completed,
-      status: 'COMPLETED',
-      path: 'i18n/platform_admin/ar.json',
-      keysTranslated: 3,
-      failedKeys: [],
-      totalKeys: 3,
-      completedKeys: 3,
-      error: '',
-    );
-  }
-
-  @override
-  Future<List<int>> downloadUiMessageJson(String code) async =>
-      '{"common.button.save":"حفظ"}'.codeUnits;
 
   @override
   Future<TranslationBacklog> fetchBacklog(String code) async {
@@ -169,7 +54,7 @@ class FakeWorkspaceTranslationApi extends TranslationApi {
         .length;
     return TranslationBacklog(
       languageCode: code,
-      languageStatus: LanguageStatus.review,
+      languageStatus: LanguageStatus.live,
       totalRequired: _items.length,
       approvedCount: approved,
       coveragePercent: _items.isEmpty ? 100 : approved / _items.length * 100,
@@ -209,64 +94,37 @@ class FakeWorkspaceTranslationApi extends TranslationApi {
     }
     return updated;
   }
-
-  @override
-  Future<PlatformLanguage> publishLanguage(String code) async {
-    publishCalls++;
-    return const PlatformLanguage(
-      code: _languageCode,
-      nativeName: 'العربية',
-      direction: 'rtl',
-      active: true,
-      isDefault: false,
-      sortOrder: 2,
-      status: 'LIVE',
-    );
-  }
 }
 
-LanguageReadiness _readiness({
-  int percent = 60,
-  bool withBlockers = true,
-  String status = 'REVIEW',
-}) =>
-    LanguageReadiness(
-      language: _languageCode,
-      status: status,
-      nativeName: 'العربية',
-      direction: 'rtl',
-      isDefault: false,
-      uiMessagesPath: 'i18n/platform_admin/ar.json',
-      readinessPercent: percent,
-      uiMessages: const UiMessageCoverage(
-        total: 3,
-        approved: 2,
-        missing: 1,
-        changed: 1,
-        path: 'i18n/platform_admin/ar.json',
-        generationStatus: 'COMPLETED',
-      ),
-      content: const {
-        'CATEGORY': EntityReadiness(total: 1, approved: 0),
-        'ITEM': EntityReadiness(total: 2, approved: 1),
-      },
-      blockers: withBlockers
-          ? const [
-              ReadinessBlocker(
-                code: 'UI_TEXT_MISSING',
-                tab: 'ui-text',
-                count: 1,
-                message: '1 UI message key(s) are missing',
-              ),
-              ReadinessBlocker(
-                code: 'CATEGORY_TRANSLATION_MISSING',
-                tab: 'categories',
-                count: 1,
-                message: '1 CATEGORY translation(s) missing',
-              ),
-            ]
-          : const [],
-    );
+LanguageReadiness _readiness({int percent = 60}) => LanguageReadiness(
+  language: _languageCode,
+  status: 'LIVE',
+  nativeName: 'العربية',
+  direction: 'rtl',
+  isDefault: false,
+  uiMessagesPath: 'platform_admin/ar.json',
+  readinessPercent: percent,
+  uiMessages: const UiMessageCoverage(
+    total: 3,
+    approved: 2,
+    missing: 1,
+    changed: 1,
+    path: 'platform_admin/ar.json',
+    generationStatus: '',
+  ),
+  content: const {
+    'CATEGORY': EntityReadiness(total: 1, approved: 0),
+    'ITEM': EntityReadiness(total: 2, approved: 1),
+  },
+  blockers: const [
+    ReadinessBlocker(
+      code: 'CATEGORY_TRANSLATION_MISSING',
+      tab: 'categories',
+      count: 1,
+      message: '1 CATEGORY translation(s) missing',
+    ),
+  ],
+);
 
 List<TranslationItem> _contentFixture() => [
   const TranslationItem(
@@ -296,8 +154,21 @@ const _testLanguage = PlatformLanguage(
   active: true,
   isDefault: false,
   sortOrder: 2,
-  status: 'REVIEW',
-  uiMessagesPath: 'i18n/platform_admin/ar.json',
+  status: 'LIVE',
+);
+
+UiMessageManifest _manifest() => const UiMessageManifest(
+  defaultLanguage: 'en',
+  namespaceVersions: {'platform_admin': 1, 'common': 1},
+  languages: [
+    UiMessageLanguage(
+      code: 'en',
+      direction: 'ltr',
+      nativeName: 'English',
+      path: 'platform_admin/en.json',
+      totalKeys: 3,
+    ),
+  ],
 );
 
 class _TestLocaleNotifier extends LocaleController {
@@ -311,8 +182,7 @@ class _TestLocaleNotifier extends LocaleController {
 
 List<Override> _overrides({
   required FakeWorkspaceTranslationApi api,
-  required LanguageReadiness readiness,
-  ContentGeneration generation = ContentGeneration.idle,
+  LanguageReadiness? readiness,
 }) => [
   uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
   platformLocaleProvider.overrideWith(
@@ -320,14 +190,15 @@ List<Override> _overrides({
   ),
   translationApiProvider.overrideWithValue(api),
   platformLanguagesProvider.overrideWith((ref) async => [_testLanguage]),
+  platformUiManifestProvider.overrideWithValue(_manifest()),
   translationCoverageProvider.overrideWith(
     (ref) async => const TranslationCoverage(
       languages: ['en', 'ar'],
       namespaces: {'common': CoverageNamespace(total: 3, missing: [])},
     ),
   ),
-  readinessProvider.overrideWith((ref, code) async => readiness),
-  contentGenerationProvider.overrideWith((ref, code) async => generation),
+  if (readiness != null)
+    readinessProvider.overrideWith((ref, code) async => readiness),
   languageBacklogProvider.overrideWith(
     (ref, code) async => api.fetchBacklog(code),
   ),
@@ -335,16 +206,11 @@ List<Override> _overrides({
 
 Widget _workspaceApp({
   required FakeWorkspaceTranslationApi api,
-  required LanguageReadiness readiness,
-  ContentGeneration generation = ContentGeneration.idle,
+  LanguageReadiness? readiness,
   String? initialTab,
 }) {
   return ProviderScope(
-    overrides: _overrides(
-      api: api,
-      readiness: readiness,
-      generation: generation,
-    ),
+    overrides: _overrides(api: api, readiness: readiness ?? _readiness()),
     child: MaterialApp(
       locale: const Locale('en'),
       supportedLocales: const [Locale('en'), Locale('ar')],
@@ -362,7 +228,7 @@ Widget _workspaceApp({
 }
 
 void main() {
-  test('PlatformLanguage keeps only native name and lifecycle fields', () {
+  test('PlatformLanguage keeps native name fields', () {
     final language = PlatformLanguage.fromJson(const {
       'code': 'ar',
       'nativeName': 'العربية',
@@ -370,54 +236,27 @@ void main() {
       'active': true,
       'isDefault': true,
       'sortOrder': 2,
-      'status': 'REVIEW',
-      'uiMessagesPath': 'i18n/platform_admin/ar.json',
-      'uiMessagesHash': 'abc',
-      'reviewedAt': '2026-01-01',
-      'reviewedBy': 'admin',
+      'status': 'LIVE',
     });
     expect(language.displayName, 'العربية');
     expect(language.isDefault, isTrue);
-    expect(language.uiMessagesHash, 'abc');
-    expect(language.reviewedBy, 'admin');
-    expect(language.displayName, isNot('Arabic'));
-  });
-
-  test('content translations stay field-keyed without synthesized locales', () {
-    final category = PlatformCategory.fromJson(const {
-      'id': 'cat-1',
-      'code': 'ENGINE',
-      'name': 'Engine',
-      'translations': {
-        'name': {'ar': 'المحرك'},
-      },
-      'status': 'ACTIVE',
-      'sortOrder': 1,
-      'active': true,
-      'itemCount': 1,
-    });
-    expect(category.name, 'Engine');
-    expect(category.nameEn, 'Engine');
-    expect(category.nameAr, 'المحرك');
-    expect(category.translations['name']!.containsKey('en'), isFalse);
   });
 
   test('readiness parses blockers and per-entity coverage', () {
     final readiness = LanguageReadiness.fromJson(const {
       'language': 'ar',
-      'status': 'REVIEW',
+      'status': 'LIVE',
       'nativeName': 'العربية',
       'direction': 'rtl',
       'isDefault': false,
-      'uiMessagesPath': 'i18n/platform_admin/ar.json',
+      'uiMessagesPath': 'platform_admin/ar.json',
       'readinessPercent': 60,
       'uiMessages': {
         'total': 3,
         'approved': 2,
         'missing': 1,
         'changed': 1,
-        'path': 'i18n/platform_admin/ar.json',
-        'generationStatus': 'COMPLETED',
+        'path': 'platform_admin/ar.json',
       },
       'content': {
         'CATEGORY': {'total': 1, 'approved': 0},
@@ -434,10 +273,11 @@ void main() {
     expect(readiness.readinessPercent, 60);
     expect(readiness.content['CATEGORY']!.missing, 1);
     expect(readiness.blockers.single.tab, 'categories');
-    expect(readiness.ready, isFalse);
   });
 
-  testWidgets('Manage opens the language workspace', (tester) async {
+  testWidgets('registry shows manifest languages without Add language', (
+    tester,
+  ) async {
     final api = FakeWorkspaceTranslationApi(items: _contentFixture());
     final router = GoRouter(
       initialLocation: '/settings/languages',
@@ -446,17 +286,11 @@ void main() {
           path: '/settings/languages',
           builder: (context, state) => const LanguagesScreen(),
         ),
-        GoRoute(
-          path: '/settings/languages/:code',
-          builder: (context, state) => LanguageWorkspaceScreen(
-            languageCode: state.pathParameters['code']!,
-          ),
-        ),
       ],
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: _overrides(api: api, readiness: _readiness()),
+        overrides: _overrides(api: api),
         child: MaterialApp.router(
           locale: const Locale('en'),
           supportedLocales: const [Locale('en'), Locale('ar')],
@@ -471,23 +305,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final manage = find.widgetWithText(PlatformPrimaryButton, 'Manage').first;
-    await tester.ensureVisible(manage);
-    await tester.tap(manage);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LanguageWorkspaceScreen), findsOneWidget);
-    expect(find.text('Overview'), findsWidgets);
+    expect(find.text('English'), findsWidgets);
+    expect(find.text('Add language'), findsNothing);
   });
 
-  testWidgets('workspace shows all ten tabs', (tester) async {
+  testWidgets('workspace shows only dynamic content tabs', (tester) async {
     final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(_workspaceApp(api: api, readiness: _readiness()));
+    await tester.pumpWidget(_workspaceApp(api: api));
     await tester.pumpAndSettle();
 
     for (final label in const [
       'Overview',
-      'App UI Text',
       'Categories',
       'Checklist Items',
       'Option Sets',
@@ -495,68 +323,26 @@ void main() {
       'Templates',
       'Document Types',
       'Issue Fields',
-      'Publish / Blockers',
     ]) {
       expect(find.text(label), findsWidgets, reason: 'missing tab $label');
     }
+    expect(find.text('App UI Text'), findsNothing);
+    expect(find.text('Publish / Blockers'), findsNothing);
   });
 
   testWidgets('overview renders readiness and blockers', (tester) async {
     final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(_workspaceApp(api: api, readiness: _readiness()));
+    await tester.pumpWidget(_workspaceApp(api: api));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('60%'), findsWidgets);
-    expect(find.text('1 UI message key(s) are missing'), findsOneWidget);
+    expect(find.text('1 CATEGORY translation(s) missing'), findsOneWidget);
     expect(find.text('Categories'), findsWidgets);
-    expect(find.textContaining('Readiness'), findsWidgets);
-  });
-
-  testWidgets('App UI Text tab saves and approves review', (tester) async {
-    final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(
-      _workspaceApp(
-        api: api,
-        readiness: _readiness(),
-        initialTab: LanguageWorkspaceTab.uiText,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('common.button.save'), findsOneWidget);
-    final target = find.byKey(
-      const ValueKey('ui-text-target-common.button.save'),
-    );
-    await tester.enterText(target, 'حفظ الآن');
-    await tester.pump();
-    final save = find.widgetWithText(PlatformPrimaryButton, 'Save review');
-    expect(
-      tester.widget<PlatformPrimaryButton>(save).onPressed,
-      isNotNull,
-      reason: 'entering text should enable Save review',
-    );
-    await tester.ensureVisible(save);
-    await tester.tap(save);
-    await tester.pumpAndSettle();
-    expect(api.savedReview['common.button.save'], 'حفظ الآن');
-
-    final approve = find
-        .widgetWithText(PlatformSecondaryButton, 'Approve review')
-        .last;
-    await tester.ensureVisible(approve);
-    await tester.tap(approve);
-    await tester.pumpAndSettle();
-    expect(api.approveCalls, 1);
   });
 
   testWidgets('content tab edits inline and bulk approves', (tester) async {
     final api = FakeWorkspaceTranslationApi(items: _contentFixture());
     await tester.pumpWidget(
-      _workspaceApp(
-        api: api,
-        readiness: _readiness(),
-        initialTab: LanguageWorkspaceTab.categories,
-      ),
+      _workspaceApp(api: api, initialTab: LanguageWorkspaceTab.categories),
     );
     await tester.pumpAndSettle();
 
@@ -575,66 +361,5 @@ void main() {
     expect(api.upserts.last.entityType, TranslationEntityType.category);
     expect(api.upserts.last.text, 'المحرك');
     expect(api.upserts.last.status, TranslationStatus.approved);
-  });
-
-  testWidgets('publish stays disabled while blockers exist', (tester) async {
-    final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(
-      _workspaceApp(
-        api: api,
-        readiness: _readiness(percent: 60),
-        initialTab: LanguageWorkspaceTab.publish,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final publish = tester.widget<PlatformPrimaryButton>(
-      find.byKey(const ValueKey('languagePublishButton')),
-    );
-    expect(publish.onPressed, isNull);
-    expect(find.text('Publishing is blocked'), findsOneWidget);
-  });
-
-  testWidgets('publish is enabled at 100 percent readiness', (tester) async {
-    final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(
-      _workspaceApp(
-        api: api,
-        readiness: _readiness(percent: 100, withBlockers: false),
-        initialTab: LanguageWorkspaceTab.publish,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final publish = tester.widget<PlatformPrimaryButton>(
-      find.byKey(const ValueKey('languagePublishButton')),
-    );
-    expect(publish.onPressed, isNotNull);
-
-    final publishButton = find.byKey(const ValueKey('languagePublishButton'));
-    await tester.ensureVisible(publishButton);
-    await tester.tap(publishButton);
-    await tester.pumpAndSettle();
-    expect(api.publishCalls, 1);
-    expect(find.text('Language published.'), findsOneWidget);
-  });
-
-  testWidgets('shows published state and disabled publish button when language is LIVE', (tester) async {
-    final api = FakeWorkspaceTranslationApi(items: _contentFixture());
-    await tester.pumpWidget(
-      _workspaceApp(
-        api: api,
-        readiness: _readiness(percent: 100, withBlockers: false, status: 'LIVE'),
-        initialTab: LanguageWorkspaceTab.overview,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('No blockers. Language is live.'), findsOneWidget);
-    final headerPublish = tester.widget<PlatformPrimaryButton>(
-      find.byKey(const ValueKey('languageHeaderPublish')),
-    );
-    expect(headerPublish.onPressed, isNull);
-    expect(headerPublish.label, 'Published');
   });
 }

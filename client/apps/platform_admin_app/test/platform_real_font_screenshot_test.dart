@@ -94,83 +94,8 @@ final _testLanguages = [
     active: true,
     sortOrder: 0,
   ),
-  const PlatformLanguage(
-    code: 'es',
-    nativeName: 'Español',
-    direction: 'ltr',
-    status: 'DRAFT',
-    isDefault: false,
-    active: false,
-    sortOrder: 1,
-  ),
-  const PlatformLanguage(
-    code: 'de',
-    nativeName: 'Deutsch',
-    direction: 'ltr',
-    status: 'TRANSLATING',
-    isDefault: false,
-    active: false,
-    sortOrder: 2,
-  ),
-  const PlatformLanguage(
-    code: 'ar',
-    nativeName: 'العربية',
-    direction: 'rtl',
-    status: 'LIVE',
-    isDefault: false,
-    active: true,
-    sortOrder: 3,
-  ),
 ];
-
-const _testReadinessDe = LanguageReadiness(
-  language: 'de',
-  status: 'TRANSLATING',
-  nativeName: 'Deutsch',
-  direction: 'ltr',
-  isDefault: false,
-  uiMessagesPath: 'de.json',
-  readinessPercent: 42,
-  uiMessages: UiMessageCoverage(
-    total: 100,
-    approved: 42,
-    missing: 58,
-    changed: 0,
-    path: 'de.json',
-    generationStatus: 'NONE',
-  ),
-  content: {},
-  blockers: [],
-);
-
-const _testReadinessEs = LanguageReadiness(
-  language: 'es',
-  status: 'DRAFT',
-  nativeName: 'Español',
-  direction: 'ltr',
-  isDefault: false,
-  uiMessagesPath: '',
-  readinessPercent: 40,
-  uiMessages: UiMessageCoverage(
-    total: 100,
-    approved: 40,
-    missing: 60,
-    changed: 0,
-    path: '',
-    generationStatus: 'NONE',
-  ),
-  content: {},
-  blockers: [
-    ReadinessBlocker(
-      code: 'UI_MESSAGES_EMPTY',
-      tab: 'ui-text',
-      count: 60,
-      message: 'UI messages missing',
-    ),
-  ],
-);
-
-Widget _buildSamplePageContent({required bool isArabic}) {
+Widget _buildSamplePageContent() {
   return LayoutBuilder(
     builder: (context, constraints) {
       final isMobile = constraints.maxWidth < 600;
@@ -178,15 +103,10 @@ Widget _buildSamplePageContent({required bool isArabic}) {
       final titleBlock = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            isArabic ? 'إدارة الورش المعتمدة' : 'Workshop Fleet Management',
-            style: PtTheme.pageTitle,
-          ),
+          Text('Workshop Fleet Management', style: PtTheme.pageTitle),
           const SizedBox(height: 4),
           Text(
-            isArabic
-                ? 'مراقبة تراخيص الورش، أجهزة الفحص، وجاهزية فرق العمل عبر المنصة'
-                : 'Manage verified workshop facilities, diagnostic hardware, and operational coverage.',
+            'Manage verified workshop facilities, diagnostic hardware, and operational coverage.',
             style: PtTheme.body.copyWith(color: PtTheme.muted),
           ),
         ],
@@ -197,12 +117,12 @@ Widget _buildSamplePageContent({required bool isArabic}) {
         runSpacing: 8,
         children: [
           PlatformSecondaryButton(
-            label: isArabic ? 'تصدير السجل' : 'Export Audit',
+            label: 'Export Audit',
             icon: Icons.download_rounded,
             onPressed: () {},
           ),
           PlatformPrimaryButton(
-            label: isArabic ? 'إضافة ورشة جديدة' : 'Register Workshop',
+            label: 'Register Workshop',
             icon: Icons.add_rounded,
             onPressed: () {},
           ),
@@ -214,7 +134,6 @@ Widget _buildSamplePageContent({required bool isArabic}) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Page Title & Subtitle + Primary/Secondary Actions
             if (isMobile) ...[
               titleBlock,
               const SizedBox(height: 12),
@@ -231,34 +150,28 @@ Widget _buildSamplePageContent({required bool isArabic}) {
               ),
             ],
             const SizedBox(height: 20),
-
-            // Filter Toolbar (Search -> Filters -> Count -> Actions)
             PlatformToolbar(
-              searchHint: isArabic
-                  ? 'البحث عن ورشة بالاسم أو الكود...'
-                  : 'Search workshops by code or name...',
-              countLabel: isArabic ? '١٢ ورشة نشطة' : '12 workshops active',
+              searchHint: 'Search workshops by code or name...',
+              countLabel: '12 workshops active',
               filters: [
                 PlatformFilterChip(
-                  label: isArabic ? 'المنطقة: الوسطى' : 'Region: Central',
+                  label: 'Region: Central',
                   selected: true,
                   onTap: () {},
                 ),
                 const SizedBox(width: 6),
                 PlatformFilterChip(
-                  label: isArabic ? 'الحالة: مفعل' : 'Status: Active',
+                  label: 'Status: Active',
                   selected: false,
                   onTap: () {},
                 ),
               ],
               trailing: PlatformGhostButton(
-                label: isArabic ? 'إعادة ضبط' : 'Reset filters',
+                label: 'Reset filters',
                 onPressed: () {},
               ),
             ),
             const SizedBox(height: 24),
-
-            // Content Card Table Placeholder
             Container(
               height: 360,
               decoration: BoxDecoration(
@@ -268,9 +181,7 @@ Widget _buildSamplePageContent({required bool isArabic}) {
               ),
               child: Center(
                 child: Text(
-                  isArabic
-                      ? 'قائمة الورش النشطة وجداول الفحص'
-                      : 'Active Workshop Fleet & Inspection Roster',
+                  'Active Workshop Fleet & Inspection Roster',
                   style: PtTheme.sectionTitle.copyWith(color: PtTheme.muted),
                 ),
               ),
@@ -281,7 +192,6 @@ Widget _buildSamplePageContent({required bool isArabic}) {
     },
   );
 }
-
 Widget _screenshotHarness({
   required Widget child,
   required GlobalKey boundaryKey,
@@ -290,43 +200,13 @@ Widget _screenshotHarness({
 }) {
   return ProviderScope(
     overrides: [
-      uiStringsProvider.overrideWithValue(
-        locale.languageCode == 'ar' ? fakeArUiStrings() : fakeEnUiStrings(),
-      ),
+      uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
       platformLanguagesProvider.overrideWith((ref) async => _testLanguages),
-      readinessProvider('es').overrideWith((ref) async => _testReadinessEs),
-      readinessProvider('de').overrideWith((ref) async => _testReadinessDe),
-      contentGenerationProvider('es').overrideWith(
-        (ref) async => const ContentGeneration(
-          language: 'es',
-          jobId: '',
-          jobStatus: 'IDLE',
-          status: 'IDLE',
-          total: 0,
-          completed: 0,
-          failedKeys: [],
-          entityTypes: [],
-          error: '',
-        ),
-      ),
-      contentGenerationProvider('de').overrideWith(
-        (ref) async => const ContentGeneration(
-          language: 'de',
-          jobId: '',
-          jobStatus: 'IDLE',
-          status: 'IDLE',
-          total: 0,
-          completed: 0,
-          failedKeys: [],
-          entityTypes: [],
-          error: '',
-        ),
-      ),
     ],
     child: MaterialApp(
       locale: locale,
-      supportedLocales: const [Locale('en'), Locale('ar')],
+      supportedLocales: const [Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -334,9 +214,7 @@ Widget _screenshotHarness({
       ],
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: locale.languageCode == 'ar'
-            ? TrFonts.arabicDefault
-            : TrFonts.latin,
+        fontFamily: TrFonts.latin,
         scaffoldBackgroundColor: PtTheme.canvas,
       ),
       home: RepaintBoundary(
@@ -399,7 +277,7 @@ void main() {
   });
 
   group('Phase 1C Real Font Shell Verification', () {
-    testWidgets('Capture real font shell screenshots across viewports & RTL', (
+    testWidgets('Capture real font shell screenshots across viewports', (
       tester,
     ) async {
       final key = GlobalKey();
@@ -418,7 +296,7 @@ void main() {
                 const ContextBreadcrumbItem(label: 'Workshops'),
               ],
             ),
-            child: _buildSamplePageContent(isArabic: false),
+            child: _buildSamplePageContent(),
           ),
         ),
       );
@@ -439,7 +317,7 @@ void main() {
                 const ContextBreadcrumbItem(label: 'Workshops'),
               ],
             ),
-            child: _buildSamplePageContent(isArabic: false),
+            child: _buildSamplePageContent(),
           ),
         ),
       );
@@ -460,7 +338,7 @@ void main() {
                 const ContextBreadcrumbItem(label: 'Workshops'),
               ],
             ),
-            child: _buildSamplePageContent(isArabic: false),
+            child: _buildSamplePageContent(),
           ),
         ),
       );
@@ -481,56 +359,12 @@ void main() {
                 const ContextBreadcrumbItem(label: 'Workshops'),
               ],
             ),
-            child: _buildSamplePageContent(isArabic: false),
+            child: _buildSamplePageContent(),
           ),
         ),
       );
       await tester.pumpAndSettle();
       await _capture(tester, key, 'compact_360.png');
-
-      // 5. Arabic RTL 1280 Desktop
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(
-        _screenshotHarness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(1280, 900),
-          child: PlatformShell(
-            currentRoute: '/workshops',
-            contextBar: PlatformContextBar(
-              breadcrumbs: [
-                ContextBreadcrumbItem(label: 'إدارة المنصة', onTap: () {}),
-                const ContextBreadcrumbItem(label: 'الورش المعتمدة'),
-              ],
-            ),
-            child: _buildSamplePageContent(isArabic: true),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'arabic_rtl_1280.png');
-
-      // 6. Arabic RTL 360 Mobile
-      await tester.binding.setSurfaceSize(const Size(360, 800));
-      await tester.pumpWidget(
-        _screenshotHarness(
-          boundaryKey: key,
-          locale: const Locale('ar'),
-          surfaceSize: const Size(360, 800),
-          child: PlatformShell(
-            currentRoute: '/workshops',
-            contextBar: PlatformContextBar(
-              breadcrumbs: [
-                ContextBreadcrumbItem(label: 'إدارة المنصة', onTap: () {}),
-                const ContextBreadcrumbItem(label: 'الورش المعتمدة'),
-              ],
-            ),
-            child: _buildSamplePageContent(isArabic: true),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _capture(tester, key, 'arabic_rtl_360.png');
 
       tester.binding.setSurfaceSize(null);
     });
@@ -545,14 +379,6 @@ void _expectActionableSidebarIfVisible(WidgetTester tester) {
     return;
   }
   expect(find.byKey(const Key('sidebar-language-loading')), findsNothing);
-  expect(find.text('Deutsch (DE)'), findsOneWidget);
-  expect(find.byKey(const Key('btn-sidebar-language-action')), findsOneWidget);
-  if (find.text('Translating').evaluate().isNotEmpty) {
-    expect(find.text('42 of 100 translated (42%)'), findsOneWidget);
-    expect(find.text('Continue generation'), findsOneWidget);
-  } else {
-    expect(find.text('قيد الترجمة'), findsWidgets);
-    expect(find.text('42 من 100 مترجم (42%)'), findsOneWidget);
-    expect(find.text('متابعة التوليد'), findsOneWidget);
-  }
+  // English-only baseline: the sidebar is quiet and may expose no action.
+  expect(find.byKey(const Key('btn-sidebar-language-action')), findsNothing);
 }

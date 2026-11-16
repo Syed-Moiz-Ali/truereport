@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:api_client/api_client.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,64 +44,6 @@ class TranslationQueueScreen extends ConsumerStatefulWidget {
 
 class _TranslationQueueScreenState
     extends ConsumerState<TranslationQueueScreen> {
-  bool _publishing = false;
-
-  Future<void> _publish(TranslationBacklog backlog, String nativeName) async {
-    final strings = ref.read(uiStringsProvider);
-    final confirmed = await showPlatformConfirmDialog(
-      context: context,
-      title: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
-      body: '$nativeName (${widget.languageCode})',
-      confirmLabel: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
-    );
-    if (!confirmed || !mounted) return;
-    setState(() => _publishing = true);
-    try {
-      await ref
-          .read(translationApiProvider)
-          .publishLanguage(widget.languageCode);
-      if (!mounted) return;
-      ref.invalidate(languageBacklogProvider(widget.languageCode));
-      ref.invalidate(languageCoverageProvider(widget.languageCode));
-      ref.invalidate(platformLanguagesProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${strings.tKey(PlatformAdminKeys.statusLanguageLive)}: ${widget.languageCode}',
-          ),
-        ),
-      );
-    } on AppFailure catch (failure) {
-      if (!mounted) return;
-      // Surface backend TRANSLATION_REQUIRED field errors so the publish
-      // gate explains which entity still blocks going LIVE.
-      var message = failure.messageKey;
-      if (failure is ApiFailure && failure.errors.isNotEmpty) {
-        final details = failure.errors
-            .map((error) {
-              final field = '${error['field'] ?? ''}'.trim();
-              final detail = '${error['message'] ?? error['code'] ?? ''}'
-                  .trim();
-              if (field.isEmpty) return detail;
-              if (detail.isEmpty) return field;
-              return '$field: $detail';
-            })
-            .where((line) => line.isNotEmpty && line != ':')
-            .join('; ');
-        if (details.isNotEmpty) message = '$message ($details)';
-      }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(strings.tKey(CommonKeys.stateError))),
-      );
-    } finally {
-      if (mounted) setState(() => _publishing = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
@@ -117,9 +58,6 @@ class _TranslationQueueScreenState
     final nativeName = language != null && language.nativeName.isNotEmpty
         ? language.nativeName
         : widget.languageCode;
-    final data = backlog.maybeWhen(data: (value) => value, orElse: () => null);
-    final canPublish = data != null && data.isComplete && !_publishing;
-
     return PlatformShell(
       currentRoute: '/settings/languages',
       contextBar: PlatformContextBar(
@@ -133,14 +71,6 @@ class _TranslationQueueScreenState
             onTap: () => context.go('/settings/languages'),
           ),
           ContextBreadcrumbItem(label: widget.languageCode),
-        ],
-        actions: [
-          PlatformPrimaryButton(
-            label: strings.tKey(PlatformAdminKeys.buttonQueuePublishLanguage),
-            icon: Icons.publish_rounded,
-            isLoading: _publishing,
-            onPressed: canPublish ? () => _publish(data, nativeName) : null,
-          ),
         ],
       ),
       child: PlatformPage(
@@ -404,7 +334,6 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
     final backlog = widget.backlog;
     final filtered = _filtered();
     final counts = _counts();
-    final complete = backlog.isComplete;
     final status = widget.registryStatus ?? backlog.languageStatus;
     final percent = backlog.coveragePercent.clamp(0, 100).toDouble();
     final entityTypes =
@@ -443,18 +372,6 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
             valueColor: const AlwaysStoppedAnimation<Color>(PtTheme.deepGreen),
           ),
         ),
-        if (!complete) ...[
-          const SizedBox(height: 8),
-          // Publish gate + new-content gating note: publishing the language
-          // (and new content while a language is LIVE) requires every
-          // required translation to be approved.
-          Text(
-            strings.tKey(PlatformAdminKeys.validationLanguagePublishBlocked),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: PtTheme.font(12, color: PtTheme.muted),
-          ),
-        ],
         const SizedBox(height: 16),
         Wrap(
           spacing: 12,
@@ -536,7 +453,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
             title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
             body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
           )
-        else if (filtered.isEmpty)
+        else if (filtered.isEmpty) ...[
           if (_missingOnly && !backlog.allItems.any((item) => item.isMissing))
             PlatformEmptyView(
               icon: Icons.translate_rounded,
@@ -547,8 +464,8 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
             PlatformEmptyView(
               icon: Icons.search_off_rounded,
               title: strings.tKey(CommonKeys.emptyTitle),
-            )
-        else ...[
+            ),
+        ] else ...[
           for (final group in backlog.groups)
             if (_entityFilter == _allTypes ||
                 group.entityType.toUpperCase() == _entityFilter) ...[

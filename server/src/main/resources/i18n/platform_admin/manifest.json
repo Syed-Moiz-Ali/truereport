@@ -7,20 +7,6 @@
       "nativeName": "English",
       "direction": "ltr",
       "file": "en.json"
-    },
-    {
-      "code": "ar",
-      "name": "Arabic",
-      "nativeName": "العربية",
-      "direction": "rtl",
-      "file": "ar.json"
-    },
-    {
-      "code": "zh-Hans",
-      "name": "Chinese (Simplified)",
-      "nativeName": "简体中文",
-      "direction": "ltr",
-      "file": "zh-Hans.json"
     }
   ]
 }

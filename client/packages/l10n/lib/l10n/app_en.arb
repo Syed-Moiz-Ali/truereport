@@ -1256,7 +1256,6 @@
   "langCompleteTranslations": "Complete translations",
   "langPublish": "Publish language",
   "langPublishBlocked": "Complete all required translations to publish.",
-  "queueTitle": "Translation queue",
   "queueMissing": "Missing",
   "queueDraft": "Draft",
   "queueReviewed": "Reviewed",

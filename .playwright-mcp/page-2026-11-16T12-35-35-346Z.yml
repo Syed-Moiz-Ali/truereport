@@ -1,0 +1,60 @@
+- generic [ref=e5] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e156]: TrueReport
+          - generic [ref=e157]: Platform Admin
+          - button "Platform Admin" [ref=e158]
+          - textbox "Search platform assets, specs, workshop nodes..." [ref=e160]
+          - generic [ref=e161]: English
+          - button "Notifications":
+            - button "Notifications" [ref=e162]
+          - button "Help":
+            - button "Help" [ref=e163]
+          - button "Account Platform Admin, Platform Admin" [ref=e164]
+          - generic:
+            - group:
+              - button "Dashboard Dashboard" [ref=e165]
+              - button "Workshops Workshops" [ref=e167]
+              - button "Checklist Checklist" [ref=e169]
+              - button "Reports Reports" [ref=e171]
+              - button "Audit Log Audit Log" [ref=e173]
+              - button "Settings Settings" [ref=e175]
+          - generic [ref=e176]: All languages live
+          - button "View languages" [ref=e177]
+          - generic [ref=e178]: System Operational
+          - generic [ref=e179]: Platform Admin
+          - generic [ref=e180]: Platform Admin
+          - button "Sign out" [ref=e181]
+          - group:
+            - generic [ref=e182]: LO
+            - generic [ref=e183]: Live Ownership Workshop
+            - generic [ref=e184]: Active
+            - button "Edit workshop" [ref=e185]
+            - button "Actions" [ref=e186]
+            - generic [ref=e187]: Verification Bay
+            - button "Overview Overview" [ref=e188]
+            - button "Staff Staff" [active] [ref=e189]
+            - button "Available templates Available templates" [ref=e190]
+            - button "Activity Activity" [ref=e191]
+            - generic [ref=e192]: "0"
+            - generic [ref=e193]: "0"
+            - generic [ref=e194]: Staff
+            - generic [ref=e195]: Technicians
+            - generic [ref=e196]: "0"
+            - generic [ref=e197]: 8 • 88%
+            - generic [ref=e198]: Pending invitations
+            - generic [ref=e199]: Capacity
+            - generic [ref=e219]: Staff
+            - generic [ref=e220]: "0"
+            - button "Add staff" [ref=e221]
+            - generic [ref=e222]: Workshop Admins (0)
+            - generic [ref=e223]: No workshop admins yet.
+            - generic [ref=e224]: Invite a workshop admin to manage staff and templates.
+            - generic [ref=e225]: Technicians (0)
+            - generic [ref=e226]: No technicians yet.
+            - generic [ref=e227]: Add technicians so this workshop can take inspection jobs.
+            - generic [ref=e228]: Pending invitations (0)
+            - generic [ref=e229]: No pending invitations.
+            - generic [ref=e230]: Invitations appear here until the recipient signs in.
