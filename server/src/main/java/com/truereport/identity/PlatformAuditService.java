@@ -6,6 +6,7 @@ import com.truereport.identity.api.AuditEventPageDto;
 import jakarta.persistence.EntityManager;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class PlatformAuditService {
     public List<AuditEventDto> query(String action, String entityType, String actor,
                                      String dateFrom, String dateTo, String search,
                                      String sort) {
-        entityManager.flush();
+        flushPendingAuditWrites();
         List<AuditEventDto> merged = new ArrayList<>();
         merged.addAll(platformEvents());
         merged.addAll(legacyEvents());
@@ -85,6 +86,18 @@ public class PlatformAuditService {
                     .append('\n');
         }
         return csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AuditService writes legacy audit rows through JPA. Inside a transaction,
+     * flush preserves same-request read-your-writes. Outside a transaction there
+     * is no pending persistence context, and flushing would throw
+     * TransactionRequiredException.
+     */
+    private void flushPendingAuditWrites() {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            entityManager.flush();
+        }
     }
 
     private List<AuditEventDto> platformEvents() {

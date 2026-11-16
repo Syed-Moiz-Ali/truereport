@@ -1,6 +1,7 @@
 package com.truereport;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.truereport.audit.AuditService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +17,22 @@ class PlatformAuditIT extends IntegrationTestBase {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    AuditService auditService;
+
+    @Test
+    void auditEventsVisibleAfterAuditWrite() throws Exception {
+        Login platform = login("platform@test.local");
+        String action = "AUDIT_WRITE_THEN_READ_" + UUID.randomUUID();
+        auditService.record(null, fixture.platform().getId(), "PLATFORM_ADMIN",
+                action, "USER", fixture.platform().getId(), null, "{}");
+
+        JsonNode events = getJson(platform,
+                "/api/v1/platform/audit-events?action=" + action);
+        assertThat(events.isArray()).isTrue();
+        assertThat(events.toString()).contains(action);
+    }
 
     @Test
     void filtersAndPaginatesAuditEvents() throws Exception {
