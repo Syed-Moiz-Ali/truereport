@@ -53,6 +53,8 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
     required this.bodyStrong,
     required this.meta,
     required this.eyebrow,
+    required this.panelHeadline,
+    required this.panelBody,
   });
 
   /// Warm off-white page canvas.
@@ -113,6 +115,12 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
   final TextStyle meta;
   final TextStyle eyebrow;
 
+  /// Brand-panel headline (dark surface). 34/42 w700.
+  final TextStyle panelHeadline;
+
+  /// Brand-panel supporting line (dark surface). 15/22 w400.
+  final TextStyle panelBody;
+
   /// Convenience aliases for React/shadcn style token access.
   TextStyle get metadata => meta;
   Color get surfaceMuted => canvas;
@@ -121,12 +129,12 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
 
   /// 40-44px bold stat figure with tabular numbers.
   TextStyle get heroNumber => pageTitle.copyWith(
-        fontSize: 40,
-        height: 44 / 40,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      );
+    fontSize: 40,
+    height: 44 / 40,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.5,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
 
   /// Horizontal gutter for the given viewport width.
   double pageGutter(double width) {
@@ -215,6 +223,8 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
       bodyStrong: style(textTheme.bodyMedium, 14, 21, FontWeight.w600, 0),
       meta: style(textTheme.bodySmall, 12.5, 18, FontWeight.w500, 0),
       eyebrow: style(textTheme.bodySmall, 11, 16, FontWeight.w600, 0.6),
+      panelHeadline: style(textTheme.titleLarge, 34, 42, FontWeight.w700, -0.5),
+      panelBody: style(textTheme.bodyMedium, 15, 22, FontWeight.w400, 0),
     );
   }
 
@@ -258,6 +268,8 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
     TextStyle? bodyStrong,
     TextStyle? meta,
     TextStyle? eyebrow,
+    TextStyle? panelHeadline,
+    TextStyle? panelBody,
   }) {
     return WorkshopTokens(
       canvas: canvas ?? this.canvas,
@@ -298,6 +310,8 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
       bodyStrong: bodyStrong ?? this.bodyStrong,
       meta: meta ?? this.meta,
       eyebrow: eyebrow ?? this.eyebrow,
+      panelHeadline: panelHeadline ?? this.panelHeadline,
+      panelBody: panelBody ?? this.panelBody,
     );
   }
 
@@ -348,6 +362,8 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
       bodyStrong: s(bodyStrong, other.bodyStrong),
       meta: s(meta, other.meta),
       eyebrow: s(eyebrow, other.eyebrow),
+      panelHeadline: s(panelHeadline, other.panelHeadline),
+      panelBody: s(panelBody, other.panelBody),
     );
   }
 }

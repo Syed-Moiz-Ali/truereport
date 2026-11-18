@@ -3426,6 +3426,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInHelp => 'Contact your platform administrator for access.';
 
   @override
+  String get twoFactorRequired =>
+      'Two-factor authentication is required for this account. Contact your platform administrator.';
+
+  @override
+  String get signInExampleLabel => 'Example job';
+
+  @override
+  String get signInExampleChecklist => 'Inspection checklist';
+
+  @override
+  String signInExampleProgress(int done, int total, int percent) {
+    return '$done of $total items · $percent%';
+  }
+
+  @override
+  String signInExampleStarted(int minutes) {
+    return 'Started $minutes min ago';
+  }
+
+  @override
+  String get roleLeadTechnician => 'Lead technician';
+
+  @override
+  String get signingIn => 'Signing in…';
+
+  @override
   String get jobsQueueSubtitle => 'Every inspection job in one place.';
 
   @override

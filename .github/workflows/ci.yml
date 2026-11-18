@@ -31,6 +31,12 @@ jobs:
       - name: Admin widget tests
         working-directory: client/apps/workshop_admin_app
         run: flutter test
+      - name: Admin baseline gate (new failures only)
+        working-directory: client/apps/workshop_admin_app
+        # Fails on any test failure that is not in docs/baseline_allowlist.json,
+        # and on a stale allowlist entry. Analyzer is already covered by the
+        # repo-wide "--fatal-infos" step above.
+        run: dart run tool/baseline_check.dart --skip-analyze
 
   java:
     name: Java build, tests, Modulith and ArchUnit

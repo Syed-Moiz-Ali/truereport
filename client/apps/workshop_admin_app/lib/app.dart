@@ -1,4 +1,5 @@
 import 'package:workshop_admin_app/src/admin_router.dart';
+import 'package:workshop_admin_app/src/api_language_sync.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,9 @@ class AdminApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps Accept-Language / X-Client on the shared API client in sync with
+    // the active locale (see api_language_sync.dart).
+    ref.watch(apiLanguageSyncProvider);
     final locale = ref.watch(localeProvider);
     final router = ref.watch(adminRouterProvider);
     return MaterialApp.router(

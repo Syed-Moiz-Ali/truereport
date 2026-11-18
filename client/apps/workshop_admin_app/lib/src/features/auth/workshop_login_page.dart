@@ -2,21 +2,27 @@ import 'package:auth/auth.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
-/// Calm, consumer-grade Workshop Admin sign-in.
+import 'signin/signin_form.dart';
+import 'signin/signin_identity_band.dart';
+import 'signin/signin_inspection_surface.dart';
+import 'signin/signin_language_toggle.dart';
+import 'signin/signin_mark.dart';
+
+/// Workshop Admin sign-in — direction B, "The bay" (`docs/ui_brief.md`).
 ///
-/// Wide screens get a 50/50 split:
-/// - Left: Deep green panel (#0F5C4A) with subtle geometric grid lines,
-///   brand badge, bold headline, supporting value prop, and a realistic
-///   product preview mock (mini job card with progress and tech assignment).
-///   Zero fake security badges or marketing claims.
-/// - Right: Warm off-white canvas with a centered 400 px form, 28/700 title,
-///   eye toggle on password, 48 px full-width button, and inline error banner.
+/// Composition, not paint: a flush-left door on the paper canvas and a
+/// full-bleed inspection surface carrying one labelled example job, its vehicle
+/// drawn top-down, and the checklist as 24 ticks. Below 900 px (or below
+/// 1100 px at ≥1.5× text) the surface collapses to a 132 px identity band so
+/// the first field stays above the fold.
 ///
-/// Narrow screens (< 900 px) display the logo and language toggle on top,
-/// followed immediately by the form (no full-screen green slab).
+/// This file owns behaviour only — validation, submit, failure mapping, locale
+/// switching. Every region lives in its own widget under `signin/`, and every
+/// colour, size, radius and space comes from [WorkshopTokens].
 class WorkshopLoginPage extends ConsumerStatefulWidget {
   const WorkshopLoginPage({super.key});
 
@@ -48,12 +54,20 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       _errorKey = null;
     });
     try {
-      await ref
+      final result = await ref
           .read(authControllerProvider.notifier)
           .signIn(_email.text, _password.text);
       if (!mounted) {
         return;
       }
+      // The admin app deliberately has no code-entry surface (see
+      // source_scan_test.dart), so a challenge must be explained instead of
+      // silently swallowing the result.
+      if (result is AuthChallenge) {
+        setState(() => _errorKey = 'twoFactorRequired');
+        return;
+      }
+      TextInput.finishAutofillContext();
     } on AppFailure catch (failure) {
       if (!mounted) {
         return;
@@ -100,8 +114,19 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
         : AppLocalizations.of(context).invalidEmail;
   }
 
-  void _toggleLanguage(bool isArabic) {
-    ref.read(localeProvider.notifier).setLocale(Locale(isArabic ? 'ar' : 'en'));
+  void _toggleLanguage() {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    ref.read(localeProvider.notifier).setLocale(Locale(isArabic ? 'en' : 'ar'));
+  }
+
+  String? _errorText(AppLocalizations l10n) {
+    return switch (_errorKey) {
+      'invalidCredentials' => l10n.invalidCredentials,
+      'networkError' => l10n.networkError,
+      'twoFactorRequired' => l10n.twoFactorRequired,
+      'genericError' => l10n.genericError,
+      _ => null,
+    };
   }
 
   @override
@@ -109,99 +134,74 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
-    final locale = ref.watch(localeProvider);
-    final isArabic = locale.languageCode == 'ar';
-    final errorText = switch (_errorKey) {
-      'invalidCredentials' => l10n.invalidCredentials,
-      'networkError' => l10n.networkError,
-      'genericError' => l10n.genericError,
-      _ => null,
-    };
-
-    final languageButton = WorkshopButton(
-      label: isArabic ? l10n.languageEnglish : l10n.languageArabic,
-      icon: Icons.language,
-      variant: WorkshopButtonVariant.ghost,
-      onPressed: () => _toggleLanguage(!isArabic),
-    );
+    final errorText = _errorText(l10n);
 
     return Scaffold(
       backgroundColor: ws.canvas,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 900;
-            final form = _buildForm(context, l10n: l10n, errorText: errorText);
+            // At 1.5× text the two-up split stops fitting honest line lengths,
+            // so it collapses earlier than the width-only breakpoint.
+            final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+            final splitAt = textScale >= 1.5 ? 1100.0 : 900.0;
+            final split = constraints.maxWidth >= splitAt;
 
-            if (!wide) {
+            final form = AutofillGroup(
+              child: SigninForm(
+                formKey: _formKey,
+                emailController: _email,
+                passwordController: _password,
+                obscurePassword: _obscurePassword,
+                submitting: _submitting,
+                errorText: errorText,
+                onToggleObscure: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                onSubmit: _submit,
+                validateEmail: _validateEmail,
+                validatePassword: _required,
+                autofocusEmail: split,
+              ),
+            );
+
+            // One 180 ms settle on first paint (zero under reduced motion).
+            final settle = TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: 1),
+              duration: context.motionDuration(
+                const Duration(milliseconds: 180),
+              ),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(0, 8 * (1 - t)),
+                  child: child,
+                ),
+              ),
+              child: form,
+            );
+
+            if (!split) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: ws.pageGutterPhone,
-                      vertical: spacing.md,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ws.surface,
-                      border: BorderDirectional(
-                        bottom: BorderSide(color: ws.border),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: ws.accent,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'TR',
-                            style: ws.meta.copyWith(
-                              color: ws.onAccent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: spacing.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'TrueReport',
-                                style: ws.sectionTitle.copyWith(
-                                  color: ws.ink,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                l10n.signInPortalLabel,
-                                style: ws.meta.copyWith(color: ws.muted),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: spacing.sm),
-                        languageButton,
-                      ],
-                    ),
-                  ),
+                  SigninIdentityBand(onToggleLanguage: _toggleLanguage),
                   Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: ws.pagePaddingOf(context),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        spacing.lg,
+                        spacing.xl,
+                        spacing.lg,
+                        spacing.lg,
+                      ),
+                      // Top-weighted at every size: a phone user is in a hurry,
+                      // and a tablet should not float the door in the middle of
+                      // the screen. The band and the form share one 520 column.
+                      child: Align(
+                        alignment: AlignmentDirectional.topCenter,
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          child: form,
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: settle,
                         ),
                       ),
                     ),
@@ -210,32 +210,69 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
               );
             }
 
+            // 46 / 54: the door is narrower than the work it opens onto.
+            final gutter = constraints.maxWidth >= 1200
+                ? spacing.massive + spacing.xl
+                : spacing.massive;
+
             return Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: _BrandPanel(l10n: l10n),
-                ),
-                Expanded(
+                  flex: 46,
                   child: Stack(
                     children: [
-                      Center(
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                          gutter,
+                          spacing.xxl,
+                          spacing.massive,
+                          spacing.xxl,
+                        ),
                         child: SingleChildScrollView(
-                          padding: EdgeInsetsDirectional.all(spacing.massive),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 400),
-                            child: form,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // The portal label already appears as the accent
+                              // eyebrow inside the form; printing it twice
+                              // within 80 px read as a mistake.
+                              const Row(
+                                children: [
+                                  Flexible(
+                                    child: SigninMark(
+                                      onAccent: false,
+                                      showPortalLabel: false,
+                                    ),
+                                  ),
+                                  Spacer(),
+                                ],
+                              ),
+                              const SizedBox(height: 96),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 372,
+                                ),
+                                child: settle,
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      // Declared after the form so it is the last tab stop,
+                      // while still sitting in the top-right corner.
                       PositionedDirectional(
-                        top: spacing.lg,
+                        top: spacing.xxl,
                         end: spacing.lg,
-                        child: languageButton,
+                        child: SigninLanguageToggle(
+                          onAccent: false,
+                          onPressed: _toggleLanguage,
+                        ),
                       ),
                     ],
                   ),
                 ),
+                const Expanded(flex: 54, child: SigninInspectionSurface()),
               ],
             );
           },
@@ -243,376 +280,4 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       ),
     );
   }
-
-  Widget _buildForm(
-    BuildContext context, {
-    required AppLocalizations l10n,
-    required String? errorText,
-  }) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.signInTitle,
-            style: ws.pageTitle.copyWith(letterSpacing: -0.5),
-          ),
-          SizedBox(height: spacing.xs),
-          Text(
-            l10n.signInSubtitle,
-            style: ws.body.copyWith(color: ws.muted),
-          ),
-          SizedBox(height: spacing.xl),
-          WorkshopTextField(
-            key: const Key('sign-in-email'),
-            controller: _email,
-            label: l10n.emailLabel,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            validator: _validateEmail,
-          ),
-          SizedBox(height: spacing.lg),
-          WorkshopTextField(
-            key: const Key('sign-in-password'),
-            controller: _password,
-            label: l10n.passwordLabel,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                size: 18,
-                color: ws.muted,
-              ),
-              onPressed: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-            ),
-            validator: _required,
-            onFieldSubmitted: (_) {
-              if (!_submitting) {
-                _submit();
-              }
-            },
-          ),
-          if (errorText != null) ...[
-            SizedBox(height: spacing.md),
-            Semantics(
-              liveRegion: true,
-              child: Container(
-                padding: EdgeInsetsDirectional.all(spacing.sm),
-                decoration: BoxDecoration(
-                  color: ws.dangerSoft,
-                  borderRadius: BorderRadius.circular(ws.controlRadius),
-                  border: Border.all(
-                    color: ws.danger.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.error_outline, size: 16, color: ws.danger),
-                    SizedBox(width: spacing.sm),
-                    Expanded(
-                      child: Text(
-                        errorText,
-                        style: ws.body.copyWith(
-                          color: ws.danger,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          SizedBox(height: spacing.xl),
-          WorkshopButton(
-            key: const Key('sign-in-submit'),
-            label: l10n.signInButton,
-            expand: true,
-            isLoading: _submitting,
-            onPressed: _submitting ? null : _submit,
-          ),
-          SizedBox(height: spacing.lg),
-          Center(
-            child: Text(
-              l10n.signInHelp,
-              style: ws.meta.copyWith(color: ws.muted),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BrandPanel extends StatelessWidget {
-  const _BrandPanel({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return CustomPaint(
-      painter: const _GridPatternPainter(),
-      child: Container(
-        color: ws.accent,
-        padding: EdgeInsetsDirectional.all(spacing.massive),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: ws.surface,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'TR',
-                    style: ws.meta.copyWith(
-                      color: ws.accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                SizedBox(width: spacing.sm),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'TrueReport',
-                      style: ws.sectionTitle.copyWith(
-                        color: ws.onAccent,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      l10n.signInPortalLabel,
-                      style: ws.meta.copyWith(
-                        color: ws.onAccent.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Spacer(),
-            Text(
-              'Inspections your\ncustomers can trust.',
-              style: ws.pageTitle.copyWith(
-                color: ws.onAccent,
-                fontSize: 36,
-                height: 44 / 36,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
-              ),
-            ),
-            SizedBox(height: spacing.md),
-            Text(
-              l10n.signInBrandLine,
-              style: ws.body.copyWith(
-                color: ws.onAccent.withValues(alpha: 0.85),
-                fontSize: 15,
-                height: 22 / 15,
-              ),
-            ),
-            SizedBox(height: spacing.xl),
-            _ProductPreviewMock(l10n: l10n),
-            const Spacer(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Realistic UI preview mock shown on the desktop brand panel.
-class _ProductPreviewMock extends StatelessWidget {
-  const _ProductPreviewMock({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return Container(
-      decoration: BoxDecoration(
-        color: ws.surface,
-        borderRadius: BorderRadius.circular(ws.cardRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      padding: EdgeInsetsDirectional.all(spacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '2023 Porsche 911 GT3',
-                  style: ws.cardTitle.copyWith(color: ws.ink),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: spacing.sm,
-                  vertical: spacing.xxs,
-                ),
-                decoration: BoxDecoration(
-                  color: ws.warningSoft,
-                  borderRadius: BorderRadius.circular(ws.chipRadius),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: ws.warning,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: spacing.xs),
-                    Text(
-                      l10n.statusInProgress,
-                      style: ws.eyebrow.copyWith(
-                        color: ws.warning,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: spacing.xs),
-          Row(
-            children: [
-              Text(
-                'DXB 48291',
-                style: ws.meta.copyWith(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w700,
-                  color: ws.ink,
-                ),
-              ),
-              SizedBox(width: spacing.sm),
-              Text('·', style: ws.meta.copyWith(color: ws.muted)),
-              SizedBox(width: spacing.sm),
-              Text(
-                'Rashid Al Mansoori',
-                style: ws.meta.copyWith(color: ws.muted),
-              ),
-            ],
-          ),
-          SizedBox(height: spacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Inspection checklist',
-                style: ws.eyebrow.copyWith(color: ws.muted, letterSpacing: 0),
-              ),
-              Text(
-                '18 / 24 items (75%)',
-                style: ws.eyebrow.copyWith(
-                  color: ws.accent,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: spacing.xs),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: SizedBox(
-              height: 6,
-              child: LinearProgressIndicator(
-                value: 0.75,
-                backgroundColor: ws.border,
-                valueColor: AlwaysStoppedAnimation<Color>(ws.accent),
-              ),
-            ),
-          ),
-          SizedBox(height: spacing.md),
-          Row(
-            children: [
-              const WorkshopAvatar(
-                initials: 'KA',
-                semanticLabel: 'Karim Ahmed',
-                size: 24,
-              ),
-              SizedBox(width: spacing.sm),
-              Expanded(
-                child: Text(
-                  'Karim Ahmed · Lead Tech',
-                  style: ws.meta.copyWith(color: ws.ink),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                'Started 45m ago',
-                style: ws.meta.copyWith(color: ws.muted),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Subtle geometric grid lines on the brand panel.
-class _GridPatternPainter extends CustomPainter {
-  const _GridPatternPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    const step = 48.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

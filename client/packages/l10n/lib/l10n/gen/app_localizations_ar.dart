@@ -3401,6 +3401,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signInHelp => 'تواصل مع مدير المنصة للحصول على الوصول.';
 
   @override
+  String get twoFactorRequired =>
+      'المصادقة الثنائية مطلوبة لهذا الحساب. تواصل مع مدير المنصة.';
+
+  @override
+  String get signInExampleLabel => 'مثال على مهمة';
+
+  @override
+  String get signInExampleChecklist => 'قائمة الفحص';
+
+  @override
+  String signInExampleProgress(int done, int total, int percent) {
+    return '$done من $total عنصرًا · $percent%';
+  }
+
+  @override
+  String signInExampleStarted(int minutes) {
+    return 'بدأت قبل $minutes دقيقة';
+  }
+
+  @override
+  String get roleLeadTechnician => 'فني أول';
+
+  @override
+  String get signingIn => 'جارٍ تسجيل الدخول…';
+
+  @override
   String get jobsQueueSubtitle => 'كل مهام الفحص في مكان واحد.';
 
   @override

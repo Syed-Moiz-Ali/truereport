@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
+import 'package:workshop_admin_app/src/features/auth/signin/signin_primitives.dart';
 
 Widget _wrap(Widget child, Locale locale) {
   return MaterialApp(
@@ -32,7 +33,9 @@ void main() {
   ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      ProviderScope(child: _wrap(const SignInPage(), const Locale('en'))),
+      ProviderScope(
+        child: _wrap(const WorkshopLoginPage(), const Locale('en')),
+      ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -44,7 +47,9 @@ void main() {
   ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      ProviderScope(child: _wrap(const SignInPage(), const Locale('ar'))),
+      ProviderScope(
+        child: _wrap(const WorkshopLoginPage(), const Locale('ar')),
+      ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -77,7 +82,7 @@ void main() {
   });
 
   testWidgets(
-    'Workshop Admin login renders desktop split view without overflow',
+    'Workshop Admin login renders the desktop bay layout without overflow',
     (tester) async {
       tester.view.physicalSize = const Size(1280, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -96,8 +101,16 @@ void main() {
       final l10n = AppLocalizations.of(
         tester.element(find.byType(WorkshopLoginPage)),
       );
-      expect(find.text(l10n.signInPortalLabel), findsWidgets);
-      expect(find.text(l10n.signInBrandLine), findsOneWidget);
+      // The portal label appears exactly once on the door: the mark's
+      // sub-label is suppressed at split widths because the accent eyebrow
+      // already says it (printing both read as a mistake).
+      expect(find.text(l10n.signInPortalLabel.toUpperCase()), findsOneWidget);
+      // The committed signature is the labelled example job on the inspection
+      // surface (docs/ui_brief.md, direction B). It replaced the old brand
+      // line, which this test used to pin; the line is no longer rendered.
+      expect(find.text(l10n.signInExampleLabel.toUpperCase()), findsOneWidget);
+      expect(find.byType(WorkshopChassisMark), findsOneWidget);
+      expect(find.byType(WorkshopTickSpine), findsOneWidget);
       expect(find.text(l10n.signInTitle), findsWidgets);
       expect(find.text(l10n.signInHelp), findsOneWidget);
       expect(find.byKey(const Key('sign-in-email')), findsOneWidget);

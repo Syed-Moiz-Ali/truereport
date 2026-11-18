@@ -1309,6 +1309,32 @@
   "signInBrandLine": "Inspection jobs, checklists, and reports for your workshop.",
   "signInPortalLabel": "Workshop Admin",
   "signInHelp": "Contact your platform administrator for access.",
+  "twoFactorRequired": "Two-factor authentication is required for this account. Contact your platform administrator.",
+  "@twoFactorRequired": {
+    "description": "Shown when the login API answers requiresTwoFactor. The admin app has no TOTP input by design."
+  },
+  "signInExampleLabel": "Example job",
+  "signInExampleChecklist": "Inspection checklist",
+  "signInExampleProgress": "{done} of {total} items · {percent}%",
+  "@signInExampleProgress": {
+    "description": "Progress line on the labelled example job. Never concatenate this from fragments.",
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" },
+      "percent": { "type": "int" }
+    }
+  },
+  "signInExampleStarted": "Started {minutes} min ago",
+  "@signInExampleStarted": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "roleLeadTechnician": "Lead technician",
+  "signingIn": "Signing in…",
+  "@signingIn": {
+    "description": "Screen-reader announcement while the sign-in request is in flight. Never shown visually."
+  },
   "jobsQueueSubtitle": "Every inspection job in one place.",
   "notPublished": "Not published",
   "templateItemsCount": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",

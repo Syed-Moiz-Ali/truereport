@@ -1,0 +1,32 @@
+{
+  "_source": "CONSTRUCTED from ApiExceptionHandler.handleValidation(...). NOT a live capture.",
+  "_http": "422 Unprocessable Entity",
+  "type": "about:blank",
+  "title": "Unprocessable Entity",
+  "status": 422,
+  "detail": "Validation failed",
+  "instance": "/api/v1/auth/login",
+  "code": "VALIDATION_FAILED",
+  "messageKey": "error.validation.failed",
+  "traceId": "5b418c5f9c1d4d47b3f3c2a8c1f0e9d2",
+  "messageEn": "Validation failed",
+  "messageAr": "فشل التحقق",
+  "fieldErrors": [
+    {
+      "field": "email",
+      "code": "NotBlank",
+      "messageKey": "error.field.required",
+      "messageEn": "must not be blank",
+      "messageAr": "لا يجب أن يكون فارغًا"
+    }
+  ],
+  "errors": [
+    {
+      "field": "email",
+      "code": "NotBlank",
+      "messageKey": "error.field.required",
+      "messageEn": "must not be blank",
+      "messageAr": "لا يجب أن يكون فارغًا"
+    }
+  ]
+}

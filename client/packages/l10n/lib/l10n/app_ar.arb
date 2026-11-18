@@ -1309,6 +1309,16 @@
   "signInBrandLine": "مهام الفحص وقوائم التحقق والتقارير لورشك.",
   "signInPortalLabel": "مدير الورشة",
   "signInHelp": "تواصل مع مدير المنصة للحصول على الوصول.",
+  "twoFactorRequired": "المصادقة الثنائية مطلوبة لهذا الحساب. تواصل مع مدير المنصة.",
+  "signInExampleLabel": "مثال على مهمة",
+  "signInExampleChecklist": "قائمة الفحص",
+  "signInExampleProgress": "{done} من {total} عنصرًا · {percent}%",
+  "signInExampleStarted": "بدأت قبل {minutes} دقيقة",
+  "roleLeadTechnician": "فني أول",
+  "signingIn": "جارٍ تسجيل الدخول…",
+  "@signingIn": {
+    "description": "Screen-reader announcement while the sign-in request is in flight. Never shown visually."
+  },
   "jobsQueueSubtitle": "كل مهام الفحص في مكان واحد.",
   "notPublished": "غير منشور",
   "templateItemsCount": "{count, plural, =0{لا عناصر} =1{عنصر واحد} other{{count} عنصر}}",

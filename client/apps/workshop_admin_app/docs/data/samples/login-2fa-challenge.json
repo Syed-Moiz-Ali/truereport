@@ -1,0 +1,12 @@
+{
+  "_source": "CONSTRUCTED from AuthResponse.challenge(...) in AuthResponse.java. NOT a live capture.",
+  "_note": "Requires ADMIN_TOTP_REQUIRED=true and a user with totpEnabled=true. Default config is false (application.yml:80-81), so this shape is unreachable in the default dev environment.",
+  "accessToken": null,
+  "refreshToken": null,
+  "tokenType": null,
+  "expiresInSeconds": 0,
+  "user": null,
+  "memberships": [],
+  "requiresTwoFactor": true,
+  "challengeToken": "<short-lived-jwt-purpose-2fa>"
+}

@@ -6,7 +6,6 @@ import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +18,7 @@ import 'package:workshop_admin_app/src/features/reports/report_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
 
 import 'support/fake_admin_api.dart';
+import 'support/real_fonts.dart';
 
 /// Real-font visual evidence for every required Workshop Admin screen.
 ///
@@ -26,65 +26,12 @@ import 'support/fake_admin_api.dart';
 /// template builder, reports, settings.
 /// Sizes: 1440 EN, 1280 EN, 768 EN, 360 EN, 1280 AR.
 ///
+/// Fonts are registered globally by `test/flutter_test_config.dart`
+/// ([RealFonts]); the first test fails if they are missing, so this suite can
+/// never silently capture Ahem boxes.
+///
 /// The report screen intentionally captures the published fixture job
 /// (`job-3`) so evidence shows a real report preview, never an error state.
-bool _realFontsLoaded = false;
-
-Future<void> _loadRealFonts() async {
-  final fontDir = Directory('../../packages/design_system/assets/fonts');
-  if (!fontDir.existsSync()) return;
-
-  final families = <String, FontLoader>{};
-  await for (final entity in fontDir.list()) {
-    if (entity is! File) continue;
-    final name = entity.uri.pathSegments.last;
-    if (!name.endsWith('.ttf') && !name.endsWith('.otf')) continue;
-
-    String? family;
-    if (name.startsWith('PlusJakartaSans')) {
-      family = TrFonts.latin;
-    } else if (name.startsWith('NotoSansArabic')) {
-      family = TrFonts.arabicDefault;
-    } else if (name.startsWith('IBMPlexSansArabic')) {
-      family = TrFonts.arabicAlternative;
-    } else if (name.startsWith('NotoSansSC')) {
-      family = TrFonts.cjkFallback;
-    } else if (name.startsWith('NotoSansTelugu')) {
-      family = TrFonts.teluguFallback;
-    } else if (name.startsWith('NotoSans-')) {
-      family = TrFonts.cyrillicFallback;
-    }
-
-    if (family == null) continue;
-    final bytes = await entity.readAsBytes();
-    final loader = families.putIfAbsent(family, () => FontLoader(family!));
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
-
-    // Register the unprefixed family name for theme lookups.
-    final bareFamily = family.replaceFirst('packages/design_system/', '');
-    final bareLoader = families.putIfAbsent(
-      bareFamily,
-      () => FontLoader(bareFamily),
-    );
-    bareLoader.addFont(Future.value(ByteData.sublistView(bytes)));
-  }
-
-  const materialPath = 'build/unit_test_assets/fonts/MaterialIcons-Regular.otf';
-  final materialFile = File(materialPath);
-  if (materialFile.existsSync()) {
-    final bytes = await materialFile.readAsBytes();
-    final loader = families.putIfAbsent(
-      'MaterialIcons',
-      () => FontLoader('MaterialIcons'),
-    );
-    loader.addFont(Future.value(ByteData.sublistView(bytes)));
-  }
-
-  for (final entry in families.entries) {
-    await entry.value.load();
-  }
-  _realFontsLoaded = families.isNotEmpty;
-}
 
 class _ScreenshotHarness extends ConsumerStatefulWidget {
   const _ScreenshotHarness({
@@ -225,7 +172,7 @@ Future<void> _openWorkshopSection(WidgetTester tester, Key key) async {
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    await _loadRealFonts();
+    await RealFonts.load();
   });
 
   const sizes = <String, Size>{
@@ -290,7 +237,8 @@ void main() {
 
   group('Workshop Admin real-font screenshots', () {
     test('real fonts are loaded (never Ahem-only evidence)', () {
-      expect(_realFontsLoaded, isTrue);
+      expect(RealFonts.isLoaded, isTrue);
+      expect(RealFonts.missingFamilies, isEmpty);
     });
 
     for (final entry in sizes.entries) {
@@ -328,6 +276,5 @@ void main() {
         );
       });
     }
-
   });
 }

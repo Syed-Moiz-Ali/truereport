@@ -12,8 +12,8 @@ class Membership {
   final Role role;
 
   factory Membership.fromJson(Map<String, dynamic> json) => Membership(
-        workshopId: json['workshopId'] as String,
-        workshopName: json['workshopName'] as String,
-        role: Role.fromApi(json['role'] as String?) ?? Role.technician,
-      );
+    workshopId: json['workshopId'] as String,
+    workshopName: json['workshopName'] as String,
+    role: Role.fromApi(json['role'] as String?) ?? Role.leastPrivilege,
+  );
 }

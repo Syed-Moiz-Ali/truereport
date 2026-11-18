@@ -6656,6 +6656,48 @@ abstract class AppLocalizations {
   /// **'Contact your platform administrator for access.'**
   String get signInHelp;
 
+  /// Shown when the login API answers requiresTwoFactor. The admin app has no TOTP input by design.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-factor authentication is required for this account. Contact your platform administrator.'**
+  String get twoFactorRequired;
+
+  /// No description provided for @signInExampleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Example job'**
+  String get signInExampleLabel;
+
+  /// No description provided for @signInExampleChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection checklist'**
+  String get signInExampleChecklist;
+
+  /// Progress line on the labelled example job. Never concatenate this from fragments.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} items · {percent}%'**
+  String signInExampleProgress(int done, int total, int percent);
+
+  /// No description provided for @signInExampleStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started {minutes} min ago'**
+  String signInExampleStarted(int minutes);
+
+  /// No description provided for @roleLeadTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead technician'**
+  String get roleLeadTechnician;
+
+  /// Screen-reader announcement while the sign-in request is in flight. Never shown visually.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get signingIn;
+
   /// No description provided for @jobsQueueSubtitle.
   ///
   /// In en, this message translates to:

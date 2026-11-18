@@ -1,8 +1,8 @@
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/auth/workshop_login_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_version_page.dart';
 import 'package:workshop_admin_app/src/features/home/workshop_admin_home.dart';
-import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,13 +15,11 @@ class _MatrixApp extends ConsumerStatefulWidget {
   const _MatrixApp({
     required this.home,
     required this.locale,
-    required this.brightness,
     this.textScale = 1,
   });
 
   final Widget home;
   final Locale locale;
-  final Brightness brightness;
   final double textScale;
 
   @override
@@ -67,7 +65,6 @@ void _setSize(WidgetTester tester, Size size) {
 Future<void> _pumpWorkshop(
   WidgetTester tester, {
   required Locale locale,
-  required Brightness brightness,
   double textScale = 1,
 }) async {
   await tester.pumpWidget(
@@ -76,7 +73,6 @@ Future<void> _pumpWorkshop(
       child: _MatrixApp(
         home: const WorkshopAdminHomePage(),
         locale: locale,
-        brightness: brightness,
         textScale: textScale,
       ),
     ),
@@ -140,39 +136,37 @@ void main() {
     'small-phone': const Size(360, 800),
     'phone': const Size(390, 844),
     'tablet-portrait': const Size(768, 1024),
+    'split-boundary': const Size(900, 800),
     'tablet': const Size(1024, 900),
     'wide': const Size(1440, 900),
   };
 
   for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final brightness in Brightness.values) {
-      for (final entry in sizes.entries) {
-        testWidgets(
-          'sign-in ${locale.languageCode} ${brightness.name} ${entry.key} has no overflow',
-          (tester) async {
-            _setSize(tester, entry.value);
-            await tester.pumpWidget(
-              ProviderScope(
-                child: _MatrixApp(
-                  home: const SignInPage(),
-                  locale: locale,
-                  brightness: brightness,
-                ),
+    for (final entry in sizes.entries) {
+      testWidgets(
+        'sign-in ${locale.languageCode} ${entry.key} has no overflow',
+        (tester) async {
+          _setSize(tester, entry.value);
+          await tester.pumpWidget(
+            ProviderScope(
+              child: _MatrixApp(
+                home: const WorkshopLoginPage(),
+                locale: locale,
               ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          if (locale.languageCode == 'ar') {
+            expect(
+              Directionality.of(
+                tester.element(find.byKey(const Key('sign-in-submit'))),
+              ),
+              TextDirection.rtl,
             );
-            await tester.pumpAndSettle();
-            expect(tester.takeException(), isNull);
-            if (locale.languageCode == 'ar') {
-              expect(
-                Directionality.of(
-                  tester.element(find.byKey(const Key('sign-in-submit'))),
-                ),
-                TextDirection.rtl,
-              );
-            }
-          },
-        );
-      }
+          }
+        },
+      );
     }
   }
 
@@ -188,9 +182,8 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               child: _MatrixApp(
-                home: const SignInPage(),
+                home: const WorkshopLoginPage(),
                 locale: locale,
-                brightness: Brightness.light,
                 textScale: 2,
               ),
             ),
@@ -203,17 +196,15 @@ void main() {
   }
 
   for (final locale in const [Locale('en'), Locale('ar')]) {
-    for (final brightness in Brightness.values) {
-      for (final entry in sizes.entries) {
-        testWidgets(
-          'workshop ${locale.languageCode} ${brightness.name} ${entry.key} has no overflow',
-          (tester) async {
-            _setSize(tester, entry.value);
-            await _pumpWorkshop(tester, locale: locale, brightness: brightness);
-            await _exerciseWorkshop(tester);
-          },
-        );
-      }
+    for (final entry in sizes.entries) {
+      testWidgets(
+        'workshop ${locale.languageCode} ${entry.key} has no overflow',
+        (tester) async {
+          _setSize(tester, entry.value);
+          await _pumpWorkshop(tester, locale: locale);
+          await _exerciseWorkshop(tester);
+        },
+      );
     }
   }
 
@@ -227,18 +218,40 @@ void main() {
           'workshop ${locale.languageCode} text scale $scale ${entry.key} has no overflow',
           (tester) async {
             _setSize(tester, entry.value);
-            await _pumpWorkshop(
-              tester,
-              locale: locale,
-              brightness: Brightness.light,
-              textScale: scale,
-            );
+            await _pumpWorkshop(tester, locale: locale, textScale: scale);
             await _exerciseWorkshop(tester);
           },
         );
       }
     }
   }
+
+  testWidgets('sign-in survives a 1440 to 360 resize', (tester) async {
+    _setSize(tester, const Size(1440, 900));
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: _MatrixApp(home: WorkshopLoginPage(), locale: Locale('en')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    tester.view.physicalSize = const Size(360, 800);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
+  });
+
+  test('the app is light-only by decision', () {
+    // AppTheme.build asserts light-only (C0 Workstream B). If a dark theme is
+    // ever introduced, this fails and the sign-in evidence matrix must grow a
+    // dark axis again.
+    expect(
+      () => AppTheme.build(brightness: Brightness.dark),
+      throwsAssertionError,
+    );
+    expect(AppTheme.light.brightness, Brightness.light);
+  });
 
   testWidgets('reduce motion helper returns zero duration', (tester) async {
     late Duration normal;

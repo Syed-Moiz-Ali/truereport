@@ -1,0 +1,20 @@
+{
+  "_source": "CONSTRUCTED from ApiClient._toFailure fallback branch (api_client.dart:260-264). NOT a live capture.",
+  "_note": "Transport failure: Dio throws without a response body. The client synthesizes AppFailure(reason) — it never reaches ProblemDetails.",
+  "body": null,
+  "resulting_app_failure": {
+    "code": "CONNECTIONERROR",
+    "messageKey": "error.network",
+    "statusCode": null,
+    "traceId": null
+  },
+  "_also_possible": [
+    "CONNECTIONTIMEOUT",
+    "SENDTIMEOUT",
+    "RECEIVETIMEOUT",
+    "BADCERTIFICATE",
+    "CANCEL",
+    "UNKNOWN"
+  ],
+  "_screen_handling": "CONNECTIONERROR / CONNECTIONTIMEOUT / SENDTIMEOUT / RECEIVETIMEOUT -> l10n.networkError; BADCERTIFICATE / CANCEL / UNKNOWN -> l10n.genericError"
+}
