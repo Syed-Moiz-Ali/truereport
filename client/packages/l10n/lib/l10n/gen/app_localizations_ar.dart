@@ -3295,10 +3295,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportLabels => 'تسميات التقارير';
 
   @override
-  String get dashboardGreeting => 'مرحباً بعودتك';
+  String dashboardGreeting(String name) {
+    return 'مرحباً بعودتك، $name';
+  }
 
   @override
-  String get dashboardToday => 'اليوم';
+  String dashboardToday(String date) {
+    return 'اليوم، $date';
+  }
 
   @override
   String get dashboardNextUp => 'التالي';
@@ -3317,6 +3321,90 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboardNoRecentJobs => 'لا توجد مهام حديثة أخرى';
+
+  @override
+  String dashFloorTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مهمة في الورشة',
+      one: 'مهمة واحدة في الورشة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashDecisionWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count بانتظار قرارك',
+      one: 'واحدة بانتظار قرارك',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashFloorLabel => 'مهمة في الورشة';
+
+  @override
+  String get dashFloorLabelOne => 'مهمة واحدة في الورشة';
+
+  @override
+  String get dashNothingWaiting => 'لا شيء بانتظار قرارك';
+
+  @override
+  String get dashFloorEmpty => 'لا توجد مهمات في الورشة';
+
+  @override
+  String get dashFloorEmptyBody => 'أنشئ أول مهمة لتظهر هنا.';
+
+  @override
+  String get dashGroupWaiting => 'بانتظارك';
+
+  @override
+  String get dashGroupInBay => 'في الورشة';
+
+  @override
+  String get dashGroupReady => 'جاهزة للنشر';
+
+  @override
+  String get dashGroupEmpty => 'لا شيء هنا الآن';
+
+  @override
+  String get dashSegmentOther => 'أخرى';
+
+  @override
+  String get dashAtlasLabel => 'المهمات حسب الحالة';
+
+  @override
+  String dashFooterSum(int total) {
+    return 'كل قطعة تمثّل عدد مهمات بحالة معيّنة، ومجموعها $total.';
+  }
+
+  @override
+  String get dashReviewVerb => 'مراجعة';
+
+  @override
+  String get dashPublishVerb => 'نشر';
+
+  @override
+  String get dashOpenVerb => 'فتح';
+
+  @override
+  String dashGroupCountPending(int count) {
+    return '$count بانتظار المراجعة';
+  }
+
+  @override
+  String dashGroupCountInBay(int count) {
+    return '$count قيد التنفيذ';
+  }
+
+  @override
+  String dashGroupCountReady(int count) {
+    return '$count جاهزة';
+  }
 
   @override
   String get jobDetailCustomerVehicle => 'العميل والمركبة';

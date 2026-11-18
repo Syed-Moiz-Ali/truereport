@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
+import 'package:workshop_admin_app/src/workshop_clock.dart';
 
 /// Picks the right localized value for API-provided bilingual content.
 String localizedText(
@@ -17,44 +18,15 @@ String localizedText(
   return en.trim().isNotEmpty ? en : ar;
 }
 
-/// Parses a raw ISO instant and returns the Asia/Dubai (UTC+4) wall clock.
-DateTime? dubaiWallTime(String raw) {
-  if (raw.trim().isEmpty) {
-    return null;
-  }
-  final parsed = DateTime.tryParse(raw.trim());
-  if (parsed == null) {
-    return null;
-  }
-  final hasOffset = RegExp(r'([Zz]|[+-]\d{2}:?\d{2})$').hasMatch(raw.trim());
-  final utc = hasOffset
-      ? parsed.toUtc()
-      : DateTime.utc(
-          parsed.year,
-          parsed.month,
-          parsed.day,
-          parsed.hour,
-          parsed.minute,
-          parsed.second,
-          parsed.millisecond,
-          parsed.microsecond,
-        );
-  return utc.add(const Duration(hours: 4));
-}
+/// Parses a raw ISO instant and returns the Asia/Dubai wall clock.
+///
+/// Thin alias for [WorkshopClock.wallTime]: the rule lives in exactly one
+/// place, and this name is kept because callers read better with it.
+DateTime? dubaiWallTime(String? raw) => WorkshopClock.wallTime(raw);
 
 /// Locale-aware date+time; falls back to the raw value when unparseable.
-String formatInstant(BuildContext context, String? raw) {
-  final value = raw?.trim() ?? '';
-  if (value.isEmpty) {
-    return '';
-  }
-  final wall = dubaiWallTime(value);
-  if (wall == null) {
-    return value;
-  }
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.yMd(locale).add_Hm().format(wall);
-}
+String formatInstant(BuildContext context, String? raw) =>
+    WorkshopClock.formatInstant(context, raw, fallback: raw?.trim() ?? '');
 
 /// Locale-aware integer formatting, Western digits.
 String formatNumber(BuildContext context, num value) {
@@ -114,12 +86,7 @@ class JobKeyValue extends StatelessWidget {
 
 /// Simple card wrapper with a responsive inner column.
 class JobPanel extends StatelessWidget {
-  const JobPanel({
-    required this.child,
-    this.title,
-    this.icon,
-    super.key,
-  });
+  const JobPanel({required this.child, this.title, this.icon, super.key});
 
   final Widget child;
   final String? title;
@@ -143,12 +110,7 @@ class JobPanel extends StatelessWidget {
                   ),
                   SizedBox(width: context.spacing.sm),
                 ],
-                Expanded(
-                  child: Text(
-                    title!,
-                    style: context.texts.titleMedium,
-                  ),
-                ),
+                Expanded(child: Text(title!, style: context.texts.titleMedium)),
               ],
             ),
             SizedBox(height: context.spacing.sm),

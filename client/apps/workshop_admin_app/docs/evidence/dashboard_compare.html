@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard — before / after</title>
+<style>
+  body { margin: 0; padding: 28px; background: #f7f5f1; color: #1b1c19;
+         font: 13px/1.5 "Plus Jakarta Sans", -apple-system, Segoe UI, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -.3px; }
+  p.lead { margin: 0 0 24px; color: #6a6f6a; max-width: 920px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px;
+       color: #6a6f6a; margin: 30px 0 10px; }
+  .pair { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  figure { margin: 0; }
+  img { display: block; border: 1px solid #e6e2da; background: #fff; }
+  figcaption { font-size: 11px; color: #6a6f6a; margin-top: 6px; }
+  .w1440 { width: 640px; }
+  .w1024 { width: 460px; }
+  .w768  { width: 340px; }
+  .w390  { width: 205px; }
+  .w360  { width: 190px; }
+  .rules { margin-top: 30px; padding: 14px 16px; background: #e8f2ec;
+           border-left: 3px solid #0b6b4f; max-width: 920px; }
+  .rules b { display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<h1>Dashboard — edit vs replace</h1>
+<p class="lead">Left: the screen before this wave (committed at <code>HEAD</code>).
+Right: the rebuilt screen. Same data contract, a different composition. The old
+page was a greeting, a five-tile strip, a Next-up card, a Pipeline card, a
+Recent-jobs card and a Quick-actions card; all six are deleted (kill list in
+<code>docs/visual_language_dashboard.md</code> §8).</p>
+
+<h2>1440</h2>
+<div class="pair">
+  <figure><img class="w1440" src="dashboard_before/dashboard_1440.png" alt="before 1440"><figcaption>Before</figcaption></figure>
+  <figure><img class="w1440" src="dashboard_after/dashboard_1440.png" alt="after 1440"><figcaption>After</figcaption></figure>
+</div>
+
+<h2>1024</h2>
+<div class="pair">
+  <figure><img class="w1024" src="dashboard_before/dashboard_1024.png" alt="before 1024"><figcaption>Before</figcaption></figure>
+  <figure><img class="w1024" src="dashboard_after/dashboard_1024.png" alt="after 1024"><figcaption>After</figcaption></figure>
+</div>
+
+<h2>768</h2>
+<div class="pair">
+  <figure><img class="w768" src="dashboard_after/dashboard_768.png" alt="after 768"><figcaption>After — rail chrome, atlas + wrapped legend, stacked groups (no pre-wave pair was committed at this width)</figcaption></figure>
+</div>
+
+<h2>390</h2>
+<div class="pair">
+  <figure><img class="w390" src="dashboard_before/dashboard_390.png" alt="before 390"><figcaption>Before</figcaption></figure>
+  <figure><img class="w390" src="dashboard_after/dashboard_390.png" alt="after 390"><figcaption>After</figcaption></figure>
+</div>
+
+<h2>360</h2>
+<div class="pair">
+  <figure><img class="w360" src="dashboard_after/dashboard_360.png" alt="after 360"><figcaption>After — smallest supported width</figcaption></figure>
+</div>
+
+<h2>Arabic 1280</h2>
+<div class="pair">
+  <figure><img class="w1440" src="dashboard_after/dashboard_1280_ar.png" alt="after 1280 AR"><figcaption>After — RTL, mirrored partition, numeral pinned LTR</figcaption></figure>
+</div>
+
+<div class="rules">
+  <b>Structural diff, not a repaint</b>
+  1440: four equal cards → hero + full-width 9-segment partition + a legend that
+  sizes to its content + three status groups. 1024: 2-column card grid →
+  single-column groups with a horizontal atlas. 768: rail chrome, wrapped legend,
+  stacked groups. 390/360: five stacked cards with a stranded fifth tile →
+  numeral hero, full-width primary action, vertical nine-row spine, stacked groups.
+  The screen file is rewritten, six files are new, and every old private widget is
+  deleted.
+</div>
+
+</body>
+</html>

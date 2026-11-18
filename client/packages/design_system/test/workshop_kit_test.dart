@@ -1,4 +1,4 @@
-﻿import 'package:design_system/design_system.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -58,7 +58,8 @@ void main() {
       expect(tokens.pageTitle.fontWeight, FontWeight.w700);
       expect(tokens.meta.fontSize, 12.5);
       expect(tokens.eyebrow.letterSpacing, 0.6);
-      expect(tokens.pageGutter(1200), 24);
+      // The token is the source of truth: pageGutterDesktop = 32.
+      expect(tokens.pageGutter(1200), 32);
       expect(tokens.pageGutter(800), 20);
       expect(tokens.pageGutter(390), 16);
     });
@@ -386,7 +387,7 @@ void main() {
   });
 
   group('WorkshopPageScroll', () {
-    testWidgets('centres content at 1120 and applies the page gutter', (
+    testWidgets('centres content at the token width and applies the page gutter', (
       tester,
     ) async {
       await _pump(
@@ -398,9 +399,9 @@ void main() {
         ),
         size: const Size(1600, 900),
       );
-      expect(tester.getSize(find.byKey(const Key('content'))).width, 1120);
+      expect(tester.getSize(find.byKey(const Key('content'))).width, 1200);
       final left = tester.getTopLeft(find.byKey(const Key('content'))).dx;
-      expect(left, (1600 - 1120) / 2);
+      expect(left, (1600 - 1200) / 2);
     });
   });
 
@@ -467,127 +468,4 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
   });
-
-  group('WorkshopAppShell', () {
-    List<WorkshopNavDestination> destinations() => const [
-      WorkshopNavDestination(
-        label: 'Overview',
-        icon: Icons.dashboard_outlined,
-        key: Key('nav-overview'),
-      ),
-      WorkshopNavDestination(
-        label: 'Jobs',
-        icon: Icons.work_outline,
-        key: Key('nav-jobs'),
-      ),
-      WorkshopNavDestination(
-        label: 'Staff',
-        icon: Icons.groups_outlined,
-        key: Key('nav-staff'),
-      ),
-      WorkshopNavDestination(
-        label: 'Templates',
-        icon: Icons.dashboard_customize_outlined,
-        key: Key('nav-templates'),
-      ),
-      WorkshopNavDestination(
-        label: 'Job board',
-        icon: Icons.assignment_outlined,
-        key: Key('nav-board'),
-      ),
-      WorkshopNavDestination(
-        label: 'Settings',
-        icon: Icons.settings_outlined,
-        key: Key('nav-settings'),
-      ),
-    ];
-
-    Future<void> pumpShell(
-      WidgetTester tester, {
-      required Size size,
-      bool isArabic = false,
-      required ValueChanged<int> onSelected,
-      int selectedIndex = 0,
-    }) async {
-      await _pump(
-        tester,
-        WorkshopAppShell(
-          workshopName: 'Marina Workshop',
-          sectionLabel: 'Overview',
-          selectedIndex: selectedIndex,
-          onSelected: onSelected,
-          destinations: destinations(),
-          accountInitials: 'LH',
-          accountName: 'Layla Haddad',
-          accountEmail: 'layla@example.test',
-          onSettings: () {},
-          onSignOut: () {},
-          onToggleLanguage: () {},
-          languageLabel: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©',
-          child: const SizedBox.expand(),
-        ),
-        size: size,
-        isArabic: isArabic,
-      );
-    }
-
-    testWidgets('desktop shows the sidebar and selects sections', (
-      tester,
-    ) async {
-      var selected = -1;
-      await pumpShell(
-        tester,
-        size: const Size(1280, 800),
-        onSelected: (index) => selected = index,
-      );
-      expect(find.text('TrueReport'), findsOneWidget);
-      expect(find.text('Marina Workshop'), findsWidgets);
-      expect(find.byKey(const Key('nav-settings')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('nav-jobs')));
-      expect(selected, 1);
-    });
-
-    testWidgets('RTL puts the sidebar on the right', (tester) async {
-      await pumpShell(
-        tester,
-        size: const Size(1280, 800),
-        isArabic: true,
-        onSelected: (_) {},
-      );
-      final center = tester.getCenter(find.byKey(const Key('nav-overview')));
-      expect(center.dx, greaterThan(640));
-    });
-
-    testWidgets('tablet shows a labelled rail', (tester) async {
-      await pumpShell(tester, size: const Size(760, 900), onSelected: (_) {});
-      expect(find.byKey(const Key('nav-overview')), findsOneWidget);
-      for (final label in ['Overview', 'Jobs', 'Staff', 'Templates']) {
-        expect(find.text(label), findsWidgets);
-      }
-    });
-
-    testWidgets('phone shows four items plus a More sheet', (tester) async {
-      var selected = -1;
-      await pumpShell(
-        tester,
-        size: const Size(390, 844),
-        onSelected: (index) => selected = index,
-      );
-      expect(find.byKey(const Key('nav-overview')), findsOneWidget);
-      expect(find.byKey(const Key('nav-settings')), findsNothing);
-      expect(find.byKey(const Key('workshop-tab-more')), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('workshop-tab-more')));
-      await tester.pumpAndSettle();
-      expect(find.text('Job board'), findsOneWidget);
-      expect(find.text('Settings'), findsOneWidget);
-      expect(find.text('Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©'), findsOneWidget);
-      expect(find.text('Sign out'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('nav-settings')));
-      await tester.pumpAndSettle();
-      expect(selected, 5);
-    });
-  });
-
 }

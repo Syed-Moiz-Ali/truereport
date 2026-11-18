@@ -1,761 +1,411 @@
-import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
-import 'package:workshop_admin_app/src/admin_providers.dart';
-import 'package:workshop_admin_app/src/features/home/workshop_admin_home.dart';
+import 'package:workshop_admin_app/src/features/dashboard/dashboard_style.dart';
+import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_atlas.dart';
+import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_groups.dart';
+import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_hero.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_creation_wizard_page.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_quick_sheet.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
-import 'package:workshop_admin_app/src/models.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
+import 'package:workshop_admin_app/src/labels.dart';
+import 'package:workshop_admin_app/src/workshop_clock.dart';
+import 'package:workshop_admin_app/src/workshop_job_models.dart';
+import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
+/// Pins numerals to Latin digits and strips bidi control characters.
+///
+/// The page's counts come from `NumberFormat.decimalPattern`, which renders
+/// Latin digits for `ar` in intl 0.20, while `DateFormat` renders Arabic-Indic
+/// digits **and** inserts RLM/LRM controls around the separators. Left in, those
+/// controls split `2026/11/5 09:00` inside the row meta (the gate caught
+/// `509:00 2026/11/`). One screen must not mix numbering systems, and a data
+/// line must not carry invisible direction switches.
+String pinDashboardDigits(String text) {
+  final buffer = StringBuffer();
+  for (final rune in text.runes) {
+    // Arabic-Indic digits → ASCII.
+    if (rune >= 0x0660 && rune <= 0x0669) {
+      buffer.writeCharCode(rune - 0x0660 + 0x30);
+      continue;
+    }
+    // Bidi controls: LRM, RLM, ALM, embeddings/overrides, isolates.
+    if (rune == 0x200E ||
+        rune == 0x200F ||
+        rune == 0x061C ||
+        (rune >= 0x202A && rune <= 0x202E) ||
+        (rune >= 0x2066 && rune <= 0x2069)) {
+      continue;
+    }
+    buffer.writeCharCode(rune);
+  }
+  return buffer.toString();
+}
+
+/// Builds a row's meta line from machine-readable fields.
+///
+/// The line is rendered with an explicit LTR base direction by
+/// [DashboardJobRow]: an RTL paragraph reorders neutral-separated runs, which
+/// split the date around the reference on the Arabic capture
+/// (`…2026/11/JOB-10485 · Ahmed… · 5`). Pinning the base direction keeps
+/// `2026/11/5 09:00` contiguous while the Arabic name inside still shapes RTL.
+String dashboardRowMeta({
+  required String reference,
+  String? customer,
+  String? technician,
+  String? schedule,
+}) {
+  final parts = <String>[
+    reference,
+    if ((customer ?? '').trim().isNotEmpty) customer!.trim(),
+    if ((technician ?? '').trim().isNotEmpty) technician!.trim(),
+    if ((schedule ?? '').trim().isNotEmpty) schedule!.trim(),
+  ];
+  return parts.join(' · ');
+}
+
+/// Locale-aware integer formatting. Kept here because five other screens import
+/// it from this file; deleting it would be a rename, not a simplification.
 String formatNumber(BuildContext context, int value) =>
     NumberFormat.decimalPattern(Localizations.localeOf(context).toString())
         .format(value);
 
-/// Overview tab: React SaaS-grade dashboard.
+/// Overview tab — direction B "The floor" (`docs/ui_brief.md`).
 ///
-/// Layout structure:
-/// - Row 1: Greeting "Good afternoon, Layla" (30/700) + humanized date & single
-///   primary action [+ New job]. Zero duplicated workshop name.
-/// - Row 2: Stat strip — ONE single surface with 5 equal cells, hairline
-///   dividers, 40 px tabular numbers, uppercase eyebrow labels, small meta.
-/// - Row 3: 8-col "Next up" hero card + 4-col "Pipeline" progress breakdown.
-/// - Row 4: "Recent jobs" — ONE clean table surface with hover rows and quiet
-///   "View all jobs" link.
-/// - Row 5: Quick actions — quiet navigation tiles.
+/// The page answers one question: *what needs my decision right now?* It reads
+/// only the clean (`platform_jobs`) family, so the jobs it counts are the jobs
+/// its own "New job" action creates (invariant J19).
+///
+/// Structure, top to bottom: hero (total + decision sentence + the page's only
+/// filled button) → the nine-segment partition (or the phone spine) → three
+/// action groups → a footer that states the partition's meaning.
+///
+/// The previous composition (greeting, five-tile strip, Next up card, pipeline
+/// card, recent-jobs card, quick actions) is deleted — see the kill list in
+/// `docs/visual_language_dashboard.md` §8.
 class DashboardTab extends ConsumerWidget {
   const DashboardTab({super.key});
+
+  static const String _pendingKey =
+      '0\u00015\u0001PENDING_REVIEW\u0001\u0001\u0001';
+  static const String _inBayKey = '0\u00013\u0001IN_PROGRESS\u0001\u0001\u0001';
+  static const String _approvedKey = '0\u00013\u0001APPROVED\u0001\u0001\u0001';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final ws = context.ws;
     final spacing = context.spacing;
-    final gutter = ws.pageGutter(MediaQuery.sizeOf(context).width);
-    final session = ref.watch(authControllerProvider).value;
-    final displayName = session?.user.displayName.trim() ?? '';
-    final firstName = displayName.isEmpty
-        ? ''
-        : displayName.split(RegExp(r'\s+')).first;
 
-    final greeting = firstName.isEmpty
-        ? l10n.dashboardGreeting
-        : '${l10n.dashboardGreeting}, $firstName';
-    final pageTitle = session == null ? l10n.dashboardTab : greeting;
+    final counts = ref.watch(cleanJobCountsProvider);
+    final pending = ref.watch(cleanJobsProvider(_pendingKey));
+    final inBay = ref.watch(cleanJobsProvider(_inBayKey));
+    final approved = ref.watch(cleanJobsProvider(_approvedKey));
 
-    final now = DateTime.now();
-    final localeName = Localizations.localeOf(context).toString();
-    final todayFormatted = DateFormat.yMMMMEEEEd(localeName).format(now);
-    final pageSubtitle = 'Today, $todayFormatted';
-
-    final counts = ref.watch(jobCountsProvider);
-    final jobs = ref.watch(jobsProvider(''));
-
-    void openJob(WorkshopJob job) => showJobQuickSheet(context, job);
+    void openJob(String jobId) => Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => JobDetailPage(jobId: jobId)),
+    );
     void newJob() => Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const JobCreationWizardPage()),
     );
-    void goTo(int index) =>
-        WorkshopNavigationScope.maybeOf(context)?.select(index);
+    void refresh() {
+      ref.invalidate(cleanJobCountsProvider);
+      ref.invalidate(cleanJobsProvider(_pendingKey));
+      ref.invalidate(cleanJobsProvider(_inBayKey));
+      ref.invalidate(cleanJobsProvider(_approvedKey));
+    }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(jobCountsProvider);
-        ref.invalidate(jobsProvider(''));
-      },
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // Row 1: Greeting & single primary action
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(gutter, gutter, gutter, 0),
-            sliver: SliverToBoxAdapter(
-              child: _PageColumn(
-                child: WorkshopPageHeader(
-                  title: pageTitle,
-                  subtitle: pageSubtitle,
-                  primaryAction: WorkshopButton(
-                    label: l10n.newJob,
-                    icon: Icons.add,
-                    onPressed: newJob,
-                  ),
-                ),
-              ),
-            ),
-          ),
+    final total = counts.value?.total;
+    final DashboardHeroState heroState;
+    if (counts.hasError) {
+      heroState = DashboardHeroState.failed;
+    } else if (!counts.hasValue) {
+      heroState = DashboardHeroState.loading;
+    } else {
+      heroState = counts.value!.total == 0
+          ? DashboardHeroState.empty
+          : DashboardHeroState.ready;
+    }
 
-          // Row 2: Stat strip (ONE single surface, 5 equal cells, 40 px numbers)
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              gutter,
-              spacing.xl,
-              gutter,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: _PageColumn(
-                child: counts.when(
-                  loading: () => const WorkshopSkeleton(card: true, lines: 2),
-                  error: (error, _) => WorkshopErrorState(
-                    title: l10n.error,
-                    body: l10n.commonLoadFailed,
-                    retryLabel: l10n.retryAction,
-                    onRetry: () => ref.invalidate(jobCountsProvider),
-                  ),
-                  data: (value) => _MetricStrip(
-                    counts: value,
-                    onSelectFilter: () => goTo(1),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Row 3, 4, 5: Hero + Pipeline, Recent Jobs Table, Quick Actions
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              gutter,
-              spacing.xl,
-              gutter,
-              spacing.xxl,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: _PageColumn(
-                child: _DashboardBody(
-                  jobs: jobs,
-                  counts: counts,
-                  onOpenJob: openJob,
-                  onNewJob: newJob,
-                  onOpenQueue: () => goTo(1),
-                  onRetryJobs: () => ref.invalidate(jobsProvider('')),
-                  onGoTo: goTo,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Centers content at the workshop max column width (1200 px).
-class _PageColumn extends StatelessWidget {
-  const _PageColumn({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: context.ws.contentMaxWidth),
-        child: child,
-      ),
-    );
-  }
-}
-
-/// Row 2: One single bordered surface with the 5 real counts (40 px tabular numbers).
-class _MetricStrip extends StatelessWidget {
-  const _MetricStrip({
-    required this.counts,
-    required this.onSelectFilter,
-  });
-
-  final JobCounts counts;
-  final VoidCallback onSelectFilter;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return WorkshopMetricStrip(
-      items: [
-        WorkshopMetric(
-          key: const Key('dashboard-stat-active'),
-          value: formatNumber(context, counts.active),
-          label: l10n.dashboardStatActive,
-          onTap: onSelectFilter,
-        ),
-        WorkshopMetric(
-          key: const Key('dashboard-stat-new-scheduled'),
-          value: formatNumber(context, counts.newScheduled),
-          label: l10n.dashboardStatNewScheduled,
-          onTap: onSelectFilter,
-        ),
-        WorkshopMetric(
-          key: const Key('dashboard-stat-in-progress'),
-          value: formatNumber(context, counts.inProgress),
-          label: l10n.statusInProgress,
-          onTap: onSelectFilter,
-        ),
-        WorkshopMetric(
-          key: const Key('dashboard-stat-ready'),
-          value: formatNumber(context, counts.readyToFinalize),
-          label: l10n.statusReadyToFinalize,
-          onTap: onSelectFilter,
-        ),
-        WorkshopMetric(
-          key: const Key('dashboard-stat-finalized-today'),
-          value: formatNumber(context, counts.finalizedToday),
-          label: l10n.dashboardStatFinalizedToday,
-          onTap: onSelectFilter,
-        ),
-      ],
-    );
-  }
-}
-
-class _DashboardBody extends StatelessWidget {
-  const _DashboardBody({
-    required this.jobs,
-    required this.counts,
-    required this.onOpenJob,
-    required this.onNewJob,
-    required this.onOpenQueue,
-    required this.onRetryJobs,
-    required this.onGoTo,
-  });
-
-  final AsyncValue<List<WorkshopJob>> jobs;
-  final AsyncValue<JobCounts> counts;
-  final ValueChanged<WorkshopJob> onOpenJob;
-  final VoidCallback onNewJob;
-  final VoidCallback onOpenQueue;
-  final VoidCallback onRetryJobs;
-  final ValueChanged<int> onGoTo;
-
-  @override
-  Widget build(BuildContext context) {
-    final spacing = context.spacing;
+    // The page lives inside the shell's content area, so its breakpoints are
+    // computed from the width it is actually given — not the window width (the
+    // sidebar can take 256 px of it).
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        if (!wide) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _leftColumn(context),
-              SizedBox(height: spacing.xxl),
-              _rightColumn(context),
+        final scale = DashboardScale.byWidth(constraints.maxWidth);
+        final compact = constraints.maxWidth < 600;
+        return RefreshIndicator(
+          onRefresh: () async => refresh(),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  scale.gutter,
+                  scale.gutter,
+                  scale.gutter,
+                  spacing.xl,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DashboardHero(
+                        state: heroState,
+                        scale: scale,
+                        compact: compact,
+                        // The shell's identity strip already names the workshop;
+                        // repeating it here would put the same words twice above
+                        // the fold (shell audit finding S1).
+                        eyebrow: null,
+                        totalText: total == null
+                            ? null
+                            : formatNumber(context, total),
+                        label: (total ?? 0) == 1
+                            ? l10n.dashFloorLabelOne
+                            : l10n.dashFloorLabel,
+                        sentence: total == null
+                            ? null
+                            : (counts.value!.pendingReview == 0
+                                  ? l10n.dashNothingWaiting
+                                  : l10n.dashDecisionWaiting(
+                                      counts.value!.pendingReview,
+                                    )),
+                        emptyTitle: l10n.dashFloorEmpty,
+                        emptyBody: l10n.dashFloorEmptyBody,
+                        errorMessage: l10n.commonLoadFailed,
+                        retryLabel: l10n.retryAction,
+                        onRetry: () => ref.invalidate(cleanJobCountsProvider),
+                        newJobLabel: l10n.newJob,
+                        onNewJob: newJob,
+                      ),
+
+                      // The partition. Only rendered when the counts endpoint
+                      // said there is something to partition; a failure never
+                      // draws a hollow bar that could read as "zero".
+                      if (heroState == DashboardHeroState.ready) ...[
+                        SizedBox(height: spacing.xxl),
+                        DashboardAtlas(
+                          key: const Key('dashboard-atlas'),
+                          segments: _segments(context, l10n, counts.value!),
+                          total: total!,
+                          height: scale.atlasHeight,
+                          semanticLabel: l10n.dashAtlasLabel,
+                        ),
+                      ],
+
+                      // The lists are independent of the counts call: a failed
+                      // counts request must not hide work the admin can still do.
+                      if (heroState != DashboardHeroState.empty) ...[
+                        SizedBox(height: spacing.xxl),
+                        _groups(
+                          context: context,
+                          ref: ref,
+                          l10n: l10n,
+                          scale: scale,
+                          pending: pending,
+                          inBay: inBay,
+                          approved: approved,
+                          counts: counts.value,
+                          onOpen: openJob,
+                        ),
+                        if (total != null) ...[
+                          SizedBox(height: spacing.xl),
+                          _footer(context, l10n, total),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ],
-          );
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(flex: 2, child: _leftColumn(context)),
-            SizedBox(width: spacing.xxl),
-            Expanded(child: _rightColumn(context)),
-          ],
+          ),
         );
       },
     );
   }
 
-  Widget _leftColumn(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  List<AtlasSegment> _segments(
+    BuildContext context,
+    AppLocalizations l10n,
+    CleanJobCounts counts,
+  ) {
+    final ws = context.ws;
+    int countOf(String status) => switch (status) {
+      'DRAFT' => counts.draft,
+      'SCHEDULED' => counts.scheduled,
+      'ASSIGNED' => counts.assigned,
+      'IN_PROGRESS' => counts.inProgress,
+      'PENDING_REVIEW' => counts.pendingReview,
+      'APPROVED' => counts.approved,
+      'PUBLISHED' => counts.published,
+      'REJECTED' => counts.rejected,
+      'CANCELLED' => counts.cancelled,
+      _ => 0,
+    };
+    final segments = [
+      for (final status in dashboardStatusOrder)
+        AtlasSegment(
+          status: status,
+          label: jobStatusLabel(l10n, status),
+          count: countOf(status),
+          color: dashboardStatusTint(status, ws),
+        ),
+    ];
+    // A status the client does not know still counts towards `total` on the
+    // server. It is drawn as an explicit neutral tail, never dropped.
+    final labelled = segments.fold<int>(0, (sum, s) => sum + s.count);
+    final unaccounted = counts.total - labelled;
+    if (unaccounted > 0) {
+      segments.add(
+        AtlasSegment(
+          status: '__other__',
+          label: l10n.dashSegmentOther,
+          count: unaccounted,
+          color: dashboardStatusTint('OTHER', ws),
+          isRemainder: true,
+        ),
+      );
+    }
+    return segments;
+  }
+
+  Widget _groups({
+    required BuildContext context,
+    required WidgetRef ref,
+    required AppLocalizations l10n,
+    required DashboardScale scale,
+    required AsyncValue<JobPage> pending,
+    required AsyncValue<JobPage> inBay,
+    required AsyncValue<JobPage> approved,
+    required CleanJobCounts? counts,
+    required void Function(String jobId) onOpen,
+  }) {
+    final ws = context.ws;
     final spacing = context.spacing;
-    if (jobs.isLoading) {
+
+    DashboardRowData map(CleanJob job, {String? verb}) {
+      final vehicle = '${job.vehicleMake} ${job.vehicleModel}'.trim();
+      final title = vehicle.isEmpty ? job.customerName : vehicle;
+      final schedule = pinDashboardDigits(
+        WorkshopClock.formatInstant(context, job.scheduledAt),
+      );
+      return DashboardRowData(
+        id: job.id,
+        title: title,
+        meta: dashboardRowMeta(
+          reference: job.reference,
+          customer: job.customerName,
+          technician: job.assignedTechnicianName,
+          schedule: schedule,
+        ),
+        statusLabel: jobStatusLabel(l10n, job.status),
+        tone: dashboardStatusTone(job.status),
+        onOpen: () => onOpen(job.id),
+        verbLabel: verb,
+        onVerb: verb == null ? null : () => onOpen(job.id),
+      );
+    }
+
+    final waiting = DashboardGroup(
+      swatch: ws.warning,
+      title: l10n.dashGroupWaiting,
+      meta: counts == null
+          ? null
+          : l10n.dashGroupCountPending(counts.pendingReview),
+      rows: pending.whenData(
+        (page) => [
+          for (final job in page.items) map(job, verb: l10n.dashReviewVerb),
+        ],
+      ),
+      emptyText: l10n.dashGroupEmpty,
+      loadFailed: l10n.commonLoadFailed,
+      retryLabel: l10n.retryAction,
+      onRetry: () => ref.invalidate(cleanJobsProvider(_pendingKey)),
+      verbInline: scale.verbInline,
+      rowKeyPrefix: 'dashboard-job-waiting',
+    );
+
+    final bay = DashboardGroup(
+      swatch: ws.accent,
+      title: l10n.dashGroupInBay,
+      meta: counts == null ? null : l10n.dashGroupCountInBay(counts.inProgress),
+      rows: inBay.whenData((page) => [for (final job in page.items) map(job)]),
+      emptyText: l10n.dashGroupEmpty,
+      loadFailed: l10n.commonLoadFailed,
+      retryLabel: l10n.retryAction,
+      onRetry: () => ref.invalidate(cleanJobsProvider(_inBayKey)),
+      verbInline: scale.verbInline,
+      rowKeyPrefix: 'dashboard-job-bay',
+    );
+
+    final ready = DashboardGroup(
+      swatch: ws.success,
+      title: l10n.dashGroupReady,
+      meta: counts == null ? null : l10n.dashGroupCountReady(counts.approved),
+      rows: approved.whenData(
+        (page) => [
+          for (final job in page.items) map(job, verb: l10n.dashPublishVerb),
+        ],
+      ),
+      emptyText: l10n.dashGroupEmpty,
+      loadFailed: l10n.commonLoadFailed,
+      retryLabel: l10n.retryAction,
+      onRetry: () => ref.invalidate(cleanJobsProvider(_approvedKey)),
+      verbInline: scale.verbInline,
+      rowKeyPrefix: 'dashboard-job-ready',
+    );
+
+    if (!scale.sideBySide) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const WorkshopSkeleton(card: true, lines: 4),
+          waiting,
           SizedBox(height: spacing.xxl),
-          const WorkshopSkeleton(card: true, lines: 4),
+          bay,
+          SizedBox(height: spacing.xxl),
+          ready,
         ],
       );
     }
-    if (jobs.hasError) {
-      return WorkshopErrorState(
-        title: l10n.error,
-        body: l10n.commonLoadFailed,
-        retryLabel: l10n.retryAction,
-        onRetry: onRetryJobs,
-      );
-    }
-    final items = jobs.value ?? const <WorkshopJob>[];
-    if (items.isEmpty) {
-      return WorkshopCard(
-        child: WorkshopEmptyState(
-          title: l10n.jobsEmpty,
-          icon: Icons.work_outline,
-          action: WorkshopButton(
-            label: l10n.newJob,
-            icon: Icons.add,
-            onPressed: onNewJob,
-          ),
-        ),
-      );
-    }
-    final upcoming = _nearestUpcoming(items);
-    final recent = items
-        .where((job) => job.id != upcoming?.id)
-        .take(4)
-        .toList(growable: false);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _UpcomingCard(job: upcoming, onOpen: onOpenJob, onNewJob: onNewJob),
-        SizedBox(height: spacing.xxl),
-        _RecentJobsCard(
-          jobs: recent,
-          onOpen: onOpenJob,
-          onViewAll: onOpenQueue,
-        ),
-      ],
-    );
-  }
-
-  Widget _rightColumn(BuildContext context) {
-    return _PipelineAndActions(
-      counts: counts,
-      onOpenQueue: onOpenQueue,
-      onGoTo: onGoTo,
-    );
-  }
-}
-
-/// Soonest scheduled open job (closed/finalized jobs are never "next up").
-WorkshopJob? _nearestUpcoming(List<WorkshopJob> jobs) {
-  const closed = <String>{'FINALIZED', 'PUBLISHED', 'CANCELLED', 'REJECTED'};
-  WorkshopJob? best;
-  DateTime? bestAt;
-  for (final job in jobs) {
-    if (closed.contains(job.status)) {
-      continue;
-    }
-    final at = dubaiWallTime(job.scheduledAt);
-    if (at == null) {
-      continue;
-    }
-    if (bestAt == null || at.isBefore(bestAt)) {
-      best = job;
-      bestAt = at;
-    }
-  }
-  return best;
-}
-
-class _UpcomingCard extends StatelessWidget {
-  const _UpcomingCard({
-    required this.job,
-    required this.onOpen,
-    required this.onNewJob,
-  });
-
-  final WorkshopJob? job;
-  final ValueChanged<WorkshopJob> onOpen;
-  final VoidCallback onNewJob;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final ws = context.ws;
-    final spacing = context.spacing;
-    final value = job;
-
-    if (value == null) {
-      return WorkshopCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            WorkshopSectionHeader(title: l10n.dashboardNextUp),
-            SizedBox(height: spacing.md),
-            WorkshopEmptyState(
-              title: l10n.dashboardNoUpcoming,
-              body: l10n.dashboardNoUpcomingBody,
-              icon: Icons.event_available_outlined,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return WorkshopCard(
-      padding: EdgeInsetsDirectional.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              ws.cardPadding,
-              ws.cardPadding,
-              ws.cardPadding,
-              spacing.sm,
-            ),
-            child: WorkshopSectionHeader(title: l10n.dashboardNextUp),
-          ),
-          const WorkshopDivider(),
-          JobListRow(
-            key: Key('dashboard-job-${value.id}'),
-            job: value,
-            embedded: true,
-            onTap: () => onOpen(value),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentJobsCard extends StatelessWidget {
-  const _RecentJobsCard({
-    required this.jobs,
-    required this.onOpen,
-    required this.onViewAll,
-  });
-
-  final List<WorkshopJob> jobs;
-  final ValueChanged<WorkshopJob> onOpen;
-  final VoidCallback onViewAll;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return WorkshopCard(
-      padding: EdgeInsetsDirectional.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              ws.cardPadding,
-              ws.cardPadding,
-              ws.cardPadding,
-              spacing.sm,
-            ),
-            child: WorkshopSectionHeader(
-              title: l10n.dashboardRecentJobs,
-              action: WorkshopButton(
-                label: l10n.dashboardViewAll,
-                variant: WorkshopButtonVariant.ghost,
-                onPressed: onViewAll,
-              ),
-            ),
-          ),
-          if (jobs.isEmpty)
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                ws.cardPadding,
-                0,
-                ws.cardPadding,
-                ws.cardPadding,
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 16, color: ws.muted),
-                  SizedBox(width: spacing.sm),
-                  Expanded(
-                    child: Text(
-                      l10n.dashboardNoRecentJobs,
-                      style: ws.meta.copyWith(color: ws.muted),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            for (var index = 0; index < jobs.length; index++) ...[
-              if (index > 0) const WorkshopDivider(),
-              JobListRow(
-                key: Key('dashboard-job-${jobs[index].id}'),
-                job: jobs[index],
-                embedded: true,
-                onTap: () => onOpen(jobs[index]),
-              ),
+        Expanded(flex: 6, child: waiting),
+        SizedBox(width: spacing.xxl),
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              bay,
+              SizedBox(height: spacing.xxl),
+              ready,
             ],
-            SizedBox(height: spacing.sm),
-          ],
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
-}
 
-class _PipelineAndActions extends StatelessWidget {
-  const _PipelineAndActions({
-    required this.counts,
-    required this.onOpenQueue,
-    required this.onGoTo,
-  });
-
-  final AsyncValue<JobCounts> counts;
-  final VoidCallback onOpenQueue;
-  final ValueChanged<int> onGoTo;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _footer(BuildContext context, AppLocalizations l10n, int total) {
+    final ws = context.ws;
     final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _PipelineCard(counts: counts, onTap: onOpenQueue),
-        SizedBox(height: spacing.xxl),
-        _QuickActionsCard(onGoTo: onGoTo),
-      ],
-    );
-  }
-}
-
-/// Stacked count bar plus legend; proportions are the real counts only.
-class _PipelineCard extends StatelessWidget {
-  const _PipelineCard({required this.counts, required this.onTap});
-
-  final AsyncValue<JobCounts> counts;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final spacing = context.spacing;
-    return WorkshopCard(
-      onTap: onTap,
-      semanticLabel: '${l10n.dashboardPipeline}, ${l10n.jobsTab}',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          WorkshopSectionHeader(title: l10n.dashboardPipeline),
-          SizedBox(height: spacing.lg),
-          counts.when(
-            loading: () => const WorkshopSkeleton(lines: 2),
-            error: (error, _) =>
-                WorkshopInlineNote(text: l10n.commonLoadFailed),
-            data: (value) => _PipelineBody(counts: value),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PipelineBody extends StatelessWidget {
-  const _PipelineBody({required this.counts});
-
-  final JobCounts counts;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final ws = context.ws;
-    final spacing = context.spacing;
-    final segments = <({int value, Color color, String label})>[
-      (
-        value: counts.newScheduled,
-        color: ws.muted.withValues(alpha: 0.35),
-        label: l10n.dashboardStatNewScheduled,
-      ),
-      (
-        value: counts.inProgress,
-        color: ws.accent,
-        label: l10n.statusInProgress,
-      ),
-      (
-        value: counts.readyToFinalize,
-        color: ws.warning,
-        label: l10n.statusReadyToFinalize,
-      ),
-      (
-        value: counts.finalizedToday,
-        color: ws.success,
-        label: l10n.dashboardStatFinalizedToday,
-      ),
-    ];
-    final total = segments.fold<int>(0, (sum, item) => sum + item.value);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(ws.chipRadius),
-          child: SizedBox(
-            key: const Key('dashboard-pipeline-bar'),
-            height: 8,
-            child: total == 0
-                ? ColoredBox(color: ws.canvas)
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final segment in segments)
-                        if (segment.value > 0)
-                          Expanded(
-                            flex: segment.value,
-                            child: ColoredBox(color: segment.color),
-                          ),
-                    ],
-                  ),
-          ),
-        ),
-        SizedBox(height: spacing.lg),
-        Wrap(
-          spacing: spacing.lg,
-          runSpacing: spacing.sm,
-          children: [
-            for (final segment in segments)
-              _PipelineLegend(
-                color: segment.color,
-                label: segment.label,
-                value: formatNumber(context, segment.value),
-              ),
-          ],
+        Container(height: 1, color: ws.border),
+        SizedBox(height: spacing.md),
+        Text(
+          l10n.dashFooterSum(total),
+          style: ws.meta.copyWith(color: ws.muted),
         ),
       ],
-    );
-  }
-}
-
-class _PipelineLegend extends StatelessWidget {
-  const _PipelineLegend({
-    required this.color,
-    required this.label,
-    required this.value,
-  });
-
-  final Color color;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return Semantics(
-      label: '$label, $value',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: spacing.sm,
-            height: spacing.sm,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          SizedBox(width: spacing.xs),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 2,
-              style: ws.meta.copyWith(color: ws.muted),
-            ),
-          ),
-          SizedBox(width: spacing.sm),
-          Text(
-            value,
-            style: ws.meta.copyWith(color: ws.ink, fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionsCard extends StatelessWidget {
-  const _QuickActionsCard({required this.onGoTo});
-
-  final ValueChanged<int> onGoTo;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final spacing = context.spacing;
-    return WorkshopCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          WorkshopSectionHeader(title: l10n.dashQuickActions),
-          SizedBox(height: spacing.sm),
-          _QuietAction(
-            icon: Icons.groups_outlined,
-            label: l10n.staffTab,
-            onTap: () => onGoTo(2),
-          ),
-          const WorkshopDivider(),
-          _QuietAction(
-            icon: Icons.dashboard_customize_outlined,
-            label: l10n.templatesTab,
-            onTap: () => onGoTo(3),
-          ),
-          const WorkshopDivider(),
-          _QuietAction(
-            icon: Icons.assignment_outlined,
-            label: l10n.jobsBoardTab,
-            onTap: () => onGoTo(4),
-          ),
-          const WorkshopDivider(),
-          _QuietAction(
-            icon: Icons.settings_outlined,
-            label: l10n.settings,
-            onTap: () => onGoTo(5),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Quiet 44 px navigation row with a visible hover/focus state.
-class _QuietAction extends StatelessWidget {
-  const _QuietAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    return Semantics(
-      button: true,
-      label: label,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          canRequestFocus: true,
-          hoverColor: ws.canvas,
-          focusColor: ws.accentSoft,
-          borderRadius: BorderRadius.circular(ws.chipRadius),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: ws.touchTarget),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: ws.muted),
-                SizedBox(width: spacing.md),
-                Expanded(
-                  child: Text(label, style: ws.body.copyWith(color: ws.ink)),
-                ),
-                Icon(
-                  rtl ? Icons.chevron_left : Icons.chevron_right,
-                  size: 18,
-                  color: ws.muted,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -85,13 +85,13 @@ Future<void> _exerciseWorkshop(WidgetTester tester) async {
   // The overview tab lists recent jobs in lazily-built slivers, so narrow
   // layouts start with the list below the fold — scroll it into view first.
   await tester.dragUntilVisible(
-    find.textContaining('JOB-TEST0001'),
+    find.textContaining('JOB-0001'),
     find.byType(CustomScrollView),
     const Offset(0, -500),
   );
   await tester.pumpAndSettle();
   expect(tester.takeException(), isNull);
-  expect(find.textContaining('JOB-TEST0001'), findsOneWidget);
+  expect(find.textContaining('JOB-0001'), findsOneWidget);
 
   final staffTab = find.byKey(const Key('workshop-tab-staff')).first;
   await tester.ensureVisible(staffTab);

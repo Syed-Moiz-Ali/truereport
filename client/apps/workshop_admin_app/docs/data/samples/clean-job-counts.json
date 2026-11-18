@@ -1,0 +1,21 @@
+{
+  "provenance": "derived-from-dto",
+  "endpoint": "GET /api/v1/workshop/jobs/counts",
+  "statusNote": "Shape from JobStatusCountsDto (WorkshopJobAdminController:86). Workshop-wide: the endpoint takes no search parameter, which is why board chips disagree with a filtered list.",
+  "body": {
+    "draft": 0,
+    "scheduled": 2,
+    "assigned": 1,
+    "inProgress": 3,
+    "pendingReview": 4,
+    "approved": 2,
+    "published": 11,
+    "rejected": 1,
+    "cancelled": 0,
+    "total": 24
+  },
+  "checks": {
+    "partition_sum": 24,
+    "search_scoped": false
+  }
+}

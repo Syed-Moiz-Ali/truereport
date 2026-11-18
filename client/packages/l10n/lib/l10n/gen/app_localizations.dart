@@ -6446,17 +6446,17 @@ abstract class AppLocalizations {
   /// **'Report labels'**
   String get reportLabels;
 
-  /// No description provided for @dashboardGreeting.
+  /// Page title on the overview tab. One ARB sentence with the signed-in person's first name, never concatenated.
   ///
   /// In en, this message translates to:
-  /// **'Welcome back'**
-  String get dashboardGreeting;
+  /// **'Welcome back, {name}'**
+  String dashboardGreeting(String name);
 
-  /// No description provided for @dashboardToday.
+  /// Overview subtitle. The date arrives already locale-formatted.
   ///
   /// In en, this message translates to:
-  /// **'Today'**
-  String get dashboardToday;
+  /// **'Today, {date}'**
+  String dashboardToday(String date);
 
   /// No description provided for @dashboardNextUp.
   ///
@@ -6493,6 +6493,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No other recent jobs'**
   String get dashboardNoRecentJobs;
+
+  /// Hero headline on the dashboard. Total jobs in the workshop, from the counts endpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 job on the floor} other{{count} jobs on the floor}}'**
+  String dashFloorTotal(int count);
+
+  /// One sentence under the hero total: how many jobs are pending review.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 is waiting for your decision} other{{count} are waiting for your decision}}'**
+  String dashDecisionWaiting(int count);
+
+  /// Unit label beside the hero total when it is not 1.
+  ///
+  /// In en, this message translates to:
+  /// **'jobs on the floor'**
+  String get dashFloorLabel;
+
+  /// Unit label beside the hero total when it is exactly 1.
+  ///
+  /// In en, this message translates to:
+  /// **'job on the floor'**
+  String get dashFloorLabelOne;
+
+  /// Shown instead of the decision sentence when pendingReview is zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is waiting for your decision'**
+  String get dashNothingWaiting;
+
+  /// Hero headline when the workshop has no jobs at all.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs on the floor'**
+  String get dashFloorEmpty;
+
+  /// Empty-workshop supporting line.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the first job to see it here.'**
+  String get dashFloorEmptyBody;
+
+  /// Group title for jobs pending review.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for you'**
+  String get dashGroupWaiting;
+
+  /// Group title for jobs being worked on.
+  ///
+  /// In en, this message translates to:
+  /// **'In the bay'**
+  String get dashGroupInBay;
+
+  /// Group title for approved jobs awaiting publication.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to publish'**
+  String get dashGroupReady;
+
+  /// One quiet line inside an empty group.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here right now'**
+  String get dashGroupEmpty;
+
+  /// Partition segment label for jobs whose status the client does not know.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get dashSegmentOther;
+
+  /// Accessibility label for the status partition.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs by status'**
+  String get dashAtlasLabel;
+
+  /// Footer line explaining that the partition is a whole.
+  ///
+  /// In en, this message translates to:
+  /// **'Every segment is a status count. They sum to {total}.'**
+  String dashFooterSum(int total);
+
+  /// Row action for a job pending review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get dashReviewVerb;
+
+  /// Row action for an approved job.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get dashPublishVerb;
+
+  /// Row action for an already published job.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get dashOpenVerb;
+
+  /// Group meta: pending-review count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pending review'**
+  String dashGroupCountPending(int count);
+
+  /// Group meta: in-progress count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in progress'**
+  String dashGroupCountInBay(int count);
+
+  /// Group meta: approved count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} ready'**
+  String dashGroupCountReady(int count);
 
   /// No description provided for @jobDetailCustomerVehicle.
   ///

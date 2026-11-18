@@ -158,12 +158,9 @@ Future<void> _pumpApp(
 }
 
 Future<void> _openWorkshopSection(WidgetTester tester, Key key) async {
-  var target = find.byKey(key);
-  if (target.evaluate().isEmpty) {
-    await tester.tap(find.byKey(const Key('workshop-tab-more')));
-    await tester.pumpAndSettle();
-    target = find.byKey(key);
-  }
+  // Every destination lives in the dock at every width, so the old "More sheet"
+  // fallback is gone with the widget it existed for.
+  final target = find.byKey(key);
   expect(target, findsWidgets);
   await tester.tap(target.first);
   await tester.pumpAndSettle();
@@ -191,6 +188,7 @@ void main() {
     'job_detail': () => const JobDetailPage(jobId: 'job-1'),
     'staff': () => const WorkshopAdminHomePage(),
     'templates': () => const WorkshopAdminHomePage(),
+    'board': () => const WorkshopAdminHomePage(),
     'template_builder': () =>
         const TemplateBuilderPage(templateId: 'template-1'),
     'reports': () => const ReportPage(jobId: 'job-3'),
@@ -225,6 +223,7 @@ void main() {
         'jobs': const Key('workshop-tab-jobs'),
         'staff': const Key('workshop-tab-staff'),
         'templates': const Key('workshop-tab-templates'),
+        'board': const Key('workshop-tab-job-board'),
         'settings': const Key('workshop-tab-settings'),
       };
       final navKey = keyByScreen[screen];

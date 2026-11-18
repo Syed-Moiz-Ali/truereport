@@ -1,11 +1,11 @@
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/report_pdf_saver.dart';
+import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 
 class ReportPage extends ConsumerStatefulWidget {
@@ -17,59 +17,16 @@ class ReportPage extends ConsumerStatefulWidget {
   ConsumerState<ReportPage> createState() => _ReportPageState();
 }
 
-/// Parses a raw ISO `scheduledAt`/`finalizedAt` string and returns the
-/// Asia/Dubai (UTC+4) wall-clock instant for display.
-///
-/// Strings carrying no UTC offset are treated as UTC (matching the
-/// technician app's `scheduledTimeUtc4` instant interpretation in
-/// `assigned_jobs_view.dart`, which displays `toUtc() + 4h`). Returns null
-/// when the string is empty or unparseable.
-DateTime? _dubaiWallTime(String raw) {
-  if (raw.trim().isEmpty) {
-    return null;
-  }
-  final parsed = DateTime.tryParse(raw.trim());
-  if (parsed == null) {
-    return null;
-  }
-  final hasOffset = RegExp(r'([Zz]|[+-]\d{2}:?\d{2})$').hasMatch(raw.trim());
-  final utc = hasOffset
-      ? parsed.toUtc()
-      : DateTime.utc(
-          parsed.year,
-          parsed.month,
-          parsed.day,
-          parsed.hour,
-          parsed.minute,
-          parsed.second,
-          parsed.millisecond,
-          parsed.microsecond,
-        );
-  return utc.add(const Duration(hours: 4));
-}
-
-/// Locale-aware date+time for a raw ISO instant (`DateFormat.yMd + add_Hm`
-/// under the active locale). Falls back to the raw string when unparseable
-/// so no information is silently dropped.
-String _formatInstant(BuildContext context, String raw) {
-  final wall = _dubaiWallTime(raw);
-  if (wall == null) {
-    return raw;
-  }
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.yMd(locale).add_Hm().format(wall);
-}
+/// Locale-aware date+time for a raw ISO instant, formatted with the single
+/// [WorkshopClock] policy. Falls back to the raw string when unparseable so no
+/// information is silently dropped.
+String _formatInstant(BuildContext context, String raw) =>
+    WorkshopClock.formatInstant(context, raw, fallback: raw);
 
 /// Date-only form for the compact page subtitle; the hero summary keeps the
 /// full instant so the same string is never repeated verbatim.
-String _formatDate(BuildContext context, String raw) {
-  final wall = _dubaiWallTime(raw);
-  if (wall == null) {
-    return raw;
-  }
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.yMd(locale).format(wall);
-}
+String _formatDate(BuildContext context, String raw) =>
+    WorkshopClock.formatDate(context, raw, fallback: raw);
 
 /// Reads a dynamic content field as display text without inventing data.
 String _text(dynamic value) => value == null ? '' : '$value'.trim();

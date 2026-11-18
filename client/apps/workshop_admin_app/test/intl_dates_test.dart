@@ -5,6 +5,8 @@ import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
 import 'package:workshop_admin_app/src/features/reports/report_page.dart';
+import 'package:workshop_admin_app/src/workshop_clock.dart';
+import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,28 +15,112 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/l10n.dart';
 
-// F3-B Step 0 (Q3): raw ISO `scheduledAt`/`finalizedAt` strings must never
-// reach users. Display uses the Asia/Dubai (UTC+4) wall-clock instant —
-// offset-less ISO is treated as UTC, mirroring the technician app's
-// `scheduledTimeUtc4` instant interpretation — formatted with
-// `DateFormat.yMd(locale).add_Hm()`, and counts with
-// `NumberFormat.decimalPattern(locale)`.
+// F3-B Step 0 (Q3) + T1: raw ISO `scheduledAt`/`finalizedAt` strings must never
+// reach users. Since wave 2 the display policy is `WorkshopClock`: a value with
+// no offset is already an Asia/Dubai wall time (never shifted), a value with an
+// offset converts to Asia/Dubai. Formatting stays `DateFormat.yMd(locale) +
+// add_Hm()`, counts stay `NumberFormat.decimalPattern(locale)`.
 const _isoScheduled = '2026-11-05T09:00:00';
 const _isoFinalized = '2026-11-04T10:30:00';
 
-// Offset-less ISO is UTC: 09:00 UTC -> 13:00 Dubai; 10:30 UTC -> 14:30 Dubai.
+/// A real instant for the same Dubai wall clock (09:00 naive == 05:00Z).
+const _isoScheduledWithOffset = '2026-11-05T05:00:00Z';
+
+// Naive ISO is a Dubai wall time: 09:00 stays 09:00; 10:30 stays 10:30.
 String _expectedInstant(String iso, String localeName) {
-  final parsed = DateTime.tryParse(iso)!;
-  final dubai = DateTime.utc(
-    parsed.year,
-    parsed.month,
-    parsed.day,
-    parsed.hour,
-    parsed.minute,
-    parsed.second,
-  ).add(const Duration(hours: 4));
-  return DateFormat.yMd(localeName).add_Hm().format(dubai);
+  final wall = WorkshopClock.wallTime(iso)!;
+  return DateFormat.yMd(localeName).add_Hm().format(wall);
 }
+
+/// Clean-family fixtures for the dashboard, which reads `platform_jobs`.
+/// `scheduledAt` is a naive Dubai wall time, the exact shape the server sends.
+const _cleanPending = CleanJob(
+  id: 'job-1',
+  reference: 'JOB-10482',
+  status: 'PENDING_REVIEW',
+  reviewStatus: 'PENDING_REVIEW',
+  publicationStatus: 'NOT_PUBLISHED',
+  templateVersionId: 'version-1',
+  templateNameEn: 'Full inspection',
+  templateNameAr: 'فحص شامل',
+  templateVersionNo: 1,
+  assignedTechnicianId: 'tech-1',
+  assignedTechnicianName: 'Rashid K.',
+  customerName: 'Ahmed Al Mansoori',
+  customerPhone: '+971500000100',
+  customerEmail: 'a@test.local',
+  vehicleVin: 'TESTVIN00000000002',
+  vehicleMake: 'Nissan',
+  vehicleModel: 'Patrol',
+  vehicleYear: 2022,
+  vehiclePlate: 'A12345',
+  odometerValue: 45000,
+  odometerUnit: 'KM',
+  transmission: 'AUTOMATIC',
+  fuelType: 'PETROL',
+  preferredLanguage: 'en',
+  scheduledAt: _isoScheduled,
+  startedAt: null,
+  completedAt: null,
+  approvedAt: null,
+  publishedAt: null,
+  cancelledAt: null,
+  approvedBy: null,
+  cancelledBy: null,
+  cancelReason: null,
+  score: null,
+  gradeCode: null,
+  safetyCapApplied: false,
+  safetyCapReason: null,
+  consentGranted: true,
+  createdAt: '2026-11-04T08:00:00',
+  updatedAt: '2026-11-05T10:00:00',
+  version: 1,
+);
+
+const _cleanApproved = CleanJob(
+  id: 'job-2',
+  reference: 'JOB-10465',
+  status: 'APPROVED',
+  reviewStatus: 'APPROVED',
+  publicationStatus: 'NOT_PUBLISHED',
+  templateVersionId: 'version-1',
+  templateNameEn: 'Full inspection',
+  templateNameAr: 'فحص شامل',
+  templateVersionNo: 1,
+  assignedTechnicianId: null,
+  assignedTechnicianName: null,
+  customerName: 'Hessa Al Suwaidi',
+  customerPhone: null,
+  customerEmail: null,
+  vehicleVin: 'TESTVIN00000000003',
+  vehicleMake: 'Porsche',
+  vehicleModel: 'Macan',
+  vehicleYear: 2023,
+  vehiclePlate: 'B67890',
+  odometerValue: null,
+  odometerUnit: null,
+  transmission: null,
+  fuelType: null,
+  preferredLanguage: 'en',
+  scheduledAt: null,
+  startedAt: null,
+  completedAt: null,
+  approvedAt: '2026-11-05T11:00:00',
+  publishedAt: null,
+  cancelledAt: null,
+  approvedBy: 'user-1',
+  cancelledBy: null,
+  cancelReason: null,
+  score: 88,
+  gradeCode: 'B',
+  safetyCapApplied: false,
+  safetyCapReason: null,
+  consentGranted: true,
+  createdAt: '2026-11-04T09:00:00',
+  updatedAt: '2026-11-05T11:00:00',
+  version: 2,
+);
 
 const _job = WorkshopJob(
   id: 'job-1',
@@ -96,6 +182,46 @@ class _IntlFakeApi implements AdminApi {
 
   @override
   Future<JobCounts> jobCounts() async => _counts;
+
+  @override
+  Future<CleanJobCounts> cleanJobCounts() async => const CleanJobCounts(
+    draft: 0,
+    scheduled: 0,
+    assigned: 0,
+    inProgress: 0,
+    pendingReview: 1,
+    approved: 1,
+    published: 1,
+    rejected: 0,
+    cancelled: 0,
+    total: 3,
+  );
+
+  @override
+  Future<JobPage> cleanJobs({
+    int page = 0,
+    int size = 20,
+    String status = '',
+    String search = '',
+    String from = '',
+    String to = '',
+  }) async {
+    final items = <CleanJob>[_cleanPending, _cleanApproved];
+    final filtered = status.isEmpty
+        ? items
+        : items.where((job) => job.status == status).toList(growable: false);
+    return JobPage(
+      items: filtered,
+      page: page,
+      size: size,
+      total: filtered.length,
+      totalPages: filtered.isEmpty ? 0 : 1,
+    );
+  }
+
+  @override
+  Future<CleanJob> cleanJob(String id) async =>
+      id == _cleanPending.id ? _cleanPending : _cleanApproved;
 
   @override
   Future<ReportAdmin> report(String jobId) async => const ReportAdmin(
@@ -193,16 +319,18 @@ void main() {
 
   test('fixed instant renders in EN locale shape (yMd + Hm)', () {
     final formatted = _expectedInstant(_isoScheduled, 'en');
-    // Offset-less ISO treated as UTC, displayed as Dubai wall-clock.
-    expect(formatted, '11/5/2026 13:00');
+    // Naive ISO is a Dubai wall time: 09:00 displays as 09:00 (T1 fix).
+    expect(formatted, '11/5/2026 09:00');
     expect(formatted.contains('T'), isFalse);
+    // The same wall clock expressed as a real instant converts identically.
+    expect(_expectedInstant(_isoScheduledWithOffset, 'en'), '11/5/2026 09:00');
   });
 
   test('fixed instant renders in AR locale shape (yMd + Hm)', () {
     final formatted = _expectedInstant(_isoScheduled, 'ar');
     expect(formatted.contains('T'), isFalse);
     expect(formatted, isNot(_expectedInstant(_isoScheduled, 'en')));
-    // The Dubai instant (2026-11-05 13:00) must be encoded in either digit
+    // The Dubai instant (2026-11-05 09:00) must be encoded in either digit
     // set: normalize Arabic-Indic digits to Latin, then check the fields.
     // (Standalone `initializeDateFormatting` yields Latin digits here while
     // the in-app localizations yield Arabic-Indic ones; the widget tests
@@ -213,7 +341,7 @@ void main() {
           String.fromCharCode(match.group(0)!.codeUnitAt(0) - 0x0660 + 0x30),
     );
     expect(normalized.contains('2026'), isTrue);
-    expect(normalized.contains('13:00'), isTrue);
+    expect(normalized.contains('09:00'), isTrue);
   });
 
   test('counts format per locale via NumberFormat.decimalPattern', () {
@@ -279,7 +407,7 @@ void main() {
     expect(find.textContaining(_isoScheduled), findsNothing);
   });
 
-  testWidgets('dashboard card meta + stats never show raw ISO (EN)', (
+  testWidgets('dashboard row meta + total never show raw ISO (EN)', (
     tester,
   ) async {
     await _pump(
@@ -288,18 +416,20 @@ void main() {
       const Locale('en'),
     );
     expect(find.textContaining(_isoScheduled), findsNothing);
-    // The next-up row renders the locale-shaped instant (yMd + Hm).
-    expect(find.text(_expectedInstant(_isoScheduled, 'en')), findsWidgets);
-    // Stat values use decimalPattern: EN unchanged. The pipeline legend
-    // repeats the same real counts.
-    expect(find.text('23'), findsOneWidget);
-    expect(find.text('34'), findsWidgets);
+    // The row meta renders the locale-shaped instant (yMd + Hm), not the wire
+    // string, and never shifts a naive Dubai wall time.
+    expect(
+      find.textContaining(_expectedInstant(_isoScheduled, 'en')),
+      findsWidgets,
+    );
+    // The hero total uses decimalPattern for the current locale.
+    final total = NumberFormat.decimalPattern('en').format(3);
+    expect(find.text(total), findsWidgets);
 
-    await tester.tap(find.byKey(const Key('dashboard-job-job-1')));
+    await tester.tap(find.byKey(const Key('dashboard-job-waiting-job-1')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.textContaining(_isoScheduled), findsNothing);
-    expect(find.text(_expectedInstant(_isoScheduled, 'en')), findsWidgets);
   });
 
   testWidgets('dashboard stats use NumberFormat.decimalPattern(locale) (AR)', (
@@ -313,9 +443,9 @@ void main() {
 
     expect(find.textContaining(_isoScheduled), findsNothing);
     // Same locale API the widgets use; intl 0.20.3 renders 'ar' counts in
-    // Latin digits (see counts unit test), so the EN/AR stat strings match.
-    final arActive = NumberFormat.decimalPattern('ar').format(23);
-    expect(find.text(arActive), findsOneWidget);
+    // Latin digits (see counts unit test), so the formatter is the contract.
+    final arTotal = NumberFormat.decimalPattern('ar').format(3);
+    expect(find.text(arTotal), findsWidgets);
   });
 
   testWidgets('report page shows formatted finalizedAt, never raw ISO (EN)', (

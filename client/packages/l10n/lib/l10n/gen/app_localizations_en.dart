@@ -3316,10 +3316,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportLabels => 'Report labels';
 
   @override
-  String get dashboardGreeting => 'Welcome back';
+  String dashboardGreeting(String name) {
+    return 'Welcome back, $name';
+  }
 
   @override
-  String get dashboardToday => 'Today';
+  String dashboardToday(String date) {
+    return 'Today, $date';
+  }
 
   @override
   String get dashboardNextUp => 'Next up';
@@ -3339,6 +3343,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardNoRecentJobs => 'No other recent jobs';
+
+  @override
+  String dashFloorTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jobs on the floor',
+      one: '1 job on the floor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashDecisionWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count are waiting for your decision',
+      one: '1 is waiting for your decision',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dashFloorLabel => 'jobs on the floor';
+
+  @override
+  String get dashFloorLabelOne => 'job on the floor';
+
+  @override
+  String get dashNothingWaiting => 'Nothing is waiting for your decision';
+
+  @override
+  String get dashFloorEmpty => 'No jobs on the floor';
+
+  @override
+  String get dashFloorEmptyBody => 'Create the first job to see it here.';
+
+  @override
+  String get dashGroupWaiting => 'Waiting for you';
+
+  @override
+  String get dashGroupInBay => 'In the bay';
+
+  @override
+  String get dashGroupReady => 'Ready to publish';
+
+  @override
+  String get dashGroupEmpty => 'Nothing here right now';
+
+  @override
+  String get dashSegmentOther => 'Other';
+
+  @override
+  String get dashAtlasLabel => 'Jobs by status';
+
+  @override
+  String dashFooterSum(int total) {
+    return 'Every segment is a status count. They sum to $total.';
+  }
+
+  @override
+  String get dashReviewVerb => 'Review';
+
+  @override
+  String get dashPublishVerb => 'Publish';
+
+  @override
+  String get dashOpenVerb => 'Open';
+
+  @override
+  String dashGroupCountPending(int count) {
+    return '$count pending review';
+  }
+
+  @override
+  String dashGroupCountInBay(int count) {
+    return '$count in progress';
+  }
+
+  @override
+  String dashGroupCountReady(int count) {
+    return '$count ready';
+  }
 
   @override
   String get jobDetailCustomerVehicle => 'Customer & vehicle';

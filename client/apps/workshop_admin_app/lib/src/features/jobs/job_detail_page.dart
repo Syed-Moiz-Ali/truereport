@@ -10,6 +10,7 @@ import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
 import 'package:workshop_admin_app/src/features/reports/report_page.dart';
+import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -678,6 +679,10 @@ class _AssignmentSection extends ConsumerWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final assignments = ref.watch(jobAssignmentsProvider(jobId));
+    // `AssignmentDto` carries ids only. The name has to come from the staff
+    // directory; until (or unless) it resolves, the row shows an em dash and
+    // never the raw id (T5 / G6).
+    final staff = ref.watch(staffProvider).value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -702,7 +707,7 @@ class _AssignmentSection extends ConsumerWidget {
                 children: [
                   for (var index = 0; index < items.length; index++) ...[
                     if (index > 0) const WorkshopDivider(),
-                    _AssignmentRow(assignment: items[index]),
+                    _AssignmentRow(assignment: items[index], staff: staff),
                   ],
                 ],
               );
@@ -714,10 +719,33 @@ class _AssignmentSection extends ConsumerWidget {
   }
 }
 
+/// Rendered when an id cannot be resolved to a person. Never the id itself.
+const String _unknownPerson = '—';
+
+/// Resolves a user id to a display name through the staff directory.
+///
+/// Returns [_unknownPerson] for an id the directory does not know (including
+/// while the directory is still loading). Callers handle a genuinely absent id
+/// separately, so "no value" and "unknown person" stay distinguishable.
+String _staffName(List<StaffMember>? staff, String userId) {
+  final id = userId.trim();
+  if (id.isEmpty) {
+    return _unknownPerson;
+  }
+  for (final member in staff ?? const <StaffMember>[]) {
+    if (member.userId == id) {
+      final name = member.displayName.trim();
+      return name.isEmpty ? _unknownPerson : name;
+    }
+  }
+  return _unknownPerson;
+}
+
 class _AssignmentRow extends StatelessWidget {
-  const _AssignmentRow({required this.assignment});
+  const _AssignmentRow({required this.assignment, required this.staff});
 
   final JobAssignment assignment;
+  final List<StaffMember>? staff;
 
   @override
   Widget build(BuildContext context) {
@@ -729,12 +757,13 @@ class _AssignmentRow extends StatelessWidget {
         facts: [
           JobFact(
             label: l10n.jobsAssignedTechnician,
-            value: assignment.technicianId,
-            valueDirection: TextDirection.ltr,
+            value: _staffName(staff, assignment.technicianId),
           ),
           JobFact(
             label: l10n.assignTechnicianTitle,
-            value: assignment.assignedBy ?? l10n.commonNotAvailable,
+            value: assignment.assignedBy == null
+                ? l10n.commonNotAvailable
+                : _staffName(staff, assignment.assignedBy!),
           ),
           JobFact(
             label: l10n.scheduledAt,

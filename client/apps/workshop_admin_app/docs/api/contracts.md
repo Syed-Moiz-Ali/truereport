@@ -1,150 +1,106 @@
-# API contracts — Workshop Admin sign-in
+# API contracts — dashboard + jobs (Phase 1)
 
-Derived from the producer code, not from a live capture:
+Derived from server source on 2026-11-18. **No live capture was possible** in this
+environment; every field below is read from the Java DTOs/controllers and the
+Dart mappers, not from a recorded response. Samples in `docs/data/samples/` are
+shape-accurate but DTO-derived.
 
-- `server/src/main/java/com/truereport/identity/api/AuthController.java`
-- `server/src/main/java/com/truereport/identity/AuthService.java`
-- `server/src/main/java/com/truereport/identity/api/AuthResponse.java`
-- `server/src/main/java/com/truereport/identity/api/UserDto.java`, `MembershipDto.java`
-- `server/src/main/java/com/truereport/shared/error/ApiExceptionHandler.java`
-- client: `packages/api_client/lib/src/api_client.dart`, `problem_details.dart`,
-  `packages/domain/lib/src/session.dart`, `membership.dart`, `role.dart`,
-  `packages/auth/lib/src/auth_repository.dart`
+Two API families serve job data. They must not be confused.
 
-Samples in `docs/data/samples/` are **constructed to this contract** and marked accordingly.
+---
 
-## POST `/api/v1/auth/login`
+## A. Legacy jobs — dashboard + queue
 
-Request — `application/json`, no auth header:
+### GET `/api/v1/workshop/legacy/jobs/counts`
+- **Auth**: `hasRole('WORKSHOP_ADMIN')`, tenant = caller's workshop.
+- **Query**: none.
+- **Response** `JobCountsDto` (all `long`):
+  `draft, scheduled, newScheduled, assigned, inProgress, readyToFinalize, finalized, finalizedToday, cancelled, total`
+- **Definitions** (`WorkshopJobService:85-119`): one pass over every job of the
+  workshop; statuses are mutually exclusive; `newScheduled = draft + scheduled`;
+  `finalizedToday` = `finalizedAt` on the current date **in Asia/Dubai**;
+  `total` includes cancelled.
+- **Partition**: `draft+scheduled+assigned+inProgress+readyToFinalize+finalized+cancelled == total`. ✔
+- **Quirks**: there is **no `active` field**. The client derives
+  `active = assigned + inProgress` (`job_counts.dart:37`), which overlaps the
+  `inProgress` tile.
 
-```json
-{ "email": "admin.a@truereport.test", "password": "<password>" }
-```
+### GET `/api/v1/workshop/legacy/jobs`
+- **Query**: `search` (string), `status` (one of the seven legacy statuses).
+- **Filtering**: server-side, in memory, over `findByWorkshopIdOrderByCreatedAtDesc`
+  (`WorkshopJobService:73-81`). No pagination — the whole list is returned.
+- **Response**: `List<JobDto>`; fields include
+  `id, reference, status, reviewStatus, publicationStatus, templateNameEn/Ar, templateVersionNo,
+  assignedTechnicianId, assignedTechnicianName, customerName/Phone/Email,
+  vehicleVin/Make/Model/Year/Plate, odometerValue/Unit, transmission, fuelType,
+  preferredLanguage, scheduledAt, startedAt, readyAt, finalizedAt, score, gradeCode,
+  safetyCapApplied/Reason, createdAt, updatedAt`.
+- **Dates**: `LocalDateTime.toString()` — **no offset**, e.g. `2026-11-18T10:00`.
+- **Enums**: `DRAFT, SCHEDULED, ASSIGNED, IN_PROGRESS, READY_TO_FINALIZE, FINALIZED, CANCELLED`.
 
-`email` is sent already trimmed (`auth_repository.dart:60`). Response `200 OK` is one of **two**
-shapes:
+### POST `/legacy/jobs`, `/legacy/jobs/{id}/assign`, `/legacy/jobs/{id}/cancel`
+- Create takes a published `templateVersionId` and a **naive local** `scheduledAt`.
+- Assign/cancel are state-guarded server-side (`JOB_NOT_ASSIGNABLE`, etc.).
 
-### 1. Success (2FA not required)
+---
 
-```json
-{
-  "accessToken": "<jwt>",
-  "refreshToken": "<opaque>",
-  "tokenType": "Bearer",
-  "expiresInSeconds": 3600,
-  "user": {
-    "id": "<uuid>",
-    "email": "admin.a@truereport.test",
-    "displayName": "Admin A",
-    "platformAdmin": false,
-    "totpEnabled": false
-  },
-  "memberships": [
-    { "workshopId": "<uuid>", "workshopName": "Workshop A", "role": "WORKSHOP_ADMIN" }
-  ],
-  "requiresTwoFactor": false,
-  "challengeToken": null
-}
-```
+## B. Clean jobs — board + detail
 
-Client handling: `requiresTwoFactor != true` → `Session.fromJson(json)`, API token set,
-`SecureSessionStore.save(json)` (`auth_repository.dart:109-117`). Keys the client requires:
-`accessToken`, `refreshToken`, `user.{id,email,displayName,platformAdmin,totpEnabled}`,
-`memberships[].{workshopId,workshopName,role}`. `tokenType` and `expiresInSeconds` are ignored
-by the client — do not build UI that depends on them.
+### GET `/api/v1/workshop/jobs/counts`
+- **Response** `JobStatusCountsDto`: `draft, scheduled, assigned, inProgress,
+  pendingReview, approved, published, rejected, cancelled, total`.
+- **Scope**: entire workshop; **no search parameter** (`WorkshopJobAdminController:86`).
 
-### 2. Challenge (2FA required)
+### GET `/api/v1/workshop/jobs`
+- **Query**: `page` (default 0), `size` (default 10 client / 20 API), `status`,
+  `search`, `from`, `to`.
+- **Response** `JobPageDto { items: JobDto[], page, size, total, totalPages }`.
+- **Status enum** (single field, review and publication folded in):
+  `DRAFT, SCHEDULED, ASSIGNED, IN_PROGRESS, PENDING_REVIEW, APPROVED, PUBLISHED, REJECTED, CANCELLED`.
+  `reviewStatus` and `publicationStatus` are separate sub-state strings
+  (initialised `NOT_SUBMITTED` / `UNPUBLISHED`; `ACTIVE` / `REVOKED` for a live or
+  revoked public link).
+- **Table**: `platform_jobs`.
 
-```json
-{
-  "accessToken": null,
-  "refreshToken": null,
-  "tokenType": null,
-  "expiresInSeconds": 0,
-  "user": null,
-  "memberships": [],
-  "requiresTwoFactor": true,
-  "challengeToken": "<short-lived jwt, purpose=2fa>"
-}
-```
+### GET `/workshop/jobs/{id}`, `/assign`, `/cancel`, `/assignments`, `/review`, `/publish-checklist`, `/approve`, `/reject`, `/publish`
+- Mutations take `version` for optimistic concurrency; a stale version must
+  surface as a conflict Failure, never a silent overwrite.
+- `/review` returns findings with `labelEn/Ar, stableCode, resultCode,
+  evidencePhotos[], evidenceVideos[], signaturePresent, completedAt, issueValues`,
+  plus `itemsAssessed/itemsTotal/scorePreview/gradePreview/safetyCapPreview`.
+- `/assignments` returns `technicianId, assignedBy, assignedAt, unassignedAt, reason`
+  — **ids, not names**, which is why the detail screen currently prints a UUID.
 
-Client handling: `auth_repository.dart:110-112` returns `AuthChallenge(challengeToken)`; the
-session store is **not** written. The screen currently discards this result
-(`workshop_login_page.dart:51-53`) — that is the F4 defect. Contract requirement: the screen must
-branch on `AuthChallenge` and show localized copy; it must **not** call `/auth/2fa/verify`
-(`source_scan_test.dart:248-264` forbids TOTP UI in this app).
+---
 
-## POST `/api/v1/auth/refresh`
+## Enum → UI label mapping (both families)
 
-Request `{ "refreshToken": "<opaque>" }` → same success shape. Not used by the sign-in screen.
-`refresh()` does not distinguish a challenge response (unreachable for refresh).
+| Server value | Tone (`workshopJobTone`) | Label source |
+|---|---|---|
+| DRAFT / SCHEDULED | neutral | `statusDraft` / `statusScheduled` |
+| ASSIGNED / IN_PROGRESS | accent | `statusAssigned` / `statusInProgress` |
+| READY_TO_FINALIZE / PENDING_REVIEW | warning | `statusReadyToFinalize` / `jobsStatusPendingReview` |
+| APPROVED / PUBLISHED / FINALIZED | success | `jobsStatusApproved` / `jobsStatusPublished` / `statusFinalized` |
+| CANCELLED / REJECTED | danger | `statusCancelled` / `jobsStatusRejected` |
+| anything else | neutral | **silent** — no log, no label |
 
-## GET `/api/v1/auth/me`  (Bearer)
+Unknown statuses fall through to neutral with the raw string as the label in
+several places. Contract requirement: unknown ⇒ explicit "Unknown status" +
+one-time log, never a raw enum on screen.
 
-Returns `{ user: {...}, memberships: [...] }`. The client only consumes the **status code**:
-`401` → clear the session, anything else → keep the stored session (offline-tolerant restore,
-`auth_repository.dart:30-49`). Do not add UI that renders `/auth/me` fields without a new contract
-entry.
+## Error mapping
 
-## POST `/api/v1/auth/logout`  (Bearer)
+Client maps `AppFailure.code` / HTTP status to localized copy. The job screens
+mostly collapse every mutation failure to `commonActionFailed`
+(`job_detail_page.dart:245-249, 283-287`), so `JOB_ALREADY_ASSIGNED`,
+`JOB_NOT_ASSIGNABLE` and a stale-version conflict are indistinguishable to the
+user. Contract requirement: 409 codes must map to specific copy.
 
-Always succeeds locally: `AppFailure` is swallowed and the store is cleared
-(`auth_repository.dart:98-107`). Not reachable from the sign-in screen except via
-`/unauthorized`.
+## Known quirks / drift risks
 
-## Error envelope (all failures)
-
-`ApiExceptionHandler` emits RFC-7807 `ProblemDetail` plus custom properties:
-
-```json
-{
-  "type": "about:blank",
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "<localized message>",
-  "instance": "/api/v1/auth/login",
-  "code": "AUTH_INVALID_CREDENTIALS",
-  "messageKey": "error.auth.invalidCredentials",
-  "traceId": "<id>",
-  "messageEn": "...",
-  "messageAr": "..."
-}
-```
-
-Client mapping (`api_client.dart:247-265`): any error **with a JSON body** →
-`ApiFailure(code, messageKey, traceId, statusCode, detail, errors)`; any error **without** a body →
-`AppFailure(code: <dio type uppercased>, messageKey: 'error.network')`.
-
-### Codes the sign-in screen can receive
-
-| HTTP | `code` | When | Screen copy |
-|---|---|---|---|
-| 401 | `AUTH_INVALID_CREDENTIALS` | unknown email, wrong password, locked account (`AuthService.java:83, 87, 93`) | `invalidCredentials` |
-| 422 | `VALIDATION_FAILED` | `@Valid` rejects the request body (e.g. blank email) | `genericError` today — the client validates first, so this is a backstop |
-| 400/500 | various `ApiException` codes | unexpected server fault | `genericError` |
-| — | `CONNECTIONERROR`, `CONNECTIONTIMEOUT`, `SENDTIMEOUT`, `RECEIVETIMEOUT` | transport failure | `networkError` |
-| — | `UNKNOWN`, `BADCERTIFICATE`, `CANCEL` | web CORS/offline edge, TLS, cancellation | `genericError` |
-
-**Lockout is not distinguishable from a wrong password.** `AUTH_INVALID_CREDENTIALS` is returned
-for both, deliberately (no account enumeration). The UI must not invent a "account locked" state.
-
-**No rate limiting on `/auth/login`.** A 429 branch is not required; if one is ever added, it must
-map to a new localized message rather than `genericError`.
-
-## Request headers the app does not send
-
-`platform_admin_app` sets `acceptLanguage` and `clientName` (`main.dart:38-39`); the workshop app
-sets **neither** (`api_client.dart:61-65`). Consequence:
-
-- the server's localized `detail` / `messageEn` / `messageAr` are always resolved in the server
-  default locale for this app;
-- `X-Client` audit attribution is absent for workshop requests.
-
-The sign-in UI does not read `detail`, so this is **not** user-visible today. It becomes visible
-the moment any screen renders `AppFailure.detail`. Fix belongs in a shared bootstrap, not in the
-sign-in screen. Tracked as gap G6.
-
-## Locale note
-
-`Locale` changes only affect client-side `l10n` and layout direction on this screen. Because the
-banner is built from `code` + `l10n`, the Arabic build shows Arabic errors regardless of G6.
+1. **`legacy` in the path** — the dashboard's data source is explicitly marked
+   legacy by its own URL.
+2. **Two tables** — `inspection_jobs` vs `platform_jobs`; no dual-write exists.
+3. **Naive datetimes everywhere** — no offsets on the wire; the client guesses.
+4. **Counts ignore search on the board** and **are scoped to search in the queue**.
+5. **No `active` on the wire** — derived client-side, overlapping `inProgress`.

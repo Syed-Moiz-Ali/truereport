@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard directions — Gate 3</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 32px; background: #f7f5f1; color: #1b1c19;
+         font: 14px/1.5 "Plus Jakarta Sans", -apple-system, Segoe UI, sans-serif; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.3px; }
+  p.lead { margin: 0 0 28px; color: #6a6f6a; max-width: 900px; }
+  .dir { margin: 0 0 48px; }
+  .dir h2 { font-size: 17px; margin: 0 0 2px; }
+  .dir .idea { color: #6a6f6a; margin: 0 0 12px; }
+  .row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  figure { margin: 0; }
+  figcaption { font-size: 11px; letter-spacing: .6px; text-transform: uppercase;
+               color: #6a6f6a; margin-top: 6px; }
+  img { display: block; border: 1px solid #e6e2da; background: #fff; max-width: 100%; }
+  .wide { width: 860px; }
+  .phone { width: 260px; }
+  .tile { width: 640px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 6px;
+         background: #e8f2ec; color: #0b6b4f; font-size: 11px; font-weight: 600;
+         margin-left: 8px; vertical-align: 2px; }
+  .tradeoff { margin: 12px 0 0; padding: 12px 14px; border-left: 3px solid #b45309;
+              background: #fdf3e2; max-width: 860px; }
+  .tradeoff b { color: #b45309; }
+</style>
+</head>
+<body>
+
+<h1>Dashboard — three directions</h1>
+<p class="lead">Real-font renders from the throwaway preview harness, at 1440 and 390,
+plus a style tile each. Numbers come from the verified nine-bucket partition
+(1+4+3+5+4+2+3+1+1 = 24). Nothing here is production code yet.</p>
+
+<section class="dir">
+  <h2>A — Triage rail<span class="tag">decision-led</span></h2>
+  <p class="idea">The page is one ranked work list; the pipeline is a fixed instrument panel beside it.</p>
+  <div class="row">
+    <figure><img class="wide" src="a-triage-rail-1440.png" alt="A at 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="a-triage-rail-390.png" alt="A at 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:16px"><img class="tile" src="a-style-tile.png" alt="A style tile"><figcaption>Style tile</figcaption></figure>
+  <p class="tradeoff"><b>Trade-off:</b> only the top stage is expanded, so the other eight are a legend. Publishing is buried one section lower.</p>
+</section>
+
+<section class="dir">
+  <h2>B — The floor<span class="tag">partition-led</span></h2>
+  <p class="idea">The nine-segment partition is the page: every element hangs from one full-bleed bar.</p>
+  <div class="row">
+    <figure><img class="wide" src="b-the-floor-1440.png" alt="B at 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="b-the-floor-390.png" alt="B at 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:16px"><img class="tile" src="b-style-tile.png" alt="B style tile"><figcaption>Style tile</figcaption></figure>
+  <p class="tradeoff"><b>Trade-off:</b> strongest truth and identity, least actionable per pixel — no inline controls, and the giant number does nothing.</p>
+</section>
+
+<section class="dir">
+  <h2>C — The desk<span class="tag">action-led</span></h2>
+  <p class="idea">Three decisions, one feed. The only numbers are the three the admin can act on.</p>
+  <div class="row">
+    <figure><img class="wide" src="c-the-desk-1440.png" alt="C at 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="c-the-desk-390.png" alt="C at 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:16px"><img class="tile" src="c-style-tile.png" alt="C style tile"><figcaption>Style tile</figcaption></figure>
+  <p class="tradeoff"><b>Trade-off:</b> three windows onto nine states, so the page shows less of the workshop; "nothing else" has to absorb approved/rejected/cancelled in the legend.</p>
+</section>
+
+</body>
+</html>

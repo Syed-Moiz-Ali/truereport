@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>App shell — three directions</title>
+<style>
+  body { margin: 0; padding: 28px; background: #f7f5f1; color: #1b1c19;
+         font: 13px/1.5 "Plus Jakarta Sans", -apple-system, Segoe UI, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -.3px; }
+  p.lead { margin: 0 0 26px; color: #6a6f6a; max-width: 920px; }
+  section { margin-bottom: 44px; }
+  h2 { font-size: 17px; margin: 0 0 2px; }
+  h2 span { font-size: 10px; letter-spacing: .7px; text-transform: uppercase;
+            color: #0b6b4f; background: #e8f2ec; padding: 2px 7px;
+            border-radius: 6px; margin-left: 8px; vertical-align: 3px; }
+  .idea { color: #6a6f6a; margin: 0 0 12px; }
+  .row { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  figure { margin: 0; }
+  img { display: block; border: 1px solid #e6e2da; background: #fff; }
+  figcaption { font-size: 11px; color: #6a6f6a; margin-top: 5px; }
+  .wide { width: 780px; } .phone { width: 220px; } .tile { width: 620px; }
+  .trade { margin-top: 12px; padding: 11px 14px; border-left: 3px solid #b45309;
+           background: #fdf3e2; max-width: 900px; }
+  .trade b { color: #b45309; }
+</style>
+</head>
+<body>
+
+<h1>App shell — three directions</h1>
+<p class="lead">The same neutral sample page sits inside all three shells, so the
+comparison is the chrome and the width it leaves behind. Real fonts, 1440 and 390.
+Nothing here is production code yet.</p>
+
+<section>
+  <h2>A — The spine<span>navigation on the left</span></h2>
+  <p class="idea">Icon rail + command bar. Navigation never takes text width; search and language live where they are used.</p>
+  <div class="row">
+    <figure><img class="wide" src="a-spine-1440.png" alt="A 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="a-spine-390.png" alt="A 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:14px"><img class="tile" src="a-style-tile.png" alt="A tile"><figcaption>Style tile</figcaption></figure>
+  <p class="trade"><b>Trade-off:</b> icon-only navigation costs recognition, and six labels at 9.5 px is the weakest phone moment. Search must route somewhere real.</p>
+</section>
+
+<section>
+  <h2>B — The ledger<span>navigation on top</span></h2>
+  <p class="idea">Six section tabs in a 64 px band, no sidebar, so the content owns the full width.</p>
+  <div class="row">
+    <figure><img class="wide" src="b-ledger-1440.png" alt="B 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="b-ledger-390.png" alt="B 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:14px"><img class="tile" src="b-style-tile.png" alt="B tile"><figcaption>Style tile</figcaption></figure>
+  <p class="trade"><b>Trade-off:</b> six text tabs plus tools will not fit at 1024 without truncation; on phone the strip scrolls, so Settings is off-screen.</p>
+</section>
+
+<section>
+  <h2>C — The dock<span>navigation at the bottom</span></h2>
+  <p class="idea">Content first: identity in a 44 px strip, navigation in a floating dock where only the active item shows its name.</p>
+  <div class="row">
+    <figure><img class="wide" src="c-dock-1440.png" alt="C 1440"><figcaption>1440</figcaption></figure>
+    <figure><img class="phone" src="c-dock-390.png" alt="C 390"><figcaption>390</figcaption></figure>
+  </div>
+  <figure style="margin-top:14px"><img class="tile" src="c-style-tile.png" alt="C tile"><figcaption>Style tile</figcaption></figure>
+  <p class="trade"><b>Trade-off:</b> unconventional for a desktop admin tool, and the dock overlays the last ~90 px of content (a padding contract for every screen).</p>
+</section>
+
+</body>
+</html>

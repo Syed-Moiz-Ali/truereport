@@ -1,4 +1,5 @@
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
@@ -47,30 +48,12 @@ String _formatCount(BuildContext context, int value) {
   return NumberFormat.decimalPattern(locale).format(value);
 }
 
-/// Locale date for `updatedAt` (UTC ISO from the server, shown in
-/// Asia/Dubai wall-clock like the scheduled times); empty when unparseable.
-String _formatUpdated(BuildContext context, String value) {
-  if (value.isEmpty) {
-    return '';
-  }
-  final parsed = DateTime.tryParse(value);
-  if (parsed == null) {
-    return '';
-  }
-  final utc = parsed.isUtc
-      ? parsed
-      : DateTime.utc(
-          parsed.year,
-          parsed.month,
-          parsed.day,
-          parsed.hour,
-          parsed.minute,
-          parsed.second,
-        );
-  final local = utc.add(const Duration(hours: 4));
-  final locale = Localizations.localeOf(context).toString();
-  return DateFormat.yMd(locale).format(local);
-}
+/// Locale date for `updatedAt`; empty when unparseable.
+///
+/// Routed through the single [WorkshopClock] policy: this used to be a third
+/// copy of the "treat a naive timestamp as UTC and add four hours" rule.
+String _formatUpdated(BuildContext context, String value) =>
+    WorkshopClock.formatDate(context, value);
 
 class TemplatesTab extends ConsumerStatefulWidget {
   const TemplatesTab({super.key});

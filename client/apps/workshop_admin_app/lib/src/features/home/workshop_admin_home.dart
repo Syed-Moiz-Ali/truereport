@@ -135,7 +135,7 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
           semanticLabel: l10n.jobsNotificationsTab,
           onPressed: _openNotifications,
         ),
-        child: IndexedStack(
+        child: _SectionHost(
           index: _selectedIndex,
           children: const [
             DashboardTab(),
@@ -147,6 +147,49 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Mounts a section the first time it is visited, then keeps it alive.
+///
+/// The previous `IndexedStack` built all six sections on app open, so all six
+/// provider families fetched before the admin had seen anything (audit S4).
+/// Lazy mounting keeps the same "state survives tab switches" behaviour but
+/// costs one build per section actually used.
+class _SectionHost extends StatefulWidget {
+  const _SectionHost({required this.index, required this.children});
+
+  final int index;
+  final List<Widget> children;
+
+  @override
+  State<_SectionHost> createState() => _SectionHostState();
+}
+
+class _SectionHostState extends State<_SectionHost> {
+  late final Set<int> _visited = {widget.index};
+
+  @override
+  void didUpdateWidget(_SectionHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _visited.add(widget.index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        for (var index = 0; index < widget.children.length; index++)
+          if (_visited.contains(index))
+            Offstage(
+              offstage: index != widget.index,
+              child: TickerMode(
+                enabled: index == widget.index,
+                child: widget.children[index],
+              ),
+            ),
+      ],
     );
   }
 }

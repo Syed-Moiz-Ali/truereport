@@ -112,4 +112,34 @@ void main() {
     expect(find.textContaining('JOB-0001'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('assignment history shows the technician name, never the id', (
+    tester,
+  ) async {
+    await _pumpDetail(tester, 'job-1');
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(JobDetailPage)),
+    );
+
+    // FakeAdminApi: assignment.technicianId == 'tech-1' and the staff
+    // directory resolves it to "Technician A".
+    expect(find.text('Technician A'), findsWidgets);
+    expect(find.text('tech-1'), findsNothing);
+    expect(find.textContaining('8f3d2c11'), findsNothing);
+
+    // assignedBy is an id the directory does not know -> em dash, not the id.
+    final assignedByFact = find.ancestor(
+      of: find.text(l10n.assignTechnicianTitle),
+      matching: find.byType(JobFact),
+    );
+    expect(assignedByFact, findsOneWidget);
+    expect(
+      find.descendant(of: assignedByFact, matching: find.text('—')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: assignedByFact, matching: find.text('admin-1')),
+      findsNothing,
+    );
+  });
 }

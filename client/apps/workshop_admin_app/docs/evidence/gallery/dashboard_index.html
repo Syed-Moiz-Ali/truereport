@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard gallery — Gate 5</title>
+<style>
+  body { margin: 0; padding: 28px; background: #f7f5f1; color: #1b1c19;
+         font: 13px/1.5 "Plus Jakarta Sans", -apple-system, Segoe UI, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -.3px; }
+  p.lead { margin: 0 0 24px; color: #6a6f6a; max-width: 860px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px;
+       color: #6a6f6a; margin: 28px 0 10px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+  figure { margin: 0; }
+  img { display: block; border: 1px solid #e6e2da; background: #fff; }
+  figcaption { font-size: 11px; color: #6a6f6a; margin-top: 5px; }
+  .note { margin-top: 26px; padding: 12px 14px; background: #e8f2ec;
+          border-left: 3px solid #0b6b4f; max-width: 860px; }
+</style>
+</head>
+<body>
+
+<h1>Dashboard primitives — gallery</h1>
+<p class="lead">Every primitive this screen needs, in every state it can take, LTR and RTL,
+light only (waiver W-LIGHT). Captured from the production widgets with the bundled fonts.</p>
+
+<h2>Partition</h2>
+<div class="grid">
+  <figure><img src="dashboard_atlas_ltr.png" alt="atlas LTR" width="820"><figcaption>Atlas — 9 segments + legend (LTR)</figcaption></figure>
+  <figure><img src="dashboard_atlas_rtl.png" alt="atlas RTL" width="820"><figcaption>Atlas — RTL, mirrored</figcaption></figure>
+  <figure><img src="dashboard_atlas_remainder.png" alt="atlas remainder" width="820"><figcaption>Atlas — total 26 with a 2-job "Other" tail</figcaption></figure>
+  <figure><img src="dashboard_atlas_spine.png" alt="atlas spine" width="300"><figcaption>Spine — below 768 px</figcaption></figure>
+</div>
+
+<h2>Groups and rows</h2>
+<div class="grid">
+  <figure><img src="dashboard_group_ltr.png" alt="group LTR"><figcaption>Group header + rows + inline verb</figcaption></figure>
+  <figure><img src="dashboard_group_phone.png" alt="group phone"><figcaption>Empty group + phone row with verb below</figcaption></figure>
+  <figure><img src="dashboard_group_rtl.png" alt="group RTL"><figcaption>Group + row in Arabic (RTL)</figcaption></figure>
+</div>
+
+<h2>States</h2>
+<div class="grid">
+  <figure><img src="dashboard_loading.png" alt="loading"><figcaption>Loading — no placeholder numbers</figcaption></figure>
+  <figure><img src="dashboard_error_line.png" alt="error"><figcaption>Bounded error + retry</figcaption></figure>
+  <figure><img src="dashboard_hero.png" alt="hero"><figcaption>Hero numeral + decision sentence</figcaption></figure>
+</div>
+
+<div class="note">
+<b>Truth rules visible in this gallery:</b> the bar is never rescaled; a zero-count
+stage keeps its legend entry but draws no segment; a known-status gap appears as a
+neutral "Other" tail with the total unchanged; errors never render a number; loading
+never renders a plausible figure.
+</div>
+
+</body>
+</html>
