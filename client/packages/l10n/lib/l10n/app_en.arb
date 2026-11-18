@@ -1404,6 +1404,8 @@
   "jobBoardSubtitle": "Track jobs from intake to publish.",
   "settingsSubtitle": "Workshop, account, and language.",
   "navMore": "More",
+  "navMain": "Main navigation",
+  "@navMain": { "description": "Screen-reader name for the shell's navigation landmark." },
   "copied": "Copied to clipboard",
   "commandPaletteTitle": "Command palette",
   "commandPaletteHint": "Search or jump to...",

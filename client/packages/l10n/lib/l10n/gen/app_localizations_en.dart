@@ -3573,6 +3573,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMore => 'More';
 
   @override
+  String get navMain => 'Main navigation';
+
+  @override
   String get copied => 'Copied to clipboard';
 
   @override

@@ -1,16 +1,72 @@
 # Rebuild state — Workshop Admin
 
-## Wave 4 (current) — app shell
+## Wave 5 (current) — jobs module
+
+**Scope locked: jobs module** (2026-11-19, owner). Foundation frozen.
+
+Path:            **full** (module-scoped: audit → data → Brief 1 → directions →
+                 Brief 2 → Brief 3 → flow proof)
+Target:          `lib/src/features/jobs/**` + the Jobs/Board section host hook;
+                 legacy queue family (`jobsProvider`, `WorkshopJob`,
+                 `job_counts.dart`, `job_quick_sheet.dart`,
+                 `schedule_job_sheet.dart`) is scheduled for deletion
+Queue:           `docs/rebuild_queue.md` (J1 queue + detail · J2 write path ·
+                 J3 client surface)
+Current phase:   3 — three queue directions rendering (isolated); Gate 2b PASS
+Gates:           0 **PASS(user, Wave 2 audit)** | 1 **PASS (self, partial by scope)** |
+                 2 **PASS (self)** | 2b **PASS (self, artifacts)** |
+                 3 **rendering** | 4 **PASS (foundation harness)** |
+                 5 **PASS (frozen)** | 6 pending
+
+Gate 1 (2026-11-19): `docs/data/jobs_inventory.md` — 195 elements:
+                 119 VERIFIED / 7 ASSUMED / 62 SUSPECT (every one root-caused) /
+                 7 MISSING. Consistent for the clean read path; the write path is
+                 **not certifiable** (consent/publish contradiction G-J1, checklist
+                 bypass F2, optional OCC F3). Filed as CR-1/CR-4; publish flow proof
+                 in J2 is blocked until the server decision.
+
+Gate 2b (2026-11-19): `docs/briefs/brief-jobs-1.md` executed —
+                 `test/jobs_invariants_characterization_test.dart` 14/14 pass,
+                 full suite 575 pass, analyze 0. J6 and J10 pinned; clean-job
+                 contract pinned from committed samples; J3/J5 pinned pre-replacement.
+                 J8 defect (reason-sheet controller disposed during exit) fixed in
+                 `job_widgets.dart` and pinned by a page-level cancel test.
+
+Migration risk resolved (audit F1): `inspection_jobs` is still written by the
+                 technician endpoints. The primary queue moves to `CleanJob`, and
+                 the legacy family survives only as a read-only
+                 `features/jobs/archive/` surface until CR-3 (server backfill).
+                 Legacy mutations and UI die in J1.
+
+Resume verification 2026-11-19:
+                 - foundation artifacts present (ui_brief, visual_language,
+                   invariants, allowlist, contracts, data_gaps, evidence dirs)
+                 - `flutter analyze --fatal-infos` → 0 issues (exit 0)
+                 - `flutter test` → **562 pass / 0 fail**
+                 - working tree carries the Wave 4 shell_dock tweak (uncommitted),
+                   frozen with the foundation
+                 - `docs/STOP` absent
+
+Artifacts (new):
+                 docs/rebuild_queue.md · docs/rebuild_log.md ·
+                 docs/rebuild_blocked.md · docs/change_requests.md ·
+                 docs/design_decision.md
+
+Next allowed action: pick direction at Gate 3, write `docs/ui_brief_jobs.md`, then J1.
+
+---
+
+## Wave 4 (shell) — proof captured, independent review spawned 2026-11-19
 
 Path:            **lite** (one component: the navigation chrome)
 Component:       `packages/design_system/lib/src/components/workshop_shell.dart`
                  + host `apps/workshop_admin_app/lib/src/features/home/workshop_admin_home.dart`
-Current phase:   6 — proof captured, **independent review running**
+Current phase:   6 — **complete**
 Current brief:   `docs/briefs/brief-4-shell-mini.md` (executed; see its process note)
 Gates:           0 **PASS(user — audit accepted, ACL lift authorised 2026-11-19)**
                  | 1 **PASS(self)** | 3 **PASS(user — direction C "The dock")**
                  | 4-lite **PASS(self)** | 5 **PASS(user — gallery)**
-                 | 6 **pending (independent)**
+                 | 6 **PASS (independent, round 2, 2026-11-19)**
 
 Artifacts:
                   docs/audit-shell.md                  (S1–S8, K1–K7, kill list)
@@ -37,9 +93,27 @@ Next allowed action: reviewer verdict. If PASS → close the wave. If BLOCK → 
 
 ### Measured result
 
-App: **555 tests** pass, analyzer clean, baseline_check OK.
-Design system: **136 tests** pass (two drifted assertions corrected to the tokens).
+App: **575 tests** pass, analyzer clean, baseline_check OK.
+Design system: **138 tests** pass (two drifted assertions corrected to the tokens).
 No new `RenderFlex overflowed` across 1440/1024/768/390/360, 1.5× and 2×, EN + AR.
+14 shell captures (dashboard + board at six widths, staff, jobs, AR).
+
+### Round 3 (after the PASS — self-graded with artifacts)
+
+360 px no longer truncates the active label (the selected item drops its icon
+below 384 px and keeps its name); the 3:1 split starts at 384 px; `reserve`
+returns 88/78 to match the 44 px items; the brief and the QA sheet say the same.
+`dashboard_360.png` reads "Overview", `board_360.png` reads "Job board".
+
+### Round 2 (after the independent review's FAIL)
+
+Blockers closed: the Job board now has captures at six widths + AR through the
+dock, and dock items meet the 44 px `touchTarget` (the brief said 40, which
+contradicted the token — the brief was amended). Also: `navMain` is localized in
+both ARBs and passed by the host; icon-only items carry tooltips; the
+notifications action is tested; the dead More fallback is gone. The avatar
+disclosure caret is a recorded won't-fix (the trigger lives in the shared
+`workshop_ui.dart` used by another app).
 
 ### Deviations, recorded
 
@@ -106,7 +180,9 @@ artifact means the gate did not happen; downgrade it to PENDING and say so.
 | 2026-11-19 | 4-lite / 5 | Identity strip + dock built in `components/shell/`; `workshop_shell.dart` rewritten; dashboard eyebrow removed; 8-shot gallery. |
 | 2026-11-19 | 5 GATE | **PASS (user).** Gallery accepted. |
 | 2026-11-19 | integration | Lazy sections in the host; DS barrel exports; two drifted DS assertions fixed. |
-| 2026-11-19 | 6 | 555 app tests + 136 DS tests, analyzer clean, 8 real-screen captures, logs committed. **Independent review running.** |
+| 2026-11-19 | 6 | 555 app tests + 136 DS tests, analyzer clean, 8 real-screen captures, logs committed. **Independent review: FAIL** — board had no capture (item 10); dock items 40 px vs the 44 px token; `navigationLabel` unlocalized. |
+| 2026-11-19 | 6 (round 2) | Board captured at 6 widths + AR through the dock; items 44 px and tested; `navMain` added to both ARBs and passed by the host; tooltips on icon-only items; notifications tested; dead More fallback removed. 562 app + 138 DS tests, baseline_check OK. **Re-review: PASS (independent, 10/10).** |
+| 2026-11-19 | 6 (round 3) | 360 px active label no longer truncates (icon dropped, label kept); split breakpoint 384; `reserve` 88/78 aligned with the 44 px items; docs updated. 575 app + 138 DS tests, analyzer clean, baseline OK. **Wave closed.** |
 
 
 Path:            **lite** (single screen; full LITE gates)

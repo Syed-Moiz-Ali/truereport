@@ -3,8 +3,26 @@ import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
+/// Test-only conflict raised when a mutation carries a stale job version.
+///
+/// The real API answers `409 JOB_VERSION_CONFLICT` (see
+/// `docs/api/contracts.md` §Error mapping). Fake calls fail with this type so a
+/// test can prove the UI surfaces a failure instead of overwriting.
+class FakeVersionConflict implements Exception {
+  const FakeVersionConflict(this.code);
+
+  final String code;
+
+  @override
+  String toString() => 'FakeVersionConflict($code)';
+}
+
 class FakeAdminApi implements AdminApi {
-  FakeAdminApi({this.checklistReady = true, this.approveSucceeds = true}) {
+  FakeAdminApi({
+    this.checklistReady = true,
+    this.approveSucceeds = true,
+    this.enforceVersions = false,
+  }) {
     _jobs = <CleanJob>[
       const CleanJob(
         id: 'job-1',
@@ -203,6 +221,15 @@ class FakeAdminApi implements AdminApi {
 
   final bool checklistReady;
   final bool approveSucceeds;
+
+  /// When true, assign/cancel reject a version that does not match the stored
+  /// job, exactly like the server's optimistic-concurrency guard. Defaults to
+  /// false so every pre-existing test keeps its original behaviour.
+  final bool enforceVersions;
+
+  /// Mutation audit trail (test-only): what the UI actually sent.
+  final List<Map<String, Object?>> assignRequests = [];
+  final List<Map<String, Object?>> cancelRequests = [];
   late List<CleanJob> _jobs;
   final Map<String, List<JobAssignment>> _assignments = {};
   final Map<String, PublicLink> _links = {};
@@ -942,10 +969,21 @@ class FakeAdminApi implements AdminApi {
     String? reason, {
     int? version,
   }) async {
-    final updated = _job(jobId).copyWith(
+    assignRequests.add(<String, Object?>{
+      'jobId': jobId,
+      'technicianId': technicianId,
+      'reason': reason,
+      'version': version,
+    });
+    final current = _job(jobId);
+    if (enforceVersions && version != current.version) {
+      throw const FakeVersionConflict('JOB_VERSION_CONFLICT');
+    }
+    final updated = current.copyWith(
       assignedTechnicianId: technicianId,
       assignedTechnicianName: technicianId,
       status: 'ASSIGNED',
+      version: (current.version ?? 0) + 1,
     );
     _replace(updated);
     final history = _assignments.putIfAbsent(jobId, () => <JobAssignment>[]);
@@ -968,11 +1006,21 @@ class FakeAdminApi implements AdminApi {
     String reason, {
     int? version,
   }) async {
-    final updated = _job(jobId).copyWith(
+    cancelRequests.add(<String, Object?>{
+      'jobId': jobId,
+      'reason': reason,
+      'version': version,
+    });
+    final current = _job(jobId);
+    if (enforceVersions && version != current.version) {
+      throw const FakeVersionConflict('JOB_VERSION_CONFLICT');
+    }
+    final updated = current.copyWith(
       status: 'CANCELLED',
       cancelledAt: '2026-11-08T09:30:00',
       cancelledBy: 'admin-1',
       cancelReason: reason,
+      version: (current.version ?? 0) + 1,
     );
     _replace(updated);
     return updated;
@@ -1279,6 +1327,15 @@ class FakeAdminApi implements AdminApi {
   }
 
   String statusOf(String jobId) => _job(jobId).status;
+
+  /// Current stored version, for asserting a write did not overwrite.
+  int? versionOf(String jobId) => _job(jobId).version;
+
+  /// Simulates another client writing between the page load and the mutation.
+  void bumpVersion(String jobId) {
+    final current = _job(jobId);
+    _replace(current.copyWith(version: (current.version ?? 0) + 1));
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();

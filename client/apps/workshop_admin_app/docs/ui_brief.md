@@ -59,9 +59,9 @@ Dock (floating, bottom centre)
 
 | Content width | Composition |
 |---|---|
-| **≥900** | 44 px strip: brand + workshop name left; language, bell, avatar right. Dock centred, 5 px inset, items 40 px tall, active item expanded (icon + label), 84 px reserved at the bottom of the content. |
-| **680–899** | same strip; dock centred, full label for the active item, 76 px reserved. |
-| **<680** | 44 px strip: brand mark only + workshop name (ellipsis) + language + avatar; bell moves into the account menu? **No** — keep the bell, drop the brand mark first. Dock inset 10 px, full width, active item flex 2, others flex 1, icon-only. 76 px reserved. |
+| **≥900** | 44 px strip: brand + workshop name left; language, bell, avatar right. Dock centred, 5 px inset, items **44 px** tall (the design system's `touchTarget`), active item expanded (icon + label), **88 px** reserved at the bottom of the content. |
+| **680–899** | same strip; dock centred, full label for the active item, **78 px** reserved. |
+| **<680** | 44 px strip: brand mark only + workshop name (ellipsis) + language + bell + avatar; dock inset 10 px, full width, active item flex 3 (2 below 384 px), others flex 1, icon-only. 78 px reserved. **Below 384 px the active item shows its label instead of its icon**, because an icon plus a word does not fit at 360. |
 
 The dock never overlays content: the content area reserves the dock's height, so
 every list can scroll clear of it.

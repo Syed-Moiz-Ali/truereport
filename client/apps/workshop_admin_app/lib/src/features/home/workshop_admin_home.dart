@@ -127,6 +127,7 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
             ? l10n.languageEnglish
             : l10n.languageArabic,
         moreLabel: l10n.navMore,
+        navigationLabel: l10n.navMain,
         signOutLabel: l10n.signOut,
         settingsLabel: l10n.settings,
         notificationsAction: WorkshopIconButton(

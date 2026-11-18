@@ -133,6 +133,70 @@ void main() {
     expect(selected, 5);
   });
 
+  testWidgets('every destination is a 44 px target', (tester) async {
+    await pumpShell(tester, size: const Size(1280, 800));
+    for (final destination in destinations) {
+      final size = tester.getSize(find.byKey(destination.key!));
+      expect(
+        size.height,
+        greaterThanOrEqualTo(44),
+        reason: '${destination.label} height',
+      );
+      expect(
+        size.width,
+        greaterThanOrEqualTo(44),
+        reason: '${destination.label} width',
+      );
+    }
+    // The active item is wider than a bare icon, so its label has room.
+    expect(
+      tester.getSize(find.byKey(const Key('workshop-tab-overview'))).width,
+      greaterThan(
+        tester.getSize(find.byKey(const Key('workshop-tab-jobs'))).width,
+      ),
+    );
+  });
+
+  testWidgets('the notifications action is reachable from the strip', (
+    tester,
+  ) async {
+    var tapped = 0;
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: WorkshopAppShell(
+          workshopName: 'Marina Workshop',
+          sectionLabel: 'Overview',
+          selectedIndex: 0,
+          onSelected: (_) {},
+          destinations: destinations,
+          accountInitials: 'LH',
+          accountName: 'Layla Haddad',
+          accountEmail: 'layla@example.test',
+          onSettings: () {},
+          onSignOut: () {},
+          onToggleLanguage: () {},
+          languageLabel: 'Arabic',
+          notificationsAction: IconButton(
+            key: const Key('workshop-notifications'),
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () => tapped++,
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('workshop-notifications')));
+    expect(tapped, 1);
+  });
+
   testWidgets('the workshop is named exactly once', (tester) async {
     await pumpShell(tester, size: const Size(1280, 800));
     expect(find.text('Marina Workshop'), findsOneWidget);

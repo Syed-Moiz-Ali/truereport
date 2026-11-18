@@ -1,0 +1,51 @@
+{
+  "provenance": "derived-from-dto",
+  "endpoint": "GET /api/v1/workshop/jobs/{id}/public-link",
+  "statusNote": "Shape from PublicLinkDto (WorkshopJobDtos.java:257-268) and linkDto L1001-1011. When no platform_public_links row exists the server SYNTHESISES status=PENDING with qrUrl set and publicUrl/token null. qrUrl is always the API path, never a signed URL.",
+  "body": {
+    "jobId": "5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f",
+    "status": "PENDING",
+    "publicUrl": null,
+    "token": null,
+    "qrUrl": "/api/v1/workshop/jobs/5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f/qr",
+    "pdfDownloadEnabled": false,
+    "activatedAt": null,
+    "revokedAt": null,
+    "revocationReason": null
+  },
+  "variants": [
+    {
+      "label": "ACTIVE (after a successful publish)",
+      "body": {
+        "jobId": "5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f",
+        "status": "ACTIVE",
+        "publicUrl": "https://reports.example.test/r/<opaque-token>",
+        "token": "<opaque-token>",
+        "qrUrl": "/api/v1/workshop/jobs/5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f/qr",
+        "pdfDownloadEnabled": true,
+        "activatedAt": "2026-11-18T12:04",
+        "revokedAt": null,
+        "revocationReason": null
+      }
+    },
+    {
+      "label": "REVOKED",
+      "body": {
+        "jobId": "5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f",
+        "status": "REVOKED",
+        "publicUrl": null,
+        "token": null,
+        "qrUrl": "/api/v1/workshop/jobs/5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f/qr",
+        "pdfDownloadEnabled": false,
+        "activatedAt": "2026-11-18T12:04",
+        "revokedAt": "2026-11-18T15:40",
+        "revocationReason": "Customer withdrew consent"
+      }
+    }
+  ],
+  "checks": {
+    "status_vocabulary": "PENDING | ACTIVE | REVOKED (platform_public_links.status check constraint)",
+    "job_publication_status_is_a_different_vocabulary": "UNPUBLISHED | PUBLISHED | REVOKED (platform_jobs.publication_status check constraint)",
+    "qr_requires_active_link": "GET /jobs/{id}/qr returns 409 LINK_NOT_ACTIVE without one"
+  }
+}

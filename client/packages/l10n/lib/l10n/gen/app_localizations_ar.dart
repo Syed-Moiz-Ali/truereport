@@ -3548,6 +3548,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navMore => 'المزيد';
 
   @override
+  String get navMain => 'التنقل الرئيسي';
+
+  @override
   String get copied => 'تم النسخ إلى الحافظة';
 
   @override

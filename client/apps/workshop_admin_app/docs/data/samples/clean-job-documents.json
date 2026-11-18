@@ -1,0 +1,42 @@
+{
+  "provenance": "derived-from-dto",
+  "endpoint": "GET /api/v1/workshop/jobs/{id}/documents",
+  "statusNote": "Shape from ReportDocumentDto (WorkshopJobDtos.java:270-282) and documentDto L1013-1017. Rows exist only for the LATEST report version, so the list is [] before approval and is created only on publish. downloadUrl is a RELATIVE API path (no base URL).",
+  "body": [
+    {
+      "id": "d9f1a2b3-c4d5-4e6f-8a90-0b1c2d3e4f50",
+      "documentTypeCode": "INSPECTION_REPORT",
+      "nameEn": "Inspection report",
+      "nameAr": "تقرير الفحص",
+      "language": "en",
+      "status": "READY",
+      "bytes": 48213,
+      "generatedAt": "2026-11-18T12:04",
+      "error": null,
+      "downloadUrl": "/api/v1/workshop/jobs/5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f/documents/d9f1a2b3-c4d5-4e6f-8a90-0b1c2d3e4f50/content"
+    },
+    {
+      "id": "e0a2b3c4-d5e6-4f70-9b01-1c2d3e4f5061",
+      "documentTypeCode": "INSPECTION_REPORT",
+      "nameEn": "Inspection report",
+      "nameAr": "تقرير الفحص",
+      "language": "ar",
+      "status": "FAILED",
+      "bytes": null,
+      "generatedAt": null,
+      "error": "Arabic font shaping failed",
+      "downloadUrl": "/api/v1/workshop/jobs/5c1b9d31-77e4-4a90-8c2f-0a1b2c3d4e5f/documents/e0a2b3c4-d5e6-4f70-9b01-1c2d3e4f5061/content"
+    }
+  ],
+  "variants": [
+    {
+      "label": "before approval / before publish",
+      "body": []
+    }
+  ],
+  "checks": {
+    "status_vocabulary": "PENDING | GENERATING | READY | FAILED (platform_report_documents.status check constraint)",
+    "bytes_nullable": true,
+    "content_endpoint_not_in_client": "GET /jobs/{id}/documents/{documentId}/content exists server-side but has no ApiEndpoints method"
+  }
+}

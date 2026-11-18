@@ -6866,6 +6866,12 @@ abstract class AppLocalizations {
   /// **'More'**
   String get navMore;
 
+  /// Screen-reader name for the shell's navigation landmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Main navigation'**
+  String get navMain;
+
   /// No description provided for @copied.
   ///
   /// In en, this message translates to:
