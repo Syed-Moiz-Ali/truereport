@@ -3,7 +3,6 @@ import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/features/templates/template_version_page.dart';
-import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,19 +10,26 @@ import 'package:l10n/l10n.dart';
 
 /// Screen 8 — Template Builder workbench.
 ///
-/// Pixel-perfect desktop layout matching Figma screen `08_8._Template_Builder` (node `1:1882`, 1280 x 1251.5).
-/// Features:
-/// - 96px left navigation rail
-/// - 80px floating top header bar with search & profile
-/// - Breadcrumb navigation (< Back to Templates)
-/// - Pinned top bar with SOP eyebrow, version pill, title, and action CTAs (Save, Preview, Publish)
-/// - 3 Metric pods (Sequence Total, Mandatory Photos, Avg Estimated Time)
-/// - Two-column workbench:
-///   - Left column (404px): Master Items catalog with search, category filter, and add triggers
-///   - Right column (660px): Active Inspection Sequence with reorderable cards, locked pills, and drop zone
-/// - Version history archive
+/// Chrome/restructure pass over the existing builder logic (state, providers,
+/// save/publish/preview/create-draft/retire/version/reorder/drop/add/remove/
+/// search/category behaviour and every test key are preserved):
+/// - 60 px top bar: back action, "Template builder" section label, status badge
+/// - page header: template name (key `builder-title`), integer version,
+///   service/vehicle meta
+/// - template details [WorkshopCard] with the existing editable fields
+/// - two-pane body from 1000 px (catalog ≈40%, sequence ≈60%, 24 px gap),
+///   stacked below that; each pane is a single [WorkshopCard]
+/// - sticky save/publish bar: Save draft, Preview, Publish, Retire overflow
+/// - version history as a secondary collapsible section at the bottom
 ///
-/// Responsive: Gracefully collapses to single-column layout on narrower viewports (< 1000px).
+/// Removed fake chrome: the 96 px left rail, Fx shadows/gradients, uppercase
+/// "STANDARD OPERATING PROCEDURE" eyebrow, the three metric pods (sequence /
+/// photos / estimated time were derived, not server data) and the hardcoded
+/// bay/user header.
+/// Picks the localized master-content value with an English fallback.
+String _localized(BuildContext context, String en, String ar) =>
+    context.isArabic && ar.trim().isNotEmpty ? ar : en;
+
 class TemplateBuilderPage extends ConsumerStatefulWidget {
   const TemplateBuilderPage({required this.templateId, super.key});
 
@@ -57,38 +63,43 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
 
   String get _itemKey => '${_search.text}\u0001$_categoryId';
 
+  bool get _wide => MediaQuery.sizeOf(context).width >= 1000;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
     final detail = ref.watch(templateDetailProvider(widget.templateId));
     final categories = ref.watch(workshopCategoriesProvider);
     final items = ref.watch(publishedItemsProvider(_itemKey));
 
     if (detail.isLoading || categories.isLoading || items.isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
-        body: Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.lg),
-          child: const LoadingSkeleton(lines: 7),
+        backgroundColor: ws.canvas,
+        body: const SafeArea(
+          child: WorkshopPageScroll(
+            children: [WorkshopSkeleton(lines: 8, card: true)],
+          ),
         ),
       );
     }
     if (detail.hasError || categories.hasError || items.hasError) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
-        body: Center(
-          child: Padding(
-            padding: EdgeInsetsDirectional.all(context.spacing.lg),
-            child: ErrorState(
-              title: l10n.error,
-              body: l10n.genericError,
-              onRetry: () {
-                ref.invalidate(templateDetailProvider(widget.templateId));
-                ref.invalidate(workshopCategoriesProvider);
-                ref.invalidate(publishedItemsProvider(_itemKey));
-              },
-              retryLabel: l10n.retryAction,
-            ),
+        backgroundColor: ws.canvas,
+        body: SafeArea(
+          child: WorkshopPageScroll(
+            children: [
+              WorkshopErrorState(
+                title: l10n.error,
+                body: l10n.genericError,
+                retryLabel: l10n.retryAction,
+                onRetry: () {
+                  ref.invalidate(templateDetailProvider(widget.templateId));
+                  ref.invalidate(workshopCategoriesProvider);
+                  ref.invalidate(publishedItemsProvider(_itemKey));
+                },
+              ),
+            ],
           ),
         ),
       );
@@ -98,903 +109,286 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     _initialize(template);
     final draft = template.draft;
     final catalog = items.requireValue.take(80).toList();
+    final wide = _wide;
+    final spacing = context.spacing;
+    final gutter = ws.pageGutter(MediaQuery.sizeOf(context).width);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 1000;
-
-        return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
-          body: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (wide)
-                SizedBox(
-                  width: 96,
-                  child: _buildLeftRail(context),
-                ),
-              Expanded(
-                child: Column(
-                  children: [
-                    if (wide) _buildTopHeader(context),
-                    Container(
-                      color: const Color(0xFFF8F9FA),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: wide ? 40 : 16,
-                        vertical: 16,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (wide) ...[
-                            _buildBreadcrumb(context),
-                            const SizedBox(height: 12),
-                          ],
-                          _header(context, l10n, template, draft, wide),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView(
-                        key: const Key('template-builder-list'),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: wide ? 40 : 16,
-                          vertical: 16,
-                        ),
-                        children: [
-                          _buildTemplateDetailsCard(context, l10n, wide),
-                          const SizedBox(height: 24),
-                          if (wide && draft != null) ...[
-                            _buildMetricPods(catalog),
-                            const SizedBox(height: 32),
-                          ],
-                          if (draft == null)
-                            EmptyState(
-                              title: l10n.readOnlyVersion,
-                              body: l10n.createDraft,
-                              icon: Icons.lock_outline,
-                              action: AppButton(
-                                label: l10n.createDraft,
-                                onPressed: _busy ? null : _createDraft,
-                                variant: AppButtonVariant.tonal,
-                              ),
-                            )
-                          else if (wide)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  flex: 404,
-                                  child: _catalogPanel(
-                                    context,
-                                    l10n,
-                                    categories.requireValue,
-                                    catalog,
-                                  ),
-                                ),
-                                const SizedBox(width: 24),
-                                Expanded(
-                                  flex: 660,
-                                  child: _sequencePanel(
-                                    context,
-                                    l10n,
-                                    template,
-                                    draft,
-                                    catalog,
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _catalogPanel(
+    return Scaffold(
+      backgroundColor: ws.canvas,
+      body: Column(
+        children: [
+          _topBar(context, l10n, template),
+          Expanded(
+            child: ListView(
+              key: const Key('template-builder-list'),
+              padding: EdgeInsetsDirectional.fromSTEB(
+                gutter,
+                spacing.lg,
+                gutter,
+                spacing.xl,
+              ),
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _header(context, l10n, template, draft),
+                        SizedBox(height: spacing.xl),
+                        _detailsCard(context, l10n, wide),
+                        SizedBox(height: spacing.xl),
+                        if (draft == null)
+                          _readOnly(context, l10n)
+                        else if (wide)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 4,
+                                child: _catalogPanel(
                                   context,
                                   l10n,
                                   categories.requireValue,
                                   catalog,
                                 ),
-                                const SizedBox(height: 24),
-                                _sequencePanel(
-                                  context,
-                                  l10n,
-                                  template,
-                                  draft,
-                                  catalog,
-                                ),
-                              ],
-                            ),
-                          const SizedBox(height: 32),
-                          _buildVersionHistory(context, l10n, template),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Left Navigation Rail (96px width)
-  // ---------------------------------------------------------------------------
-  Widget _buildLeftRail(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Container(
-      width: 96,
-      decoration: const BoxDecoration(
-        color: Fx.white,
-        border: Border(
-          right: BorderSide(color: Color(0xFFE3E2E7), width: 1),
-        ),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 32),
-          // Logo
-          InkWell(
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-            borderRadius: const BorderRadius.all(Radius.circular(16)),
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: Fx.container,
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-                boxShadow: Fx.cardShadow,
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.shield_outlined,
-                color: Fx.emerald,
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Overview Dashboard (0)
-          _railItem(
-            icon: Icons.grid_view_rounded,
-            label: l10n.dashboardTab,
-            selected: false,
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Live Queue (1)
-          _railItem(
-            icon: Icons.receipt_long_rounded,
-            label: l10n.jobsTab,
-            selected: false,
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Staff Management (2)
-          _railItem(
-            icon: Icons.groups_outlined,
-            label: l10n.staffTab,
-            selected: false,
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Templates (3) - ACTIVE
-          _railItem(
-            icon: Icons.dashboard_customize_rounded,
-            label: l10n.templatesTab,
-            selected: true,
-            onTap: () {},
-          ),
-          const Spacer(),
-
-          // Help / Info icon at bottom
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: Fx.container,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.help_outline_rounded,
-              color: Fx.muted,
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _railItem({
-    required IconData icon,
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: const BorderRadius.all(Radius.circular(16)),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: selected ? Fx.emerald : Fx.container,
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          boxShadow: selected ? Fx.ctaShadow : null,
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          color: selected ? Fx.white : Fx.ink,
-          size: 20,
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Top Header (80px height)
-  // ---------------------------------------------------------------------------
-  Widget _buildTopHeader(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
-    final session = authState.value;
-    final userName = session?.user.displayName.trim().isNotEmpty == true
-        ? session!.user.displayName.trim()
-        : 'Marcus Vance';
-    final userRole = session != null
-        ? (session.role.name == 'workshopAdmin'
-            ? 'Lead Inspector'
-            : session.role.name)
-        : 'Lead Inspector';
-
-    return Container(
-      height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      decoration: const BoxDecoration(
-        color: Fx.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE3E2E7), width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Bay Status Pill (clean indicator, avoids banned words)
-          Flexible(
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: const BoxDecoration(
-                color: Fx.container,
-                borderRadius: BorderRadius.all(Radius.circular(9999)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Fx.emerald,
-                      shape: BoxShape.circle,
+                              ),
+                              SizedBox(width: spacing.xl),
+                              Expanded(
+                                flex: 6,
+                                child: _sequencePanel(context, l10n, catalog),
+                              ),
+                            ],
+                          )
+                        else
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _catalogPanel(
+                                context,
+                                l10n,
+                                categories.requireValue,
+                                catalog,
+                              ),
+                              SizedBox(height: spacing.xl),
+                              _sequencePanel(context, l10n, catalog),
+                            ],
+                          ),
+                        SizedBox(height: spacing.xl),
+                        _versionHistory(context, l10n, template),
+                        SizedBox(height: spacing.xl),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'BAY ONLINE',
-                    style: Fx.text(
-                        11, 14, FontWeight.w600, 0.55, color: Fx.secondaryInk),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'Shop Floor #04',
-                      style: Fx.text(12, 16, FontWeight.w700, 0.24,
-                          color: Fx.ink),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-
-          // Search Field
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 260),
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: Fx.container,
-                  borderRadius: BorderRadius.all(Radius.circular(9999)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search, size: 16, color: Fx.muted),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Search checkpoints...',
-                        style: Fx.text(13, 16, FontWeight.w400, 0,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-
-          // User details & avatar
-          Flexible(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  userName,
-                  style: Fx.text(14, 18, FontWeight.w700, -0.14, color: Fx.ink),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  userRole,
-                  style:
-                      Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          InkWell(
-            onTap: () => _showUserMenu(context),
-            borderRadius: const BorderRadius.all(Radius.circular(9999)),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Fx.deepGreen,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                userName.isNotEmpty ? userName[0].toUpperCase() : 'M',
-                style: Fx.text(14, 18, FontWeight.w700, 0, color: Fx.white),
-              ),
-            ),
-          ),
         ],
       ),
+      bottomNavigationBar: _saveBar(context, l10n, template, draft),
     );
   }
 
-  void _showUserMenu(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.groups_outlined),
-              title: Text(l10n.staffTab),
-              onTap: () {
-                Navigator.pop(ctx);
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Fx.dangerRed),
-              title: Text(
-                l10n.signOut,
-                style: const TextStyle(color: Fx.dangerRed),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                ref.read(authControllerProvider.notifier).signOut();
-              },
-            ),
-          ],
+  /// Full-bleed chrome with the page's 1120 column inside (same pattern as the
+  /// job detail/report top bars).
+  Widget _pageColumn(BuildContext context, Widget child) {
+    final ws = context.ws;
+    return Padding(
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: ws.pageGutter(MediaQuery.sizeOf(context).width),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
+          child: child,
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Breadcrumb
+  // Top bar (60 px)
   // ---------------------------------------------------------------------------
-  Widget _buildBreadcrumb(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-      },
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.arrow_back_ios_new,
-              size: 14,
-              color: Fx.muted,
+  Widget _topBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateDetail template,
+  ) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ws.surface,
+        border: BorderDirectional(bottom: BorderSide(color: ws.border)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: ws.topBarHeight,
+          child: _pageColumn(
+            context,
+            Row(
+              children: [
+                WorkshopIconButton(
+                  icon: Icons.arrow_back,
+                  semanticLabel: MaterialLocalizations.of(context)
+                      .backButtonTooltip,
+                  onPressed: () {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                SizedBox(width: spacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.templateBuilder,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: ws.bodyStrong.copyWith(color: ws.ink),
+                  ),
+                ),
+                SizedBox(width: spacing.sm),
+                WorkshopStatusBadge(
+                  label: contentStatusLabel(l10n, template.status),
+                  tone: _statusTone(template.status),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Back to Templates',
-              style: Fx.text(13, 16, FontWeight.w600, 0, color: Fx.muted),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Top bar: template title, integer version pill, preview & publish CTAs
+  // Page header
   // ---------------------------------------------------------------------------
   Widget _header(
     BuildContext context,
     AppLocalizations l10n,
     TemplateDetail template,
     TemplateVersionView? draft,
-    bool wide,
   ) {
-    final pill = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: const BoxDecoration(
-        color: Fx.container,
-        borderRadius: BorderRadius.all(Radius.circular(9999)),
-      ),
-      child: Text(
-        draft != null
-            ? 'v${draft.versionNo}'
-            : contentStatusLabel(l10n, template.status),
-        style: Fx.text(11, 14, FontWeight.w700, 0.55, color: Fx.deepGreen),
-      ),
-    );
-
-    final titleColumn = Column(
+    final ws = context.ws;
+    final spacing = context.spacing;
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 4,
-          children: [
-            pill,
-            Text(
-              'STANDARD OPERATING PROCEDURE',
-              style: Fx.text(11, 14, FontWeight.w600, 1.1, color: Fx.muted),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
         Text(
           template.name,
           key: const Key('builder-title'),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Fx.text(32, 38, FontWeight.w800, -0.8, color: Fx.ink),
+          style: ws.pageTitle.copyWith(color: ws.ink),
         ),
-      ],
-    );
-
-    final actions = [
-      if (draft != null)
-        IconButton(
-          tooltip: l10n.saveDraft,
-          onPressed: _busy ? null : _save,
-          icon: const Icon(Icons.save_outlined),
-        ),
-      AppButton(
-        key: const Key('builder-preview'),
-        label: l10n.preview,
-        onPressed: draft == null || _selected.isEmpty || _busy ? null : _preview,
-        icon: Icons.visibility_outlined,
-        variant: AppButtonVariant.tonal,
-      ),
-      AppButton(
-        key: const Key('builder-publish'),
-        label: l10n.publishTemplate,
-        onPressed: draft == null || _busy ? null : _publish,
-        icon: Icons.publish_outlined,
-      ),
-      if (template.status != 'RETIRED')
-        IconButton(
-          tooltip: l10n.retire,
-          onPressed: _busy ? null : _retire,
-          icon: const Icon(Icons.archive_outlined),
-        ),
-    ];
-
-    if (wide) {
-      return Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 16,
-        runSpacing: 16,
-        children: [
-          titleColumn,
-          Wrap(
-            spacing: context.spacing.sm,
-            runSpacing: context.spacing.sm,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: actions,
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        titleColumn,
-        SizedBox(height: context.spacing.sm),
+        SizedBox(height: spacing.sm),
         Wrap(
-          spacing: context.spacing.sm,
-          runSpacing: context.spacing.sm,
-          children: actions,
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Metric Pods (3 pods row)
-  // ---------------------------------------------------------------------------
-  Widget _buildMetricPods(List<PublishedItem> catalog) {
-    final photoCount =
-        _selected.where((i) => i.evidenceRequirement == 'REQUIRED').length;
-    final progress =
-        _selected.isEmpty ? 0.0 : (_selected.length / 10).clamp(0.0, 1.0);
-
-    return Row(
-      children: [
-        // Pod 1: Sequence Total
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Fx.white,
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              boxShadow: Fx.cardShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'SEQUENCE TOTAL',
-                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.playlist_add_check_rounded,
-                        color: Fx.muted, size: 18),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${_selected.length}',
-                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
-                          color: Fx.ink),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'items configured',
-                        style: Fx.text(13, 18, FontWeight.w400, 0,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Stack(
-                  children: [
-                    Container(
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Fx.surfaceHigh,
-                        borderRadius: BorderRadius.all(Radius.circular(9999)),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: progress,
-                      child: Container(
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Fx.emerald,
-                          borderRadius: BorderRadius.all(Radius.circular(9999)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 20),
-
-        // Pod 2: Mandatory Photos
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Fx.white,
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              boxShadow: Fx.cardShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'MANDATORY PHOTOS',
-                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.camera_alt_outlined,
-                        color: Fx.muted, size: 18),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '$photoCount',
-                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
-                          color: Fx.ink),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'steps require photos',
-                        style: Fx.text(13, 18, FontWeight.w400, 0,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Photo verification standard',
-                  style:
-                      Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 20),
-
-        // Pod 3: Estimated Time
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Fx.white,
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              boxShadow: Fx.cardShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'AVG TIME PER JOB',
-                        style: Fx.text(11, 14, FontWeight.w600, 0.55,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.timer_outlined,
-                        color: Fx.muted, size: 18),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '${_selected.length * 8 + 10}m',
-                      style: Fx.text(32, 38, FontWeight.w800, -0.96,
-                          color: Fx.ink),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'shop standard average',
-                        style: Fx.text(13, 18, FontWeight.w400, 0,
-                            color: Fx.muted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Standard service checklist',
-                  style: Fx.text(11, 14, FontWeight.w600, 0.44,
-                      color: Fx.emerald),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Template Parameters Card
-  // ---------------------------------------------------------------------------
-  Widget _buildTemplateDetailsCard(
-      BuildContext context, AppLocalizations l10n, bool wide) {
-    return Card(
-      elevation: 0,
-      color: Fx.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE3E2E7)),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          leading: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              color: Fx.container,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(Icons.edit_note_rounded,
-                color: Fx.emerald, size: 20),
-          ),
-          title: Text(
-            'Template Parameters & Classification',
-            style: Fx.text(15, 20, FontWeight.w700, -0.16, color: Fx.ink),
-          ),
-          subtitle: Text(
-            '${_serviceType.text.isEmpty ? 'FULL' : _serviceType.text} · ${_vehicleType.text.isEmpty ? 'CAR' : _vehicleType.text}',
-            style: Fx.text(12, 16, FontWeight.w400, 0, color: Fx.muted),
-          ),
-          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          spacing: spacing.md,
+          runSpacing: spacing.xs,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            if (wide)
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      controller: _name,
-                      label: l10n.templateName,
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: AppTextField(
-                      controller: _serviceType,
-                      label: l10n.serviceType,
-                    ),
-                  ),
-                ],
-              )
-            else ...[
-              AppTextField(
-                controller: _name,
-                label: l10n.templateName,
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: 12),
-              AppTextField(
-                controller: _serviceType,
-                label: l10n.serviceType,
-              ),
-            ],
-            const SizedBox(height: 12),
-            if (wide)
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      controller: _vehicleType,
-                      label: l10n.vehicleType,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: AppTextField(
-                      controller: _description,
-                      label: l10n.templateDescription,
-                    ),
-                  ),
-                ],
-              )
-            else ...[
-              AppTextField(
-                controller: _vehicleType,
-                label: l10n.vehicleType,
-              ),
-              const SizedBox(height: 12),
-              AppTextField(
-                controller: _description,
-                label: l10n.templateDescription,
-              ),
-            ],
+            Text(
+              'v${draft?.versionNo ?? '-'}',
+              textDirection: TextDirection.ltr,
+              style: ws.bodyStrong.copyWith(color: ws.ink),
+            ),
+            Text(
+              _classification(template),
+              style: ws.meta.copyWith(color: ws.muted),
+            ),
           ],
         ),
+      ],
+    );
+  }
+
+  String _classification(TemplateDetail template) {
+    final parts = [
+      template.serviceType,
+      template.vehicleType ?? '',
+    ].where((part) => part.isNotEmpty);
+    return parts.join(' · ');
+  }
+
+  /// Panels keep the standard card padding from 600 px and tighten to 12 on
+  /// phones so the sequence controls (44 px targets) never overflow.
+  EdgeInsetsGeometry _panelPadding(BuildContext context) {
+    final spacing = context.spacing;
+    return MediaQuery.sizeOf(context).width < 600
+        ? EdgeInsetsDirectional.all(spacing.md)
+        : EdgeInsetsDirectional.all(context.ws.cardPadding);
+  }
+
+  WorkshopStatusTone _statusTone(String status) => switch (status) {
+    'PUBLISHED' => WorkshopStatusTone.success,
+    'RETIRED' => WorkshopStatusTone.neutral,
+    _ => WorkshopStatusTone.warning,
+  };
+
+  // ---------------------------------------------------------------------------
+  // Template details card
+  // ---------------------------------------------------------------------------
+  Widget _detailsCard(BuildContext context, AppLocalizations l10n, bool wide) {
+    final spacing = context.spacing;
+    final name = WorkshopTextField(controller: _name, label: l10n.templateName);
+    final service = WorkshopTextField(
+      controller: _serviceType,
+      label: l10n.serviceType,
+    );
+    final vehicle = WorkshopTextField(
+      controller: _vehicleType,
+      label: l10n.vehicleType,
+    );
+    final description = WorkshopTextField(
+      controller: _description,
+      label: l10n.templateDescription,
+    );
+    return WorkshopCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          WorkshopSectionHeader(title: l10n.template),
+          SizedBox(height: spacing.md),
+          if (wide)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: name),
+                SizedBox(width: spacing.md),
+                Expanded(child: service),
+              ],
+            )
+          else ...[
+            name,
+            SizedBox(height: spacing.md),
+            service,
+          ],
+          SizedBox(height: spacing.md),
+          if (wide)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: vehicle),
+                SizedBox(width: spacing.md),
+                Expanded(child: description),
+              ],
+            )
+          else ...[
+            vehicle,
+            SizedBox(height: spacing.md),
+            description,
+          ],
+        ],
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Left Column: Master Items Catalog
+  // Left pane: master items catalog
   // ---------------------------------------------------------------------------
   Widget _catalogPanel(
     BuildContext context,
@@ -1002,319 +396,269 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     List<Category> categories,
     List<PublishedItem> catalog,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${l10n.builderMasterItems} · ${catalog.length}',
-                  style: Fx.text(22, 28, FontWeight.w700, -0.44,
-                      color: Fx.ink),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Inspection Diagnostic Checkpoints',
-                  style:
-                      Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: const BoxDecoration(
-                color: Fx.container,
-                borderRadius: BorderRadius.all(Radius.circular(9999)),
-              ),
-              child: Text(
-                '${catalog.length} In Catalog',
-                style:
-                    Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        AppTextField(
-          key: const Key('builder-search'),
-          controller: _search,
-          label: l10n.searchItems,
-          hint: l10n.searchItems,
-          onChanged: (_) => setState(() {}),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          key: const Key('builder-category'),
-          isExpanded: true,
-          initialValue: _categoryId.isEmpty ? null : _categoryId,
-          decoration: InputDecoration(
-            labelText: l10n.allCategories,
-            filled: true,
-            fillColor: Fx.container,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
+    final ws = context.ws;
+    final spacing = context.spacing;
+    return WorkshopCard(
+      padding: _panelPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          WorkshopSectionHeader(
+            title: '${l10n.builderMasterItems} (${catalog.length})',
           ),
-          items: [
-            DropdownMenuItem(value: '', child: Text(l10n.allCategories)),
-            ...categories.map(
-              (category) => DropdownMenuItem(
-                value: category.id,
-                child: Text(category.labelEn),
+          SizedBox(height: spacing.md),
+          WorkshopTextField(
+            key: const Key('builder-search'),
+            controller: _search,
+            label: l10n.searchItems,
+            hint: l10n.searchItems,
+            prefixIcon: Icon(Icons.search, size: 18, color: ws.muted),
+            onChanged: (_) => setState(() {}),
+          ),
+          SizedBox(height: spacing.md),
+          DropdownButtonFormField<String>(
+            key: const Key('builder-category'),
+            isExpanded: true,
+            initialValue: _categoryId.isEmpty ? null : _categoryId,
+            style: ws.body.copyWith(color: ws.ink),
+            iconEnabledColor: ws.muted,
+            dropdownColor: ws.surface,
+            decoration: InputDecoration(
+              labelText: l10n.allCategories,
+              labelStyle: ws.meta.copyWith(color: ws.muted),
+              filled: true,
+              fillColor: ws.canvas,
+              contentPadding: EdgeInsetsDirectional.symmetric(
+                horizontal: spacing.md,
+                vertical: spacing.md,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ws.controlRadius),
+                borderSide: BorderSide(color: ws.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ws.controlRadius),
+                borderSide: BorderSide(color: ws.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(ws.controlRadius),
+                borderSide: BorderSide(color: ws.accent),
               ),
             ),
-          ],
-          onChanged: (value) => setState(() => _categoryId = value ?? ''),
-        ),
-        const SizedBox(height: 16),
-        ...catalog.map(
-          (item) {
-            final alreadyAdded = _contains(item.versionId);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                key: Key('published-item-${item.versionId}'),
-                decoration: const BoxDecoration(
-                  color: Fx.white,
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-                  boxShadow: Fx.cardShadow,
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  child: InkWell(
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                    onTap: alreadyAdded ? null : () => _add(item),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: const BoxDecoration(
-                              color: Fx.container,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(12)),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.fact_check_outlined,
-                              color: Fx.ink,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.labelEn,
-                                  style: Fx.text(15, 20, FontWeight.w700,
-                                      -0.16,
-                                      color: Fx.ink),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item.categoryLabelEn} · v${item.version.versionNo}${item.sampleData ? ' · ${l10n.sampleData}' : ''}',
-                                  style: Fx.text(12, 16, FontWeight.w400,
-                                      0,
-                                      color: Fx.muted),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            key: Key('catalog-add-${item.versionId}'),
-                            tooltip: l10n.add,
-                            onPressed: alreadyAdded ? null : () => _add(item),
-                            icon: Icon(
-                              alreadyAdded
-                                  ? Icons.check_circle_rounded
-                                  : Icons.add_circle_outline_rounded,
-                              color: alreadyAdded ? Fx.muted : Fx.emerald,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            items: [
+              DropdownMenuItem(value: '', child: Text(l10n.allCategories)),
+              ...categories.map(
+                (category) => DropdownMenuItem(
+                  value: category.id,
+                  child: Text(
+                    _localized(context, category.labelEn, category.labelAr),
                   ),
                 ),
               ),
-            );
-          },
+            ],
+            onChanged: (value) => setState(() => _categoryId = value ?? ''),
+          ),
+          SizedBox(height: spacing.md),
+          for (var index = 0; index < catalog.length; index++) ...[
+            if (index > 0) const WorkshopDivider(),
+            _catalogRow(context, l10n, catalog[index]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _catalogRow(
+    BuildContext context,
+    AppLocalizations l10n,
+    PublishedItem item,
+  ) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final alreadyAdded = _contains(item.versionId);
+    final meta =
+        '${_localized(context, item.categoryLabelEn, item.categoryLabelAr)} '
+        '· v${item.version.versionNo}'
+        '${item.sampleData ? ' · ${l10n.sampleData}' : ''}';
+    // Divider-separated row inside the panel — no nested card border.
+    return Material(
+      key: Key('published-item-${item.versionId}'),
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: alreadyAdded ? null : () => _add(item),
+        child: Padding(
+          padding: EdgeInsetsDirectional.symmetric(vertical: spacing.xs),
+          child: Row(
+            children: [
+              Container(
+                width: ws.touchTarget,
+                height: ws.touchTarget,
+                decoration: BoxDecoration(
+                  color: ws.canvas,
+                  borderRadius: BorderRadius.circular(ws.chipRadius),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.fact_check_outlined,
+                  size: 20,
+                  color: ws.muted,
+                ),
+              ),
+              SizedBox(width: spacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _localized(context, item.labelEn, item.labelAr),
+                      style: ws.bodyStrong.copyWith(color: ws.ink),
+                    ),
+                    SizedBox(height: spacing.xxs),
+                    Text(meta, style: ws.meta.copyWith(color: ws.muted)),
+                  ],
+                ),
+              ),
+              IconButton(
+                key: Key('catalog-add-${item.versionId}'),
+                tooltip: l10n.add,
+                onPressed: alreadyAdded ? null : () => _add(item),
+                icon: Icon(
+                  alreadyAdded
+                      ? Icons.check_circle_rounded
+                      : Icons.add_circle_outline_rounded,
+                  color: alreadyAdded ? ws.muted : ws.accent,
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Right Column: Active Inspection Sequence
+  // Right pane: active inspection sequence
   // ---------------------------------------------------------------------------
   Widget _sequencePanel(
     BuildContext context,
     AppLocalizations l10n,
-    TemplateDetail template,
-    TemplateVersionView draft,
     List<PublishedItem> catalog,
   ) {
+    final spacing = context.spacing;
     final hasAvailable = catalog.any((item) => !_contains(item.versionId));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Template sequence',
-                  style:
-                      Fx.text(22, 28, FontWeight.w700, -0.44, color: Fx.ink),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${_selected.length} items selected',
-                  style:
-                      Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
-                ),
-              ],
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: const BoxDecoration(
-                color: Fx.container,
-                borderRadius: BorderRadius.all(Radius.circular(9999)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: Fx.emerald,
-                      shape: BoxShape.circle,
+    return WorkshopCard(
+      padding: _panelPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          WorkshopSectionHeader(
+            title: l10n.builderSequenceTitle,
+            subtitle: l10n.templateItemsCount(_selected.length),
+          ),
+          SizedBox(height: spacing.md),
+          if (_selected.isEmpty)
+            WorkshopEmptyState(
+              title: l10n.noItems,
+              body: l10n.addItems,
+              icon: Icons.playlist_add_check,
+            )
+          else
+            ReorderableListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              buildDefaultDragHandles: false,
+              proxyDecorator: _dragProxy,
+              onReorderItem: _reorderItem,
+              children: _selected.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return WorkshopSequenceCard(
+                  key: ValueKey('seq-row-${item.masterItemVersionId}'),
+                  showDivider: index < _selected.length - 1,
+                  indexLabel: (index + 1).toString().padLeft(2, '0'),
+                  title: _localized(context, item.labelEn, item.labelAr),
+                  chips: [
+                    WorkshopLockedPill(
+                      label:
+                          '${item.noteRequirement}/${item.evidenceRequirement}'
+                          ' · ${l10n.lockedByPlatform}',
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Sequence Ready',
-                    style:
-                        Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.ink),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (_selected.isEmpty)
-          EmptyState(
-            title: l10n.noItems,
-            body: l10n.addItems,
-            icon: Icons.playlist_add_check,
-          )
-        else
-          ReorderableListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            buildDefaultDragHandles: false,
-            proxyDecorator: _dragProxy,
-            onReorderItem: _reorderItem,
-            children: _selected.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              return WorkshopSequenceCard(
-                key: ValueKey('seq-row-${item.masterItemVersionId}'),
-                indexLabel: (index + 1).toString().padLeft(2, '0'),
-                title: item.labelEn,
-                chips: [
-                  WorkshopLockedPill(
-                    label:
-                        '${item.noteRequirement}/${item.evidenceRequirement} · ${l10n.lockedByPlatform}',
-                  ),
-                  StatusChip(
-                    label: '${item.categoryLabelEn} · v${item.versionNo}',
-                  ),
-                ],
-                ruleNote: Text(
-                  item.instructionEn.isEmpty
-                      ? item.categoryLabelEn
-                      : item.instructionEn,
-                ),
-                controls: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      key: Key('seq-up-$index'),
-                      tooltip: l10n.moveUp,
-                      onPressed:
-                          index > 0 ? () => _itemAction(index, 'up') : null,
-                      icon: const Icon(Icons.arrow_upward),
-                    ),
-                    IconButton(
-                      key: Key('seq-down-$index'),
-                      tooltip: l10n.moveDown,
-                      onPressed: index < _selected.length - 1
-                          ? () => _itemAction(index, 'down')
-                          : null,
-                      icon: const Icon(Icons.arrow_downward),
-                    ),
-                    IconButton(
-                      key: Key('seq-remove-$index'),
-                      tooltip: l10n.remove,
-                      onPressed: () => _itemAction(index, 'remove'),
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: Icon(
-                        Icons.drag_handle,
-                        key: Key('seq-drag-$index'),
-                      ),
+                    StatusChip(
+                      label:
+                          '${_localized(context, item.categoryLabelEn, item.categoryLabelAr)}'
+                          ' · v${item.versionNo}',
                     ),
                   ],
-                ),
-              );
-            }).toList(),
+                  ruleNote: Text(
+                    context.isArabic && item.instructionAr.isNotEmpty
+                        ? item.instructionAr
+                        : (item.instructionEn.isEmpty
+                              ? _localized(
+                                  context,
+                                  item.categoryLabelEn,
+                                  item.categoryLabelAr,
+                                )
+                              : item.instructionEn),
+                  ),
+                  controls: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        key: Key('seq-up-$index'),
+                        tooltip: l10n.moveUp,
+                        onPressed: index > 0
+                            ? () => _itemAction(index, 'up')
+                            : null,
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        key: Key('seq-down-$index'),
+                        tooltip: l10n.moveDown,
+                        onPressed: index < _selected.length - 1
+                            ? () => _itemAction(index, 'down')
+                            : null,
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                      IconButton(
+                        key: Key('seq-remove-$index'),
+                        tooltip: l10n.remove,
+                        onPressed: () => _itemAction(index, 'remove'),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: SizedBox.square(
+                          dimension: context.ws.touchTarget,
+                          child: Icon(
+                            Icons.drag_handle,
+                            key: Key('seq-drag-$index'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          SizedBox(height: spacing.md),
+          WorkshopDropZone(
+            key: const Key('builder-dropzone'),
+            label: l10n.builderDropHint,
+            hint: l10n.addItems,
+            onTap: hasAvailable ? () => _addFirstAvailable(catalog) : null,
           ),
-        const SizedBox(height: 16),
-        WorkshopDropZone(
-          key: const Key('builder-dropzone'),
-          label: l10n.builderDropHint,
-          hint: l10n.addItems,
-          onTap: hasAvailable ? () => _addFirstAvailable(catalog) : null,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Version History List
+  // Version history (secondary, collapsible)
   // ---------------------------------------------------------------------------
-  Widget _buildVersionHistory(
+  Widget _versionHistory(
     BuildContext context,
     AppLocalizations l10n,
     TemplateDetail template,
@@ -1322,83 +666,204 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
     if (template.versions.isEmpty) {
       return const SizedBox.shrink();
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Version history',
-          style: Fx.text(20, 26, FontWeight.w700, -0.3, color: Fx.ink),
+    final ws = context.ws;
+    final spacing = context.spacing;
+    return WorkshopCard(
+      padding: EdgeInsetsDirectional.zero,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: ws.surface),
+          child: ExpansionTile(
+            key: const Key('builder-version-history'),
+            initiallyExpanded: true,
+            tilePadding: EdgeInsetsDirectional.symmetric(
+              horizontal: spacing.lg,
+              vertical: spacing.xxs,
+            ),
+            childrenPadding: EdgeInsetsDirectional.only(bottom: spacing.sm),
+            title: Text(
+              l10n.versionHistory,
+              style: ws.sectionTitle.copyWith(color: ws.ink),
+            ),
+            children: [
+              for (
+                var index = 0;
+                index < template.versions.length;
+                index++
+              ) ...[
+                if (index > 0) const WorkshopDivider(),
+                _versionRow(context, l10n, template.versions[index]),
+              ],
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        ...template.versions.map(
-          (version) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Fx.white,
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-                boxShadow: Fx.cardShadow,
-              ),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                child: ListTile(
-                  key: Key('template-version-${version.id}'),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: Fx.container,
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _versionRow(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateVersionSummary version,
+  ) {
+    final ws = context.ws;
+    final published = version.publishedAt.isEmpty
+        ? ''
+        : ' · ${version.publishedAt}';
+    return ListTile(
+      key: Key('template-version-${version.id}'),
+      contentPadding: EdgeInsetsDirectional.symmetric(
+        horizontal: context.spacing.lg,
+        vertical: context.spacing.xs,
+      ),
+      title: Text(
+        'v${version.versionNo} · '
+        '${contentStatusLabel(l10n, version.status)}',
+        style: ws.bodyStrong.copyWith(color: ws.ink),
+      ),
+      subtitle: Text(
+        '${version.itemCount} ${l10n.itemsSelected}$published',
+        style: ws.meta.copyWith(color: ws.muted),
+      ),
+      trailing: Icon(Icons.chevron_right, color: ws.muted),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => TemplateVersionPage(
+            templateId: widget.templateId,
+            versionId: version.id,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Read-only state
+  // ---------------------------------------------------------------------------
+  Widget _readOnly(BuildContext context, AppLocalizations l10n) {
+    return WorkshopCard(
+      child: WorkshopEmptyState(
+        title: l10n.readOnlyVersion,
+        body: l10n.createDraft,
+        icon: Icons.lock_outline,
+        action: WorkshopButton(
+          label: l10n.createDraft,
+          onPressed: _busy ? null : _createDraft,
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sticky save/publish bar
+  // ---------------------------------------------------------------------------
+  Widget _saveBar(
+    BuildContext context,
+    AppLocalizations l10n,
+    TemplateDetail template,
+    TemplateVersionView? draft,
+  ) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final editable = draft != null && !_busy;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: ws.surface,
+        border: BorderDirectional(top: BorderSide(color: ws.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsetsDirectional.symmetric(
+            horizontal: ws.pageGutter(MediaQuery.sizeOf(context).width),
+            vertical: spacing.md,
+          ),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
+              child: SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: spacing.sm,
+                  runSpacing: spacing.sm,
+                  children: [
+                    WorkshopButton(
+                      label: l10n.saveDraft,
+                      icon: Icons.save_outlined,
+                      variant: WorkshopButtonVariant.secondary,
+                      onPressed: editable ? _save : null,
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.history_rounded,
-                        color: Fx.ink, size: 20),
-                  ),
-                  title: Text(
-                    'v${version.versionNo} · ${contentStatusLabel(l10n, version.status)}',
-                    style:
-                        Fx.text(15, 20, FontWeight.w700, -0.16, color: Fx.ink),
-                  ),
-                  subtitle: Text(
-                    '${version.itemCount} ${l10n.itemsSelected}${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
-                    style:
-                        Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
-                  ),
-                  trailing: const Icon(Icons.chevron_right, color: Fx.muted),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => TemplateVersionPage(
-                        templateId: widget.templateId,
-                        versionId: version.id,
+                    WorkshopButton(
+                      key: const Key('builder-preview'),
+                      label: l10n.preview,
+                      icon: Icons.visibility_outlined,
+                      variant: WorkshopButtonVariant.ghost,
+                      onPressed: draft == null || _selected.isEmpty || _busy
+                          ? null
+                          : _preview,
+                    ),
+                    WorkshopButton(
+                      key: const Key('builder-publish'),
+                      label: l10n.publishTemplate,
+                      icon: Icons.publish_outlined,
+                      isLoading: _busy,
+                      onPressed: draft == null || _busy ? null : _publish,
+                    ),
+                    if (template.status != 'RETIRED')
+                      PopupMenuButton<String>(
+                        key: const Key('builder-more'),
+                        tooltip: l10n.actions,
+                        icon: SizedBox.square(
+                          dimension: ws.touchTarget,
+                          child: Icon(Icons.archive_outlined, color: ws.muted),
+                        ),
+                        onSelected: (value) {
+                          if (value == 'retire') {
+                            _retire();
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'retire',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.archive_outlined,
+                                  size: 18,
+                                  color: ws.danger,
+                                ),
+                                SizedBox(width: spacing.sm),
+                                Text(
+                                  l10n.retire,
+                                  style: ws.body.copyWith(color: ws.danger),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 
   // ---------------------------------------------------------------------------
   // Drag Proxy
   // ---------------------------------------------------------------------------
-  Widget _dragProxy(
-    Widget child,
-    int index,
-    Animation<double> animation,
-  ) {
+  Widget _dragProxy(Widget child, int index, Animation<double> animation) {
     return AnimatedBuilder(
       animation: animation,
-      builder: (context, proxyChild) => Material(
-        type: MaterialType.transparency,
-        child: proxyChild,
-      ),
+      builder: (context, proxyChild) =>
+          Material(type: MaterialType.transparency, child: proxyChild),
       child: child,
     );
   }
@@ -1490,7 +955,9 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _saveDraft() async {
-    await ref.read(adminApiProvider).saveTemplateDraft(
+    await ref
+        .read(adminApiProvider)
+        .saveTemplateDraft(
           id: widget.templateId,
           name: _name.text.trim(),
           description: _description.text.trim(),
@@ -1600,9 +1067,9 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SectionHeader(
+              WorkshopSectionHeader(
                 title: l10n.preview,
-                subtitle: '${_selected.length} ${l10n.itemsSelected}',
+                subtitle: l10n.templateItemsCount(_selected.length),
               ),
               Wrap(
                 spacing: context.spacing.sm,
@@ -1630,32 +1097,33 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                           padding: EdgeInsetsDirectional.only(
                             bottom: context.spacing.sm,
                           ),
-                          child: Card(
-                            child: Padding(
-                              padding: EdgeInsetsDirectional.all(
-                                context.spacing.md,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    arabic ? item.labelAr : item.labelEn,
-                                    style: context.texts.titleMedium,
-                                  ),
-                                  SizedBox(height: context.spacing.xs),
-                                  Text(
-                                    arabic
-                                        ? item.instructionAr
-                                        : item.instructionEn,
-                                    style: context.texts.bodyMedium,
-                                  ),
-                                  SizedBox(height: context.spacing.xs),
-                                  Text(
-                                    'v${item.versionNo} · ${item.noteRequirement}/${item.evidenceRequirement} · ${l10n.lockedByPlatform}',
-                                    style: context.texts.bodySmall,
-                                  ),
-                                ],
-                              ),
+                          child: WorkshopCard(
+                            padding: EdgeInsetsDirectional.all(
+                              context.spacing.md,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  arabic ? item.labelAr : item.labelEn,
+                                  style: context.texts.titleMedium,
+                                ),
+                                SizedBox(height: context.spacing.xs),
+                                Text(
+                                  arabic
+                                      ? item.instructionAr
+                                      : item.instructionEn,
+                                  style: context.texts.bodyMedium,
+                                ),
+                                SizedBox(height: context.spacing.xs),
+                                Text(
+                                  'v${item.versionNo} · '
+                                  '${item.noteRequirement}/'
+                                  '${item.evidenceRequirement} · '
+                                  '${l10n.lockedByPlatform}',
+                                  style: context.texts.bodySmall,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -1697,17 +1165,17 @@ class _SelectedItem {
   final String evidenceRequirement;
 
   factory _SelectedItem.fromView(TemplateItemView item) => _SelectedItem(
-        masterItemVersionId: item.masterItemVersionId,
-        categoryLabelEn: item.categoryLabelEn,
-        categoryLabelAr: item.categoryLabelAr,
-        labelEn: item.labelEn,
-        labelAr: item.labelAr,
-        instructionEn: item.instructionEn,
-        instructionAr: item.instructionAr,
-        versionNo: item.versionNo,
-        noteRequirement: item.noteRequirement,
-        evidenceRequirement: item.evidenceRequirement,
-      );
+    masterItemVersionId: item.masterItemVersionId,
+    categoryLabelEn: item.categoryLabelEn,
+    categoryLabelAr: item.categoryLabelAr,
+    labelEn: item.labelEn,
+    labelAr: item.labelAr,
+    instructionEn: item.instructionEn,
+    instructionAr: item.instructionAr,
+    versionNo: item.versionNo,
+    noteRequirement: item.noteRequirement,
+    evidenceRequirement: item.evidenceRequirement,
+  );
 
   factory _SelectedItem.fromPublished(PublishedItem item) {
     final en = item.version.translation('en');

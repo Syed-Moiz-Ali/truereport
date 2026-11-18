@@ -209,9 +209,8 @@ void main() {
     // below pin the true in-app shape.)
     final normalized = formatted.replaceAllMapped(
       RegExp('[\u0660-\u0669]'),
-      (match) => String.fromCharCode(
-        match.group(0)!.codeUnitAt(0) - 0x0660 + 0x30,
-      ),
+      (match) =>
+          String.fromCharCode(match.group(0)!.codeUnitAt(0) - 0x0660 + 0x30),
     );
     expect(normalized.contains('2026'), isTrue);
     expect(normalized.contains('13:00'), isTrue);
@@ -230,8 +229,9 @@ void main() {
     expect(NumberFormat.decimalPattern('ar').format(23), '23');
   });
 
-  testWidgets('jobs details sheet shows formatted date, never raw ISO (EN)',
-      (tester) async {
+  testWidgets('jobs details sheet shows formatted date, never raw ISO (EN)', (
+    tester,
+  ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('en'));
 
     await tester.tap(find.byKey(const Key('job-job-1')));
@@ -239,14 +239,14 @@ void main() {
     expect(tester.takeException(), isNull);
 
     expect(find.textContaining(_isoScheduled), findsNothing);
-    expect(
-      find.text(_expectedInstant(_isoScheduled, 'en')),
-      findsOneWidget,
-    );
+    // The queue row behind the sheet and the sheet itself both show the
+    // formatted instant.
+    expect(find.text(_expectedInstant(_isoScheduled, 'en')), findsWidgets);
   });
 
-  testWidgets('jobs details sheet shows formatted date, never raw ISO (AR)',
-      (tester) async {
+  testWidgets('jobs details sheet shows formatted date, never raw ISO (AR)', (
+    tester,
+  ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('ar'));
 
     await tester.tap(find.byKey(const Key('job-job-1')));
@@ -255,21 +255,23 @@ void main() {
 
     expect(find.textContaining(_isoScheduled), findsNothing);
     final formatted = _expectedInstant(_isoScheduled, 'ar');
-    expect(find.text(formatted), findsOneWidget);
+    expect(find.text(formatted), findsWidgets);
     // In-app (MaterialApp localizations) context renders AR dates with
     // Arabic-Indic digits: ٥‏/١١‏/٢٠٢٦ ١٣:٠٠.
     expect(RegExp('[\u0660-\u0669]').hasMatch(formatted), isTrue);
   });
 
-  testWidgets('queue chips render locale counts without raw ISO (EN)',
-      (tester) async {
+  testWidgets('queue chips render locale counts without raw ISO (EN)', (
+    tester,
+  ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('en'));
     expect(find.text('All (1)'), findsOneWidget);
     expect(find.textContaining(_isoScheduled), findsNothing);
   });
 
-  testWidgets('queue chips render locale counts without raw ISO (AR)',
-      (tester) async {
+  testWidgets('queue chips render locale counts without raw ISO (AR)', (
+    tester,
+  ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('ar'));
     final l10n = AppLocalizations.of(tester.element(find.byType(JobsTab)));
     final arCount = NumberFormat.decimalPattern('ar').format(1);
@@ -277,40 +279,32 @@ void main() {
     expect(find.textContaining(_isoScheduled), findsNothing);
   });
 
-  testWidgets('dashboard card meta + stats never show raw ISO (EN)',
-      (tester) async {
+  testWidgets('dashboard card meta + stats never show raw ISO (EN)', (
+    tester,
+  ) async {
     await _pump(
       tester,
       const Scaffold(body: DashboardTab()),
       const Locale('en'),
     );
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(DashboardTab)),
-    );
-
     expect(find.textContaining(_isoScheduled), findsNothing);
-    expect(
-      find.text(
-        '${l10n.scheduledAt}: ${_expectedInstant(_isoScheduled, 'en')}',
-      ),
-      findsOneWidget,
-    );
-    // Stat values use decimalPattern: EN unchanged.
+    // The next-up row renders the locale-shaped instant (yMd + Hm).
+    expect(find.text(_expectedInstant(_isoScheduled, 'en')), findsWidgets);
+    // Stat values use decimalPattern: EN unchanged. The pipeline legend
+    // repeats the same real counts.
     expect(find.text('23'), findsOneWidget);
-    expect(find.text('34'), findsOneWidget);
+    expect(find.text('34'), findsWidgets);
 
     await tester.tap(find.byKey(const Key('dashboard-job-job-1')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.textContaining(_isoScheduled), findsNothing);
-    expect(
-      find.text(_expectedInstant(_isoScheduled, 'en')),
-      findsOneWidget,
-    );
+    expect(find.text(_expectedInstant(_isoScheduled, 'en')), findsWidgets);
   });
 
-  testWidgets('dashboard stats use NumberFormat.decimalPattern(locale) (AR)',
-      (tester) async {
+  testWidgets('dashboard stats use NumberFormat.decimalPattern(locale) (AR)', (
+    tester,
+  ) async {
     await _pump(
       tester,
       const Scaffold(body: DashboardTab()),
@@ -324,28 +318,19 @@ void main() {
     expect(find.text(arActive), findsOneWidget);
   });
 
-  testWidgets('report page shows formatted finalizedAt, never raw ISO (EN)',
-      (tester) async {
-    await _pump(
-      tester,
-      const ReportPage(jobId: 'job-1'),
-      const Locale('en'),
-    );
+  testWidgets('report page shows formatted finalizedAt, never raw ISO (EN)', (
+    tester,
+  ) async {
+    await _pump(tester, const ReportPage(jobId: 'job-1'), const Locale('en'));
 
     expect(find.textContaining(_isoFinalized), findsNothing);
-    expect(
-      find.text(_expectedInstant(_isoFinalized, 'en')),
-      findsOneWidget,
-    );
+    expect(find.text(_expectedInstant(_isoFinalized, 'en')), findsOneWidget);
   });
 
-  testWidgets('report page shows formatted finalizedAt, never raw ISO (AR)',
-      (tester) async {
-    await _pump(
-      tester,
-      const ReportPage(jobId: 'job-1'),
-      const Locale('ar'),
-    );
+  testWidgets('report page shows formatted finalizedAt, never raw ISO (AR)', (
+    tester,
+  ) async {
+    await _pump(tester, const ReportPage(jobId: 'job-1'), const Locale('ar'));
 
     expect(find.textContaining(_isoFinalized), findsNothing);
     final formatted = _expectedInstant(_isoFinalized, 'ar');

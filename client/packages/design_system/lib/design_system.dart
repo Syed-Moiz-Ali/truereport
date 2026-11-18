@@ -3,3 +3,4 @@ export 'src/figma_spec.dart';
 export 'src/fonts.dart';
 export 'src/reduce_motion.dart';
 export 'src/tokens.dart';
+export 'src/workshop_tokens.dart';

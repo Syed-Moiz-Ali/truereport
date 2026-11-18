@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
@@ -25,42 +26,51 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final documents = ref.watch(jobDocumentsProvider(widget.jobId));
-    return AppScaffold(
-      appBar: AppBar(title: Text(l10n.jobsDocumentsTitle)),
-      body: ListView(
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
-        children: [
-          SectionHeader(title: l10n.jobsDocumentsTitle),
-          if (_error != null) ...[
-            JobInlineError(message: _error!),
-            SizedBox(height: context.spacing.md),
-          ],
-          documents.when(
-            loading: () => const LoadingSkeleton(lines: 4),
-            error: (error, _) => ErrorState(
-              title: l10n.error,
-              body: l10n.commonLoadFailed,
-              retryLabel: l10n.retryAction,
-              onRetry: () => ref.invalidate(jobDocumentsProvider(widget.jobId)),
-            ),
-            data: (items) {
-              if (items.isEmpty) {
-                return EmptyState(
-                  title: l10n.jobsDocumentsEmpty,
-                  body: '',
-                  icon: Icons.description_outlined,
-                );
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Scaffold(
+      backgroundColor: context.ws.canvas,
+      body: SafeArea(
+        child: Column(
+          children: [
+            JobPageTopBar(title: l10n.jobsDocumentsTitle),
+            Expanded(
+              child: WorkshopPageScroll(
                 children: [
-                  for (final document in items)
-                    _document(context, document),
+                  if (_error != null) ...[
+                    JobInlineError(message: _error!),
+                    SizedBox(height: context.spacing.md),
+                  ],
+                  documents.when(
+                    loading: () => const WorkshopSkeleton(card: true, lines: 4),
+                    error: (error, _) => WorkshopErrorState(
+                      title: l10n.error,
+                      body: l10n.commonLoadFailed,
+                      retryLabel: l10n.retryAction,
+                      onRetry: () =>
+                          ref.invalidate(jobDocumentsProvider(widget.jobId)),
+                    ),
+                    data: (items) {
+                      if (items.isEmpty) {
+                        return WorkshopCard(
+                          child: WorkshopEmptyState(
+                            title: l10n.jobsDocumentsEmpty,
+                            icon: Icons.description_outlined,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final document in items)
+                            _document(context, document),
+                        ],
+                      );
+                    },
+                  ),
                 ],
-              );
-            },
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -154,9 +164,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
       _error = null;
     });
     try {
-      await ref
-          .read(adminApiProvider)
-          .retryJobDocument(widget.jobId, type);
+      await ref.read(adminApiProvider).retryJobDocument(widget.jobId, type);
       ref.invalidate(jobDocumentsProvider(widget.jobId));
       if (mounted) {
         ScaffoldMessenger.of(context)

@@ -1,6 +1,7 @@
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/models.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -170,32 +171,43 @@ Future<void> _pumpQueue(
 }
 
 void main() {
-  testWidgets('queue renders header, counted chips and job cards', (tester) async {
+  testWidgets('queue renders header, counted chips and job rows', (
+    tester,
+  ) async {
     await _pumpQueue(tester, const Locale('en'));
 
-    // Figma header slot: neutral queue title + existing search + New Job.
+    final l10n = AppLocalizations.of(tester.element(find.byType(JobsTab)));
     expect(find.text('Job queue'), findsOneWidget);
+    expect(find.text(l10n.jobsQueueSubtitle), findsOneWidget);
     expect(find.byKey(const Key('jobs-search')), findsOneWidget);
     expect(find.text('New job'), findsOneWidget);
+    expect(find.byType(WorkshopPageHeader), findsOneWidget);
 
-    // Four slot-sheet chips with client-side counts.
+    // Four filter chips with client-side counts.
     expect(find.text('All (3)'), findsOneWidget);
     expect(find.text('In progress (1)'), findsOneWidget);
     expect(find.text('Ready to finalize (1)'), findsOneWidget);
     expect(find.text('Finalized (1)'), findsOneWidget);
 
-    // Rows come from WorkshopJob only: vehicle title, reference,
-    // customer, template, assignee — never invented numbers.
-    expect(find.byType(WorkshopJobCard), findsNWidgets(3));
+    // One table: header once, one row per job.
+    expect(find.byType(JobListHeader), findsOneWidget);
+    expect(find.byType(JobListRow), findsNWidgets(3));
     expect(find.text('JOB-0001'), findsOneWidget);
+    // Identifiers never wrap in the table.
+    final reference = tester.widget<Text>(find.text('JOB-0001'));
+    expect(reference.maxLines, 1);
+    expect(reference.softWrap, isFalse);
+    // Compact footer with the real item count inside the same card.
+    expect(find.byKey(const Key('jobs-queue-total')), findsOneWidget);
+    expect(find.text('Total: 3'), findsOneWidget);
     expect(find.text('Toyota Camry'), findsOneWidget);
-    expect(find.text('Customer B'), findsWidgets);
+    expect(find.text('Customer B'), findsOneWidget);
     expect(find.text('Full inspection v1'), findsNWidgets(3));
-    expect(find.text('Technician A'), findsWidgets);
+    expect(find.text('Technician A'), findsNWidgets(2));
     expect(find.text('Unassigned'), findsOneWidget);
-    expect(find.byType(StatusChip), findsWidgets);
+    expect(find.byType(JobStatusBadge), findsNWidgets(3));
 
-    // Omitted per slot sheet P2/P3: bays, progress, flags, review copy,
+    // Omitted by the design brief: bays, progress, flags, review copy,
     // live sync, turnaround, slot times.
     expect(find.textContaining('Bay'), findsNothing);
     expect(find.textContaining('bay'), findsNothing);
@@ -205,8 +217,6 @@ void main() {
     expect(find.textContaining('Live sync'), findsNothing);
     expect(find.textContaining('Turnaround'), findsNothing);
     expect(find.textContaining('Slot'), findsNothing);
-    expect(find.textContaining('Export Daily Log'), findsNothing);
-    expect(find.textContaining('Batch Reassign'), findsNothing);
   });
 
   testWidgets('status chips filter the queue server-side', (tester) async {
@@ -215,17 +225,17 @@ void main() {
     await tester.tap(find.text('In progress (1)'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('JOB-0001'), findsOneWidget);
-    expect(find.text('JOB-0002'), findsNothing);
-    expect(find.text('JOB-0003'), findsNothing);
+    expect(find.byKey(const Key('job-job-1')), findsOneWidget);
+    expect(find.byKey(const Key('job-job-2')), findsNothing);
+    expect(find.byKey(const Key('job-job-3')), findsNothing);
     // Counts stay derived from the unfiltered, search-scoped snapshot.
     expect(find.text('All (3)'), findsOneWidget);
 
     await tester.tap(find.text('Finalized (1)'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('JOB-0003'), findsOneWidget);
-    expect(find.text('JOB-0001'), findsNothing);
+    expect(find.byKey(const Key('job-job-3')), findsOneWidget);
+    expect(find.byKey(const Key('job-job-1')), findsNothing);
   });
 
   testWidgets('search narrows the queue and rescopes chip counts', (
@@ -236,21 +246,48 @@ void main() {
     await tester.enterText(find.byKey(const Key('jobs-search')), 'Customer B');
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('JOB-0002'), findsOneWidget);
-    expect(find.text('JOB-0001'), findsNothing);
+    expect(find.byKey(const Key('job-job-2')), findsOneWidget);
+    expect(find.byKey(const Key('job-job-1')), findsNothing);
     expect(find.text('All (1)'), findsOneWidget);
     expect(find.text('Ready to finalize (1)'), findsOneWidget);
     expect(find.text('In progress (0)'), findsOneWidget);
   });
 
-  testWidgets('tapping a card opens the existing detail sheet', (tester) async {
+  testWidgets('filtered empty state explains and keeps the header', (
+    tester,
+  ) async {
+    await _pumpQueue(tester, const Locale('en'));
+
+    await tester.enterText(
+      find.byKey(const Key('jobs-search')),
+      'no such job anywhere',
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(tester.element(find.byType(JobsTab)));
+    expect(find.text(l10n.jobsEmptyQueueTitle), findsOneWidget);
+    expect(find.text(l10n.jobsEmptyQueueBody), findsOneWidget);
+    expect(find.text('Job queue'), findsOneWidget);
+  });
+
+  testWidgets('tapping a row opens the quick sheet with the job', (
+    tester,
+  ) async {
     await _pumpQueue(tester, const Locale('en'));
 
     await tester.tap(find.byKey(const Key('job-job-1')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    // Existing bottom-sheet content is unchanged (customer contact line).
+    final l10n = AppLocalizations.of(tester.element(find.byType(JobsTab)));
     expect(find.text('+971500000001'), findsOneWidget);
+    expect(find.text(l10n.reassign), findsWidgets);
+    expect(find.text(l10n.cancelJob), findsOneWidget);
+    expect(find.text(l10n.scheduledAt), findsOneWidget);
+
+    // Reassign opens the existing assign dialog.
+    await tester.tap(find.text(l10n.reassign).first);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.assignTechnicianTitle), findsOneWidget);
   });
 
   testWidgets('finalized rows stay read-only', (tester) async {
@@ -267,25 +304,55 @@ void main() {
     expect(find.text('Cancel job'), findsNothing);
   });
 
+  testWidgets('queue uses cards below the table breakpoint', (tester) async {
+    await _pumpQueue(tester, const Locale('en'), size: const Size(390, 844));
+    expect(find.byType(JobListHeader), findsNothing);
+    expect(find.byType(JobListRow), findsAtLeastNWidgets(2));
+    expect(find.byType(WorkshopCard), findsWidgets);
+    await tester.dragUntilVisible(
+      find.byKey(const Key('job-job-3')),
+      find.byType(CustomScrollView),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('job-job-3')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('queue renders in Arabic RTL without exceptions', (tester) async {
     await _pumpQueue(tester, const Locale('ar'));
 
     expect(find.text('قائمة المهام'), findsOneWidget);
-    expect(find.text('JOB-0001'), findsOneWidget);
-    expect(find.text('JOB-0003'), findsOneWidget);
+    expect(find.byKey(const Key('job-job-1')), findsOneWidget);
+    expect(find.byKey(const Key('job-job-3')), findsOneWidget);
+    expect(
+      Directionality.of(tester.element(find.byType(JobsTab))),
+      TextDirection.rtl,
+    );
   });
 
-  testWidgets('queue has no overflow at 390 and 1280 up to 2.0x', (
+  testWidgets('queue has no overflow from 360 to 1280 up to 2.0x', (
     tester,
   ) async {
-    for (final size in const [Size(390, 844), Size(1280, 800)]) {
+    for (final size in const [
+      Size(360, 800),
+      Size(390, 844),
+      Size(768, 900),
+      Size(1024, 900),
+      Size(1280, 800),
+    ]) {
       for (final scale in const [1.0, 1.5, 2.0]) {
         for (final locale in const [Locale('en'), Locale('ar')]) {
-          await _pumpQueue(
-            tester,
-            locale,
-            size: size,
-            textScale: scale,
+          await _pumpQueue(tester, locale, size: size, textScale: scale);
+          await tester.drag(
+            find.byType(CustomScrollView),
+            const Offset(0, -400),
+          );
+          await tester.pumpAndSettle();
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: '${size.width} scale $scale ${locale.languageCode}',
           );
         }
       }

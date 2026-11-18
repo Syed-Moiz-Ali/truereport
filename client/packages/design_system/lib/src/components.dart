@@ -1,4 +1,4 @@
-export 'components/admin_chrome.dart';
+﻿export 'components/admin_chrome.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
 export 'components/chips.dart';
@@ -16,3 +16,5 @@ export 'components/states.dart';
 export 'components/technician_shell.dart';
 export 'components/tree_view.dart';
 export 'components/workshop_admin.dart';
+export 'components/workshop_shell.dart';
+export 'components/workshop_ui.dart';

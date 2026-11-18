@@ -76,7 +76,60 @@ void main() {
     expect(find.text('مدير المنصة'), findsOneWidget);
   });
 
-  testWidgets('Workshop Admin login renders desktop split view without overflow', (tester) async {
+  testWidgets(
+    'Workshop Admin login renders desktop split view without overflow',
+    (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: _wrap(const WorkshopLoginPage(), const Locale('en')),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(WorkshopLoginPage)),
+      );
+      expect(find.text(l10n.signInPortalLabel), findsWidgets);
+      expect(find.text(l10n.signInBrandLine), findsOneWidget);
+      expect(find.text(l10n.signInTitle), findsWidgets);
+      expect(find.text(l10n.signInHelp), findsOneWidget);
+      expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
+      expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
+      expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
+      expect(find.byKey(const Key('btn-fill-demo')), findsNothing);
+      // No unverified certification, encryption, telemetry or telemetry-style
+      // status claims on the sign-in surface.
+      for (final banned in const [
+        'SOC-2',
+        'SOC 2',
+        'TLS',
+        'blockchain',
+        'GRID',
+        'Latency',
+        'SECURED',
+        'Telemetry',
+        '256-bit',
+      ]) {
+        expect(
+          find.textContaining(banned),
+          findsNothing,
+          reason: 'Unverified claim leaked into sign-in: $banned',
+        );
+      }
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Workshop Admin form accepts manually entered credentials', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -85,31 +138,9 @@ void main() {
     });
 
     await tester.pumpWidget(
-      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('WORKSHOP OPERATIONS'), findsWidgets);
-    expect(find.text('Live Bay Telemetry & Queue'), findsOneWidget);
-    expect(find.text('Adaptive SOP Builder'), findsOneWidget);
-    expect(find.text('Cryptographic Audit Clearance'), findsOneWidget);
-    expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
-    expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
-    expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
-    expect(find.byKey(const Key('btn-fill-demo')), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('Workshop Admin form accepts manually entered credentials', (tester) async {
-    tester.view.physicalSize = const Size(1280, 800);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-
-    await tester.pumpWidget(
-      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
+      ProviderScope(
+        child: _wrap(const WorkshopLoginPage(), const Locale('en')),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -123,19 +154,25 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final emailField =
-        tester.widget<TextFormField>(find.byKey(const Key('sign-in-email')));
-    final passField =
-        tester.widget<TextFormField>(find.byKey(const Key('sign-in-password')));
+    final emailField = tester.widget<TextFormField>(
+      find.byKey(const Key('sign-in-email')),
+    );
+    final passField = tester.widget<TextFormField>(
+      find.byKey(const Key('sign-in-password')),
+    );
 
     expect(emailField.controller?.text, 'admin.a@truereport.test');
     expect(passField.controller?.text, 'local-password');
   });
 
-  testWidgets('Workshop Admin login renders mobile view without overflow', (tester) async {
+  testWidgets('Workshop Admin login renders mobile view without overflow', (
+    tester,
+  ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      ProviderScope(child: _wrap(const WorkshopLoginPage(), const Locale('en'))),
+      ProviderScope(
+        child: _wrap(const WorkshopLoginPage(), const Locale('en')),
+      ),
     );
     await tester.pumpAndSettle();
 

@@ -3293,4 +3293,167 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportLabels => 'تسميات التقارير';
+
+  @override
+  String get dashboardGreeting => 'مرحباً بعودتك';
+
+  @override
+  String get dashboardToday => 'اليوم';
+
+  @override
+  String get dashboardNextUp => 'التالي';
+
+  @override
+  String get dashboardNoUpcoming => 'لا توجد مهام مجدولة';
+
+  @override
+  String get dashboardNoUpcomingBody => 'ستظهر المهام الجديدة هنا عند جدولتها.';
+
+  @override
+  String get dashboardViewAll => 'عرض الكل';
+
+  @override
+  String get dashboardPipeline => 'سير العمل';
+
+  @override
+  String get dashboardNoRecentJobs => 'لا توجد مهام حديثة أخرى';
+
+  @override
+  String get jobDetailCustomerVehicle => 'العميل والمركبة';
+
+  @override
+  String get jobDetailInspection => 'الفحص';
+
+  @override
+  String get jobDetailAssignment => 'الإسناد';
+
+  @override
+  String get jobDetailReviewPublication => 'المراجعة والنشر';
+
+  @override
+  String get jobDetailMoreActions => 'إجراءات أخرى';
+
+  @override
+  String get jobsEmptyQueueTitle => 'لا توجد مهام في هذا العرض';
+
+  @override
+  String get jobsEmptyQueueBody => 'جرّب عامل تصفية آخر أو أنشئ مهمة جديدة.';
+
+  @override
+  String get jobsListColumnVehicle => 'المركبة';
+
+  @override
+  String get jobsListColumnJob => 'المهمة';
+
+  @override
+  String get jobsListColumnCustomer => 'العميل';
+
+  @override
+  String get jobsListColumnScheduled => 'الموعد';
+
+  @override
+  String get jobsListColumnInspection => 'الفحص';
+
+  @override
+  String get jobsListColumnTechnician => 'الفني';
+
+  @override
+  String get settingsWorkshop => 'الورشة';
+
+  @override
+  String get settingsAccount => 'الحساب';
+
+  @override
+  String get settingsPreferences => 'التفضيلات';
+
+  @override
+  String get settingsLanguage => 'اللغة';
+
+  @override
+  String get settingsSession => 'الجلسة';
+
+  @override
+  String get settingsSignOutBody =>
+      'تسجيل الخروج من لوحة الورشة على هذا الجهاز.';
+
+  @override
+  String get templatesEmptyTitle => 'لا توجد قوالب بعد';
+
+  @override
+  String get templatesEmptyBody => 'أنشئ أول قالب فحص للبدء.';
+
+  @override
+  String get reportNotReadyTitle => 'التقرير غير جاهز';
+
+  @override
+  String get reportNotReadyBody => 'اعتمد المهمة وانشرها لإنشاء تقرير للعميل.';
+
+  @override
+  String get reportBackToJob => 'العودة إلى المهمة';
+
+  @override
+  String get signInBrandLine => 'مهام الفحص وقوائم التحقق والتقارير لورشك.';
+
+  @override
+  String get signInPortalLabel => 'مدير الورشة';
+
+  @override
+  String get signInHelp => 'تواصل مع مدير المنصة للحصول على الوصول.';
+
+  @override
+  String get jobsQueueSubtitle => 'كل مهام الفحص في مكان واحد.';
+
+  @override
+  String get notPublished => 'غير منشور';
+
+  @override
+  String templateItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عنصر',
+      one: 'عنصر واحد',
+      zero: 'لا عناصر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get staffSubtitle => 'فريق ورشتك وحساباتهم.';
+
+  @override
+  String get templatesSubtitle => 'قوائم فحص قابلة لإعادة الاستخدام.';
+
+  @override
+  String get jobBoardSubtitle => 'تابع المهام من الاستلام حتى النشر.';
+
+  @override
+  String get settingsSubtitle => 'الورشة والحساب واللغة.';
+
+  @override
+  String get navMore => 'المزيد';
+
+  @override
+  String get copied => 'تم النسخ إلى الحافظة';
+
+  @override
+  String get commandPaletteTitle => 'لوحة الأوامر';
+
+  @override
+  String get commandPaletteHint => 'ابحث أو انتقل إلى...';
+
+  @override
+  String get commandPaletteNoResults => 'لم يتم العثور على نتائج';
+
+  @override
+  String get commandGroupNavigation => 'التنقل';
+
+  @override
+  String get commandGroupActions => 'الإجراءات';
+
+  @override
+  String get commandGroupJobs => 'مهام الفحص';
+
+  @override
+  String get commandSearchPlaceholder => 'اكتب أمراً أو ابحث...';
 }

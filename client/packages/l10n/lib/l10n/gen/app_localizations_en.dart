@@ -3314,4 +3314,171 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportLabels => 'Report labels';
+
+  @override
+  String get dashboardGreeting => 'Welcome back';
+
+  @override
+  String get dashboardToday => 'Today';
+
+  @override
+  String get dashboardNextUp => 'Next up';
+
+  @override
+  String get dashboardNoUpcoming => 'No jobs scheduled';
+
+  @override
+  String get dashboardNoUpcomingBody =>
+      'New jobs will appear here as they are scheduled.';
+
+  @override
+  String get dashboardViewAll => 'View all';
+
+  @override
+  String get dashboardPipeline => 'Pipeline';
+
+  @override
+  String get dashboardNoRecentJobs => 'No other recent jobs';
+
+  @override
+  String get jobDetailCustomerVehicle => 'Customer & vehicle';
+
+  @override
+  String get jobDetailInspection => 'Inspection';
+
+  @override
+  String get jobDetailAssignment => 'Assignment';
+
+  @override
+  String get jobDetailReviewPublication => 'Review & publication';
+
+  @override
+  String get jobDetailMoreActions => 'More actions';
+
+  @override
+  String get jobsEmptyQueueTitle => 'No jobs in this view';
+
+  @override
+  String get jobsEmptyQueueBody => 'Try another filter or create a new job.';
+
+  @override
+  String get jobsListColumnVehicle => 'Vehicle';
+
+  @override
+  String get jobsListColumnJob => 'Job';
+
+  @override
+  String get jobsListColumnCustomer => 'Customer';
+
+  @override
+  String get jobsListColumnScheduled => 'Scheduled';
+
+  @override
+  String get jobsListColumnInspection => 'Inspection';
+
+  @override
+  String get jobsListColumnTechnician => 'Technician';
+
+  @override
+  String get settingsWorkshop => 'Workshop';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsPreferences => 'Preferences';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsSession => 'Session';
+
+  @override
+  String get settingsSignOutBody =>
+      'Sign out of Workshop Admin on this device.';
+
+  @override
+  String get templatesEmptyTitle => 'No templates yet';
+
+  @override
+  String get templatesEmptyBody =>
+      'Create your first inspection template to get started.';
+
+  @override
+  String get reportNotReadyTitle => 'Report not ready';
+
+  @override
+  String get reportNotReadyBody =>
+      'Approve and publish this job to generate a customer report.';
+
+  @override
+  String get reportBackToJob => 'Back to job';
+
+  @override
+  String get signInBrandLine =>
+      'Inspection jobs, checklists, and reports for your workshop.';
+
+  @override
+  String get signInPortalLabel => 'Workshop Admin';
+
+  @override
+  String get signInHelp => 'Contact your platform administrator for access.';
+
+  @override
+  String get jobsQueueSubtitle => 'Every inspection job in one place.';
+
+  @override
+  String get notPublished => 'Not published';
+
+  @override
+  String templateItemsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+      zero: 'No items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get staffSubtitle => 'Your workshop team and accounts.';
+
+  @override
+  String get templatesSubtitle => 'Reusable inspection checklists.';
+
+  @override
+  String get jobBoardSubtitle => 'Track jobs from intake to publish.';
+
+  @override
+  String get settingsSubtitle => 'Workshop, account, and language.';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get copied => 'Copied to clipboard';
+
+  @override
+  String get commandPaletteTitle => 'Command palette';
+
+  @override
+  String get commandPaletteHint => 'Search or jump to...';
+
+  @override
+  String get commandPaletteNoResults => 'No results found';
+
+  @override
+  String get commandGroupNavigation => 'Navigation';
+
+  @override
+  String get commandGroupActions => 'Actions';
+
+  @override
+  String get commandGroupJobs => 'Jobs';
+
+  @override
+  String get commandSearchPlaceholder => 'Type a command or search...';
 }

@@ -16,8 +16,9 @@ import 'support/fake_admin_api.dart';
 
 /// Screen 5 — Workshop Staff roster (Figma 1280 drawn, EN+AR).
 ///
-/// Roster core only: header + client-side search + counted role chips +
-/// [WorkshopStaffCard] rows from the existing `GET /staff` payload. No
+/// Roster core only: page header (title + subtitle + Create), one toolbar
+/// (search + counted role chips) and one roster surface from the existing
+/// `GET /staff` payload — a table from 900 px, stacked rows below. No
 /// invitations/pending (C0), no shifts/bays/metrics/NFC, masked emails only,
 /// neutral roles only.
 const _roster = <StaffMember>[
@@ -50,6 +51,8 @@ const _roster = <StaffMember>[
     status: 'ACTIVE',
   ),
 ];
+
+const _rowIds = ['tech-1', 'tech-2', 'admin-1', 'admin-2'];
 
 class _RosterApi extends FakeAdminApi {
   _RosterApi({this.staffError = false, this.hang = false});
@@ -164,8 +167,9 @@ Future<_RosterApi> _pumpStaff(
     ),
   );
   if (session != null) {
-    container.read(authControllerProvider.notifier).state =
-        AsyncData<Session?>(session);
+    container.read(authControllerProvider.notifier).state = AsyncData<Session?>(
+      session,
+    );
   }
   // Re-apply the locale after the pump: a second pumpWidget in the same
   // test reuses the mounted harness state (no re-initState), so a fresh
@@ -178,25 +182,33 @@ Future<_RosterApi> _pumpStaff(
 AppLocalizations _l10n(WidgetTester tester) =>
     AppLocalizations.of(tester.element(find.byType(StaffTab)));
 
-Future<void> _tapChip(WidgetTester tester, String labelPart) async {
+List<WorkshopFilterChip> _chips(WidgetTester tester) => tester
+    .widgetList<WorkshopFilterChip>(find.byType(WorkshopFilterChip))
+    .toList(growable: false);
+
+Future<void> _tapChip(WidgetTester tester, String label) async {
   final chip = find.byWidgetPredicate(
-    (widget) =>
-        widget is AppSelectableText && widget.label.contains(labelPart),
+    (widget) => widget is WorkshopFilterChip && widget.label == label,
   );
   expect(chip, findsOneWidget);
   await tester.tap(chip);
   await tester.pumpAndSettle();
 }
 
-List<Offset> _cardCenters(WidgetTester tester) => [
-  for (final id in const ['tech-1', 'tech-2', 'admin-1', 'admin-2'])
-    tester.getCenter(find.byKey(Key('staff-$id'))),
+int _rowCount(WidgetTester tester) =>
+    find.byKey(const Key('staff-tech-1')).evaluate().length +
+    find.byKey(const Key('staff-tech-2')).evaluate().length +
+    find.byKey(const Key('staff-admin-1')).evaluate().length +
+    find.byKey(const Key('staff-admin-2')).evaluate().length;
+
+List<Offset> _rowCenters(WidgetTester tester) => [
+  for (final id in _rowIds) tester.getCenter(find.byKey(Key('staff-$id'))),
 ];
 
 void main() {
   for (final locale in const [Locale('en'), Locale('ar')]) {
     testWidgets(
-      'roster renders header, counted chips and cards at 1280 (${locale.languageCode})',
+      'roster renders header, counted chips and rows at 1280 (${locale.languageCode})',
       (tester) async {
         _setSize(tester, const Size(1280, 800));
         await _pumpStaff(tester, locale: locale);
@@ -204,42 +216,44 @@ void main() {
 
         final l10n = _l10n(tester);
         expect(find.text(l10n.workshopStaffTitle), findsOneWidget);
+        expect(find.text(l10n.staffSubtitle), findsOneWidget);
         expect(find.byKey(const Key('staff-search')), findsOneWidget);
 
         // Filter chips carry client-side counts from GET /staff.
-        final chips = tester
-            .widgetList<AppSelectableText>(find.byType(AppSelectableText))
-            .map((chip) => chip.label)
-            .toList();
+        final chips = _chips(tester);
         expect(chips, hasLength(3));
-        expect(chips[0], contains('4'));
-        expect(
-          chips[1],
-          allOf(
-            contains(l10n.staffFilterTechnicians),
-            contains('2'),
-          ),
-        );
-        expect(
-          chips[2],
-          allOf(
-            contains(l10n.staffFilterAdmins),
-            contains('2'),
-          ),
-        );
+        expect(chips[0].label, l10n.filterAll);
+        expect(chips[0].count, 4);
+        expect(chips[1].label, l10n.staffFilterTechnicians);
+        expect(chips[1].count, 2);
+        expect(chips[2].label, l10n.staffFilterAdmins);
+        expect(chips[2].count, 2);
 
-        // Cards show display names, masked emails (LTR) and neutral roles.
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(4));
+        // Table header columns (existing ARB labels only).
+        expect(find.text(l10n.displayName), findsOneWidget);
+        expect(find.text(l10n.role), findsOneWidget);
+        expect(find.text(l10n.status), findsOneWidget);
+        expect(find.text(l10n.emailLabel), findsOneWidget);
+
+        // Rows show display names in full (no ellipsis), masked emails (LTR)
+        // and neutral role text.
+        expect(_rowCount(tester), 4);
         for (final name in const [
           'Technician A',
           'Technician B',
           'Admin A',
           'Admin B',
         ]) {
-          expect(find.text(name), findsOneWidget);
+          final finder = find.text(name);
+          expect(finder, findsOneWidget);
+          final label = tester.widget<Text>(finder);
+          expect(label.maxLines, isNull);
+          expect(label.overflow, isNot(TextOverflow.ellipsis));
         }
         expect(find.text(l10n.roleTechnician), findsNWidgets(2));
         expect(find.text(l10n.roleWorkshopAdmin), findsNWidgets(2));
+        expect(find.text(l10n.filterActive), findsNWidgets(3));
+        expect(find.text(l10n.disabled), findsOneWidget);
         for (final masked in const [
           't***@test.local',
           'tb***@test.local',
@@ -248,28 +262,19 @@ void main() {
         ]) {
           final finder = find.text(masked);
           expect(finder, findsOneWidget);
-          final wrapper = find.ancestor(
-            of: finder,
-            matching: find.byType(Directionality),
-          );
-          expect(wrapper, findsWidgets);
-          expect(
-            tester.widget<Directionality>(wrapper.first).textDirection,
-            TextDirection.ltr,
-          );
+          final label = tester.widget<Text>(finder);
+          expect(label.textDirection, TextDirection.ltr);
         }
 
-        // 1280 grid: three cards share the first row, the fourth wraps.
-        final centers = _cardCenters(tester);
-        expect(
-          centers[1].dy,
-          moreOrLessEquals(centers[0].dy, epsilon: 1),
-        );
-        expect(
-          centers[2].dy,
-          moreOrLessEquals(centers[0].dy, epsilon: 1),
-        );
-        expect(centers[3].dy, greaterThan(centers[0].dy + 1));
+        // 1280 table: rows stack top-to-bottom, aligned on one column.
+        final centers = _rowCenters(tester);
+        for (var index = 1; index < centers.length; index++) {
+          expect(centers[index].dy, greaterThan(centers[index - 1].dy));
+          expect(
+            centers[index].dx,
+            moreOrLessEquals(centers[0].dx, epsilon: 1),
+          );
+        }
 
         if (locale.languageCode == 'ar') {
           expect(
@@ -282,20 +287,29 @@ void main() {
     );
 
     testWidgets(
-      'phone layout collapses to one column and survives 2.0x (${locale.languageCode})',
+      'phone layout stacks the same rows and survives 2.0x (${locale.languageCode})',
       (tester) async {
         _setSize(tester, const Size(390, 844));
         await _pumpStaff(tester, locale: locale, textScale: 2);
         expect(tester.takeException(), isNull);
 
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(4));
-        final centers = _cardCenters(tester);
+        expect(_rowCount(tester), 4);
+        final centers = _rowCenters(tester);
         for (var index = 1; index < centers.length; index++) {
           expect(
             centers[index].dx,
             moreOrLessEquals(centers[0].dx, epsilon: 1),
           );
           expect(centers[index].dy, greaterThan(centers[index - 1].dy));
+        }
+        // Full names still render (no ellipsis pressure at 2.0x).
+        final name = tester.widget<Text>(find.text('Technician A'));
+        expect(name.maxLines, isNull);
+        if (locale.languageCode == 'ar') {
+          expect(
+            Directionality.of(tester.element(find.byType(StaffTab))),
+            TextDirection.rtl,
+          );
         }
         expect(tester.takeException(), isNull);
       },
@@ -309,17 +323,17 @@ void main() {
         final l10n = _l10n(tester);
 
         await _tapChip(tester, l10n.staffFilterTechnicians);
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(2));
+        expect(_rowCount(tester), 2);
         expect(find.text('Technician A'), findsOneWidget);
         expect(find.text('Admin A'), findsNothing);
 
         await _tapChip(tester, l10n.staffFilterAdmins);
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(2));
+        expect(_rowCount(tester), 2);
         expect(find.text('Admin A'), findsOneWidget);
         expect(find.text('Technician A'), findsNothing);
 
         await _tapChip(tester, l10n.filterAll);
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(4));
+        expect(_rowCount(tester), 4);
 
         // Search matches display names (case-insensitive).
         await tester.enterText(
@@ -327,22 +341,15 @@ void main() {
           'admin b',
         );
         await tester.pumpAndSettle();
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(1));
-        expect(find.text('Admin B'), findsOneWidget);
+        expect(_rowCount(tester), 1);
+        expect(find.byKey(const Key('staff-admin-2')), findsOneWidget);
 
         // Search matches masked emails; chip counts stay roster-wide.
-        await tester.enterText(
-          find.byKey(const Key('staff-search')),
-          'tb***',
-        );
+        await tester.enterText(find.byKey(const Key('staff-search')), 'tb***');
         await tester.pumpAndSettle();
-        expect(find.byType(WorkshopStaffCard), findsNWidgets(1));
-        expect(find.text('Technician B'), findsOneWidget);
-        final chips = tester
-            .widgetList<AppSelectableText>(find.byType(AppSelectableText))
-            .map((chip) => chip.label)
-            .toList();
-        expect(chips[0], contains('4'));
+        expect(_rowCount(tester), 1);
+        expect(find.byKey(const Key('staff-tech-2')), findsOneWidget);
+        expect(_chips(tester)[0].count, 4);
         expect(tester.takeException(), isNull);
       },
     );
@@ -405,7 +412,7 @@ void main() {
         await _pumpStaff(tester, locale: locale);
         final l10n = _l10n(tester);
 
-        // Pointer path: the per-card menu still opens the reset dialog.
+        // Pointer path: the per-row menu still opens the reset dialog.
         await tester.tap(find.byType(PopupMenuButton<String>).first);
         await tester.pumpAndSettle();
         await tester.tap(find.text(l10n.temporaryPassword).last);
@@ -416,7 +423,7 @@ void main() {
         expect(find.text(l10n.confirm), findsNothing);
 
         // Keyboard path: Tab-walk from the search field moves focus
-        // across the search, chips, add button and card menus.
+        // across the search, chips, create button and row menus.
         await tester.tap(find.byKey(const Key('staff-search')));
         await tester.pump();
         final seen = <FocusNode?>[FocusManager.instance.primaryFocus];
@@ -486,14 +493,15 @@ void main() {
           ),
         );
         await tester.pump();
-        expect(find.byType(LoadingSkeleton), findsOneWidget);
+        expect(find.byType(WorkshopSkeleton), findsOneWidget);
 
-        // An empty roster resolves to the preserved empty state.
+        // An empty roster resolves to the empty state with its Create action.
         hanging.gate!.complete(<StaffMember>[]);
         await tester.pumpAndSettle();
         final l10n = _l10n(tester);
-        expect(find.text(l10n.noResults), findsOneWidget);
         expect(find.text(l10n.noTechnicians), findsOneWidget);
+        expect(find.text(l10n.staffSubtitle), findsWidgets);
+        expect(find.text(l10n.create), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );
@@ -510,6 +518,7 @@ void main() {
         final l10n = _l10n(tester);
 
         // A failed GET /staff resolves to the preserved error state.
+        expect(find.byType(WorkshopErrorState), findsOneWidget);
         expect(find.text(l10n.genericError), findsOneWidget);
         expect(find.text(l10n.retryAction), findsOneWidget);
         await tester.tap(find.text(l10n.retryAction));
@@ -520,27 +529,21 @@ void main() {
     );
 
     testWidgets(
-      'signed-in header chip shows name and workshop without role (${locale.languageCode})',
+      'page header owns identity copy, not the signed-in account (${locale.languageCode})',
       (tester) async {
         _setSize(tester, const Size(1280, 800));
         await _pumpStaff(tester, locale: locale, session: _session);
         expect(tester.takeException(), isNull);
 
-        expect(find.byType(WorkshopUserChip), findsOneWidget);
-        expect(find.text('LH'), findsOneWidget);
-        expect(find.text('Layla Haddad'), findsOneWidget);
-        expect(find.text('Marina Workshop'), findsOneWidget);
-        expect(find.text('Lead Inspector'), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'signed-out header hides the user chip (${locale.languageCode})',
-      (tester) async {
-        _setSize(tester, const Size(1280, 800));
-        await _pumpStaff(tester, locale: locale);
+        // The shell owns the account menu; the staff page never duplicates it.
         expect(find.byType(WorkshopUserChip), findsNothing);
-        expect(tester.takeException(), isNull);
+        expect(find.text('Layla Haddad'), findsNothing);
+        expect(find.text('Marina Workshop'), findsNothing);
+        final l10n = _l10n(tester);
+        expect(find.text(l10n.workshopStaffTitle), findsOneWidget);
+        expect(find.text(l10n.staffSubtitle), findsOneWidget);
+        // One primary create action in the header.
+        expect(find.text(l10n.create), findsOneWidget);
       },
     );
   }

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:design_system/src/components/buttons.dart';
 import 'package:design_system/src/components/overlays.dart';
 import 'package:design_system/src/tokens.dart';
+import 'package:design_system/src/workshop_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -101,9 +102,11 @@ class WorkshopHeader extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          for (var index = 0;
-                              index < actions.length;
-                              index++) ...[
+                          for (
+                            var index = 0;
+                            index < actions.length;
+                            index++
+                          ) ...[
                             if (index > 0) SizedBox(width: spacing.xs),
                             actions[index],
                           ],
@@ -190,9 +193,7 @@ class WorkshopUserChip extends StatelessWidget {
       button: onTap != null,
       label:
           semanticLabel ??
-          (workshopName == null
-              ? displayName
-              : '$displayName, $workshopName'),
+          (workshopName == null ? displayName : '$displayName, $workshopName'),
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
@@ -287,9 +288,10 @@ class WorkshopStatCard extends StatelessWidget {
     final colors = context.colors;
     final spacing = context.spacing;
     final sizing = context.sizing;
-    final radius = BorderRadius.circular(context.radii.cardLarge);
+    final radius = BorderRadius.circular(16);
+    final borderColor = colors.outlineVariant.withValues(alpha: 0.5);
     final content = Padding(
-      padding: EdgeInsetsDirectional.all(spacing.xl),
+      padding: EdgeInsetsDirectional.all(spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -298,17 +300,13 @@ class WorkshopStatCard extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Container(
-                  width: sizing.targetMin,
-                  height: sizing.targetMin,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: colors.surfaceContainer,
-                    borderRadius: BorderRadius.circular(context.radii.lg),
+                    color: colors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    size: sizing.iconLg,
-                    color: colors.onSurfaceVariant,
-                  ),
+                  child: Icon(icon, size: sizing.iconMd, color: colors.primary),
                 ),
                 SizedBox(width: spacing.sm),
               ],
@@ -321,6 +319,7 @@ class WorkshopStatCard extends StatelessWidget {
                   style: context.texts.displaySmall?.copyWith(
                     color: colors.onSurface,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
@@ -330,13 +329,14 @@ class WorkshopStatCard extends StatelessWidget {
               ],
             ],
           ),
-          SizedBox(height: spacing.xs),
+          SizedBox(height: spacing.sm),
           Text(
             caption,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: context.texts.bodyMedium?.copyWith(
+            style: context.texts.labelMedium?.copyWith(
               color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
             ),
           ),
           if (progress != null) ...[
@@ -352,9 +352,16 @@ class WorkshopStatCard extends StatelessWidget {
       label: semanticLabel ?? '$value, $caption',
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLowest,
+          color: colors.surface,
           borderRadius: radius,
-          boxShadow: context.shadows.card,
+          border: Border.all(color: borderColor, width: 1.0),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x06000000),
+              offset: Offset(0, 2),
+              blurRadius: 8,
+            ),
+          ],
         ),
         child: onTap == null
             ? content
@@ -474,8 +481,7 @@ class _WorkshopJobCardState extends State<WorkshopJobCard> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_back
                             : Icons.arrow_forward,
-                        semanticLabel:
-                            widget.openSemanticLabel ?? widget.title,
+                        semanticLabel: widget.openSemanticLabel ?? widget.title,
                         onPressed: widget.onOpen,
                       ),
                     ],
@@ -824,10 +830,7 @@ class WorkshopDialog extends StatelessWidget {
                     children: [
                       Semantics(
                         header: true,
-                        child: Text(
-                          title,
-                          style: context.texts.headlineSmall,
-                        ),
+                        child: Text(title, style: context.texts.headlineSmall),
                       ),
                       if (subtitle != null) ...[
                         SizedBox(height: spacing.xs),
@@ -918,8 +921,7 @@ class WorkshopSideSheet extends StatelessWidget {
         barrierDismissible: barrierDismissible,
         barrierLabel: closeSemanticLabel,
         barrierColor: context.colors.scrim,
-        transitionDuration:
-            context.motionDuration(context.motion.fast),
+        transitionDuration: context.motionDuration(context.motion.fast),
         pageBuilder: (sheetContext, _, _) => Shortcuts(
           shortcuts: <LogicalKeySet, Intent>{
             LogicalKeySet(LogicalKeyboardKey.escape): const DismissIntent(),
@@ -1004,10 +1006,7 @@ class WorkshopSideSheet extends StatelessWidget {
                     children: [
                       Semantics(
                         header: true,
-                        child: Text(
-                          title,
-                          style: context.texts.headlineSmall,
-                        ),
+                        child: Text(title, style: context.texts.headlineSmall),
                       ),
                       if (subtitle != null) ...[
                         SizedBox(height: spacing.xs),
@@ -1187,33 +1186,33 @@ class _WorkshopStaffCardState extends State<WorkshopStaffCard> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                        if (widget.roleLabel != null) ...[
-                          SizedBox(height: spacing.xs),
-                          Text(
-                            widget.roleLabel!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.texts.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                        if (widget.detail != null) ...[
-                          SizedBox(height: spacing.xs),
-                          Directionality(
-                            textDirection: TextDirection.ltr,
-                            child: DefaultTextStyle(
-                              style:
-                                  context.texts.bodySmall?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                  ) ??
-                                  const TextStyle(),
-                              maxLines: 1,
+                          if (widget.roleLabel != null) ...[
+                            SizedBox(height: spacing.xs),
+                            Text(
+                              widget.roleLabel!,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              child: widget.detail!,
+                              style: context.texts.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                          if (widget.detail != null) ...[
+                            SizedBox(height: spacing.xs),
+                            Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: DefaultTextStyle(
+                                style:
+                                    context.texts.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ) ??
+                                    const TextStyle(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                child: widget.detail!,
+                              ),
+                            ),
+                          ],
                           if (widget.tags.isNotEmpty) ...[
                             SizedBox(height: context.spacing.sm),
                             Wrap(
@@ -1433,9 +1432,7 @@ class _WorkshopTemplateCardState extends State<WorkshopTemplateCard> {
                         height: sizing.targetMin,
                         decoration: BoxDecoration(
                           color: colors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(
-                            context.radii.lg,
-                          ),
+                          borderRadius: BorderRadius.circular(context.radii.lg),
                         ),
                         child: Icon(
                           widget.icon ?? Icons.dashboard_customize_outlined,
@@ -1444,7 +1441,8 @@ class _WorkshopTemplateCardState extends State<WorkshopTemplateCard> {
                         ),
                       ),
                       const Spacer(),
-                      if (widget.status != null) Flexible(child: widget.status!),
+                      if (widget.status != null)
+                        Flexible(child: widget.status!),
                     ],
                   ),
                   SizedBox(height: spacing.md),
@@ -1508,6 +1506,7 @@ class WorkshopSequenceCard extends StatefulWidget {
     this.controls,
     this.onTap,
     this.semanticLabel,
+    this.showDivider = true,
     super.key,
   });
 
@@ -1519,6 +1518,9 @@ class WorkshopSequenceCard extends StatefulWidget {
   final VoidCallback? onTap;
   final String? semanticLabel;
 
+  /// Bottom hairline separating this row from the next one in its panel.
+  final bool showDivider;
+
   @override
   State<WorkshopSequenceCard> createState() => _WorkshopSequenceCardState();
 }
@@ -1528,9 +1530,9 @@ class _WorkshopSequenceCardState extends State<WorkshopSequenceCard> {
 
   @override
   Widget build(BuildContext context) {
+    final ws = context.ws;
     final colors = context.colors;
     final spacing = context.spacing;
-    final radius = BorderRadius.circular(context.radii.lg);
     return Semantics(
       container: true,
       button: widget.onTap != null,
@@ -1539,9 +1541,10 @@ class _WorkshopSequenceCardState extends State<WorkshopSequenceCard> {
         duration: context.motionDuration(context.motion.fast),
         curve: context.motion.enterCurve,
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
-          borderRadius: radius,
-          boxShadow: _focused ? [context.shadows.focus] : null,
+          color: _focused ? ws.canvas : Colors.transparent,
+          border: widget.showDivider
+              ? Border(bottom: BorderSide(color: ws.border))
+              : null,
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -1549,20 +1552,20 @@ class _WorkshopSequenceCardState extends State<WorkshopSequenceCard> {
             onTap: widget.onTap,
             canRequestFocus: widget.onTap != null,
             onFocusChange: (value) => setState(() => _focused = value),
-            borderRadius: radius,
             child: Padding(
-              padding: EdgeInsetsDirectional.all(spacing.lg),
+              // No horizontal inset: the row aligns with the panel header.
+              padding: EdgeInsetsDirectional.symmetric(vertical: spacing.lg),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    Text(
-                      widget.indexLabel,
-                      textDirection: TextDirection.ltr,
-                      style: context.texts.headlineSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  Text(
+                    widget.indexLabel,
+                    textDirection: TextDirection.ltr,
+                    style: context.texts.headlineSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
+                  ),
                   SizedBox(width: spacing.md),
                   Expanded(
                     child: Column(
@@ -1571,8 +1574,6 @@ class _WorkshopSequenceCardState extends State<WorkshopSequenceCard> {
                       children: [
                         Text(
                           widget.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: context.texts.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -1618,45 +1619,39 @@ class _WorkshopSequenceCardState extends State<WorkshopSequenceCard> {
 /// Locked-rule pill: read-only indicator of what the platform locks
 /// (`noteRequirement` / `evidenceRequirement` · lockedByPlatform).
 class WorkshopLockedPill extends StatelessWidget {
-  const WorkshopLockedPill({required this.label, this.semanticLabel, super.key});
+  const WorkshopLockedPill({
+    required this.label,
+    this.semanticLabel,
+    super.key,
+  });
 
   final String label;
   final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
+    final ws = context.ws;
     final pair = context.statusColors.forTone(StatusTone.neutral);
     return Semantics(
       container: true,
       excludeSemantics: true,
       label: semanticLabel ?? label,
-      child: Container(
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: context.spacing.sm,
-          vertical: context.spacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: pair.background,
-          borderRadius: BorderRadius.circular(context.radii.pill),
-        ),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: context.spacing.xs,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: context.sizing.iconMd,
-              color: pair.foreground,
-            ),
-            Text(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_outline, size: 13, color: pair.foreground),
+          SizedBox(width: context.spacing.xs),
+          Flexible(
+            child: Text(
               label,
-              style: context.texts.labelMedium?.copyWith(
+              style: ws.meta.copyWith(
                 color: pair.foreground,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1687,9 +1682,10 @@ class _WorkshopDropZoneState extends State<WorkshopDropZone> {
 
   @override
   Widget build(BuildContext context) {
+    final ws = context.ws;
     final colors = context.colors;
     final spacing = context.spacing;
-    final radius = BorderRadius.circular(context.radii.lg);
+    final radius = BorderRadius.circular(ws.controlRadius);
     return Semantics(
       container: true,
       button: widget.onTap != null,
@@ -1697,10 +1693,7 @@ class _WorkshopDropZoneState extends State<WorkshopDropZone> {
       child: AnimatedContainer(
         duration: context.motionDuration(context.motion.fast),
         curve: context.motion.enterCurve,
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: _focused ? [context.shadows.focus] : null,
-        ),
+        decoration: BoxDecoration(borderRadius: radius),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
@@ -1710,42 +1703,46 @@ class _WorkshopDropZoneState extends State<WorkshopDropZone> {
             borderRadius: radius,
             child: CustomPaint(
               painter: _DashedBorder(
-                color: colors.outlineVariant,
+                color: _focused ? ws.focus : colors.outlineVariant,
                 radius: radius,
               ),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 96),
+                constraints: const BoxConstraints(minHeight: 64),
                 child: Padding(
-                  padding: EdgeInsetsDirectional.all(spacing.lg),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.add_circle_outline,
-                          size: context.sizing.iconLg,
-                          color: colors.onSurfaceVariant,
-                        ),
-                        SizedBox(height: context.spacing.xs),
-                        Text(
-                          widget.label,
-                          textAlign: TextAlign.center,
-                          style: context.texts.bodyMedium?.copyWith(
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                        if (widget.hint != null) ...[
-                          SizedBox(height: context.spacing.xs),
-                          Text(
-                            widget.hint!,
-                            textAlign: TextAlign.center,
-                            style: context.texts.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: spacing.md,
+                    vertical: spacing.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.add_circle_outline,
+                        size: 18,
+                        color: colors.onSurfaceVariant,
+                      ),
+                      SizedBox(width: spacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              widget.label,
+                              style: ws.body.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
+                            if (widget.hint != null)
+                              Text(
+                                widget.hint!,
+                                style: ws.meta.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1773,7 +1770,7 @@ class _DashedBorder extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 1;
     final path = Path()..addRRect(rrect);
     final metrics = path.computeMetrics();
     for (final metric in metrics) {

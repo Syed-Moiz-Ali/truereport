@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/models.dart';
@@ -12,39 +10,34 @@ import 'package:l10n/l10n.dart';
 
 // F3-B Step 2, screen 7 — Workshop Template List.
 //
-// Figma 1280 restyle over the EXISTING template endpoints only: GET list via
+// Restyle over the EXISTING template endpoints only: GET list via
 // [templatesProvider] (TemplateSummary: id/name/serviceType/vehicleType/
-// status/currentVersion int/itemCount) and the existing create flow (POST via
-// createTemplate, then TemplateBuilderPage). All behaviour and payloads are
-// preserved; only the presentation changed.
+// status/currentVersion int/itemCount/updatedAt) and the existing create flow
+// (POST via createTemplate, then TemplateBuilderPage). All behaviour and
+// payloads are preserved.
 //
 // Deliberately omitted per the slot sheet (no new data / locked rules):
-// bay binding ("Bays Bound"), avg-completion / compliance / audit KPIs,
-// custom tags, descriptions, photo-gate / cycle-time / PPE counts, DOT/ISO/
-// certification wording, semver versions, JSON schema export, and any
-// approval-gate ("Master Inspector") copy. The footnote keeps a neutral
-// validation-lock line ([AppLocalizations.lockedByPlatform]) plus a
-// version-audit action that opens the existing builder (which hosts the
-// version history leading to TemplateVersionPage).
+// bay binding ("Bays Bound"), avg-completion / compliance / audit KPIs, custom
+// tags, descriptions, photo-gate / cycle-time / PPE counts, DOT/ISO/
+// certification wording, semver versions, JSON schema export, approval-gate
+// ("Master Inspector") copy and the grid/list toggle.
 //
-// Two ARB/data gaps (reported, one closed by the lead):
-// - [AppLocalizations.templatesUpdatedOn] now renders per-card updated
-//   labels ([TemplateSummary.updatedAt] parsed by the lead; was missing).
-// - No dedicated column/empty/footer copy exists; the closest existing keys
-//   (template/versions/itemsSelected/status, noResults, lockedByPlatform,
-//   versionHistory) are reused and noted below.
+// One summary strip with three real metrics (templates, published, ΣitemCount),
+// one column of full-width template rows and one subtle validation-lock note.
+// Each row exposes the whole-card builder navigation plus a single
+// "Version history" secondary action (history lives in the builder).
 //
-// Responsive is derived per O3/P7 (Figma draws a fixed 3-column grid at
-// 1280): desktop (>= [AppBreakpoints.desktop]) shows 3 columns, tablet
-// (>= [AppBreakpoints.tablet]) 2 columns, narrower (phone) widths a single
-// column. The list view is an [AppDataTable] over the same rows.
+// ARB/data notes: [AppLocalizations.templatesUpdatedOn] renders the server
+// `updatedAt`; the status labels reuse [contentStatusLabel]; the "Templates"
+// metric label reuses [AppLocalizations.templatesTab] (no dedicated key was
+// added in this phase).
 
-/// Lifecycle tone for template status chips (same mapping the list used
-/// before the restyle: published = success, retired = neutral, else warn).
-StatusTone _templateStatusTone(String status) => switch (status) {
-  'PUBLISHED' => StatusTone.success,
-  'RETIRED' => StatusTone.neutral,
-  _ => StatusTone.warning,
+/// Lifecycle tone for template status badges (published = success, retired =
+/// neutral, else warning).
+WorkshopStatusTone _templateStatusTone(String status) => switch (status) {
+  'PUBLISHED' => WorkshopStatusTone.success,
+  'RETIRED' => WorkshopStatusTone.neutral,
+  _ => WorkshopStatusTone.warning,
 };
 
 /// Locale-aware count, mirroring the F3-B Step 0 intl approach used by the
@@ -89,7 +82,6 @@ class TemplatesTab extends ConsumerStatefulWidget {
 class _TemplatesTabState extends ConsumerState<TemplatesTab> {
   final TextEditingController _search = TextEditingController();
   String _status = '';
-  bool _grid = true;
 
   @override
   void dispose() {
@@ -100,257 +92,172 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final templates = ref.watch(templatesProvider);
     final spacing = context.spacing;
-    // Derived per O3/P7: the Figma header keeps title + search + New
-    // Template in one row at 1280. On narrower widths the _titleRow inside
-    // WorkshopHeader (title + action) would overflow at large text scales,
-    // so the action moves below the header while search stays in it.
-    final wideActions =
-        MediaQuery.sizeOf(context).width >= AppBreakpoints.tablet;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final templates = ref.watch(templatesProvider);
+    final items = templates.value;
+    final searched = items == null ? null : _searched(items, l10n);
+
+    return WorkshopPageScroll(
       children: [
-        Padding(
-          padding: EdgeInsetsDirectional.only(
-            start: spacing.lg,
-            end: spacing.lg,
-            top: spacing.lg,
-          ),
-          child: WorkshopHeader(
-            title: l10n.templateListTitle,
-            search: AppTextField(
-              key: const Key('templates-search'),
-              controller: _search,
-              label: l10n.search,
-              hint: l10n.search,
-              prefixIcon: const Icon(Icons.search),
-              onChanged: (_) => setState(() {}),
-            ),
-            actions: [
-              if (wideActions) _newTemplateButton(ref),
-            ],
+        WorkshopPageHeader(
+          title: l10n.templateListTitle,
+          subtitle: l10n.templatesSubtitle,
+          primaryAction: WorkshopButton(
+            label: l10n.newTemplate,
+            icon: Icons.add,
+            onPressed: () => _create(context, ref),
           ),
         ),
-        if (!wideActions)
-          Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: spacing.lg,
-              end: spacing.lg,
-              top: spacing.sm,
-            ),
-            child: Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: _newTemplateButton(ref),
-            ),
+        SizedBox(height: spacing.lg),
+        WorkshopToolbar(
+          search: WorkshopSearchField(
+            key: const Key('templates-search'),
+            controller: _search,
+            hint: l10n.search,
+            semanticLabel: l10n.search,
+            onChanged: (_) => setState(() {}),
           ),
+          filters: [
+            _filter(l10n, '', l10n.filterAll, searched),
+            _filter(l10n, 'PUBLISHED', l10n.published, searched),
+            _filter(l10n, 'DRAFT', l10n.draft, searched),
+            _filter(l10n, 'RETIRED', l10n.retired, searched),
+          ],
+        ),
+        SizedBox(height: spacing.xl),
         templates.when(
-          loading: () => Padding(
-            padding: EdgeInsetsDirectional.all(spacing.lg),
-            child: const LoadingSkeleton(lines: 4),
+          loading: () => const WorkshopSkeleton(lines: 6, card: true),
+          error: (error, _) => WorkshopErrorState(
+            title: l10n.error,
+            body: l10n.genericError,
+            retryLabel: l10n.retryAction,
+            onRetry: () => ref.invalidate(templatesProvider),
           ),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: EdgeInsetsDirectional.all(spacing.lg),
-              child: ErrorState(
-                title: l10n.error,
-                body: l10n.genericError,
-                onRetry: () => ref.invalidate(templatesProvider),
-                retryLabel: l10n.retryAction,
-              ),
-            ),
-          ),
-          data: (items) {
-            final query = _search.text.trim().toLowerCase();
-            final searched = query.isEmpty
-                ? items
-                : items.where((template) {
-                    final statusLabel = contentStatusLabel(
-                      l10n,
-                      template.status,
-                    ).toLowerCase();
-                    return template.name.toLowerCase().contains(query) ||
-                        template.serviceType.toLowerCase().contains(query) ||
-                        template.status.toLowerCase().contains(query) ||
-                        statusLabel.contains(query);
-                  }).toList(growable: false);
-            final filtered = _status.isEmpty
-                ? searched
-                : searched
-                      .where((template) => template.status == _status)
-                      .toList(growable: false);
-            // KPI is client-side: ΣitemCount over the search-scoped snapshot
-            // (status-unfiltered), mirroring the queue chip-count approach.
-            final total = searched.fold<int>(
-              0,
-              (sum, template) => sum + template.itemCount,
-            );
-            return Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async => ref.invalidate(templatesProvider),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsetsDirectional.all(spacing.lg),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // KPI row: the single real metric. The Figma
-                      // timing/compliance/audit cards are data gaps.
-                      WorkshopMetric(
-                        value: _formatCount(context, total),
-                        label: l10n.templateTotalCheckpoints,
-                        icon: Icons.dashboard_customize_outlined,
-                      ),
-                      SizedBox(height: spacing.sm),
-                      // Filter chips from the real statuses (+ counts) and
-                      // the Figma grid/list toggle. A Wrap (not a fixed Row)
-                      // keeps derived phone widths overflow-free.
-                      Wrap(
-                        spacing: spacing.sm,
-                        runSpacing: spacing.sm,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          _filter(context, l10n, '', searched),
-                          for (final status in _statusOrder(items))
-                            _filter(context, l10n, status, searched),
-                          SizedBox(
-                            width: 240,
-                            child: AppSegmentedControl<bool>(
-                              key: const Key('templates-view-toggle'),
-                              segments: [
-                                AppSegment(
-                                  value: true,
-                                  label: l10n.templateViewGrid,
-                                  icon: Icons.grid_view,
-                                ),
-                                AppSegment(
-                                  value: false,
-                                  label: l10n.templateViewList,
-                                  icon: Icons.list,
-                                ),
-                              ],
-                              selected: _grid,
-                              onChanged: (value) =>
-                                  setState(() => _grid = value),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: spacing.md),
-                      if (items.isEmpty)
-                        EmptyState(
-                          title: l10n.noResults,
-                          body: l10n.newTemplate,
-                          icon: Icons.dashboard_customize_outlined,
-                          action: AppButton(
-                            label: l10n.newTemplate,
-                            onPressed: () => _create(context, ref),
-                            variant: AppButtonVariant.tonal,
-                          ),
-                        )
-                      else if (filtered.isEmpty)
-                        EmptyState(
-                          title: l10n.noResults,
-                          body: l10n.newTemplate,
-                          icon: Icons.dashboard_customize_outlined,
-                        )
-                      else if (_grid)
-                        _gridRows(context, ref, l10n, filtered)
-                      else
-                        _listTable(context, ref, l10n, filtered),
-                      SizedBox(height: spacing.lg),
-                      _footnote(context, ref, l10n, filtered),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+          data: (all) => _content(context, ref, l10n, all),
         ),
       ],
     );
   }
 
-  Widget _filter(
-    BuildContext context,
+  List<TemplateSummary> _searched(
+    List<TemplateSummary> items,
     AppLocalizations l10n,
-    String value,
-    List<TemplateSummary> scoped,
   ) {
-    final count = value.isEmpty
-        ? scoped.length
-        : scoped.where((template) => template.status == value).length;
-    final label = value.isEmpty
-        ? l10n.filterAll
-        : contentStatusLabel(l10n, value);
-    return AppSelectableText(
-      label: '$label (${_formatCount(context, count)})',
-      selected: _status == value,
-      onTap: () => setState(() => _status = value),
+    final query = _search.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      return items;
+    }
+    return items
+        .where((template) {
+          final statusLabel = contentStatusLabel(
+            l10n,
+            template.status,
+          ).toLowerCase();
+          return template.name.toLowerCase().contains(query) ||
+              template.serviceType.toLowerCase().contains(query) ||
+              template.status.toLowerCase().contains(query) ||
+              statusLabel.contains(query);
+        })
+        .toList(growable: false);
+  }
+
+  Widget _content(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    List<TemplateSummary> all,
+  ) {
+    final spacing = context.spacing;
+    final searched = _searched(all, l10n);
+    final filtered = _status.isEmpty
+        ? searched
+        : searched
+              .where((template) => template.status == _status)
+              .toList(growable: false);
+    final published = searched
+        .where((template) => template.status == 'PUBLISHED')
+        .length;
+    // KPI is client-side: ΣitemCount over the search-scoped snapshot
+    // (status-unfiltered), mirroring the queue chip-count approach.
+    final checkpoints = searched.fold<int>(
+      0,
+      (sum, template) => sum + template.itemCount,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        WorkshopCard(
+          padding: EdgeInsetsDirectional.zero,
+          child: WorkshopMetricStrip(
+            items: [
+              WorkshopMetric(
+                value: _formatCount(context, searched.length),
+                label: l10n.templatesTab,
+              ),
+              WorkshopMetric(
+                value: _formatCount(context, published),
+                label: l10n.published,
+              ),
+              WorkshopMetric(
+                value: _formatCount(context, checkpoints),
+                label: l10n.templateTotalCheckpoints,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: spacing.lg),
+        if (all.isEmpty)
+          WorkshopEmptyState(
+            title: l10n.templatesEmptyTitle,
+            body: l10n.templatesEmptyBody,
+            icon: Icons.dashboard_customize_outlined,
+            action: WorkshopButton(
+              label: l10n.newTemplate,
+              icon: Icons.add,
+              onPressed: () => _create(context, ref),
+            ),
+          )
+        else if (filtered.isEmpty)
+          WorkshopEmptyState(
+            title: l10n.noResults,
+            body: l10n.templatesEmptyBody,
+            icon: Icons.dashboard_customize_outlined,
+          )
+        else
+          _list(context, ref, l10n, filtered),
+        SizedBox(height: spacing.lg),
+        WorkshopInlineNote(
+          icon: Icons.lock_outline,
+          text: l10n.lockedByPlatform,
+        ),
+      ],
     );
   }
 
-  /// Stable chip order: lifecycle order first, then any other status codes
-  /// as they appear.
-  List<String> _statusOrder(List<TemplateSummary> scoped) {
-    const lifecycle = ['PUBLISHED', 'DRAFT', 'RETIRED'];
-    final present = scoped.map((template) => template.status).toSet();
-    return [
-      for (final status in lifecycle)
-        if (present.contains(status)) status,
-      for (final status in present)
-        if (!lifecycle.contains(status)) status,
-    ];
-  }
-
-  Widget _gridRows(
+  /// One column of full-width cards at every width. Each card reads as a
+  /// deliberate row: name + meta on the leading side, status and the single
+  /// secondary action trailing and vertically centred (stacked on phones).
+  Widget _list(
     BuildContext context,
     WidgetRef ref,
     AppLocalizations l10n,
     List<TemplateSummary> filtered,
   ) {
     final spacing = context.spacing;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Derived per O3/P7: Figma draws a fixed 3-column grid at 1280
-        // (desktop breakpoint). Tablet widths collapse to 2 columns and
-        // narrower (phone) widths to a single column.
-        final columns = constraints.maxWidth >= AppBreakpoints.desktop
-            ? 3
-            : constraints.maxWidth >= AppBreakpoints.tablet
-            ? 2
-            : 1;
-        final cells = <Widget>[
-          for (final template in filtered) _card(context, ref, l10n, template),
-          _CreateTemplateTile(onTap: () => _create(context, ref)),
-        ];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var start = 0; start < cells.length; start += columns)
-              Padding(
-                padding: EdgeInsetsDirectional.only(
-                  bottom: start + columns < cells.length ? spacing.md : 0,
-                ),
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var index = 0; index < columns; index++)
-                        if (start + index < cells.length) ...[
-                          if (index > 0) SizedBox(width: spacing.md),
-                          Expanded(child: cells[start + index]),
-                        ] else ...[
-                          if (index > 0) SizedBox(width: spacing.md),
-                          const Expanded(child: SizedBox.shrink()),
-                        ],
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < filtered.length; index++)
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              bottom: index < filtered.length - 1 ? spacing.md : 0,
+            ),
+            child: _card(context, ref, l10n, filtered[index]),
+          ),
+      ],
     );
   }
 
@@ -360,266 +267,126 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
     AppLocalizations l10n,
     TemplateSummary template,
   ) {
-    // Integer version only (server currentVersion int): "v2", never semver.
-    // Closest existing ARB key for the item count (no per-card count key).
-    final versionLabel =
-        'v${template.currentVersion ?? '-'} · '
-        '${_formatCount(context, template.itemCount)} ${l10n.itemsSelected}';
-    return WorkshopTemplateCard(
-      key: Key('template-${template.id}'),
-      title: template.name,
-      versionLabel: versionLabel,
-      // Tag chip rendered from the real serviceType only (custom tags are a
-      // data gap); description / photo-gate / cycle / PPE lines omitted.
-      requirement: StatusChip(
-        label: template.serviceType,
-        tone: StatusTone.neutral,
-      ),
-      status: StatusChip(
-        label: contentStatusLabel(l10n, template.status),
-        tone: _templateStatusTone(template.status),
-      ),
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (_formatUpdated(context, template.updatedAt).isNotEmpty)
-            Flexible(
-              child: Text(
-                l10n.templatesUpdatedOn(
-                  _formatUpdated(context, template.updatedAt),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.texts.bodySmall?.copyWith(
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ),
-            ),
-          AppButton(
-            label: l10n.edit,
-            variant: AppButtonVariant.tonal,
-            onPressed: () => _open(context, ref, template.id),
-          ),
-        ],
-      ),
-      onTap: () => _open(context, ref, template.id),
-    );
-  }
-
-  Widget _listTable(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    List<TemplateSummary> filtered,
-  ) {
-    // Column headers reuse the closest existing ARB keys (no list-view copy
-    // was drawn or approved): template / serviceType / versions /
-    // itemsSelected / status.
-    Text cell(String value, {TextDirection? direction}) => Text(
-      value,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      textDirection: direction,
-    );
-    return AppDataTable<TemplateSummary>(
-      rows: filtered,
-      onRowTap: (template) => _open(context, ref, template.id),
-      rowSemanticLabelBuilder: (template, _) => template.name,
-      columns: [
-        AppDataColumn<TemplateSummary>(
-          label: l10n.template,
-          cellBuilder: (_, template, _) => cell(template.name),
-        ),
-        AppDataColumn<TemplateSummary>(
-          label: l10n.serviceType,
-          cellBuilder: (_, template, _) => cell(template.serviceType),
-        ),
-        AppDataColumn<TemplateSummary>(
-          label: l10n.versions,
-          cellBuilder: (_, template, _) => cell(
-            'v${template.currentVersion ?? '-'}',
-            direction: TextDirection.ltr,
-          ),
-        ),
-        AppDataColumn<TemplateSummary>(
-          label: l10n.itemsSelected,
-          numeric: true,
-          cellBuilder: (_, template, _) => cell(
-            _formatCount(context, template.itemCount),
-            direction: TextDirection.ltr,
-          ),
-        ),
-        AppDataColumn<TemplateSummary>(
-          label: l10n.status,
-          cellBuilder: (_, template, _) => StatusChip(
-            label: contentStatusLabel(l10n, template.status),
-            tone: _templateStatusTone(template.status),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Neutral footnote: validation-lock wording WITHOUT any approval-gate
-  /// ("Master Inspector" sign-off is an O6 conflict — never rendered) plus
-  /// a version-audit action. JSON schema export has no endpoint — omitted.
-  /// The audit action opens the existing builder for the first visible
-  /// template, which hosts the version history leading to
-  /// TemplateVersionPage (the only versions UI reachable with list data).
-  Widget _footnote(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-    List<TemplateSummary> filtered,
-  ) {
+    final ws = context.ws;
     final spacing = context.spacing;
-    final lockLine = Row(
-      children: [
-        Icon(
-          Icons.lock_outline,
-          size: context.sizing.iconMd,
-          color: context.colors.onSurfaceVariant,
-        ),
-        SizedBox(width: spacing.sm),
-        Expanded(child: Text(l10n.lockedByPlatform)),
-      ],
+    final updated = _formatUpdated(context, template.updatedAt);
+    final status = WorkshopStatusBadge(
+      label: contentStatusLabel(l10n, template.status),
+      tone: _templateStatusTone(template.status),
     );
-    final audit = filtered.isEmpty
-        ? null
-        : AppButton(
-            label: l10n.versionHistory,
-            variant: AppButtonVariant.tonal,
-            onPressed: () => _open(context, ref, filtered.first.id),
-          );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(context.radii.card),
-      ),
-      child: Padding(
-        padding: EdgeInsetsDirectional.all(spacing.lg),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Derived per O3/P7: Figma single row at 1280; narrow widths
-            // stack the audit action below the lock line so the fixed-size
-            // button can never overflow at large text scales.
-            if (constraints.maxWidth >= AppBreakpoints.tablet &&
-                audit != null) {
-              return Row(
-                children: [
-                  Expanded(child: lockLine),
-                  SizedBox(width: spacing.md),
-                  audit,
-                ],
-              );
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                lockLine,
-                if (audit != null) ...[
-                  SizedBox(height: spacing.sm),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: audit,
-                  ),
-                ],
-              ],
-            );
-          },
-        ),
-      ),
+    final history = WorkshopButton(
+      label: l10n.versionHistory,
+      variant: WorkshopButtonVariant.ghost,
+      onPressed: () => _open(context, ref, template.id),
     );
-  }
-
-  Widget _newTemplateButton(WidgetRef ref) {
-    // Built via context at the call site (header or derived phone slot).
-    return Builder(
-      builder: (context) => AppButton(
-        label: AppLocalizations.of(context).newTemplate,
-        onPressed: () => _create(context, ref),
-        icon: Icons.add,
-      ),
-    );
-  }
-
-  // Existing create flow preserved verbatim (dialog fields + POST payload +
-  // builder navigation + error handling).
-  Future<void> _create(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final name = TextEditingController();
-    final description = TextEditingController();
-    final serviceType = TextEditingController(text: 'FULL');
-    final vehicleType = TextEditingController(text: 'CAR');
-    final created = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.newTemplate),
-        content: SingleChildScrollView(
-          child: Column(
+    return WorkshopCard(
+      key: Key('template-${template.id}'),
+      onTap: () => _open(context, ref, template.id),
+      padding: EdgeInsetsDirectional.all(spacing.lg),
+      semanticLabel: template.name,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 680;
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppTextField(controller: name, label: l10n.templateName),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(
-                controller: description,
-                label: l10n.templateDescription,
-                maxLines: 2,
+              Text(template.name, style: ws.cardTitle.copyWith(color: ws.ink)),
+              SizedBox(height: spacing.xs),
+              Text(
+                'v${template.currentVersion ?? '-'} · '
+                '${l10n.templateItemsCount(template.itemCount)}',
+                style: ws.meta.copyWith(color: ws.muted),
               ),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(controller: serviceType, label: l10n.serviceType),
-              SizedBox(height: context.spacing.sm),
-              AppTextField(controller: vehicleType, label: l10n.vehicleType),
+              SizedBox(height: spacing.xxs),
+              Text(
+                '${l10n.serviceType}: ${template.serviceType}',
+                style: ws.meta.copyWith(color: ws.muted),
+              ),
+              if (updated.isNotEmpty) ...[
+                SizedBox(height: spacing.xxs),
+                Text(
+                  l10n.templatesUpdatedOn(updated),
+                  style: ws.meta.copyWith(color: ws.muted),
+                ),
+              ],
             ],
-          ),
-        ),
-        actions: [
-          AppButton(
-            label: l10n.cancel,
-            onPressed: () => Navigator.of(context).pop(false),
-            variant: AppButtonVariant.text,
-          ),
-          AppButton(
-            label: l10n.create,
-            onPressed: () async {
-              try {
-                final template = await ref
-                    .read(adminApiProvider)
-                    .createTemplate(
-                      name: name.text.trim(),
-                      description: description.text.trim(),
-                      serviceType: serviceType.text.trim(),
-                      vehicleType: vehicleType.text.trim(),
-                    );
-                if (context.mounted) {
-                  Navigator.of(context).pop(true);
-                  ref.invalidate(templatesProvider);
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          TemplateBuilderPage(templateId: template.id),
-                    ),
-                  );
-                  ref.invalidate(templatesProvider);
-                }
-              } on Object {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
-                }
-              }
-            },
-          ),
-        ],
+          );
+          if (!wide) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                details,
+                SizedBox(height: spacing.md),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: spacing.sm,
+                  runSpacing: spacing.sm,
+                  children: [status, history],
+                ),
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: details),
+              SizedBox(width: spacing.md),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  status,
+                  SizedBox(height: spacing.sm),
+                  history,
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
-    name.dispose();
-    description.dispose();
-    serviceType.dispose();
-    vehicleType.dispose();
-    if (created != true) {
+  }
+
+  Widget _filter(
+    AppLocalizations l10n,
+    String value,
+    String label,
+    List<TemplateSummary>? scoped,
+  ) {
+    final count = scoped == null
+        ? null
+        : value.isEmpty
+        ? scoped.length
+        : scoped.where((template) => template.status == value).length;
+    return WorkshopFilterChip(
+      label: label,
+      count: count,
+      selected: _status == value,
+      onTap: () => setState(() => _status = value),
+    );
+  }
+
+  // Existing create flow preserved (dialog fields + POST payload + builder
+  // navigation + error handling). Controller ownership lives inside the
+  // dialog state so they are disposed only when the route is gone.
+  Future<void> _create(BuildContext context, WidgetRef ref) async {
+    final template = await showDialog<TemplateDetail>(
+      context: context,
+      builder: (_) => const _CreateTemplateDialog(),
+    );
+    if (template == null || !context.mounted) {
       return;
     }
+    ref.invalidate(templatesProvider);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TemplateBuilderPage(templateId: template.id),
+      ),
+    );
+    ref.invalidate(templatesProvider);
   }
 
   // Existing open flow preserved: tap opens the template builder.
@@ -632,118 +399,85 @@ class _TemplatesTabState extends ConsumerState<TemplatesTab> {
   }
 }
 
-/// Dashed create tile closing the Figma grid (the spec maps it to the
-/// states EmptyState/add tile). Runs the existing create flow; no thresholds
-/// or trigger copy (no new capabilities per O7).
-class _CreateTemplateTile extends StatefulWidget {
-  const _CreateTemplateTile({required this.onTap});
-
-  final VoidCallback onTap;
+/// Create-template dialog. Owns its controllers (disposed with the route) and
+/// keeps the existing payload: trimmed name/description/serviceType/
+/// vehicleType, then POST via `adminApiProvider.createTemplate`.
+class _CreateTemplateDialog extends ConsumerStatefulWidget {
+  const _CreateTemplateDialog();
 
   @override
-  State<_CreateTemplateTile> createState() => _CreateTemplateTileState();
+  ConsumerState<_CreateTemplateDialog> createState() =>
+      _CreateTemplateDialogState();
 }
 
-class _CreateTemplateTileState extends State<_CreateTemplateTile> {
-  bool _focused = false;
+class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
+  final _name = TextEditingController();
+  final _description = TextEditingController();
+  final _serviceType = TextEditingController(text: 'FULL');
+  final _vehicleType = TextEditingController(text: 'CAR');
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final spacing = context.spacing;
-    final radius = BorderRadius.circular(context.radii.cardLarge);
-    final content = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 160),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: widget.onTap,
-          canRequestFocus: true,
-          onFocusChange: (value) => setState(() => _focused = value),
-          borderRadius: radius,
-          child: CustomPaint(
-            painter: _DashedBorderPainter(
-              color: context.colors.onSurfaceVariant,
-              radius: context.radii.cardLarge,
-            ),
-            child: Center(
-              child: Padding(
-                padding: EdgeInsetsDirectional.all(spacing.lg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add,
-                      size: context.sizing.iconLg,
-                      color: context.colors.onSurfaceVariant,
-                    ),
-                    SizedBox(height: spacing.sm),
-                    Text(
-                      l10n.newTemplate,
-                      textAlign: TextAlign.center,
-                      style: context.texts.titleMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    return Semantics(
-      button: true,
-      label: l10n.newTemplate,
-      child: AnimatedContainer(
-        duration: context.motionDuration(context.motion.fast),
-        curve: context.motion.enterCurve,
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: _focused ? [context.shadows.focus] : null,
-        ),
-        child: content,
-      ),
-    );
+  void dispose() {
+    _name.dispose();
+    _description.dispose();
+    _serviceType.dispose();
+    _vehicleType.dispose();
+    super.dispose();
   }
-}
 
-class _DashedBorderPainter extends CustomPainter {
-  _DashedBorderPainter({required this.color, required this.radius});
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const dash = 6.0;
-    const gap = 4.0;
-    final path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          Radius.circular(radius),
-        ),
-      );
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(
-            distance,
-            math.min(distance + dash, metric.length),
-          ),
-          paint,
-        );
-        distance += dash + gap;
+  Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    try {
+      final template = await ref
+          .read(adminApiProvider)
+          .createTemplate(
+            name: _name.text.trim(),
+            description: _description.text.trim(),
+            serviceType: _serviceType.text.trim(),
+            vehicleType: _vehicleType.text.trim(),
+          );
+      if (mounted) {
+        Navigator.of(context).pop(template);
+      }
+    } on Object {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.radius != radius;
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.newTemplate),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppTextField(controller: _name, label: l10n.templateName),
+            SizedBox(height: context.spacing.sm),
+            AppTextField(
+              controller: _description,
+              label: l10n.templateDescription,
+              maxLines: 2,
+            ),
+            SizedBox(height: context.spacing.sm),
+            AppTextField(controller: _serviceType, label: l10n.serviceType),
+            SizedBox(height: context.spacing.sm),
+            AppTextField(controller: _vehicleType, label: l10n.vehicleType),
+          ],
+        ),
+      ),
+      actions: [
+        AppButton(
+          label: l10n.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+          variant: AppButtonVariant.text,
+        ),
+        AppButton(label: l10n.create, onPressed: _submit),
+      ],
+    );
+  }
 }

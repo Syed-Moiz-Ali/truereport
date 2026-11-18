@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
@@ -27,28 +28,36 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final checklist = ref.watch(publishChecklistProvider(widget.jobId));
-    return AppScaffold(
-      appBar: AppBar(title: Text(l10n.jobsPublishChecklist)),
-      body: ListView(
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
-        children: [
-          SectionHeader(title: l10n.jobsPublishChecklist),
-          if (_error != null) ...[
-            JobInlineError(message: _error!),
-            SizedBox(height: context.spacing.md),
-          ],
-          checklist.when(
-            loading: () => const LoadingSkeleton(lines: 5),
-            error: (error, _) => ErrorState(
-              title: l10n.error,
-              body: l10n.commonLoadFailed,
-              retryLabel: l10n.retryAction,
-              onRetry: () =>
-                  ref.invalidate(publishChecklistProvider(widget.jobId)),
+    return Scaffold(
+      backgroundColor: context.ws.canvas,
+      body: SafeArea(
+        child: Column(
+          children: [
+            JobPageTopBar(title: l10n.jobsPublishChecklist),
+            Expanded(
+              child: WorkshopPageScroll(
+                children: [
+                  if (_error != null) ...[
+                    JobInlineError(message: _error!),
+                    SizedBox(height: context.spacing.md),
+                  ],
+                  checklist.when(
+                    loading: () => const WorkshopSkeleton(card: true, lines: 5),
+                    error: (error, _) => WorkshopErrorState(
+                      title: l10n.error,
+                      body: l10n.commonLoadFailed,
+                      retryLabel: l10n.retryAction,
+                      onRetry: () => ref.invalidate(
+                        publishChecklistProvider(widget.jobId),
+                      ),
+                    ),
+                    data: (value) => _content(context, value),
+                  ),
+                ],
+              ),
             ),
-            data: (value) => _content(context, value),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

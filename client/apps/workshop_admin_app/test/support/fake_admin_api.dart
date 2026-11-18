@@ -595,6 +595,92 @@ class FakeAdminApi implements AdminApi {
   @override
   Future<List<ReportDelivery>> deliveries(String jobId) async => const [];
 
+  /// Realistic report fixture for the published fixture job (`job-3`) so
+  /// report screenshots and widget tests exercise a real preview instead of
+  /// a transport error. Other jobs genuinely have no report yet.
+  @override
+  Future<ReportAdmin> report(String jobId) async {
+    if (jobId != 'job-3') {
+      throw StateError('Report not ready for $jobId');
+    }
+    return const ReportAdmin(
+      reportId: 'report-3',
+      jobId: 'job-3',
+      reportNumber: 'TR-0003',
+      version: 1,
+      generationStatus: 'READY',
+      generationError: null,
+      attempts: 1,
+      reportReady: true,
+      pdfReady: true,
+      pdfDownloadEnabled: true,
+      linkState: 'ACTIVE',
+      consentState: 'GRANTED',
+      publicUrl: 'https://reports.test.local/r/token-3',
+      finalizedAt: '2026-11-07T12:00:00',
+      snapshotHash: 'sha256:7f3a1c',
+      content: {
+        'vehicle': {
+          'make': 'Ford',
+          'model': 'Transit',
+          'plate': 'JOB-300',
+          'odometer': '91,000 KM',
+        },
+        'coverage': {'completed': 20, 'applicable': 20},
+        'keyFindings': [
+          {
+            'labelEn': 'Front brake pads',
+            'labelAr': 'أقراص الفرامل الأمامية',
+            'note': 'Pads at 3 mm. Replacement recommended.',
+          },
+          {
+            'labelEn': 'Rear tyre tread',
+            'labelAr': 'مداس الإطار الخلفي',
+            'note': '4 mm across the tread. Monitor at next service.',
+          },
+        ],
+        'categories': [
+          {
+            'labelEn': 'Brakes and suspension',
+            'labelAr': 'الفرامل والتعليق',
+            'items': [
+              {
+                'labelEn': 'Front brake pads',
+                'labelAr': 'أقراص الفرامل الأمامية',
+                'resultEn': 'Defect found',
+                'resultAr': 'تم رصد عيب',
+                'severityEn': 'Major',
+                'severityAr': 'كبير',
+              },
+              {
+                'labelEn': 'Brake fluid level',
+                'labelAr': 'مستوى زيت الفرامل',
+                'resultEn': 'No issue observed',
+                'resultAr': 'لم يُرصد أي عيب',
+                'severityEn': '',
+                'severityAr': '',
+              },
+            ],
+          },
+          {
+            'labelEn': 'Tyres',
+            'labelAr': 'الإطارات',
+            'items': [
+              {
+                'labelEn': 'Rear tyre tread',
+                'labelAr': 'مداس الإطار الخلفي',
+                'resultEn': 'Attention recommended',
+                'resultAr': 'يُنصح بالانتباه',
+                'severityEn': 'Moderate',
+                'severityAr': 'متوسط',
+              },
+            ],
+          },
+        ],
+      },
+    );
+  }
+
   @override
   Future<PlatformAccount> createUser({
     required String email,
@@ -741,21 +827,23 @@ class FakeAdminApi implements AdminApi {
     String to = '',
   }) async {
     final query = search.trim().toLowerCase();
-    final filtered = _jobs.where((job) {
-      if (status.isNotEmpty && job.status != status) {
-        return false;
-      }
-      if (query.isEmpty) {
-        return true;
-      }
-      return [
-        job.reference,
-        job.customerName,
-        job.vehicleMake,
-        job.vehicleModel,
-        job.assignedTechnicianName ?? '',
-      ].any((field) => field.toLowerCase().contains(query));
-    }).toList(growable: false);
+    final filtered = _jobs
+        .where((job) {
+          if (status.isNotEmpty && job.status != status) {
+            return false;
+          }
+          if (query.isEmpty) {
+            return true;
+          }
+          return [
+            job.reference,
+            job.customerName,
+            job.vehicleMake,
+            job.vehicleModel,
+            job.assignedTechnicianName ?? '',
+          ].any((field) => field.toLowerCase().contains(query));
+        })
+        .toList(growable: false);
     final safeSize = size <= 0 ? 20 : size;
     final start = (page * safeSize).clamp(0, filtered.length);
     final end = (start + safeSize).clamp(0, filtered.length);
@@ -764,9 +852,7 @@ class FakeAdminApi implements AdminApi {
       page: page,
       size: safeSize,
       total: filtered.length,
-      totalPages: filtered.isEmpty
-          ? 0
-          : (filtered.length / safeSize).ceil(),
+      totalPages: filtered.isEmpty ? 0 : (filtered.length / safeSize).ceil(),
     );
   }
 
@@ -1028,25 +1114,28 @@ class FakeAdminApi implements AdminApi {
       revocationReason: null,
     );
     _links[jobId] = link;
-    _replace(_job(jobId).copyWith(status: 'PUBLISHED', publicationStatus: 'ACTIVE'));
+    _replace(
+      _job(jobId).copyWith(status: 'PUBLISHED', publicationStatus: 'ACTIVE'),
+    );
     return link;
   }
 
   @override
   Future<PublicLink> unpublishJob(String jobId, String reason) async {
-    final link = (_links[jobId] ??
-            const PublicLink(
-              jobId: 'job-1',
-              status: 'ACTIVE',
-              publicUrl: null,
-              token: null,
-              qrUrl: null,
-              pdfDownloadEnabled: false,
-              activatedAt: null,
-              revokedAt: null,
-              revocationReason: null,
-            ))
-        .copyWith(status: 'UNPUBLISHED', revocationReason: reason);
+    final link =
+        (_links[jobId] ??
+                const PublicLink(
+                  jobId: 'job-1',
+                  status: 'ACTIVE',
+                  publicUrl: null,
+                  token: null,
+                  qrUrl: null,
+                  pdfDownloadEnabled: false,
+                  activatedAt: null,
+                  revokedAt: null,
+                  revocationReason: null,
+                ))
+            .copyWith(status: 'UNPUBLISHED', revocationReason: reason);
     _links[jobId] = link;
     return link;
   }
@@ -1071,23 +1160,24 @@ class FakeAdminApi implements AdminApi {
 
   @override
   Future<PublicLink> revokeJob(String jobId, String reason) async {
-    final link = (_links[jobId] ??
-            const PublicLink(
-              jobId: 'job-1',
-              status: 'ACTIVE',
-              publicUrl: null,
-              token: null,
-              qrUrl: null,
-              pdfDownloadEnabled: false,
-              activatedAt: null,
-              revokedAt: null,
-              revocationReason: null,
-            ))
-        .copyWith(
-          status: 'REVOKED',
-          revokedAt: '2026-11-08T12:00:00',
-          revocationReason: reason,
-        );
+    final link =
+        (_links[jobId] ??
+                const PublicLink(
+                  jobId: 'job-1',
+                  status: 'ACTIVE',
+                  publicUrl: null,
+                  token: null,
+                  qrUrl: null,
+                  pdfDownloadEnabled: false,
+                  activatedAt: null,
+                  revokedAt: null,
+                  revocationReason: null,
+                ))
+            .copyWith(
+              status: 'REVOKED',
+              revokedAt: '2026-11-08T12:00:00',
+              revocationReason: reason,
+            );
     _links[jobId] = link;
     return link;
   }
@@ -1157,7 +1247,8 @@ class FakeAdminApi implements AdminApi {
       readAt: '2026-11-08T13:00:00',
       createdAt: current.createdAt,
     );
-    _notifications = <WorkshopNotification>[..._notifications]..[index] = updated;
+    _notifications = <WorkshopNotification>[..._notifications]
+      ..[index] = updated;
     return updated;
   }
 
@@ -1178,8 +1269,7 @@ class FakeAdminApi implements AdminApi {
   int _count(String status) =>
       _jobs.where((job) => job.status == status).length;
 
-  CleanJob _job(String id) =>
-      _jobs.firstWhere((job) => job.id == id);
+  CleanJob _job(String id) => _jobs.firstWhere((job) => job.id == id);
 
   void _replace(CleanJob updated) {
     final index = _jobs.indexWhere((job) => job.id == updated.id);

@@ -6445,6 +6445,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report labels'**
   String get reportLabels;
+
+  /// No description provided for @dashboardGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get dashboardGreeting;
+
+  /// No description provided for @dashboardToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dashboardToday;
+
+  /// No description provided for @dashboardNextUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Next up'**
+  String get dashboardNextUp;
+
+  /// No description provided for @dashboardNoUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs scheduled'**
+  String get dashboardNoUpcoming;
+
+  /// No description provided for @dashboardNoUpcomingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'New jobs will appear here as they are scheduled.'**
+  String get dashboardNoUpcomingBody;
+
+  /// No description provided for @dashboardViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get dashboardViewAll;
+
+  /// No description provided for @dashboardPipeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pipeline'**
+  String get dashboardPipeline;
+
+  /// No description provided for @dashboardNoRecentJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'No other recent jobs'**
+  String get dashboardNoRecentJobs;
+
+  /// No description provided for @jobDetailCustomerVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer & vehicle'**
+  String get jobDetailCustomerVehicle;
+
+  /// No description provided for @jobDetailInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection'**
+  String get jobDetailInspection;
+
+  /// No description provided for @jobDetailAssignment.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment'**
+  String get jobDetailAssignment;
+
+  /// No description provided for @jobDetailReviewPublication.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & publication'**
+  String get jobDetailReviewPublication;
+
+  /// No description provided for @jobDetailMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get jobDetailMoreActions;
+
+  /// No description provided for @jobsEmptyQueueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs in this view'**
+  String get jobsEmptyQueueTitle;
+
+  /// No description provided for @jobsEmptyQueueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another filter or create a new job.'**
+  String get jobsEmptyQueueBody;
+
+  /// No description provided for @jobsListColumnVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get jobsListColumnVehicle;
+
+  /// No description provided for @jobsListColumnJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Job'**
+  String get jobsListColumnJob;
+
+  /// No description provided for @jobsListColumnCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get jobsListColumnCustomer;
+
+  /// No description provided for @jobsListColumnScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get jobsListColumnScheduled;
+
+  /// No description provided for @jobsListColumnInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection'**
+  String get jobsListColumnInspection;
+
+  /// No description provided for @jobsListColumnTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get jobsListColumnTechnician;
+
+  /// No description provided for @settingsWorkshop.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop'**
+  String get settingsWorkshop;
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get settingsPreferences;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get settingsSession;
+
+  /// No description provided for @settingsSignOutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of Workshop Admin on this device.'**
+  String get settingsSignOutBody;
+
+  /// No description provided for @templatesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet'**
+  String get templatesEmptyTitle;
+
+  /// No description provided for @templatesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first inspection template to get started.'**
+  String get templatesEmptyBody;
+
+  /// No description provided for @reportNotReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report not ready'**
+  String get reportNotReadyTitle;
+
+  /// No description provided for @reportNotReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve and publish this job to generate a customer report.'**
+  String get reportNotReadyBody;
+
+  /// No description provided for @reportBackToJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to job'**
+  String get reportBackToJob;
+
+  /// No description provided for @signInBrandLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection jobs, checklists, and reports for your workshop.'**
+  String get signInBrandLine;
+
+  /// No description provided for @signInPortalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop Admin'**
+  String get signInPortalLabel;
+
+  /// No description provided for @signInHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact your platform administrator for access.'**
+  String get signInHelp;
+
+  /// No description provided for @jobsQueueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every inspection job in one place.'**
+  String get jobsQueueSubtitle;
+
+  /// No description provided for @notPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Not published'**
+  String get notPublished;
+
+  /// No description provided for @templateItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No items} =1{1 item} other{{count} items}}'**
+  String templateItemsCount(int count);
+
+  /// No description provided for @staffSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workshop team and accounts.'**
+  String get staffSubtitle;
+
+  /// No description provided for @templatesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reusable inspection checklists.'**
+  String get templatesSubtitle;
+
+  /// No description provided for @jobBoardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track jobs from intake to publish.'**
+  String get jobBoardSubtitle;
+
+  /// No description provided for @settingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop, account, and language.'**
+  String get settingsSubtitle;
+
+  /// No description provided for @navMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMore;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copied;
+
+  /// No description provided for @commandPaletteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Command palette'**
+  String get commandPaletteTitle;
+
+  /// No description provided for @commandPaletteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search or jump to...'**
+  String get commandPaletteHint;
+
+  /// No description provided for @commandPaletteNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get commandPaletteNoResults;
+
+  /// No description provided for @commandGroupNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get commandGroupNavigation;
+
+  /// No description provided for @commandGroupActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get commandGroupActions;
+
+  /// No description provided for @commandGroupJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Jobs'**
+  String get commandGroupJobs;
+
+  /// No description provided for @commandSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a command or search...'**
+  String get commandSearchPlaceholder;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,7 @@
 import 'package:design_system/src/fonts.dart';
 import 'package:design_system/src/generated/tokens.g.dart';
 import 'package:design_system/src/reduce_motion.dart';
+import 'package:design_system/src/workshop_tokens.dart';
 import 'package:flutter/material.dart';
 
 enum StatusTone { neutral, info, success, warning, danger, critical }
@@ -393,8 +394,7 @@ class AppSizingTokens extends ThemeExtension<AppSizingTokens> {
       dividerWidth: dividerWidth ?? this.dividerWidth,
       maxContentWidth: maxContentWidth ?? this.maxContentWidth,
       heroHeight: heroHeight ?? this.heroHeight,
-      heroSilhouetteHeight:
-          heroSilhouetteHeight ?? this.heroSilhouetteHeight,
+      heroSilhouetteHeight: heroSilhouetteHeight ?? this.heroSilhouetteHeight,
       jobCardMinHeight: jobCardMinHeight ?? this.jobCardMinHeight,
       emptyArt: emptyArt ?? this.emptyArt,
       authContentWidth: authContentWidth ?? this.authContentWidth,
@@ -994,6 +994,7 @@ abstract final class AppTheme {
         statusColors,
         severityColors,
         brand,
+        WorkshopTokens.standard(textTheme, isArabic: isArabic),
       ],
     );
   }
@@ -1255,4 +1256,3 @@ const _lightColors = _ColorSet(
 );
 
 // Light-only (C0 Workstream B): _darkColors removed with the dark theme.
-

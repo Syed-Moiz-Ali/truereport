@@ -134,7 +134,13 @@ class _BuilderFakeApi implements AdminApi {
       'cat-chassis',
       'Chassis',
     ),
-    _published('item-oil', 'mv-oil', 'Engine oil level', 'cat-engine', 'Engine'),
+    _published(
+      'item-oil',
+      'mv-oil',
+      'Engine oil level',
+      'cat-engine',
+      'Engine',
+    ),
     _published(
       'item-battery',
       'mv-battery',
@@ -252,24 +258,20 @@ class _BuilderFakeApi implements AdminApi {
   Future<TemplateVersionView> templateVersion(
     String id,
     String versionId,
-  ) async =>
-      TemplateVersionView(
-        id: versionId,
-        versionNo: 1,
-        status: 'PUBLISHED',
-        publishedAt: '2026-11-03T10:00:00',
-        items: [_draftItem('mv-brake', 'Brake pad wear check', 0)],
-      );
+  ) async => TemplateVersionView(
+    id: versionId,
+    versionNo: 1,
+    status: 'PUBLISHED',
+    publishedAt: '2026-11-03T10:00:00',
+    items: [_draftItem('mv-brake', 'Brake pad wear check', 0)],
+  );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
 class _BuilderTestApp extends ConsumerStatefulWidget {
-  const _BuilderTestApp({
-    required this.locale,
-    required this.reduceMotion,
-  });
+  const _BuilderTestApp({required this.locale, required this.reduceMotion});
 
   final Locale locale;
   final bool reduceMotion;
@@ -299,9 +301,7 @@ class _BuilderTestAppState extends ConsumerState<_BuilderTestApp> {
       home: widget.reduceMotion
           ? Builder(
               builder: (context) => MediaQuery(
-                data: MediaQuery.of(
-                  context,
-                ).copyWith(disableAnimations: true),
+                data: MediaQuery.of(context).copyWith(disableAnimations: true),
                 child: home,
               ),
             )
@@ -350,10 +350,7 @@ bool _focusedWithin(WidgetTester tester, Key key) {
     return false;
   }
   return find
-      .ancestor(
-        of: find.byWidget(context.widget),
-        matching: find.byKey(key),
-      )
+      .ancestor(of: find.byWidget(context.widget), matching: find.byKey(key))
       .evaluate()
       .isNotEmpty;
 }
@@ -371,20 +368,32 @@ String _renderedText(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('renders two-column workbench with catalog and sequence (EN)',
-      (tester) async {
+  testWidgets('renders two-column workbench with catalog and sequence (EN)', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
-    // Top bar: title + integer version pill + publish flow entry points.
+    // Top bar: section label + status badge; header owns the name/version.
     expect(find.byKey(const Key('builder-title')), findsOneWidget);
     expect(find.text('Comprehensive Inspection'), findsWidgets);
     expect(find.text('v2'), findsOneWidget);
+    expect(find.text('Template builder'), findsOneWidget);
     expect(
-      find.widgetWithText(AppButton, 'Publish template'),
+      find.widgetWithText(WorkshopButton, 'Publish template'),
       findsOneWidget,
     );
     expect(find.byType(WorkshopMetric), findsNothing);
+
+    // Removed fake chrome never renders.
+    expect(find.text('STANDARD OPERATING PROCEDURE'), findsNothing);
+    expect(find.textContaining('BAY ONLINE'), findsNothing);
+    expect(find.text('SEQUENCE TOTAL'), findsNothing);
+    expect(find.text('MANDATORY PHOTOS'), findsNothing);
+    expect(find.text('AVG TIME PER JOB'), findsNothing);
+    expect(find.text('Marcus Vance'), findsNothing);
+    expect(find.byType(WorkshopHeader), findsNothing);
+    expect(find.byKey(const Key('builder-more')), findsOneWidget);
 
     // Left catalog: search, category filter and tap-to-add cards.
     expect(find.textContaining('Master items'), findsOneWidget);
@@ -396,7 +405,7 @@ void main() {
 
     // Right sequence: numbered cards with locked pills + reorder controls.
     expect(find.text('Template sequence'), findsOneWidget);
-    expect(find.text('3 items selected'), findsOneWidget);
+    expect(find.text('3 items'), findsOneWidget);
     expect(find.byType(WorkshopSequenceCard), findsNWidgets(3));
     expect(find.byType(WorkshopLockedPill), findsNWidgets(3));
     expect(find.textContaining('Locked by platform'), findsNWidgets(3));
@@ -413,7 +422,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const Key('template-version-v-1')),
       300,
-      scrollable: find.ancestor(of: find.byType(ReorderableListView), matching: find.byType(Scrollable)),
+      scrollable: find.ancestor(
+        of: find.byType(ReorderableListView),
+        matching: find.byType(Scrollable),
+      ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -469,16 +481,14 @@ void main() {
     expect(text.contains(RegExp(r'v\d+\.\d+')), isFalse);
   });
 
-  testWidgets('search narrows the catalog via the items endpoint (EN)',
-      (tester) async {
+  testWidgets('search narrows the catalog via the items endpoint (EN)', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
     expect(find.byKey(const Key('published-item-mv-brake')), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const Key('builder-search')),
-      'battery',
-    );
+    await tester.enterText(find.byKey(const Key('builder-search')), 'battery');
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('published-item-mv-battery')), findsOneWidget);
@@ -517,7 +527,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(_sequenceTitles(tester), hasLength(4));
     expect(_sequenceTitles(tester).last, 'Coolant level check');
-    expect(find.text('4 items selected'), findsOneWidget);
+    expect(find.text('4 items'), findsOneWidget);
     // Already-selected items cannot be added twice.
     expect(
       tester
@@ -527,8 +537,9 @@ void main() {
     );
   });
 
-  testWidgets('drop zone tap adds the first available catalog item (EN)',
-      (tester) async {
+  testWidgets('drop zone tap adds the first available catalog item (EN)', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
@@ -551,10 +562,10 @@ void main() {
     await tester.tap(find.byKey(const Key('seq-remove-1')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(
-      _sequenceTitles(tester),
-      ['Brake pad wear check', 'Battery health check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Brake pad wear check',
+      'Battery health check',
+    ]);
   });
 
   testWidgets('move up/down reorder the sequence (EN)', (tester) async {
@@ -566,24 +577,27 @@ void main() {
     await tester.tap(find.byKey(const Key('seq-down-0')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(
-      _sequenceTitles(tester),
-      ['Engine oil level', 'Brake pad wear check', 'Battery health check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Engine oil level',
+      'Brake pad wear check',
+      'Battery health check',
+    ]);
 
     await tester.ensureVisible(find.byKey(const Key('seq-up-2')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('seq-up-2')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(
-      _sequenceTitles(tester),
-      ['Engine oil level', 'Battery health check', 'Brake pad wear check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Engine oil level',
+      'Battery health check',
+      'Brake pad wear check',
+    ]);
   });
 
-  testWidgets('reorder then save sends the ordered item list (EN)',
-      (tester) async {
+  testWidgets('reorder then save sends the ordered item list (EN)', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
@@ -599,15 +613,17 @@ void main() {
     expect(find.text('Content saved'), findsOneWidget);
 
     final saved = api.savedItems!;
-    expect(
-      saved.map((item) => item.masterItemVersionId),
-      ['mv-oil', 'mv-brake', 'mv-battery'],
-    );
+    expect(saved.map((item) => item.masterItemVersionId), [
+      'mv-oil',
+      'mv-brake',
+      'mv-battery',
+    ]);
     expect(saved.map((item) => item.sortOrder), [0, 1, 2]);
   });
 
-  testWidgets('drag handle reorder updates order and save order (EN)',
-      (tester) async {
+  testWidgets('drag handle reorder updates order and save order (EN)', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
@@ -630,25 +646,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     // The dragged middle row now sits above the first row.
-    expect(
-      _sequenceTitles(tester),
-      ['Engine oil level', 'Brake pad wear check', 'Battery health check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Engine oil level',
+      'Brake pad wear check',
+      'Battery health check',
+    ]);
 
     await tester.tap(find.byIcon(Icons.save_outlined));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     final saved = api.savedItems!;
-    expect(
-      saved.map((item) => item.masterItemVersionId),
-      ['mv-oil', 'mv-brake', 'mv-battery'],
-    );
+    expect(saved.map((item) => item.masterItemVersionId), [
+      'mv-oil',
+      'mv-brake',
+      'mv-battery',
+    ]);
     expect(saved.map((item) => item.sortOrder), [0, 1, 2]);
     // Every handle is present: one per sequence row.
-    expect(
-      find.byType(ReorderableDragStartListener),
-      findsNWidgets(3),
-    );
+    expect(find.byType(ReorderableDragStartListener), findsNWidgets(3));
   });
 
   testWidgets('publish saves the draft then publishes (EN)', (tester) async {
@@ -667,7 +682,11 @@ void main() {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
+    // Retire lives in the save-bar overflow (icon preserved).
     await tester.tap(find.byIcon(Icons.archive_outlined));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Retire').last);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await tester.tap(find.widgetWithText(FilledButton, 'Retire'));
@@ -684,7 +703,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const Key('template-version-v-1')),
       300,
-      scrollable: find.ancestor(of: find.byType(ReorderableListView), matching: find.byType(Scrollable)),
+      scrollable: find.ancestor(
+        of: find.byType(ReorderableListView),
+        matching: find.byType(Scrollable),
+      ),
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
@@ -700,7 +722,7 @@ void main() {
 
     expect(find.text('Read-only version'), findsOneWidget);
     expect(find.byType(WorkshopSequenceCard), findsNothing);
-    await tester.tap(find.widgetWithText(AppButton, 'Create draft'));
+    await tester.tap(find.widgetWithText(WorkshopButton, 'Create draft'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(api.createDraftCalls, 1);
@@ -728,10 +750,11 @@ void main() {
     final api = _BuilderFakeApi();
     await _pumpBuilder(tester, api, const Locale('en'));
 
-    expect(
-      _sequenceTitles(tester),
-      ['Brake pad wear check', 'Engine oil level', 'Battery health check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Brake pad wear check',
+      'Engine oil level',
+      'Battery health check',
+    ]);
     var moved = false;
     for (var i = 0; i < 160 && !moved; i++) {
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
@@ -747,10 +770,11 @@ void main() {
       }
     }
     expect(moved, isTrue);
-    expect(
-      _sequenceTitles(tester),
-      ['Engine oil level', 'Brake pad wear check', 'Battery health check'],
-    );
+    expect(_sequenceTitles(tester), [
+      'Engine oil level',
+      'Brake pad wear check',
+      'Battery health check',
+    ]);
   });
 
   testWidgets('renders in Arabic RTL without exceptions', (tester) async {
@@ -773,15 +797,11 @@ void main() {
     }
   });
 
-  testWidgets('reduce-motion renders and reorders without animations',
-      (tester) async {
+  testWidgets('reduce-motion renders and reorders without animations', (
+    tester,
+  ) async {
     final api = _BuilderFakeApi();
-    await _pumpBuilder(
-      tester,
-      api,
-      const Locale('en'),
-      reduceMotion: true,
-    );
+    await _pumpBuilder(tester, api, const Locale('en'), reduceMotion: true);
 
     expect(find.byType(WorkshopSequenceCard), findsNWidgets(3));
     await tester.tap(find.byKey(const Key('seq-down-0')));
@@ -790,24 +810,15 @@ void main() {
     expect(_sequenceTitles(tester).first, 'Engine oil level');
   });
 
-  testWidgets('no overflow at 1280, 900 and 390 up to 2.0x (EN+AR)',
-      (tester) async {
-    const sizes = [
-      Size(1280, 800),
-      Size(900, 800),
-      Size(390, 844),
-    ];
+  testWidgets('no overflow at 1280, 900 and 390 up to 2.0x (EN+AR)', (
+    tester,
+  ) async {
+    const sizes = [Size(1280, 800), Size(900, 800), Size(390, 844)];
     for (final size in sizes) {
       for (final scale in const [1.0, 1.5, 2.0]) {
         for (final locale in const [Locale('en'), Locale('ar')]) {
           final api = _BuilderFakeApi();
-          await _pumpBuilder(
-            tester,
-            api,
-            locale,
-            size: size,
-            textScale: scale,
-          );
+          await _pumpBuilder(tester, api, locale, size: size, textScale: scale);
         }
       }
     }

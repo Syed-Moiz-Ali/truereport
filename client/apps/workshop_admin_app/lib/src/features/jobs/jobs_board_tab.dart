@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_creation_wizard_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
-import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
-/// Jobs board: counts, filters, search and a paginated API-backed list.
+/// Job board: the client-visible inspection jobs with one search, one filter
+/// row (All / Pending review / Approved / Published) and API pagination.
 class JobsBoardTab extends ConsumerStatefulWidget {
   const JobsBoardTab({super.key});
 
@@ -36,6 +37,9 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
     search: _search.text,
   );
 
+  bool get _filtersActive =>
+      _status.isNotEmpty || _search.text.trim().isNotEmpty;
+
   void _selectStatus(String status) {
     setState(() {
       _status = status;
@@ -51,184 +55,182 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final gutter = ws.pageGutter(MediaQuery.sizeOf(context).width);
     final counts = ref.watch(cleanJobCountsProvider);
     final jobs = ref.watch(cleanJobsProvider(_key));
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              context.spacing.lg,
-              context.spacing.lg,
-              context.spacing.lg,
-              context.spacing.sm,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: WorkshopHeader(
-                title: l10n.jobsBoardTab,
-                semanticLabel: l10n.jobsBoardTab,
-                search: AppTextField(
-                  key: const Key('jobs-jobs-search'),
-                  controller: _search,
-                  label: l10n.jobSearch,
-                  hint: l10n.jobSearch,
-                  prefixIcon: const Icon(Icons.search),
-                  onChanged: (_) => setState(() => _page = 0),
-                ),
-                actions: [
-                  AppButton(
-                    label: l10n.newJob,
-                    onPressed: _openCreate,
-                    icon: Icons.add,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsetsDirectional.symmetric(
-              horizontal: context.spacing.lg,
-              vertical: context.spacing.sm,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: counts.when(
-                loading: () => const LoadingSkeleton(lines: 3),
-                error: (error, _) => ErrorState(
-                  title: l10n.error,
-                  body: l10n.commonLoadFailed,
-                  retryLabel: l10n.retryAction,
-                  onRetry: () => ref.invalidate(cleanJobCountsProvider),
-                ),
-                data: (value) => _CountGrid(counts: value),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsetsDirectional.symmetric(
-              horizontal: context.spacing.lg,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Wrap(
-                spacing: context.spacing.sm,
-                runSpacing: context.spacing.sm,
-                children: [
-                  _filter(l10n.filterAll, '', counts),
-                  _filter(l10n.jobsCountDraft, 'DRAFT', counts),
-                  _filter(l10n.jobsCountScheduled, 'SCHEDULED', counts),
-                  _filter(l10n.jobsCountAssigned, 'ASSIGNED', counts),
-                  _filter(l10n.jobsCountInProgress, 'IN_PROGRESS', counts),
-                  _filter(
-                    l10n.jobsCountPendingReview,
-                    'PENDING_REVIEW',
-                    counts,
-                  ),
-                  _filter(l10n.jobsCountApproved, 'APPROVED', counts),
-                  _filter(l10n.jobsCountPublished, 'PUBLISHED', counts),
-                  _filter(l10n.jobsCountRejected, 'REJECTED', counts),
-                  _filter(l10n.jobsCountCancelled, 'CANCELLED', counts),
-                ],
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              context.spacing.lg,
-              context.spacing.md,
-              context.spacing.lg,
-              context.spacing.sm,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: SectionHeader(title: l10n.jobsCountsTitle),
-            ),
-          ),
-          ...jobs.when(
-            loading: () => [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth - 2 * gutter >= jobWideRowMinWidth;
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
               SliverPadding(
-                padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: context.spacing.lg,
-                ),
-                sliver: const SliverToBoxAdapter(
-                  child: LoadingSkeleton(lines: 4),
-                ),
-              ),
-            ],
-            error: (error, _) => [
-              SliverPadding(
-                padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: context.spacing.lg,
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  gutter,
+                  gutter,
+                  gutter,
+                  0,
                 ),
                 sliver: SliverToBoxAdapter(
-                  child: ErrorState(
-                    title: l10n.error,
-                    body: l10n.commonLoadFailed,
-                    retryLabel: l10n.retryAction,
-                    onRetry: () => ref.invalidate(cleanJobsProvider(_key)),
+                  child: WorkshopPageHeader(
+                    title: l10n.jobsBoardTab,
+                    subtitle: l10n.jobBoardSubtitle,
+                    primaryAction: WorkshopButton(
+                      label: l10n.newJob,
+                      icon: Icons.add,
+                      onPressed: _openCreate,
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  gutter,
+                  spacing.lg,
+                  gutter,
+                  0,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: WorkshopToolbar(
+                    search: WorkshopSearchField(
+                      key: const Key('jobs-jobs-search'),
+                      controller: _search,
+                      hint: l10n.jobSearch,
+                      semanticLabel: l10n.jobSearch,
+                      onChanged: (_) => setState(() => _page = 0),
+                    ),
+                    filters: _filters(l10n, counts),
+                  ),
+                ),
+              ),
+              ..._contentSlivers(context, l10n, jobs, wide),
+              SliverPadding(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  gutter,
+                  spacing.sm,
+                  gutter,
+                  spacing.xl,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: jobs.maybeWhen(
+                    data: (page) => _pagination(context, l10n, page),
+                    orElse: () => const SizedBox.shrink(),
                   ),
                 ),
               ),
             ],
-            data: (page) => _jobSlivers(context, page),
           ),
-          SliverPadding(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              context.spacing.lg,
-              context.spacing.sm,
-              context.spacing.lg,
-              context.spacing.xl,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: jobs.maybeWhen(
-                data: (page) => _pagination(context, page),
-                orElse: () => const SizedBox.shrink(),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _filter(String label, String value, AsyncValue<CleanJobCounts> counts) {
-    final count = counts.maybeWhen(
-      data: (data) => _countFor(data, value),
-      orElse: () => null,
-    );
-    return AppSelectableText(
+  List<Widget> _filters(
+    AppLocalizations l10n,
+    AsyncValue<CleanJobCounts> counts,
+  ) {
+    Widget chip(String value, String label, int? count) => WorkshopFilterChip(
       key: Key('jobs-filter-$value'),
-      label: count == null
-          ? label
-          : '$label (${formatNumber(context, count)})',
+      label: label,
+      count: count,
       selected: _status == value,
       onTap: () => _selectStatus(value),
     );
+    final data = counts.value;
+    return [
+      chip('', l10n.filterAll, data?.total),
+      chip('PENDING_REVIEW', l10n.jobsCountPendingReview, data?.pendingReview),
+      chip('APPROVED', l10n.jobsCountApproved, data?.approved),
+      chip('PUBLISHED', l10n.jobsCountPublished, data?.published),
+    ];
   }
 
-  int _countFor(CleanJobCounts counts, String status) => switch (status) {
-    'DRAFT' => counts.draft,
-    'SCHEDULED' => counts.scheduled,
-    'ASSIGNED' => counts.assigned,
-    'IN_PROGRESS' => counts.inProgress,
-    'PENDING_REVIEW' => counts.pendingReview,
-    'APPROVED' => counts.approved,
-    'PUBLISHED' => counts.published,
-    'REJECTED' => counts.rejected,
-    'CANCELLED' => counts.cancelled,
-    _ => counts.total,
-  };
-
-  List<Widget> _jobSlivers(BuildContext context, JobPage page) {
-    final l10n = AppLocalizations.of(context);
-    if (page.items.isEmpty) {
+  List<Widget> _contentSlivers(
+    BuildContext context,
+    AppLocalizations l10n,
+    AsyncValue<JobPage> jobs,
+    bool wide,
+  ) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final gutter = ws.pageGutter(MediaQuery.sizeOf(context).width);
+    final padding = EdgeInsetsDirectional.fromSTEB(
+      gutter,
+      spacing.lg,
+      gutter,
+      0,
+    );
+    if (jobs.isLoading) {
       return [
         SliverPadding(
-          padding: EdgeInsetsDirectional.all(context.spacing.lg),
+          padding: padding,
+          sliver: const SliverToBoxAdapter(
+            child: WorkshopSkeleton(card: true, lines: 6),
+          ),
+        ),
+      ];
+    }
+    if (jobs.hasError) {
+      return [
+        SliverPadding(
+          padding: padding,
           sliver: SliverToBoxAdapter(
-            child: EmptyState(
-              title: l10n.jobsEmpty,
-              body: '',
-              icon: Icons.search_off_outlined,
+            child: WorkshopErrorState(
+              title: l10n.error,
+              body: l10n.commonLoadFailed,
+              retryLabel: l10n.retryAction,
+              onRetry: () => ref.invalidate(cleanJobsProvider(_key)),
+            ),
+          ),
+        ),
+      ];
+    }
+    final page = jobs.value;
+    if (page == null || page.items.isEmpty) {
+      return [
+        SliverPadding(
+          padding: padding,
+          sliver: SliverToBoxAdapter(
+            child: WorkshopCard(
+              child: WorkshopEmptyState(
+                title: _filtersActive
+                    ? l10n.jobsEmptyQueueTitle
+                    : l10n.jobsEmpty,
+                body: _filtersActive ? l10n.jobsEmptyQueueBody : null,
+                icon: Icons.work_outline,
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+    if (wide) {
+      return [
+        SliverPadding(
+          padding: padding,
+          sliver: SliverToBoxAdapter(
+            child: WorkshopCard(
+              padding: EdgeInsetsDirectional.zero,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _BoardHeader(),
+                  const WorkshopDivider(),
+                  for (var index = 0; index < page.items.length; index++) ...[
+                    if (index > 0) const WorkshopDivider(),
+                    _BoardRow(
+                      key: Key('jobs-job-${page.items[index].id}'),
+                      job: page.items[index],
+                      onTap: () => _openDetails(page.items[index]),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
@@ -236,40 +238,15 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
     }
     return [
       SliverPadding(
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: context.spacing.lg,
-        ),
+        padding: padding,
         sliver: SliverList.separated(
           itemCount: page.items.length,
-          separatorBuilder: (_, _) => SizedBox(height: context.spacing.sm),
+          separatorBuilder: (_, _) => SizedBox(height: spacing.md),
           itemBuilder: (context, index) {
             final job = page.items[index];
-            final vehicle = '${job.vehicleMake} ${job.vehicleModel}'.trim();
-            return WorkshopJobCard(
+            return _BoardRow(
               key: Key('jobs-job-${job.id}'),
-              title: vehicle.isEmpty
-                  ? job.customerName
-                  : localizedText(
-                      context,
-                      en: vehicle,
-                      ar: vehicle,
-                    ),
-              reference: job.reference,
-              status: StatusChip(
-                label: jobStatusLabel(l10n, job.status),
-                tone: jobStatusTone(job.status),
-              ),
-              meta: [
-                Text(job.customerName),
-                Text(
-                  localizedText(
-                    context,
-                    en: job.templateNameEn,
-                    ar: job.templateNameAr,
-                  ),
-                ),
-                Text(job.assignedTechnicianName ?? l10n.unassigned),
-              ],
+              job: job,
               onTap: () => _openDetails(job),
             );
           },
@@ -278,37 +255,42 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
     ];
   }
 
-  Widget _pagination(BuildContext context, JobPage page) {
-    final l10n = AppLocalizations.of(context);
+  Widget _pagination(
+    BuildContext context,
+    AppLocalizations l10n,
+    JobPage page,
+  ) {
     if (page.totalPages <= 1) {
       return const SizedBox.shrink();
     }
+    final spacing = context.spacing;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: context.spacing.md,
-      runSpacing: context.spacing.sm,
+      spacing: spacing.md,
+      runSpacing: spacing.sm,
       children: [
-        AppButton(
+        WorkshopButton(
           label: l10n.commonPrevious,
+          icon: rtl ? Icons.chevron_right : Icons.chevron_left,
+          variant: WorkshopButtonVariant.secondary,
           onPressed: page.page <= 0
               ? null
               : () => setState(() => _page = page.page - 1),
-          variant: AppButtonVariant.tonal,
-          icon: Icons.chevron_left,
         ),
         Text(
           '${l10n.commonPage} ${formatNumber(context, page.page + 1)} '
           '${l10n.commonOf} ${formatNumber(context, page.totalPages)}',
-          style: context.texts.bodyMedium,
+          style: context.ws.body.copyWith(color: context.ws.ink),
         ),
-        AppButton(
+        WorkshopButton(
           label: l10n.commonNext,
+          icon: rtl ? Icons.chevron_left : Icons.chevron_right,
+          variant: WorkshopButtonVariant.secondary,
           onPressed: page.page + 1 >= page.totalPages
               ? null
               : () => setState(() => _page = page.page + 1),
-          variant: AppButtonVariant.tonal,
-          icon: Icons.chevron_right,
         ),
       ],
     );
@@ -332,9 +314,7 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
 
   Future<void> _openDetails(CleanJob job) async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => JobDetailPage(jobId: job.id),
-      ),
+      MaterialPageRoute<void>(builder: (_) => JobDetailPage(jobId: job.id)),
     );
     if (mounted) {
       ref.invalidate(cleanJobsProvider(_key));
@@ -343,104 +323,330 @@ class _JobsBoardTabState extends ConsumerState<JobsBoardTab> {
   }
 }
 
-class _CountGrid extends StatelessWidget {
-  const _CountGrid({required this.counts});
-
-  final CleanJobCounts counts;
+class _BoardHeader extends StatelessWidget {
+  const _BoardHeader();
 
   @override
   Widget build(BuildContext context) {
+    final ws = context.ws;
     final l10n = AppLocalizations.of(context);
-    final cards = <Widget>[
-      _card(context, l10n.jobsCountDraft, counts.draft, Icons.edit_note),
-      _card(
-        context,
-        l10n.jobsCountScheduled,
-        counts.scheduled,
-        Icons.schedule_outlined,
+    final style = ws.eyebrow.copyWith(color: ws.muted);
+    return Padding(
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: ws.cardPadding,
+        vertical: context.spacing.sm,
       ),
-      _card(
-        context,
-        l10n.jobsCountAssigned,
-        counts.assigned,
-        Icons.person_add_alt_1_outlined,
+      child: Row(
+        children: [
+          _BoardHeaderCell(
+            flex: 3,
+            label: l10n.jobsListColumnVehicle,
+            style: style,
+          ),
+          _BoardHeaderCell(
+            flex: 3,
+            label: l10n.jobsListColumnJob,
+            style: style,
+          ),
+          _BoardHeaderCell(
+            flex: 2,
+            label: l10n.jobsListColumnCustomer,
+            style: style,
+          ),
+          _BoardHeaderCell(
+            flex: 2,
+            label: l10n.jobsListColumnScheduled,
+            style: style,
+          ),
+          _BoardHeaderCell(
+            flex: 2,
+            label: l10n.status,
+            style: style,
+            last: true,
+          ),
+          SizedBox(width: context.spacing.xl, height: context.spacing.xl),
+        ],
       ),
-      _card(
-        context,
-        l10n.jobsCountInProgress,
-        counts.inProgress,
-        Icons.play_circle_outline,
+    );
+  }
+}
+
+class _BoardHeaderCell extends StatelessWidget {
+  const _BoardHeaderCell({
+    required this.flex,
+    required this.label,
+    required this.style,
+    this.last = false,
+  });
+
+  final int flex;
+  final String label;
+  final TextStyle style;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: EdgeInsetsDirectional.only(end: last ? 0 : context.spacing.md),
+        child: Text(label, style: style, maxLines: 2),
       ),
-      _card(
-        context,
-        l10n.jobsCountPendingReview,
-        counts.pendingReview,
-        Icons.rate_review_outlined,
-      ),
-      _card(
-        context,
-        l10n.jobsCountApproved,
-        counts.approved,
-        Icons.verified_outlined,
-      ),
-      _card(
-        context,
-        l10n.jobsCountPublished,
-        counts.published,
-        Icons.public_outlined,
-      ),
-      _card(
-        context,
-        l10n.jobsCountRejected,
-        counts.rejected,
-        Icons.block_outlined,
-      ),
-      _card(
-        context,
-        l10n.jobsCountCancelled,
-        counts.cancelled,
-        Icons.cancel_outlined,
-      ),
-      _card(
-        context,
-        l10n.jobsCountTotal,
-        counts.total,
-        Icons.work_outline,
-      ),
+    );
+  }
+}
+
+/// One client-visible job: table row on wide layouts, stacked card on phones.
+class _BoardRow extends StatelessWidget {
+  const _BoardRow({required this.job, required this.onTap, super.key});
+
+  final CleanJob job;
+  final VoidCallback onTap;
+
+  String _vehicleTitle(BuildContext context) {
+    final title = '${job.vehicleMake} ${job.vehicleModel}'.trim();
+    return title.isEmpty ? job.customerName : title;
+  }
+
+  String _vehicleMeta() {
+    final parts = <String>[
+      if (job.vehicleYear != null) '${job.vehicleYear}',
+      if ((job.vehiclePlate ?? '').trim().isNotEmpty) job.vehiclePlate!.trim(),
+      if ((job.vehicleVin ?? '').trim().isNotEmpty) job.vehicleVin!.trim(),
     ];
+    return parts.join(' · ');
+  }
+
+  String _schedule(BuildContext context) {
+    final label = formatInstant(context, job.scheduledAt);
+    return label.isEmpty
+        ? AppLocalizations.of(context).commonNotAvailable
+        : label;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    final l10n = AppLocalizations.of(context);
+    final spacing = context.spacing;
+    final meta = _vehicleMeta();
+    final title = _vehicleTitle(context);
+    final schedule = _schedule(context);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final templateLabel = localizedText(
+      context,
+      en: job.templateNameEn,
+      ar: job.templateNameAr,
+    );
+    final label = [
+      title,
+      job.reference,
+      job.customerName,
+    ].where((value) => value.trim().isNotEmpty).join(', ');
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth;
-        final columns = maxWidth >= 1200
-            ? 4
-            : maxWidth >= 900
-            ? 3
-            : maxWidth >= 600
-            ? 2
-            : 1;
-        final gap = context.spacing.md;
-        final width = (maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final card in cards) SizedBox(width: width, child: card),
-          ],
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final wide =
+            constraints.maxWidth >= jobWideRowMinWidth && textScale <= 1.35;
+        final content = wide
+            ? _row(ws, spacing, meta, title, schedule, rtl)
+            : _stacked(ws, l10n, spacing, meta, title, schedule, templateLabel);
+        if (!wide) {
+          return WorkshopCard(
+            onTap: onTap,
+            semanticLabel: label,
+            child: content,
+          );
+        }
+        return Semantics(
+          button: true,
+          label: label,
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(ws.chipRadius),
+              child: Padding(
+                padding: EdgeInsetsDirectional.symmetric(
+                  horizontal: ws.cardPadding,
+                  vertical: spacing.md,
+                ),
+                child: ExcludeSemantics(child: content),
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _card(
-    BuildContext context,
-    String caption,
-    int value,
-    IconData icon,
+  Widget _row(
+    WorkshopTokens ws,
+    AppSpacingTokens spacing,
+    String meta,
+    String title,
+    String schedule,
+    bool rtl,
   ) {
-    return WorkshopStatCard(
-      value: formatNumber(context, value),
-      caption: caption,
-      icon: icon,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(end: spacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  style: ws.bodyStrong.copyWith(color: ws.ink),
+                ),
+                if (meta.isNotEmpty) ...[
+                  SizedBox(height: spacing.xxs),
+                  Text(
+                    meta,
+                    maxLines: 2,
+                    textDirection: TextDirection.ltr,
+                    style: ws.meta.copyWith(color: ws.muted),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(end: spacing.md),
+            child: Text(
+              job.reference,
+              maxLines: 1,
+              softWrap: false,
+              textDirection: TextDirection.ltr,
+              style: ws.body.copyWith(color: ws.ink),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(end: spacing.md),
+            child: Text(
+              job.customerName,
+              maxLines: 2,
+              style: ws.body.copyWith(color: ws.ink),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(end: spacing.md),
+            child: Text(
+              schedule,
+              maxLines: 2,
+              style: ws.meta.copyWith(color: ws.muted),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: JobStatusBadge(status: job.status),
+          ),
+        ),
+        SizedBox(width: spacing.lg),
+        Icon(
+          rtl ? Icons.chevron_left : Icons.chevron_right,
+          size: 18,
+          color: ws.muted,
+        ),
+      ],
+    );
+  }
+
+  Widget _stacked(
+    WorkshopTokens ws,
+    AppLocalizations l10n,
+    AppSpacingTokens spacing,
+    String meta,
+    String title,
+    String schedule,
+    String templateLabel,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    style: ws.bodyStrong.copyWith(color: ws.ink),
+                  ),
+                  if (meta.isNotEmpty) ...[
+                    SizedBox(height: spacing.xxs),
+                    Text(
+                      meta,
+                      maxLines: 2,
+                      textDirection: TextDirection.ltr,
+                      style: ws.meta.copyWith(color: ws.muted),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: spacing.sm),
+            Flexible(
+              flex: 2,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: JobStatusBadge(status: job.status),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: spacing.sm),
+        Wrap(
+          spacing: spacing.md,
+          runSpacing: spacing.xs,
+          children: [
+            JobMetaLine(
+              icon: Icons.confirmation_number_outlined,
+              text: job.reference,
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+              softWrap: false,
+            ),
+            JobMetaLine(icon: Icons.person_outline, text: job.customerName),
+          ],
+        ),
+        SizedBox(height: spacing.xs),
+        Wrap(
+          spacing: spacing.md,
+          runSpacing: spacing.xs,
+          children: [
+            JobMetaLine(icon: Icons.schedule, text: schedule),
+            JobMetaLine(
+              icon: Icons.engineering_outlined,
+              text: job.assignedTechnicianName ?? l10n.unassigned,
+            ),
+            JobMetaLine(icon: Icons.assignment_outlined, text: templateLabel),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -137,7 +137,9 @@ Future<void> _exerciseWorkshop(WidgetTester tester) async {
 
 void main() {
   final sizes = <String, Size>{
+    'small-phone': const Size(360, 800),
     'phone': const Size(390, 844),
+    'tablet-portrait': const Size(768, 1024),
     'tablet': const Size(1024, 900),
     'wide': const Size(1440, 900),
   };

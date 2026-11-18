@@ -1,176 +1,168 @@
-import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
-import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
-import 'package:workshop_admin_app/src/features/jobs/jobs_board_tab.dart';
-import 'package:workshop_admin_app/src/features/jobs/notification_center.dart';
-import 'package:workshop_admin_app/src/features/staff/staff_tab.dart';
-import 'package:workshop_admin_app/src/features/templates/templates_tab.dart';
 import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
+import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
+import 'package:workshop_admin_app/src/features/jobs/jobs_board_tab.dart';
+import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
+import 'package:workshop_admin_app/src/features/jobs/workshop_notifications_page.dart';
+import 'package:workshop_admin_app/src/features/settings/workshop_settings_page.dart';
+import 'package:workshop_admin_app/src/features/staff/staff_tab.dart';
+import 'package:workshop_admin_app/src/features/templates/templates_tab.dart';
 
-class WorkshopAdminHomePage extends ConsumerWidget {
+/// Exposes the shell's section selector to descendants.
+class WorkshopNavigationScope extends InheritedWidget {
+  const WorkshopNavigationScope({
+    required this.select,
+    required super.child,
+    super.key,
+  });
+
+  final ValueChanged<int> select;
+
+  static WorkshopNavigationScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<WorkshopNavigationScope>();
+
+  @override
+  bool updateShouldNotify(WorkshopNavigationScope oldWidget) =>
+      select != oldWidget.select;
+}
+
+/// Workshop Admin shell host.
+class WorkshopAdminHomePage extends ConsumerStatefulWidget {
   const WorkshopAdminHomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final locale = ref.watch(localeProvider);
-    return DefaultTabController(
-      length: 6,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= AppBreakpoints.tablet;
-          final appBar = AppBar(
-            title: Text(l10n.workshopAdminTitle),
-            actions: [
-              AppButton(
-                label: locale.languageCode == 'ar'
-                    ? l10n.languageEnglish
-                    : l10n.languageArabic,
-                onPressed: () => ref
-                    .read(localeProvider.notifier)
-                    .setLocale(
-                      locale.languageCode == 'ar'
-                          ? const Locale('en')
-                          : const Locale('ar'),
-                    ),
-                variant: AppButtonVariant.text,
-              ),
-              IconButton(
-                tooltip: l10n.signOut,
-                onPressed: () =>
-                    ref.read(authControllerProvider.notifier).signOut(),
-                icon: const Icon(Icons.logout),
-              ),
-            ],
-            bottom: wide
-                ? null
-                : TabBar(
-                    isScrollable: true,
-                    tabs: [
-                      Tab(
-                        key: const Key('workshop-tab-overview'),
-                        icon: const Icon(Icons.dashboard_outlined),
-                        text: l10n.dashboardTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-jobs'),
-                        icon: const Icon(Icons.work_outline),
-                        text: l10n.jobsTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-staff'),
-                        icon: const Icon(Icons.groups_outlined),
-                        text: l10n.staffTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-templates'),
-                        icon: const Icon(Icons.dashboard_customize_outlined),
-                        text: l10n.templatesTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-job-board'),
-                        icon: const Icon(Icons.assignment_outlined),
-                        text: l10n.jobsBoardTab,
-                      ),
-                      Tab(
-                        key: const Key('workshop-tab-notifications'),
-                        icon: const Icon(Icons.notifications_none_outlined),
-                        text: l10n.jobsNotificationsTab,
-                      ),
-                    ],
-                  ),
-          );
-          const tabs = TabBarView(
-            children: [
-              DashboardTab(),
-              JobsTab(),
-              StaffTab(),
-              TemplatesTab(),
-              JobsBoardTab(),
-              NotificationCenterTab(),
-            ],
-          );
-          if (!wide) {
-            return AppScaffold(appBar: appBar, body: tabs);
-          }
-          return AppScaffold(
-            appBar: appBar,
-            body: Row(
-              children: [
-                AnimatedBuilder(
-                  animation: DefaultTabController.of(context),
-                  builder: (context, _) {
-                    final controller = DefaultTabController.of(context);
-                    return NavigationRail(
-                      selectedIndex: controller.index,
-                      onDestinationSelected: controller.animateTo,
-                      labelType: NavigationRailLabelType.all,
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.dashboard_outlined),
-                          selectedIcon: const Icon(Icons.dashboard),
-                          label: Text(
-                            l10n.dashboardTab,
-                            key: const Key('workshop-tab-overview'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.work_outline),
-                          selectedIcon: const Icon(Icons.work),
-                          label: Text(
-                            l10n.jobsTab,
-                            key: const Key('workshop-tab-jobs'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.groups_outlined),
-                          selectedIcon: const Icon(Icons.groups),
-                          label: Text(
-                            l10n.staffTab,
-                            key: const Key('workshop-tab-staff'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.dashboard_customize_outlined),
-                          selectedIcon: const Icon(Icons.dashboard_customize),
-                          label: Text(
-                            l10n.templatesTab,
-                            key: const Key('workshop-tab-templates'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.assignment_outlined),
-                          selectedIcon: const Icon(Icons.assignment),
-                          label: Text(
-                            l10n.jobsBoardTab,
-                            key: const Key('workshop-tab-job-board'),
-                          ),
-                        ),
-                        NavigationRailDestination(
-                          icon: const Icon(Icons.notifications_none_outlined),
-                          selectedIcon: const Icon(Icons.notifications),
-                          label: Text(
-                            l10n.jobsNotificationsTab,
-                            key: const Key('workshop-tab-notifications'),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                VerticalDivider(
-                  width: context.spacing.xs,
-                  color: context.colors.outlineVariant,
-                ),
-                const Expanded(child: tabs),
-              ],
-            ),
-          );
-        },
+  ConsumerState<WorkshopAdminHomePage> createState() =>
+      _WorkshopAdminHomePageState();
+}
+
+class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
+  int _selectedIndex = 0;
+
+  void _select(int index) {
+    if (index == _selectedIndex) {
+      return;
+    }
+    setState(() => _selectedIndex = index);
+  }
+
+  void _openNotifications() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const WorkshopNotificationsPage(),
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final locale = ref.watch(localeProvider);
+    final session = ref.watch(authControllerProvider).value;
+    final displayName = session?.user.displayName.trim() ?? '';
+    final email = session?.user.email.trim() ?? '';
+    final workshopName = session != null && session.memberships.isNotEmpty
+        ? session.memberships.first.workshopName
+        : l10n.workshopAdminTitle;
+    final accountName = displayName.isEmpty
+        ? l10n.roleWorkshopAdmin
+        : displayName;
+
+    final destinations = <WorkshopNavDestination>[
+      WorkshopNavDestination(
+        label: l10n.dashboardTab,
+        icon: Icons.dashboard_outlined,
+        selectedIcon: Icons.dashboard,
+        key: const Key('workshop-tab-overview'),
+      ),
+      WorkshopNavDestination(
+        label: l10n.jobsTab,
+        icon: Icons.work_outline,
+        selectedIcon: Icons.work,
+        key: const Key('workshop-tab-jobs'),
+      ),
+      WorkshopNavDestination(
+        label: l10n.staffTab,
+        icon: Icons.groups_outlined,
+        selectedIcon: Icons.groups,
+        key: const Key('workshop-tab-staff'),
+      ),
+      WorkshopNavDestination(
+        label: l10n.templatesTab,
+        icon: Icons.dashboard_customize_outlined,
+        selectedIcon: Icons.dashboard_customize,
+        key: const Key('workshop-tab-templates'),
+      ),
+      WorkshopNavDestination(
+        label: l10n.jobsBoardTab,
+        icon: Icons.assignment_outlined,
+        selectedIcon: Icons.assignment,
+        key: const Key('workshop-tab-job-board'),
+      ),
+      WorkshopNavDestination(
+        label: l10n.settings,
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings,
+        key: const Key('workshop-tab-settings'),
+      ),
+    ];
+
+    return WorkshopNavigationScope(
+      select: _select,
+      child: WorkshopAppShell(
+        workshopName: workshopName,
+        sectionLabel: destinations[_selectedIndex].label,
+        selectedIndex: _selectedIndex,
+        onSelected: _select,
+        destinations: destinations,
+        accountInitials: _initials(accountName),
+        accountName: accountName,
+        accountEmail: email,
+        onSettings: () => _select(5),
+        onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
+        onToggleLanguage: () => ref.read(localeProvider.notifier).toggle(),
+        languageLabel: locale.languageCode == 'ar'
+            ? l10n.languageEnglish
+            : l10n.languageArabic,
+        moreLabel: l10n.navMore,
+        signOutLabel: l10n.signOut,
+        settingsLabel: l10n.settings,
+        notificationsAction: WorkshopIconButton(
+          key: const Key('workshop-notifications'),
+          icon: Icons.notifications_none,
+          semanticLabel: l10n.jobsNotificationsTab,
+          onPressed: _openNotifications,
+        ),
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: const [
+            DashboardTab(),
+            JobsTab(),
+            StaffTab(),
+            TemplatesTab(),
+            JobsBoardTab(),
+            WorkshopSettingsPage(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _initials(String displayName) {
+  final parts = displayName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.isEmpty) {
+    return '';
+  }
+  if (parts.length == 1) {
+    return parts.first.characters.first.toUpperCase();
+  }
+  return (parts.first.characters.first + parts[1].characters.first)
+      .toUpperCase();
 }

@@ -7,6 +7,11 @@ import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
+/// Notification list used by the shell bell and the pushed notifications page.
+///
+/// Presentation only: the same provider, unread filter and mark-read API as
+/// before. The page title lives in the host page, so this widget stays a
+/// toolbar + list rather than a second header.
 class NotificationCenterTab extends ConsumerStatefulWidget {
   const NotificationCenterTab({super.key});
 
@@ -15,8 +20,7 @@ class NotificationCenterTab extends ConsumerStatefulWidget {
       _NotificationCenterTabState();
 }
 
-class _NotificationCenterTabState
-    extends ConsumerState<NotificationCenterTab> {
+class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
   bool _unreadOnly = false;
   final Set<String> _marking = {};
 
@@ -25,129 +29,63 @@ class _NotificationCenterTabState
     final l10n = AppLocalizations.of(context);
     final notifications = ref.watch(notificationsProvider(_unreadOnly));
     return RefreshIndicator(
-      onRefresh: () async =>
-          ref.invalidate(notificationsProvider(_unreadOnly)),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsetsDirectional.all(context.spacing.lg),
+      onRefresh: () async => ref.invalidate(notificationsProvider(_unreadOnly)),
+      child: WorkshopPageScroll(
         children: [
-          WorkshopHeader(
-            title: l10n.jobsNotificationsTitle,
-            semanticLabel: l10n.jobsNotificationsTitle,
-            actions: [
-              AppButton(
-                label: l10n.refresh,
-                onPressed: () =>
-                    ref.invalidate(notificationsProvider(_unreadOnly)),
-                icon: Icons.refresh,
-                variant: AppButtonVariant.text,
-              ),
-            ],
-          ),
-          SizedBox(height: context.spacing.sm),
-          Wrap(
-            spacing: context.spacing.sm,
-            runSpacing: context.spacing.sm,
-            children: [
-              AppSelectableText(
+          WorkshopToolbar(
+            filters: [
+              WorkshopFilterChip(
                 label: l10n.filterAll,
                 selected: !_unreadOnly,
                 onTap: () => setState(() => _unreadOnly = false),
               ),
-              AppSelectableText(
+              WorkshopFilterChip(
                 key: const Key('jobs-unread-only'),
                 label: l10n.jobsNotificationsUnreadOnly,
                 selected: _unreadOnly,
                 onTap: () => setState(() => _unreadOnly = true),
               ),
             ],
+            trailing: WorkshopIconButton(
+              icon: Icons.refresh,
+              semanticLabel: l10n.refresh,
+              onPressed: () =>
+                  ref.invalidate(notificationsProvider(_unreadOnly)),
+            ),
           ),
-          SizedBox(height: context.spacing.md),
+          SizedBox(height: context.spacing.lg),
           notifications.when(
-            loading: () => const LoadingSkeleton(lines: 4),
-            error: (error, _) => ErrorState(
+            loading: () => const WorkshopSkeleton(card: true, lines: 4),
+            error: (error, _) => WorkshopErrorState(
               title: l10n.error,
               body: l10n.commonLoadFailed,
               retryLabel: l10n.retryAction,
-              onRetry: () =>
-                  ref.invalidate(notificationsProvider(_unreadOnly)),
+              onRetry: () => ref.invalidate(notificationsProvider(_unreadOnly)),
             ),
             data: (items) {
               if (items.isEmpty) {
-                return EmptyState(
+                return WorkshopEmptyState(
                   title: l10n.jobsNotificationsEmpty,
-                  body: '',
                   icon: Icons.notifications_none_outlined,
                 );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final item in items)
-                    _notificationCard(context, item),
+                  for (var index = 0; index < items.length; index++) ...[
+                    if (index > 0) SizedBox(height: context.spacing.md),
+                    _NotificationCard(
+                      item: items[index],
+                      marking: _marking.contains(items[index].id),
+                      onMarkRead: () => _markRead(items[index]),
+                    ),
+                  ],
                 ],
               );
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _notificationCard(BuildContext context, WorkshopNotification item) {
-    final l10n = AppLocalizations.of(context);
-    final marking = _marking.contains(item.id);
-    return Padding(
-      padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-      child: JobPanel(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Wrap(
-              spacing: context.spacing.sm,
-              runSpacing: context.spacing.sm,
-              children: [
-                StatusChip(
-                  label: item.type,
-                  tone: item.isRead ? StatusTone.neutral : StatusTone.info,
-                  icon: item.isRead
-                      ? Icons.mark_email_read_outlined
-                      : Icons.mark_email_unread_outlined,
-                ),
-                StatusChip(
-                  label: item.isRead ? l10n.jobsNotificationsRead : l10n.jobsNotificationsUnread,
-                  tone: item.isRead
-                      ? StatusTone.neutral
-                      : StatusTone.warning,
-                  icon: item.isRead
-                      ? Icons.done_all
-                      : Icons.fiber_new_outlined,
-                ),
-              ],
-            ),
-            SizedBox(height: context.spacing.sm),
-            JobKeyValue(
-              label: l10n.commonCreatedAt,
-              value: formatInstant(context, item.createdAt),
-            ),
-            JobKeyValue(
-              label: l10n.jobsNotificationPayload,
-              value: item.payloadJson ?? l10n.jobsNotificationNoPayload,
-              valueDirection: TextDirection.ltr,
-            ),
-            if (!item.isRead) ...[
-              SizedBox(height: context.spacing.sm),
-              AppButton(
-                key: Key('jobs-mark-read-${item.id}'),
-                label: l10n.jobsNotificationsMarkRead,
-                onPressed: marking ? null : () => _markRead(item),
-                isLoading: marking,
-                icon: Icons.done_all,
-                variant: AppButtonVariant.tonal,
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }
@@ -166,14 +104,94 @@ class _NotificationCenterTabState
       }
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.commonActionFailed)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.commonActionFailed)));
       }
     } finally {
       if (mounted) {
         setState(() => _marking.remove(item.id));
       }
     }
+  }
+}
+
+class _NotificationCard extends StatelessWidget {
+  const _NotificationCard({
+    required this.item,
+    required this.marking,
+    required this.onMarkRead,
+  });
+
+  final WorkshopNotification item;
+  final bool marking;
+  final VoidCallback onMarkRead;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final spacing = context.spacing;
+    return WorkshopCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.type,
+                      textDirection: TextDirection.ltr,
+                      style: ws.bodyStrong.copyWith(color: ws.ink),
+                    ),
+                    SizedBox(height: spacing.xs),
+                    Text(
+                      formatInstant(context, item.createdAt),
+                      style: ws.meta.copyWith(color: ws.muted),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: spacing.sm),
+              WorkshopStatusBadge(
+                label: item.isRead
+                    ? l10n.jobsNotificationsRead
+                    : l10n.jobsNotificationsUnread,
+                tone: item.isRead
+                    ? WorkshopStatusTone.neutral
+                    : WorkshopStatusTone.warning,
+              ),
+            ],
+          ),
+          if ((item.payloadJson ?? '').isNotEmpty) ...[
+            SizedBox(height: spacing.sm),
+            SelectableText(
+              item.payloadJson!,
+              textDirection: TextDirection.ltr,
+              style: ws.meta.copyWith(color: ws.muted),
+            ),
+          ],
+          if (!item.isRead) ...[
+            SizedBox(height: spacing.md),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: WorkshopButton(
+                key: Key('jobs-mark-read-${item.id}'),
+                label: l10n.jobsNotificationsMarkRead,
+                icon: Icons.done_all,
+                variant: WorkshopButtonVariant.secondary,
+                isLoading: marking,
+                onPressed: marking ? null : onMarkRead,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
