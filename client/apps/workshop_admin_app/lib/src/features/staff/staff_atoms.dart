@@ -4,31 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/labels.dart';
 
-/// Type and emphasis derived from the workshop tokens for the staff ledger.
-///
-/// No new colours, radii or families: these are the existing scale values
-/// applied at ledger sizes so the screen reads as a workspace, not a page of
-/// cards. Kept local to the staff feature on purpose (see the design report).
-extension StaffLedgerTokens on WorkshopTokens {
-  TextStyle get ledgerTitle =>
-      sectionTitle.copyWith(fontSize: 22, letterSpacing: -0.2, color: ink);
-
-  TextStyle get railName =>
-      sectionTitle.copyWith(fontSize: 19, letterSpacing: -0.1, color: ink);
-
-  TextStyle get rowName => body.copyWith(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
-  );
-
-  TextStyle get countFigure => sectionTitle.copyWith(
-    fontSize: 22,
-    color: accent,
-    fontFeatures: const [FontFeature.tabularFigures()],
-  );
-}
-
 /// One to two letter monogram in a squircle.
 ///
 /// Arabic-script names get a single letter: two joined Arabic letters read as
@@ -67,6 +42,7 @@ class StaffMonogram extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
+    final style = size >= 60 ? ws.pageTitle : ws.bodyStrong;
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -79,10 +55,9 @@ class StaffMonogram extends StatelessWidget {
         child: Text(
           staffInitials(name),
           maxLines: 1,
-          style: ws.bodyStrong.copyWith(
+          style: style.copyWith(
             color: filled ? ws.onAccent : ws.accent,
-            fontSize: size * 0.34,
-            letterSpacing: 0.4,
+            letterSpacing: size >= 60 ? 1 : 0.4,
           ),
         ),
       ),
@@ -90,84 +65,132 @@ class StaffMonogram extends StatelessWidget {
   }
 }
 
-/// Status is always a dot plus its label â€” never colour alone.
-String staffStatusLabel(BuildContext context, String status) =>
-    memberStatusLabel(AppLocalizations.of(context), status);
+/// Staff are created with credentials here — there is no invitation flow — so
+/// the module names only two account states. Anything else falls back to a
+/// neutral "not started" instead of inventing an invitation stage.
+String staffStatusLabel(BuildContext context, String status) {
+  final l10n = AppLocalizations.of(context);
+  return switch (status) {
+    'ACTIVE' => l10n.filterActive,
+    'DISABLED' => l10n.disabled,
+    _ => l10n.notStarted,
+  };
+}
 
 String staffRoleLabel(BuildContext context, String role) =>
     memberRoleLabel(AppLocalizations.of(context), role);
 
-Color staffStatusColor(WorkshopTokens ws, String status) => switch (status) {
+Color staffStatusTone(WorkshopTokens ws, String status) => switch (status) {
   'ACTIVE' => ws.success,
-  'PENDING' => ws.warning,
   'DISABLED' => ws.danger,
   _ => ws.muted,
 };
 
+/// Account state: dot + label, never colour alone.
+///
+/// [pill] draws the same content in the 24 px pill the jobs and templates
+/// modules use for lifecycle state; set it off inside dense rows where a plain
+/// dot + label reads faster.
 class StaffStatusDot extends StatelessWidget {
-  const StaffStatusDot({required this.status, super.key});
+  const StaffStatusDot({required this.status, this.pill = false, super.key});
 
   final String status;
+  final bool pill;
 
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
     final label = staffStatusLabel(context, status);
+    final color = staffStatusTone(ws, status);
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 7),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: pill
+                ? ws.eyebrow.copyWith(color: color)
+                : ws.meta.copyWith(color: ws.muted),
+          ),
+        ),
+      ],
+    );
+    if (!pill) {
+      return Semantics(label: label, child: content);
+    }
     return Semantics(
       label: label,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 7,
-            height: 7,
-            decoration: BoxDecoration(
-              color: staffStatusColor(ws, status),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 7),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: ws.meta.copyWith(color: ws.muted),
-            ),
-          ),
-        ],
+      child: Container(
+        height: 24,
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: switch (status) {
+            'ACTIVE' => ws.successSoft,
+            'DISABLED' => ws.dangerSoft,
+            _ => ws.canvas,
+          },
+          borderRadius: BorderRadius.circular(ws.touchTarget),
+        ),
+        child: content,
       ),
     );
   }
 }
 
-/// The single hairline surface every list and panel on this screen sits in.
-class StaffLedgerSurface extends StatelessWidget {
-  const StaffLedgerSurface({required this.child, super.key});
+/// The one bordered surface the roster and its states sit in.
+class StaffSurface extends StatelessWidget {
+  const StaffSurface({required this.child, this.padding, super.key});
 
   final Widget child;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
+    final inset = padding;
     return Container(
       width: double.infinity,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: ws.surface,
-        borderRadius: BorderRadius.circular(ws.cardRadius),
+        borderRadius: BorderRadius.circular(ws.cardLargeRadius),
         border: Border.all(color: ws.border),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: child,
+      child: inset == null ? child : Padding(padding: inset, child: child),
     );
   }
 }
 
-Widget staffHairline(BuildContext context) =>
-    Container(height: 1, width: double.infinity, color: context.ws.border);
+/// Round team mark used in the roster's empty state.
+class StaffGlyph extends StatelessWidget {
+  const StaffGlyph({this.size = 34, super.key});
 
-/// Hover, focus and press in one place so rows, tabs and the create action
-/// keep the same interaction feel.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: ws.accentSoft, shape: BoxShape.circle),
+        child: Icon(Icons.groups_outlined, size: size * 0.46, color: ws.accent),
+      ),
+    );
+  }
+}
+
+/// Hover, focus and press in one place so rows keep the same interaction feel.
 class StaffTappable extends StatefulWidget {
   const StaffTappable({
     required this.builder,
@@ -256,7 +279,7 @@ class _StaffTappableState extends State<StaffTappable> {
   }
 }
 
-/// Skeleton in the shape of the roster: header, tabs and six rows.
+/// Skeleton in the shape of the roster table: header band and six lines.
 class StaffRosterSkeleton extends StatefulWidget {
   const StaffRosterSkeleton({super.key});
 
@@ -290,119 +313,111 @@ class _StaffRosterSkeletonState extends State<StaffRosterSkeleton>
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final spacing = context.spacing;
     return FadeTransition(
       opacity: Tween<double>(
         begin: 0.42,
         end: 0.95,
       ).animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut)),
-      child: StaffLedgerSurface(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                spacing.lg,
-                spacing.lg,
-                spacing.lg,
-                0,
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final inline = constraints.maxWidth >= 520;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          children: [
-                            _bar(context, width: 168, height: 18),
-                            const SizedBox(width: 10),
-                            _bar(context, width: 26, height: 18),
-                          ],
+      child: StaffSurface(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 1000;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (wide)
+                  Container(
+                    color: ws.canvas,
+                    padding: const EdgeInsetsDirectional.fromSTEB(18, 9, 18, 9),
+                    child: Row(
+                      children: [
+                        Expanded(child: _lead(context, 54, 9)),
+                        _slot(context, 110, 34, 9),
+                        _slot(context, 140, 44, 9),
+                        _slot(context, 220, 58, 9),
+                        const SizedBox(width: 22),
+                      ],
+                    ),
+                  ),
+                for (var i = 0; i < 6; i++) ...[
+                  if (i > 0 || wide) Container(height: 1, color: ws.border),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      18,
+                      13,
+                      18,
+                      13,
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: ws.border,
+                            borderRadius: BorderRadius.circular(ws.chipRadius),
+                          ),
                         ),
-                      ),
-                      if (inline) ...[
-                        _bar(context, width: 240, height: 40),
-                        const SizedBox(width: 12),
-                        _bar(context, width: 112, height: 46),
-                      ] else
-                        _bar(context, width: 100, height: 46),
-                    ],
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                spacing.lg,
-                spacing.md,
-                spacing.lg,
-                spacing.sm,
-              ),
-              child: Row(
-                children: [
-                  for (var i = 0; i < 3; i++) ...[
-                    _bar(context, width: 72, height: 12),
-                    const SizedBox(width: 22),
-                  ],
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _bar(context, 190, 12),
+                              if (!wide) ...[
+                                const SizedBox(height: 6),
+                                _bar(context, 130, 9),
+                              ],
+                            ],
+                          ),
+                        ),
+                        if (wide) ...[
+                          _slot(context, 110, 70, 10),
+                          _slot(context, 140, 62, 22),
+                          _slot(context, 220, 140, 10),
+                        ] else ...[
+                          const SizedBox(width: 10),
+                          _bar(context, 72, 22),
+                        ],
+                        const SizedBox(width: 22),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            ),
-            staffHairline(context),
-            for (var i = 0; i < 6; i++) ...[
-              if (i > 0) staffHairline(context),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(
-                  22,
-                  spacing.md,
-                  spacing.md,
-                  spacing.md,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: ws.border,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: _bar(context, width: 180, height: 12),
-                      ),
-                    ),
-                    _bar(context, width: 82, height: 10),
-                    if (MediaQuery.sizeOf(context).width >= 900) ...[
-                      const SizedBox(width: 30),
-                      _bar(context, width: 64, height: 10),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _bar(
-    BuildContext context, {
-    required double width,
-    required double height,
-  }) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: context.ws.border,
-        borderRadius: BorderRadius.circular(height / 2),
-      ),
-    );
-  }
+  Widget _bar(BuildContext context, double width, double height) => Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
+      color: context.ws.border,
+      borderRadius: BorderRadius.circular(height / 2),
+    ),
+  );
+
+  Widget _lead(BuildContext context, double width, double height) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: _bar(context, width, height),
+  );
+
+  Widget _slot(
+    BuildContext context,
+    double slot,
+    double width,
+    double height,
+  ) => SizedBox(
+    width: slot,
+    child: Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: _bar(context, width, height),
+    ),
+  );
 }

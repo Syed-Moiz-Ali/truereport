@@ -124,6 +124,9 @@ void main() {
     );
     expect(find.text(l10n.jobsDocumentsReady), findsNothing);
     expect(find.text(l10n.jobsDocsGeneratedAfterPublish), findsOneWidget);
+    // Cleanup: the PDF option is a pill toggle, never a Material Switch.
+    expect(find.byType(Switch), findsNothing);
+    expect(find.text(l10n.commonYes), findsOneWidget);
     expect(
       tester
           .widget<JobPillButton>(find.byKey(const Key('jobs-publish-button')))

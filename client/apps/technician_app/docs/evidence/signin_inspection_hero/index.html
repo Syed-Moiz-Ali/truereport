@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Technician sign-in — inspection hero</title>
+<style>
+  body { margin: 0; padding: 32px 40px 64px; background: #f6f6f8; color: #1a1b1f;
+         font: 15px/1.55 "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.5px; }
+  .sub { color: #5e5d69; margin: 0 0 22px; max-width: 900px; }
+  h2 { font-size: 18px; margin: 30px 0 12px; }
+  .wide { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  .phones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .card { background: #fff; border: 1px solid #e3e1ef; border-radius: 12px; overflow: hidden; }
+  .card img { width: 100%; display: block; }
+  .phones img { max-height: 600px; width: auto; margin: 0 auto; }
+  .cap { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #6c7a71;
+         padding: 9px 12px; border-top: 1px solid #eeedf3; }
+  .note { background: #fff; border: 1px solid #e3e1ef; border-left: 3px solid #006c49;
+          border-radius: 12px; padding: 14px 18px; font-size: 13px; color: #3c4a42; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+  <h1>Technician sign-in — the inspection hero</h1>
+  <p class="sub">CR-6: the technician hero now shows a real inspection moment — a professional
+  technician holding the inspection report beside the vehicle, in a working service bay — instead of a
+  generic engine-repair shot. The dock, statement, language pill and pill button are unchanged.</p>
+  <div class="note">The hero image is bundled once in <code>packages/auth/assets/images/</code>
+  (<code>signin_hero_technician.jpg</code>, credited there). The technician dock overlaps it exactly as before.</div>
+
+  <h2>Desktop — 1440 / 1280</h2>
+  <div class="wide">
+    <div class="card"><img src="signin_1440_en.png" alt="technician 1440"><div class="cap">1440 · inspection report in hand</div></div>
+    <div class="card"><img src="signin_1280_en.png" alt="technician 1280"><div class="cap">1280 · same composition</div></div>
+  </div>
+
+  <h2>Phone — 390 EN / AR / 2FA</h2>
+  <div class="phones">
+    <div class="card"><img src="signin_390_en.png" alt="technician en"><div class="cap">EN</div></div>
+    <div class="card"><img src="signin_390_ar.png" alt="technician ar"><div class="cap">AR</div></div>
+    <div class="card"><img src="signin_390_challenge.png" alt="technician 2fa"><div class="cap">2FA</div></div>
+  </div>
+</body>
+</html>

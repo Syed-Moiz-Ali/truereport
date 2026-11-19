@@ -151,6 +151,8 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
       help: read(PlatformAdminKeys.loginNeedHelp),
       emailLabel: read(PlatformAdminKeys.loginEmailLabel),
       passwordLabel: read(PlatformAdminKeys.loginPasswordLabel),
+      emailHint: read(PlatformAdminKeys.loginEmailHint),
+      passwordHint: read(PlatformAdminKeys.loginPasswordHint),
       codeLabel: read(PlatformAdminKeys.loginCodeLabel),
       signInLabel: read(PlatformAdminKeys.loginSignInButton),
       verifyLabel: read(PlatformAdminKeys.loginVerifyButton),

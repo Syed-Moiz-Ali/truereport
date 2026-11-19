@@ -2,12 +2,42 @@
 
 Path:            **lite** · 2026-11-19
 Screen:          `/signin` — technician **dock** with a full-bleed photo hero;
-                 workshop/platform stay on the shared bay
-Direction:       **technician: the dock** (owner: "revert to previous, it was
-                 good") + a real workshop photo hero + field hints
-Canonical spec:  `docs/ui_brief.md` (dock) + `client/packages/auth/docs/shared_signin.md`
-                 (the bay, now workshop/platform only)
-Current phase:   **CR-3 complete**
+                 workshop/platform use the shared photo-bay
+Direction:       **all three: photo + stacked copy + rounded credential
+                 container** (technician dock; workshop/platform shared bay)
+Canonical spec:  `docs/ui_brief.md` (technician) +
+                 `client/packages/auth/docs/shared_signin.md` (workshop/platform)
+Current phase:   **CR-6 complete**
+
+## CR-6 (2026-11-19) — technician hero becomes an inspection moment
+
+- The technician hero photo is replaced with a professional technician holding
+  the printed inspection report beside the vehicle in a working bay (Pexels
+  `6870324`, Gustavo Fring; credited in
+  `packages/auth/assets/images/CREDITS.md`). It reads *inspection and report*,
+  not generic engine repair.
+- Layout, dock, statement, language pill, hints and pill primary are unchanged;
+  only `packages/auth/assets/images/signin_hero_technician.jpg` changed.
+- Fresh captures: `docs/evidence/signin_inspection_hero/index.html` (1440, 1280,
+  390 EN/AR/2FA).
+
+## CR-4 (2026-11-19) — workshop + platform adopt the technician treatment
+
+- `SignInBayView` rewritten: desktop **left photo / right credential panel**
+  (the panel overlaps the photo with a 28 px rounded inner edge and a soft
+  shadow); phones use the photo on top and a rounded sheet at the bottom. The
+  ink inspection surface is no longer mounted; the example visuals are stacked
+  on the photo.
+- The photo is the same bundled image, moved to
+  `packages/auth/assets/images/signin_hero.jpg` (credits there). The technician
+  dock now loads it from the auth package.
+- Portal copy (label/title/subtitle) is on the photo; the panel holds the
+  fields, error, primary and help. The language control sits on the photo in a
+  dark pill (workshop EN/AR toggle; platform manifest menu).
+- Platform passes its backend email/password hints.
+- Workshop's `widget_test` no longer expects the removed ink-surface chassis;
+  the example label + tick spine remain pinned.
+- Technician is unchanged visually (dock + hero + pill button).
 
 ## CR-3 (2026-11-19)
 
@@ -64,3 +94,27 @@ Current phase:   **CR-3 complete**
 
 Ship. A live-device spot-check remains optional (W-SIGNIN-WEB).
 
+
+## Measured result (CR-4)
+
+- technician: **264 pass / 18 fail** (same baseline).
+- workshop sign-in: **53 pass** (7 files).
+- platform login: **9 pass**; the full platform app keeps its one external preview-file failure.
+- analyzers: auth 0, technician 0, workshop 0, platform 0.
+- captures: platform docs/evidence/signin_platform/; shared index docs/evidence/signin_admin_shared/index.html.
+
+## Measured result (CR-5)
+
+- New admin image (premium garage, Unsplash 1492144534655) + example changed to the Camaro ZL1 to match it.
+- Shared bay: compact floating credential card (no empty full-height panel), hints on workshop + platform fields, pill primary.
+- technician: **264 pass / 18 fail** (same baseline).
+- platform login: **9 pass**; full platform app keeps its one external preview-file failure.
+- workshop: sign-in page analyzes 0; new smoke/capture 	est/signin_cr5_smoke_test.dart passes. The app-wide sign-in suite is blocked by 18 external staff-file compile errors from the concurrent wave.
+- captures: docs/evidence/signin_admin_shared/ (workshop + platform).
+
+## Measured result (CR-6)
+
+- technician suite: **264 pass / 18 fail** (same baseline; the two login goldens were regenerated for the new hero).
+- sign-in behaviour + gallery: **24 pass**; analyzer 0.
+- captures: `docs/evidence/signin/` (all states) and `docs/evidence/signin_inspection_hero/index.html`.
+- workshop/platform are untouched by this change (they use `signin_hero_admin.jpg`).

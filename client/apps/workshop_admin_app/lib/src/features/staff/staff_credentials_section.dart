@@ -3,25 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_dossier.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_form_rules.dart';
+import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 
-/// `02 Reset password` — set a temporary password for one member.
+/// The password card on the member page — set a temporary password.
 ///
 /// Writes through the existing `resetTechnicianPassword` call. The password
 /// lives in local controllers only: never logged, never echoed in a message,
-/// cleared on success and when the page is disposed.
+/// cleared on success and when the page is disposed. [highlighted] only tints
+/// the card border for a moment when the page's primary action sends the admin
+/// here; it never changes behaviour.
 class StaffCredentialsSection extends StatefulWidget {
   const StaffCredentialsSection({
-    required this.title,
     required this.onSubmit,
+    this.highlighted = false,
     super.key,
   });
-
-  /// Section heading, e.g. `02  RESET PASSWORD`.
-  final String title;
 
   /// Performs the reset. Returning normally means success; throwing means the
   /// caller already reported the failure.
   final Future<void> Function(String password) onSubmit;
+  final bool highlighted;
 
   @override
   State<StaffCredentialsSection> createState() =>
@@ -48,12 +49,10 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
 
   @override
   void dispose() {
-    _password
-      ..clear()
-      ..dispose();
-    _confirm
-      ..clear()
-      ..dispose();
+    // No clear() here: notifying listeners during teardown asserts inside the
+    // still-unmounting TextFormFields. Disposing drops the values anyway.
+    _password.dispose();
+    _confirm.dispose();
     _confirmFocus.dispose();
     super.dispose();
   }
@@ -99,93 +98,111 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        StaffSectionHead(number: '02', title: widget.title),
-        const SizedBox(height: 16),
-        Form(
-          key: _formKey,
-          autovalidateMode: _submitted
-              ? AutovalidateMode.onUserInteraction
-              : AutovalidateMode.disabled,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 620;
-              final password = WorkshopTextField(
-                controller: _password,
-                label: l10n.temporaryPassword,
-                obscureText: _obscure,
-                keyboardType: TextInputType.visiblePassword,
-                textInputAction: TextInputAction.next,
-                validator: (value) => staffPasswordError(l10n, value),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    size: 18,
+        WorkshopSectionHeader(title: l10n.passwordLabel),
+        SizedBox(height: spacing.sm),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: ws.cardPaddingFor(MediaQuery.sizeOf(context).width),
+          decoration: BoxDecoration(
+            color: ws.surface,
+            borderRadius: BorderRadius.circular(ws.cardLargeRadius),
+            border: Border.all(
+              color: widget.highlighted ? ws.accent : ws.border,
+              width: widget.highlighted ? 2 : 1,
+            ),
+          ),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: _submitted
+                ? AutovalidateMode.onUserInteraction
+                : AutovalidateMode.disabled,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 620;
+                final password = WorkshopTextField(
+                  key: const Key('staff-reset-password'),
+                  controller: _password,
+                  label: l10n.temporaryPassword,
+                  hint: l10n.temporaryPassword,
+                  obscureText: _obscure,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.next,
+                  validator: (value) => staffPasswordError(l10n, value),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 18,
+                    ),
+                    tooltip: _obscure ? l10n.showPassword : l10n.hidePassword,
+                    onPressed: () => setState(() => _obscure = !_obscure),
                   ),
-                  tooltip: _obscure ? l10n.showPassword : l10n.hidePassword,
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                ),
-              );
-              final confirm = WorkshopTextField(
-                key: const Key('staff-confirm-password'),
-                controller: _confirm,
-                label: l10n.confirmPasswordLabel,
-                hint: l10n.confirmPasswordHint,
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                validator: (value) =>
-                    staffConfirmError(l10n, _password.text, value),
-              );
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (wide)
+                );
+                final confirm = WorkshopTextField(
+                  key: const Key('staff-confirm-password'),
+                  controller: _confirm,
+                  label: l10n.confirmPasswordLabel,
+                  hint: l10n.confirmPasswordHint,
+                  obscureText: true,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
+                  validator: (value) =>
+                      staffConfirmError(l10n, _password.text, value),
+                );
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (wide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: password),
+                          SizedBox(width: spacing.lg),
+                          Expanded(child: confirm),
+                        ],
+                      )
+                    else ...[
+                      password,
+                      SizedBox(height: spacing.md),
+                      confirm,
+                    ],
+                    const SizedBox(height: 10),
+                    StaffPasswordMeter(password: _password.text),
+                    SizedBox(height: spacing.lg),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Expanded(child: password),
-                        const SizedBox(width: 16),
-                        Expanded(child: confirm),
-                      ],
-                    )
-                  else ...[
-                    password,
-                    const SizedBox(height: 14),
-                    confirm,
-                  ],
-                  const SizedBox(height: 10),
-                  StaffPasswordMeter(password: _password.text),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (MediaQuery.sizeOf(context).width < 520)
-                        Expanded(
-                          child: WorkshopButton(
+                        if (constraints.maxWidth < 320)
+                          Expanded(
+                            child: TemplatePillButton(
+                              label: l10n.save,
+                              loading: _busy,
+                              expand: true,
+                              onPressed: _canSubmit ? _submit : null,
+                            ),
+                          )
+                        else
+                          TemplatePillButton(
                             label: l10n.save,
-                            isLoading: _busy,
+                            loading: _busy,
                             onPressed: _canSubmit ? _submit : null,
                           ),
-                        )
-                      else
-                        WorkshopButton(
-                          label: l10n.save,
-                          isLoading: _busy,
-                          onPressed: _canSubmit ? _submit : null,
-                        ),
-                    ],
-                  ),
-                ],
-              );
-            },
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ],

@@ -2553,6 +2553,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get technicianJobSearch => 'Search jobs';
 
   @override
+  String get technicianJobSearchHint => 'Plate, customer or reference';
+
+  @override
+  String get technicianNextUp => 'Next up';
+
+  @override
+  String get technicianNoJobsThisDay => 'No jobs on this day';
+
+  @override
+  String get technicianPickAnotherDay =>
+      'Pick another day or clear your filters.';
+
+  @override
+  String get technicianFilter => 'Filter';
+
+  @override
+  String get technicianThisWeek => 'This week';
+
+  @override
   String get technicianAllStatuses => 'All statuses';
 
   @override
@@ -3521,6 +3540,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInHelp => 'Contact your platform administrator for access.';
+
+  @override
+  String get signinEmailHint => 'name@workshop.com';
+
+  @override
+  String get signinPasswordHint => 'Enter your password';
 
   @override
   String get twoFactorRequired =>

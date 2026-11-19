@@ -1,24 +1,22 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:l10n/l10n.dart';
 
 import 'signin_copy.dart';
+import 'signin_example.dart';
 import 'signin_form.dart';
-import 'signin_identity_band.dart';
-import 'signin_inspection_surface.dart';
 import 'signin_language_toggle.dart';
 import 'signin_mark.dart';
+import 'signin_primitives.dart';
 
-/// The shared sign-in composition — "the bay".
+/// The shared admin sign-in — a full-bleed workshop photo with the portal copy
+/// and example visuals stacked on it, and a credential panel that overlaps and
+/// blends into the photo.
 ///
-/// A flush-left door on the paper canvas and a full-bleed inspection surface
-/// carrying one labelled example job, its vehicle drawn top-down, and the
-/// checklist as 24 ticks. Below 900 px (or below 1100 px at >= 1.5x text) the
-/// surface collapses to a 132 px identity band so the first field stays above
-/// the fold.
-///
-/// Behaviour (validation, submit, failure mapping, challenge, locale) stays in
-/// each app's page. This widget owns composition only. It is used by the
-/// workshop, technician and platform sign-in pages so the three cannot drift.
+/// Desktop: photo on the left, rounded credential panel on the right, the panel
+/// overlapping the photo by 24 px. Phone: photo on top, rounded credential sheet
+/// at the bottom. Below 900 px (or below 1100 px at 1.5× text) the layout
+/// stacks; at 2× the whole page scrolls so the form stays reachable.
 class SignInBayView extends StatelessWidget {
   const SignInBayView({
     required this.copy,
@@ -56,169 +54,367 @@ class SignInBayView extends StatelessWidget {
   final FormFieldValidator<String> validatePassword;
   final FormFieldValidator<String> validateCode;
   final VoidCallback onToggleLanguage;
-
-  /// Challenge state: the password cell is replaced by the code cell and the
-  /// primary label becomes "Verify".
   final bool challenge;
-
-  /// The account cell stays visible but read-only during a challenge.
   final bool emailEnabled;
-
-  /// `null` lets the view decide from the split (email autofocus on desktop).
   final bool? autofocusEmail;
-
-  /// Platform Admin needs its own multi-language selector. It is rendered in
-  /// the same two places as the default EN/AR toggle.
   final Widget Function(bool onAccent)? languageControl;
 
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final split = MediaQuery.sizeOf(context).width >= 800 && textScale < 1.4;
 
-    return Scaffold(
-      backgroundColor: ws.canvas,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-            final splitAt = textScale >= 1.5 ? 1100.0 : 900.0;
-            final split = constraints.maxWidth >= splitAt;
+    final form = AutofillGroup(
+      child: SigninForm(
+        formKey: formKey,
+        copy: copy,
+        emailController: emailController,
+        passwordController: passwordController,
+        codeController: codeController,
+        challenge: challenge,
+        emailEnabled: emailEnabled,
+        obscurePassword: obscurePassword,
+        submitting: submitting,
+        errorText: errorText,
+        onToggleObscure: onToggleObscure,
+        onSubmit: onSubmit,
+        validateEmail: validateEmail,
+        validatePassword: validatePassword,
+        validateCode: validateCode,
+        autofocusEmail: autofocusEmail ?? split,
+      ),
+    );
 
-            final form = AutofillGroup(
-              child: SigninForm(
-                formKey: formKey,
-                copy: copy,
-                emailController: emailController,
-                passwordController: passwordController,
-                codeController: codeController,
-                challenge: challenge,
-                emailEnabled: emailEnabled,
-                obscurePassword: obscurePassword,
-                submitting: submitting,
-                errorText: errorText,
-                onToggleObscure: onToggleObscure,
-                onSubmit: onSubmit,
-                validateEmail: validateEmail,
-                validatePassword: validatePassword,
-                validateCode: validateCode,
-                autofocusEmail: autofocusEmail ?? split,
-              ),
-            );
+    if (!split) {
+      final pinned =
+          MediaQuery.sizeOf(context).height >= 640 && textScale < 1.8;
+      final photo = _BayPhoto(
+        copy: copy,
+        trailing: _language(context, onImage: true),
+        horizontalPadding: spacing.lg,
+        rightPadding: 0,
+        compact: true,
+      );
+      final sheet = _formSheet(
+        context,
+        form: form,
+        radius: const BorderRadius.vertical(top: Radius.circular(28)),
+        shadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 24,
+            offset: const Offset(0, -8),
+          ),
+        ],
+        horizontalPadding: spacing.lg,
+        topPadding: spacing.xl,
+      );
 
-            final settle = TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: 1),
-              duration: context.motionDuration(
-                const Duration(milliseconds: 180),
-              ),
-              curve: Curves.easeOutCubic,
-              builder: (context, t, child) => Opacity(
-                opacity: t,
-                child: Transform.translate(
-                  offset: Offset(0, 8 * (1 - t)),
-                  child: child,
-                ),
-              ),
-              child: form,
-            );
-
-            Widget language(bool onAccent) =>
-                languageControl?.call(onAccent) ??
-                SigninLanguageToggle(
-                  onAccent: onAccent,
-                  onPressed: onToggleLanguage,
-                );
-
-            if (!split) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SigninIdentityBand(
-                    portalLabel: copy.portalLabel,
-                    appName: copy.appName,
-                    languageControl: language,
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        spacing.lg,
-                        spacing.xl,
-                        spacing.lg,
-                        spacing.lg,
-                      ),
-                      child: Align(
-                        alignment: AlignmentDirectional.topCenter,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 520),
-                          child: settle,
-                        ),
-                      ),
+      return Scaffold(
+        backgroundColor: ws.surface,
+        body: SafeArea(
+          child: pinned
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: photo),
+                    Transform.translate(
+                      offset: const Offset(0, -20),
+                      child: sheet,
                     ),
-                  ),
-                ],
-              );
-            }
-
-            final gutter = constraints.maxWidth >= 1200
-                ? spacing.massive + spacing.xl
-                : spacing.massive;
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 46,
-                  child: Stack(
+                  ],
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                          gutter,
-                          spacing.xxl,
-                          spacing.massive,
-                          spacing.xxl,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: SigninMark(
-                                      onAccent: false,
-                                      portalLabel: copy.portalLabel,
-                                      appName: copy.appName,
-                                      showPortalLabel: false,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                ],
-                              ),
-                              const SizedBox(height: 96),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 372,
-                                ),
-                                child: settle,
-                              ),
-                            ],
-                          ),
-                        ),
+                      SizedBox(
+                        height: textScale >= 1.8 ? 540 : 400,
+                        child: photo,
                       ),
-                      PositionedDirectional(
-                        top: spacing.xxl,
-                        end: spacing.lg,
-                        child: language(false),
+                      Transform.translate(
+                        offset: const Offset(0, -20),
+                        child: sheet,
                       ),
                     ],
                   ),
                 ),
-                const Expanded(flex: 54, child: SigninInspectionSurface()),
-              ],
-            );
-          },
         ),
+      );
+    }
+
+    final cardWidth = MediaQuery.sizeOf(context).width >= 1200 ? 480.0 : 420.0;
+    return Scaffold(
+      backgroundColor: ws.surface,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          _BayPhoto(
+            copy: copy,
+            trailing: _language(context, onImage: true),
+            horizontalPadding: spacing.massive,
+            rightPadding: cardWidth + 64,
+            compact: false,
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(end: 32),
+              child: SizedBox(
+                width: cardWidth,
+                child: _formSheet(
+                  context,
+                  form: form,
+                  radius: BorderRadius.circular(28),
+                  shadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 36,
+                      offset: const Offset(0, 16),
+                    ),
+                  ],
+                  horizontalPadding: 44,
+                  topPadding: 36,
+                  centered: false,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _language(BuildContext context, {required bool onImage}) {
+    final control =
+        languageControl?.call(true) ??
+        SigninLanguageToggle(onAccent: true, onPressed: onToggleLanguage);
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.34),
+        borderRadius: BorderRadius.circular(Fx.pillRadius),
+      ),
+      child: control,
+    );
+  }
+
+  Widget _formSheet(
+    BuildContext context, {
+    required Widget form,
+    required BorderRadiusGeometry radius,
+    required List<BoxShadow> shadow,
+    required double horizontalPadding,
+    required double topPadding,
+    bool centered = false,
+  }) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final body = Padding(
+      padding: EdgeInsetsDirectional.only(
+        top: topPadding,
+        bottom: spacing.xl,
+        start: horizontalPadding,
+        end: horizontalPadding,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: form,
+      ),
+    );
+    return Container(
+      decoration: BoxDecoration(
+        color: ws.surface,
+        borderRadius: radius,
+        boxShadow: shadow,
+      ),
+      child: centered
+          ? Center(child: SingleChildScrollView(child: body))
+          : body,
+    );
+  }
+}
+
+/// The photo side: the workshop image, the brand and language on top, the
+/// portal copy and the labelled example visuals stacked at the bottom.
+class _BayPhoto extends StatelessWidget {
+  const _BayPhoto({
+    required this.copy,
+    required this.trailing,
+    required this.horizontalPadding,
+    required this.rightPadding,
+    required this.compact,
+  });
+
+  final SignInBayCopy copy;
+  final Widget trailing;
+  final double horizontalPadding;
+  final double rightPadding;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final l10n = AppLocalizations.of(context);
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final progress = l10n.signInExampleProgress(
+      exampleDone,
+      exampleTotal,
+      examplePercent,
+    );
+    final shadow = [
+      Shadow(
+        color: Colors.black.withValues(alpha: 0.35),
+        blurRadius: 18,
+        offset: const Offset(0, 2),
+      ),
+    ];
+
+    return ClipRect(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/signin_hero_admin.jpg',
+            package: 'auth',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.medium,
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x99000000),
+                  Color(0x00000000),
+                  Color(0x00000000),
+                  Color(0xB3000000),
+                ],
+                stops: [0, 0.28, 0.52, 1],
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(
+              horizontalPadding,
+              spacing.lg,
+              rightPadding == 0 ? horizontalPadding : rightPadding,
+              spacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: SigninMark(
+                          onAccent: true,
+                          portalLabel: copy.portalLabel,
+                          appName: copy.appName,
+                          showPortalLabel: false,
+                        ),
+                      ),
+                    ),
+                    trailing,
+                  ],
+                ),
+                const Spacer(),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: compact ? 420 : 620),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        copy.portalLabel.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: ws.eyebrow.copyWith(
+                          color: ws.onAccent.withValues(alpha: 0.78),
+                          letterSpacing: 1.4,
+                        ),
+                      ),
+                      SizedBox(height: spacing.sm),
+                      Text(
+                        copy.title,
+                        style: ws.heroNumber.copyWith(
+                          color: ws.onAccent,
+                          letterSpacing: isArabic ? 0 : -1.2,
+                          shadows: shadow,
+                        ),
+                      ),
+                      SizedBox(height: spacing.xs),
+                      Text(
+                        copy.subtitle,
+                        style: ws.body.copyWith(
+                          color: ws.onAccent.withValues(alpha: 0.84),
+                          shadows: shadow,
+                        ),
+                      ),
+                      SizedBox(height: spacing.xl),
+                      Text(
+                        l10n.signInExampleLabel.toUpperCase(),
+                        style: ws.eyebrow.copyWith(
+                          color: ws.onAccent.withValues(alpha: 0.72),
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: spacing.xs),
+                      Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(
+                          exampleVehicle,
+                          style: ws.cardTitle.copyWith(color: ws.onAccent),
+                        ),
+                      ),
+                      SizedBox(height: spacing.xs),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.signInExampleChecklist,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: ws.meta.copyWith(
+                                color: ws.onAccent.withValues(alpha: 0.72),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            progress,
+                            maxLines: 1,
+                            style: ws.meta.copyWith(
+                              color: ws.onAccent,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: spacing.sm),
+                      WorkshopTickSpine(
+                        done: exampleDone,
+                        total: exampleTotal,
+                        fillColor: ws.onAccent.withValues(alpha: 0.85),
+                        trackColor: ws.onAccent.withValues(alpha: 0.18),
+                        animate: false,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

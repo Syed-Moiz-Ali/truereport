@@ -943,6 +943,12 @@
   "commonNotAvailable": "Not available",
   "jobsOpenJobBoard": "Open job board",
   "technicianJobSearch": "Search jobs",
+  "technicianJobSearchHint": "Plate, customer or reference",
+  "technicianNextUp": "Next up",
+  "technicianNoJobsThisDay": "No jobs on this day",
+  "technicianPickAnotherDay": "Pick another day or clear your filters.",
+  "technicianFilter": "Filter",
+  "technicianThisWeek": "This week",
   "technicianAllStatuses": "All statuses",
   "technicianRefresh": "Refresh",
   "technicianNextPage": "Next",
@@ -1368,6 +1374,8 @@
   "signInPortalLabel": "Workshop Admin",
   "signinCheckFields": "Check the highlighted fields and try again.",
   "signInHelp": "Contact your platform administrator for access.",
+  "signinEmailHint": "name@workshop.com",
+  "signinPasswordHint": "Enter your password",
   "twoFactorRequired": "Two-factor authentication is required for this account. Contact your platform administrator.",
   "@twoFactorRequired": {
     "description": "Shown when the login API answers requiresTwoFactor. The admin app has no TOTP input by design."

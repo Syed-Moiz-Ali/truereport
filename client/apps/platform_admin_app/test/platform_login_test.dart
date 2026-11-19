@@ -201,7 +201,7 @@ void main() {
     expect(find.text('Sign In to Portal'), findsOneWidget);
     // The shared bay's right-side inspection visual.
     expect(find.text('EXAMPLE JOB'), findsOneWidget);
-    expect(find.text('2023 Porsche 911 GT3'), findsOneWidget);
+    expect(find.text('2023 Chevrolet Camaro ZL1'), findsOneWidget);
 
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
     expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
@@ -365,3 +365,4 @@ void main() {
     });
   });
 }
+

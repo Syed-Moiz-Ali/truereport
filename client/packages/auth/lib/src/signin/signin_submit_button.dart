@@ -84,7 +84,7 @@ class _SigninSubmitButtonState extends State<SigninSubmitButton> {
         // by 1 px top and bottom; the fill is the tap target.
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ws.controlRadius),
+          borderRadius: BorderRadius.circular(ws.controlHeight / 2),
         ),
         padding: EdgeInsets.zero,
         textStyle: ws.bodyStrong,
@@ -108,7 +108,7 @@ class _SigninSubmitButtonState extends State<SigninSubmitButton> {
 
     final ring = DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ws.controlRadius + 2),
+        borderRadius: BorderRadius.circular(ws.controlHeight / 2 + 2),
         // Always drawn, so the focused state is a colour change, not a resize.
         border: Border.all(color: _focused ? ws.focus : ws.accent, width: 2),
       ),
@@ -127,3 +127,4 @@ class _SigninSubmitButtonState extends State<SigninSubmitButton> {
     );
   }
 }
+

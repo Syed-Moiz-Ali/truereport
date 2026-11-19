@@ -1,4 +1,5 @@
 import 'package:design_system/design_system.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:flutter/material.dart';
 
 /// A compact single-choice group built from workshop filter chips.
@@ -36,11 +37,11 @@ class WizardChoiceGroup extends StatelessWidget {
         Text(label, style: ws.bodyStrong),
         SizedBox(height: spacing.xs),
         Wrap(
-          spacing: spacing.sm,
-          runSpacing: spacing.xs,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             for (final value in values)
-              WorkshopFilterChip(
+              JobPillChip(
                 key: Key('$keyPrefix-${value.toLowerCase()}'),
                 label: labelFor?.call(value) ?? humanizeChoice(value),
                 selected: selected == value,

@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
+import 'package:workshop_admin_app/src/features/templates/template_create_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_route_page.dart';
 import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 
-/// Template index — one surface, hairline rows, status pills.
+/// Template index â€” one surface, hairline rows, status pills.
 ///
 /// Reads `templatesProvider` only (name, service, vehicle, status, version,
 /// item count, updatedAt). Search and status filtering happen client-side over
@@ -223,7 +224,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
       if ((template.vehicleType ?? '').isNotEmpty) template.vehicleType!,
       l10n.templateItemsCount(template.itemCount),
       if (template.currentVersion != null) 'v${template.currentVersion}',
-    ].join(' · ');
+    ].join(' Â· ');
     return _RowHover(
       onTap: () => _open(template.id),
       child: Container(
@@ -264,7 +265,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                             template.serviceType,
                             if ((template.vehicleType ?? '').isNotEmpty)
                               template.vehicleType!,
-                          ].join(' · '),
+                          ].join(' Â· '),
                     maxLines: wide ? 1 : 2,
                     overflow: wide ? TextOverflow.ellipsis : null,
                     style: ws.meta.copyWith(color: ws.muted),
@@ -281,7 +282,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                               l10n.templateItemsCount(template.itemCount),
                               if (template.currentVersion != null)
                                 'v${template.currentVersion}',
-                            ].join(' · '),
+                            ].join(' Â· '),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: ws.meta.copyWith(color: ws.muted),
@@ -320,9 +321,10 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
   }
 
   Future<void> _create() async {
-    final created = await showDialog<TemplateDetail>(
-      context: context,
-      builder: (_) => const _CreateTemplateDialog(),
+    final created = await Navigator.of(context).push<TemplateDetail>(
+      MaterialPageRoute<TemplateDetail>(
+        builder: (_) => const TemplateCreatePage(),
+      ),
     );
     if (created == null || !mounted) {
       return;
@@ -330,7 +332,10 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
     ref.invalidate(templatesProvider);
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TemplateBuilderPage(templateId: created.id),
+        builder: (_) => TemplateBuilderPage(
+          templateId: created.id,
+          autoDraft: true,
+        ),
       ),
     );
     ref.invalidate(templatesProvider);
@@ -582,127 +587,3 @@ class _IndexSkeletonState extends State<_IndexSkeleton>
   }
 }
 
-/// Create-template dialog. Same payload as before: trimmed name, description,
-/// service type and vehicle type, then `createTemplate`.
-class _CreateTemplateDialog extends ConsumerStatefulWidget {
-  const _CreateTemplateDialog();
-
-  @override
-  ConsumerState<_CreateTemplateDialog> createState() =>
-      _CreateTemplateDialogState();
-}
-
-class _CreateTemplateDialogState extends ConsumerState<_CreateTemplateDialog> {
-  final _name = TextEditingController();
-  final _serviceType = TextEditingController(text: 'FULL');
-  final _vehicleType = TextEditingController(text: 'CAR');
-  final _formKey = GlobalKey<FormState>();
-  bool _busy = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _serviceType.dispose();
-    _vehicleType.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context);
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return;
-    }
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final template = await ref
-          .read(adminApiProvider)
-          .createTemplate(
-            name: _name.text.trim(),
-            description: '',
-            serviceType: _serviceType.text.trim(),
-            vehicleType: _vehicleType.text.trim(),
-          );
-      if (mounted) {
-        Navigator.of(context).pop(template);
-      }
-    } on Object {
-      if (mounted) {
-        setState(() {
-          _busy = false;
-          _error = l10n.actionFailed;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final ws = context.ws;
-    return WorkshopDialog(
-      title: l10n.newTemplate,
-      subtitle: l10n.templatesSubtitle,
-      closeSemanticLabel: l10n.close,
-      content: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            WorkshopTextField(
-              key: const Key('template-create-name'),
-              controller: _name,
-              label: l10n.templateName,
-              hint: l10n.templateName,
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.requiredField
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: WorkshopTextField(
-                    controller: _serviceType,
-                    label: l10n.serviceType,
-                    hint: l10n.serviceType,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: WorkshopTextField(
-                    controller: _vehicleType,
-                    label: l10n.vehicleType,
-                    hint: l10n.vehicleType,
-                  ),
-                ),
-              ],
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 10),
-              Text(_error!, style: ws.meta.copyWith(color: ws.danger)),
-            ],
-          ],
-        ),
-      ),
-      actions: [
-        TemplatePillButton(
-          label: l10n.cancel,
-          variant: TemplatePillVariant.ghost,
-          onPressed: _busy ? null : () => Navigator.of(context).pop(),
-        ),
-        TemplatePillButton(
-          label: l10n.create,
-          loading: _busy,
-          onPressed: _busy ? null : _submit,
-        ),
-      ],
-    );
-  }
-}

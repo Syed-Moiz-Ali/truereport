@@ -9,7 +9,7 @@
 /// bidi never reorders a plate or a model name.
 library;
 
-const String exampleVehicle = '2023 Porsche 911 GT3';
+const String exampleVehicle = '2023 Chevrolet Camaro ZL1';
 const String examplePlate = 'DXB 48291';
 const String exampleCustomer = 'Rashid Al Mansoori';
 const String exampleTechnician = 'Karim Ahmed';
@@ -18,3 +18,4 @@ const int exampleDone = 18;
 const int exampleTotal = 24;
 const int examplePercent = 75;
 const int exampleStartedMinutes = 45;
+

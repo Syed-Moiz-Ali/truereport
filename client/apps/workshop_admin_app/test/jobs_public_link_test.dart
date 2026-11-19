@@ -113,9 +113,6 @@ void main() {
     tester,
   ) async {
     await _pump(tester, api: _RevokedApi());
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(PublicLinkPage)),
-    );
 
     expect(find.text('REVOKED'), findsOneWidget);
     expect(find.text('Customer asked to withdraw the report'), findsOneWidget);

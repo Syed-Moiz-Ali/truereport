@@ -1,0 +1,14 @@
+- generic [ref=f16e5] [cursor=pointer]:
+  - generic "Dialog":
+    - button "Dismiss" [ref=f16e6]
+    - generic:
+      - group:
+        - img "Technician A" [ref=f16e7]
+        - generic [ref=f16e8]: Technician A
+        - generic [ref=f16e9]: tech.a@truereport.test
+        - heading "Language" [level=2] [ref=f16e10]
+        - generic:
+          - button "English" [ref=f16e11]
+          - button "العربية" [active] [ref=f16e12]
+        - button "Sign out":
+          - button "Sign out" [ref=f16e13]

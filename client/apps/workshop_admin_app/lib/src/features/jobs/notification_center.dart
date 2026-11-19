@@ -168,83 +168,11 @@ class _NotificationRow extends StatelessWidget {
     final ws = context.ws;
     final unread = !item.isRead;
     final payload = item.payloadJson ?? '';
-    return Container(
-      color: unread ? ws.accentSoft.withValues(alpha: 0.4) : Colors.transparent,
-      padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.only(top: 6),
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: unread ? ws.accent : ws.border,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      item.type,
-                      textDirection: TextDirection.ltr,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: ws.bodyStrong.copyWith(color: ws.ink),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formatInstant(context, item.createdAt),
-                      style: ws.meta.copyWith(color: ws.muted),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              WorkshopStatusBadge(
-                label: unread
-                    ? l10n.jobsNotificationsUnread
-                    : l10n.jobsNotificationsRead,
-                tone: unread
-                    ? WorkshopStatusTone.warning
-                    : WorkshopStatusTone.neutral,
-              ),
-            ],
-          ),
-          if (payload.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: ws.canvas,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: SelectableText(
-                payload,
-                textDirection: TextDirection.ltr,
-                maxLines: 3,
-                style: ws.meta.copyWith(color: ws.muted),
-              ),
-            ),
-          ],
-          if (unread) ...[
-            const SizedBox(height: 10),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: JobPillButton(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 680;
+        final action = unread
+            ? JobPillButton(
                 key: Key('jobs-mark-read-${item.id}'),
                 label: l10n.jobsNotificationsMarkRead,
                 icon: Icons.done_all,
@@ -252,11 +180,91 @@ class _NotificationRow extends StatelessWidget {
                 compact: true,
                 loading: marking,
                 onPressed: marking ? null : onMarkRead,
+              )
+            : null;
+        return Container(
+          color: unread
+              ? ws.accentSoft.withValues(alpha: 0.4)
+              : Colors.transparent,
+          padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(top: 6),
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: unread ? ws.accent : ws.border,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item.type,
+                          textDirection: TextDirection.ltr,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: ws.bodyStrong.copyWith(color: ws.ink),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatInstant(context, item.createdAt),
+                          style: ws.meta.copyWith(color: ws.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  WorkshopStatusBadge(
+                    label: unread
+                        ? l10n.jobsNotificationsUnread
+                        : l10n.jobsNotificationsRead,
+                    tone: unread
+                        ? WorkshopStatusTone.warning
+                        : WorkshopStatusTone.neutral,
+                  ),
+                  if (wide && action != null) ...[
+                    const SizedBox(width: 10),
+                    action,
+                  ],
+                ],
               ),
-            ),
-          ],
-        ],
-      ),
+              if (payload.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 17),
+                  child: SelectionArea(
+                    child: Text(
+                      payload,
+                      textDirection: TextDirection.ltr,
+                      style: ws.meta.copyWith(color: ws.muted, height: 1.45),
+                    ),
+                  ),
+                ),
+              ],
+              if (!wide && action != null) ...[
+                const SizedBox(height: 10),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: action,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

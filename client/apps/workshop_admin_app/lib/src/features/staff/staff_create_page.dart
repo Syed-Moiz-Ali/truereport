@@ -1,19 +1,19 @@
-import 'package:core/core.dart';
+﻿import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
-import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_dossier.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_form_rules.dart';
+import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 
-/// Create a technician account — a full page, not a sheet.
+/// Create a technician account — a full page, not a sheet, and not a wizard:
+/// there are only three fields, so the page is one screen with two cards.
 ///
-/// Same contract as the sheet it replaces: full name, email and a temporary
-/// password (12–128) via `createTechnician`, with `EMAIL_EXISTS` surfaced on
-/// the email field. Added here: a confirmation field and a live strength
-/// read-out, so the admin sees what they typed before the account exists.
+/// Same contract as before: full name, email and a temporary password (12–128)
+/// via `createTechnician`, with `EMAIL_EXISTS` surfaced on the email field,
+/// plus the confirmation field and the live strength read-out.
 class StaffCreatePage extends ConsumerStatefulWidget {
   const StaffCreatePage({super.key});
 
@@ -46,18 +46,13 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
 
   @override
   void dispose() {
-    _name
-      ..clear()
-      ..dispose();
-    _email
-      ..clear()
-      ..dispose();
-    _password
-      ..clear()
-      ..dispose();
-    _confirm
-      ..clear()
-      ..dispose();
+    // Dispose without clearing: notifying listeners while the form is being
+    // torn down asserts inside TextFormField. The values go with the
+    // controllers, so nothing is retained.
+    _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    _confirm.dispose();
     _nameFocus.dispose();
     _emailFocus.dispose();
     super.dispose();
@@ -130,6 +125,8 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
+    final spacing = context.spacing;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       backgroundColor: ws.canvas,
       body: SafeArea(
@@ -137,10 +134,11 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            StaffPageBar(title: l10n.createTechnicianTitle),
+            // The bar names the section; the page heading below owns the task.
+            StaffPageBar(title: l10n.workshopStaffTitle),
             Expanded(
               child: SingleChildScrollView(
-                padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
+                padding: ws.pagePadding(width),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 760),
@@ -151,48 +149,53 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           Text(
                             l10n.createTechnicianTitle,
-                            style: ws.dossierDisplay,
+                            style: ws.pageTitle.copyWith(
+                              fontSize: width < 520 ? 26 : 30,
+                              letterSpacing: -0.6,
+                              color: ws.ink,
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             l10n.createTechnicianSubtitle,
-                            style: ws.body.copyWith(color: ws.muted),
+                            style: ws.meta.copyWith(color: ws.muted),
                           ),
-                          const SizedBox(height: 28),
-                          staffHairline(context),
-                          const SizedBox(height: 24),
-                          StaffSectionHead(number: '01', title: l10n.details),
-                          const SizedBox(height: 16),
-                          _fields(context, l10n),
-                          const SizedBox(height: 28),
-                          staffHairline(context),
-                          const SizedBox(height: 24),
-                          StaffSectionHead(
-                            number: '02',
-                            title: l10n.temporaryPassword,
+                          const SizedBox(height: 18),
+                          WorkshopSectionHeader(title: l10n.details),
+                          SizedBox(height: spacing.sm),
+                          WorkshopCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _fields(context, l10n),
+                                SizedBox(height: spacing.lg),
+                                Row(
+                                  children: [
+                                    Text(
+                                      l10n.role,
+                                      style: ws.meta.copyWith(color: ws.muted),
+                                    ),
+                                    SizedBox(width: spacing.lg),
+                                    Text(
+                                      l10n.roleTechnician,
+                                      style: ws.bodyStrong.copyWith(
+                                        color: ws.ink,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          _passwords(context, l10n),
+                          SizedBox(height: spacing.xl),
+                          WorkshopSectionHeader(title: l10n.passwordLabel),
+                          SizedBox(height: spacing.sm),
+                          WorkshopCard(child: _passwords(context, l10n)),
                           const SizedBox(height: 28),
-                          staffHairline(context),
-                          const SizedBox(height: 20),
-                          Row(
-                            children: [
-                              Text(
-                                l10n.role,
-                                style: ws.meta.copyWith(color: ws.muted),
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                l10n.roleTechnician,
-                                style: ws.bodyStrong.copyWith(color: ws.ink),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 32),
                         ],
                       ),
                     ),
@@ -221,7 +224,7 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
       key: const Key('staff-create-email'),
       controller: _email,
       label: l10n.emailLabel,
-      hint: 'name@workshop.com',
+      hint: l10n.technicianEmailHint,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.email],
@@ -239,7 +242,7 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: name),
-            const SizedBox(width: 16),
+            SizedBox(width: context.spacing.lg),
             Expanded(child: email),
           ],
         );
@@ -252,6 +255,7 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
       key: const Key('staff-create-password'),
       controller: _password,
       label: l10n.temporaryPassword,
+      hint: l10n.temporaryPassword,
       obscureText: _obscure,
       keyboardType: TextInputType.visiblePassword,
       textInputAction: TextInputAction.next,
@@ -291,7 +295,7 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: password),
-                const SizedBox(width: 16),
+                SizedBox(width: context.spacing.lg),
                 Expanded(child: confirm),
               ],
             );
@@ -324,31 +328,33 @@ class _StaffCreatePageState extends ConsumerState<StaffCreatePage> {
                 : MainAxisAlignment.spaceBetween,
             children: [
               if (wide) ...[
-                WorkshopButton(
+                TemplatePillButton(
                   label: l10n.cancel,
-                  variant: WorkshopButtonVariant.ghost,
+                  variant: TemplatePillVariant.ghost,
                   onPressed: _busy ? null : () => Navigator.of(context).pop(),
                 ),
-                const SizedBox(width: 12),
-                WorkshopButton(
+                const SizedBox(width: 10),
+                TemplatePillButton(
                   label: l10n.create,
-                  isLoading: _busy,
+                  loading: _busy,
                   onPressed: _canSubmit ? _submit : null,
                 ),
               ] else ...[
                 Expanded(
-                  child: WorkshopButton(
+                  child: TemplatePillButton(
                     label: l10n.cancel,
-                    variant: WorkshopButtonVariant.secondary,
+                    variant: TemplatePillVariant.outline,
+                    expand: true,
                     onPressed: _busy ? null : () => Navigator.of(context).pop(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   flex: 2,
-                  child: WorkshopButton(
+                  child: TemplatePillButton(
                     label: l10n.create,
-                    isLoading: _busy,
+                    loading: _busy,
+                    expand: true,
                     onPressed: _canSubmit ? _submit : null,
                   ),
                 ),

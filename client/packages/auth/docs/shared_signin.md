@@ -19,14 +19,22 @@ The bay lives once in `packages/auth` so workshop and platform cannot drift.
 
 `SignInBayView` (`packages/auth/lib/src/signin/signin_bay_view.dart`):
 
-- **≥ 900 px (≥ 1100 at 1.5× text):** 46 / 54 split. Left: brand lockup, portal
-  eyebrow, title, subtitle, fields, error banner, primary, help. Right:
-  `SigninInspectionSurface` — ink surface, grid, top-down chassis, one labelled
-  example job (`2023 Porsche 911 GT3`), 18/24 tick spine, technician row.
-- **< 900 px:** a 132 px ink identity band (brand, language, example vehicle)
-  above a top-weighted form; the drawing appears at ≥ 600 px when text is < 1.5×.
-- The right surface is explicitly labelled **EXAMPLE JOB** in copy and semantics;
-  it is never presented as the user's data.
+- **≥ 800 px (≥ 1100 at 1.5× text):** a photo on the left and a **compact
+  floating credential card** on the right (content-sized, 28 px radius, soft
+  shadow), vertically centred. The photo carries the brand/language on top and,
+  at the bottom, the portal eyebrow, title, subtitle and the labelled example
+  visuals (example job, vehicle, checklist progress, tick spine).
+- **< 800 px:** the same photo on top and a rounded credential sheet at the
+  bottom, overlapping by 20 px.
+- The photo is the bundled admin image (`packages/auth/assets/images/
+  signin_hero_admin.jpg`, credited in `assets/images/CREDITS.md`); the
+  technician app uses its own `signin_hero_technician.jpg`.
+- The language control sits on the photo in a dark pill; each app supplies it
+  (EN/AR toggle or the platform manifest menu).
+- Fields carry hints (`name@workshop.com`, `Enter your password`); the primary
+  is a full pill.
+- The example job is a **2023 Chevrolet Camaro ZL1**, matching the photo; it is
+  explicitly labelled and never presented as the user's data.
 
 ## Copy model
 

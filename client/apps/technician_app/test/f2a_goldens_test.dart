@@ -42,7 +42,7 @@ void main() {
         if (id == 'login') {
           await tester.runAsync(() async {
             await precacheImage(
-              const AssetImage('assets/images/signin_hero.jpg'),
+              const AssetImage('assets/images/signin_hero_technician.jpg', package: 'auth'),
               tester.element(find.byType(MaterialApp)),
             );
           });
@@ -59,3 +59,5 @@ void main() {
     }
   }
 }
+
+

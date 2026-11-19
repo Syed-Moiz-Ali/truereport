@@ -132,6 +132,8 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       help: l10n.signInHelp,
       emailLabel: l10n.emailLabel,
       passwordLabel: l10n.passwordLabel,
+      emailHint: l10n.signinEmailHint,
+      passwordHint: l10n.signinPasswordHint,
       codeLabel: l10n.twoFactorLabel,
       signInLabel: l10n.signInButton,
       verifyLabel: l10n.signInButton,
@@ -157,3 +159,4 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     );
   }
 }
+

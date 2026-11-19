@@ -91,7 +91,8 @@ class SignInHero extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/images/signin_hero.jpg',
+            'assets/images/signin_hero_technician.jpg',
+            package: 'auth',
             fit: BoxFit.cover,
             alignment: Alignment.center,
             filterQuality: FilterQuality.medium,
@@ -180,3 +181,5 @@ class SignInHero extends StatelessWidget {
     );
   }
 }
+
+

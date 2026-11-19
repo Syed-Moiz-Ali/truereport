@@ -247,3 +247,9 @@ They stay in the ARB for other surfaces; do not delete them.
    declared in the design-system asset manifest.
 4. **The ink surface is the identity.** Softening it (radius, lighter fill,
    removing the drawing) turns the screen back into the rejected pattern.
+
+---
+
+## CR-4 (2026-11-19): replaced by the shared photo bay
+
+The ink inspection surface described above is no longer mounted. Workshop Admin now renders the shared SignInBayView: left photo with the portal copy and example visuals stacked, right rounded credential panel overlapping it; phones use the photo on top and a rounded sheet. Canonical spec: client/packages/auth/docs/shared_signin.md.

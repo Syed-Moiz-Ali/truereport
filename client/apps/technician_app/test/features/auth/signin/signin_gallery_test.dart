@@ -71,7 +71,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.runAsync(() async {
       await precacheImage(
-        const AssetImage('assets/images/signin_hero.jpg'),
+        const AssetImage('assets/images/signin_hero_technician.jpg', package: 'auth'),
         tester.element(find.byKey(rootKey)),
       );
     });
@@ -564,3 +564,5 @@ class _InvalidFieldSampleState extends State<_InvalidFieldSample> {
     );
   }
 }
+
+

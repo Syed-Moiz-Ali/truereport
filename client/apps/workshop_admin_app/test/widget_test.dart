@@ -108,7 +108,8 @@ void main() {
       // surface (docs/ui_brief.md, direction B). It replaced the old brand
       // line, which this test used to pin; the line is no longer rendered.
       expect(find.text(l10n.signInExampleLabel.toUpperCase()), findsOneWidget);
-      expect(find.byType(WorkshopChassisMark), findsOneWidget);
+      // The photo hero replaced the ink inspection surface; the labelled
+      // example job and its tick spine remain as the committed signature.
       expect(find.byType(WorkshopTickSpine), findsOneWidget);
       expect(find.text(l10n.signInTitle), findsWidgets);
       expect(find.text(l10n.signInHelp), findsOneWidget);

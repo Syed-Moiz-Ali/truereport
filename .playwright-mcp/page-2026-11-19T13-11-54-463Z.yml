@@ -1,0 +1,14 @@
+- generic [ref=f24e5] [cursor=pointer]:
+  - generic "مربع حوار":
+    - button "رفض" [ref=f24e14]
+    - generic:
+      - group:
+        - img "Technician A" [ref=f24e7]
+        - generic [ref=f24e8]: Technician A
+        - generic [ref=f24e9]: tech.a@truereport.test
+        - heading "Language" [level=2] [ref=f24e10]
+        - generic:
+          - button "English" [ref=f24e11]
+          - button "العربية" [active] [ref=f24e12]
+        - button "Sign out":
+          - button "Sign out" [ref=f24e13]

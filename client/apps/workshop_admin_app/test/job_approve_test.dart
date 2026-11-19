@@ -140,6 +140,15 @@ void main() {
     expect(find.text(l10n.jobsStatusApproved), findsWidgets);
   });
 
+  testWidgets('vehicle is stated once, not repeated in the summary', (
+    tester,
+  ) async {
+    await _pump(tester, _RecordingApi());
+    expect(find.text('Toyota Camry 2022'), findsOneWidget);
+    expect(find.text('Toyota Camry'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('reject needs a reason, sends the version and ends REJECTED', (
     tester,
   ) async {

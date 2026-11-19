@@ -3,23 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 
-/// Document atoms for the staff create and member pages.
-///
-/// The pages read as one numbered document: a page bar, numbered section
-/// heads, label/value facts, a status pill and a password strength read-out.
-/// Every value comes from the workshop tokens — no new palette or radii.
-extension StaffDossierTokens on WorkshopTokens {
-  TextStyle get dossierDisplay => pageTitle.copyWith(
-    fontSize: 34,
-    letterSpacing: -0.8,
-    height: 1.15,
-    color: ink,
-  );
-
-  TextStyle get dossierSection => eyebrow.copyWith(color: ink);
-}
-
 /// Pushed-page bar: back affordance, page title, optional trailing state.
+///
+/// Same 60 px geometry as the jobs document bar, so moving between the roster
+/// and a member does not shift the eye.
 class StaffPageBar extends StatelessWidget {
   const StaffPageBar({required this.title, this.trailing, super.key});
 
@@ -76,45 +63,7 @@ class StaffPageBar extends StatelessWidget {
   }
 }
 
-/// Numbered section heading: `01  STATUS`.
-class StaffSectionHead extends StatelessWidget {
-  const StaffSectionHead({
-    required this.number,
-    required this.title,
-    this.trailing,
-    super.key,
-  });
-
-  final String number;
-  final String title;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    return Row(
-      children: [
-        Text(
-          number,
-          style: ws.eyebrow.copyWith(
-            color: ws.accent,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Semantics(
-            header: true,
-            child: Text(title.toUpperCase(), style: ws.dossierSection),
-          ),
-        ),
-        ?trailing,
-      ],
-    );
-  }
-}
-
-/// `Label            value` row inside the details section.
+/// `Label            value` row inside the details card.
 class StaffFact extends StatelessWidget {
   const StaffFact({
     required this.label,
@@ -130,13 +79,14 @@ class StaffFact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
+    final spacing = context.spacing;
     return Padding(
-      padding: const EdgeInsetsDirectional.only(bottom: 12),
+      padding: EdgeInsetsDirectional.only(bottom: spacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 160,
+            width: 150,
             child: Text(label, style: ws.meta.copyWith(color: ws.muted)),
           ),
           Expanded(
@@ -152,52 +102,15 @@ class StaffFact extends StatelessWidget {
   }
 }
 
-/// Account state: dot + label + tone. Never colour alone.
+/// Account state: dot + label + tone, in the shared lifecycle pill.
 class StaffStatusPill extends StatelessWidget {
   const StaffStatusPill({required this.status, super.key});
 
   final String status;
 
   @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    final label = staffStatusLabel(context, status);
-    final color = staffStatusColor(ws, status);
-    final background = switch (status) {
-      'ACTIVE' => ws.successSoft,
-      'PENDING' => ws.warningSoft,
-      'DISABLED' => ws.dangerSoft,
-      _ => ws.canvas,
-    };
-    return Semantics(
-      label: label,
-      child: Container(
-        padding: const EdgeInsetsDirectional.symmetric(
-          horizontal: 10,
-          vertical: 5,
-        ),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: ws.eyebrow.copyWith(color: color, fontSize: 10.5),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      StaffStatusDot(status: status, pill: true);
 }
 
 /// Local password grading. UI-only: it never blocks a password the server
@@ -263,14 +176,15 @@ class StaffPasswordMeter extends StatelessWidget {
           Row(
             children: [
               for (var i = 0; i < 4; i++) ...[
-                if (i > 0) const SizedBox(width: 4),
+                if (i > 0) const SizedBox(width: 5),
                 Expanded(
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 160),
                     height: 3,
                     decoration: BoxDecoration(
                       color: i < filled ? color : ws.border,
-                      borderRadius: BorderRadius.circular(2),
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(ws.chipRadius / 2),
                     ),
                   ),
                 ),

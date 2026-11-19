@@ -64,19 +64,6 @@ class SigninForm extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            copy.portalLabel.toUpperCase(),
-            style: ws.eyebrow.copyWith(
-              color: ws.accent,
-              letterSpacing: 1.4,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: spacing.sm),
-          Text(copy.title, style: ws.heroNumber.copyWith(letterSpacing: -1.2)),
-          SizedBox(height: spacing.xs),
-          Text(copy.subtitle, style: ws.body.copyWith(color: ws.muted)),
-          SizedBox(height: spacing.xxl),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -87,6 +74,7 @@ class SigninForm extends StatelessWidget {
                   key: const Key('sign-in-email'),
                   controller: emailController,
                   label: copy.emailLabel,
+                  hint: copy.emailHint,
                   enabled: emailEnabled,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -119,6 +107,7 @@ class SigninForm extends StatelessWidget {
                   key: const Key('sign-in-password'),
                   controller: passwordController,
                   label: copy.passwordLabel,
+                  hint: copy.passwordHint,
                   obscureText: obscurePassword,
                   textInputAction: TextInputAction.done,
                   autofillHints: const [AutofillHints.password],

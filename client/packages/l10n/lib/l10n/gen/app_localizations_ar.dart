@@ -2541,6 +2541,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianJobSearch => 'البحث عن المهام';
 
   @override
+  String get technicianJobSearchHint => 'اللوحة أو العميل أو المرجع';
+
+  @override
+  String get technicianNextUp => 'التالي';
+
+  @override
+  String get technicianNoJobsThisDay => 'لا توجد مهام في هذا اليوم';
+
+  @override
+  String get technicianPickAnotherDay =>
+      'اختر يوماً آخر أو امسح عوامل التصفية.';
+
+  @override
+  String get technicianFilter => 'تصفية';
+
+  @override
+  String get technicianThisWeek => 'هذا الأسبوع';
+
+  @override
   String get technicianAllStatuses => 'كل الحالات';
 
   @override
@@ -3496,6 +3515,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signInHelp => 'تواصل مع مدير المنصة للحصول على الوصول.';
+
+  @override
+  String get signinEmailHint => 'name@workshop.com';
+
+  @override
+  String get signinPasswordHint => 'أدخل كلمة المرور';
 
   @override
   String get twoFactorRequired =>

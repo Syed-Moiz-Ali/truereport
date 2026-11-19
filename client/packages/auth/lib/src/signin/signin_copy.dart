@@ -15,6 +15,8 @@ class SignInBayCopy {
     required this.signInLabel,
     required this.verifyLabel,
     required this.loadingLabel,
+    this.emailHint,
+    this.passwordHint,
     this.appName = 'TrueReport',
   });
 
@@ -28,5 +30,7 @@ class SignInBayCopy {
   final String signInLabel;
   final String verifyLabel;
   final String loadingLabel;
+  final String? emailHint;
+  final String? passwordHint;
   final String appName;
 }

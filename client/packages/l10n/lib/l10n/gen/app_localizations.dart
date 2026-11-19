@@ -5024,6 +5024,42 @@ abstract class AppLocalizations {
   /// **'Search jobs'**
   String get technicianJobSearch;
 
+  /// No description provided for @technicianJobSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate, customer or reference'**
+  String get technicianJobSearchHint;
+
+  /// No description provided for @technicianNextUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Next up'**
+  String get technicianNextUp;
+
+  /// No description provided for @technicianNoJobsThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs on this day'**
+  String get technicianNoJobsThisDay;
+
+  /// No description provided for @technicianPickAnotherDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick another day or clear your filters.'**
+  String get technicianPickAnotherDay;
+
+  /// No description provided for @technicianFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get technicianFilter;
+
+  /// No description provided for @technicianThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get technicianThisWeek;
+
   /// No description provided for @technicianAllStatuses.
   ///
   /// In en, this message translates to:
@@ -6793,6 +6829,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact your platform administrator for access.'**
   String get signInHelp;
+
+  /// No description provided for @signinEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@workshop.com'**
+  String get signinEmailHint;
+
+  /// No description provided for @signinPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get signinPasswordHint;
 
   /// Shown when the login API answers requiresTwoFactor. The admin app has no TOTP input by design.
   ///

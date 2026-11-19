@@ -1,31 +1,49 @@
+﻿import 'dart:async';
+
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_credentials_section.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_dossier.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_lifecycle_section.dart';
+import 'package:workshop_admin_app/src/features/staff/staff_member_states.dart';
+import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
-/// One staff member as a document: identity, status, credentials, details.
+/// One staff member as a record: identity, account state, actions, then the
+/// facts and the password/lifecycle work in a 5/4 split.
 ///
 /// Everything rendered comes from `StaffMember` (name, role, status, masked
 /// email) — no counters, shifts or sign-in history are invented. Actions write
 /// through the calls this app already holds: `disableUser`, `reactivateUser`
 /// and `resetTechnicianPassword`.
-class StaffMemberPage extends ConsumerWidget {
-  const StaffMemberPage({required this.memberId, this.initialName, super.key});
+class StaffMemberPage extends ConsumerStatefulWidget {
+  const StaffMemberPage({required this.memberId, super.key});
 
   final String memberId;
 
-  /// Name from the roster row, so the bar is correct before the list loads.
-  final String? initialName;
+  @override
+  ConsumerState<StaffMemberPage> createState() => _StaffMemberPageState();
+}
+
+class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
+  final _credentialsKey = GlobalKey();
+  final _lifecycleKey = GlobalKey();
+  bool _lifecycleOpen = false;
+  bool _highlightReset = false;
+  Timer? _resetPulse;
+
+  @override
+  void dispose() {
+    _resetPulse?.cancel();
+    super.dispose();
+  }
 
   Future<void> _setStatus(
-    BuildContext context,
-    WidgetRef ref,
     StaffMember member, {
     required bool deactivate,
     required String reason,
@@ -39,23 +57,66 @@ class StaffMemberPage extends ConsumerWidget {
     ref.invalidate(staffProvider);
   }
 
-  Future<void> _resetPassword(
-    BuildContext context,
-    WidgetRef ref,
-    StaffMember member,
-    String password,
-  ) async {
+  Future<void> _resetPassword(StaffMember member, String password) async {
     await ref
         .read(adminApiProvider)
         .resetTechnicianPassword(member.userId, password);
     ref.invalidate(staffProvider);
   }
 
+  /// The primary action sends the admin to the password card. On a phone that
+  /// is a scroll; on a wide screen it is a short border pulse so the card is
+  /// unmistakably the place to type.
+  void _focusReset() {
+    final target = _credentialsKey.currentContext;
+    if (target != null) {
+      Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: 0.1,
+      );
+    }
+    _resetPulse?.cancel();
+    setState(() => _highlightReset = true);
+    _resetPulse = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) {
+        setState(() => _highlightReset = false);
+      }
+    });
+  }
+
+  void _openLifecycle() {
+    setState(() => _lifecycleOpen = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _lifecycleKey.currentContext;
+      if (target != null && mounted) {
+        Scrollable.ensureVisible(
+          target,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: 0.1,
+        );
+      }
+    });
+  }
+
+  StaffMember? _member(List<StaffMember> members) {
+    for (final member in members) {
+      if (member.userId == widget.memberId) {
+        return member;
+      }
+    }
+    return null;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
     final staff = ref.watch(staffProvider);
+    final loaded = staff.value;
+    final member = loaded == null ? null : _member(loaded);
 
     return Scaffold(
       backgroundColor: ws.canvas,
@@ -65,50 +126,29 @@ class StaffMemberPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             StaffPageBar(
-              title: initialName ?? l10n.workshopStaffTitle,
-              trailing: staff.value == null
+              title: member?.displayName ?? l10n.workshopStaffTitle,
+              trailing: member == null
                   ? null
-                  : _member(staff.value!) == null
-                  ? null
-                  : StaffStatusPill(status: _member(staff.value!)!.status),
+                  : StaffStatusPill(status: member.status),
             ),
             Expanded(
               child: staff.when(
-                loading: () => const _PageSkeleton(),
-                error: (error, _) => _PageMessage(
+                loading: () => const StaffMemberSkeleton(),
+                error: (error, _) => StaffMemberMessage(
                   title: l10n.error,
                   body: l10n.commonLoadFailed,
                   onRetry: () => ref.invalidate(staffProvider),
                 ),
                 data: (members) {
-                  final member = _member(members);
-                  if (member == null) {
-                    return _PageMessage(
+                  final value = _member(members);
+                  if (value == null) {
+                    return StaffMemberMessage(
                       title: l10n.noTechnicians,
                       body: l10n.staffSubtitle,
-                      onRetry: null,
                       onBack: () => Navigator.of(context).maybePop(),
                     );
                   }
-                  return _Document(
-                    member: member,
-                    onDeactivate: (reason) => _setStatus(
-                      context,
-                      ref,
-                      member,
-                      deactivate: true,
-                      reason: reason,
-                    ),
-                    onReactivate: (reason) => _setStatus(
-                      context,
-                      ref,
-                      member,
-                      deactivate: false,
-                      reason: reason,
-                    ),
-                    onResetPassword: (password) =>
-                        _resetPassword(context, ref, member, password),
-                  );
+                  return _record(value);
                 },
               ),
             ),
@@ -118,102 +158,116 @@ class StaffMemberPage extends ConsumerWidget {
     );
   }
 
-  StaffMember? _member(List<StaffMember> members) {
-    for (final member in members) {
-      if (member.userId == memberId) {
-        return member;
-      }
-    }
-    return null;
-  }
-}
-
-class _Document extends StatelessWidget {
-  const _Document({
-    required this.member,
-    required this.onDeactivate,
-    required this.onReactivate,
-    required this.onResetPassword,
-  });
-
-  final StaffMember member;
-  final Future<void> Function(String reason) onDeactivate;
-  final Future<void> Function(String reason) onReactivate;
-  final Future<void> Function(String password) onResetPassword;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget _record(StaffMember member) {
     final ws = context.ws;
+    final l10n = AppLocalizations.of(context);
+    final spacing = context.spacing;
+    final width = MediaQuery.sizeOf(context).width;
     return SingleChildScrollView(
-      padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
+      padding: ws.pagePadding(width),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(maxWidth: 1000),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
-              _Identity(member: member),
-              const SizedBox(height: 28),
-              staffHairline(context),
-              const SizedBox(height: 24),
-              StaffLifecycleSection(
-                title: l10n.status,
-                member: member,
-                onDeactivate: onDeactivate,
-                onReactivate: onReactivate,
-              ),
-              const SizedBox(height: 28),
-              staffHairline(context),
-              const SizedBox(height: 24),
-              StaffCredentialsSection(
-                title: l10n.staffResetPassword,
-                onSubmit: onResetPassword,
-              ),
-              const SizedBox(height: 28),
-              staffHairline(context),
-              const SizedBox(height: 24),
-              StaffSectionHead(number: '03', title: l10n.details),
+              const SizedBox(height: 10),
+              _identity(member),
+              const SizedBox(height: 18),
+              _statusStrip(member),
               const SizedBox(height: 14),
-              StaffFact(label: l10n.displayName, value: member.displayName),
-              StaffFact(
-                label: l10n.emailLabel,
-                value: member.emailMasked,
-                ltr: true,
+              _actions(member),
+              const SizedBox(height: 18),
+              JobSplitColumns(
+                leading: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    WorkshopSectionHeader(title: l10n.details),
+                    SizedBox(height: spacing.sm),
+                    WorkshopCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StaffFact(
+                            label: l10n.displayName,
+                            value: member.displayName,
+                          ),
+                          StaffFact(
+                            label: l10n.emailLabel,
+                            value: member.emailMasked,
+                            ltr: true,
+                          ),
+                          StaffFact(
+                            label: l10n.role,
+                            value: staffRoleLabel(context, member.role),
+                          ),
+                          StaffFact(
+                            label: l10n.status,
+                            value: staffStatusLabel(context, member.status),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      alignment: AlignmentDirectional.topStart,
+                      child: _lifecycleOpen
+                          ? Padding(
+                              padding: EdgeInsetsDirectional.only(
+                                bottom: spacing.lg,
+                              ),
+                              child: StaffLifecycleSection(
+                                key: _lifecycleKey,
+                                member: member,
+                                open: _lifecycleOpen,
+                                onClose: () =>
+                                    setState(() => _lifecycleOpen = false),
+                                onDeactivate: (reason) => _setStatus(
+                                  member,
+                                  deactivate: true,
+                                  reason: reason,
+                                ),
+                                onReactivate: (reason) => _setStatus(
+                                  member,
+                                  deactivate: false,
+                                  reason: reason,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    StaffCredentialsSection(
+                      key: _credentialsKey,
+                      highlighted: _highlightReset,
+                      onSubmit: (password) => _resetPassword(member, password),
+                    ),
+                  ],
+                ),
               ),
-              StaffFact(
-                label: l10n.role,
-                value: staffRoleLabel(context, member.role),
-              ),
-              StaffFact(
-                label: l10n.status,
-                value: staffStatusLabel(context, member.status),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 22),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _Identity extends StatelessWidget {
-  const _Identity({required this.member});
-
-  final StaffMember member;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _identity(StaffMember member) {
     final ws = context.ws;
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 520;
         final monogram = StaffMonogram(
           name: member.displayName,
-          size: wide ? 84 : 64,
+          size: 84,
           filled: true,
         );
         final text = Column(
@@ -222,211 +276,153 @@ class _Identity extends StatelessWidget {
           children: [
             Text(
               member.displayName,
-              style: ws.dossierDisplay.copyWith(fontSize: wide ? 34 : 28),
+              style: ws.pageTitle.copyWith(
+                fontSize: wide ? 32 : 26,
+                letterSpacing: -0.7,
+                color: ws.ink,
+              ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              staffRoleLabel(context, member.role),
-              style: ws.meta.copyWith(color: ws.muted),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              member.emailMasked,
-              textDirection: TextDirection.ltr,
-              style: ws.bodyStrong.copyWith(fontSize: 14, color: ws.ink),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  staffRoleLabel(context, member.role),
+                  style: ws.meta.copyWith(color: ws.muted),
+                ),
+                Text(
+                  '·\u00A0${member.emailMasked}',
+                  textDirection: TextDirection.ltr,
+                  style: ws.meta.copyWith(color: ws.ink),
+                ),
+              ],
             ),
           ],
         );
         if (!wide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [monogram, const SizedBox(height: 16), text],
+            children: [monogram, const SizedBox(height: 18), text],
           );
         }
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             monogram,
-            const SizedBox(width: 24),
+            const SizedBox(width: 22),
             Expanded(child: text),
           ],
         );
       },
     );
   }
-}
 
-class _PageMessage extends StatelessWidget {
-  const _PageMessage({
-    required this.title,
-    required this.body,
-    this.onRetry,
-    this.onBack,
-  });
-
-  final String title;
-  final String body;
-  final VoidCallback? onRetry;
-  final VoidCallback? onBack;
-
-  @override
-  Widget build(BuildContext context) {
+  /// The two account states this module has, as a state strip.
+  ///
+  /// This is deliberately not a progress rail: Active → Disabled is a
+  /// transition, not a later stage. The current state is inked, the other two
+  /// stay quiet outlines, and no connector is drawn between them.
+  Widget _statusStrip(StaffMember member) {
     final ws = context.ws;
     final l10n = AppLocalizations.of(context);
-    return SingleChildScrollView(
-      padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 24),
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ws.canvas,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: ws.border),
+    final spacing = context.spacing;
+    // No invitation flow exists: staff are created with credentials, so only
+    // Active and Disabled are named.
+    const states = ['ACTIVE', 'DISABLED'];
+
+    Widget pill(String status) {
+      final current = status == member.status;
+      final label = staffStatusLabel(context, status);
+      return Semantics(
+        selected: current,
+        label: label,
+        child: ExcludeSemantics(
+          child: Container(
+            height: 28,
+            padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: current ? ws.ink : ws.canvas,
+              borderRadius: BorderRadius.circular(ws.touchTarget),
+              border: Border.all(color: current ? ws.ink : ws.border),
+            ),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: ws.meta.copyWith(
+                  color: current ? ws.canvas : ws.muted,
+                  fontWeight: current ? FontWeight.w600 : FontWeight.w500,
                 ),
-                child: Icon(Icons.groups_outlined, size: 20, color: ws.muted),
               ),
-              const SizedBox(height: 16),
-              Text(title, style: ws.sectionTitle.copyWith(color: ws.ink)),
-              const SizedBox(height: 6),
-              Text(body, style: ws.body.copyWith(color: ws.muted)),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  if (onRetry != null)
-                    WorkshopButton(
-                      label: l10n.retryAction,
-                      icon: Icons.refresh,
-                      variant: WorkshopButtonVariant.secondary,
-                      onPressed: onRetry,
-                    ),
-                  if (onRetry != null && onBack != null)
-                    const SizedBox(width: 12),
-                  if (onBack != null)
-                    WorkshopButton(
-                      label: l10n.commonBack,
-                      variant: WorkshopButtonVariant.ghost,
-                      onPressed: onBack,
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Skeleton in the shape of the document: identity block, two sections, facts.
-class _PageSkeleton extends StatefulWidget {
-  const _PageSkeleton();
-
-  @override
-  State<_PageSkeleton> createState() => _PageSkeletonState();
-}
-
-class _PageSkeletonState extends State<_PageSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse = AnimationController(vsync: this);
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _pulse.duration = const Duration(milliseconds: 1100);
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _pulse.value = 0.55;
-      _pulse.stop();
-    } else if (!_pulse.isAnimating) {
-      _pulse.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ws = context.ws;
-    return FadeTransition(
-      opacity: Tween<double>(
-        begin: 0.42,
-        end: 0.95,
-      ).animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut)),
-      child: SingleChildScrollView(
-        padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 84,
-                      height: 84,
-                      decoration: BoxDecoration(
-                        color: ws.border,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _bar(context, 320, 26),
-                          const SizedBox(height: 12),
-                          _bar(context, 120, 10),
-                          const SizedBox(height: 10),
-                          _bar(context, 200, 10),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 34),
-                for (var i = 0; i < 2; i++) ...[
-                  _bar(context, 90, 10),
-                  const SizedBox(height: 18),
-                  _bar(context, 160, 34),
-                  const SizedBox(height: 26),
-                  Container(height: 1, color: ws.border),
-                  const SizedBox(height: 26),
-                ],
-                _bar(context, 90, 10),
-                const SizedBox(height: 16),
-                _bar(context, 420, 10),
-                const SizedBox(height: 10),
-                _bar(context, 360, 10),
-              ],
             ),
           ),
         ),
+      );
+    }
+
+    final label = Text(
+      l10n.status.toUpperCase(),
+      style: ws.eyebrow.copyWith(color: ws.muted),
+    );
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Container(
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: spacing.lg,
+          vertical: spacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: ws.surface,
+          borderRadius: BorderRadius.circular(ws.cardLargeRadius),
+          border: Border.all(color: ws.border),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final pills = Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [for (final state in states) pill(state)],
+            );
+            if (constraints.maxWidth < 640) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [label, const SizedBox(height: 10), pills],
+              );
+            }
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [label, const SizedBox(width: 18), pills],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _bar(BuildContext context, double width, double height) => Container(
-    width: width,
-    height: height,
-    decoration: BoxDecoration(
-      color: context.ws.border,
-      borderRadius: BorderRadius.circular(height / 2),
-    ),
-  );
+  Widget _actions(StaffMember member) {
+    final l10n = AppLocalizations.of(context);
+    final active = member.status == 'ACTIVE';
+    final disabled = member.status == 'DISABLED';
+    final pills = <Widget>[
+      TemplatePillButton(
+        label: l10n.staffResetPassword,
+        icon: Icons.lock_reset,
+        onPressed: _focusReset,
+      ),
+      if ((active || disabled) && !_lifecycleOpen)
+        TemplatePillButton(
+          label: disabled ? l10n.reactivate : l10n.deactivate,
+          icon: disabled ? Icons.lock_open_outlined : Icons.lock_outline,
+          variant: disabled
+              ? TemplatePillVariant.outline
+              : TemplatePillVariant.danger,
+          onPressed: _openLifecycle,
+        ),
+    ];
+    return Wrap(spacing: 10, runSpacing: 10, children: pills);
+  }
 }

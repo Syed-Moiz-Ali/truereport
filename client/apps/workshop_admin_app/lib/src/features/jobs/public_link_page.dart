@@ -100,28 +100,11 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
     PublicLink link,
     AsyncValue<List<int>> qr,
   ) {
-    final l10n = AppLocalizations.of(context);
     final active = link.status == 'ACTIVE';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _StatePill(
-              label: link.pdfDownloadEnabled
-                  ? l10n.pdfDownload
-                  : l10n.commonNotAvailable,
-              tone: link.pdfDownloadEnabled
-                  ? _PillTone.success
-                  : _PillTone.neutral,
-              icon: Icons.picture_as_pdf_outlined,
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
         _actions(context, link, active),
         const SizedBox(height: 20),
         JobSplitColumns(
@@ -234,6 +217,10 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
             valueDirection: TextDirection.ltr,
             selectable: true,
           ),
+          _Fact(
+            label: l10n.pdfDownload,
+            value: link.pdfDownloadEnabled ? l10n.commonYes : l10n.commonNo,
+          ),
           if (link.activatedAt != null)
             _Fact(
               label: l10n.jobsActivatedAt,
@@ -274,26 +261,20 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
           ),
           const SizedBox(height: 14),
           qr.when(
-            loading: () => const WorkshopSkeleton(lines: 3),
+            loading: () => _qrFrame(context, const WorkshopSkeleton(lines: 3)),
             error: (error, _) => _qrPlaceholder(context),
             data: (bytes) {
               if (bytes.isEmpty) {
                 return _qrPlaceholder(context);
               }
-              return Align(
-                alignment: Alignment.center,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: Image.memory(
-                      Uint8List.fromList(bytes),
-                      fit: BoxFit.contain,
-                      semanticLabel: l10n.jobsQrTitle,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _qrPlaceholder(context),
-                    ),
-                  ),
+              return _qrFrame(
+                context,
+                Image.memory(
+                  Uint8List.fromList(bytes),
+                  fit: BoxFit.contain,
+                  semanticLabel: l10n.jobsQrTitle,
+                  errorBuilder: (context, error, stackTrace) =>
+                      _qrPlaceholder(context),
                 ),
               );
             },
@@ -303,21 +284,44 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
     );
   }
 
+  /// A fixed square plate so the QR region is composed even before the image
+  /// resolves, instead of a small icon floating in an empty card.
+  Widget _qrFrame(BuildContext context, Widget child) {
+    final ws = context.ws;
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 220),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: ws.canvas,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: ws.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Center(child: child),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _qrPlaceholder(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(vertical: 18),
-      child: Column(
+    return _qrFrame(
+      context,
+      Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: ws.canvas, shape: BoxShape.circle),
-            child: Icon(Icons.qr_code_2_outlined, size: 26, color: ws.muted),
-          ),
+          Icon(Icons.qr_code_2_outlined, size: 44, color: ws.muted),
           const SizedBox(height: 10),
           Text(
             l10n.jobsQrUnavailable,
@@ -442,13 +446,12 @@ _PillTone _linkTone(String status) => switch (status) {
 };
 
 /// State pill in the module's full-radius badge geometry. Colour is paired
-/// with the label (and an icon when one is given), never used alone.
+/// with the label, never used alone.
 class _StatePill extends StatelessWidget {
-  const _StatePill({required this.label, required this.tone, this.icon});
+  const _StatePill({required this.label, required this.tone});
 
   final String label;
   final _PillTone tone;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -471,14 +474,11 @@ class _StatePill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null)
-              Icon(icon, size: 13, color: fg)
-            else
-              Container(
-                width: 5,
-                height: 5,
-                decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
-              ),
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+            ),
             const SizedBox(width: 6),
             Text(label, style: ws.eyebrow.copyWith(color: fg, fontSize: 10.5)),
           ],

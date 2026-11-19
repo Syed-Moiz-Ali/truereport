@@ -1,27 +1,31 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
-import 'package:workshop_admin_app/src/features/staff/staff_dossier.dart';
+import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
-/// `01 Status` — the account lifecycle for one member.
+/// The account lifecycle confirmation strip for one member.
 ///
-/// Active accounts can be deactivated; disabled accounts can be reactivated.
-/// Both transitions require a reason, so the action expands into an in-place
-/// confirmation strip instead of opening a dialog. A pending invitation has no
-/// lifecycle transition in the API surface this app holds, so no action is
-/// offered for it.
+/// The action itself lives in the page's pill row; this widget owns only the
+/// reason field and the call. Active accounts can be deactivated and disabled
+/// accounts reactivated, both with a reason, so the transition opens in place
+/// instead of a dialog. There is no invitation flow in this module: staff are
+/// created with credentials, so only Active and Disabled offer a transition.
 class StaffLifecycleSection extends StatefulWidget {
   const StaffLifecycleSection({
-    required this.title,
     required this.member,
+    required this.open,
+    required this.onClose,
     required this.onDeactivate,
     required this.onReactivate,
     super.key,
   });
 
-  final String title;
   final StaffMember member;
+
+  /// Parent-owned visibility: the pill row opens it, success cancels it.
+  final bool open;
+  final VoidCallback onClose;
   final Future<void> Function(String reason) onDeactivate;
   final Future<void> Function(String reason) onReactivate;
 
@@ -32,28 +36,22 @@ class StaffLifecycleSection extends StatefulWidget {
 class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
   final _formKey = GlobalKey<FormState>();
   final _reason = TextEditingController();
-  bool _open = false;
   bool _busy = false;
 
-  bool get _isActive => widget.member.status == 'ACTIVE';
   bool get _isDisabled => widget.member.status == 'DISABLED';
+
+  @override
+  void didUpdateWidget(StaffLifecycleSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.open && !widget.open) {
+      _reason.clear();
+    }
+  }
 
   @override
   void dispose() {
     _reason.dispose();
     super.dispose();
-  }
-
-  void _start() {
-    setState(() => _open = true);
-  }
-
-  void _cancel() {
-    _reason.clear();
-    setState(() {
-      _open = false;
-      _busy = false;
-    });
   }
 
   Future<void> _confirm() async {
@@ -73,9 +71,7 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
         return;
       }
       _reason.clear();
-      setState(() {
-        _open = false;
-      });
+      widget.onClose();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(l10n.contentSaved)));
@@ -94,95 +90,66 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.open) {
+      return const SizedBox.shrink();
+    }
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    final showAction = _isActive || _isDisabled;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        StaffSectionHead(number: '01', title: widget.title),
-        const SizedBox(height: 16),
-        Row(
+    final spacing = context.spacing;
+    final tone = _isDisabled ? ws.accentSoft : ws.dangerSoft;
+    return Container(
+      key: const Key('staff-lifecycle-confirm'),
+      padding: EdgeInsetsDirectional.all(spacing.lg),
+      decoration: BoxDecoration(
+        color: tone,
+        borderRadius: BorderRadius.circular(ws.cardLargeRadius),
+        border: Border.all(color: ws.border),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            StaffStatusPill(status: widget.member.status),
-            const Spacer(),
-            if (showAction && !_open)
-              WorkshopButton(
-                label: _isDisabled ? l10n.reactivate : l10n.deactivate,
-                variant: _isDisabled
-                    ? WorkshopButtonVariant.secondary
-                    : WorkshopButtonVariant.danger,
-                icon: _isDisabled ? Icons.lock_open_outlined : Icons.lock_outline,
-                onPressed: _start,
-              ),
+            Text(
+              _isDisabled ? l10n.reactivate : l10n.deactivate,
+              style: ws.sectionTitle.copyWith(color: ws.ink),
+            ),
+            const SizedBox(height: 10),
+            WorkshopTextField(
+              key: const Key('staff-lifecycle-reason'),
+              controller: _reason,
+              label: _isDisabled ? l10n.reason : l10n.deactivateReason,
+              hint: l10n.reason,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _confirm(),
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? l10n.requiredField
+                  : null,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TemplatePillButton(
+                  label: l10n.cancel,
+                  variant: TemplatePillVariant.ghost,
+                  onPressed: _busy ? null : widget.onClose,
+                ),
+                const SizedBox(width: 10),
+                TemplatePillButton(
+                  label: _isDisabled ? l10n.reactivate : l10n.deactivate,
+                  variant: _isDisabled
+                      ? TemplatePillVariant.outline
+                      : TemplatePillVariant.danger,
+                  loading: _busy,
+                  onPressed: _busy ? null : _confirm,
+                ),
+              ],
+            ),
           ],
         ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          alignment: AlignmentDirectional.topStart,
-          child: _open
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(top: 16),
-                  child: Container(
-                    key: const Key('staff-lifecycle-confirm'),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: (_isDisabled ? ws.accentSoft : ws.dangerSoft)
-                          .withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(ws.cardRadius - 4),
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          WorkshopTextField(
-                            key: const Key('staff-lifecycle-reason'),
-                            controller: _reason,
-                            label: _isDisabled
-                                ? l10n.reason
-                                : l10n.deactivateReason,
-                            hint: l10n.reason,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _confirm(),
-                            validator: (value) =>
-                                (value == null || value.trim().isEmpty)
-                                ? l10n.requiredField
-                                : null,
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              WorkshopButton(
-                                label: l10n.cancel,
-                                variant: WorkshopButtonVariant.ghost,
-                                onPressed: _busy ? null : _cancel,
-                              ),
-                              const SizedBox(width: 8),
-                              WorkshopButton(
-                                label: _isDisabled
-                                    ? l10n.reactivate
-                                    : l10n.deactivate,
-                                variant: _isDisabled
-                                    ? WorkshopButtonVariant.secondary
-                                    : WorkshopButtonVariant.danger,
-                                isLoading: _busy,
-                                onPressed: _busy ? null : _confirm,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+      ),
     );
   }
 }

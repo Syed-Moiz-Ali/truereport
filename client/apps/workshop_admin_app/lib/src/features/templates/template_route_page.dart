@@ -19,9 +19,18 @@ import 'package:workshop_admin_app/src/models.dart';
 /// `publishTemplate`, `retireTemplate`, `createTemplateDraft`, the same
 /// providers and the same item payload (master version id + sort order).
 class TemplateBuilderPage extends ConsumerStatefulWidget {
-  const TemplateBuilderPage({required this.templateId, super.key});
+  const TemplateBuilderPage({
+    required this.templateId,
+    this.autoDraft = false,
+    super.key,
+  });
 
   final String templateId;
+
+  /// When true (we just created this template), a missing draft is created
+  /// automatically so the user lands in an editable builder instead of a
+  /// locked "create draft" panel.
+  final bool autoDraft;
 
   @override
   ConsumerState<TemplateBuilderPage> createState() =>
@@ -40,6 +49,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   final List<TemplateSelectedItem> _selected = [];
   bool _initialized = false;
   bool _busy = false;
+  bool _autoDraftTried = false;
 
   @override
   void dispose() {
@@ -125,6 +135,14 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
 
     final loaded = template!;
     _initialize(loaded);
+    if (widget.autoDraft && loaded.draft == null && !_autoDraftTried) {
+      _autoDraftTried = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _createDraft();
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: ws.canvas,

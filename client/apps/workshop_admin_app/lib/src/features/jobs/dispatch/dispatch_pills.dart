@@ -69,6 +69,7 @@ String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
   'PUBLISHED' => l10n.jobsStatusPublished,
   'REJECTED' => l10n.jobsStatusRejected,
   'CANCELLED' => l10n.statusCancelled,
+  'FINALIZED' => l10n.statusFinalized,
   _ => status,
 };
 

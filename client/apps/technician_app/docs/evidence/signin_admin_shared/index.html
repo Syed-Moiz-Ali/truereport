@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Workshop + Platform sign-in — photo bay</title>
+<style>
+  body { margin: 0; padding: 32px 40px 64px; background: #f6f6f8; color: #1a1b1f;
+         font: 15px/1.55 "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.5px; }
+  .sub { color: #5e5d69; margin: 0 0 24px; max-width: 960px; }
+  h2 { font-size: 18px; margin: 30px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .phones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .card { background: #fff; border: 1px solid #e3e1ef; border-radius: 12px; overflow: hidden; }
+  .card img { width: 100%; display: block; }
+  .phones img { max-height: 560px; width: auto; margin: 0 auto; }
+  .cap { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #6c7a71;
+         padding: 9px 12px; border-top: 1px solid #eeedf3; }
+  .note { background: #fff; border: 1px solid #e3e1ef; border-left: 3px solid #006c49;
+          border-radius: 12px; padding: 16px 18px; font-size: 13px; color: #3c4a42; }
+</style>
+</head>
+<body>
+  <h1>Workshop + Platform sign-in — the photo bay</h1>
+  <p class="sub">CR-4: the shared <code>SignInBayView</code> now uses the technician treatment. The photo
+  carries the brand, language, portal copy and labelled example visuals (job, vehicle, 18/24 ticks); the
+  credential panel overlaps it with a rounded inner edge and a soft shadow. Phones stack: photo on top,
+  rounded sheet at the bottom.</p>
+  <div class="note">Both apps render the same shared view with their own copy: workshop “WORKSHOP ADMIN” +
+  EN/AR toggle; platform “PLATFORM ADMINISTRATION” + the manifest language menu. The credential card is
+  content-sized (no empty white wall); fields show hints; the primary is a pill.</div>
+
+  <h2>Desktop — 1440</h2>
+  <div class="grid">
+    <div class="card"><img src="workshop_1440_en.png" alt="workshop 1440"><div class="cap">Workshop · left photo, floating card</div></div>
+    <div class="card"><img src="platform_1440_en.png" alt="platform 1440"><div class="cap">Platform · same composition</div></div>
+  </div>
+
+  <h2>Phone — 390 EN / AR</h2>
+  <div class="phones">
+    <div class="card"><img src="workshop_390_en.png" alt="workshop en"><div class="cap">Workshop EN</div></div>
+    <div class="card"><img src="workshop_390_ar.png" alt="workshop ar"><div class="cap">Workshop AR</div></div>
+    <div class="card"><img src="platform_390_en.png" alt="platform en"><div class="cap">Platform EN</div></div>
+    <div class="card"><img src="platform_390_ar.png" alt="platform ar"><div class="cap">Platform AR</div></div>
+  </div>
+</body>
+</html>
