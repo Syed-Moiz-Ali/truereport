@@ -2510,6 +2510,18 @@ abstract class AppLocalizations {
   /// **'Password help'**
   String get technicianPasswordHelp;
 
+  /// No description provided for @technicianEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@workshop.com'**
+  String get technicianEmailHint;
+
+  /// No description provided for @technicianPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get technicianPasswordHint;
+
   /// No description provided for @technicianNeedTechnicianAccess.
   ///
   /// In en, this message translates to:

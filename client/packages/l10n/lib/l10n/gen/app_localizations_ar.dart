@@ -1252,6 +1252,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianPasswordHelp => 'مساعدة كلمة المرور';
 
   @override
+  String get technicianEmailHint => 'name@workshop.com';
+
+  @override
+  String get technicianPasswordHint => 'أدخل كلمة المرور';
+
+  @override
   String get technicianNeedTechnicianAccess => 'تحتاج إلى دخول؟';
 
   @override

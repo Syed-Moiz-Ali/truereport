@@ -452,6 +452,7 @@ void main() {
                   const Locale('ar'),
                 ],
                 localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+                  ...AppLocalizations.localizationsDelegates,
                   GlobalMaterialLocalizations.delegate,
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,

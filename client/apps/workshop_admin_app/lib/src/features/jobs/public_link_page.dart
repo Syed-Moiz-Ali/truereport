@@ -4,12 +4,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
+/// The public share surface, in the dispatch document language.
+///
+/// Everything below the chrome is the same contract as before: the public-link
+/// provider, the QR provider, the same copy/share/rotate/unpublish/revoke calls
+/// with the same guards, the same token display and the same snackbars. The
+/// layout is a status line, one pill per allowed action, then the link details
+/// and the QR in a 5/4 split from 900 px (stacked below it).
 class PublicLinkPage extends ConsumerStatefulWidget {
   const PublicLinkPage({required this.jobId, super.key});
 
@@ -26,33 +34,59 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final width = MediaQuery.sizeOf(context).width;
     final link = ref.watch(publicLinkProvider(widget.jobId));
     final qr = ref.watch(jobQrProvider(widget.jobId));
     return Scaffold(
-      backgroundColor: context.ws.canvas,
+      backgroundColor: ws.canvas,
       body: SafeArea(
+        bottom: false,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            JobPageTopBar(title: l10n.jobsPublicLinkTitle),
-            Expanded(
-              child: WorkshopPageScroll(
-                children: [
-                  if (_error != null) ...[
-                    JobInlineError(message: _error!),
-                    SizedBox(height: context.spacing.md),
-                  ],
-                  link.when(
-                    loading: () => const WorkshopSkeleton(card: true, lines: 4),
-                    error: (error, _) => WorkshopErrorState(
-                      title: l10n.error,
-                      body: l10n.commonLoadFailed,
-                      retryLabel: l10n.retryAction,
-                      onRetry: () =>
-                          ref.invalidate(publicLinkProvider(widget.jobId)),
+            JobTitleBar(
+              title: l10n.jobsPublicLinkTitle,
+              trailing: link.value == null
+                  ? null
+                  : _StatePill(
+                      label: link.value!.status,
+                      tone: _linkTone(link.value!.status),
                     ),
-                    data: (value) => _content(context, value, qr),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: ws.pagePadding(width),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1000),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 12),
+                        if (_error != null) ...[
+                          JobInlineError(message: _error!),
+                          const SizedBox(height: 14),
+                        ],
+                        link.when(
+                          loading: () =>
+                              const WorkshopSkeleton(card: true, lines: 4),
+                          error: (error, _) => WorkshopErrorState(
+                            title: l10n.error,
+                            body: l10n.commonLoadFailed,
+                            retryLabel: l10n.retryAction,
+                            onRetry: () => ref.invalidate(
+                              publicLinkProvider(widget.jobId),
+                            ),
+                          ),
+                          data: (value) => _content(context, value, qr),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -70,131 +104,177 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
     final active = link.status == 'ACTIVE';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        JobPanel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Wrap(
-                spacing: context.spacing.sm,
-                runSpacing: context.spacing.sm,
-                children: [
-                  StatusChip(
-                    label: link.status,
-                    tone: active
-                        ? StatusTone.success
-                        : link.status == 'REVOKED'
-                        ? StatusTone.danger
-                        : StatusTone.warning,
-                    icon: active ? Icons.link : Icons.link_off,
-                  ),
-                  StatusChip(
-                    label: link.pdfDownloadEnabled
-                        ? l10n.pdfDownload
-                        : l10n.commonNotAvailable,
-                    tone: link.pdfDownloadEnabled
-                        ? StatusTone.success
-                        : StatusTone.neutral,
-                    icon: Icons.picture_as_pdf_outlined,
-                  ),
-                ],
-              ),
-              SizedBox(height: context.spacing.md),
-              JobKeyValue(
-                label: l10n.jobsPublicUrl,
-                value: link.publicUrl ?? l10n.commonNotAvailable,
-                valueDirection: TextDirection.ltr,
-              ),
-              JobKeyValue(
-                label: l10n.jobsPublicToken,
-                value: link.token ?? l10n.commonNotAvailable,
-                valueDirection: TextDirection.ltr,
-              ),
-              if (link.activatedAt != null)
-                JobKeyValue(
-                  label: l10n.jobsActivatedAt,
-                  value: formatInstant(context, link.activatedAt),
-                ),
-              if (link.revokedAt != null)
-                JobKeyValue(
-                  label: l10n.jobsRevokedAt,
-                  value: formatInstant(context, link.revokedAt),
-                ),
-              if (link.revocationReason != null)
-                JobKeyValue(
-                  label: l10n.jobsRevocationReason,
-                  value: link.revocationReason!,
-                ),
-              if (link.publicUrl != null) ...[
-                SizedBox(height: context.spacing.sm),
-                SelectableText(
-                  link.publicUrl!,
-                  textDirection: TextDirection.ltr,
-                ),
-              ],
-            ],
-          ),
-        ),
-        SizedBox(height: context.spacing.md),
         Wrap(
-          spacing: context.spacing.sm,
-          runSpacing: context.spacing.sm,
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            AppButton(
-              label: l10n.copyLink,
-              onPressed: _busy || link.publicUrl == null
-                  ? null
-                  : () => _copy(link.publicUrl!),
-              icon: Icons.copy,
-              variant: AppButtonVariant.tonal,
+            _StatePill(
+              label: link.pdfDownloadEnabled
+                  ? l10n.pdfDownload
+                  : l10n.commonNotAvailable,
+              tone: link.pdfDownloadEnabled
+                  ? _PillTone.success
+                  : _PillTone.neutral,
+              icon: Icons.picture_as_pdf_outlined,
             ),
-            AppButton(
-              key: const Key('jobs-share-button'),
-              label: l10n.jobsShare,
-              onPressed: _busy || link.publicUrl == null
-                  ? null
-                  : () => _share(link.publicUrl!),
-              icon: Icons.share_outlined,
-              variant: AppButtonVariant.tonal,
-            ),
-            if (!active)
-              AppButton(
-                key: const Key('jobs-publish-checklist-button'),
-                label: l10n.jobsOpenPublishChecklist,
-                onPressed: _busy ? null : () => _openChecklist(),
-                icon: Icons.playlist_add_check_outlined,
-                variant: AppButtonVariant.tonal,
-              ),
-            if (active)
-              AppButton(
-                label: l10n.jobsRotateToken,
-                onPressed: _busy ? null : _rotate,
-                icon: Icons.autorenew,
-                variant: AppButtonVariant.tonal,
-              ),
-            if (active)
-              AppButton(
-                key: const Key('jobs-unpublish-button'),
-                label: l10n.jobsUnpublish,
-                onPressed: _busy ? null : _unpublish,
-                icon: Icons.visibility_off_outlined,
-                variant: AppButtonVariant.text,
-              ),
-            if (link.status != 'REVOKED')
-              AppButton(
-                key: const Key('jobs-revoke-button'),
-                label: l10n.jobsRevoke,
-                onPressed: _busy ? null : _revoke,
-                icon: Icons.link_off,
-                variant: AppButtonVariant.text,
-              ),
           ],
         ),
-        SizedBox(height: context.spacing.lg),
-        SectionHeader(title: l10n.jobsQrTitle),
-        JobPanel(
-          child: qr.when(
-            loading: () => const LoadingSkeleton(lines: 3),
+        const SizedBox(height: 14),
+        _actions(context, link, active),
+        const SizedBox(height: 20),
+        JobSplitColumns(
+          leading: _linkSurface(context, link),
+          trailing: _qrSurface(context, qr),
+        ),
+      ],
+    );
+  }
+
+  Widget _actions(BuildContext context, PublicLink link, bool active) {
+    final l10n = AppLocalizations.of(context);
+    final url = link.publicUrl;
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        JobPillButton(
+          label: l10n.copyLink,
+          icon: Icons.copy,
+          variant: active ? JobPillVariant.filled : JobPillVariant.outline,
+          onPressed: _busy || url == null ? null : () => _copy(url),
+        ),
+        JobPillButton(
+          key: const Key('jobs-share-button'),
+          label: l10n.jobsShare,
+          icon: Icons.share_outlined,
+          variant: JobPillVariant.outline,
+          onPressed: _busy || url == null ? null : () => _share(url),
+        ),
+        if (!active)
+          JobPillButton(
+            key: const Key('jobs-publish-checklist-button'),
+            label: l10n.jobsOpenPublishChecklist,
+            icon: Icons.playlist_add_check_outlined,
+            onPressed: _busy ? null : _openChecklist,
+          ),
+        if (active)
+          JobPillButton(
+            label: l10n.jobsRotateToken,
+            icon: Icons.autorenew,
+            variant: JobPillVariant.outline,
+            onPressed: _busy ? null : _rotate,
+          ),
+        if (active)
+          JobPillButton(
+            key: const Key('jobs-unpublish-button'),
+            label: l10n.jobsUnpublish,
+            icon: Icons.visibility_off_outlined,
+            variant: JobPillVariant.ghost,
+            onPressed: _busy ? null : _unpublish,
+          ),
+        if (link.status != 'REVOKED')
+          JobPillButton(
+            key: const Key('jobs-revoke-button'),
+            label: l10n.jobsRevoke,
+            icon: Icons.link_off,
+            variant: JobPillVariant.danger,
+            onPressed: _busy ? null : _revoke,
+          ),
+      ],
+    );
+  }
+
+  /// The link itself is the focal point: one surface, label above, the URL in
+  /// wrapping tabular-free text, then the facts a support call needs.
+  Widget _linkSurface(BuildContext context, PublicLink link) {
+    final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final url = link.publicUrl;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: ws.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ws.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.link, size: 16, color: ws.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.jobsPublicUrl.toUpperCase(),
+                  style: ws.eyebrow.copyWith(color: ws.muted),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SelectableText(
+            url ?? l10n.commonNotAvailable,
+            textDirection: TextDirection.ltr,
+            style: ws.bodyStrong.copyWith(
+              fontSize: 16,
+              height: 1.5,
+              color: url == null ? ws.muted : ws.ink,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(height: 1, color: ws.border),
+          const SizedBox(height: 12),
+          _Fact(
+            label: l10n.jobsPublicToken,
+            value: link.token ?? l10n.commonNotAvailable,
+            valueDirection: TextDirection.ltr,
+            selectable: true,
+          ),
+          if (link.activatedAt != null)
+            _Fact(
+              label: l10n.jobsActivatedAt,
+              value: formatInstant(context, link.activatedAt),
+            ),
+          if (link.revokedAt != null)
+            _Fact(
+              label: l10n.jobsRevokedAt,
+              value: formatInstant(context, link.revokedAt),
+            ),
+          if (link.revocationReason != null)
+            _Fact(
+              label: l10n.jobsRevocationReason,
+              value: link.revocationReason!,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _qrSurface(BuildContext context, AsyncValue<List<int>> qr) {
+    final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 18),
+      decoration: BoxDecoration(
+        color: ws.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ws.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.jobsQrTitle.toUpperCase(),
+            style: ws.eyebrow.copyWith(color: ws.muted),
+          ),
+          const SizedBox(height: 14),
+          qr.when(
+            loading: () => const WorkshopSkeleton(lines: 3),
             error: (error, _) => _qrPlaceholder(context),
             data: (bytes) {
               if (bytes.isEmpty) {
@@ -202,8 +282,8 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
               }
               return Align(
                 alignment: Alignment.center,
-                child: FractionallySizedBox(
-                  widthFactor: 0.7,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Image.memory(
@@ -218,28 +298,31 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
               );
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _qrPlaceholder(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
     return Padding(
-      padding: EdgeInsetsDirectional.all(context.spacing.lg),
+      padding: const EdgeInsetsDirectional.symmetric(vertical: 18),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.qr_code_2_outlined,
-            size: context.sizing.emptyArt,
-            color: context.colors.onSurfaceVariant,
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: ws.canvas, shape: BoxShape.circle),
+            child: Icon(Icons.qr_code_2_outlined, size: 26, color: ws.muted),
           ),
-          SizedBox(height: context.spacing.sm),
+          const SizedBox(height: 10),
           Text(
             l10n.jobsQrUnavailable,
-            style: context.texts.bodySmall?.copyWith(
-              color: context.colors.onSurfaceVariant,
-            ),
+            textAlign: TextAlign.center,
+            style: ws.meta.copyWith(color: ws.muted),
           ),
         ],
       ),
@@ -347,5 +430,97 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
         setState(() => _busy = false);
       }
     }
+  }
+}
+
+enum _PillTone { success, warning, danger, neutral }
+
+_PillTone _linkTone(String status) => switch (status) {
+  'ACTIVE' => _PillTone.success,
+  'REVOKED' => _PillTone.danger,
+  _ => _PillTone.warning,
+};
+
+/// State pill in the module's full-radius badge geometry. Colour is paired
+/// with the label (and an icon when one is given), never used alone.
+class _StatePill extends StatelessWidget {
+  const _StatePill({required this.label, required this.tone, this.icon});
+
+  final String label;
+  final _PillTone tone;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    final (Color bg, Color fg) = switch (tone) {
+      _PillTone.success => (ws.successSoft, ws.success),
+      _PillTone.warning => (ws.warningSoft, ws.warning),
+      _PillTone.danger => (ws.dangerSoft, ws.danger),
+      _PillTone.neutral => (ws.canvas, ws.muted),
+    };
+    return Semantics(
+      label: label,
+      child: Container(
+        height: 26,
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null)
+              Icon(icon, size: 13, color: fg)
+            else
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+              ),
+            const SizedBox(width: 6),
+            Text(label, style: ws.eyebrow.copyWith(color: fg, fontSize: 10.5)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Label above value. Values that are identifiers are pinned LTR and can be
+/// selected; nothing that identifies the link is ellipsized.
+class _Fact extends StatelessWidget {
+  const _Fact({
+    required this.label,
+    required this.value,
+    this.valueDirection,
+    this.selectable = false,
+  });
+
+  final String label;
+  final String value;
+  final TextDirection? valueDirection;
+  final bool selectable;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    final style = ws.body.copyWith(color: ws.ink);
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: ws.eyebrow.copyWith(color: ws.muted)),
+          const SizedBox(height: 3),
+          if (selectable)
+            SelectableText(value, textDirection: valueDirection, style: style)
+          else
+            Text(value, textDirection: valueDirection, style: style),
+        ],
+      ),
+    );
   }
 }

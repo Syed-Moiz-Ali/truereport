@@ -1,18 +1,15 @@
-import 'package:workshop_admin_app/src/admin_providers.dart';
-import 'package:workshop_admin_app/src/labels.dart';
-import 'package:workshop_admin_app/src/models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
+import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
+import 'package:workshop_admin_app/src/models.dart';
 
-/// Read-only template version view.
+/// Read-only view of one published (or drafting) template version.
 ///
-/// Consistency pass only: the same top bar and card language as the builder,
-/// with every existing behaviour preserved — the version provider, the integer
-/// version + status heading, the published date, the EN/AR switch and the
-/// per-item read-only lines (label, instruction, category/version and the
-/// platform-locked rule).
+/// Same provider, same EN/AR switch, same per-item content as before — laid
+/// out as a numbered route with pill language chips and a sticky-free header.
 class TemplateVersionPage extends ConsumerStatefulWidget {
   const TemplateVersionPage({
     required this.templateId,
@@ -31,85 +28,78 @@ class TemplateVersionPage extends ConsumerStatefulWidget {
 class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
   bool _arabic = false;
 
+  String get _key => '${widget.templateId}\u0001${widget.versionId}';
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    final version = ref.watch(
-      templateVersionProvider('${widget.templateId}\u0001${widget.versionId}'),
-    );
+    final width = MediaQuery.sizeOf(context).width;
+    final version = ref.watch(templateVersionProvider(_key));
     return Scaffold(
       backgroundColor: ws.canvas,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
-            child: Column(
-              children: [
-                _topBar(context, l10n),
-                Expanded(
-                  child: version.when(
-                    loading: () => const WorkshopPageScroll(
-                      children: [WorkshopSkeleton(lines: 6, card: true)],
-                    ),
-                    error: (error, _) => WorkshopPageScroll(
-                      children: [
-                        WorkshopErrorState(
-                          title: l10n.error,
-                          body: l10n.genericError,
-                          retryLabel: l10n.retryAction,
-                          onRetry: () => ref.invalidate(
-                            templateVersionProvider(
-                              '${widget.templateId}\u0001${widget.versionId}',
-                            ),
-                          ),
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              height: ws.topBarHeight,
+              padding: EdgeInsetsDirectional.symmetric(
+                horizontal: ws.pageGutter(width),
+              ),
+              decoration: BoxDecoration(
+                color: ws.surface,
+                border: BorderDirectional(bottom: BorderSide(color: ws.border)),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
+                  child: Row(
+                    children: [
+                      WorkshopIconButton(
+                        icon: Directionality.of(context) == TextDirection.rtl
+                            ? Icons.arrow_forward
+                            : Icons.arrow_back,
+                        semanticLabel: l10n.commonBack,
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.readOnlyVersion,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: ws.bodyStrong.copyWith(color: ws.ink),
                         ),
-                      ],
-                    ),
-                    data: (value) => _body(context, l10n, value),
+                      ),
+                      Icon(Icons.lock_outline, size: 16, color: ws.muted),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            Expanded(
+              child: version.when(
+                loading: () => SingleChildScrollView(
+                  padding: ws.pagePadding(width),
+                  child: const WorkshopSkeleton(lines: 6, card: true),
+                ),
+                error: (error, _) => SingleChildScrollView(
+                  padding: ws.pagePadding(width),
+                  child: WorkshopErrorState(
+                    title: l10n.error,
+                    body: l10n.genericError,
+                    retryLabel: l10n.retryAction,
+                    onRetry: () =>
+                        ref.invalidate(templateVersionProvider(_key)),
+                  ),
+                ),
+                data: (value) => _body(context, l10n, value),
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _topBar(BuildContext context, AppLocalizations l10n) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return Container(
-      height: ws.topBarHeight,
-      padding: EdgeInsetsDirectional.symmetric(
-        horizontal: ws.pageGutter(MediaQuery.sizeOf(context).width),
-      ),
-      decoration: BoxDecoration(
-        color: ws.surface,
-        border: BorderDirectional(bottom: BorderSide(color: ws.border)),
-      ),
-      child: Row(
-        children: [
-          WorkshopIconButton(
-            icon: Icons.arrow_back,
-            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-            onPressed: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-          SizedBox(width: spacing.sm),
-          Expanded(
-            child: Text(
-              l10n.readOnlyVersion,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: ws.bodyStrong.copyWith(color: ws.ink),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -119,90 +109,153 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
     AppLocalizations l10n,
     TemplateVersionView value,
   ) {
-    final spacing = context.spacing;
-    final rows = <Widget>[];
-    for (var index = 0; index < value.items.length; index++) {
-      if (index > 0) {
-        rows.add(const WorkshopDivider());
-      }
-      rows.add(_itemRow(context, l10n, value.items[index]));
-    }
-    return WorkshopPageScroll(
-      children: [
-        WorkshopPageHeader(
-          title:
-              'v${value.versionNo} · '
-              '${contentStatusLabel(l10n, value.status)}',
-          subtitle: value.publishedAt.isEmpty ? null : value.publishedAt,
-        ),
-        SizedBox(height: spacing.lg),
-        Wrap(
-          spacing: spacing.sm,
-          runSpacing: spacing.sm,
-          children: [
-            WorkshopFilterChip(
-              label: l10n.previewEn,
-              selected: !_arabic,
-              onTap: () => setState(() => _arabic = false),
-            ),
-            WorkshopFilterChip(
-              label: l10n.previewAr,
-              selected: _arabic,
-              onTap: () => setState(() => _arabic = true),
-            ),
-          ],
-        ),
-        SizedBox(height: spacing.lg),
-        if (rows.isEmpty)
-          WorkshopCard(
-            child: WorkshopEmptyState(
-              title: l10n.noItems,
-              body: l10n.addItems,
-              icon: Icons.playlist_add_check,
-            ),
-          )
-        else
-          WorkshopCard(
-            padding: EdgeInsetsDirectional.zero,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: rows,
-            ),
+    final ws = context.ws;
+    final width = MediaQuery.sizeOf(context).width;
+    return SingleChildScrollView(
+      padding: ws.pagePadding(width),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'v${value.versionNo}',
+                          style: ws.pageTitle.copyWith(
+                            fontSize: 34,
+                            letterSpacing: -0.8,
+                            color: ws.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            TemplateStatusPill(status: value.status),
+                            if (value.publishedAt.isNotEmpty)
+                              Text(
+                                value.publishedAt,
+                                style: ws.meta.copyWith(color: ws.muted),
+                              ),
+                            Text(
+                              l10n.templateItemsCount(value.items.length),
+                              style: ws.meta.copyWith(color: ws.muted),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      TemplatePillChip(
+                        label: l10n.previewEn,
+                        selected: !_arabic,
+                        onTap: () => setState(() => _arabic = false),
+                      ),
+                      const SizedBox(width: 8),
+                      TemplatePillChip(
+                        label: l10n.previewAr,
+                        selected: _arabic,
+                        onTap: () => setState(() => _arabic = true),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: ws.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: ws.border),
+                ),
+                child: value.items.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(28),
+                        child: Text(
+                          l10n.noItems,
+                          textAlign: TextAlign.center,
+                          style: ws.body.copyWith(color: ws.muted),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (var i = 0; i < value.items.length; i++)
+                            _row(context, ws, value.items[i], i),
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 28),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
 
-  Widget _itemRow(
+  Widget _row(
     BuildContext context,
-    AppLocalizations l10n,
+    WorkshopTokens ws,
     TemplateItemView item,
+    int index,
   ) {
-    final ws = context.ws;
-    final spacing = context.spacing;
-    return Padding(
-      padding: EdgeInsetsDirectional.all(spacing.lg),
-      child: Column(
+    final l10n = AppLocalizations.of(context);
+    final label = _arabic ? item.labelAr : item.labelEn;
+    final instruction = _arabic ? item.instructionAr : item.instructionEn;
+    final category = _arabic ? item.categoryLabelAr : item.categoryLabelEn;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
+      decoration: BoxDecoration(
+        border: index == 0
+            ? null
+            : BorderDirectional(top: BorderSide(color: ws.border)),
+      ),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _arabic ? item.labelAr : item.labelEn,
-            style: ws.cardTitle.copyWith(color: ws.ink),
+            '${index + 1}'.padLeft(2, '0'),
+            style: ws.meta.copyWith(
+              color: ws.muted,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
-          SizedBox(height: spacing.xs),
-          Text(
-            _arabic ? item.instructionAr : item.instructionEn,
-            style: ws.body.copyWith(color: ws.ink),
-          ),
-          SizedBox(height: spacing.xs),
-          Text(
-            '${_arabic ? item.categoryLabelAr : item.categoryLabelEn} · '
-            'v${item.versionNo} · '
-            '${item.noteRequirement}/${item.evidenceRequirement} · '
-            '${l10n.lockedByPlatform}',
-            style: ws.meta.copyWith(color: ws.muted),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: ws.bodyStrong.copyWith(color: ws.ink, fontSize: 14),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  instruction,
+                  style: ws.body.copyWith(color: ws.ink, fontSize: 13),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$category · v${item.versionNo} · '
+                  '${item.noteRequirement}/${item.evidenceRequirement} · '
+                  '${l10n.lockedByPlatform}',
+                  style: ws.meta.copyWith(color: ws.muted, fontSize: 11),
+                ),
+              ],
+            ),
           ),
         ],
       ),

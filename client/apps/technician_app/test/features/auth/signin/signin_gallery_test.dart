@@ -69,6 +69,13 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/images/signin_hero.jpg'),
+        tester.element(find.byKey(rootKey)),
+      );
+    });
+    await tester.pump();
 
     expect(
       tester.takeException(),

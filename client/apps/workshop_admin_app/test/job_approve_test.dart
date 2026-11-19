@@ -7,6 +7,7 @@ import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve_job_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 import 'support/fake_admin_api.dart';
@@ -213,19 +214,19 @@ void main() {
     expect(find.text(l10n.jobsNoVersion), findsOneWidget);
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-approve-button')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-approve-button')))
           .onPressed,
       isNull,
     );
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-reject-button')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-reject-button')))
           .onPressed,
       isNull,
     );
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-checklist-link')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-checklist-link')))
           .onPressed,
       isNotNull,
     );

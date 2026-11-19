@@ -27,6 +27,8 @@ class SignInDock extends StatelessWidget {
     required this.emailLabel,
     required this.passwordLabel,
     required this.codeLabel,
+    this.emailHint,
+    this.passwordHint,
     required this.primaryLabel,
     required this.accessPrompt,
     required this.helpLabel,
@@ -59,6 +61,8 @@ class SignInDock extends StatelessWidget {
   final String emailLabel;
   final String passwordLabel;
   final String codeLabel;
+  final String? emailHint;
+  final String? passwordHint;
   final String primaryLabel;
   final String accessPrompt;
   final String helpLabel;
@@ -118,21 +122,21 @@ class SignInDock extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (stacked)
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(gutter, 0, gutter, 10),
-            child: meta,
-          ),
         DecoratedBox(
           decoration: BoxDecoration(
             color: scheme.surfaceContainer,
-            border: Border(top: BorderSide(color: scheme.outlineVariant)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 22,
+                offset: const Offset(0, -6),
+              ),
+            ],
           ),
           child: Padding(
             padding: EdgeInsetsDirectional.only(
-              top: horizontal
-                  ? SignInDims.dockPadTopWide
-                  : SignInDims.dockPadTop,
+              top: horizontal ? 32 : SignInDims.dockPadTop,
               bottom:
                   (horizontal
                       ? SignInDims.dockPadBottomWide
@@ -146,7 +150,6 @@ class SignInDock extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (!stacked) ...[meta, const SizedBox(height: 28)],
                   if (horizontal)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -181,6 +184,8 @@ class SignInDock extends StatelessWidget {
                     SizedBox(height: errorText == null ? 12 : 4),
                     primary,
                   ],
+                  const SizedBox(height: 16),
+                  meta,
                 ],
               ),
             ),
@@ -196,6 +201,7 @@ class SignInDock extends StatelessWidget {
     final email = SignInField(
       controller: emailController,
       label: emailLabel,
+      hint: emailHint,
       validator: emailValidator,
       focusNode: emailFocus,
       enabled: !challenge,
@@ -208,6 +214,7 @@ class SignInDock extends StatelessWidget {
     final password = SignInField(
       controller: passwordController,
       label: passwordLabel,
+      hint: passwordHint,
       validator: passwordValidator,
       focusNode: passwordFocus,
       obscure: obscure,

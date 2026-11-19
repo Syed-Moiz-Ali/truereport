@@ -11,6 +11,7 @@ import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/queue/queue_theme.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_actions.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
@@ -39,7 +40,8 @@ class JobsQueueActions {
     }
   }
 
-  void openDetail(CleanJob job) => open(JobDetailPage(jobId: job.id));
+  void openDetail(CleanJob job) =>
+      open(QueueTheme(child: JobDetailPage(jobId: job.id)));
 
   Future<void> openArchivePage() async {
     await openArchive(context);

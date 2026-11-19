@@ -1258,6 +1258,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get technicianPasswordHelp => 'Password help';
 
   @override
+  String get technicianEmailHint => 'name@workshop.com';
+
+  @override
+  String get technicianPasswordHint => 'Enter your password';
+
+  @override
   String get technicianNeedTechnicianAccess => 'Need technician login?';
 
   @override

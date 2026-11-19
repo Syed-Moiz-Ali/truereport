@@ -1,7 +1,7 @@
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/models.dart';
-import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
+import 'package:workshop_admin_app/src/features/templates/template_route_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_version_page.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';

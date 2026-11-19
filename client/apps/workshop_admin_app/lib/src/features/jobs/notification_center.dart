@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
@@ -10,8 +11,8 @@ import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 /// Notification list used by the shell bell and the pushed notifications page.
 ///
 /// Presentation only: the same provider, unread filter and mark-read API as
-/// before. The page title lives in the host page, so this widget stays a
-/// toolbar + list rather than a second header.
+/// before. The page title lives in the host page, so this surface is a filter
+/// row plus one list of hairline rows rather than a second header.
 class NotificationCenterTab extends ConsumerStatefulWidget {
   const NotificationCenterTab({super.key});
 
@@ -32,30 +33,36 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
       onRefresh: () async => ref.invalidate(notificationsProvider(_unreadOnly)),
       child: WorkshopPageScroll(
         children: [
-          WorkshopToolbar(
-            filters: [
-              WorkshopFilterChip(
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              JobPillChip(
                 label: l10n.filterAll,
                 selected: !_unreadOnly,
                 onTap: () => setState(() => _unreadOnly = false),
               ),
-              WorkshopFilterChip(
+              JobPillChip(
                 key: const Key('jobs-unread-only'),
                 label: l10n.jobsNotificationsUnreadOnly,
                 selected: _unreadOnly,
                 onTap: () => setState(() => _unreadOnly = true),
               ),
+              JobPillButton(
+                label: l10n.refresh,
+                icon: Icons.refresh,
+                variant: JobPillVariant.outline,
+                compact: true,
+                onPressed: () =>
+                    ref.invalidate(notificationsProvider(_unreadOnly)),
+              ),
             ],
-            trailing: WorkshopIconButton(
-              icon: Icons.refresh,
-              semanticLabel: l10n.refresh,
-              onPressed: () =>
-                  ref.invalidate(notificationsProvider(_unreadOnly)),
-            ),
           ),
-          SizedBox(height: context.spacing.lg),
+          const SizedBox(height: 18),
           notifications.when(
-            loading: () => const WorkshopSkeleton(card: true, lines: 4),
+            loading: () => const WorkshopSkeleton(card: true, lines: 5),
             error: (error, _) => WorkshopErrorState(
               title: l10n.error,
               body: l10n.commonLoadFailed,
@@ -64,27 +71,16 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
             ),
             data: (items) {
               if (items.isEmpty) {
-                return WorkshopEmptyState(
-                  title: l10n.jobsNotificationsEmpty,
-                  icon: Icons.notifications_none_outlined,
-                );
+                return _EmptySurface(title: l10n.jobsNotificationsEmpty);
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (var index = 0; index < items.length; index++) ...[
-                    if (index > 0) SizedBox(height: context.spacing.md),
-                    _NotificationCard(
-                      item: items[index],
-                      marking: _marking.contains(items[index].id),
-                      onMarkRead: () => _markRead(items[index]),
-                    ),
-                  ],
-                ],
+              return _NotificationSurface(
+                items: items,
+                marking: _marking,
+                onMarkRead: _markRead,
               );
             },
           ),
+          const SizedBox(height: 28),
         ],
       ),
     );
@@ -115,8 +111,48 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
   }
 }
 
-class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({
+/// One bordered surface, one hairline row per notification.
+class _NotificationSurface extends StatelessWidget {
+  const _NotificationSurface({
+    required this.items,
+    required this.marking,
+    required this.onMarkRead,
+  });
+
+  final List<WorkshopNotification> items;
+  final Set<String> marking;
+  final ValueChanged<WorkshopNotification> onMarkRead;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    return Container(
+      decoration: BoxDecoration(
+        color: ws.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ws.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var index = 0; index < items.length; index++) ...[
+            if (index > 0) Container(height: 1, color: ws.border),
+            _NotificationRow(
+              item: items[index],
+              marking: marking.contains(items[index].id),
+              onMarkRead: () => onMarkRead(items[index]),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationRow extends StatelessWidget {
+  const _NotificationRow({
     required this.item,
     required this.marking,
     required this.onMarkRead,
@@ -130,8 +166,11 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    final spacing = context.spacing;
-    return WorkshopCard(
+    final unread = !item.isRead;
+    final payload = item.payloadJson ?? '';
+    return Container(
+      color: unread ? ws.accentSoft.withValues(alpha: 0.4) : Colors.transparent,
+      padding: const EdgeInsetsDirectional.fromSTEB(18, 14, 18, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -139,6 +178,18 @@ class _NotificationCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(top: 6),
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: unread ? ws.accent : ws.border,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +198,11 @@ class _NotificationCard extends StatelessWidget {
                     Text(
                       item.type,
                       textDirection: TextDirection.ltr,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: ws.bodyStrong.copyWith(color: ws.ink),
                     ),
-                    SizedBox(height: spacing.xs),
+                    const SizedBox(height: 2),
                     Text(
                       formatInstant(context, item.createdAt),
                       style: ws.meta.copyWith(color: ws.muted),
@@ -157,39 +210,96 @@ class _NotificationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: spacing.sm),
+              const SizedBox(width: 10),
               WorkshopStatusBadge(
-                label: item.isRead
-                    ? l10n.jobsNotificationsRead
-                    : l10n.jobsNotificationsUnread,
-                tone: item.isRead
-                    ? WorkshopStatusTone.neutral
-                    : WorkshopStatusTone.warning,
+                label: unread
+                    ? l10n.jobsNotificationsUnread
+                    : l10n.jobsNotificationsRead,
+                tone: unread
+                    ? WorkshopStatusTone.warning
+                    : WorkshopStatusTone.neutral,
               ),
             ],
           ),
-          if ((item.payloadJson ?? '').isNotEmpty) ...[
-            SizedBox(height: spacing.sm),
-            SelectableText(
-              item.payloadJson!,
-              textDirection: TextDirection.ltr,
-              style: ws.meta.copyWith(color: ws.muted),
+          if (payload.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: ws.canvas,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: SelectableText(
+                payload,
+                textDirection: TextDirection.ltr,
+                maxLines: 3,
+                style: ws.meta.copyWith(color: ws.muted),
+              ),
             ),
           ],
-          if (!item.isRead) ...[
-            SizedBox(height: spacing.md),
+          if (unread) ...[
+            const SizedBox(height: 10),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: WorkshopButton(
+              child: JobPillButton(
                 key: Key('jobs-mark-read-${item.id}'),
                 label: l10n.jobsNotificationsMarkRead,
                 icon: Icons.done_all,
-                variant: WorkshopButtonVariant.secondary,
-                isLoading: marking,
+                variant: JobPillVariant.outline,
+                compact: true,
+                loading: marking,
                 onPressed: marking ? null : onMarkRead,
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Designed empty state: a quiet icon plate, one sentence, no dead action.
+class _EmptySurface extends StatelessWidget {
+  const _EmptySurface({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(24, 40, 24, 40),
+      decoration: BoxDecoration(
+        color: ws.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ws.border),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: ws.canvas, shape: BoxShape.circle),
+            child: Icon(
+              Icons.notifications_none_outlined,
+              size: 24,
+              color: ws.muted,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: ws.bodyStrong.copyWith(color: ws.ink),
+            ),
+          ),
         ],
       ),
     );

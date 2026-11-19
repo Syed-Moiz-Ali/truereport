@@ -1,6 +1,6 @@
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/auth/workshop_login_page.dart';
-import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
+import 'package:workshop_admin_app/src/features/templates/template_route_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_version_page.dart';
 import 'package:workshop_admin_app/src/features/home/workshop_admin_home.dart';
 import 'package:design_system/design_system.dart';

@@ -1,5 +1,11 @@
 # UI brief — Technician sign-in · direction C "The dock"
 
+> **CR-3 (2026-11-19): the dock opens with a full-bleed workshop photo**; the
+> credential sheet overlaps it with rounded corners and a soft shadow, the
+> language switch is a single dark pill, the help/security line sits in the
+> sheet footer, and the fields have hints. The primary is a full pill. The
+> shared bay remains for workshop and platform.
+
 Phase 3c spec for the **chosen** direction. Gate 3 approved by the user on
 2026-11-19 against `docs/evidence/signin_directions/c/` (renders at 1440 and 390
 EN, 390 AR, style tile). This document supersedes the audit's description of the

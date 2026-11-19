@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve_job_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_documents_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_creation_wizard_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
-import 'package:workshop_admin_app/src/features/jobs/jobs_board_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/notification_center.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
@@ -67,7 +67,6 @@ Future<void> _pump(
 void main() {
   final screens = <String, Widget Function()>{
     'job creation wizard': () => const JobCreationWizardPage(),
-    'jobs board': () => const Scaffold(body: JobsBoardTab()),
     'job detail': () => const JobDetailPage(jobId: 'job-1'),
     'approve & issue': () => const ApproveIssuePage(jobId: 'job-1'),
     'publish checklist': () => const PublishChecklistPage(jobId: 'job-1'),
@@ -87,26 +86,6 @@ void main() {
     }
   }
 
-  testWidgets('job board renders counts, filters and API jobs', (tester) async {
-    await _pump(
-      tester,
-      const Scaffold(body: JobsBoardTab()),
-      locale: const Locale('en'),
-      size: const Size(1024, 900),
-    );
-
-    expect(find.text('JOB-0001'), findsOneWidget);
-    expect(find.byKey(const Key('jobs-filter-PENDING_REVIEW')), findsOneWidget);
-    expect(find.text('Pending review (1)'), findsOneWidget);
-
-    await tester.dragUntilVisible(
-      find.text('JOB-0002'),
-      find.byType(CustomScrollView),
-      const Offset(0, -300),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('JOB-0002'), findsOneWidget);
-  });
 
   testWidgets('wizard validates required customer fields inline', (
     tester,
@@ -138,7 +117,7 @@ void main() {
       find.byKey(const Key('jobs-checklist-ITEMS_ASSESSED')),
       findsOneWidget,
     );
-    final publish = tester.widget<WorkshopButton>(
+    final publish = tester.widget<JobPillButton>(
       find.byKey(const Key('jobs-publish-button')),
     );
     expect(publish.onPressed, isNotNull);
@@ -156,7 +135,7 @@ void main() {
     );
 
     expect(find.text('Not ready to publish'), findsWidgets);
-    final publish = tester.widget<WorkshopButton>(
+    final publish = tester.widget<JobPillButton>(
       find.byKey(const Key('jobs-publish-button')),
     );
     expect(publish.onPressed, isNull);

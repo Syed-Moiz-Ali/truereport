@@ -42,11 +42,11 @@ class SignInPrimary extends StatelessWidget {
       label: label,
       child: Material(
         color: fill,
-        borderRadius: BorderRadius.circular(SignInDims.cellRadius),
+        borderRadius: BorderRadius.circular(height / 2),
         child: InkWell(
           key: blockKey,
           onTap: enabled ? onPressed : null,
-          borderRadius: BorderRadius.circular(SignInDims.cellRadius),
+          borderRadius: BorderRadius.circular(height / 2),
           child: SizedBox(
             height: height,
             child: Center(
@@ -81,3 +81,4 @@ class SignInPrimary extends StatelessWidget {
     );
   }
 }
+

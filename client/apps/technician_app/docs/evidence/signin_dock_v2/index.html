@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Technician sign-in — dock restored + inspection visual</title>
+<style>
+  body { margin: 0; padding: 32px 40px 64px; background: #f6f6f8; color: #1a1b1f;
+         font: 15px/1.55 "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.5px; }
+  .sub { color: #5e5d69; margin: 0 0 26px; max-width: 900px; }
+  h2 { font-size: 18px; margin: 30px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .phones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .card { background: #fff; border: 1px solid #e3e1ef; border-radius: 12px; overflow: hidden; }
+  .card img { width: 100%; display: block; }
+  .phones img { max-height: 560px; width: auto; margin: 0 auto; }
+  .cap { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #6c7a71;
+         padding: 9px 12px; border-top: 1px solid #eeedf3; }
+  .note { background: #fff; border: 1px solid #e3e1ef; border-left: 3px solid #006c49;
+          border-radius: 12px; padding: 16px 18px; font-size: 13px; color: #3c4a42; }
+</style>
+</head>
+<body>
+  <h1>Technician sign-in — dock + full-bleed workshop hero</h1>
+  <p class="sub">CR-3: a real workshop photograph — a technician on an open engine bay — fills the top of the
+  screen. The credential sheet overlaps it with a 28 px rounded top and a soft shadow, so the photo appears
+  to come out of the container (no fog). The product name, statement and tagline stack over the photo; the
+  language switch is a single dark pill; the help and security line sit below Sign in; the fields show hints.</p>
+  <div class="note">Workshop and platform keep the shared bay; technician keeps its own dock, now a photo hero blending into the credential sheet.</div>
+
+  <h2>Desktop — 1440 / 1280</h2>
+  <div class="grid">
+    <div class="card"><img src="signin_1440_en.png" alt="1440"><div class="cap">1440 · full-bleed hero + hint fields</div></div>
+    <div class="card"><img src="signin_1280_en.png" alt="1280"><div class="cap">1280 · same composition</div></div>
+  </div>
+
+  <h2>Phone — 390 EN / AR</h2>
+  <div class="phones">
+    <div class="card"><img src="signin_390_en.png" alt="390 en"><div class="cap">390 EN</div></div>
+    <div class="card"><img src="signin_390_ar.png" alt="390 ar"><div class="cap">390 AR</div></div>
+    <div class="card"><img src="signin_390_error.png" alt="error"><div class="cap">Auth error</div></div>
+    <div class="card"><img src="signin_390_challenge.png" alt="2fa"><div class="cap">2FA</div></div>
+  </div>
+
+  <h2>Text scale — the image steps aside</h2>
+  <div class="phones">
+    <div class="card"><img src="signin_360_15x.png" alt="1.5x ar"><div class="cap">360 AR 1.5×</div></div>
+    <div class="card"><img src="signin_360_20x.png" alt="2x"><div class="cap">360 EN 2×</div></div>
+    <div class="card"><img src="signin_600_en.png" alt="600"><div class="cap">600 EN</div></div>
+    <div class="card"><img src="signin_768_en.png" alt="768"><div class="cap">768 EN</div></div>
+  </div>
+</body>
+</html>

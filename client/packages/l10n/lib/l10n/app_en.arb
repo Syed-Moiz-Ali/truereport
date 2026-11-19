@@ -492,6 +492,8 @@
   "technicianQueueCurrent": "Queue is current",
   "technicianCoverageOnly": "Coverage",
   "technicianPasswordHelp": "Password help",
+  "technicianEmailHint": "name@workshop.com",
+  "technicianPasswordHint": "Enter your password",
   "technicianNeedTechnicianAccess": "Need technician login?",
   "technicianContactAdmin": "Get help",
   "technicianSecureDelivery": "Secure report delivery",

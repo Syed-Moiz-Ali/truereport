@@ -28,6 +28,7 @@ class SignInField extends StatefulWidget {
     this.autofocus = false,
     this.autocorrect = false,
     this.enableSuggestions = false,
+    this.hint,
     this.suffix,
     this.fieldKey,
     super.key,
@@ -49,6 +50,7 @@ class SignInField extends StatefulWidget {
   final bool autofocus;
   final bool autocorrect;
   final bool enableSuggestions;
+  final String? hint;
   final Widget? suffix;
   final Key? fieldKey;
 
@@ -162,7 +164,7 @@ class _SignInFieldState extends State<SignInField> {
                                     color: scheme.onSurface,
                                   ),
                             cursorColor: scheme.primary,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               isDense: true,
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
@@ -171,6 +173,16 @@ class _SignInFieldState extends State<SignInField> {
                               errorBorder: InputBorder.none,
                               focusedErrorBorder: InputBorder.none,
                               contentPadding: EdgeInsets.zero,
+                              hintText: widget.hint,
+                              hintStyle: Fx.text(
+                                16,
+                                24,
+                                FontWeight.w400,
+                                0,
+                                color: scheme.onSurfaceVariant.withValues(
+                                  alpha: 0.55,
+                                ),
+                              ),
                             ),
                           ),
                         ),

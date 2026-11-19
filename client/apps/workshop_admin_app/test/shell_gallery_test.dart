@@ -35,11 +35,6 @@ const _destinations = <WorkshopNavDestination>[
     key: Key('workshop-tab-templates'),
   ),
   WorkshopNavDestination(
-    label: 'Board',
-    icon: Icons.assignment_outlined,
-    key: Key('workshop-tab-job-board'),
-  ),
-  WorkshopNavDestination(
     label: 'Settings',
     icon: Icons.settings_outlined,
     key: Key('workshop-tab-settings'),
@@ -208,10 +203,6 @@ void main() {
             WorkshopNavDestination(
               label: 'القوالب',
               icon: Icons.dashboard_customize_outlined,
-            ),
-            WorkshopNavDestination(
-              label: 'لوحة المهام',
-              icon: Icons.assignment_outlined,
             ),
             WorkshopNavDestination(
               label: 'الإعدادات',

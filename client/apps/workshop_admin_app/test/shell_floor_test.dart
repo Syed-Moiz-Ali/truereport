@@ -33,11 +33,6 @@ void main() {
       key: Key('workshop-tab-templates'),
     ),
     WorkshopNavDestination(
-      label: 'Job board',
-      icon: Icons.assignment_outlined,
-      key: Key('workshop-tab-job-board'),
-    ),
-    WorkshopNavDestination(
       label: 'Settings',
       icon: Icons.settings_outlined,
       key: Key('workshop-tab-settings'),

@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:l10n/l10n.dart';
 
 import 'signin_tokens.dart';
-import 'widgets/signin_command_strip.dart';
 import 'widgets/signin_dock.dart';
-import 'widgets/signin_statement.dart';
+import 'widgets/signin_hero.dart';
 
 /// Presentational sign-in screen for the technician app — direction C "The dock".
 ///
@@ -63,7 +62,7 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: scheme.surfaceContainer,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         top: true,
@@ -77,10 +76,15 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
                 : width >= SignInDims.stacked
                 ? SignInDims.gutterTablet
                 : SignInDims.gutterPhone;
-            final pinned = constraints.maxHeight >= SignInDims.pinnedHeight;
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final pinned =
+                constraints.maxHeight >= SignInDims.pinnedHeight &&
+                textScale < 1.4;
 
-            final strip = SignInCommandStrip(
+            final hero = SignInHero(
               title: l10n.appTitle,
+              statement: l10n.signInSubtitle,
+              tagline: l10n.technicianSignInTagline,
               englishLabel: l10n.languageEnglish,
               arabicLabel: l10n.languageArabic,
               isArabic: widget.isArabic,
@@ -89,12 +93,6 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
               onLanguageChanged: widget.onLocaleChanged,
               englishKey: const Key('sign-in-language-en'),
               arabicKey: const Key('sign-in-language-ar'),
-            );
-            final canvas = SignInStatement(
-              statement: l10n.signInSubtitle,
-              tagline: l10n.technicianSignInTagline,
-              wide: wide,
-              gutter: gutter,
             );
             final dock = SignInDock(
               emailController: widget.emailController,
@@ -106,6 +104,8 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
               emailLabel: l10n.emailLabel,
               passwordLabel: l10n.passwordLabel,
               codeLabel: l10n.twoFactorLabel,
+              emailHint: l10n.technicianEmailHint,
+              passwordHint: l10n.technicianPasswordHint,
               primaryLabel: widget.challenge
                   ? l10n.verifyButton
                   : l10n.signInButton,
@@ -135,11 +135,12 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      strip,
-                      Container(height: 1, color: scheme.outlineVariant),
-                      Expanded(child: SingleChildScrollView(child: canvas)),
-                      _Rise(
-                        child: Form(key: widget.formKey, child: dock),
+                      Expanded(child: hero),
+                      Transform.translate(
+                        offset: const Offset(0, -20),
+                        child: _Rise(
+                          child: Form(key: widget.formKey, child: dock),
+                        ),
                       ),
                     ],
                   )
@@ -147,14 +148,15 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        strip,
-                        Container(height: 1, color: scheme.outlineVariant),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 220),
-                          child: canvas,
+                        SizedBox(
+                          height: textScale >= 1.8 ? 540 : 400,
+                          child: hero,
                         ),
-                        _Rise(
-                          child: Form(key: widget.formKey, child: dock),
+                        Transform.translate(
+                          offset: const Offset(0, -20),
+                          child: _Rise(
+                            child: Form(key: widget.formKey, child: dock),
+                          ),
                         ),
                       ],
                     ),

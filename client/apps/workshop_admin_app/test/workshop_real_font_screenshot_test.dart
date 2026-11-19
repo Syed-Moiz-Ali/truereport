@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:auth/auth.dart';
@@ -15,7 +15,7 @@ import 'package:workshop_admin_app/src/features/auth/workshop_login_page.dart';
 import 'package:workshop_admin_app/src/features/home/workshop_admin_home.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
 import 'package:workshop_admin_app/src/features/reports/report_page.dart';
-import 'package:workshop_admin_app/src/features/templates/template_builder_page.dart';
+import 'package:workshop_admin_app/src/features/templates/template_route_page.dart';
 
 import 'support/fake_admin_api.dart';
 import 'support/real_fonts.dart';
@@ -188,7 +188,6 @@ void main() {
     'job_detail': () => const JobDetailPage(jobId: 'job-1'),
     'staff': () => const WorkshopAdminHomePage(),
     'templates': () => const WorkshopAdminHomePage(),
-    'board': () => const WorkshopAdminHomePage(),
     'template_builder': () =>
         const TemplateBuilderPage(templateId: 'template-1'),
     'reports': () => const ReportPage(jobId: 'job-3'),
@@ -223,7 +222,6 @@ void main() {
         'jobs': const Key('workshop-tab-jobs'),
         'staff': const Key('workshop-tab-staff'),
         'templates': const Key('workshop-tab-templates'),
-        'board': const Key('workshop-tab-job-board'),
         'settings': const Key('workshop-tab-settings'),
       };
       final navKey = keyByScreen[screen];

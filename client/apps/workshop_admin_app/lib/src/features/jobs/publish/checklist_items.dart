@@ -15,25 +15,35 @@ class ChecklistItems extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    if (items.isEmpty) {
-      return WorkshopCard(
-        child: Text(
-          l10n.jobsChecklistNotReady,
-          style: ws.body.copyWith(color: ws.muted),
-        ),
-      );
-    }
-    return WorkshopCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var index = 0; index < items.length; index++) ...[
-            if (index > 0) const WorkshopDivider(),
-            _ChecklistRow(item: items[index]),
-          ],
-        ],
-      ),
+    final spacing = context.spacing;
+    final header = WorkshopSectionHeader(title: l10n.checklist);
+    final body = items.isEmpty
+        ? WorkshopCard(
+            child: Text(
+              l10n.jobsChecklistNotReady,
+              style: ws.body.copyWith(color: ws.muted),
+            ),
+          )
+        : WorkshopCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var index = 0; index < items.length; index++) ...[
+                  if (index > 0) const WorkshopDivider(),
+                  _ChecklistRow(item: items[index]),
+                ],
+              ],
+            ),
+          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        header,
+        SizedBox(height: spacing.sm),
+        body,
+      ],
     );
   }
 }

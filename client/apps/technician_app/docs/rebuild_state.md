@@ -1,78 +1,66 @@
-# Rebuild state — technician_app sign-in
+# Rebuild state — technician_app sign-in (dock + full-bleed photo hero)
 
-Path:            **lite** (one screen, full LITE gates)
-Screen:          `/signin` — `client/apps/technician_app`
-Direction:       **C "The dock"** (Gate 3, user, 2026-11-19)
-Current phase:   **6 — complete**
-Current brief:   `docs/briefs/brief-signin-mini.md` — executed
-Gates:           0 **PASS (user, 2026-11-19)** | 1 **PASS (self, artifacts)**
-                 | 3 **PASS (user, direction C)** | 4-lite **PASS (self)**
-                 | 5 **PASS (user, 2026-11-19)**
-                 | 6 **PASS (independent r2, PASS WITH FIXES; owner endorsed
-                   §15, 2026-11-19)**
+Path:            **lite** · 2026-11-19
+Screen:          `/signin` — technician **dock** with a full-bleed photo hero;
+                 workshop/platform stay on the shared bay
+Direction:       **technician: the dock** (owner: "revert to previous, it was
+                 good") + a real workshop photo hero + field hints
+Canonical spec:  `docs/ui_brief.md` (dock) + `client/packages/auth/docs/shared_signin.md`
+                 (the bay, now workshop/platform only)
+Current phase:   **CR-3 complete**
 
-Artifacts:
-                 docs/audit-signin.md · docs/invariants.md
-                 docs/baseline_allowlist.md · docs/baseline_metrics.md
-                 docs/evidence/logs/ · docs/data/inventory.md
-                 docs/data/signin_client_trace.md
-                 docs/data/auth_server_contract.md · docs/data/samples/
-                 docs/api/contracts.md · docs/data_gaps.md
-                 docs/data/gate1_grade.md
-                 docs/design_thinking.md · docs/concepts/{a,b,c}/wireframe.md
-                 docs/evidence/signin_directions/ (12 PNGs + index.html + README)
-                 docs/ui_brief.md · docs/adr/0002-signin-ownership.md
-                 docs/visual_language.md · docs/waivers.md
-                 docs/evidence/gallery/signin_*.png + signin_index.html
-                 docs/evidence/signin/ (20 assembled-screen state renders)
-                 docs/evidence/signin/qa_checklist.md
-                 docs/evidence/signin/qa_verdict.md (r1 FAIL)
-                 docs/evidence/signin/qa_verdict_round2.md (r2 PASS WITH FIXES)
-                 docs/evidence/logs/after_{analyze,test}.txt
-                 docs/evidence/logs/after_analyze_auth.txt
+## CR-3 (2026-11-19)
 
-Code (new, routed at `/signin`):
-                 lib/src/features/auth/signin/signin_tokens.dart
-                 lib/src/features/auth/signin/technician_sign_in_page.dart
-                 lib/src/features/auth/signin/technician_sign_in_view.dart
-                 lib/src/features/auth/signin/widgets/ (8 region widgets)
-                 lib/src/technician_router.dart (route + pure guard)
-Tests:
-                 test/features/auth/signin/signin_behaviour_test.dart (18)
-                 test/features/auth/signin/signin_gallery_test.dart (7)
-                 test/src/technician_router_test.dart (4)
-                 test/support/font_harness_smoke_test.dart (2)
-                 test/f2a1_geometry_test.dart, test/o2_copy_fit_test.dart (rewritten)
-                 test/widget_test.dart, test/support/f2a_views.dart (repointed)
-                 test/goldens/f2a_login_{en,ar}_light.png (regenerated)
-Deleted:
-                 packages/auth/lib/src/{sign_in_page,sign_in_view,
-                   true_report_app,router}.dart + their barrel exports
+- The technician dock opens with a **full-bleed hero photo**: a technician
+  working on an open engine bay (Unsplash `1625047509168-a7026f36de04`,
+  downloaded at w=1400/q=70 and bundled; credit in
+  `assets/images/CREDITS.md`). The product name/language sit on a top scrim;
+  the statement and tagline are stacked over a bottom scrim.
+- **Layer:** the credential sheet overlaps the photo with a 28 px rounded top
+  and a soft shadow; the photo's bottom edge is hidden behind the sheet
+  (no fog, no hard seam). The photo appears to come out of the container.
+- **Language selector:** a single dark pill with white EN/AR labels (no nested
+  light track), so it is legible and looks like one control.
+- **Help/security line** ("Need technician login? Get help" + the security
+  caption) moved from above the fields into the sheet footer, below the
+  primary.
+- **Field hints** added: `name@workshop.com` and `Enter your password`
+  (new ARB keys `technicianEmailHint`, `technicianPasswordHint`; AR too).
+- **Primary** is a full pill (radius = half its height); the fields keep their
+  12 px rounding.
+- The hero is the full area above the dock; at 1.5×/2× the page scrolls and the
+  hero keeps a fixed height so the form stays reachable.
+- Workshop and platform remain on the shared bay (`SignInBayView`); the auth
+  package still exports it.
+- `AdminSignInView` stays deleted (platform dead view; the i18n `SignInCopy`
+  offender is gone).
 
-Open waivers:    W-LIGHT (approved at Gate 5, 2027-02-18)
-                 W-SIGNIN-WEB (approved with Gate 6 closure, 2026-12-19)
+## Measured result (CR-3)
 
-Measured result: app analyzer **0**; auth analyzer **0**; tests **263 pass /
-                 19 fail** (the exact baseline 19, no new failure); workspace
-                 analyze red only for 11 issues in untracked preview files of
-                 concurrent waves (documented in `baseline_allowlist.md` §E).
+- technician: **264 pass / 18 fail** — the same 18 baseline failures (14
+  non-login goldens, `f2b_a11y`, ARB placeholder scan B4, dates, empty-state
+  copy-fit). Login goldens regenerated with the photo hero. Log:
+  `docs/evidence/logs/cr3_technician_test.txt`.
+- workshop sign-in: 53/53; platform login: 9/9 (logs from CR-1 still apply; the
+  shared bay was unchanged by CR-3).
+- analyzers: auth 0, technician 0, platform 0. Workspace red only for the
+  untracked preview files of concurrent waves.
 
-Next allowed action: **ship** (merge/deploy by the owner). A live-device
-                 spot-check is the only optional follow-up (W-SIGNIN-WEB).
+## Evidence
 
-## Gate log
+- `docs/evidence/signin_dock_v2/` — 16 dock captures + `index.html` (1440, 1280,
+  1024, 768, 600, 390 EN/AR/error/2FA/keyboard, 360 EN/1.5× AR/2×, 1280 1.5×).
+- `docs/evidence/signin_bay/` — CR-1 bay evidence, historical (technician no
+  longer uses it); `docs/evidence/signin_platform/` — platform bay.
+- `packages/auth/docs/shared_signin.md` — the bay for workshop/platform.
 
-| Gate | Date | Result |
-|---|---|---|
-| 0 | 2026-11-19 | PASS (user): invariants, allowlist, font strategy, kill plan |
-| 1 | 2026-11-19 | PASS (self): 16 V / 1 A / 11 S / 5 M, every SUSPECT root-caused |
-| 3 | 2026-11-19 | PASS (user): direction **C — The dock** |
-| 4-lite | 2026-11-19 | PASS (self): ADR + 6 revertible seams + real-glyph smoke test |
-| 5 | 2026-11-19 | PASS (user): visual language + gallery (W-LIGHT) |
-| 6 r1 | 2026-11-19 | **FAIL (independent)**: B1 keyboard-up, B2 keyboard language, M1 evidence claims |
-| 6 r2 | 2026-11-19 | **PASS WITH FIXES (independent)**: no blockers/majors; §15 endorsed by the owner |
+## Gates
 
-## Resume rule
+0 PASS(user) · 1 PASS(self) · 3 PASS(user, dock) · 4-lite PASS(self) ·
+5 PASS(user, dock) · 6 PASS(dock, independent r2) · CR-1 PASS WITH FIXES
+(independent) · **CR-2 implemented (owner request; same dock, one image added)**.
 
-On resume, verify every artifact path above exists before trusting this file.
-A missing artifact means its gate did not happen; downgrade it to PENDING.
+## Next allowed action
+
+Ship. A live-device spot-check remains optional (W-SIGNIN-WEB).
+

@@ -1,5 +1,11 @@
 # Visual language — technician sign-in · "The dock"
 
+> **CR-3 (2026-11-19): the dock opens with a full-bleed workshop photo**; the
+> credential sheet overlaps it with rounded corners and a soft shadow, the
+> language switch is one dark pill, the help/security line sits in the sheet
+> footer, the fields have hints, and the primary is a full pill. The shared bay
+> remains for workshop/platform (`packages/auth/docs/shared_signin.md`).
+
 Committed at Gate 5. The direction is **C "The dock"** (Gate 3, user, 2026-11-19);
 this document fixes the tokens and primitives the screen is built from. No
 direction changes after this file.

@@ -136,34 +136,51 @@ class _FindingRow extends StatelessWidget {
     };
     return Padding(
       padding: EdgeInsetsDirectional.symmetric(vertical: spacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final badge = WorkshopStatusBadge(label: label, tone: tone);
+          final detail = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                localizedText(
+                  context,
+                  en: finding.labelEn,
+                  ar: finding.labelAr,
+                ),
+                style: ws.bodyStrong.copyWith(color: ws.ink),
+              ),
+              SizedBox(height: spacing.xxs),
+              Text(
+                finding.stableCode,
+                textDirection: TextDirection.ltr,
+                style: ws.meta.copyWith(color: ws.muted),
+              ),
+            ],
+          );
+          // Below ~440 px the badge and the label cannot share a line without
+          // squeezing the finding name, so the badge moves above it.
+          if (constraints.maxWidth < 440) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  localizedText(
-                    context,
-                    en: finding.labelEn,
-                    ar: finding.labelAr,
-                  ),
-                  style: ws.bodyStrong.copyWith(color: ws.ink),
-                ),
-                SizedBox(height: spacing.xxs),
-                Text(
-                  finding.stableCode,
-                  textDirection: TextDirection.ltr,
-                  style: ws.meta.copyWith(color: ws.muted),
-                ),
+                badge,
+                SizedBox(height: spacing.xs),
+                detail,
               ],
-            ),
-          ),
-          SizedBox(width: spacing.sm),
-          WorkshopStatusBadge(label: label, tone: tone),
-        ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: detail),
+              SizedBox(width: spacing.sm),
+              badge,
+            ],
+          );
+        },
       ),
     );
   }

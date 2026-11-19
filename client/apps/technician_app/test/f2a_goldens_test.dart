@@ -39,6 +39,15 @@ void main() {
           ),
         );
         await tester.pump(const Duration(milliseconds: 400));
+        if (id == 'login') {
+          await tester.runAsync(() async {
+            await precacheImage(
+              const AssetImage('assets/images/signin_hero.jpg'),
+              tester.element(find.byType(MaterialApp)),
+            );
+          });
+          await tester.pump(const Duration(milliseconds: 50));
+        }
         await expectLater(
           find.byType(MaterialApp),
           matchesGoldenFile(

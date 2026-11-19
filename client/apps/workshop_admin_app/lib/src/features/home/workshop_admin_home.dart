@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
-import 'package:workshop_admin_app/src/features/jobs/jobs_board_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/workshop_notifications_page.dart';
 import 'package:workshop_admin_app/src/features/settings/workshop_settings_page.dart';
@@ -96,12 +95,6 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
         key: const Key('workshop-tab-templates'),
       ),
       WorkshopNavDestination(
-        label: l10n.jobsBoardTab,
-        icon: Icons.assignment_outlined,
-        selectedIcon: Icons.assignment,
-        key: const Key('workshop-tab-job-board'),
-      ),
-      WorkshopNavDestination(
         label: l10n.settings,
         icon: Icons.settings_outlined,
         selectedIcon: Icons.settings,
@@ -120,7 +113,7 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
         accountInitials: _initials(accountName),
         accountName: accountName,
         accountEmail: email,
-        onSettings: () => _select(5),
+        onSettings: () => _select(4),
         onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
         onToggleLanguage: () => ref.read(localeProvider.notifier).toggle(),
         languageLabel: locale.languageCode == 'ar'
@@ -143,7 +136,6 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
             JobsTab(),
             StaffTab(),
             TemplatesTab(),
-            JobsBoardTab(),
             WorkshopSettingsPage(),
           ],
         ),

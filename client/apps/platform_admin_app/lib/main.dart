@@ -47,6 +47,7 @@ class PlatformAdminApp extends ConsumerWidget {
       localeResolutionCallback: (device, supported) =>
           resolvePlatformLocale(device, supported, defaultLanguage),
       localizationsDelegates: const [
+        ...signInBayLocalizationsDelegates,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

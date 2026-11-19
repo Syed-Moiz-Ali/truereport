@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:auth/auth.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -107,13 +111,10 @@ Widget _buildLoginApp({
       ),
     ],
     child: MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       locale: locale,
-      supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       theme: AppTheme.light,
       routerConfig: _router(),
     ),
@@ -144,7 +145,50 @@ Future<void> _submit(
   await tester.pumpAndSettle();
 }
 
+Future<void> _loadRealFonts() async {
+  final fontDir = Directory('../../packages/design_system/assets/fonts');
+  if (!fontDir.existsSync()) {
+    throw StateError('Font directory missing: ${fontDir.path}');
+  }
+  final families = <String, FontLoader>{};
+  await for (final entity in fontDir.list()) {
+    if (entity is! File) continue;
+    final name = entity.uri.pathSegments.last;
+    if (!name.endsWith('.ttf') && !name.endsWith('.otf')) continue;
+    String? family;
+    if (name.startsWith('PlusJakartaSans')) {
+      family = TrFonts.latin;
+    } else if (name.startsWith('NotoSansArabic')) {
+      family = TrFonts.arabicDefault;
+    } else if (name.startsWith('IBMPlexSansArabic')) {
+      family = TrFonts.arabicAlternative;
+    } else if (name.startsWith('NotoSansSC')) {
+      family = TrFonts.cjkFallback;
+    } else if (name.startsWith('NotoSansTelugu')) {
+      family = TrFonts.teluguFallback;
+    }
+    if (family == null) continue;
+    final bytes = await entity.readAsBytes();
+    final loader = families.putIfAbsent(family, () => FontLoader(family!));
+    loader.addFont(Future.value(ByteData.sublistView(bytes)));
+  }
+  for (final loader in families.values) {
+    await loader.load();
+  }
+  final iconFile = File(
+    'build/unit_test_assets/fonts/MaterialIcons-Regular.otf',
+  );
+  if (iconFile.existsSync()) {
+    final iconBytes = await iconFile.readAsBytes();
+    final iconLoader = FontLoader('MaterialIcons');
+    iconLoader.addFont(Future.value(ByteData.sublistView(iconBytes)));
+    await iconLoader.load();
+  }
+}
+
 void main() {
+  setUpAll(_loadRealFonts);
+
   testWidgets('Platform login renders desktop split view without overflow', (
     tester,
   ) async {
@@ -153,16 +197,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('PLATFORM ADMINISTRATION'), findsWidgets);
-    expect(
-      find.text('Global Automotive Diagnostic Network Administration'),
-      findsWidgets,
-    );
-    expect(find.text('Workshop Management'), findsOneWidget);
-    expect(find.text('Checklist Library'), findsOneWidget);
-    expect(find.text('Immutable Security Ledger'), findsOneWidget);
-
     expect(find.text('Sign in to Portal'), findsOneWidget);
-    expect(find.text('AUTHORIZED ACCESS ONLY'), findsOneWidget);
+    expect(find.text('Sign In to Portal'), findsOneWidget);
+    // The shared bay's right-side inspection visual.
+    expect(find.text('EXAMPLE JOB'), findsOneWidget);
+    expect(find.text('2023 Porsche 911 GT3'), findsOneWidget);
+
     expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
     expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
     expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);
@@ -288,39 +328,40 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('AdminSignInView legacy toggle still works without options', (
-    tester,
-  ) async {
-    _setViewport(tester, width: 1280, height: 800);
-    var arabic = false;
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          localizationsDelegates: <LocalizationsDelegate<dynamic>>[
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: <Locale>[const Locale('en'), const Locale('ar')],
-          home: AdminSignInView(
-            portalType: AdminPortalType.platform,
-            emailController: TextEditingController(),
-            passwordController: TextEditingController(),
-            codeController: TextEditingController(),
-            formKey: GlobalKey<FormState>(),
-            isArabic: arabic,
-            onLocaleChanged: (value) => arabic = value,
-            onSubmit: () {},
-            onValidateEmail: (_) => null,
-            onValidateRequired: (_) => null,
-          ),
+  testWidgets('capture the platform bay for evidence', (tester) async {
+    for (final entry in <(String, Size, Locale)>[
+      ('platform_1440_en', const Size(1440, 900), const Locale('en')),
+      ('platform_1280_en', const Size(1280, 800), const Locale('en')),
+      ('platform_390_en', const Size(390, 844), const Locale('en')),
+      ('platform_390_ar', const Size(390, 844), const Locale('ar')),
+    ]) {
+      tester.view.physicalSize = entry.$2;
+      tester.view.devicePixelRatio = 1;
+      const rootKey = ValueKey('platform-signin-capture');
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: rootKey,
+          child: _buildLoginApp(locale: entry.$3),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('العربية'), findsOneWidget);
-    expect(find.byKey(const Key('sign-in-language-menu')), findsNothing);
-    expect(tester.takeException(), isNull);
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: entry.$1);
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find.byKey(rootKey),
+      );
+      final image = await boundary.toImage(pixelRatio: 1);
+      final data = await tester.runAsync(
+        () => image.toByteData(format: ui.ImageByteFormat.png),
+      );
+      final dir = Directory(
+        '${Directory.systemTemp.path}/truereport-platform-signin',
+      )..createSync(recursive: true);
+      File('${dir.path}/${entry.$1}.png')
+          .writeAsBytesSync(data!.buffer.asUint8List());
+    }
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
   });
 }

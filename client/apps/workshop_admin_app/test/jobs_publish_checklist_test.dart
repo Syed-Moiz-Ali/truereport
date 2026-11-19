@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -125,7 +126,7 @@ void main() {
     expect(find.text(l10n.jobsDocsGeneratedAfterPublish), findsOneWidget);
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-publish-button')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-publish-button')))
           .onPressed,
       isNotNull,
     );
@@ -143,7 +144,7 @@ void main() {
     expect(find.text(l10n.jobsConsentUnavailableNote), findsOneWidget);
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-publish-button')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-publish-button')))
           .onPressed,
       isNull,
     );
@@ -161,7 +162,7 @@ void main() {
     expect(find.text(l10n.jobsConsentUnavailableNote), findsOneWidget);
     expect(
       tester
-          .widget<WorkshopButton>(find.byKey(const Key('jobs-publish-button')))
+          .widget<JobPillButton>(find.byKey(const Key('jobs-publish-button')))
           .onPressed,
       isNull,
     );

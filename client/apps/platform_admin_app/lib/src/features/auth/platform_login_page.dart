@@ -1,14 +1,19 @@
 import 'package:auth/auth.dart';
 import 'package:core/core.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
 import '../../platform_providers.dart';
 
-import 'package:l10n/l10n.dart';
-
-/// Dedicated enterprise web login page for Platform Administrators.
+/// Platform Administrator sign-in — the shared "bay" (`packages/auth`).
+///
+/// Same composition as the workshop and technician apps. Behaviour only:
+/// validation, submit, failure mapping, the 2FA challenge, the backend-driven
+/// language menu and the post-login navigation.
 class PlatformLoginPage extends ConsumerStatefulWidget {
   const PlatformLoginPage({super.key});
 
@@ -24,6 +29,7 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
   String? _challengeToken;
   String? _errorKey;
   bool _submitting = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -34,6 +40,9 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
   }
 
   Future<void> _submit() async {
+    if (_submitting) {
+      return;
+    }
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -48,13 +57,14 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
                 .signIn(_email.text, _password.text)
           : await ref
                 .read(authControllerProvider.notifier)
-                .verifyTwoFactor(_challengeToken!, _code.text);
+                .verifyTwoFactor(_challengeToken!, _code.text.trim());
       if (!mounted) {
         return;
       }
       if (result is AuthChallenge) {
         setState(() => _challengeToken = result.challengeToken);
       } else {
+        TextInput.finishAutofillContext();
         context.go('/workshops');
       }
     } on AppFailure catch (failure) {
@@ -96,53 +106,19 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     return null;
   }
 
-  AdminSignInCopy _loginCopy(UiMessageStrings strings) {
-    String read(UiMessageKey key) => strings.tKey(key);
-    return AdminSignInCopy(
-      appName: read(PlatformAdminKeys.loginAppName),
-      portalBadge: read(PlatformAdminKeys.loginPortalBadge),
-      portalTitle: read(PlatformAdminKeys.loginPortalTitle),
-      cardEyebrow: read(PlatformAdminKeys.loginAuthorizedEyebrow),
-      signInTitle: read(PlatformAdminKeys.loginSignInTitle),
-      signInSubtitle: read(PlatformAdminKeys.loginSignInSubtitle),
-      showcaseEyebrow: read(PlatformAdminKeys.loginShowcaseEyebrow),
-      showcaseHeadline: read(PlatformAdminKeys.loginShowcaseHeadline),
-      showcaseSubtitle: read(PlatformAdminKeys.loginShowcaseSubtitle),
-      features: [
-        AdminFeatureHighlight(
-          icon: Icons.apartment_rounded,
-          title: read(PlatformAdminKeys.loginFeatureWorkshopsTitle),
-          description: read(PlatformAdminKeys.loginFeatureWorkshopsDesc),
-        ),
-        AdminFeatureHighlight(
-          icon: Icons.menu_book_rounded,
-          title: read(PlatformAdminKeys.loginFeatureChecklistTitle),
-          description: read(PlatformAdminKeys.loginFeatureChecklistDesc),
-        ),
-        AdminFeatureHighlight(
-          icon: Icons.shield_rounded,
-          title: read(PlatformAdminKeys.loginFeatureLedgerTitle),
-          description: read(PlatformAdminKeys.loginFeatureLedgerDesc),
-        ),
-      ],
-      emailLabel: read(PlatformAdminKeys.loginEmailLabel),
-      emailHint: read(PlatformAdminKeys.loginEmailHint),
-      passwordLabel: read(PlatformAdminKeys.loginPasswordLabel),
-      passwordHint: read(PlatformAdminKeys.loginPasswordHint),
-      rememberTerminal: read(PlatformAdminKeys.loginRememberTerminal),
-      needHelp: read(PlatformAdminKeys.loginNeedHelp),
-      challengeTitle: read(PlatformAdminKeys.loginChallengeTitle),
-      challengeBody: read(PlatformAdminKeys.loginChallengeBody),
-      codeLabel: read(PlatformAdminKeys.loginCodeLabel),
-      codeHint: read(PlatformAdminKeys.loginCodeHint),
-      signInButton: read(PlatformAdminKeys.loginSignInButton),
-      verifyButton: read(PlatformAdminKeys.loginVerifyButton),
-      footer: read(PlatformAdminKeys.loginFooter),
-      languageLabel: read(PlatformAdminKeys.loginLanguageLabel),
-      statusLabel: read(PlatformAdminKeys.loginStatusLabel),
-      statusDetails: read(PlatformAdminKeys.loginStatusDetails),
-      statusSecured: read(PlatformAdminKeys.loginStatusSecured),
-    );
+  /// 6-digit TOTP or the server's 11-character recovery code.
+  String? _validateCode(String? value) {
+    final text = (value ?? '').trim();
+    if (text.isEmpty) {
+      return ref
+          .read(uiStringsProvider)
+          .tKey(CommonKeys.validationRequiredField);
+    }
+    final totp = RegExp(r'^\d{6}$').hasMatch(text);
+    final recovery = RegExp(r'^[A-Za-z0-9]{5}-[A-Za-z0-9]{5}$').hasMatch(text);
+    return totp || recovery
+        ? null
+        : ref.read(uiStringsProvider).tKey(CommonKeys.validationRequiredField);
   }
 
   @override
@@ -151,36 +127,51 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
     final uiState = ref.watch(uiMessageControllerProvider);
     final manifest = uiState.manifest;
     final languages = manifest == null
-        ? const <LanguageOption>[]
+        ? const <_LangChoice>[]
         : [
             for (final language in manifest.languages)
-              LanguageOption(
+              _LangChoice(
                 code: language.code,
                 displayName: language.displayName,
-                direction: language.direction,
               ),
           ];
+    final selectedCode = uiState.activeLanguage;
     final errorText = switch (_errorKey) {
       'invalidCredentials' => strings.tKey(CommonKeys.errorInvalidCredentials),
       'networkError' => strings.tKey(CommonKeys.errorNetwork),
       'genericError' => strings.tKey(CommonKeys.errorGeneric),
       _ => null,
     };
+    String read(UiMessageKey key) => strings.tKey(key);
 
-    return AdminSignInView(
-      copy: _loginCopy(strings),
-      portalType: AdminPortalType.platform,
+    final copy = SignInBayCopy(
+      portalLabel: read(PlatformAdminKeys.loginPortalBadge),
+      title: read(PlatformAdminKeys.loginSignInTitle),
+      subtitle: read(PlatformAdminKeys.loginSignInSubtitle),
+      help: read(PlatformAdminKeys.loginNeedHelp),
+      emailLabel: read(PlatformAdminKeys.loginEmailLabel),
+      passwordLabel: read(PlatformAdminKeys.loginPasswordLabel),
+      codeLabel: read(PlatformAdminKeys.loginCodeLabel),
+      signInLabel: read(PlatformAdminKeys.loginSignInButton),
+      verifyLabel: read(PlatformAdminKeys.loginVerifyButton),
+      loadingLabel: read(PlatformAdminKeys.loginSignInButton),
+    );
+
+    return SignInBayView(
+      copy: copy,
+      formKey: _formKey,
       emailController: _email,
       passwordController: _password,
       codeController: _code,
-      formKey: _formKey,
-      languages: languages,
-      selectedLanguageCode: uiState.activeLanguage,
-      onLanguageSelected: (code) {
-        ref.read(uiMessageSwitcherProvider).switchTo(code);
-      },
+      challenge: _challengeToken != null,
+      emailEnabled: _challengeToken == null,
+      obscurePassword: _obscurePassword,
+      submitting: _submitting,
+      errorText: errorText,
+      onToggleObscure: () =>
+          setState(() => _obscurePassword = !_obscurePassword),
       onSubmit: _submit,
-      onValidateEmail: (value) {
+      validateEmail: (value) {
         final required = _required(value);
         if (required != null) {
           return required;
@@ -191,10 +182,92 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
                   .read(uiStringsProvider)
                   .tKey(CommonKeys.validationInvalidEmail);
       },
-      onValidateRequired: _required,
-      challenge: _challengeToken != null,
-      submitting: _submitting,
-      errorText: errorText,
+      validatePassword: _required,
+      validateCode: _validateCode,
+      onToggleLanguage: () {},
+      languageControl: (onAccent) => _LanguageMenu(
+        languages: languages,
+        selectedCode: selectedCode,
+        onSelected: (code) =>
+            ref.read(uiMessageSwitcherProvider).switchTo(code),
+        onAccent: onAccent,
+      ),
     );
   }
+}
+
+/// Compact language menu rendered in the same two places as the EN/AR toggle.
+class _LanguageMenu extends StatelessWidget {
+  const _LanguageMenu({
+    required this.languages,
+    required this.selectedCode,
+    required this.onSelected,
+    required this.onAccent,
+  });
+
+  final List<_LangChoice> languages;
+  final String selectedCode;
+  final ValueChanged<String> onSelected;
+  final bool onAccent;
+
+  @override
+  Widget build(BuildContext context) {
+    final ws = context.ws;
+    if (languages.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final foreground = onAccent ? ws.onAccent.withValues(alpha: 0.9) : ws.muted;
+    var selected = languages.first;
+    for (final option in languages) {
+      if (option.code == selectedCode) {
+        selected = option;
+      }
+    }
+    return PopupMenuButton<String>(
+      key: const Key('sign-in-language-menu'),
+      onSelected: onSelected,
+      tooltip: selected.displayName,
+      itemBuilder: (menuContext) => [
+        for (final option in languages)
+          PopupMenuItem<String>(
+            key: Key('sign-in-language-${option.code}'),
+            value: option.code,
+            child: Row(
+              children: [
+                Expanded(child: Text(option.displayName)),
+                if (option.code == selected.code)
+                  Icon(Icons.check_rounded, size: 16, color: ws.accent),
+              ],
+            ),
+          ),
+      ],
+      child: SizedBox(
+        height: ws.touchTarget,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.language_rounded, size: 16, color: foreground),
+              const SizedBox(width: 6),
+              Text(
+                selected.displayName,
+                style: ws.meta.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LangChoice {
+  const _LangChoice({required this.code, required this.displayName});
+
+  final String code;
+  final String displayName;
 }

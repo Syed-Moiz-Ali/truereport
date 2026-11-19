@@ -27,7 +27,7 @@ Baseline result: **analyzer 0 · 231 pass / 19 fail**.
 |---|---|---|---|
 | B1 | `f2a_goldens_test.dart` — 14 golden mismatches: `assigned-jobs`, `empty-state`, `job-intake`, `consent`, `equipment`, `inspection-hub`, `exterior-wireframe` × EN/AR | `00:10 +21 -1: … assigned-jobs golden en light [E]` (first); pixel diffs written to `test/failures/*.png` | Pre-existing pixel drift. `login` goldens **pass** at baseline. |
 | B2 | `f2b_a11y_test.dart` — `RTL wraps plate/ref/odometer/vin/version in LTR` | `Expected: non-empty` / `Actual: WhereIterable<Directionality>:[]` | Unrelated to sign-in. |
-| B3 | `i18n_source_scan_test.dart` — `lib has no Figma sample strings or copy switches` | Offenders: `packages/auth/lib/src/admin_sign_in_view.dart:22..` matching `SignInCopy` (11 lines) | Platform-admin legacy class. **Constraint:** do not introduce `SignInCopy` or any pattern from `_figmaPatterns` in new code. |
+| B3 | `i18n_source_scan_test.dart` — `lib has no Figma sample strings or copy switches` | Offenders: `packages/auth/lib/src/admin_sign_in_view.dart:22..` matching `SignInCopy` (11 lines) | **Resolved by CR-1 (2026-11-19):** the dead `AdminSignInView` was deleted when platform moved to the shared bay. This test now passes. |
 | B4 | `i18n_source_scan_test.dart` — `ARBs have no mojibake, gaps, or forbidden wording` | `missing placeholder block app_ar.arb:@dashboardGreeting`, `undeclared {done} in ar:signInExampleProgress`, … (24+ entries) | Caused by the concurrent workshop-admin wave adding placeholder keys to the shared ARB without Arabic `@` blocks. **Constraint:** this rebuild reuses existing keys only; it must not add new placeholder keys. |
 | B5 | `intl_dates_tech_test.dart` — `… scheduledTimeUtc4 renders the same instant per locale` | `Expected: true` / `Actual: <false>` | Unrelated date-format case. |
 | B6 | `o2_copy_fit_test.dart` — `O2 empty-state header does not clip the trailing pill` | `Expected: a value less than or equal to <354.0>` / `Actual: <358.0>` | Empty-state header, not sign-in. The two **login** copy-fit cases pass. |
@@ -62,7 +62,7 @@ Baseline result: **analyzer 0 · 231 pass / 19 fail**.
 |---|---|
 | `flutter analyze --no-pub --fatal-infos` (technician app) | **0 issues** (`docs/evidence/logs/after_analyze.txt`) |
 | `flutter analyze --no-pub` (packages/auth) | **0 issues** |
-| `flutter test` (technician app) | **263 pass / 19 fail** — the same 19 baseline entries, no new failure (`docs/evidence/logs/after_test.txt`) |
+| `flutter test` (technician app) | **260 pass / 18 fail** — the baseline minus the now-fixed `SignInCopy` offender, no new failure (`docs/evidence/logs/after_test.txt` is the dock-era log; CR-1 re-ran the suite at 260/18) |
 | New tests | 32 added (18 behaviour, 4 router guard, 7 gallery, 2 font harness, + net 1 copy-fit) |
 | Login goldens | Regenerated (`f2a_login_en_light.png`, `f2a_login_ar_light.png`); the other 14 goldens are byte-identical |
 | Banned primitives on the new screen | None (`FxTextField`/`FxButton`/`FxLanguageSwitch` are not used) |

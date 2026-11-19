@@ -492,6 +492,8 @@
   "technicianQueueCurrent": "القائمة محدثة",
   "technicianCoverageOnly": "التغطية",
   "technicianPasswordHelp": "مساعدة كلمة المرور",
+  "technicianEmailHint": "name@workshop.com",
+  "technicianPasswordHint": "أدخل كلمة المرور",
   "technicianNeedTechnicianAccess": "تحتاج إلى دخول؟",
   "technicianContactAdmin": "مساعدة",
   "technicianSecureDelivery": "تسليم آمن للتقرير",

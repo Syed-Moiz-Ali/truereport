@@ -8,8 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
-import 'package:workshop_admin_app/src/features/auth/signin/signin_primitives.dart';
-import 'package:workshop_admin_app/src/features/auth/signin/signin_submit_button.dart';
+import 'package:auth/auth.dart';
 
 import 'support/real_fonts.dart';
 
