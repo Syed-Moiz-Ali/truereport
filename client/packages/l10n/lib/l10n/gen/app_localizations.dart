@@ -5060,6 +5060,24 @@ abstract class AppLocalizations {
   /// **'This week'**
   String get technicianThisWeek;
 
+  /// No description provided for @technicianResultNoIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'No issue'**
+  String get technicianResultNoIssue;
+
+  /// No description provided for @technicianResultAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Attention'**
+  String get technicianResultAttention;
+
+  /// No description provided for @technicianResultDefect.
+  ///
+  /// In en, this message translates to:
+  /// **'Defect'**
+  String get technicianResultDefect;
+
   /// No description provided for @technicianAllStatuses.
   ///
   /// In en, this message translates to:
@@ -5713,6 +5731,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing waiting to sync.'**
   String get technicianSyncNothing;
+
+  /// No description provided for @technicianSyncOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get technicianSyncOnline;
+
+  /// No description provided for @technicianSyncOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get technicianSyncOffline;
+
+  /// No description provided for @technicianSyncChangesOnPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 change on this phone} other{{count} changes on this phone}}'**
+  String technicianSyncChangesOnPhone(int count);
+
+  /// No description provided for @technicianSyncSavedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved safely. They upload as soon as you are back online.'**
+  String get technicianSyncSavedHint;
+
+  /// No description provided for @technicianSyncQueuedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued changes'**
+  String get technicianSyncQueuedChanges;
+
+  /// No description provided for @technicianSyncReplayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay now'**
+  String get technicianSyncReplayNow;
+
+  /// No description provided for @technicianSyncStateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get technicianSyncStateFailed;
+
+  /// No description provided for @technicianSyncStateSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing'**
+  String get technicianSyncStateSyncing;
+
+  /// No description provided for @technicianSyncStateConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict'**
+  String get technicianSyncStateConflict;
+
+  /// No description provided for @technicianSyncAllSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything on this phone has reached the server.'**
+  String get technicianSyncAllSafe;
+
+  /// No description provided for @technicianSyncServerChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item changed on the server} other{{count} items changed on the server}}'**
+  String technicianSyncServerChanges(int count);
+
+  /// No description provided for @technicianSyncReviewConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Review conflicts'**
+  String get technicianSyncReviewConflicts;
+
+  /// No description provided for @technicianSyncConflictHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Review each one before this job can be completed.'**
+  String get technicianSyncConflictHint;
+
+  /// No description provided for @technicianSyncAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 attempt} other{{count} attempts}}'**
+  String technicianSyncAttempts(int count);
+
+  /// No description provided for @technicianSyncLastError.
+  ///
+  /// In en, this message translates to:
+  /// **'Last error'**
+  String get technicianSyncLastError;
+
+  /// No description provided for @technicianConflictPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'On this phone'**
+  String get technicianConflictPhone;
+
+  /// No description provided for @technicianConflictServer.
+  ///
+  /// In en, this message translates to:
+  /// **'On the server'**
+  String get technicianConflictServer;
+
+  /// No description provided for @technicianConflictUseServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the server version'**
+  String get technicianConflictUseServer;
+
+  /// No description provided for @technicianConflictPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reloading the server version discards the change made on this phone.'**
+  String get technicianConflictPhoneHint;
+
+  /// No description provided for @technicianConflictRevalidate.
+  ///
+  /// In en, this message translates to:
+  /// **'After reloading, revalidate this item.'**
+  String get technicianConflictRevalidate;
+
+  /// No description provided for @technicianConflictCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'What differs'**
+  String get technicianConflictCompare;
+
+  /// No description provided for @technicianConflictOnlyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on this phone'**
+  String get technicianConflictOnlyPhone;
+
+  /// No description provided for @technicianConflictOnlyServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on the server'**
+  String get technicianConflictOnlyServer;
+
+  /// No description provided for @technicianConflictUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This conflict is no longer open.'**
+  String get technicianConflictUnavailable;
+
+  /// No description provided for @technicianConflictPhoneRev.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone rev'**
+  String get technicianConflictPhoneRev;
+
+  /// No description provided for @technicianConflictServerRev.
+  ///
+  /// In en, this message translates to:
+  /// **'Server rev'**
+  String get technicianConflictServerRev;
+
+  /// No description provided for @technicianConflictJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Job {jobId}'**
+  String technicianConflictJob(String jobId);
+
+  /// No description provided for @technicianOpAssessment.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection answer'**
+  String get technicianOpAssessment;
+
+  /// No description provided for @technicianOpEvidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get technicianOpEvidence;
+
+  /// No description provided for @technicianOpCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer details'**
+  String get technicianOpCustomer;
+
+  /// No description provided for @technicianOpVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle details'**
+  String get technicianOpVehicle;
+
+  /// No description provided for @technicianOpConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent'**
+  String get technicianOpConsent;
 
   /// No description provided for @technicianNoItems.
   ///

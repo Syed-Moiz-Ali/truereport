@@ -15,6 +15,7 @@ final technicianConflictsProvider = FutureProvider.autoDispose
       return ref.watch(offlineStoreProvider).openConflicts(jobId: jobId);
     });
 
+/// The handover dossier: grade stamp, blockers and warnings, one sign-off bar.
 class TechnicianSummaryPage extends ConsumerStatefulWidget {
   const TechnicianSummaryPage({required this.jobId, super.key});
 
@@ -25,8 +26,7 @@ class TechnicianSummaryPage extends ConsumerStatefulWidget {
       _TechnicianSummaryPageState();
 }
 
-class _TechnicianSummaryPageState
-    extends ConsumerState<TechnicianSummaryPage> {
+class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
   bool _completing = false;
   String? _error;
   List<Blocker> _completeBlockers = const [];
@@ -37,132 +37,146 @@ class _TechnicianSummaryPageState
     final l10n = AppLocalizations.of(context);
     final summaryAsync = ref.watch(technicianSummaryProvider(widget.jobId));
     final reviewAsync = ref.watch(technicianReviewProvider(widget.jobId));
-    final conflictsAsync = ref.watch(
-      technicianConflictsProvider(widget.jobId),
-    );
+    final conflictsAsync = ref.watch(technicianConflictsProvider(widget.jobId));
     return AppScaffold(
-      backgroundColor: context.colors.surface,
-      appBar: TechnicianAppBar(
-        title: l10n.technicianSummaryTitle,
-        showBack: true,
-      ),
-      body: summaryAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsetsDirectional.all(24),
-          child: LoadingSkeleton(lines: 6),
-        ),
-        error: (error, _) => Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-          child: ErrorState(
-            title: l10n.error,
-            body: l10n.genericError,
-            onRetry: () =>
-                ref.invalidate(technicianSummaryProvider(widget.jobId)),
-            retryLabel: l10n.retryAction,
-          ),
-        ),
-        data: (summary) {
-          final review = reviewAsync.asData?.value;
-          final conflicts = conflictsAsync.asData?.value ?? const [];
-          final blockers = _mergeBlockers(
-            summary.blockers,
-            review?.blockers ?? const [],
-            _completeBlockers,
-          );
-          final warnings = _mergeBlockers(
-            summary.warnings,
-            review?.warnings ?? const [],
-            const [],
-          );
-          final canComplete = !_completing &&
-              blockers.isEmpty &&
-              conflicts.isEmpty &&
-              summary.itemsTotal > 0;
-          return Align(
-            alignment: AlignmentDirectional.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: ListView(
-                padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-                children: [
-                  _SummaryCard(summary: summary),
-                  SizedBox(height: context.spacing.md),
-                  if (_error != null) ...[
-                    _Banner(message: _error!, tone: StatusTone.danger),
-                    SizedBox(height: context.spacing.sm),
-                  ],
-                  _BlockerCard(
-                    title: l10n.technicianBlockers,
-                    blockers: blockers,
-                    tone: StatusTone.danger,
-                  ),
-                  SizedBox(height: context.spacing.md),
-                  _BlockerCard(
-                    title: l10n.technicianWarningsTitle,
-                    blockers: warnings,
-                    tone: StatusTone.warning,
-                  ),
-                  SizedBox(height: context.spacing.md),
-                  ConflictPanel(
-                    conflicts: [
-                      for (final conflict in conflicts)
-                        ConflictViewData(
-                          id: conflict.id,
-                          itemCode: conflict.itemCode,
-                          clientPayload: conflict.clientPayloadJson,
-                          serverPayload: conflict.serverPayloadJson,
-                        ),
-                    ],
-                    reloaded: _reloadedConflict,
-                    onReload: _reloadConflict,
-                  ),
-                  SizedBox(height: context.spacing.lg),
-                  Wrap(
-                    spacing: context.spacing.sm,
-                    runSpacing: context.spacing.sm,
-                    alignment: WrapAlignment.end,
-                    children: [
-                      AppButton(
-                        key: const Key('summary-signature'),
-                        label: l10n.technicianSignature,
-                        icon: Icons.draw_outlined,
-                        variant: AppButtonVariant.tonal,
-                        onPressed: () async {
-                          await context.push(
-                            '/jobs/${widget.jobId}/signature',
-                          );
-                          ref.invalidate(
-                            technicianSummaryProvider(widget.jobId),
-                          );
-                          ref.invalidate(
-                            technicianReviewProvider(widget.jobId),
-                          );
-                        },
-                      ),
-                      AppButton(
-                        key: const Key('summary-complete'),
-                        label: l10n.technicianCompleteInspection,
-                        icon: Icons.check_circle_outline,
-                        isLoading: _completing,
-                        onPressed: canComplete ? _complete : null,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: context.spacing.lg),
-                ],
+      backgroundColor: context.colors.surfaceContainerLow,
+      body: Column(
+        children: [
+          _SummaryBar(title: l10n.technicianSummaryTitle),
+          Expanded(
+            child: summaryAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsetsDirectional.all(20),
+                child: LoadingSkeleton(lines: 7),
               ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsetsDirectional.all(20),
+                child: ErrorState(
+                  title: l10n.error,
+                  body: l10n.genericError,
+                  onRetry: () =>
+                      ref.invalidate(technicianSummaryProvider(widget.jobId)),
+                  retryLabel: l10n.retryAction,
+                ),
+              ),
+              data: (summary) {
+                final review = reviewAsync.asData?.value;
+                final conflicts =
+                    conflictsAsync.asData?.value ??
+                    const <SyncConflictRecord>[];
+                final blockers = _merge(
+                  summary.blockers,
+                  review?.blockers ?? const [],
+                  _completeBlockers,
+                );
+                final warnings = _merge(
+                  summary.warnings,
+                  review?.warnings ?? const [],
+                  const [],
+                );
+                final canComplete =
+                    !_completing &&
+                    blockers.isEmpty &&
+                    conflicts.isEmpty &&
+                    summary.itemsTotal > 0;
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          16,
+                          0,
+                          16,
+                          20,
+                        ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _ScoreHero(summary: summary, l10n: l10n),
+                                if (_error != null) ...[
+                                  const SizedBox(height: 12),
+                                  _Banner(
+                                    message: _error!,
+                                    tone: StatusTone.danger,
+                                  ),
+                                ],
+                                if (summary.safetyCapApplied) ...[
+                                  const SizedBox(height: 12),
+                                  _Banner(
+                                    message:
+                                        '${l10n.technicianSafetyCap}: '
+                                        '${summary.safetyCapReason ?? ''}',
+                                    tone: StatusTone.warning,
+                                  ),
+                                ],
+                                const SizedBox(height: 18),
+                                _IssueSection(
+                                  title: l10n.technicianBlockers,
+                                  blockers: blockers,
+                                  emptyLabel: l10n.technicianNoIssues,
+                                  tone: StatusTone.danger,
+                                  emptyTone: StatusTone.success,
+                                ),
+                                const SizedBox(height: 12),
+                                _IssueSection(
+                                  title: l10n.technicianWarningsTitle,
+                                  blockers: warnings,
+                                  emptyLabel: l10n.technicianNoIssues,
+                                  tone: StatusTone.warning,
+                                  emptyTone: StatusTone.success,
+                                ),
+                                if (conflicts.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  ConflictPanel(
+                                    conflicts: [
+                                      for (final conflict in conflicts)
+                                        ConflictViewData(
+                                          id: conflict.id,
+                                          itemCode: conflict.itemCode,
+                                          clientPayload:
+                                              conflict.clientPayloadJson,
+                                          serverPayload:
+                                              conflict.serverPayloadJson,
+                                        ),
+                                    ],
+                                    reloaded: _reloadedConflict,
+                                    onReload: _reloadConflict,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    _ActionBar(
+                      signatureLabel: l10n.technicianSignature,
+                      completeLabel: l10n.technicianCompleteInspection,
+                      completing: _completing,
+                      canComplete: canComplete,
+                      onSignature: _openSignature,
+                      onComplete: _complete,
+                    ),
+                  ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  List<Blocker> _mergeBlockers(
-    List<Blocker> a,
-    List<Blocker> b,
-    List<Blocker> c,
-  ) {
+  Future<void> _openSignature() async {
+    await context.push('/jobs/${widget.jobId}/signature');
+    ref.invalidate(technicianSummaryProvider(widget.jobId));
+    ref.invalidate(technicianReviewProvider(widget.jobId));
+  }
+
+  List<Blocker> _merge(List<Blocker> a, List<Blocker> b, List<Blocker> c) {
     final seen = <String>{};
     final merged = <Blocker>[];
     for (final blocker in [...a, ...b, ...c]) {
@@ -197,7 +211,9 @@ class _TechnicianSummaryPageState
       _error = null;
     });
     try {
-      final result = await ref.read(technicianApiProvider).completeJob(
+      final result = await ref
+          .read(technicianApiProvider)
+          .completeJob(
             widget.jobId,
             CompleteRequest(
               clientRevision: DateTime.now().millisecondsSinceEpoch,
@@ -233,122 +249,419 @@ class _TechnicianSummaryPageState
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.summary});
+class _SummaryBar extends StatelessWidget {
+  const _SummaryBar({required this.title});
 
-  final Summary summary;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TechnicianSectionTitle(
-            title: l10n.technicianSummaryTitle,
-            trailing: StatusChip(
-              label: technicianStatusLabel(l10n, summary.status),
-              tone: technicianStatusTone(summary.status),
-            ),
-          ),
-          SizedBox(height: context.spacing.md),
-          Wrap(
-            spacing: context.spacing.lg,
-            runSpacing: context.spacing.md,
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(6, 6, 16, 6),
+          child: Row(
             children: [
-              TechnicianLabeledValue(
-                label: l10n.technicianDraftScore,
-                value: summary.score?.toString() ?? l10n.notAvailable,
-                emphasized: true,
+              Semantics(
+                button: true,
+                label: MaterialLocalizations.of(context).backButtonTooltip,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).maybePop(),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(Icons.arrow_back_rounded),
+                  ),
+                ),
               ),
-              TechnicianLabeledValue(
-                label: l10n.technicianGrade,
-                value: summary.gradeCode ?? l10n.notAvailable,
-                emphasized: true,
-              ),
-              TechnicianLabeledValue(
-                label: l10n.technicianAssessmentProgress,
-                value: l10n.technicianItemsAssessed(
-                  summary.itemsAssessed,
-                  summary.itemsTotal,
+              const SizedBox(width: 2),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
                 ),
               ),
             ],
           ),
-          if (summary.safetyCapApplied) ...[
-            SizedBox(height: context.spacing.sm),
-            _Banner(
-              message:
-                  '${l10n.technicianSafetyCap}: ${summary.safetyCapReason ?? ''}',
-              tone: StatusTone.warning,
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreHero extends StatelessWidget {
+  const _ScoreHero({required this.summary, required this.l10n});
+
+  final Summary summary;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final score = summary.score?.toString() ?? l10n.notAvailable;
+    final grade = summary.gradeCode ?? l10n.notAvailable;
+    return Container(
+      padding: const EdgeInsetsDirectional.all(20),
+      decoration: BoxDecoration(
+        color: context.brand.ink,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      l10n.technicianDraftScore.toUpperCase(),
+                      style: context.texts.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.9,
+                        color: Colors.white.withValues(alpha: 0.62),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      height: 26,
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: context.statusColors
+                                  .forTone(technicianStatusTone(summary.status))
+                                  .foreground,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            technicianStatusLabel(l10n, summary.status),
+                            style: context.texts.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  score,
+                  style: context.texts.displayMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    letterSpacing: -1.5,
+                    color: Colors.white,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.technicianItemsAssessed(
+                    summary.itemsAssessed,
+                    summary.itemsTotal,
+                  ),
+                  style: context.texts.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.72),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+          const SizedBox(width: 12),
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.7),
+                width: 2,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  grade,
+                  style: context.texts.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.technicianGrade.toUpperCase(),
+                  style: context.texts.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.7,
+                    color: Colors.white.withValues(alpha: 0.62),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _BlockerCard extends StatelessWidget {
-  const _BlockerCard({
+class _IssueSection extends StatelessWidget {
+  const _IssueSection({
     required this.title,
     required this.blockers,
+    required this.emptyLabel,
     required this.tone,
+    required this.emptyTone,
   });
 
   final String title;
   final List<Blocker> blockers;
+  final String emptyLabel;
   final StatusTone tone;
+  final StatusTone emptyTone;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
     final language = Localizations.localeOf(context).languageCode;
-    return AppCard(
-      variant: AppCardVariant.flat,
+    final pair = context.statusColors.forTone(
+      blockers.isEmpty ? emptyTone : tone,
+    );
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          TechnicianSectionTitle(
-            title: title,
-            trailing: StatusChip(
-              label: '${blockers.length}',
-              tone: blockers.isEmpty ? StatusTone.success : tone,
-            ),
-          ),
-          if (blockers.isEmpty) ...[
-            SizedBox(height: context.spacing.sm),
-            Text(
-              l10n.technicianNoIssues,
-              style: context.texts.bodySmall?.copyWith(
-                color: context.colors.onSurfaceVariant,
-              ),
-            ),
-          ] else
-            for (final blocker in blockers) ...[
-              SizedBox(height: context.spacing.xs),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: context.sizing.iconMd,
-                    color: context.statusColors.forTone(tone).foreground,
-                  ),
-                  SizedBox(width: context.spacing.xs),
-                  Expanded(
-                    child: Text(
-                      blocker.messageFor(language),
-                      style: context.texts.bodyMedium,
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: context.texts.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
+                ),
+                Container(
+                  height: 24,
+                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: pair.background,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${blockers.length}',
+                      style: context.texts.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: pair.foreground,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (blockers.isEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 16, 14),
+              child: Text(
+                emptyLabel,
+                style: context.texts.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            )
+          else
+            for (var index = 0; index < blockers.length; index++) ...[
+              if (index != 0)
+                Divider(
+                  height: 1,
+                  color: colors.outlineVariant,
+                  indent: 16,
+                  endIndent: 16,
+                ),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: pair.foreground),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        blockers[index].messageFor(language),
+                        style: context.texts.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
         ],
+      ),
+    );
+  }
+}
+
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.signatureLabel,
+    required this.completeLabel,
+    required this.completing,
+    required this.canComplete,
+    required this.onSignature,
+    required this.onComplete,
+  });
+
+  final String signatureLabel;
+  final String completeLabel;
+  final bool completing;
+  final bool canComplete;
+  final VoidCallback onSignature;
+  final VoidCallback onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outlineVariant)),
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Row(
+            children: [
+              Expanded(
+                child: _PillButton(
+                  label: signatureLabel,
+                  icon: Icons.draw_outlined,
+                  variant: _PillVariant.ghost,
+                  onPressed: onSignature,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _PillButton(
+                  label: completeLabel,
+                  icon: Icons.check_rounded,
+                  variant: _PillVariant.primary,
+                  loading: completing,
+                  onPressed: canComplete ? onComplete : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum _PillVariant { primary, ghost }
+
+class _PillButton extends StatelessWidget {
+  const _PillButton({
+    required this.label,
+    required this.variant,
+    this.icon,
+    this.loading = false,
+    this.onPressed,
+  });
+
+  final String label;
+  final _PillVariant variant;
+  final IconData? icon;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null && !loading;
+    final (bg, fg, border) = switch (variant) {
+      _PillVariant.primary => (context.brand.ink, Colors.white, null),
+      _PillVariant.ghost => (
+        Colors.transparent,
+        context.colors.onSurface,
+        context.colors.outlineVariant,
+      ),
+    };
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: GestureDetector(
+        onTap: enabled ? onPressed : null,
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: enabled ? bg : bg.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(999),
+            border: border == null ? null : Border.all(color: border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (loading)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: fg),
+                )
+              else ...[
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: enabled ? fg : fg.withValues(alpha: 0.7),
+                  ),
+                ),
+                if (icon != null) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: enabled ? fg : fg.withValues(alpha: 0.7),
+                  ),
+                ],
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -364,10 +677,10 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final pair = context.statusColors.forTone(tone);
     return Container(
-      padding: EdgeInsetsDirectional.all(context.spacing.md),
+      padding: const EdgeInsetsDirectional.all(12),
       decoration: BoxDecoration(
         color: pair.background,
-        borderRadius: BorderRadius.circular(context.radii.lg),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         message,

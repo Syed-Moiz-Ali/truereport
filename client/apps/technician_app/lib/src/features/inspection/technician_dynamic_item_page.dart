@@ -23,45 +23,219 @@ class TechnicianItemPage extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final checklistAsync = ref.watch(technicianChecklistProvider(jobId));
     return AppScaffold(
-      backgroundColor: context.colors.surface,
-      appBar: TechnicianAppBar(
-        title: l10n.technicianAssessmentState,
-        showBack: true,
-      ),
+      backgroundColor: context.colors.surfaceContainerLow,
       body: checklistAsync.when(
-        loading: () => const Padding(
-          padding: EdgeInsetsDirectional.all(24),
-          child: LoadingSkeleton(lines: 8),
+        loading: () => Column(
+          children: [
+            _SimpleBar(title: l10n.technicianAssessmentState),
+            const Expanded(
+              child: Padding(
+                padding: EdgeInsetsDirectional.all(20),
+                child: LoadingSkeleton(lines: 8),
+              ),
+            ),
+          ],
         ),
-        error: (error, _) => Padding(
-          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-          child: ErrorState(
-            title: l10n.error,
-            body: l10n.genericError,
-            onRetry: () => ref.invalidate(technicianChecklistProvider(jobId)),
-            retryLabel: l10n.retryAction,
-          ),
+        error: (error, _) => Column(
+          children: [
+            _SimpleBar(title: l10n.technicianAssessmentState),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.all(20),
+                child: ErrorState(
+                  title: l10n.error,
+                  body: l10n.genericError,
+                  onRetry: () =>
+                      ref.invalidate(technicianChecklistProvider(jobId)),
+                  retryLabel: l10n.retryAction,
+                ),
+              ),
+            ),
+          ],
         ),
         data: (checklist) {
           final item = checklist.item(itemCode);
           if (item == null) {
-            return Padding(
-              padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-              child: EmptyState(
-                title: l10n.technicianNoItems,
-                body: l10n.technicianNoItems,
-                icon: Icons.search_off,
-              ),
+            return Column(
+              children: [
+                _SimpleBar(title: l10n.technicianAssessmentState),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.all(20),
+                    child: EmptyState(
+                      title: l10n.technicianNoItems,
+                      body: l10n.technicianNoItems,
+                      icon: Icons.search_off,
+                    ),
+                  ),
+                ),
+              ],
             );
           }
-          return _AssessmentForm(
-            key: ValueKey(
-              '$jobId-${item.itemCode}-${item.assessment?.version ?? 0}',
-            ),
-            jobId: jobId,
-            item: item,
+          return Column(
+            children: [
+              _AssessmentTopBar(checklist: checklist, item: item),
+              Expanded(
+                child: _AssessmentForm(
+                  key: ValueKey(
+                    '$jobId-${item.itemCode}-${item.assessment?.version ?? 0}',
+                  ),
+                  jobId: jobId,
+                  item: item,
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _AssessmentTopBar extends StatelessWidget {
+  const _AssessmentTopBar({required this.checklist, required this.item});
+
+  final Checklist checklist;
+  final ChecklistItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final job = checklist.job;
+    final vehicle = [
+      job.vehicleMake,
+      job.vehicleModel,
+      if (job.vehicleYear != null) '${job.vehicleYear}',
+    ].where((value) => value.isNotEmpty).join(' ');
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 16, 6),
+          child: Row(
+            children: [
+              Semantics(
+                button: true,
+                label: MaterialLocalizations.of(context).backButtonTooltip,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).maybePop(),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      vehicle,
+                      maxLines: 1,
+                      overflow: TextOverflow.visible,
+                      style: context.texts.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: colors.outline),
+                          ),
+                          child: Text(
+                            job.vehiclePlate ?? job.reference,
+                            style: context.texts.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            item.labelFor(
+                              Localizations.localeOf(context).languageCode,
+                            ),
+                            maxLines: 1,
+                            style: context.texts.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: colors.outlineVariant),
+                ),
+                child: Text(
+                  '${checklist.completed}/${checklist.total}',
+                  style: context.texts.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SimpleBar extends StatelessWidget {
+  const _SimpleBar({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 16, 8),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          ),
+          Expanded(
+            child: Text(
+              title,
+              style: context.texts.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -778,15 +952,15 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return Align(
       alignment: AlignmentDirectional.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 900),
+        constraints: const BoxConstraints(maxWidth: 620),
         child: ListView(
-          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 32),
           children: [
-            _ItemHeader(item: item),
-            SizedBox(height: context.spacing.md),
+            _ItemHeader(item: item, result: _result),
+            const SizedBox(height: 12),
             if (_error != null) ...[
               _InlineBanner(message: _error!, tone: StatusTone.danger),
-              SizedBox(height: context.spacing.sm),
+              const SizedBox(height: 8),
             ],
             if (_saved) ...[
               StatusChip(
@@ -794,27 +968,21 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                 tone: StatusTone.success,
                 icon: Icons.check_circle_outline,
               ),
-              SizedBox(height: context.spacing.sm),
+              const SizedBox(height: 8),
             ],
             _Section(
               title: l10n.technicianResult,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Wrap(
-                    spacing: context.spacing.xs,
-                    runSpacing: context.spacing.xs,
-                    children: [
-                      for (final code in item.resultOptions)
-                        AppFilterChip(
-                          label: resultLabel(l10n, code),
-                          selected: _result == code,
-                          onSelected: (_) => _selectResult(code),
-                        ),
-                    ],
+                  _ResultChoices(
+                    codes: item.resultOptions,
+                    selected: _result,
+                    onSelect: _selectResult,
+                    l10n: l10n,
                   ),
                   if (_result == null) ...[
-                    SizedBox(height: context.spacing.xs),
+                    const SizedBox(height: 8),
                     Text(
                       l10n.technicianSelectResult,
                       style: context.texts.bodySmall?.copyWith(
@@ -839,66 +1007,69 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
               ),
             ),
             SizedBox(height: context.spacing.sm),
-            _Section(
-              title: l10n.technicianMeasurement,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final index in _measurementIndexes) ...[
-                    AppTextField(
-                      controller: _measurements[index]!,
-                      label: index == null
-                          ? l10n.technicianMeasurement
-                          : '${l10n.technicianMeasurement} Â· $index',
-                      labelAbove: true,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
+            if (item.measurementUnit != null ||
+                item.measurementBands.isNotEmpty)
+              _Section(
+                title: l10n.technicianMeasurement,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final index in _measurementIndexes) ...[
+                      AppTextField(
+                        controller: _measurements[index]!,
+                        label: index == null
+                            ? l10n.technicianMeasurement
+                            : '${l10n.technicianMeasurement} Â· $index',
+                        labelAbove: true,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        suffixText: _measurementUnit,
+                        errorText:
+                            _showValidation &&
+                                _measurementRequired &&
+                                _measurementFor(index) == null
+                            ? l10n.technicianMeasurementRequired
+                            : _measurementError(index, language),
                       ),
-                      suffixText: _measurementUnit,
-                      errorText:
-                          _showValidation &&
-                              _measurementRequired &&
-                              _measurementFor(index) == null
-                          ? l10n.technicianMeasurementRequired
-                          : _measurementError(index, language),
-                    ),
-                    SizedBox(height: context.spacing.sm),
+                      SizedBox(height: context.spacing.sm),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
             SizedBox(height: context.spacing.sm),
-            _Section(
-              title: l10n.technicianScoreOverride,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppTextField(
-                    controller: _score,
-                    label: l10n.technicianScore,
-                    labelAbove: true,
-                    keyboardType: TextInputType.number,
-                    enabled: _selectedScoreBand != null,
-                    helperText: _selectedScoreBand == null
-                        ? null
-                        : l10n.technicianScoreHint(
-                            _selectedScoreBand!.minScore,
-                            _selectedScoreBand!.maxScore,
-                          ),
-                    errorText: !_scoreValid
-                        ? l10n.technicianScoreOutOfRange(
-                            _selectedScoreBand!.minScore,
-                            _selectedScoreBand!.maxScore,
-                          )
-                        : _fieldErrors['score']?.messageFor(language),
-                    onChanged: (_) {
-                      _scoreManuallyEdited = true;
-                      setState(() {});
-                    },
-                  ),
-                ],
+            if (_selectedScoreBand != null)
+              _Section(
+                title: l10n.technicianScoreOverride,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppTextField(
+                      controller: _score,
+                      label: l10n.technicianScore,
+                      labelAbove: true,
+                      keyboardType: TextInputType.number,
+                      enabled: _selectedScoreBand != null,
+                      helperText: _selectedScoreBand == null
+                          ? null
+                          : l10n.technicianScoreHint(
+                              _selectedScoreBand!.minScore,
+                              _selectedScoreBand!.maxScore,
+                            ),
+                      errorText: !_scoreValid
+                          ? l10n.technicianScoreOutOfRange(
+                              _selectedScoreBand!.minScore,
+                              _selectedScoreBand!.maxScore,
+                            )
+                          : _fieldErrors['score']?.messageFor(language),
+                      onChanged: (_) {
+                        _scoreManuallyEdited = true;
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
             if (item.issueFields.isNotEmpty) ...[
               SizedBox(height: context.spacing.sm),
               _Section(
@@ -1132,46 +1303,235 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   int? _suggestedScore;
 }
 
+class _ResultChoices extends StatelessWidget {
+  const _ResultChoices({
+    required this.codes,
+    required this.selected,
+    required this.onSelect,
+    required this.l10n,
+  });
+
+  static const _primary = [
+    'NO_ISSUE_OBSERVED',
+    'ATTENTION_RECOMMENDED',
+    'DEFECT_FOUND',
+  ];
+
+  final List<String> codes;
+  final String? selected;
+  final ValueChanged<String> onSelect;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = [
+      for (final code in _primary)
+        if (codes.contains(code)) code,
+    ];
+    final rest = [
+      for (final code in codes)
+        if (!_primary.contains(code)) code,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            for (var index = 0; index < primary.length; index++) ...[
+              Expanded(
+                child: _ResultTile(
+                  code: primary[index],
+                  label: switch (primary[index]) {
+                    'NO_ISSUE_OBSERVED' => l10n.technicianResultNoIssue,
+                    'ATTENTION_RECOMMENDED' => l10n.technicianResultAttention,
+                    _ => l10n.technicianResultDefect,
+                  },
+                  selected: selected == primary[index],
+                  onTap: () => onSelect(primary[index]),
+                ),
+              ),
+              if (index != primary.length - 1) const SizedBox(width: 8),
+            ],
+          ],
+        ),
+        if (rest.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final code in rest)
+                AppFilterChip(
+                  label: resultLabel(l10n, code),
+                  selected: selected == code,
+                  onSelected: (_) => onSelect(code),
+                ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ResultTile extends StatelessWidget {
+  const _ResultTile({
+    required this.code,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String code;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pair = context.statusColors.forTone(resultTone(code));
+    final colors = context.colors;
+    final icon = switch (code) {
+      'NO_ISSUE_OBSERVED' => Icons.check_rounded,
+      'ATTENTION_RECOMMENDED' => Icons.priority_high_rounded,
+      'DEFECT_FOUND' => Icons.close_rounded,
+      _ => Icons.circle_outlined,
+    };
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          height: 74,
+          decoration: BoxDecoration(
+            color: selected ? pair.background : colors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? pair.foreground : colors.outlineVariant,
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: selected ? pair.foreground : colors.onSurfaceVariant,
+              ),
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 6),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: context.texts.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: selected ? pair.foreground : colors.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ItemHeader extends StatelessWidget {
-  const _ItemHeader({required this.item});
+  const _ItemHeader({required this.item, required this.result});
+
   final ChecklistItem item;
+  final String? result;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final language = Localizations.localeOf(context).languageCode;
     final instruction = item.instructionFor(language);
     final spec = item.standardSpecFor(language);
-    return AppCard(
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsetsDirectional.all(18),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            item.labelFor(language),
-            style: context.texts.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  item.labelFor(language),
+                  style: context.texts.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              StatusChip(
+                label: result == null
+                    ? l10n.notChecked
+                    : resultLabel(l10n, result!),
+                tone: resultTone(result),
+              ),
+            ],
           ),
           if (instruction != null && instruction.isNotEmpty) ...[
-            SizedBox(height: context.spacing.xs),
+            const SizedBox(height: 6),
             Text(
-              '${l10n.technicianInstructions}: $instruction',
-              style: context.texts.bodyMedium,
-            ),
-          ],
-          if (spec != null && spec.isNotEmpty) ...[
-            SizedBox(height: context.spacing.xxs),
-            Text(
-              '${l10n.technicianStandardSpec}: $spec',
-              style: context.texts.bodySmall?.copyWith(
-                color: context.colors.onSurfaceVariant,
+              instruction,
+              style: context.texts.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
               ),
             ),
           ],
-          SizedBox(height: context.spacing.sm),
+          if (spec != null && spec.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.straighten_rounded,
+                    size: 15,
+                    color: colors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${l10n.technicianStandardSpec}: $spec',
+                      style: context.texts.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
           Wrap(
-            spacing: context.spacing.xs,
-            runSpacing: context.spacing.xs,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               if (item.safetyCritical)
                 StatusChip(
@@ -1212,14 +1572,34 @@ class _Section extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      variant: AppCardVariant.flat,
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsetsDirectional.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          TechnicianSectionTitle(title: title, subtitle: subtitle),
-          SizedBox(height: context.spacing.sm),
+          Text(
+            title,
+            style: context.texts.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              style: context.texts.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
           child,
         ],
       ),

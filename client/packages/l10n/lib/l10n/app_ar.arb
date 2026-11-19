@@ -948,6 +948,9 @@
   "technicianPickAnotherDay": "اختر يوماً آخر أو امسح عوامل التصفية.",
   "technicianFilter": "تصفية",
   "technicianThisWeek": "هذا الأسبوع",
+  "technicianResultNoIssue": "سليم",
+  "technicianResultAttention": "انتباه",
+  "technicianResultDefect": "عيب",
   "technicianAllStatuses": "كل الحالات",
   "technicianRefresh": "تحديث",
   "technicianNextPage": "التالي",
@@ -1119,6 +1122,58 @@
     }
   },
   "technicianSyncNothing": "لا يوجد شيء بانتظار المزامنة.",
+  "technicianSyncOnline": "متصل",
+  "technicianSyncOffline": "دون اتصال",
+  "technicianSyncChangesOnPhone": "{count, plural, =1{تغيير واحد على هذا الهاتف} =2{تغييران على هذا الهاتف} other{{count} تغييرات على هذا الهاتف}}",
+  "@technicianSyncChangesOnPhone": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncSavedHint": "محفوظة بأمان. ستُرفع بمجرد عودة الاتصال.",
+  "technicianSyncQueuedChanges": "تغييرات في الانتظار",
+  "technicianSyncReplayNow": "إعادة المحاولة",
+  "technicianSyncStateFailed": "فشل",
+  "technicianSyncStateSyncing": "جارٍ المزامنة",
+  "technicianSyncStateConflict": "تعارض",
+  "technicianSyncAllSafe": "كل ما على هذا الهاتف وصل إلى الخادم.",
+  "technicianSyncServerChanges": "{count, plural, =1{تغيّر عنصر واحد على الخادم} =2{تغيّر عنصران على الخادم} other{تغيّر {count} عناصر على الخادم}}",
+  "@technicianSyncServerChanges": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncReviewConflicts": "مراجعة التعارضات",
+  "technicianSyncConflictHint": "راجع كل عنصر قبل إكمال هذه المهمة.",
+  "technicianSyncAttempts": "{count, plural, =1{محاولة واحدة} =2{محاولتان} other{{count} محاولات}}",
+  "@technicianSyncAttempts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncLastError": "آخر خطأ",
+  "technicianConflictPhone": "على هذا الهاتف",
+  "technicianConflictServer": "على الخادم",
+  "technicianConflictUseServer": "استخدام نسخة الخادم",
+  "technicianConflictPhoneHint": "تحميل نسخة الخادم سيتجاهل التغيير المحفوظ على هذا الهاتف.",
+  "technicianConflictRevalidate": "بعد التحميل، أعد التحقق من هذا العنصر.",
+  "technicianConflictCompare": "ما الذي اختلف",
+  "technicianConflictOnlyPhone": "على هذا الهاتف فقط",
+  "technicianConflictOnlyServer": "على الخادم فقط",
+  "technicianConflictUnavailable": "هذا التعارض لم يعد مفتوحًا.",
+  "technicianConflictPhoneRev": "مراجعة الهاتف",
+  "technicianConflictServerRev": "مراجعة الخادم",
+  "technicianConflictJob": "المهمة {jobId}",
+  "@technicianConflictJob": {
+    "placeholders": {
+      "jobId": {"type": "String"}
+    }
+  },
+  "technicianOpAssessment": "إجابة فحص",
+  "technicianOpEvidence": "صور",
+  "technicianOpCustomer": "بيانات العميل",
+  "technicianOpVehicle": "بيانات المركبة",
+  "technicianOpConsent": "الموافقة",
   "technicianNoItems": "لا توجد عناصر في هذه الفئة.",
   "technicianNoCategories": "لا تحتوي قائمة الفحص على فئات.",
   "technicianNoIssues": "لا توجد مشاكل.",

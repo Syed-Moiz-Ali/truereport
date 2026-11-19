@@ -11,9 +11,11 @@ import 'features/inspection/technician_dynamic_item_page.dart';
 
 import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
 import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
+import 'package:technician_app/src/features/profile/profile_page.dart';
 import 'package:technician_app/src/features/review/technician_completed_page.dart';
 import 'package:technician_app/src/features/review/technician_signature_page.dart';
 import 'package:technician_app/src/features/review/technician_summary_page.dart';
+import 'package:technician_app/src/features/sync/sync_conflict_page.dart';
 import 'package:technician_app/src/features/sync/technician_sync_page.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
@@ -73,6 +75,15 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/sync',
         builder: (context, state) => const TechnicianSyncPage(),
+      ),
+      GoRoute(
+        path: '/sync/conflicts/:id',
+        builder: (context, state) =>
+            TechnicianConflictPage(conflictId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const TechnicianProfilePage(),
       ),
       GoRoute(
         path: '/jobs/:id',

@@ -2572,6 +2572,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get technicianThisWeek => 'This week';
 
   @override
+  String get technicianResultNoIssue => 'No issue';
+
+  @override
+  String get technicianResultAttention => 'Attention';
+
+  @override
+  String get technicianResultDefect => 'Defect';
+
+  @override
   String get technicianAllStatuses => 'All statuses';
 
   @override
@@ -2927,6 +2936,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get technicianSyncNothing => 'Nothing waiting to sync.';
+
+  @override
+  String get technicianSyncOnline => 'Online';
+
+  @override
+  String get technicianSyncOffline => 'Offline';
+
+  @override
+  String technicianSyncChangesOnPhone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes on this phone',
+      one: '1 change on this phone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncSavedHint =>
+      'Saved safely. They upload as soon as you are back online.';
+
+  @override
+  String get technicianSyncQueuedChanges => 'Queued changes';
+
+  @override
+  String get technicianSyncReplayNow => 'Replay now';
+
+  @override
+  String get technicianSyncStateFailed => 'Failed';
+
+  @override
+  String get technicianSyncStateSyncing => 'Syncing';
+
+  @override
+  String get technicianSyncStateConflict => 'Conflict';
+
+  @override
+  String get technicianSyncAllSafe =>
+      'Everything on this phone has reached the server.';
+
+  @override
+  String technicianSyncServerChanges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items changed on the server',
+      one: '1 item changed on the server',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncReviewConflicts => 'Review conflicts';
+
+  @override
+  String get technicianSyncConflictHint =>
+      'Review each one before this job can be completed.';
+
+  @override
+  String technicianSyncAttempts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attempts',
+      one: '1 attempt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncLastError => 'Last error';
+
+  @override
+  String get technicianConflictPhone => 'On this phone';
+
+  @override
+  String get technicianConflictServer => 'On the server';
+
+  @override
+  String get technicianConflictUseServer => 'Use the server version';
+
+  @override
+  String get technicianConflictPhoneHint =>
+      'Reloading the server version discards the change made on this phone.';
+
+  @override
+  String get technicianConflictRevalidate =>
+      'After reloading, revalidate this item.';
+
+  @override
+  String get technicianConflictCompare => 'What differs';
+
+  @override
+  String get technicianConflictOnlyPhone => 'Only on this phone';
+
+  @override
+  String get technicianConflictOnlyServer => 'Only on the server';
+
+  @override
+  String get technicianConflictUnavailable =>
+      'This conflict is no longer open.';
+
+  @override
+  String get technicianConflictPhoneRev => 'Phone rev';
+
+  @override
+  String get technicianConflictServerRev => 'Server rev';
+
+  @override
+  String technicianConflictJob(String jobId) {
+    return 'Job $jobId';
+  }
+
+  @override
+  String get technicianOpAssessment => 'Inspection answer';
+
+  @override
+  String get technicianOpEvidence => 'Photos';
+
+  @override
+  String get technicianOpCustomer => 'Customer details';
+
+  @override
+  String get technicianOpVehicle => 'Vehicle details';
+
+  @override
+  String get technicianOpConsent => 'Consent';
 
   @override
   String get technicianNoItems => 'No items in this category.';

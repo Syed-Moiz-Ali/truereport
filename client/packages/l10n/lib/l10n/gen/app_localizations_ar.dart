@@ -2560,6 +2560,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get technicianThisWeek => 'هذا الأسبوع';
 
   @override
+  String get technicianResultNoIssue => 'سليم';
+
+  @override
+  String get technicianResultAttention => 'انتباه';
+
+  @override
+  String get technicianResultDefect => 'عيب';
+
+  @override
   String get technicianAllStatuses => 'كل الحالات';
 
   @override
@@ -2911,6 +2920,134 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get technicianSyncNothing => 'لا يوجد شيء بانتظار المزامنة.';
+
+  @override
+  String get technicianSyncOnline => 'متصل';
+
+  @override
+  String get technicianSyncOffline => 'دون اتصال';
+
+  @override
+  String technicianSyncChangesOnPhone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تغييرات على هذا الهاتف',
+      two: 'تغييران على هذا الهاتف',
+      one: 'تغيير واحد على هذا الهاتف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncSavedHint =>
+      'محفوظة بأمان. ستُرفع بمجرد عودة الاتصال.';
+
+  @override
+  String get technicianSyncQueuedChanges => 'تغييرات في الانتظار';
+
+  @override
+  String get technicianSyncReplayNow => 'إعادة المحاولة';
+
+  @override
+  String get technicianSyncStateFailed => 'فشل';
+
+  @override
+  String get technicianSyncStateSyncing => 'جارٍ المزامنة';
+
+  @override
+  String get technicianSyncStateConflict => 'تعارض';
+
+  @override
+  String get technicianSyncAllSafe => 'كل ما على هذا الهاتف وصل إلى الخادم.';
+
+  @override
+  String technicianSyncServerChanges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تغيّر $count عناصر على الخادم',
+      two: 'تغيّر عنصران على الخادم',
+      one: 'تغيّر عنصر واحد على الخادم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncReviewConflicts => 'مراجعة التعارضات';
+
+  @override
+  String get technicianSyncConflictHint => 'راجع كل عنصر قبل إكمال هذه المهمة.';
+
+  @override
+  String technicianSyncAttempts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محاولات',
+      two: 'محاولتان',
+      one: 'محاولة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get technicianSyncLastError => 'آخر خطأ';
+
+  @override
+  String get technicianConflictPhone => 'على هذا الهاتف';
+
+  @override
+  String get technicianConflictServer => 'على الخادم';
+
+  @override
+  String get technicianConflictUseServer => 'استخدام نسخة الخادم';
+
+  @override
+  String get technicianConflictPhoneHint =>
+      'تحميل نسخة الخادم سيتجاهل التغيير المحفوظ على هذا الهاتف.';
+
+  @override
+  String get technicianConflictRevalidate =>
+      'بعد التحميل، أعد التحقق من هذا العنصر.';
+
+  @override
+  String get technicianConflictCompare => 'ما الذي اختلف';
+
+  @override
+  String get technicianConflictOnlyPhone => 'على هذا الهاتف فقط';
+
+  @override
+  String get technicianConflictOnlyServer => 'على الخادم فقط';
+
+  @override
+  String get technicianConflictUnavailable => 'هذا التعارض لم يعد مفتوحًا.';
+
+  @override
+  String get technicianConflictPhoneRev => 'مراجعة الهاتف';
+
+  @override
+  String get technicianConflictServerRev => 'مراجعة الخادم';
+
+  @override
+  String technicianConflictJob(String jobId) {
+    return 'المهمة $jobId';
+  }
+
+  @override
+  String get technicianOpAssessment => 'إجابة فحص';
+
+  @override
+  String get technicianOpEvidence => 'صور';
+
+  @override
+  String get technicianOpCustomer => 'بيانات العميل';
+
+  @override
+  String get technicianOpVehicle => 'بيانات المركبة';
+
+  @override
+  String get technicianOpConsent => 'الموافقة';
 
   @override
   String get technicianNoItems => 'لا توجد عناصر في هذه الفئة.';

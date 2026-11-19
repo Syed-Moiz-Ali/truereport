@@ -12,41 +12,57 @@ class TechnicianCompletedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
     return AppScaffold(
-      backgroundColor: context.colors.surface,
-      appBar: TechnicianAppBar(
-        title: l10n.technicianJobCompleted,
-        showBack: false,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: AppCard(
+      backgroundColor: colors.surfaceContainerLow,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsetsDirectional.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.task_alt,
-                    size: context.sizing.iconXl,
-                    color: context.statusColors.success.foreground,
+                  Center(
+                    child: Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: context.statusColors.success.background,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 44,
+                        color: context.statusColors.success.foreground,
+                      ),
+                    ),
                   ),
-                  SizedBox(height: context.spacing.md),
-                  Text(
-                    l10n.technicianCompletedPendingReview,
-                    style: context.texts.headlineSmall,
+                  const SizedBox(height: 22),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 380),
+                      child: Text(
+                        l10n.technicianCompletedPendingReview,
+                        textAlign: TextAlign.center,
+                        style: context.texts.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.35,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: context.spacing.sm),
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
+                  const SizedBox(height: 14),
+                  Center(
                     child: StatusChip(
                       label: technicianStatusLabel(l10n, 'PENDING_REVIEW'),
                       tone: StatusTone.warning,
                     ),
                   ),
-                  SizedBox(height: context.spacing.lg),
+                  const SizedBox(height: 28),
                   AppButton(
                     label: l10n.technicianBackToJobs,
                     icon: Icons.arrow_back,

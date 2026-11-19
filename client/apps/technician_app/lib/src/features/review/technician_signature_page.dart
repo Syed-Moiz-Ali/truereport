@@ -128,7 +128,9 @@ class _TechnicianSignaturePageState
     });
     try {
       final deviceId = await DeviceIdentity.deviceId();
-      await ref.read(technicianApiProvider).submitSignature(
+      await ref
+          .read(technicianApiProvider)
+          .submitSignature(
             widget.jobId,
             SignatureRequest(
               signerName: _name.text.trim(),
@@ -161,103 +163,167 @@ class _TechnicianSignaturePageState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AppScaffold(
-      backgroundColor: context.colors.surface,
-      appBar: TechnicianAppBar(
-        title: l10n.technicianSignatureTitle,
-        showBack: true,
-      ),
-      body: Align(
-        alignment: AlignmentDirectional.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: ListView(
-            padding: EdgeInsetsDirectional.all(context.spacing.gutter),
-            children: [
-              AppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TechnicianSectionTitle(
-                      title: l10n.technicianSignatureTitle,
-                      subtitle: l10n.technicianSignatureHint,
-                    ),
-                    SizedBox(height: context.spacing.md),
-                    AppTextField(
-                      key: const Key('signature-name'),
-                      controller: _name,
-                      label: l10n.technicianSignerName,
-                      labelAbove: true,
-                    ),
-                    SizedBox(height: context.spacing.md),
-                    Container(
-                      key: _padKey,
-                      decoration: BoxDecoration(
-                        color: context.colors.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(context.radii.lg),
-                        border: Border.all(color: context.colors.outlineVariant),
+      backgroundColor: context.colors.surfaceContainerLow,
+      body: Column(
+        children: [
+          _SignatureBar(title: l10n.technicianSignatureTitle),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        l10n.technicianSignatureHint,
+                        style: context.texts.bodyMedium?.copyWith(
+                          color: context.colors.onSurfaceVariant,
+                        ),
                       ),
-                      child: AspectRatio(
-                        aspectRatio: 2.4,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onPanStart: (details) =>
-                              _startStroke(details.localPosition),
-                          onPanUpdate: (details) =>
-                              _extendStroke(details.localPosition),
-                          onPanEnd: (_) => _endStroke(),
-                          onPanCancel: _endStroke,
-                          child: CustomPaint(
-                            painter: _SignaturePainter(
-                              strokes: _strokes,
-                              color: context.colors.onSurface,
+                      const SizedBox(height: 14),
+                      AppTextField(
+                        key: const Key('signature-name'),
+                        controller: _name,
+                        label: l10n.technicianSignerName,
+                        labelAbove: true,
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        key: _padKey,
+                        decoration: BoxDecoration(
+                          color: context.colors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: _error == null
+                                ? context.colors.outlineVariant
+                                : context.colors.error,
+                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: AspectRatio(
+                          aspectRatio: 2.1,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onPanStart: (details) =>
+                                _startStroke(details.localPosition),
+                            onPanUpdate: (details) =>
+                                _extendStroke(details.localPosition),
+                            onPanEnd: (_) => _endStroke(),
+                            onPanCancel: _endStroke,
+                            child: CustomPaint(
+                              painter: _SignaturePainter(
+                                strokes: _strokes,
+                                color: context.colors.onSurface,
+                              ),
+                              child: const SizedBox.expand(),
                             ),
-                            child: const SizedBox.expand(),
                           ),
                         ),
                       ),
-                    ),
-                    if (_error != null) ...[
-                      SizedBox(height: context.spacing.xs),
-                      Text(
-                        _error!,
-                        style: context.texts.bodySmall?.copyWith(
-                          color: context.colors.error,
-                        ),
-                      ),
-                    ],
-                    SizedBox(height: context.spacing.sm),
-                    Wrap(
-                      spacing: context.spacing.sm,
-                      runSpacing: context.spacing.sm,
-                      children: [
-                        AppButton(
-                          key: const Key('signature-clear'),
-                          label: l10n.technicianClearSignature,
-                          icon: Icons.clear,
-                          variant: AppButtonVariant.tonal,
-                          onPressed: _submitting ? null : _clear,
-                        ),
-                        AppButton(
-                          key: const Key('signature-undo'),
-                          label: l10n.technicianUndo,
-                          icon: Icons.undo,
-                          variant: AppButtonVariant.tonal,
-                          onPressed: _submitting ? null : _undo,
+                      if (_error != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _error!,
+                          style: context.texts.bodySmall?.copyWith(
+                            color: context.colors.error,
+                          ),
                         ),
                       ],
-                    ),
-                    SizedBox(height: context.spacing.lg),
-                    AppButton(
-                      key: const Key('signature-submit'),
-                      label: l10n.technicianSignature,
-                      icon: Icons.check,
-                      large: true,
-                      expand: true,
-                      isLoading: _submitting,
-                      onPressed: _submitting ? null : _submit,
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          AppButton(
+                            key: const Key('signature-clear'),
+                            label: l10n.technicianClearSignature,
+                            icon: Icons.clear,
+                            variant: AppButtonVariant.tonal,
+                            onPressed: _submitting ? null : _clear,
+                          ),
+                          AppButton(
+                            key: const Key('signature-undo'),
+                            label: l10n.technicianUndo,
+                            icon: Icons.undo,
+                            variant: AppButtonVariant.tonal,
+                            onPressed: _submitting ? null : _undo,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 16),
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              border: Border(
+                top: BorderSide(color: context.colors.outlineVariant),
+              ),
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: AppButton(
+                  key: const Key('signature-submit'),
+                  label: l10n.technicianSignature,
+                  icon: Icons.check,
+                  large: true,
+                  expand: true,
+                  isLoading: _submitting,
+                  onPressed: _submitting ? null : _submit,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignatureBar extends StatelessWidget {
+  const _SignatureBar({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(6, 6, 16, 6),
+          child: Row(
+            children: [
+              Semantics(
+                button: true,
+                label: MaterialLocalizations.of(context).backButtonTooltip,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).maybePop(),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(Icons.arrow_back_rounded),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
                 ),
               ),
             ],

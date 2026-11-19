@@ -949,6 +949,9 @@
   "technicianPickAnotherDay": "Pick another day or clear your filters.",
   "technicianFilter": "Filter",
   "technicianThisWeek": "This week",
+  "technicianResultNoIssue": "No issue",
+  "technicianResultAttention": "Attention",
+  "technicianResultDefect": "Defect",
   "technicianAllStatuses": "All statuses",
   "technicianRefresh": "Refresh",
   "technicianNextPage": "Next",
@@ -1120,6 +1123,58 @@
     }
   },
   "technicianSyncNothing": "Nothing waiting to sync.",
+  "technicianSyncOnline": "Online",
+  "technicianSyncOffline": "Offline",
+  "technicianSyncChangesOnPhone": "{count, plural, =1{1 change on this phone} other{{count} changes on this phone}}",
+  "@technicianSyncChangesOnPhone": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncSavedHint": "Saved safely. They upload as soon as you are back online.",
+  "technicianSyncQueuedChanges": "Queued changes",
+  "technicianSyncReplayNow": "Replay now",
+  "technicianSyncStateFailed": "Failed",
+  "technicianSyncStateSyncing": "Syncing",
+  "technicianSyncStateConflict": "Conflict",
+  "technicianSyncAllSafe": "Everything on this phone has reached the server.",
+  "technicianSyncServerChanges": "{count, plural, =1{1 item changed on the server} other{{count} items changed on the server}}",
+  "@technicianSyncServerChanges": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncReviewConflicts": "Review conflicts",
+  "technicianSyncConflictHint": "Review each one before this job can be completed.",
+  "technicianSyncAttempts": "{count, plural, =1{1 attempt} other{{count} attempts}}",
+  "@technicianSyncAttempts": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "technicianSyncLastError": "Last error",
+  "technicianConflictPhone": "On this phone",
+  "technicianConflictServer": "On the server",
+  "technicianConflictUseServer": "Use the server version",
+  "technicianConflictPhoneHint": "Reloading the server version discards the change made on this phone.",
+  "technicianConflictRevalidate": "After reloading, revalidate this item.",
+  "technicianConflictCompare": "What differs",
+  "technicianConflictOnlyPhone": "Only on this phone",
+  "technicianConflictOnlyServer": "Only on the server",
+  "technicianConflictUnavailable": "This conflict is no longer open.",
+  "technicianConflictPhoneRev": "Phone rev",
+  "technicianConflictServerRev": "Server rev",
+  "technicianConflictJob": "Job {jobId}",
+  "@technicianConflictJob": {
+    "placeholders": {
+      "jobId": {"type": "String"}
+    }
+  },
+  "technicianOpAssessment": "Inspection answer",
+  "technicianOpEvidence": "Photos",
+  "technicianOpCustomer": "Customer details",
+  "technicianOpVehicle": "Vehicle details",
+  "technicianOpConsent": "Consent",
   "technicianNoItems": "No items in this category.",
   "technicianNoCategories": "This checklist has no categories.",
   "technicianNoIssues": "No issues.",
