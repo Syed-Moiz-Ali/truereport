@@ -103,24 +103,8 @@ const Map<String, dynamic> jobStatusCountsJson = <String, dynamic>{
   'total': 35,
 };
 
-/// `JobCountsDto` from `GET /workshop/legacy/jobs/counts`.
-///
-/// Kept only while the legacy mapper still exists: it documents the shape the
-/// dashboard must stop reading, and the test that parses it disappears with
-/// `JobCounts` in the same change. `newScheduled` is server-derived here, which
-/// is exactly the field the client then re-derived (`active`) and duplicated.
-const Map<String, dynamic> legacyJobCountsJson = <String, dynamic>{
-  'draft': 4,
-  'scheduled': 6,
-  'newScheduled': 10,
-  'assigned': 3,
-  'inProgress': 7,
-  'readyToFinalize': 2,
-  'finalized': 9,
-  'finalizedToday': 1,
-  'cancelled': 5,
-  'total': 36,
-};
+/// `CleanJobCounts` is the only counts shape the UI may read. The legacy
+/// `JobCountsDto` fixture was removed with the legacy queue family.
 
 /// `AssignmentDto` from `GET /workshop/jobs/{id}/assignments`.
 ///

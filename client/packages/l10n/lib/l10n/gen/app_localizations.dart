@@ -6770,6 +6770,12 @@ abstract class AppLocalizations {
   /// **'Workshop Admin'**
   String get signInPortalLabel;
 
+  /// No description provided for @signinCheckFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the highlighted fields and try again.'**
+  String get signinCheckFields;
+
   /// No description provided for @signInHelp.
   ///
   /// In en, this message translates to:
@@ -6919,6 +6925,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type a command or search...'**
   String get commandSearchPlaceholder;
+
+  /// Qualifier above the job-status counts: these are whole-workshop server counts, not the current search.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshop totals'**
+  String get jobsWorkshopTotals;
+
+  /// Footer note: sorting is local to the loaded page (no server sort parameter).
+  ///
+  /// In en, this message translates to:
+  /// **'Sort applies to this page'**
+  String get jobsSortNote;
+
+  /// Pagination footer range. `total` is the server total, never the page length.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {from}–{to} of {total}'**
+  String jobsShownRange(int from, int to, int total);
+
+  /// No description provided for @jobsPagePrev.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get jobsPagePrev;
+
+  /// No description provided for @jobsPageNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next page'**
+  String get jobsPageNext;
+
+  /// No description provided for @jobsSelectJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a job'**
+  String get jobsSelectJob;
+
+  /// No description provided for @jobsNoSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a job to see its next action.'**
+  String get jobsNoSelection;
+
+  /// No description provided for @jobsNoJobsInView.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs in this view'**
+  String get jobsNoJobsInView;
+
+  /// No description provided for @jobsClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get jobsClearFilters;
+
+  /// No description provided for @jobsConflictReload.
+  ///
+  /// In en, this message translates to:
+  /// **'This job changed elsewhere. Reload it before you continue.'**
+  String get jobsConflictReload;
+
+  /// No description provided for @jobsPublicationBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Publication is blocked'**
+  String get jobsPublicationBlocked;
+
+  /// No description provided for @jobsPublicationBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing needs the customer\'s consent, and this record has none.'**
+  String get jobsPublicationBlockedBody;
+
+  /// No description provided for @jobsArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy archive'**
+  String get jobsArchiveTitle;
+
+  /// No description provided for @jobsArchiveBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy records. Read-only. These jobs have not been migrated.'**
+  String get jobsArchiveBanner;
+
+  /// No description provided for @jobsArchiveOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open legacy archive'**
+  String get jobsArchiveOpen;
+
+  /// No description provided for @jobsArchiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No legacy jobs'**
+  String get jobsArchiveEmpty;
+
+  /// No description provided for @jobsNextReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & approve'**
+  String get jobsNextReview;
+
+  /// No description provided for @jobsNextAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign technician'**
+  String get jobsNextAssign;
+
+  /// No description provided for @jobsNextOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open job'**
+  String get jobsNextOpen;
+
+  /// No description provided for @jobsNextPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish checklist'**
+  String get jobsNextPublish;
+
+  /// No description provided for @jobsNextLink.
+  ///
+  /// In en, this message translates to:
+  /// **'View public link'**
+  String get jobsNextLink;
+
+  /// No description provided for @jobsNextTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Track job'**
+  String get jobsNextTrack;
+
+  /// No description provided for @jobsStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown status'**
+  String get jobsStatusUnknown;
+
+  /// No description provided for @jobsForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not allowed to view this job.'**
+  String get jobsForbidden;
+
+  /// No description provided for @jobsNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This job no longer exists.'**
+  String get jobsNotFound;
+
+  /// No description provided for @jobsNoVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'This job cannot be changed because its version is missing. Reload it.'**
+  String get jobsNoVersion;
+
+  /// No description provided for @jobsApproverIsTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'The assigned technician cannot approve their own job.'**
+  String get jobsApproverIsTechnician;
+
+  /// No description provided for @jobsNotAssignable.
+  ///
+  /// In en, this message translates to:
+  /// **'This job cannot be assigned in its current state.'**
+  String get jobsNotAssignable;
+
+  /// No description provided for @jobsAlreadyAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'This job is already assigned. Reload to see the current technician.'**
+  String get jobsAlreadyAssigned;
+
+  /// No description provided for @jobsNotCancellable.
+  ///
+  /// In en, this message translates to:
+  /// **'This job can no longer be cancelled.'**
+  String get jobsNotCancellable;
+
+  /// No description provided for @jobsAlreadyCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This job is already cancelled.'**
+  String get jobsAlreadyCancelled;
+
+  /// No description provided for @jobsNotEditable.
+  ///
+  /// In en, this message translates to:
+  /// **'This job can no longer be changed.'**
+  String get jobsNotEditable;
+
+  /// No description provided for @jobsTechnician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get jobsTechnician;
+
+  /// No description provided for @jobsCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get jobsCustomer;
+
+  /// No description provided for @jobsMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage'**
+  String get jobsMileage;
+
+  /// No description provided for @jobsScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get jobsScheduled;
+
+  /// No description provided for @jobsConsentNotRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent not recorded'**
+  String get jobsConsentNotRecorded;
+
+  /// No description provided for @jobsOpenJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Open job'**
+  String get jobsOpenJob;
+
+  /// No description provided for @jobsClientLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Client link'**
+  String get jobsClientLink;
+
+  /// No description provided for @jobsTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get jobsTemplate;
+
+  /// No description provided for @jobsVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get jobsVehicle;
+
+  /// No description provided for @jobsEmptyFirstUseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No jobs yet'**
+  String get jobsEmptyFirstUseTitle;
+
+  /// No description provided for @jobsEmptyFirstUseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the first job to start the queue.'**
+  String get jobsEmptyFirstUseBody;
+
+  /// No description provided for @jobsQueueEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Work queue'**
+  String get jobsQueueEyebrow;
+
+  /// No description provided for @jobsSortScheduledAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by scheduled · ascending'**
+  String get jobsSortScheduledAsc;
+
+  /// No description provided for @jobsConsentUnavailableNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Public-link consent cannot be recorded in this version. Publishing will remain blocked until the server supports it.'**
+  String get jobsConsentUnavailableNote;
+
+  /// No description provided for @jobsDocsGeneratedAfterPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents are generated after publishing.'**
+  String get jobsDocsGeneratedAfterPublish;
 }
 
 class _AppLocalizationsDelegate

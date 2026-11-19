@@ -16,10 +16,7 @@ import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart
 import 'support/fake_admin_api.dart';
 
 class _JobsApp extends StatelessWidget {
-  const _JobsApp({
-    required this.home,
-    required this.locale,
-  });
+  const _JobsApp({required this.home, required this.locale});
 
   final Widget home;
   final Locale locale;
@@ -59,9 +56,7 @@ Future<void> _pump(
   });
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        adminApiProvider.overrideWithValue(api ?? FakeAdminApi()),
-      ],
+      overrides: [adminApiProvider.overrideWithValue(api ?? FakeAdminApi())],
       child: _JobsApp(home: screen, locale: locale),
     ),
   );
@@ -78,25 +73,16 @@ void main() {
     'publish checklist': () => const PublishChecklistPage(jobId: 'job-1'),
     'public link': () => const PublicLinkPage(jobId: 'job-3'),
     'documents': () => const DocumentsPage(jobId: 'job-3'),
-    'notification center': () =>
-        const Scaffold(body: NotificationCenterTab()),
+    'notification center': () => const Scaffold(body: NotificationCenterTab()),
   };
 
   for (final locale in const [Locale('en'), Locale('ar')]) {
     for (final entry in screens.entries) {
       for (final size in _sizes) {
-        testWidgets(
-          '${entry.key} ${locale.languageCode} '
-          '${size.width.toInt()} has no overflow',
-          (tester) async {
-            await _pump(
-              tester,
-              entry.value(),
-              locale: locale,
-              size: size,
-            );
-          },
-        );
+        testWidgets('${entry.key} ${locale.languageCode} '
+            '${size.width.toInt()} has no overflow', (tester) async {
+          await _pump(tester, entry.value(), locale: locale, size: size);
+        });
       }
     }
   }
@@ -110,10 +96,7 @@ void main() {
     );
 
     expect(find.text('JOB-0001'), findsOneWidget);
-    expect(
-      find.byKey(const Key('jobs-filter-PENDING_REVIEW')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('jobs-filter-PENDING_REVIEW')), findsOneWidget);
     expect(find.text('Pending review (1)'), findsOneWidget);
 
     await tester.dragUntilVisible(
@@ -155,7 +138,7 @@ void main() {
       find.byKey(const Key('jobs-checklist-ITEMS_ASSESSED')),
       findsOneWidget,
     );
-    final publish = tester.widget<AppButton>(
+    final publish = tester.widget<WorkshopButton>(
       find.byKey(const Key('jobs-publish-button')),
     );
     expect(publish.onPressed, isNotNull);
@@ -173,7 +156,7 @@ void main() {
     );
 
     expect(find.text('Not ready to publish'), findsWidgets);
-    final publish = tester.widget<AppButton>(
+    final publish = tester.widget<WorkshopButton>(
       find.byKey(const Key('jobs-publish-button')),
     );
     expect(publish.onPressed, isNull);
@@ -197,9 +180,7 @@ void main() {
     expect(find.text('Job approved'), findsOneWidget);
   });
 
-  testWidgets('notification center marks a notification read', (
-    tester,
-  ) async {
+  testWidgets('notification center marks a notification read', (tester) async {
     await _pump(
       tester,
       const Scaffold(body: NotificationCenterTab()),
@@ -208,9 +189,7 @@ void main() {
     );
 
     expect(find.text('JOB_PENDING_REVIEW'), findsOneWidget);
-    await tester.tap(
-      find.byKey(const Key('jobs-mark-read-notification-1')),
-    );
+    await tester.tap(find.byKey(const Key('jobs-mark-read-notification-1')));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Notification marked as read'), findsOneWidget);

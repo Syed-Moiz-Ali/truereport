@@ -68,7 +68,9 @@ void main() {
     final offenders = <String>[];
 
     for (final directory in [
-      Directory('${root.path}${Platform.pathSeparator}apps${Platform.pathSeparator}workshop_admin_app'),
+      Directory(
+        '${root.path}${Platform.pathSeparator}apps${Platform.pathSeparator}workshop_admin_app',
+      ),
     ]) {
       for (final file in _dartFiles(directory, includeTests: true)) {
         if (file.path.endsWith('api_endpoints.dart')) {
@@ -263,6 +265,79 @@ void main() {
     expect(offenders, isEmpty, reason: offenders.join('\n'));
   });
 
+  test('no legacy job symbols outside features/jobs/archive', () {
+    final root = _clientRoot();
+    final separator = Platform.pathSeparator;
+    final jobs = Directory(
+      '${root.path}${separator}apps${separator}workshop_admin_app'
+      '${separator}lib${separator}src${separator}features${separator}jobs',
+    );
+    final patterns = <String, RegExp>{
+      'WorkshopJob': RegExp(r'\bWorkshopJob\b'),
+      'jobsProvider': RegExp(r'\bjobsProvider\b'),
+      'jobCounts': RegExp(r'\bjobCounts(?:Provider)?\b'),
+      'JobCounts': RegExp(r'\bJobCounts\b'),
+      'createJob': RegExp(r'\bcreateJob\s*\('),
+      'assignJob': RegExp(r'\bassignJob\s*\('),
+      'cancelJob': RegExp(r'\bcancelJob\s*\('),
+      'legacy': RegExp(r'\blegacy\b', caseSensitive: false),
+      'inspection_jobs': RegExp(r'inspection_jobs'),
+    };
+    final offenders = <String>[];
+    for (final file in _dartFiles(jobs)) {
+      final normalized = file.path.replaceAll('\\', '/');
+      if (normalized.contains('/features/jobs/archive/')) {
+        continue;
+      }
+      final lines = file.readAsLinesSync();
+      for (var index = 0; index < lines.length; index++) {
+        // `legacy` in prose is allowed; symbols are not. Strip line comments.
+        final comment = lines[index].indexOf('//');
+        final code = comment < 0
+            ? lines[index]
+            : lines[index].substring(0, comment);
+        for (final entry in patterns.entries) {
+          if (entry.value.hasMatch(code)) {
+            offenders.add('${file.path}:${index + 1}: ${entry.key}');
+          }
+        }
+      }
+    }
+    expect(offenders, isEmpty, reason: offenders.join('\n'));
+  });
+
+  test('publishJob is called only from the publish checklist (M6)', () {
+    final root = _clientRoot();
+    final separator = Platform.pathSeparator;
+    final lib = Directory(
+      '${root.path}${separator}apps${separator}workshop_admin_app'
+      '${separator}lib',
+    );
+    final call = RegExp(r'\.publishJob\s*\(');
+    final callSites = <String>[];
+    for (final file in _dartFiles(lib)) {
+      final lines = file.readAsLinesSync();
+      for (var index = 0; index < lines.length; index++) {
+        final comment = lines[index].indexOf('//');
+        final code = comment < 0
+            ? lines[index]
+            : lines[index].substring(0, comment);
+        if (call.hasMatch(code)) {
+          callSites.add(file.path.replaceAll('\\', '/'));
+        }
+      }
+    }
+    expect(
+      callSites,
+      hasLength(1),
+      reason: 'publish outside the checklist: ${callSites.join(', ')}',
+    );
+    expect(
+      callSites.single,
+      endsWith('/features/jobs/publish_checklist_page.dart'),
+    );
+  });
+
   test('ApiEndpoints centralises parameterised paths', () {
     const endpoints = ApiEndpoints(baseUrl: 'http://localhost:8080');
     expect(
@@ -271,9 +346,14 @@ void main() {
       'v1/auth/login',
     );
     expect(
-      endpoints.workshopJobCounts,
+      endpoints.workshopCleanJobCounts,
       '/api/'
-      'v1/workshop/legacy/jobs/counts',
+      'v1/workshop/jobs/counts',
+    );
+    expect(
+      endpoints.workshopJobs,
+      '/api/'
+      'v1/workshop/legacy/jobs',
     );
     expect(endpoints.workshopHierarchy('w1'), contains('/workshops/w1/'));
     expect(

@@ -13,8 +13,6 @@ import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
-import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 import 'support/fake_admin_api.dart';
@@ -42,7 +40,7 @@ void main() {
 
   group('J6 — assign/cancel carry the job version', () {
     testWidgets('assign sends the version the page loaded', (tester) async {
-      final api = FakeAdminApi(enforceVersions: true);
+      final api = _AssignableApi(enforceVersions: true);
       await _pumpDetail(tester, api, 'job-1');
       final l10n = _l10n(tester, JobDetailPage);
 
@@ -60,7 +58,7 @@ void main() {
     testWidgets(
       'a stale version surfaces a failure and does not overwrite the job',
       (tester) async {
-        final api = FakeAdminApi(enforceVersions: true);
+        final api = _AssignableApi(enforceVersions: true);
         await _pumpDetail(tester, api, 'job-1');
         final l10n = _l10n(tester, JobDetailPage);
 
@@ -71,8 +69,9 @@ void main() {
         await _assignFirstTechnician(tester, l10n);
 
         expect(api.assignRequests.single['version'], 3);
-        // The conflict is visible, not silent…
-        expect(find.text(l10n.commonActionFailed), findsOneWidget);
+        // F7: the page names the conflict instead of hiding it behind a
+        // generic failure.
+        expect(find.text(l10n.jobsConflictReload), findsOneWidget);
         // …and the stored job was not moved by the stale write.
         expect(api.statusOf('job-1'), 'PENDING_REVIEW');
         expect(api.versionOf('job-1'), 4);
@@ -158,10 +157,10 @@ void main() {
         // J8: the sheet owns its controller, so the field survives the route.
         expect(find.text(l10n.jobsCancelReason), findsOneWidget);
         await tester.enterText(
-          find.byType(TextField).last,
+          find.byKey(const Key('job-reason-field')),
           'Customer cancelled',
         );
-        await tester.tap(find.widgetWithText(AppButton, l10n.cancelJob));
+        await tester.tap(find.byKey(const Key('job-reason-confirm')));
         await tester.pumpAndSettle();
 
         expect(api.cancelRequests, hasLength(1));
@@ -183,7 +182,10 @@ void main() {
     final revoked = CleanJob.fromJson(revokedCleanJobJson);
 
     final cases = <String, String Function(AppLocalizations)>{
-      'ACTIVE': (l10n) => l10n.jobsStatusPublished,
+      // G-J2/J1a: the job's publication status is authoritative. The stale
+      // `ACTIVE` value is not trusted and reads "Not published".
+      'PUBLISHED': (l10n) => l10n.jobsStatusPublished,
+      'ACTIVE': (l10n) => l10n.notPublished,
       'REVOKED': (l10n) => l10n.linkRevoked,
       'UNPUBLISHED': (l10n) => l10n.notPublished,
       // Anything the server adds later must not read as live either.
@@ -208,9 +210,9 @@ void main() {
           find.descendant(of: fact, matching: find.text(entry.value(l10n))),
           findsOneWidget,
         );
-        if (entry.key != 'ACTIVE') {
-          // The trap: a PUBLISHED job whose link was revoked must never show
-          // the live "Published" publication label.
+        if (entry.key != 'PUBLISHED') {
+          // The trap: a PUBLISHED job whose link was revoked or stale must
+          // never show the live "Published" publication label.
           expect(
             find.descendant(
               of: fact,
@@ -387,60 +389,63 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // J3/J5 — queue chip counts are legacy client-derived, not the counts endpoint
+  // Queue counts and scope — server-authoritative (replaces the J3/J5 pins)
   // ---------------------------------------------------------------------------
 
-  group('queue counts scope (legacy, pinned until replaced)', () {
-    testWidgets(
-      'chips derive from the search-scoped list and never call jobCounts()',
-      (tester) async {
-        final api = _LegacyQueueApi(_queueJobs);
-        tester.view.physicalSize = const Size(1280, 800);
-        tester.view.devicePixelRatio = 1;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [adminApiProvider.overrideWithValue(api)],
-            child: MaterialApp(
-              locale: const Locale('en'),
-              supportedLocales: AppLocalizations.supportedLocales,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              theme: AppTheme.light,
-              home: const Scaffold(body: JobsTab()),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
+  group('queue counts scope (server counts, server filters)', () {
+    testWidgets('status strip reads the counts endpoint, never the page', (
+      tester,
+    ) async {
+      final api = _QueueScriptedApi();
+      await _pumpQueue(tester, api);
 
-        // The seed list wins, not the 140-total counts endpoint.
-        expect(find.text('All (3)'), findsOneWidget);
-        expect(find.text('In progress (1)'), findsOneWidget);
-        expect(find.text('Ready to finalize (1)'), findsOneWidget);
-        expect(find.text('Finalized (1)'), findsOneWidget);
-        expect(find.text('All (140)'), findsNothing);
-        expect(api.countsCalls, 0);
+      // Coherent unfiltered fixture: 36 rows reachable, 36 in the workshop.
+      expect(find.text('All (36)'), findsOneWidget);
+      expect(find.text('In progress (9)'), findsOneWidget);
+      expect(api.countsCalls, 1);
 
-        // Selecting a status does not rescope the chips.
-        await tester.tap(find.text('In progress (1)'));
-        await tester.pumpAndSettle();
-        expect(find.text('All (3)'), findsOneWidget);
-        expect(api.countsCalls, 0);
+      // A filtered page is 9 rows, but the strip still describes the workshop.
+      await tester.tap(find.byKey(const Key('jobs-filter-IN_PROGRESS')));
+      await tester.pumpAndSettle();
+      expect(api.calls.last.status, 'IN_PROGRESS');
+      expect(find.text('All (36)'), findsOneWidget);
+      expect(find.text('All (9)'), findsNothing);
+      expect(find.textContaining('1–9'), findsOneWidget);
+      expect(api.countsCalls, 1);
+    });
 
-        // Search does rescope them, while the status filter stays applied.
-        await tester.enterText(
-          find.byKey(const Key('jobs-search')),
-          'Customer B',
-        );
-        await tester.pumpAndSettle();
-        expect(find.text('All (1)'), findsOneWidget);
-        expect(find.text('In progress (0)'), findsOneWidget);
-        expect(find.text('Ready to finalize (1)'), findsOneWidget);
-        expect(api.countsCalls, 0);
-      },
-    );
+    testWidgets('status filter is server-side and resets to page 0', (
+      tester,
+    ) async {
+      final api = _QueueScriptedApi();
+      await _pumpQueue(tester, api);
+
+      await tester.tap(find.byKey(const Key('jobs-page-next')));
+      await tester.pumpAndSettle();
+      expect(api.calls.last.page, 1);
+
+      await tester.tap(find.byKey(const Key('jobs-filter-IN_PROGRESS')));
+      await tester.pumpAndSettle();
+      expect(api.calls.last.status, 'IN_PROGRESS');
+      expect(api.calls.last.page, 0);
+      expect(find.byKey(const Key('job-job-1')), findsOneWidget);
+      expect(find.byKey(const Key('job-job-2')), findsNothing);
+    });
+
+    testWidgets('search is server-side and resets to page 0', (tester) async {
+      final api = _QueueScriptedApi();
+      await _pumpQueue(tester, api);
+
+      await tester.tap(find.byKey(const Key('jobs-page-next')));
+      await tester.pumpAndSettle();
+      expect(api.calls.last.page, 1);
+
+      await tester.enterText(find.byKey(const Key('jobs-search')), 'JOB-0021');
+      await tester.pumpAndSettle();
+      expect(api.calls.last.search, 'JOB-0021');
+      expect(api.calls.last.page, 0);
+      expect(find.byKey(const Key('job-job-21')), findsOneWidget);
+    });
   });
 }
 
@@ -482,10 +487,21 @@ Future<void> _assignFirstTechnician(
   WidgetTester tester,
   AppLocalizations l10n,
 ) async {
-  await tester.tap(find.text(l10n.reassign));
+  // J1a: the single assign sheet is reached from the policy primary action.
+  await tester.tap(find.byKey(const Key('job-detail-primary-action')));
   await tester.pumpAndSettle();
-  await tester.tap(find.widgetWithText(AppButton, l10n.assign));
+  await tester.tap(find.byKey(const Key('assign-confirm')));
   await tester.pumpAndSettle();
+}
+
+/// Fake whose loaded job is assignable (J1a removed assign from
+/// PENDING_REVIEW, which the base fake seeds for job-1).
+class _AssignableApi extends FakeAdminApi {
+  _AssignableApi({super.enforceVersions});
+
+  @override
+  Future<CleanJob> cleanJob(String id) async =>
+      (await super.cleanJob(id)).copyWith(status: 'DRAFT');
 }
 
 Map<String, dynamic> _sampleBody(String filename) {
@@ -570,20 +586,26 @@ class _SingleJobApi extends FakeAdminApi {
   Future<CleanJob> cleanJob(String id) async => job;
 }
 
-/// Legacy queue fake: the list endpoint is real, the counts endpoint is a trap.
-class _LegacyQueueApi implements AdminApi {
-  _LegacyQueueApi(this._jobs);
-
-  final List<WorkshopJob> _jobs;
+/// Server-scoped queue fake. The list and the counts endpoint are coherent when
+/// unfiltered; a filtered page is where the strip must still show the workshop
+/// total, so a client-derived chip fails loudly there.
+class _QueueScriptedApi implements AdminApi {
+  final List<_QueueCall> calls = <_QueueCall>[];
   int countsCalls = 0;
+  final List<CleanJob> _items = _scriptedJobs();
 
   @override
-  Future<List<WorkshopJob>> jobs({
-    String search = '',
+  Future<JobPage> cleanJobs({
+    int page = 0,
+    int size = 20,
     String status = '',
+    String search = '',
+    String from = '',
+    String to = '',
   }) async {
+    calls.add(_QueueCall(page: page, status: status, search: search));
     final query = search.trim().toLowerCase();
-    return _jobs
+    final filtered = _items
         .where((job) {
           if (status.isNotEmpty && job.status != status) {
             return false;
@@ -591,99 +613,152 @@ class _LegacyQueueApi implements AdminApi {
           if (query.isEmpty) {
             return true;
           }
-          return [
-            job.reference,
-            job.customerName,
-            job.vehicleMake,
-            job.vehicleModel,
-            job.assignedTechnicianName ?? '',
-          ].any((field) => field.toLowerCase().contains(query));
+          return job.reference.toLowerCase().contains(query);
         })
         .toList(growable: false);
+    final start = (page * size).clamp(0, filtered.length);
+    final end = (start + size).clamp(0, filtered.length);
+    return JobPage(
+      items: filtered.sublist(start, end),
+      page: page,
+      size: size,
+      total: filtered.length,
+      totalPages: filtered.isEmpty ? 0 : (filtered.length / size).ceil(),
+    );
   }
 
   @override
-  Future<JobCounts> jobCounts() async {
+  Future<CleanJobCounts> cleanJobCounts() async {
     countsCalls++;
-    // Deliberately different from the list below: if a chip ever reads this,
-    // the assertions fail loudly.
-    return const JobCounts(
-      draft: 10,
-      scheduled: 24,
-      newScheduled: 34,
-      assigned: 14,
-      inProgress: 9,
-      readyToFinalize: 45,
-      finalized: 60,
-      finalizedToday: 56,
-      cancelled: 3,
-      total: 140,
-    );
+    int count(String status) =>
+        _items.where((job) => job.status == status).length;
+    final values = <String, int>{
+      'draft': count('DRAFT'),
+      'scheduled': count('SCHEDULED'),
+      'assigned': count('ASSIGNED'),
+      'inProgress': count('IN_PROGRESS'),
+      'pendingReview': count('PENDING_REVIEW'),
+      'approved': count('APPROVED'),
+      'published': count('PUBLISHED'),
+      'rejected': count('REJECTED'),
+      'cancelled': count('CANCELLED'),
+    };
+    return CleanJobCounts.fromJson(<String, dynamic>{
+      ...values,
+      'total': values.values.fold<int>(0, (sum, value) => sum + value),
+    });
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
-const List<WorkshopJob> _queueJobs = [
-  WorkshopJob(
-    id: 'job-1',
-    reference: 'JOB-0001',
-    status: 'IN_PROGRESS',
+const List<(String, int)> _scriptedSpec = [
+  ('IN_PROGRESS', 9),
+  ('PENDING_REVIEW', 4),
+  ('DRAFT', 3),
+  ('SCHEDULED', 12),
+  ('ASSIGNED', 2),
+  ('APPROVED', 1),
+  ('PUBLISHED', 2),
+  ('REJECTED', 1),
+  ('CANCELLED', 2),
+];
+
+/// 36 rows whose statuses sum to the workshop total; job-1 is IN_PROGRESS so
+/// the filtered flow can assert a row appears and another disappears.
+List<CleanJob> _scriptedJobs() {
+  final statuses = <String>['IN_PROGRESS', 'PENDING_REVIEW'];
+  for (final (status, count) in _scriptedSpec) {
+    final already = statuses.where((value) => value == status).length;
+    for (var index = already; index < count; index++) {
+      statuses.add(status);
+    }
+  }
+  return [
+    for (var index = 0; index < statuses.length; index++)
+      _queueJob(index + 1, status: statuses[index]),
+  ];
+}
+
+class _QueueCall {
+  const _QueueCall({
+    required this.page,
+    required this.status,
+    required this.search,
+  });
+
+  final int page;
+  final String status;
+  final String search;
+}
+
+CleanJob _queueJob(int index, {required String status}) {
+  final padded = index.toString().padLeft(4, '0');
+  return CleanJob(
+    id: 'job-$index',
+    reference: 'JOB-$padded',
+    status: status,
+    reviewStatus: status,
+    publicationStatus: 'UNPUBLISHED',
     templateVersionId: 'version-1',
-    templateName: 'Full inspection',
+    templateNameEn: 'Full inspection',
+    templateNameAr: 'فحص شامل',
     templateVersionNo: 1,
     assignedTechnicianId: 'tech-1',
     assignedTechnicianName: 'Technician A',
-    scheduledAt: '2026-11-05T09:00:00',
-    customerName: 'Customer A',
-    customerPhone: '+971500000001',
-    customerEmail: 'customer.a@test.local',
+    customerName: 'Customer $index',
+    customerPhone: '+971500000$index',
+    customerEmail: 'customer$index@test.local',
+    vehicleVin: 'TESTVIN000000000$index',
     vehicleMake: 'Toyota',
     vehicleModel: 'Camry',
     vehicleYear: 2022,
-    vehicleVin: 'TESTVIN00000000001',
-    vehiclePlate: 'A12345',
-    scope: 'Full inspection',
-  ),
-  WorkshopJob(
-    id: 'job-2',
-    reference: 'JOB-0002',
-    status: 'READY_TO_FINALIZE',
-    templateVersionId: 'version-1',
-    templateName: 'Full inspection',
-    templateVersionNo: 1,
-    assignedTechnicianId: 'tech-1',
-    assignedTechnicianName: 'Technician A',
-    scheduledAt: '2026-11-05T10:00:00',
-    customerName: 'Customer B',
-    customerPhone: '+971500000002',
-    customerEmail: 'customer.b@test.local',
-    vehicleMake: 'Honda',
-    vehicleModel: 'Civic',
-    vehicleYear: 2023,
-    vehicleVin: 'TESTVIN00000000002',
-    vehiclePlate: 'B67890',
-    scope: 'Full inspection',
-  ),
-  WorkshopJob(
-    id: 'job-3',
-    reference: 'JOB-0003',
-    status: 'FINALIZED',
-    templateVersionId: 'version-1',
-    templateName: 'Full inspection',
-    templateVersionNo: 1,
-    assignedTechnicianId: null,
-    assignedTechnicianName: null,
-    scheduledAt: '2026-11-04T09:00:00',
-    customerName: 'Customer C',
-    customerPhone: '+971500000003',
-    customerEmail: 'customer.c@test.local',
-    vehicleMake: 'Ford',
-    vehicleModel: 'Transit',
-    vehicleYear: 2021,
-    vehicleVin: 'TESTVIN00000000003',
-    vehiclePlate: 'C13579',
-    scope: 'Full inspection',
-  ),
-];
+    vehiclePlate: 'A$padded',
+    odometerValue: 12000,
+    odometerUnit: 'KM',
+    transmission: 'AUTOMATIC',
+    fuelType: 'PETROL',
+    preferredLanguage: 'en',
+    scheduledAt: '2026-11-05T09:00:00',
+    startedAt: null,
+    completedAt: null,
+    approvedAt: null,
+    publishedAt: null,
+    cancelledAt: null,
+    approvedBy: null,
+    cancelledBy: null,
+    cancelReason: null,
+    score: null,
+    gradeCode: null,
+    safetyCapApplied: false,
+    safetyCapReason: null,
+    consentGranted: true,
+    createdAt: '2026-11-01T08:00',
+    updatedAt: '2026-11-01T09:00',
+    version: 3,
+  );
+}
+
+Future<void> _pumpQueue(WidgetTester tester, AdminApi api) async {
+  tester.view.physicalSize = const Size(1280, 900);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [adminApiProvider.overrideWithValue(api)],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        theme: AppTheme.light,
+        home: const Scaffold(body: JobsTab()),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  expect(tester.takeException(), isNull);
+}

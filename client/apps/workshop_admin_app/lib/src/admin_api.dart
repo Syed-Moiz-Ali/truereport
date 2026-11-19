@@ -1,5 +1,4 @@
 import 'package:api_client/api_client.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:dio/dio.dart';
@@ -132,30 +131,6 @@ abstract class AdminApi {
 
   Future<List<WorkshopJob>> jobs({String search = '', String status = ''});
 
-  Future<JobCounts> jobCounts();
-
-  Future<WorkshopJob> createJob({
-    required String templateVersionId,
-    required String customerName,
-    String? customerPhone,
-    String? customerEmail,
-    required String vehicleMake,
-    required String vehicleModel,
-    int? vehicleYear,
-    String? vehicleVin,
-    String? vehiclePlate,
-    required String scope,
-    String? scheduledAt,
-  });
-
-  Future<WorkshopJob> assignJob(
-    String jobId,
-    String technicianId,
-    String? reason,
-  );
-
-  Future<WorkshopJob> cancelJob(String jobId, String reason);
-
   Future<List<Category>> workshopCategories();
 
   Future<List<PublishedItem>> publishedItems({
@@ -250,11 +225,7 @@ abstract class AdminApi {
     int? version,
   });
 
-  Future<CleanJob> cancelCleanJob(
-    String jobId,
-    String reason, {
-    int? version,
-  });
+  Future<CleanJob> cancelCleanJob(String jobId, String reason, {int? version});
 
   Future<List<JobAssignment>> jobAssignments(String jobId);
 
@@ -269,16 +240,9 @@ abstract class AdminApi {
     int? version,
   });
 
-  Future<CleanJob> rejectJob(
-    String jobId,
-    String reason, {
-    int? version,
-  });
+  Future<CleanJob> rejectJob(String jobId, String reason, {int? version});
 
-  Future<PublicLink> publishJob(
-    String jobId, {
-    bool? pdfDownloadEnabled,
-  });
+  Future<PublicLink> publishJob(String jobId, {bool? pdfDownloadEnabled});
 
   Future<PublicLink> unpublishJob(String jobId, String reason);
 
@@ -294,9 +258,7 @@ abstract class AdminApi {
 
   Future<List<JobDocument>> retryJobDocument(String jobId, String type);
 
-  Future<List<WorkshopNotification>> notifications({
-    bool unreadOnly = false,
-  });
+  Future<List<WorkshopNotification>> notifications({bool unreadOnly = false});
 
   Future<WorkshopNotification> readNotification(String id);
 
@@ -840,70 +802,6 @@ class HttpAdminApi implements AdminApi {
   }
 
   @override
-  Future<JobCounts> jobCounts() async {
-    // Counts come only from the server endpoint. No client-side derivation
-    // and no invented fallback numbers: failures propagate to the UI, which
-    // renders a localized error or empty state.
-    final data = await _api.getDynamic(_endpoints.workshopJobCounts);
-    return JobCounts.fromJson(data as Map<String, dynamic>);
-  }
-
-  @override
-  Future<WorkshopJob> createJob({
-    required String templateVersionId,
-    required String customerName,
-    String? customerPhone,
-    String? customerEmail,
-    required String vehicleMake,
-    required String vehicleModel,
-    int? vehicleYear,
-    String? vehicleVin,
-    String? vehiclePlate,
-    required String scope,
-    String? scheduledAt,
-  }) async {
-    final data = await _api.postDynamic(
-      _endpoints.workshopJobs,
-      body: {
-        'templateVersionId': templateVersionId,
-        'customerName': customerName,
-        'customerPhone': customerPhone,
-        'customerEmail': customerEmail,
-        'vehicleMake': vehicleMake,
-        'vehicleModel': vehicleModel,
-        'vehicleYear': vehicleYear,
-        'vehicleVin': vehicleVin,
-        'vehiclePlate': vehiclePlate,
-        'scope': scope,
-        'scheduledAt': scheduledAt,
-      },
-    );
-    return WorkshopJob.fromJson(data as Map<String, dynamic>);
-  }
-
-  @override
-  Future<WorkshopJob> assignJob(
-    String jobId,
-    String technicianId,
-    String? reason,
-  ) async {
-    final data = await _api.postDynamic(
-      _endpoints.assignWorkshopJob(jobId),
-      body: {'technicianId': technicianId, 'reason': reason},
-    );
-    return WorkshopJob.fromJson(data as Map<String, dynamic>);
-  }
-
-  @override
-  Future<WorkshopJob> cancelJob(String jobId, String reason) async {
-    final data = await _api.postDynamic(
-      _endpoints.cancelWorkshopJob(jobId),
-      body: {'reason': reason},
-    );
-    return WorkshopJob.fromJson(data as Map<String, dynamic>);
-  }
-
-  @override
   Future<List<Category>> workshopCategories() async {
     final data = await _api.getDynamic(_endpoints.workshopMasterCategories);
     return (data as List<dynamic>)
@@ -1302,9 +1200,7 @@ class HttpAdminApi implements AdminApi {
 
   @override
   Future<PublicLink> publicLink(String jobId) async {
-    final data = await _api.getDynamic(
-      _endpoints.workshopJobPublicLink(jobId),
-    );
+    final data = await _api.getDynamic(_endpoints.workshopJobPublicLink(jobId));
     return PublicLink.fromJson(data as Map<String, dynamic>);
   }
 
@@ -1314,9 +1210,7 @@ class HttpAdminApi implements AdminApi {
 
   @override
   Future<List<JobDocument>> jobDocuments(String jobId) async {
-    final data = await _api.getDynamic(
-      _endpoints.workshopJobDocuments(jobId),
-    );
+    final data = await _api.getDynamic(_endpoints.workshopJobDocuments(jobId));
     return (data as List<dynamic>)
         .whereType<Map<String, dynamic>>()
         .map(JobDocument.fromJson)

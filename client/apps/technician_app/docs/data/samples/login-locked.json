@@ -1,0 +1,24 @@
+{
+  "_source": "server/src/main/java/com/truereport/identity/AuthService.java:85-94; server/src/main/java/com/truereport/identity/User.java:146-160; server/src/main/java/com/truereport/shared/error/ApiExceptionHandler.java:46-57,157-172; server/src/test/java/com/truereport/AuthRecoveryIT.java:52-59; server/src/main/java/com/truereport/reports/PublicReportRateLimitFilter.java:27-33",
+  "_derivation": "CONSTRUCTED from the lockout branch of AuthService.login and User.recordLoginFailure. NOT a live capture.",
+  "_http_status": 401,
+  "_lockout": {
+    "threshold": "5 failed password attempts",
+    "lock_duration": "PT15M",
+    "counter_reset": "only on successful login; NOT on lock expiry, so the next wrong password re-locks immediately",
+    "code_is_distinct": false,
+    "retry_after_header": null
+  },
+  "_rate_limit": "MISSING. No rate limiter applies to /api/v1/auth/login (the only rate-limit filter is for /r/** and /report/**). There is no 429 and no Retry-After for auth endpoints, so this 401 body is the exact same contract as login-invalid-credentials.json.",
+  "_note": "While locked, every attempt returns this body without extending the lock and is audited as LOGIN_LOCKED.",
+  "type": "https://truereport.example/problems/auth_invalid_credentials",
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Authentication is required.",
+  "instance": "/api/v1/auth/login",
+  "code": "AUTH_INVALID_CREDENTIALS",
+  "messageKey": "error.unauthorized",
+  "messageEn": "Authentication is required.",
+  "messageAr": "يجب تسجيل الدخول.",
+  "traceId": "<echoed-X-Request-Id>"
+}

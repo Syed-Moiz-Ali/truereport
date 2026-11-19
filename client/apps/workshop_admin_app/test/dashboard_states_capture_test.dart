@@ -133,6 +133,10 @@ Future<void> _pump(
     ],
   );
   addTearDown(container.dispose);
+  // Keep the provider and MaterialApp.locale in step: the host derives the
+  // language-toggle label from `localeProvider`, so setting only the app locale
+  // produced an impossible Arabic screenshot labelled "العربية" (shell Gate 6 F3).
+  container.read(localeProvider.notifier).setLocale(locale);
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,

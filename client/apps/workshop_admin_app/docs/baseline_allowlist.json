@@ -1,27 +1,15 @@
-{
-  "version": 2,
-  "updated": "2026-11-18",
-  "note": "Known-broken baseline. tool/baseline_check.dart fails on any failure NOT listed here, and also fails when an entry here starts passing (so the list cannot rot). A1-A3 (sign-in token violations) were fixed by the Phase 5/6 rebuild and removed.",
-  "failures": [],
-  "analyzer": [],
-  "format": [
-    "lib/main.dart",
-    "lib/src/admin_api.dart",
-    "lib/src/features/jobs/assign_technician_dialog.dart",
-    "lib/src/features/jobs/job_creation_wizard_page.dart",
-    "lib/src/features/jobs/job_presentation.dart",
-    "lib/src/features/jobs/schedule_job_sheet.dart",
-    "lib/src/features/staff/create_technician_sheet.dart",
-    "lib/src/report_pdf_saver_web.dart",
-    "lib/src/workshop_job_models.dart",
-    "lib/src/workshop_job_providers.dart",
-    "test/assign_technician_dialog_test.dart",
-    "test/create_technician_sheet_test.dart",
-    "test/job_counts_test.dart",
-    "test/jobs_adaptive_test.dart",
-    "test/no_fabricated_data_test.dart",
-    "test/schedule_job_sheet_test.dart",
-    "test/source_scan_test.dart"
-  ],
-  "formatNote": "17 pre-existing files were never formatted. The gate fails on any NEW unformatted file; formatting these is a separate, mechanical change. dashboard_tab.dart and job_widgets.dart were formatted by wave 2 phase B/E because those files were edited, so their entries were removed in the same change (a stale entry fails the gate)."
+﻿{
+    "version":  2,
+    "updated":  "2026-11-18",
+    "note":  "Known-broken baseline. tool/baseline_check.dart fails on any failure NOT listed here, and also fails when an entry here starts passing (so the list cannot rot). A1-A3 (sign-in token violations) were fixed by the Phase 5/6 rebuild and removed.",
+    "failures":  [
+
+                 ],
+    "analyzer":  [
+
+                 ],
+    "format":  [
+
+               ],
+    "formatNote":  "17 pre-existing files were never formatted. The gate fails on any NEW unformatted file; formatting these is a separate, mechanical change. dashboard_tab.dart and job_widgets.dart were formatted by wave 2 phase B/E because those files were edited, so their entries were removed in the same change (a stale entry fails the gate)."
 }

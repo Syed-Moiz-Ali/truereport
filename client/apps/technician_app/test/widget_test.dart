@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
+import 'package:technician_app/src/features/auth/signin/technician_sign_in_page.dart';
 
 Widget _wrap(Widget child, Locale locale) {
   return MaterialApp(
@@ -61,7 +62,7 @@ void main() {
   testWidgets('English sign-in shell renders without overflow', (tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      const ProviderScope(child: _TestApp(home: SignInPage())),
+      const ProviderScope(child: _TestApp(home: TechnicianSignInPage())),
     );
     await tester.pumpAndSettle();
 
@@ -75,7 +76,7 @@ void main() {
   ) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      const ProviderScope(child: _TestApp(home: SignInPage())),
+      const ProviderScope(child: _TestApp(home: TechnicianSignInPage())),
     );
     await tester.pumpAndSettle();
 
@@ -93,7 +94,10 @@ void main() {
     _phoneSize(tester);
     await tester.pumpWidget(
       const ProviderScope(
-        child: _TestApp(home: SignInPage(), initialLocale: Locale('ar')),
+        child: _TestApp(
+          home: TechnicianSignInPage(),
+          initialLocale: Locale('ar'),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -110,7 +114,10 @@ void main() {
     _phoneSize(tester);
     await tester.pumpWidget(
       const ProviderScope(
-        child: _TestApp(home: SignInPage(), initialLocale: Locale('ar')),
+        child: _TestApp(
+          home: TechnicianSignInPage(),
+          initialLocale: Locale('ar'),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -128,7 +135,7 @@ void main() {
   testWidgets('Language toggle switches the shell to Arabic', (tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(
-      const ProviderScope(child: _TestApp(home: SignInPage())),
+      const ProviderScope(child: _TestApp(home: TechnicianSignInPage())),
     );
     await tester.pumpAndSettle();
 

@@ -2,6 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
@@ -47,6 +48,14 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
+      // Nothing is requested on an invalid form, so the only feedback is the
+      // inline messages. Announce them: a screen-reader user pressing Enter on
+      // an empty form otherwise gets silence.
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        AppLocalizations.of(context).signinCheckFields,
+        Directionality.of(context),
+      );
       return;
     }
     setState(() {

@@ -3486,6 +3486,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signInPortalLabel => 'مدير الورشة';
 
   @override
+  String get signinCheckFields => 'تحقّق من الحقول المميّزة ثم حاول مرة أخرى.';
+
+  @override
   String get signInHelp => 'تواصل مع مدير المنصة للحصول على الوصول.';
 
   @override
@@ -3573,4 +3576,154 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commandSearchPlaceholder => 'اكتب أمراً أو ابحث...';
+
+  @override
+  String get jobsWorkshopTotals => 'إجمالي الورشة';
+
+  @override
+  String get jobsSortNote => 'الترتيب يخص هذه الصفحة';
+
+  @override
+  String jobsShownRange(int from, int to, int total) {
+    return 'عرض $from–$to من $total';
+  }
+
+  @override
+  String get jobsPagePrev => 'الصفحة السابقة';
+
+  @override
+  String get jobsPageNext => 'الصفحة التالية';
+
+  @override
+  String get jobsSelectJob => 'اختر مهمة';
+
+  @override
+  String get jobsNoSelection => 'اختر مهمة لعرض الإجراء التالي.';
+
+  @override
+  String get jobsNoJobsInView => 'لا توجد مهام في هذا العرض';
+
+  @override
+  String get jobsClearFilters => 'مسح عوامل التصفية';
+
+  @override
+  String get jobsConflictReload =>
+      'تغيّرت هذه المهمة في مكان آخر. أعد تحميلها قبل المتابعة.';
+
+  @override
+  String get jobsPublicationBlocked => 'النشر متوقف';
+
+  @override
+  String get jobsPublicationBlockedBody =>
+      'يتطلب النشر موافقة العميل، ولا توجد موافقة لهذا السجل.';
+
+  @override
+  String get jobsArchiveTitle => 'الأرشيف القديم';
+
+  @override
+  String get jobsArchiveBanner =>
+      'سجلات قديمة للقراءة فقط. لم تُرحَّل هذه المهام.';
+
+  @override
+  String get jobsArchiveOpen => 'فتح الأرشيف القديم';
+
+  @override
+  String get jobsArchiveEmpty => 'لا توجد مهام قديمة';
+
+  @override
+  String get jobsNextReview => 'مراجعة واعتماد';
+
+  @override
+  String get jobsNextAssign => 'إسناد فني';
+
+  @override
+  String get jobsNextOpen => 'فتح المهمة';
+
+  @override
+  String get jobsNextPublish => 'قائمة النشر';
+
+  @override
+  String get jobsNextLink => 'عرض الرابط العام';
+
+  @override
+  String get jobsNextTrack => 'متابعة المهمة';
+
+  @override
+  String get jobsStatusUnknown => 'حالة غير معروفة';
+
+  @override
+  String get jobsForbidden => 'لا تملك صلاحية الوصول إلى هذه المهمة.';
+
+  @override
+  String get jobsNotFound => 'لم تعد هذه المهمة موجودة.';
+
+  @override
+  String get jobsNoVersion =>
+      'لا يمكن تعديل هذه المهمة لغياب رقم الإصدار. أعد تحميلها.';
+
+  @override
+  String get jobsApproverIsTechnician =>
+      'لا يمكن للفني المسند اعتماد مهمته بنفسه.';
+
+  @override
+  String get jobsNotAssignable => 'لا يمكن إسناد هذه المهمة في حالتها الحالية.';
+
+  @override
+  String get jobsAlreadyAssigned =>
+      'هذه المهمة مسندة بالفعل. أعد التحميل لعرض الفني الحالي.';
+
+  @override
+  String get jobsNotCancellable => 'لم يعد بالإمكان إلغاء هذه المهمة.';
+
+  @override
+  String get jobsAlreadyCancelled => 'تم إلغاء هذه المهمة بالفعل.';
+
+  @override
+  String get jobsNotEditable => 'لم يعد بالإمكان تعديل هذه المهمة.';
+
+  @override
+  String get jobsTechnician => 'الفني';
+
+  @override
+  String get jobsCustomer => 'العميل';
+
+  @override
+  String get jobsMileage => 'المسافة المقطوعة';
+
+  @override
+  String get jobsScheduled => 'الموعد';
+
+  @override
+  String get jobsConsentNotRecorded => 'لا توجد موافقة';
+
+  @override
+  String get jobsOpenJob => 'فتح المهمة';
+
+  @override
+  String get jobsClientLink => 'رابط العميل';
+
+  @override
+  String get jobsTemplate => 'القالب';
+
+  @override
+  String get jobsVehicle => 'المركبة';
+
+  @override
+  String get jobsEmptyFirstUseTitle => 'لا توجد مهام بعد';
+
+  @override
+  String get jobsEmptyFirstUseBody => 'أنشئ أول مهمة لبدء القائمة.';
+
+  @override
+  String get jobsQueueEyebrow => 'قائمة العمل';
+
+  @override
+  String get jobsSortScheduledAsc => 'مرتبة حسب الموعد · تصاعدي';
+
+  @override
+  String get jobsConsentUnavailableNote =>
+      'لا يمكن تسجيل موافقة الرابط العام في هذا الإصدار. سيبقى النشر متوقفًا حتى يدعمه الخادم.';
+
+  @override
+  String get jobsDocsGeneratedAfterPublish => 'تُنشأ المستندات بعد النشر.';
 }

@@ -3511,6 +3511,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInPortalLabel => 'Workshop Admin';
 
   @override
+  String get signinCheckFields => 'Check the highlighted fields and try again.';
+
+  @override
   String get signInHelp => 'Contact your platform administrator for access.';
 
   @override
@@ -3598,4 +3601,157 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commandSearchPlaceholder => 'Type a command or search...';
+
+  @override
+  String get jobsWorkshopTotals => 'Workshop totals';
+
+  @override
+  String get jobsSortNote => 'Sort applies to this page';
+
+  @override
+  String jobsShownRange(int from, int to, int total) {
+    return 'Showing $from–$to of $total';
+  }
+
+  @override
+  String get jobsPagePrev => 'Previous page';
+
+  @override
+  String get jobsPageNext => 'Next page';
+
+  @override
+  String get jobsSelectJob => 'Select a job';
+
+  @override
+  String get jobsNoSelection => 'Select a job to see its next action.';
+
+  @override
+  String get jobsNoJobsInView => 'No jobs in this view';
+
+  @override
+  String get jobsClearFilters => 'Clear filters';
+
+  @override
+  String get jobsConflictReload =>
+      'This job changed elsewhere. Reload it before you continue.';
+
+  @override
+  String get jobsPublicationBlocked => 'Publication is blocked';
+
+  @override
+  String get jobsPublicationBlockedBody =>
+      'Publishing needs the customer\'s consent, and this record has none.';
+
+  @override
+  String get jobsArchiveTitle => 'Legacy archive';
+
+  @override
+  String get jobsArchiveBanner =>
+      'Legacy records. Read-only. These jobs have not been migrated.';
+
+  @override
+  String get jobsArchiveOpen => 'Open legacy archive';
+
+  @override
+  String get jobsArchiveEmpty => 'No legacy jobs';
+
+  @override
+  String get jobsNextReview => 'Review & approve';
+
+  @override
+  String get jobsNextAssign => 'Assign technician';
+
+  @override
+  String get jobsNextOpen => 'Open job';
+
+  @override
+  String get jobsNextPublish => 'Publish checklist';
+
+  @override
+  String get jobsNextLink => 'View public link';
+
+  @override
+  String get jobsNextTrack => 'Track job';
+
+  @override
+  String get jobsStatusUnknown => 'Unknown status';
+
+  @override
+  String get jobsForbidden => 'You are not allowed to view this job.';
+
+  @override
+  String get jobsNotFound => 'This job no longer exists.';
+
+  @override
+  String get jobsNoVersion =>
+      'This job cannot be changed because its version is missing. Reload it.';
+
+  @override
+  String get jobsApproverIsTechnician =>
+      'The assigned technician cannot approve their own job.';
+
+  @override
+  String get jobsNotAssignable =>
+      'This job cannot be assigned in its current state.';
+
+  @override
+  String get jobsAlreadyAssigned =>
+      'This job is already assigned. Reload to see the current technician.';
+
+  @override
+  String get jobsNotCancellable => 'This job can no longer be cancelled.';
+
+  @override
+  String get jobsAlreadyCancelled => 'This job is already cancelled.';
+
+  @override
+  String get jobsNotEditable => 'This job can no longer be changed.';
+
+  @override
+  String get jobsTechnician => 'Technician';
+
+  @override
+  String get jobsCustomer => 'Customer';
+
+  @override
+  String get jobsMileage => 'Mileage';
+
+  @override
+  String get jobsScheduled => 'Scheduled';
+
+  @override
+  String get jobsConsentNotRecorded => 'Consent not recorded';
+
+  @override
+  String get jobsOpenJob => 'Open job';
+
+  @override
+  String get jobsClientLink => 'Client link';
+
+  @override
+  String get jobsTemplate => 'Template';
+
+  @override
+  String get jobsVehicle => 'Vehicle';
+
+  @override
+  String get jobsEmptyFirstUseTitle => 'No jobs yet';
+
+  @override
+  String get jobsEmptyFirstUseBody =>
+      'Create the first job to start the queue.';
+
+  @override
+  String get jobsQueueEyebrow => 'Work queue';
+
+  @override
+  String get jobsSortScheduledAsc => 'Sorted by scheduled · ascending';
+
+  @override
+  String get jobsConsentUnavailableNote =>
+      'Public-link consent cannot be recorded in this version. Publishing will remain blocked until the server supports it.';
+
+  @override
+  String get jobsDocsGeneratedAfterPublish =>
+      'Documents are generated after publishing.';
 }

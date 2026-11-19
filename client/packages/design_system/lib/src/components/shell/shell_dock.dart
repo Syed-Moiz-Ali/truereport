@@ -73,9 +73,10 @@ class WorkshopShellDock extends StatelessWidget {
               children: [
                 for (var index = 0; index < items.length; index++)
                   Expanded(
-                    flex: index == selectedIndex
-                        ? (MediaQuery.sizeOf(context).width < 384 ? 2 : 3)
-                        : 1,
+                    // Keep the 3:1 split at every width down to the 360 px
+                    // floor: the active item must still carry its name, and a
+                    // 2:1 split clipped "Overview" to "Over…" (shell Gate 6 F1).
+                    flex: index == selectedIndex ? 3 : 1,
                     child: items[index],
                   ),
               ],
@@ -154,7 +155,7 @@ class _DockItemState extends State<_DockItem> {
               padding: EdgeInsetsDirectional.symmetric(
                 horizontal: widget.selected && !widget.expand
                     ? spacing.md
-                    : spacing.sm,
+                    : (tight && widget.selected ? spacing.xs : spacing.sm),
               ),
               decoration: BoxDecoration(
                 color: widget.selected ? ws.accent : null,
@@ -169,8 +170,12 @@ class _DockItemState extends State<_DockItem> {
                 children: [
                   if (showIcon)
                     Icon(
+                      // A destination may omit `selectedIcon`; falling back to
+                      // `icon` keeps the active pill from losing its glyph
+                      // (shell Gate 6 F5).
                       widget.selected
-                          ? widget.destination.selectedIcon
+                          ? (widget.destination.selectedIcon ??
+                                widget.destination.icon)
                           : widget.destination.icon,
                       size: 18,
                       color: fg,

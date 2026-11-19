@@ -309,4 +309,14 @@ void main() {
     expect(dock.left, greaterThanOrEqualTo(0));
     expect(dock.right, lessThanOrEqualTo(390));
   });
+
+  testWidgets('a destination without selectedIcon keeps its glyph', (
+    tester,
+  ) async {
+    // Jobs has no `selectedIcon` in the fixture above; selecting it used to
+    // render `Icon(null)` and lose the glyph (shell Gate 6 F5).
+    await pumpShell(tester, size: const Size(1280, 900), selectedIndex: 1);
+    expect(tester.takeException(), isNull);
+    expect(find.byIcon(Icons.work_outline), findsOneWidget);
+  });
 }

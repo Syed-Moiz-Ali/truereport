@@ -6,6 +6,7 @@ import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
+import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -158,10 +159,10 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
             ),
             if (!active)
               AppButton(
-                key: const Key('jobs-publish-link-button'),
-                label: l10n.jobsPublishNow,
-                onPressed: _busy ? null : _publish,
-                icon: Icons.public_outlined,
+                key: const Key('jobs-publish-checklist-button'),
+                label: l10n.jobsOpenPublishChecklist,
+                onPressed: _busy ? null : () => _openChecklist(),
+                icon: Icons.playlist_add_check_outlined,
                 variant: AppButtonVariant.tonal,
               ),
             if (active)
@@ -263,15 +264,14 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
     }
   }
 
-  Future<void> _publish() async {
-    await _run(() async {
-      await ref
-          .read(adminApiProvider)
-          .publishJob(widget.jobId, pdfDownloadEnabled: true);
-      ref.invalidate(publicLinkProvider(widget.jobId));
-      ref.invalidate(cleanJobProvider(widget.jobId));
-      ref.invalidate(cleanJobCountsProvider);
-    });
+  /// Publication has one gate: the checklist (M6). A non-active link routes
+  /// there; this page never publishes on its own.
+  void _openChecklist() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublishChecklistPage(jobId: widget.jobId),
+      ),
+    );
   }
 
   Future<void> _rotate() async {

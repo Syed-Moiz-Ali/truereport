@@ -134,77 +134,77 @@ void main() {
         }
       }
 
+      void expectStruct(String label, bool ok, String detail) {
+        checked++;
+        if (ok) {
+          passed++;
+        } else {
+          failures.add('$label: $detail');
+        }
+      }
+
       switch (id) {
+        // The sign-in screen was rebuilt (direction C "The dock"). Its old
+        // 1 px Figma boxes no longer describe the product, so this case
+        // asserts structure and reachability instead of fixed coordinates.
         case 'login':
-          check(
+          final email = find.byKey(const Key('sign-in-email'));
+          final password = find.byKey(const Key('sign-in-password'));
+          final submit = find.byKey(const Key('sign-in-submit'));
+          final language = find.byKey(const Key('sign-in-language-en'));
+          final access = find.byKey(const Key('sign-in-access-prompt'));
+          final security = find.byKey(const Key('sign-in-security-line'));
+
+          expectStruct('email cell', email.evaluate().isNotEmpty, 'missing');
+          expectStruct(
+            'password cell',
+            password.evaluate().isNotEmpty,
+            'missing',
+          );
+          expectStruct('primary', submit.evaluate().isNotEmpty, 'missing');
+          expectStruct(
             'language switch',
-            find.byType(FxLanguageSwitch),
-            box(241.58, 8, 128.42, 32),
+            language.evaluate().isNotEmpty,
+            'missing',
           );
-          check(
-            'brand',
-            find.text('TechInspect'),
-            box(120.31, 192, 149.38, 32),
-            width: false,
-          );
-          check(
-            'tagline',
-            find.text('Vehicle Condition & Fleet Diagnostics'),
-            box(73.84, 228, 242.3, 18),
-            width: false,
-          );
-          check(
-            'email field',
-            find.byType(FxTextField).at(0),
-            box(24, 286, 342, 48),
-          );
-          check(
-            'password field',
-            find.byType(FxTextField).at(1),
-            box(24, 350, 342, 48),
-          );
-          check(
-            'sign in',
-            find.byKey(const Key('sign-in-submit')),
-            box(24, 472, 342, 56),
-          );
-          check(
-            'access prompt',
-            find.byKey(const Key('sign-in-access-prompt')),
-            box(81.76, 592, 153.53, 18),
-            width: false,
-          );
-          check(
+          expectStruct('access line', access.evaluate().isNotEmpty, 'missing');
+          expectStruct(
             'security line',
-            find.byKey(const Key('sign-in-security-line')),
-            box(104.93, 626, 194.14, 14),
-            width: false,
-            x: false,
+            security.evaluate().isNotEmpty,
+            'missing',
           );
-          checkStyle(
-            'brand style',
-            find.text('TechInspect'),
-            size: 26,
-            weight: FontWeight.w800,
-            lineHeight: 32,
-            tracking: -0.65,
+          expectStruct(
+            'no code field before a challenge',
+            find.byKey(const Key('sign-in-code')).evaluate().isEmpty,
+            'code field rendered by default',
           );
-          checkStyle(
-            'forgot style',
-            find.text('Forgot password?'),
-            size: 11,
-            weight: FontWeight.w600,
-            lineHeight: 14,
-            tracking: 0.44,
-          );
-          checkStyle(
-            'button label style',
-            find.text('Sign In'),
-            size: 14,
-            weight: FontWeight.w700,
-            lineHeight: 18,
-            tracking: -0.14,
-          );
+          if (submit.evaluate().isNotEmpty) {
+            final rect = tester.getRect(submit.first);
+            expectStruct(
+              'primary height',
+              rect.height >= 56,
+              rect.height.toStringAsFixed(1),
+            );
+            expectStruct(
+              'primary visible',
+              rect.bottom <= height,
+              '${rect.bottom.toStringAsFixed(1)} > $height',
+            );
+            if (email.evaluate().isNotEmpty) {
+              expectStruct(
+                'primary below the fields',
+                rect.top > tester.getRect(email.first).top,
+                'primary is not below the credentials',
+              );
+            }
+          }
+          if (email.evaluate().isNotEmpty) {
+            expectStruct(
+              'field uses the dock width',
+              tester.getSize(email.first).width > 250,
+              tester.getSize(email.first).width.toStringAsFixed(1),
+            );
+          }
         case 'assigned-jobs':
           check('header', find.byType(FxHeader), box(0, 0, 390, 64));
           check(
@@ -464,7 +464,11 @@ void main() {
             box(24, 625.75, 126.7, 16),
             width: false,
           );
-          check('confirm button', find.byType(FxButton).first, box(20, 762.25, 350, 56));
+          check(
+            'confirm button',
+            find.byType(FxButton).first,
+            box(20, 762.25, 350, 56),
+          );
           check(
             'no damage button text',
             find.text('No Damage Found on this Panel'),

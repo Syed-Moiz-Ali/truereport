@@ -1,0 +1,27 @@
+{
+  "_source": "server/src/main/java/com/truereport/identity/api/AuthResponse.java:5-14; server/src/main/java/com/truereport/identity/AuthService.java:309-319; server/src/main/java/com/truereport/identity/AuthService.java:363-366; server/src/main/java/com/truereport/identity/api/UserDto.java:5; server/src/main/java/com/truereport/identity/api/MembershipDto.java:5; server/src/main/resources/application.yml:74",
+  "_derivation": "CONSTRUCTED from server code and the login helper in server/src/test/java/com/truereport/IntegrationTestBase.java:42-52. NOT a live capture. No database was touched.",
+  "_sanitized": "Every id, email, name and token is a placeholder. Not a real account, not a real JWT.",
+  "_http_status": 200,
+  "_content_type": "application/json",
+  "accessToken": "<hs256-jwt-15m-uid-role-sid-wid>",
+  "refreshToken": "<opaque-43-char-base64url-refresh-token>",
+  "tokenType": "Bearer",
+  "expiresInSeconds": 900,
+  "user": {
+    "id": "00000000-0000-0000-0000-0000000000a1",
+    "email": "tech.a@example.test",
+    "displayName": "Tech A",
+    "platformAdmin": false,
+    "totpEnabled": false
+  },
+  "memberships": [
+    {
+      "workshopId": "00000000-0000-0000-0000-0000000000b1",
+      "workshopName": "Workshop A",
+      "role": "TECHNICIAN"
+    }
+  ],
+  "requiresTwoFactor": false,
+  "challengeToken": null
+}

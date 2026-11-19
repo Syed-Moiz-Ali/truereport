@@ -93,6 +93,11 @@ class SigninForm extends StatelessWidget {
                 autofillHints: const [AutofillHints.password],
                 validator: validatePassword,
                 suffixIcon: IconButton(
+                  // Icon-only controls need an accessible name; the tooltip is
+                  // also the label screen readers announce.
+                  tooltip: obscurePassword
+                      ? l10n.showPassword
+                      : l10n.hidePassword,
                   icon: Icon(
                     obscurePassword
                         ? Icons.visibility_outlined

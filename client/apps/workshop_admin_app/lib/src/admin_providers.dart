@@ -1,5 +1,4 @@
 import 'package:workshop_admin_app/src/admin_api.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:auth/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,10 +96,6 @@ final jobsProvider = FutureProvider.autoDispose
             status: parts.length > 1 ? parts[1] : '',
           );
     });
-
-final jobCountsProvider = FutureProvider.autoDispose<JobCounts>((ref) {
-  return ref.watch(adminApiProvider).jobCounts();
-});
 
 final workshopCategoriesProvider = FutureProvider.autoDispose<List<Category>>((
   ref,

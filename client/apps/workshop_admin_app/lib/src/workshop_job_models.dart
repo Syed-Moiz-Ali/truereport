@@ -314,8 +314,7 @@ class CleanJob {
     templateNameEn: templateNameEn ?? this.templateNameEn,
     templateNameAr: templateNameAr ?? this.templateNameAr,
     templateVersionNo: templateVersionNo ?? this.templateVersionNo,
-    assignedTechnicianId:
-        assignedTechnicianId ?? this.assignedTechnicianId,
+    assignedTechnicianId: assignedTechnicianId ?? this.assignedTechnicianId,
     assignedTechnicianName:
         assignedTechnicianName ?? this.assignedTechnicianName,
     customerName: customerName ?? this.customerName,
@@ -447,19 +446,18 @@ class CleanJobCounts {
   final int cancelled;
   final int total;
 
-  factory CleanJobCounts.fromJson(Map<String, dynamic> json) =>
-      CleanJobCounts(
-        draft: _int(json['draft']),
-        scheduled: _int(json['scheduled']),
-        assigned: _int(json['assigned']),
-        inProgress: _int(json['inProgress']),
-        pendingReview: _int(json['pendingReview']),
-        approved: _int(json['approved']),
-        published: _int(json['published']),
-        rejected: _int(json['rejected']),
-        cancelled: _int(json['cancelled']),
-        total: _int(json['total']),
-      );
+  factory CleanJobCounts.fromJson(Map<String, dynamic> json) => CleanJobCounts(
+    draft: _int(json['draft']),
+    scheduled: _int(json['scheduled']),
+    assigned: _int(json['assigned']),
+    inProgress: _int(json['inProgress']),
+    pendingReview: _int(json['pendingReview']),
+    approved: _int(json['approved']),
+    published: _int(json['published']),
+    rejected: _int(json['rejected']),
+    cancelled: _int(json['cancelled']),
+    total: _int(json['total']),
+  );
 }
 
 class JobAssignment {
@@ -715,7 +713,10 @@ class JobDocument {
   final String nameAr;
   final String language;
   final String status;
-  final int bytes;
+
+  /// `null` when the server did not send a size. A missing value is never
+  /// defaulted to zero (G-J23): the UI renders `—` instead.
+  final int? bytes;
   final String? generatedAt;
   final String? error;
   final String? downloadUrl;
@@ -727,7 +728,7 @@ class JobDocument {
     nameAr: _string(json['nameAr']),
     language: _string(json['language']),
     status: _string(json['status']),
-    bytes: _int(json['bytes']),
+    bytes: _intOrNull(json['bytes']),
     generatedAt: _stringOrNull(json['generatedAt']),
     error: _stringOrNull(json['error']),
     downloadUrl: _stringOrNull(json['downloadUrl']),
@@ -780,6 +781,7 @@ class NewCleanJob {
     this.preferredLanguage,
     this.scheduledAt,
     this.assignedTechnicianId,
+    this.consentGranted = false,
   });
 
   final String templateVersionId;
@@ -799,6 +801,9 @@ class NewCleanJob {
   final String? scheduledAt;
   final String? assignedTechnicianId;
 
+  /// Always `false` from this app until CR-5 gives consent a write path.
+  final bool consentGranted;
+
   Map<String, dynamic> toJson() => {
     'templateVersionId': templateVersionId,
     'customerName': customerName,
@@ -816,6 +821,7 @@ class NewCleanJob {
     'preferredLanguage': preferredLanguage,
     'scheduledAt': scheduledAt,
     'assignedTechnicianId': assignedTechnicianId,
+    'consentGranted': consentGranted,
   };
 }
 

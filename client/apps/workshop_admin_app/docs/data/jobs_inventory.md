@@ -461,6 +461,13 @@ mock or an estimate.
 
 ### 6.1 Wire rules that every jobs screen must honour
 
+**Counts vs list totals (added after Gate 6 round 1).** `GET /workshop/jobs`
+(`JobPage.total`) and `GET /workshop/jobs/counts` (`CleanJobCounts.total`)
+describe the same unfiltered population. When `status` and `search` are empty
+they must be equal; if they differ, the server is the defect and the client must
+label the scopes rather than presenting two unexplained numbers. A filtered list
+total describes that view, not the workshop.
+
 1. **Unknown enum ⇒ explicit "Unknown", never the raw code**, plus a single log
    per value. Applies to `status`, `reviewStatus`, `publicationStatus`,
    `PublicLink.status`, `JobDocument.status`, `notification.type`,

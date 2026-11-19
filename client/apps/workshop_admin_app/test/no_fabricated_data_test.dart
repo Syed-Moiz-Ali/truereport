@@ -30,13 +30,18 @@ void main() {
       throw StateError('Could not find the Flutter client root.');
     }
     final files = <File>[
-      File('${root.path}${separator}apps${separator}workshop_admin_app'
-          '${separator}lib${separator}src${separator}admin_api.dart'),
-      File('${root.path}${separator}apps${separator}workshop_admin_app'
-          '${separator}lib${separator}src${separator}admin_providers.dart'),
+      File(
+        '${root.path}${separator}apps${separator}workshop_admin_app'
+        '${separator}lib${separator}src${separator}admin_api.dart',
+      ),
+      File(
+        '${root.path}${separator}apps${separator}workshop_admin_app'
+        '${separator}lib${separator}src${separator}admin_providers.dart',
+      ),
     ];
     final forbidden = <RegExp>[
-      // Any direct JobCounts construction (only JobCounts.fromJson is real).
+      // Counts may only be parsed from the server payload, never constructed.
+      RegExp(r'\bCleanJobCounts\s*\('),
       RegExp(r'\bJobCounts\s*\('),
       // The removed invented fallbacks, pinned so they cannot return.
       RegExp(r'draft\s*:\s*12\b'),

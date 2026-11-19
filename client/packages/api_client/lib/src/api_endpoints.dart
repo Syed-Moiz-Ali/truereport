@@ -105,14 +105,6 @@ class ApiEndpoints {
   String readWorkshopNotification(String id) =>
       '$_root/workshop/notifications/$id/read';
   String get workshopJobs => '$_root/workshop/legacy/jobs';
-  String get workshopJobCounts => '$_root/workshop/legacy/jobs/counts';
-  String workshopJob(String id) => '$_root/workshop/legacy/jobs/$id';
-  String assignWorkshopJob(String id) =>
-      '$_root/workshop/legacy/jobs/$id/assign';
-  String cancelWorkshopJob(String id) =>
-      '$_root/workshop/legacy/jobs/$id/cancel';
-  String workshopJobAssignments(String id) =>
-      '$_root/workshop/legacy/jobs/$id/assignments';
   String workshopReport(String jobId) => '$_root/workshop/jobs/$jobId/report';
   String workshopReportRetry(String jobId) =>
       '$_root/workshop/jobs/$jobId/report/retry';

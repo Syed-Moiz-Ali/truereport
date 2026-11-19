@@ -12,11 +12,102 @@ Target:          `lib/src/features/jobs/**` + the Jobs/Board section host hook;
                  `schedule_job_sheet.dart`) is scheduled for deletion
 Queue:           `docs/rebuild_queue.md` (J1 queue + detail · J2 write path ·
                  J3 client surface)
-Current phase:   3 — three queue directions rendering (isolated); Gate 2b PASS
+Current phase:   Gate 6 **round 3** — N1/N2/N3-N7 fixed; independent re-review running
 Gates:           0 **PASS(user, Wave 2 audit)** | 1 **PASS (self, partial by scope)** |
                  2 **PASS (self)** | 2b **PASS (self, artifacts)** |
-                 3 **rendering** | 4 **PASS (foundation harness)** |
-                 5 **PASS (frozen)** | 6 pending
+                 3 **PASS (autopilot — A)** | 4 **PASS (foundation harness)** |
+                 5 **PASS (frozen)** | 6 **PASS WITH FIXES (round 3, independent)** |
+                 | J2 **in progress**
+
+Gate 6 round 3 (`qa_verdict_round3.md`): PASS WITH FIXES. N1, N2, N7, N3-N6,
+                 F9 fixed; F12c accepted. Residual N8/N10 (consent-blocked card and
+                 wide inspector) are being fixed; N9 (duplicate Refresh in the
+                 conflict banner) too. 617 tests, analyze 0, raw logs attached.
+
+Round 3 fixes (2026-11-19): at text scale > 1.3 the queue uses cards at every
+                 width (two-up >=900, full-width actions, no table/inspector);
+                 standard scale keeps the table with 56 px rows, aligned AR
+                 scheduled cells, start-aligned reference and LTR mileage; phone
+                 header puts New job + menu on one row; strip fade/chevron.
+                 Detail: consent-blocked adds "View checklist"; a conflict replaces
+                 the dead primary with an enabled "Refresh".
+                 Full suite **617 pass / 0 fail**, analyze 0; raw logs
+                 `docs/evidence/logs/jobs_j1_r3_{analyze,test}.txt`.
+
+Halt reason: the same module (jobs J1) failed independent Gate 6 judgement twice
+                 (`docs/evidence/jobs_j1/qa_verdict.md`, `qa_verdict_round2.md`).
+                 Round 1: 3 blockers (AR detail date, publish bypass, counts/list
+                 mismatch). All three were fixed and verified in round 2.
+                 Round 2 blocker (N1): the required 2x text state breaks the queue
+                 at 1440 — inspector primary truncates to "Revi…", table headers
+                 split mid-word (`Technicia/n`, `Custom/er 1`), rows cut at the
+                 fold; the 2x test only asserts `takeException`. Major N2: the
+                 consent-blocked detail shows the reason but not the checklist link
+                 required by brief §5. Minors N3-N7 (AR reference alignment, AR
+                 mileage order, uneven rows, phone overflow orphan, conflict primary
+                 still looks enabled) remain.
+
+State of the tree: green, not shippable as signed off — **609 tests pass**,
+                 `flutter analyze --fatal-infos` 0, full J1 evidence at
+                 `docs/evidence/jobs_j1/` (queue 1440/1280/1024/768/390/360, AR,
+                 states, filtered, 2x; detail 6 widths, AR, conflict, terminal,
+                 consent-blocked, 2x; archive). Legacy quick sheet, schedule sheet,
+                 counts, assign dialog and legacy mutations are deleted; the
+                 read-only archive bridge remains until CR-3.
+
+Single next action: Gate 6 **round 3** after the N1/N2/N3-N7 fixes and a fresh raw
+                 analyze/test log. PASS → start J2 (write path); PASS WITH FIXES →
+                 start J2 with the fix list; FAIL → halt again (third failure).
+                 Do not start J2 before the verdict.
+
+Not done (blocked by the halt): J2 write path (wizard/approve/checklist/documents),
+                 J3 client surface (board/notifications/public link polish), the
+                 integration consistency pass and the final shell-log regeneration
+                 (shell F4).
+
+Gate 6 round 1 (`docs/evidence/jobs_j1/qa_verdict.md`): FAIL — 3 blockers:
+                 (1) AR detail date still Arabic-Indic;
+                 (2) public-link page still published outside the checklist (M6);
+                 (3) unfiltered All count (20) contradicted the list total (12).
+                 Majors: inspector facts below the fold at >=1100; footer centred/
+                 floating; contradictory no-jobs copy; no raw logs. Remediation
+                 split between the detail and queue owners; ARB keys added
+                 (`jobsEmptyFirstUse*`, `jobsQueueEyebrow`, `jobsSortScheduledAsc`);
+                 the legacy read exception is recorded in `ui_brief_jobs.md` §10
+                 and the counts/list contract in `docs/data/jobs_inventory.md` §6.1.
+
+J1 result (2026-11-19): queue 273 → 11 region files (218-line page); detail 1141 →
+                 175 lines + 9 regions; shared policy/badges/facts; assign sheet;
+                 legacy archive. Deleted quick sheet, schedule sheet, legacy counts,
+                 legacy assign dialog, `JobCounts`, legacy mutations/endpoints and
+                 their tests. Full suite **588 pass / 0 fail**, analyze 0.
+                 Fix pass after evidence review: Latin digits + LTR dates/range
+                 consistent with the dashboard (`workshop_digits.dart`), and a
+                 one-line scrollable status strip at <680.
+                 Evidence: `docs/evidence/jobs_j1/` (21 captures + queue_qa.md).
+
+J1a (2026-11-19): `docs/briefs/brief-jobs-j1a-detail.md` executed.
+                 `job_detail_page.dart` 1141 → 175 lines + 9 region files;
+                 `shared/` (badges, facts, actions policy, reason sheet, error copy)
+                 and `assign/assign_sheet.dart` created. Inline assign, 11 private
+                 widgets and the App-kit reason sheet deleted. Tests: detail 12,
+                 policy 8, captures 9. Full suite **605 pass / 0 fail**, analyze 0.
+                 Intentional behaviour changes: PUBLIC status `PUBLISHED` now reads
+                 Published (G-J2; `ACTIVE` was wrong), assignment is no longer
+                 offered from PENDING_REVIEW (server M3), stale/invalid actions
+                 have distinct copy. Deviation: an APPROVER_IS_TECHNICIAN key was
+                 missing; added (en/ar) and mapped.
+                 Design-proof preview code removed after capture (it tripped the
+                 production source-scan test); the PNG evidence is committed.
+
+Gate 3 (2026-11-19): three blind directions rendered inside the real shell
+                 (`a/b/c-queue-1440|390|1440-ar.png`). Chose **A**: server counts
+                 with an explicit scope, sortable sheet, persistent 380 px
+                 inspector with one next action, no unreliable relative times.
+                 Rejected B (relative ages from 4 h-off instants, horizontal
+                 travel) and C (40 % width for one job; priority only within the
+                 page). Reasons in `docs/design_decision.md`.
+                 ARB: 35 job keys added to en + ar; l10n regenerated; analyze 0.
 
 Gate 1 (2026-11-19): `docs/data/jobs_inventory.md` — 195 elements:
                  119 VERIFIED / 7 ASSUMED / 62 SUSPECT (every one root-caused) /
@@ -52,11 +143,27 @@ Artifacts (new):
                  docs/rebuild_blocked.md · docs/change_requests.md ·
                  docs/design_decision.md
 
-Next allowed action: pick direction at Gate 3, write `docs/ui_brief_jobs.md`, then J1.
+Next allowed action: J1 verdict. PASS → J2 write path (wizard/approve/checklist/
+                 documents); FAIL → fix the listed items and re-review.
 
 ---
 
-## Wave 4 (shell) — proof captured, independent review spawned 2026-11-19
+## Wave 4 (shell) — proof captured; **independent review: PASS WITH FIXES (2026-11-19)**
+
+Verdict: `docs/evidence/shell_qa_verdict.md` — 0 blockers, 4 major, 4 minor.
+Fixed in the foundation before the jobs wave:
+- F1 360 dock label clipped → flex 3 at every width + tighter padding; app test
+  `test/shell_floor_test.dart` asserts the label is not ellipsized with real fonts.
+- F5 destination without `selectedIcon` lost its glyph → falls back to `icon`.
+- F3 AR state capture was impossible (provider not set) → harness sets
+  `localeProvider`; captures regenerated.
+
+Carried into the jobs waves (module files):
+- F2 AR board timestamp format → J3 board.
+- F6 768 board filter row leaves an orphan chip → J3 board.
+- F8 RTL row chevron not mirrored → J3 board.
+- F7 six sections do not share one content frame → integration pass (touches
+  dashboard, staff and templates, outside this module's file ownership).
 
 Path:            **lite** (one component: the navigation chrome)
 Component:       `packages/design_system/lib/src/components/workshop_shell.dart`

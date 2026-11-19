@@ -122,7 +122,44 @@ create/job-visibility contradiction this module exists to fix).
 
 ### Jobs — reference-screen directions
 
-Three directions are generated for the queue (the module's reference screen) and
-the chosen one is appended here with the rejected reasons and its evidence paths.
-Siblings (detail, board, wizard) follow its anatomy rather than inventing new
-navigation or row anatomy.
+Three directions were generated blind for the queue and rendered inside the real
+frozen shell: `docs/evidence/jobs_directions/{a,b,c}-queue-{1440,390,1440-ar}.png`.
+
+**Chosen: A — "the counter"** (`docs/concepts/jobs/a/wireframe.md`, spec in
+`docs/ui_brief_jobs.md`).
+
+Why:
+
+1. **It answers the audit's question without lying about scale.** The status strip
+   carries server workshop totals; the list is the current view; the footer says
+   "1–10 of 24 shown · sort applies to this page". It is the only direction whose
+   counts, rows and ordering can all be true at the same time on page 2.
+2. **It keeps scanning.** A manager can sweep six columns at 1440 — the lanes
+   spend horizontal travel on four numbers and the triage desk spends 40 % of the
+   width on one job.
+3. **The next action still exists.** Selecting a row pulls the job into a 380 px
+   inspector whose footer carries exactly one status-derived action; on phone the
+   card footer carries it.
+4. **No unreliable data.** It shows only `scheduledAt` (a user-picked field) and
+   never derives ages from server instants (G-J18/CR-8).
+
+Rejected:
+
+- **B "the lanes"** — the strongest spatial idea, and its partition with a stated
+  remainder is honest. Rejected because every card carried a relative age
+  ("3h ago", "3d") derived from server instants that the inventory proves are
+  4 h off (CR-8), and because four lanes of two cards each spend more space on
+  lane headers than on work at 1440. The phone feed also repeated the selected
+  card as a second summary bar.
+- **C "the triage desk"** — the best single-job hierarchy, and the most honest
+  about consent. Rejected because its core promise is a priority order, but the
+  clean endpoint returns one page in `created_at DESC`; the most urgent job in the
+  workshop can be on page 2. It admits the limit, which means the hero is
+  sometimes wrong. It also gives 40 % of the width to one job and is the least
+  scannable of the three for a 24-job queue.
+
+Cost accepted: at 1440 the table is still a table — the structural change is the
+persistent inspector, the status-distribution strip and the row anatomy, not the
+abolition of columns. The edit-vs-replace test is satisfied by a rewritten file,
+seven new region files, the deleted quick sheet/schedule sheet/legacy row, and a
+different 1024 and 390 composition.

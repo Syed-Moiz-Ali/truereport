@@ -46,16 +46,25 @@ open path and legacy queue widgets die here.
 
 Blocks: J2, J3. Gate 6 judged by a fresh `qa-reviewer`.
 
+**Status (2026-11-19): PASS WITH FIXES (round 3, independent).** N1/N2/N7 fixed;
+residual N8/N9/N10 (consent-blocked card/inspector, duplicate conflict refresh)
+are in a follow-up pass. Evidence: `docs/evidence/jobs_j1/`.
+
 ### J2 — write path (Brief 3A)
 
 Create wizard, approve, publish checklist, documents, schedule-sheet fate. Must
 prove create → row appears, checklist blocks publish, publish → link live.
 
+**Status (2026-11-19): in progress.** The publish → link-live proof is BLOCKED by
+CR-5 (the create writes `consent_granted=false`; the server rejects publish with
+422). The wave must show the blocked state honestly, never fake a publish.
+
 ### J3 — client surface (Brief 3B)
 
 Board, notifications, public link, quick sheet (or its deletion), assign.
 Must prove assign → detail shows the technician name, cancel → active lanes drop
-the row, terminal job hides mutations.
+the row, terminal job hides mutations. Also closes the shell review's board
+findings: F2 (AR timestamp format), F6 (768 filter orphan), F8 (RTL chevron).
 
 ## Structural decision recorded for this module
 

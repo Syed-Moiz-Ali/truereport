@@ -1,25 +1,30 @@
-import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/l10n.dart';
+import 'package:technician_app/src/features/auth/signin/technician_sign_in_page.dart';
 
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_views.dart';
 
-/// O2 regression tests (F3-0): the login footer copy must fit the exact
-/// Figma slots without truncation, and the empty-state header row must not
-/// clip its trailing pill.
+/// O2 regression tests (F3-0), rewritten for the rebuilt sign-in (direction C).
 ///
-/// Figma slots (auth `sign_in_view.dart` `_M`): prompt 153.53 px at
-/// [Fx.body13], action 64.94 px at [Fx.label12]. Empty-state header content
-/// is 334 px wide starting at x=20, so every pill must end at x <= 354.
+/// The old login cases pinned two exact Figma slot widths (153.53 / 64.94 px)
+/// from the deleted centring layout. The rebuilt screen wraps the same copy on
+/// its own grid, so the intent is preserved instead: the access, help and
+/// security lines must render completely — never ellipsized — at phone widths
+/// in both locales. The empty-state header case is untouched.
 void main() {
   setUpAll(loadF2AFonts);
 
-  Future<void> pumpSignIn(WidgetTester tester, Locale locale) async {
-    tester.view.physicalSize = const Size(390, 844);
+  Future<void> pumpSignIn(
+    WidgetTester tester,
+    Locale locale, {
+    double width = 390,
+  }) async {
+    tester.view.physicalSize = Size(width, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -32,58 +37,44 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: buildAppTheme(),
-          home: const SignInPage(),
+          home: const TechnicianSignInPage(),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
 
-  double intrinsicWidth(String text, TextStyle style, TextDirection dir) {
-    final tp = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: dir,
-    )..layout();
-    return tp.width;
-  }
-
   for (final locale in const [Locale('en'), Locale('ar')]) {
-    testWidgets(
-      'O2 login footer copy fits Figma slots (${locale.languageCode})',
-      (tester) async {
-        await pumpSignIn(tester, locale);
+    for (final width in const [390.0, 360.0]) {
+      testWidgets('O2 login footer copy is complete at ${width.toInt()} '
+          '(${locale.languageCode})', (tester) async {
+        await pumpSignIn(tester, locale, width: width);
         expect(tester.takeException(), isNull);
 
         final l10n = AppLocalizations.of(
-          tester.element(find.byType(SignInPage)),
+          tester.element(find.byType(TechnicianSignInPage)),
         );
-        final dir = locale.languageCode == 'ar'
-            ? TextDirection.rtl
-            : TextDirection.ltr;
-        final promptW = intrinsicWidth(
-          l10n.technicianNeedTechnicianAccess,
-          Fx.body13,
-          dir,
-        );
-        final actionW = intrinsicWidth(
-          l10n.technicianContactAdmin,
-          Fx.label12,
-          dir,
-        );
-        expect(
-          promptW,
-          lessThanOrEqualTo(153.53),
-          reason: 'prompt "${l10n.technicianNeedTechnicianAccess}" '
-              'is ${promptW.toStringAsFixed(2)} px, slot is 153.53 px',
-        );
-        expect(
-          actionW,
-          lessThanOrEqualTo(64.94),
-          reason: 'action "${l10n.technicianContactAdmin}" '
-              'is ${actionW.toStringAsFixed(2)} px, slot is 64.94 px',
-        );
-      },
-    );
+        final finders = <String, Finder>{
+          'access prompt': find.text(l10n.technicianNeedTechnicianAccess),
+          'help': find.text(l10n.technicianContactAdmin),
+          'security': find.text(l10n.technicianSecurityLine),
+        };
+        for (final entry in finders.entries) {
+          expect(entry.value, findsOneWidget, reason: entry.key);
+          final paragraph = tester.renderObject<RenderParagraph>(entry.value);
+          expect(
+            paragraph.didExceedMaxLines,
+            isFalse,
+            reason: '${entry.key} truncated at ${width.toInt()}px',
+          );
+          expect(
+            tester.getSize(entry.value).width,
+            greaterThan(0),
+            reason: '${entry.key} has no width',
+          );
+        }
+      });
+    }
   }
 
   testWidgets('O2 empty-state header does not clip the trailing pill', (

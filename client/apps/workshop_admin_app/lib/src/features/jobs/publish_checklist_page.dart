@@ -4,11 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/publish/checklist_items.dart';
+import 'package:workshop_admin_app/src/features/jobs/publish/checklist_summary.dart';
+import 'package:workshop_admin_app/src/features/jobs/publish/publish_panel.dart';
+import 'package:workshop_admin_app/src/features/jobs/publish/publish_states.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
+/// The only client publish gate (M6). Publish requires the server checklist to
+/// be ready AND consent to be granted; a `422 CONSENT_REQUIRED` is mapped to
+/// the same honest copy instead of a generic failure.
 class PublishChecklistPage extends ConsumerStatefulWidget {
   const PublishChecklistPage({required this.jobId, super.key});
 
@@ -35,26 +42,36 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
           children: [
             JobPageTopBar(title: l10n.jobsPublishChecklist),
             Expanded(
-              child: WorkshopPageScroll(
-                children: [
-                  if (_error != null) ...[
-                    JobInlineError(message: _error!),
-                    SizedBox(height: context.spacing.md),
-                  ],
-                  checklist.when(
-                    loading: () => const WorkshopSkeleton(card: true, lines: 5),
-                    error: (error, _) => WorkshopErrorState(
-                      title: l10n.error,
-                      body: l10n.commonLoadFailed,
-                      retryLabel: l10n.retryAction,
-                      onRetry: () => ref.invalidate(
-                        publishChecklistProvider(widget.jobId),
+              child: checklist.hasError && !checklist.hasValue
+                  ? SingleChildScrollView(
+                      padding: context.ws.pagePaddingOf(context),
+                      child: WorkshopErrorState(
+                        title: l10n.error,
+                        body: jobErrorCopy(l10n, checklist.error!),
+                        retryLabel: l10n.retryAction,
+                        onRetry: () => ref.invalidate(
+                          publishChecklistProvider(widget.jobId),
+                        ),
                       ),
+                    )
+                  : checklist.when(
+                      loading: () => Padding(
+                        padding: context.ws.pagePaddingOf(context),
+                        child: const WorkshopSkeleton(card: true, lines: 5),
+                      ),
+                      error: (error, _) => SingleChildScrollView(
+                        padding: context.ws.pagePaddingOf(context),
+                        child: WorkshopErrorState(
+                          title: l10n.error,
+                          body: jobErrorCopy(l10n, error),
+                          retryLabel: l10n.retryAction,
+                          onRetry: () => ref.invalidate(
+                            publishChecklistProvider(widget.jobId),
+                          ),
+                        ),
+                      ),
+                      data: (value) => _content(context, value),
                     ),
-                    data: (value) => _content(context, value),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
@@ -63,170 +80,59 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
   }
 
   Widget _content(BuildContext context, PublishChecklist checklist) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final spacing = context.spacing;
+    final canPublish = checklist.ready && checklist.consentGranted;
+    final panel = PublishPanel(
+      checklist: checklist,
+      busy: _busy,
+      pdfDownload: _pdfDownload,
+      onPdfDownloadChanged: (value) => setState(() => _pdfDownload = value),
+      onPublish: canPublish && !_busy ? _publish : null,
+    );
+    return WorkshopPageScroll(
       children: [
-        JobPanel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Wrap(
-                spacing: context.spacing.sm,
-                runSpacing: context.spacing.sm,
+        if (_error != null) ...[
+          PublishErrorBanner(message: _error!),
+          SizedBox(height: spacing.lg),
+        ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 1000) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  StatusChip(
-                    key: const Key('jobs-checklist-ready-chip'),
-                    label: checklist.ready
-                        ? l10n.jobsChecklistReady
-                        : l10n.jobsChecklistNotReady,
-                    tone: checklist.ready
-                        ? StatusTone.success
-                        : StatusTone.danger,
-                    icon: checklist.ready
-                        ? Icons.check_circle_outline
-                        : Icons.error_outline,
-                  ),
-                  StatusChip(
-                    label:
-                        '${l10n.jobsItemsAssessed}: '
-                        '${formatNumber(context, checklist.itemsAssessed)} / '
-                        '${formatNumber(context, checklist.itemsTotal)}',
-                    tone: StatusTone.info,
-                    icon: Icons.checklist_outlined,
-                  ),
-                  StatusChip(
-                    label:
-                        '${l10n.jobsScore}: '
-                        '${formatScore(context, checklist.score)}',
-                    tone: StatusTone.neutral,
-                    icon: Icons.speed_outlined,
-                  ),
-                  StatusChip(
-                    label:
-                        '${l10n.jobsGrade}: '
-                        '${checklist.gradeCode ?? l10n.commonNotAvailable}',
-                    tone: StatusTone.success,
-                    icon: Icons.grade_outlined,
-                  ),
-                  StatusChip(
-                    label: checklist.consentGranted
-                        ? l10n.jobsConsentGranted
-                        : l10n.jobsConsentMissing,
-                    tone: checklist.consentGranted
-                        ? StatusTone.success
-                        : StatusTone.danger,
-                    icon: Icons.verified_user_outlined,
-                  ),
-                  StatusChip(
-                    label: checklist.signaturePresent
-                        ? l10n.jobsSignaturePresent
-                        : l10n.jobsSignatureMissing,
-                    tone: checklist.signaturePresent
-                        ? StatusTone.success
-                        : StatusTone.warning,
-                    icon: Icons.draw_outlined,
-                  ),
-                  StatusChip(
-                    label: checklist.documentsReady
-                        ? l10n.jobsDocumentsReady
-                        : l10n.jobsDocumentsNotReady,
-                    tone: checklist.documentsReady
-                        ? StatusTone.success
-                        : StatusTone.warning,
-                    icon: Icons.description_outlined,
-                  ),
-                  StatusChip(
-                    label: checklist.safetyCapApplied
-                        ? (checklist.safetyCapReason ??
-                              l10n.jobsSafetyCapApplied)
-                        : l10n.jobsSafetyCapNotApplied,
-                    tone: checklist.safetyCapApplied
-                        ? StatusTone.warning
-                        : StatusTone.neutral,
-                    icon: Icons.shield_outlined,
-                  ),
+                  ChecklistSummary(checklist: checklist),
+                  SizedBox(height: spacing.lg),
+                  ChecklistItems(items: checklist.items),
+                  SizedBox(height: spacing.lg),
+                  panel,
                 ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: context.spacing.md),
-        for (final item in checklist.items)
-          Padding(
-            padding: EdgeInsetsDirectional.only(bottom: context.spacing.sm),
-            child: JobPanel(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  StatusChip(
-                    key: Key('jobs-checklist-${item.code}'),
-                    label: item.passed
-                        ? l10n.jobsChecklistPassed
-                        : l10n.jobsChecklistFailed,
-                    tone: item.passed ? StatusTone.success : StatusTone.danger,
-                    icon: item.passed
-                        ? Icons.check_circle_outline
-                        : Icons.cancel_outlined,
-                  ),
-                  SizedBox(width: context.spacing.sm),
-                  Expanded(
-                    child: Text(
-                      localizedText(
-                        context,
-                        en: item.messageEn,
-                        ar: item.messageAr,
-                      ),
-                      style: context.texts.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        SizedBox(height: context.spacing.md),
-        JobPanel(
-          title: l10n.publish,
-          icon: Icons.public_outlined,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.pdfDownload,
-                      style: context.texts.bodyMedium,
-                    ),
-                  ),
-                  Switch(
-                    value: _pdfDownload,
-                    onChanged: _busy
-                        ? null
-                        : (value) => setState(() => _pdfDownload = value),
-                  ),
-                ],
-              ),
-              SizedBox(height: context.spacing.sm),
-              AppButton(
-                key: const Key('jobs-publish-button'),
-                label: l10n.jobsPublishNow,
-                onPressed: checklist.ready && !_busy ? _publish : null,
-                isLoading: _busy,
-                icon: Icons.public_outlined,
-                expand: true,
-              ),
-              if (!checklist.ready) ...[
-                SizedBox(height: context.spacing.sm),
-                Text(
-                  l10n.jobsChecklistNotReady,
-                  style: context.texts.bodySmall?.copyWith(
-                    color: context.colors.onSurfaceVariant,
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 7,
+                  child: ChecklistItems(items: checklist.items),
+                ),
+                SizedBox(width: spacing.xl),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ChecklistSummary(checklist: checklist),
+                      SizedBox(height: spacing.lg),
+                      panel,
+                    ],
                   ),
                 ),
               ],
-            ],
-          ),
+            );
+          },
         ),
       ],
     );
@@ -245,24 +151,36 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
       ref.invalidate(publishChecklistProvider(widget.jobId));
       ref.invalidate(publicLinkProvider(widget.jobId));
       ref.invalidate(cleanJobProvider(widget.jobId));
+      ref.invalidate(cleanJobsProvider);
       ref.invalidate(cleanJobCountsProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.jobsPublished)));
-        await Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => PublicLinkPage(jobId: link.jobId),
-          ),
-        );
+      if (!mounted) {
+        return;
       }
-    } on Object {
+      _toast(l10n.jobsPublished);
+      Navigator.of(context).pushReplacement<void, void>(
+        MaterialPageRoute<void>(
+          builder: (_) => PublicLinkPage(jobId: link.jobId),
+        ),
+      );
+    } on Object catch (error) {
+      ref.invalidate(publishChecklistProvider(widget.jobId));
       if (mounted) {
-        setState(() => _error = l10n.jobsPublishFailed);
+        setState(() => _error = jobErrorCopy(l10n, error));
       }
     } finally {
       if (mounted) {
         setState(() => _busy = false);
       }
     }
+  }
+
+  void _toast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: context.ws.ink,
+      ),
+    );
   }
 }

@@ -1,0 +1,190 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:l10n/l10n.dart';
+
+import 'signin_tokens.dart';
+import 'widgets/signin_command_strip.dart';
+import 'widgets/signin_dock.dart';
+import 'widgets/signin_statement.dart';
+
+/// Presentational sign-in screen for the technician app — direction C "The dock".
+///
+/// Business state (submit, challenge, error mapping) stays in
+/// `TechnicianSignInPage`. This widget owns only the reveal toggle and the
+/// responsive composition.
+class TechnicianSignInView extends StatefulWidget {
+  const TechnicianSignInView({
+    required this.emailController,
+    required this.passwordController,
+    required this.codeController,
+    required this.formKey,
+    required this.isArabic,
+    required this.onLocaleChanged,
+    required this.onSubmit,
+    required this.onValidateEmail,
+    required this.onValidateRequired,
+    required this.onValidateCode,
+    required this.emailFocus,
+    required this.passwordFocus,
+    required this.codeFocus,
+    this.challenge = false,
+    this.submitting = false,
+    this.errorText,
+    super.key,
+  });
+
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final TextEditingController codeController;
+  final GlobalKey<FormState> formKey;
+  final bool isArabic;
+  final ValueChanged<bool> onLocaleChanged;
+  final VoidCallback onSubmit;
+  final FormFieldValidator<String> onValidateEmail;
+  final FormFieldValidator<String> onValidateRequired;
+  final FormFieldValidator<String> onValidateCode;
+  final FocusNode emailFocus;
+  final FocusNode passwordFocus;
+  final FocusNode codeFocus;
+  final bool challenge;
+  final bool submitting;
+  final String? errorText;
+
+  @override
+  State<TechnicianSignInView> createState() => _TechnicianSignInViewState();
+}
+
+class _TechnicianSignInViewState extends State<TechnicianSignInView> {
+  bool _obscurePassword = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        top: true,
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final wide = width >= SignInDims.wide;
+            final gutter = width >= SignInDims.wide
+                ? SignInDims.gutterWide
+                : width >= SignInDims.stacked
+                ? SignInDims.gutterTablet
+                : SignInDims.gutterPhone;
+            final pinned = constraints.maxHeight >= SignInDims.pinnedHeight;
+
+            final strip = SignInCommandStrip(
+              title: l10n.appTitle,
+              englishLabel: l10n.languageEnglish,
+              arabicLabel: l10n.languageArabic,
+              isArabic: widget.isArabic,
+              wide: wide,
+              gutter: gutter,
+              onLanguageChanged: widget.onLocaleChanged,
+              englishKey: const Key('sign-in-language-en'),
+              arabicKey: const Key('sign-in-language-ar'),
+            );
+            final canvas = SignInStatement(
+              statement: l10n.signInSubtitle,
+              tagline: l10n.technicianSignInTagline,
+              wide: wide,
+              gutter: gutter,
+            );
+            final dock = SignInDock(
+              emailController: widget.emailController,
+              passwordController: widget.passwordController,
+              codeController: widget.codeController,
+              emailFocus: widget.emailFocus,
+              passwordFocus: widget.passwordFocus,
+              codeFocus: widget.codeFocus,
+              emailLabel: l10n.emailLabel,
+              passwordLabel: l10n.passwordLabel,
+              codeLabel: l10n.twoFactorLabel,
+              primaryLabel: widget.challenge
+                  ? l10n.verifyButton
+                  : l10n.signInButton,
+              accessPrompt: l10n.technicianNeedTechnicianAccess,
+              helpLabel: l10n.technicianContactAdmin,
+              securityLine: l10n.technicianSecurityLine,
+              emailValidator: widget.onValidateEmail,
+              passwordValidator: widget.onValidateRequired,
+              codeValidator: widget.onValidateCode,
+              obscure: _obscurePassword,
+              onToggleObscure: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+              onSubmit: widget.onSubmit,
+              challenge: widget.challenge,
+              busy: widget.submitting,
+              autofocusEmail: wide && !widget.challenge,
+              errorText: widget.errorText,
+              submitKey: const Key('sign-in-submit'),
+              accessKey: const Key('sign-in-access-prompt'),
+              securityKey: const Key('sign-in-security-line'),
+              emailFieldKey: const Key('sign-in-email'),
+              passwordFieldKey: const Key('sign-in-password'),
+              codeFieldKey: const Key('sign-in-code'),
+            );
+
+            final body = pinned
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      strip,
+                      Container(height: 1, color: scheme.outlineVariant),
+                      Expanded(child: SingleChildScrollView(child: canvas)),
+                      _Rise(
+                        child: Form(key: widget.formKey, child: dock),
+                      ),
+                    ],
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        strip,
+                        Container(height: 1, color: scheme.outlineVariant),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 220),
+                          child: canvas,
+                        ),
+                        _Rise(
+                          child: Form(key: widget.formKey, child: dock),
+                        ),
+                      ],
+                    ),
+                  );
+
+            return body;
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _Rise extends StatelessWidget {
+  const _Rise({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = ReduceMotion.duration(context, SignInDims.riseDuration);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 1, end: 0),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Transform.translate(
+        offset: Offset(0, SignInDims.riseOffset * t),
+        child: child,
+      ),
+      child: child,
+    );
+  }
+}

@@ -1,8 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
+
+export 'shared/job_reason_sheet.dart';
 
 /// Picks the right localized value for API-provided bilingual content.
 String localizedText(
@@ -158,86 +159,6 @@ class JobInlineError extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Reason entry sheet used by unpublish, revoke, cancel and reject flows.
-/// Returns the trimmed reason, or null when dismissed.
-///
-/// The controller lives in [_JobReasonSheetState] so it is disposed with the
-/// sheet's own widget tree, not when the route future completes: the sheet's
-/// exit transition still builds the field after `pop()` (J8).
-Future<String?> showJobReasonSheet(
-  BuildContext context, {
-  required String title,
-  required String label,
-  required String confirmLabel,
-}) {
-  return showAppBottomSheet<String>(
-    context,
-    child: _JobReasonSheet(
-      title: title,
-      label: label,
-      confirmLabel: confirmLabel,
-    ),
-  );
-}
-
-class _JobReasonSheet extends StatefulWidget {
-  const _JobReasonSheet({
-    required this.title,
-    required this.label,
-    required this.confirmLabel,
-  });
-
-  final String title;
-  final String label;
-  final String confirmLabel;
-
-  @override
-  State<_JobReasonSheet> createState() => _JobReasonSheetState();
-}
-
-class _JobReasonSheetState extends State<_JobReasonSheet> {
-  final _controller = TextEditingController();
-  bool _showError = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SectionHeader(title: widget.title),
-          AppTextField(
-            controller: _controller,
-            label: widget.label,
-            maxLines: 3,
-            errorText: _showError ? l10n.commonReasonRequired : null,
-          ),
-          SizedBox(height: context.spacing.lg),
-          AppButton(
-            label: widget.confirmLabel,
-            onPressed: () {
-              if (_controller.text.trim().isEmpty) {
-                setState(() => _showError = true);
-                return;
-              }
-              Navigator.of(context).pop(_controller.text.trim());
-            },
-            expand: true,
-          ),
-        ],
       ),
     );
   }

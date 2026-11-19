@@ -1,5 +1,4 @@
 import 'package:workshop_admin_app/src/admin_api.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -410,20 +409,6 @@ class FakeAdminApi implements AdminApi {
       status: 'ACTIVE',
     ),
   ];
-
-  @override
-  Future<JobCounts> jobCounts() async => const JobCounts(
-    draft: 10,
-    scheduled: 24,
-    newScheduled: 34,
-    assigned: 14,
-    inProgress: 9,
-    readyToFinalize: 45,
-    finalized: 60,
-    finalizedToday: 56,
-    cancelled: 3,
-    total: 140,
-  );
 
   @override
   Future<List<WorkshopJob>> jobs({

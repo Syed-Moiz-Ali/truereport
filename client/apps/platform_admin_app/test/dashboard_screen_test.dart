@@ -5,9 +5,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform_admin_app/src/features/dashboard/dashboard_screen.dart';
+import 'package:platform_admin_app/src/features/dashboard/dashboard_states.dart';
 import 'package:platform_admin_app/src/platform_catalogue_models.dart';
 import 'package:platform_admin_app/src/platform_config_models.dart';
 import 'package:platform_admin_app/src/platform_providers.dart';
+
 import 'support/ui_message_fixtures.dart';
 
 const _summary = OverviewSummary(
@@ -145,45 +147,50 @@ Widget _app({
       configHealthProvider.overrideWith((ref) async => health),
       platformLanguagesProvider.overrideWith((ref) async => languages),
       auditEventsProvider.overrideWith((ref) async => _events),
-      readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
-      readinessProvider('en').overrideWith((ref) async => const LanguageReadiness(
-        language: 'en',
-        nativeName: 'English',
-        direction: 'ltr',
-        isDefault: true,
-        status: 'LIVE',
-        readinessPercent: 100,
-        uiMessagesPath: 'en.json',
-        uiMessages: UiMessageCoverage(
-          total: 100,
-          approved: 100,
-          missing: 0,
-          changed: 0,
-          path: 'en.json',
-          generationStatus: 'NONE',
+      readinessProvider('zh-Hans')
+          .overrideWith((ref) async => _fakeReadinessZh),
+      readinessProvider('en').overrideWith(
+        (ref) async => const LanguageReadiness(
+          language: 'en',
+          nativeName: 'English',
+          direction: 'ltr',
+          isDefault: true,
+          status: 'LIVE',
+          readinessPercent: 100,
+          uiMessagesPath: 'en.json',
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 100,
+            missing: 0,
+            changed: 0,
+            path: 'en.json',
+            generationStatus: 'NONE',
+          ),
+          content: {},
+          blockers: [],
         ),
-        content: {},
-        blockers: [],
-      )),
-      readinessProvider('ar').overrideWith((ref) async => const LanguageReadiness(
-        language: 'ar',
-        nativeName: 'العربية',
-        direction: 'rtl',
-        isDefault: false,
-        status: 'LIVE',
-        readinessPercent: 100,
-        uiMessagesPath: 'ar.json',
-        uiMessages: UiMessageCoverage(
-          total: 100,
-          approved: 100,
-          missing: 0,
-          changed: 0,
-          path: 'ar.json',
-          generationStatus: 'NONE',
+      ),
+      readinessProvider('ar').overrideWith(
+        (ref) async => const LanguageReadiness(
+          language: 'ar',
+          nativeName: 'العربية',
+          direction: 'rtl',
+          isDefault: false,
+          status: 'LIVE',
+          readinessPercent: 100,
+          uiMessagesPath: 'ar.json',
+          uiMessages: UiMessageCoverage(
+            total: 100,
+            approved: 100,
+            missing: 0,
+            changed: 0,
+            path: 'ar.json',
+            generationStatus: 'NONE',
+          ),
+          content: {},
+          blockers: [],
         ),
-        content: {},
-        blockers: [],
-      )),
+      ),
     ],
     child: MaterialApp(
       locale: locale,
@@ -268,7 +275,8 @@ void main() {
               (ref) => Completer<OverviewSummary>().future,
             ),
             platformLanguagesProvider.overrideWith((ref) async => _languages),
-            readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
+            readinessProvider('zh-Hans')
+                .overrideWith((ref) async => _fakeReadinessZh),
           ],
           child: const MaterialApp(
             supportedLocales: <Locale>[Locale('en'), Locale('ar')],
@@ -286,7 +294,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      expect(find.byType(DashboardSkeleton), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -304,7 +312,8 @@ void main() {
             configHealthProvider.overrideWith((ref) async => _healthy),
             platformLanguagesProvider.overrideWith((ref) async => _languages),
             auditEventsProvider.overrideWith((ref) async => _events),
-            readinessProvider('zh-Hans').overrideWith((ref) async => _fakeReadinessZh),
+            readinessProvider('zh-Hans')
+                .overrideWith((ref) async => _fakeReadinessZh),
           ],
           child: const MaterialApp(
             supportedLocales: <Locale>[Locale('en'), Locale('ar')],
@@ -328,8 +337,8 @@ void main() {
       await tester.tap(find.text('Retry'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Total workshops'), findsOneWidget);
-      expect(find.text('12'), findsWidgets);
+      expect(find.text('Active workshops'), findsOneWidget);
+      expect(find.text('9'), findsWidgets);
       expect(tester.takeException(), isNull);
     });
 
@@ -350,104 +359,139 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('renders operational status, KPIs, needs attention, language action center, and quick actions', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      await tester.pumpWidget(_app(health: _unhealthy));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'renders operational status, KPIs, needs attention, language action center, and quick actions',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+        await tester.pumpWidget(_app(health: _unhealthy));
+        await tester.pumpAndSettle();
 
-      // 1. Operational status banner
-      expect(find.text('Items need attention'), findsOneWidget);
+        // 1. Verdict slab
+        expect(find.text('Items need attention'), findsOneWidget);
+        expect(find.text('Active workshops'), findsOneWidget);
+        expect(find.text('Published reports'), findsOneWidget);
+        expect(find.text('Languages live'), findsOneWidget);
+        expect(find.byKey(const Key('btn-dashboard-refresh')), findsOneWidget);
 
-      // 2. Primary & secondary KPI cards
-      expect(find.text('Active workshops'), findsOneWidget);
-      expect(find.text('Active jobs'), findsOneWidget);
-      expect(find.text('21 active'), findsOneWidget);
-      expect(find.text('Pending reviews'), findsWidgets);
-      expect(find.text('4 pending'), findsOneWidget);
-      expect(find.text('Published reports'), findsOneWidget);
-      expect(find.text('17 reports'), findsOneWidget);
-      expect(find.text('Total workshops'), findsOneWidget);
-      expect(find.text('Technicians'), findsOneWidget);
-      expect(find.text('Checklist health'), findsOneWidget);
-      expect(find.text('2 issues'), findsOneWidget);
-      expect(find.text('Languages live'), findsOneWidget);
-      expect(find.text('2 live · 1 in setup'), findsOneWidget);
-      expect(find.text('2/1'), findsNothing);
+        // 2. Job lifecycle rail
+        expect(find.text('JOBS BY STATUS'), findsOneWidget);
+        expect(find.text('In progress'), findsOneWidget);
 
-      // 3. Needs attention section
-      expect(find.text('Needs attention'), findsOneWidget);
-      expect(find.textContaining('1 checklist configuration issue'), findsOneWidget);
-      // Ensure raw code is NOT rendered in Needs Attention
-      expect(find.textContaining('MISSING_AR'), findsNothing);
-      expect(find.textContaining('TRANSLATION_GAP'), findsNothing);
-      // Localized language status label instead of raw TRANSLATING
-      expect(find.textContaining('setup incomplete (Translating)'), findsOneWidget);
-      expect(find.textContaining('setup incomplete (TRANSLATING)'), findsNothing);
+        // 3. Needs attention ledger
+        expect(find.text('Needs attention'), findsOneWidget);
+        expect(
+          find.textContaining('Checklist health issues detected'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('1 checklist configuration issue'),
+          findsOneWidget,
+        );
+        // Ensure raw code is NOT rendered in Needs Attention
+        expect(find.textContaining('MISSING_AR'), findsNothing);
+        expect(find.textContaining('TRANSLATION_GAP'), findsNothing);
+        // Localized language status label instead of raw TRANSLATING
+        expect(
+          find.textContaining('setup incomplete (Translating)'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('setup incomplete (TRANSLATING)'),
+          findsNothing,
+        );
 
-      // 4. Language setup action center
-      expect(find.text('Language setup action center'), findsOneWidget);
-      expect(find.byKey(const Key('btn-action-center-zh-Hans')), findsOneWidget);
-      // Chinese language display name uses 中文 (ZH-HANS) in the sidebar and action card
-      expect(find.text('中文 (ZH-HANS)'), findsWidgets);
+        // 4. Recent activity — humanized actions, never raw codes
+        expect(find.text('Recent activity'), findsOneWidget);
+        expect(find.text('Master item published'), findsOneWidget);
+        expect(find.text('MASTER_ITEM_PUBLISHED'), findsNothing);
+        expect(
+          find.byKey(const Key('btn-activity-view-audit-log')),
+          findsOneWidget,
+        );
 
-      // 5. Operations snapshot
-      expect(find.text('Operations snapshot'), findsOneWidget);
-      expect(find.text('Jobs by status'), findsOneWidget);
-      expect(find.text('Reports by month'), findsOneWidget);
-      expect(find.text('DRAFT'), findsWidgets);
+        // 5. Language setup is surfaced through the ledger, not a card grid
+        expect(
+          find.textContaining('(ZH-HANS) setup incomplete'),
+          findsOneWidget,
+        );
 
-      // 6. Recent activity
-      expect(find.text('Recent activity'), findsOneWidget);
-      expect(find.text('MASTER_ITEM_PUBLISHED'), findsOneWidget);
-      expect(find.byKey(const Key('btn-activity-view-audit-log')), findsOneWidget);
+        // 6. Quick actions
+        expect(find.text('Add workshop'), findsOneWidget);
+        expect(find.text('Add checklist item'), findsOneWidget);
+        expect(find.text('Add language'), findsOneWidget);
+        expect(find.text('View checklist health'), findsOneWidget);
 
-      // 7. Quick actions
-      expect(find.text('Quick actions'), findsOneWidget);
-      expect(find.text('Add workshop'), findsOneWidget);
-      expect(find.text('Add checklist item'), findsOneWidget);
-      expect(find.text('Add language'), findsOneWidget);
-      expect(find.text('View checklist health'), findsOneWidget);
+        // Read-only: no CRUD tables or edit forms.
+        expect(find.byType(DataTable), findsNothing);
+        expect(find.byType(TextFormField), findsNothing);
+        expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
-      // Read-only: no CRUD tables or edit forms.
-      expect(find.byType(DataTable), findsNothing);
-      expect(find.byType(TextFormField), findsNothing);
-      expect(find.byType(DropdownButtonFormField<String>), findsNothing);
-      expect(tester.takeException(), isNull);
-    });
+    testWidgets(
+      'renders quiet success states when health is clear and all languages live',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(1280, 900));
+        const liveLanguages = [
+          PlatformLanguage(
+            code: 'en',
+            nativeName: 'English',
+            direction: 'ltr',
+            active: true,
+            isDefault: true,
+            sortOrder: 0,
+            status: 'LIVE',
+          ),
+          PlatformLanguage(
+            code: 'ar',
+            nativeName: 'العربية',
+            direction: 'rtl',
+            active: true,
+            isDefault: false,
+            sortOrder: 1,
+            status: 'LIVE',
+          ),
+        ];
+        final clearSummary = OverviewSummary(
+          workshops: _summary.workshops,
+          staff: _summary.staff,
+          jobs: const OverviewJobs(active: 10, pendingReview: 0, byStatus: {}),
+          reports: _summary.reports,
+          checklist: const OverviewChecklist(
+            categories: 2,
+            items: 10,
+            templates: 1,
+            healthy: true,
+            issues: 0,
+          ),
+          languages: const OverviewLanguages(live: 2, translating: 0),
+          recentActivity: _summary.recentActivity,
+          alerts: const [],
+        );
 
-    testWidgets('renders quiet success states when health is clear and all languages live', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1280, 900));
-      const liveLanguages = [
-        PlatformLanguage(code: 'en', nativeName: 'English', direction: 'ltr', active: true, isDefault: true, sortOrder: 0, status: 'LIVE'),
-        PlatformLanguage(code: 'ar', nativeName: 'العربية', direction: 'rtl', active: true, isDefault: false, sortOrder: 1, status: 'LIVE'),
-      ];
-      final clearSummary = OverviewSummary(
-        workshops: _summary.workshops,
-        staff: _summary.staff,
-        jobs: const OverviewJobs(active: 10, pendingReview: 0, byStatus: {}),
-        reports: _summary.reports,
-        checklist: const OverviewChecklist(categories: 2, items: 10, templates: 1, healthy: true, issues: 0),
-        languages: const OverviewLanguages(live: 2, translating: 0),
-        recentActivity: _summary.recentActivity,
-        alerts: const [],
-      );
+        await tester.pumpWidget(
+          _app(
+            summary: clearSummary,
+            health: _healthy,
+            languages: liveLanguages,
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(_app(summary: clearSummary, health: _healthy, languages: liveLanguages));
-      await tester.pumpAndSettle();
-
-      expect(find.text('All systems healthy'), findsOneWidget);
-      expect(find.text('No items need attention — operations and configurations are clear.'), findsOneWidget);
-      expect(find.text('All supported languages are live and published.'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
+        expect(find.text('All systems healthy'), findsOneWidget);
+        expect(find.textContaining('No items need attention'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('renders on compact width without overflow', (tester) async {
       await tester.binding.setSurfaceSize(const Size(360, 900));
       await tester.pumpWidget(_app(width: 360));
       await tester.pumpAndSettle();
 
-      expect(find.text('Total workshops'), findsOneWidget);
-      expect(find.text('Quick actions'), findsOneWidget);
+      expect(find.text('Active workshops'), findsOneWidget);
+      expect(find.text('Add workshop'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -458,8 +502,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('إجمالي الورش'), findsOneWidget);
-      expect(find.text('إجراءات سريعة'), findsOneWidget);
+      expect(find.byKey(const Key('btn-dashboard-refresh')), findsOneWidget);
+      expect(find.byKey(const Key('btn-attention-view-all')), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await tester.binding.setSurfaceSize(const Size(360, 900));

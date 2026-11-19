@@ -14,34 +14,13 @@ import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
+import 'package:workshop_admin_app/src/workshop_digits.dart' as digits;
+
 /// Pins numerals to Latin digits and strips bidi control characters.
 ///
-/// The page's counts come from `NumberFormat.decimalPattern`, which renders
-/// Latin digits for `ar` in intl 0.20, while `DateFormat` renders Arabic-Indic
-/// digits **and** inserts RLM/LRM controls around the separators. Left in, those
-/// controls split `2026/11/5 09:00` inside the row meta (the gate caught
-/// `509:00 2026/11/`). One screen must not mix numbering systems, and a data
-/// line must not carry invisible direction switches.
-String pinDashboardDigits(String text) {
-  final buffer = StringBuffer();
-  for (final rune in text.runes) {
-    // Arabic-Indic digits → ASCII.
-    if (rune >= 0x0660 && rune <= 0x0669) {
-      buffer.writeCharCode(rune - 0x0660 + 0x30);
-      continue;
-    }
-    // Bidi controls: LRM, RLM, ALM, embeddings/overrides, isolates.
-    if (rune == 0x200E ||
-        rune == 0x200F ||
-        rune == 0x061C ||
-        (rune >= 0x202A && rune <= 0x202E) ||
-        (rune >= 0x2066 && rune <= 0x2069)) {
-      continue;
-    }
-    buffer.writeCharCode(rune);
-  }
-  return buffer.toString();
-}
+/// Kept as the dashboard's public name; the rule lives in
+/// `workshop_digits.dart` so the jobs queue uses exactly the same one.
+String pinDashboardDigits(String text) => digits.pinDigits(text);
 
 /// Builds a row's meta line from machine-readable fields.
 ///

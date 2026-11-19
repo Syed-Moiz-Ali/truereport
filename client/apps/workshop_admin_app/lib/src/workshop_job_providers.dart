@@ -13,11 +13,10 @@ String cleanJobsKey({
   String to = '',
 }) => '$page\u0001$size\u0001$status\u0001$search\u0001$from\u0001$to';
 
-final availableTemplatesProvider = FutureProvider.autoDispose<
-  List<AvailableTemplate>
->((ref) {
-  return ref.watch(adminApiProvider).availableTemplates();
-});
+final availableTemplatesProvider =
+    FutureProvider.autoDispose<List<AvailableTemplate>>((ref) {
+      return ref.watch(adminApiProvider).availableTemplates();
+    });
 
 final jobTemplateDetailProvider = FutureProvider.autoDispose
     .family<JobTemplateDetail, String>((ref, versionId) {
@@ -74,12 +73,10 @@ final publishChecklistProvider = FutureProvider.autoDispose
       return ref.watch(adminApiProvider).publishChecklist(jobId);
     });
 
-final publicLinkProvider = FutureProvider.autoDispose.family<PublicLink, String>((
-  ref,
-  jobId,
-) {
-  return ref.watch(adminApiProvider).publicLink(jobId);
-});
+final publicLinkProvider = FutureProvider.autoDispose
+    .family<PublicLink, String>((ref, jobId) {
+      return ref.watch(adminApiProvider).publicLink(jobId);
+    });
 
 final jobQrProvider = FutureProvider.autoDispose.family<List<int>, String>((
   ref,

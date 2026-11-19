@@ -1,0 +1,97 @@
+import 'package:flutter/widgets.dart';
+import 'package:l10n/l10n.dart';
+import 'package:workshop_admin_app/src/workshop_job_models.dart';
+
+/// Field values for the create wizard, plus the two pure transformations the
+/// page needs: per-step validation and the request body.
+///
+/// Kept out of the composition so the page stays a layout/state shell. The
+/// request always carries `consentGranted: false` and never a `scheduledAt`
+/// (G-J11, CR-5).
+class WizardFormState {
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+  final customerName = TextEditingController();
+  final customerPhone = TextEditingController();
+  final customerEmail = TextEditingController();
+  final vehicleMake = TextEditingController();
+  final vehicleModel = TextEditingController();
+  final vehicleYear = TextEditingController();
+  final vehicleVin = TextEditingController();
+  final vehiclePlate = TextEditingController();
+  final odometer = TextEditingController();
+
+  String odometerUnit = 'KM';
+  String transmission = 'AUTOMATIC';
+  String fuelType = 'PETROL';
+  String preferredLanguage = 'en';
+  String? templateVersionId;
+  String? technicianId;
+
+  void dispose() {
+    for (final controller in [
+      customerName,
+      customerPhone,
+      customerEmail,
+      vehicleMake,
+      vehicleModel,
+      vehicleYear,
+      vehicleVin,
+      vehiclePlate,
+      odometer,
+    ]) {
+      controller.dispose();
+    }
+  }
+
+  /// Null when the step may advance, otherwise the specific copy to show.
+  String? validateStep(int step, AppLocalizations l10n) {
+    if (step == 0) {
+      if (customerName.text.trim().isEmpty) {
+        return l10n.requiredField;
+      }
+      if (customerPhone.text.trim().isEmpty) {
+        return l10n.jobsValidationPhoneRequired;
+      }
+      final email = customerEmail.text.trim();
+      if (email.isNotEmpty && !_emailPattern.hasMatch(email)) {
+        return l10n.jobsValidationEmailInvalid;
+      }
+    } else if (step == 1) {
+      if (vehicleMake.text.trim().isEmpty || vehicleModel.text.trim().isEmpty) {
+        return l10n.requiredField;
+      }
+      final vin = vehicleVin.text.trim();
+      if (vin.isNotEmpty && vin.length != 17) {
+        return l10n.jobsValidationVin;
+      }
+    } else if (step == 2 && templateVersionId == null) {
+      return l10n.requiredField;
+    }
+    return null;
+  }
+
+  NewCleanJob toRequest() => NewCleanJob(
+    templateVersionId: templateVersionId!,
+    customerName: customerName.text.trim(),
+    customerPhone: customerPhone.text.trim(),
+    customerEmail: _nullIfEmpty(customerEmail.text),
+    vehicleVin: _nullIfEmpty(vehicleVin.text),
+    vehicleMake: vehicleMake.text.trim(),
+    vehicleModel: vehicleModel.text.trim(),
+    vehicleYear: int.tryParse(vehicleYear.text.trim()),
+    vehiclePlate: _nullIfEmpty(vehiclePlate.text),
+    odometerValue: int.tryParse(odometer.text.trim()),
+    odometerUnit: odometerUnit,
+    transmission: transmission,
+    fuelType: fuelType,
+    preferredLanguage: preferredLanguage,
+    assignedTechnicianId: technicianId,
+    consentGranted: false,
+  );
+
+  static String? _nullIfEmpty(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+}

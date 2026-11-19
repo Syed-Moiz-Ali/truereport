@@ -1,11 +1,11 @@
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
 import 'package:workshop_admin_app/src/features/reports/report_page.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
+import 'package:workshop_admin_app/src/workshop_digits.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -122,67 +122,7 @@ const _cleanApproved = CleanJob(
   version: 2,
 );
 
-const _job = WorkshopJob(
-  id: 'job-1',
-  reference: 'JOB-0001',
-  status: 'SCHEDULED',
-  templateVersionId: 'version-1',
-  templateName: 'Full inspection',
-  templateVersionNo: 1,
-  assignedTechnicianId: null,
-  assignedTechnicianName: null,
-  scheduledAt: _isoScheduled,
-  customerName: 'Customer A',
-  customerPhone: '+971500000001',
-  customerEmail: 'customer.a@test.local',
-  vehicleMake: 'Toyota',
-  vehicleModel: 'Camry',
-  vehicleYear: 2022,
-  vehicleVin: 'TESTVIN00000000001',
-  vehiclePlate: 'A12345',
-  scope: 'Full inspection',
-);
-
-const _counts = JobCounts(
-  draft: 10,
-  scheduled: 24,
-  newScheduled: 34,
-  assigned: 14,
-  inProgress: 9,
-  readyToFinalize: 45,
-  finalized: 60,
-  finalizedToday: 56,
-  cancelled: 3,
-  total: 140,
-);
-
 class _IntlFakeApi implements AdminApi {
-  @override
-  Future<List<WorkshopJob>> jobs({
-    String search = '',
-    String status = '',
-  }) async {
-    const all = [_job];
-    final query = search.trim().toLowerCase();
-    return all.where((job) {
-      if (status.isNotEmpty && job.status != status) {
-        return false;
-      }
-      if (query.isEmpty) {
-        return true;
-      }
-      return [
-        job.reference,
-        job.customerName,
-        job.vehicleMake,
-        job.vehicleModel,
-      ].any((field) => field.toLowerCase().contains(query));
-    }).toList();
-  }
-
-  @override
-  Future<JobCounts> jobCounts() async => _counts;
-
   @override
   Future<CleanJobCounts> cleanJobCounts() async => const CleanJobCounts(
     draft: 0,
@@ -206,16 +146,31 @@ class _IntlFakeApi implements AdminApi {
     String from = '',
     String to = '',
   }) async {
-    final items = <CleanJob>[_cleanPending, _cleanApproved];
-    final filtered = status.isEmpty
-        ? items
-        : items.where((job) => job.status == status).toList(growable: false);
+    final query = search.trim().toLowerCase();
+    final filtered = <CleanJob>[_cleanPending, _cleanApproved]
+        .where((job) {
+          if (status.isNotEmpty && job.status != status) {
+            return false;
+          }
+          if (query.isEmpty) {
+            return true;
+          }
+          return [
+            job.reference,
+            job.customerName,
+            job.vehicleMake,
+            job.vehicleModel,
+          ].any((field) => field.toLowerCase().contains(query));
+        })
+        .toList(growable: false);
+    final start = (page * size).clamp(0, filtered.length);
+    final end = (start + size).clamp(0, filtered.length);
     return JobPage(
-      items: filtered,
+      items: filtered.sublist(start, end),
       page: page,
       size: size,
       total: filtered.length,
-      totalPages: filtered.isEmpty ? 0 : 1,
+      totalPages: filtered.isEmpty ? 0 : (filtered.length / size).ceil(),
     );
   }
 
@@ -382,18 +337,19 @@ void main() {
     expect(tester.takeException(), isNull);
 
     expect(find.textContaining(_isoScheduled), findsNothing);
-    final formatted = _expectedInstant(_isoScheduled, 'ar');
+    final formatted = pinDigits(_expectedInstant(_isoScheduled, 'ar'));
     expect(find.text(formatted), findsWidgets);
-    // In-app (MaterialApp localizations) context renders AR dates with
-    // Arabic-Indic digits: ٥‏/١١‏/٢٠٢٦ ١٣:٠٠.
-    expect(RegExp('[\u0660-\u0669]').hasMatch(formatted), isTrue);
+    // The queue pins the digit set: Arabic renders the date with ASCII digits
+    // so the timestamp stays contiguous and matches the dashboard.
+    expect(RegExp('[\u0660-\u0669]').hasMatch(formatted), isFalse);
+    expect(RegExp('[0-9]').hasMatch(formatted), isTrue);
   });
 
   testWidgets('queue chips render locale counts without raw ISO (EN)', (
     tester,
   ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('en'));
-    expect(find.text('All (1)'), findsOneWidget);
+    expect(find.text('All (3)'), findsOneWidget);
     expect(find.textContaining(_isoScheduled), findsNothing);
   });
 
@@ -402,7 +358,7 @@ void main() {
   ) async {
     await _pump(tester, const Scaffold(body: JobsTab()), const Locale('ar'));
     final l10n = AppLocalizations.of(tester.element(find.byType(JobsTab)));
-    final arCount = NumberFormat.decimalPattern('ar').format(1);
+    final arCount = NumberFormat.decimalPattern('ar').format(3);
     expect(find.text('${l10n.filterAll} ($arCount)'), findsOneWidget);
     expect(find.textContaining(_isoScheduled), findsNothing);
   });

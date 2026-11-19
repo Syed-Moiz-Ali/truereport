@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+
+import 'features/auth/signin/technician_sign_in_page.dart';
 import 'features/inspection/technician_dynamic_item_page.dart';
+
 import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
 import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
 import 'package:technician_app/src/features/review/technician_completed_page.dart';
@@ -24,6 +27,26 @@ class _AuthRefresh extends ChangeNotifier {
   }
 }
 
+/// Pure route guard for the technician app, kept separate so the three
+/// audited cases can be pinned without booting the whole app.
+@visibleForTesting
+String? technicianRedirect({
+  required bool loading,
+  required Session? session,
+  required String location,
+}) {
+  if (loading) {
+    return null;
+  }
+  if (session == null) {
+    return location == '/signin' ? null : '/signin';
+  }
+  if (session.role != Role.technician) {
+    return location == '/unauthorized' ? null : '/unauthorized';
+  }
+  return location == '/signin' ? '/jobs' : null;
+}
+
 final technicianRouterProvider = Provider<GoRouter>((ref) {
   final refresh = _AuthRefresh(ref);
   ref.onDispose(refresh.dispose);
@@ -32,21 +55,17 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
-      if (auth.isLoading) {
-        return null;
-      }
-      final session = auth.value;
-      final location = state.matchedLocation;
-      if (session == null) {
-        return location == '/signin' ? null : '/signin';
-      }
-      if (session.role != Role.technician) {
-        return location == '/unauthorized' ? null : '/unauthorized';
-      }
-      return location == '/signin' ? '/jobs' : null;
+      return technicianRedirect(
+        loading: auth.isLoading,
+        session: auth.value,
+        location: state.matchedLocation,
+      );
     },
     routes: [
-      GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
+      GoRoute(
+        path: '/signin',
+        builder: (context, state) => const TechnicianSignInPage(),
+      ),
       GoRoute(
         path: '/jobs',
         builder: (context, state) => const TechnicianJobsCleanPage(),

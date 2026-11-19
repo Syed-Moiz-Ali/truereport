@@ -1,7 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
-import 'package:workshop_admin_app/src/job_counts.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 import 'support/job_fixtures.dart';
@@ -206,29 +205,6 @@ void main() {
       expect(sparse.published, 0);
       expect(sparse.total, 4);
     });
-  });
-
-  group('legacy JobCounts.fromJson (removed with the legacy family)', () {
-    // Pins the shape the dashboard used to read so the removal cannot be
-    // silent: when `JobCounts` goes, this test goes in the same change.
-    test(
-      'maps the legacy fields including the derived newScheduled/active',
-      () {
-        final legacy = JobCounts.fromJson(legacyJobCountsJson);
-        expect(legacy.draft, 4);
-        expect(legacy.scheduled, 6);
-        expect(legacy.newScheduled, 10);
-        expect(legacy.assigned, 3);
-        expect(legacy.inProgress, 7);
-        expect(legacy.readyToFinalize, 2);
-        expect(legacy.finalized, 9);
-        expect(legacy.finalizedToday, 1);
-        expect(legacy.cancelled, 5);
-        expect(legacy.total, 36);
-        // The overlap the rebuild removes: `active` re-reports `inProgress`.
-        expect(legacy.active, legacy.assigned + legacy.inProgress);
-      },
-    );
   });
 
   group('JobAssignment.fromJson (AssignmentDto carries ids, not names)', () {

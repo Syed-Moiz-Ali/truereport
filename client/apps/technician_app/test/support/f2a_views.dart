@@ -5,7 +5,7 @@ import 'package:l10n/l10n.dart';
 import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart'
     hide EmptyJobsView;
 import 'package:technician_app/src/features/jobs/empty_jobs_view.dart';
-import 'package:auth/auth.dart';
+import 'package:technician_app/src/features/auth/signin/technician_sign_in_view.dart';
 import 'package:technician_app/src/features/jobs/consent_view.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/features/jobs/equipment_view.dart';
@@ -42,7 +42,7 @@ Widget f2aScreen(
 }) {
   switch (id) {
     case 'login':
-      return SignInView(
+      return TechnicianSignInView(
         emailController: TextEditingController(),
         passwordController: TextEditingController(),
         codeController: TextEditingController(),
@@ -52,6 +52,10 @@ Widget f2aScreen(
         onSubmit: () {},
         onValidateEmail: (_) => null,
         onValidateRequired: (_) => null,
+        onValidateCode: (_) => null,
+        emailFocus: FocusNode(),
+        passwordFocus: FocusNode(),
+        codeFocus: FocusNode(),
       );
     case 'assigned-jobs':
       return AssignedJobsView(
