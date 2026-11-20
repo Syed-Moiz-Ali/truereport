@@ -15,6 +15,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../reference_status_lookup.dart';
 import '../checklist/checklist_status.dart';
+import 'option_label.dart';
 
 import 'package:l10n/l10n.dart';
 import 'package:reference_data/reference_data.dart';
@@ -2696,7 +2697,7 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                   children: [
                     for (final value in selectedOptionSet.values)
                       PlatformFilterChip(
-                        label: _optionValueLabel(value),
+                        label: optionValueLabel(UiStrings.of(context), value),
                         selected: form.allowedValues.contains(value.code),
                         onTap: () => setState(() {
                           if (form.allowedValues.contains(value.code)) {
@@ -3209,10 +3210,6 @@ String? _required(String? value, dynamic strings) {
 
 String _optionSetName(OptionSet set) {
   return set.name.isEmpty ? set.code : set.name;
-}
-
-String _optionValueLabel(OptionValue value) {
-  return value.label.isEmpty ? value.code : value.label;
 }
 
 String _failureMessage(Object error) {

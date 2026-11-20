@@ -7,6 +7,7 @@ import com.truereport.masterdata.config.ItemConfigRepository;
 import com.truereport.masterdata.config.PlatformMasterDtos.EvidenceRuleDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.IssueFieldDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.MeasurementBandDto;
+import com.truereport.shared.i18n.OptionLabelKeys;
 import com.truereport.shared.uuid.UuidV7;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -153,10 +154,12 @@ public class DefaultChecklistSeeder {
                 String valueId = UuidV7.generate().toString();
                 jdbc.update("""
                         INSERT INTO platform_option_values
-                            (id, option_set_id, code, label, status, sort_order,
+                            (id, option_set_id, code, label, label_key, status, sort_order,
                              metadata_json, created_at, updated_at, version)
-                        VALUES (?, ?, ?, ?, 'ACTIVE', ?, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                        """, valueId, setId, value.code(), value.en(), order);
+                        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, NULL, CURRENT_TIMESTAMP,
+                                CURRENT_TIMESTAMP, 0)
+                        """, valueId, setId, value.code(), value.en(),
+                        OptionLabelKeys.generate(definition.code(), value.code()), order);
                 created++;
             }
             order++;

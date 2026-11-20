@@ -9,6 +9,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/catalog/catalog_ui.dart';
 import '../checklist/checklist_status.dart';
+import 'option_label.dart';
 
 class OptionSetsScreen extends ConsumerStatefulWidget {
   const OptionSetsScreen({super.key, this.embedded = false});
@@ -129,7 +130,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: _ValuesPane(
+                          child: OptionSetValuesPane(
                             strings: strings,
                             set: selected,
                             busy: _busy,
@@ -156,7 +157,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                         onSelect: (set) => setState(() => _selectedId = set.id),
                       ),
                       const SizedBox(height: 14),
-                      _ValuesPane(
+                      OptionSetValuesPane(
                         strings: strings,
                         set: selected,
                         busy: _busy,
@@ -613,8 +614,8 @@ class _SetList extends ConsumerWidget {
   );
 }
 
-class _ValuesPane extends ConsumerWidget {
-  const _ValuesPane({
+class OptionSetValuesPane extends ConsumerWidget {
+  const OptionSetValuesPane({
     required this.strings,
     required this.set,
     required this.busy,
@@ -623,6 +624,7 @@ class _ValuesPane extends ConsumerWidget {
     required this.onRetire,
     required this.onActivate,
     required this.onMove,
+    super.key,
   });
 
   final UiMessageStrings strings;
@@ -636,6 +638,7 @@ class _ValuesPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final values = [...set.values]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     return CatalogSurface(
@@ -704,7 +707,7 @@ class _ValuesPane extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            value.labelEn,
+                            optionValueLabel(t, value),
                             style: Catalog.text(12, weight: FontWeight.w700),
                           ),
                           Text(

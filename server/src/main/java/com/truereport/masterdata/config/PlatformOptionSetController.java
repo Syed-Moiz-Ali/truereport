@@ -41,6 +41,16 @@ public class PlatformOptionSetController {
         return service.list();
     }
 
+    @GetMapping("/{id}")
+    public OptionSetDto get(@PathVariable String id) {
+        return service.get(id);
+    }
+
+    @GetMapping("/{id}/values")
+    public List<OptionValueDto> values(@PathVariable String id) {
+        return service.values(id);
+    }
+
     @PostMapping
     public ResponseEntity<OptionSetDto> create(JwtAuthenticationToken authentication,
                                                @RequestBody OptionSetRequest request,

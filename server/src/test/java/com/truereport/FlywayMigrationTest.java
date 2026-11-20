@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("127");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("128");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -97,6 +97,7 @@ class FlywayMigrationTest {
         assertThat(columnExists(url, "platform_option_sets", "name_ar")).isFalse();
         assertThat(columnExists(url, "platform_option_values", "label")).isTrue();
         assertThat(columnExists(url, "platform_option_values", "label_ar")).isFalse();
+        assertThat(columnExists(url, "platform_option_values", "label_key")).isTrue();
         assertThat(columnExists(url, "platform_document_types", "name")).isTrue();
         assertThat(columnExists(url, "platform_document_types", "name_ar")).isFalse();
         assertThat(columnExists(url, "platform_issue_fields", "label")).isTrue();

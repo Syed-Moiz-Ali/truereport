@@ -46,7 +46,7 @@ public final class TechnicianDtos {
     }
 
     public record OptionDto(
-            String code, String labelEn, String labelAr, int sortOrder) {
+            String code, String labelEn, String labelAr, int sortOrder, String labelKey) {
     }
 
     public record IssueFieldDto(

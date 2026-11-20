@@ -41,7 +41,7 @@ class MySqlMigrationIT {
                 .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("127");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("128");
         assertThat(tableExists("audit_events")).isTrue();
         assertThat(tableExists("invitations")).isTrue();
         assertThat(tableExists("account_idempotency_keys")).isTrue();
@@ -57,6 +57,8 @@ class MySqlMigrationIT {
         assertThat(tableExists("report_generation_jobs")).isTrue();
         assertThat(tableExists("report_artifacts")).isTrue();
         assertThat(tableExists("public_share_links")).isTrue();
+        assertThat(tableExists("platform_option_values")).isTrue();
+        assertThat(columnExists("platform_option_values", "label_key")).isTrue();
         assertThat(triggerExists("trg_reports_no_update")).isTrue();
         assertThat(triggerExists("trg_report_versions_no_update")).isTrue();
         assertThat(triggerExists("trg_public_share_link_no_token_change")).isTrue();
@@ -108,6 +110,18 @@ class MySqlMigrationIT {
              Statement statement = connection.createStatement();
              ResultSet result = statement.executeQuery(
                      "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'truereport' AND table_name = '" + table + "'")) {
+            result.next();
+            return result.getInt(1) > 0;
+        }
+    }
+
+    private boolean columnExists(String table, String column) throws Exception {
+        try (Connection connection = DriverManager.getConnection(
+                MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+             Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery(
+                     "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'truereport' "
+                             + "AND table_name = '" + table + "' AND column_name = '" + column + "'")) {
             result.next();
             return result.getInt(1) > 0;
         }

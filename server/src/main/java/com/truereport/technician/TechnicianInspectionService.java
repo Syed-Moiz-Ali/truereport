@@ -832,7 +832,7 @@ public class TechnicianInspectionService {
         IssueFieldRow row = definition.row();
         List<OptionDto> options = definition.options().stream()
                 .map(option -> new OptionDto(option.code(), option.labelEn(), option.labelAr(),
-                        option.sortOrder()))
+                        option.sortOrder(), option.labelKey()))
                 .toList();
         return new IssueFieldDto(row.fieldCode(), row.labelEn(), row.labelAr(), row.inputType(),
                 row.optionSetCode(), options, options.stream().map(OptionDto::code).toList(),

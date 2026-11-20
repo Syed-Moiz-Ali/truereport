@@ -96,6 +96,26 @@ class TechnicianPhase3IT extends IntegrationTestBase {
 
         JsonNode issue = findItem(checklist, seed.itemCodeB());
         assertThat(issue.get("issueFields").size()).isEqualTo(3);
+        int optionCount = 0;
+        boolean sawWorn = false;
+        for (JsonNode field : issue.get("issueFields")) {
+            for (JsonNode option : field.get("options")) {
+                optionCount++;
+                assertThat(option.get("labelKey").asText())
+                        .as("labelKey for " + field.get("fieldCode").asText() + "."
+                                + option.get("code").asText())
+                        .matches("^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$");
+                assertThat(option.get("labelEn").asText()).isNotBlank();
+                if ("ISSUE_TYPE".equals(field.get("fieldCode").asText())
+                        && "WORN".equals(option.get("code").asText())) {
+                    sawWorn = true;
+                    assertThat(option.get("labelKey").asText()).endsWith(".worn");
+                    assertThat(option.get("labelEn").asText()).isEqualTo("Worn");
+                }
+            }
+        }
+        assertThat(optionCount).isEqualTo(4);
+        assertThat(sawWorn).isTrue();
         assertThat(issue.get("evidenceRules").size()).isEqualTo(1);
         assertThat(issue.get("evidenceRules").get(0).get("requiredEvidenceType").asText())
                 .isEqualTo("DOCUMENT");

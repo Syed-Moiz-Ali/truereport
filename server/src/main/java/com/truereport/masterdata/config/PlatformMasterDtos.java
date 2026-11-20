@@ -125,7 +125,8 @@ public final class PlatformMasterDtos {
             String metadataJson,
             Map<String, Map<String, String>> translations,
             String labelEn,
-            String labelAr
+            String labelAr,
+            String labelKey
     ) {
     }
 
@@ -160,7 +161,8 @@ public final class PlatformMasterDtos {
             String metadataJson,
             Map<String, Map<String, String>> translations,
             String labelEn,
-            String labelAr
+            String labelAr,
+            String labelKey
     ) {
     }
 
@@ -171,7 +173,8 @@ public final class PlatformMasterDtos {
             Map<String, Map<String, String>> translations,
             String labelEn,
             String labelAr,
-            String status
+            String status,
+            String labelKey
     ) {
     }
 

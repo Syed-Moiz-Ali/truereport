@@ -3,6 +3,7 @@ package com.truereport.masterdata.config;
 import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.masterdata.config.PlatformMasterDtos.OptionSetDto;
 import com.truereport.masterdata.config.PlatformMasterDtos.OptionValueDto;
+import com.truereport.shared.i18n.OptionLabelKeys;
 import com.truereport.shared.uuid.UuidV7;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -105,55 +106,69 @@ public class OptionSetRepository {
 
     public List<OptionValueDto> values(String optionSetId) {
         return jdbc.query("""
-                SELECT id, code, label, status, sort_order, metadata_json
-                FROM platform_option_values WHERE option_set_id = ? ORDER BY sort_order, code
+                SELECT v.id, v.code, v.label, v.status, v.sort_order, v.metadata_json,
+                       v.label_key, s.code AS option_set_code
+                FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE v.option_set_id = ? ORDER BY v.sort_order, v.code
                 """, (rs, i) -> optionValue(rs.getString("id"), rs.getString("code"),
                 rs.getString("label"), rs.getString("status"), rs.getInt("sort_order"),
-                rs.getString("metadata_json")), optionSetId);
+                rs.getString("metadata_json"), rs.getString("label_key"),
+                rs.getString("option_set_code")), optionSetId);
     }
 
     public Optional<OptionValueDto> findValue(String id) {
         return jdbc.query("""
-                SELECT id, code, label, status, sort_order, metadata_json
-                FROM platform_option_values WHERE id = ?
+                SELECT v.id, v.code, v.label, v.status, v.sort_order, v.metadata_json,
+                       v.label_key, s.code AS option_set_code
+                FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE v.id = ?
                 """, (rs, i) -> optionValue(rs.getString("id"), rs.getString("code"),
                 rs.getString("label"), rs.getString("status"), rs.getInt("sort_order"),
-                rs.getString("metadata_json")), id).stream().findFirst();
+                rs.getString("metadata_json"), rs.getString("label_key"),
+                rs.getString("option_set_code")), id).stream().findFirst();
     }
 
     public Optional<OptionValueDto> findValueByCode(String optionSetId, String code) {
         return jdbc.query("""
-                SELECT id, code, label, status, sort_order, metadata_json
-                FROM platform_option_values WHERE option_set_id = ? AND code = ?
+                SELECT v.id, v.code, v.label, v.status, v.sort_order, v.metadata_json,
+                       v.label_key, s.code AS option_set_code
+                FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE v.option_set_id = ? AND v.code = ?
                 """, (rs, i) -> optionValue(rs.getString("id"), rs.getString("code"),
                 rs.getString("label"), rs.getString("status"), rs.getInt("sort_order"),
-                rs.getString("metadata_json")), optionSetId, code).stream().findFirst();
+                rs.getString("metadata_json"), rs.getString("label_key"),
+                rs.getString("option_set_code")), optionSetId, code).stream().findFirst();
     }
 
     public OptionValueDto insertValue(String optionSetId, String code, String label,
+                                      String labelKey,
                                       Map<String, Map<String, String>> fieldTranslations,
                                       int sortOrder, String metadataJson, String status) {
         String id = UuidV7.generate().toString();
         jdbc.update("""
                 INSERT INTO platform_option_values
-                    (id, option_set_id, code, label, status, sort_order, metadata_json,
+                    (id, option_set_id, code, label, label_key, status, sort_order, metadata_json,
                      created_at, updated_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """, id, optionSetId, code, label, status, sortOrder, metadataJson);
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, id, optionSetId, code, label, labelKey, status, sortOrder, metadataJson);
         translations.saveOverlays("OPTION_VALUE", id, fieldTranslations, "APPROVED");
         return findValue(id).orElseThrow();
     }
 
-    public void updateValue(String id, String label,
+    public void updateValue(String id, String label, String labelKey,
                             Map<String, Map<String, String>> fieldTranslations, Integer sortOrder,
                             String metadataJson, String status) {
         jdbc.update("""
                 UPDATE platform_option_values
-                SET label = COALESCE(?, label), status = COALESCE(?, status),
+                SET label = COALESCE(?, label), label_key = COALESCE(?, label_key),
+                    status = COALESCE(?, status),
                     sort_order = COALESCE(?, sort_order), metadata_json = COALESCE(?, metadata_json),
                     updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE id = ?
-                """, label, status, sortOrder, metadataJson, id);
+                """, label, labelKey, status, sortOrder, metadataJson, id);
         translations.saveOverlays("OPTION_VALUE", id, fieldTranslations, "APPROVED");
     }
 
@@ -227,13 +242,18 @@ public class OptionSetRepository {
     }
 
     private OptionValueDto optionValue(String id, String code, String label, String status,
-                                       int sortOrder, String metadataJson) {
+                                       int sortOrder, String metadataJson, String labelKey,
+                                       String optionSetCode) {
         Map<String, Map<String, String>> fieldTranslations =
                 translations.view("OPTION_VALUE", id, Map.of("label", label == null ? "" : label));
         String labelAr = translations.resolve("OPTION_VALUE", id, "label", "ar",
                 label == null ? "" : label);
+        // Rows predating the key backfill (or inserted by legacy tooling) still
+        // answer with the deterministic key instead of a null.
+        String resolvedKey = labelKey == null || labelKey.isBlank()
+                ? OptionLabelKeys.generate(optionSetCode, code) : labelKey;
         return new OptionValueDto(id, code, label, status, sortOrder, metadataJson,
-                fieldTranslations, label, labelAr);
+                fieldTranslations, label, labelAr, resolvedKey);
     }
 
     @SuppressWarnings("unused")

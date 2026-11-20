@@ -520,6 +520,22 @@ getters; `TechnicianKeys` + one accessor resolve every string from the bundle.
 - Open decision: route option-set labels (Worn/Cracked/Location/Severity…) through
   `UiStrings` so they translate like statuses, or leave them as served English literals.
 
+### 2026-11-21 — Option C CLOSED (option values key-addressed)
+- `V128` (Java) adds nullable `label_key` to `platform_option_values`; idempotent backfill
+  `option.<lowerCamel(setCode)>.<lowerCamel(valueCode)>` (95/95 values, 0 regex violations,
+  explicit keys preserved).
+- `OptionLabelKeys` generator/validator; `422 LABEL_KEY_INVALID` for malformed keys.
+- `labelKey` exposed additively on option-set reads and technician `issueFields[].options`;
+  `labelEn` unchanged as fallback. `mvn test` → **224 tests, 0 failures**.
+- Catalog: 95 option keys merged into `common/en.json` (59 → 154); 30 accurate Spanish
+  translations in `common/es.json` (issue types, severities, locations).
+- Client: `labelKey` parsed tolerantly; `issueOptionLabel` / `optionValueLabel` resolve
+  `UiStrings.raw(key)` else `labelEn`; `CommonKeys` 59 → 154.
+- Tests: technician **125**, platform **47**, workshop 180, l10n 53, design 29, reference 9,
+  api 5, auth 1, ui_gallery 5; analyze clean; gate 0; builds ok.
+- Runtime proof: same field shows **Desgastado** (translated), **Cracked** (key, no entry →
+  English), **Loose** (no key → English).
+
 ### 2026-11-20 - Phase 7 CLOSED (technician app)
 - **Accessor** (`client/packages/l10n`): `UiStrings` + `UiStringsScope` in
   `lib/src/ui_strings.dart`, exported by `lib/ui_strings.dart` (no generated class on that
@@ -614,6 +630,29 @@ getters; `TechnicianKeys` + one accessor resolve every string from the bundle.
   renders `Inspection queue / Today, 20 Nov / This week / FILTER / All / No changes waiting to
   sync / Sync now / You are all caught up / No inspections are assigned to you. / Refresh`;
   platform `/signin` renders `Sign in to Portal / Enter your corporate credentials ...`.
+
+### 2026-11-21 - Option C client half (option-set `labelKey`)
+- **Parse**: `IssueOption.labelKey` (technician, `inspection_models.dart:435`) and
+  `OptionValue.labelKey` (platform, `platform_config_models.dart:793`), both nullable and
+  tolerated (`_stringOrNull` / `_strOrNull`) and round-tripped by the technician model.
+- **Resolve**: one helper per app, both `raw`-only (no second lookup path):
+  `issueOptionLabel(t, option, language)` (`technician .../inspection/option_labels.dart`)
+  and `optionValueLabel(t, value)` (`platform .../master_library/option_label.dart`).
+  Key wins when `t.raw(key)` is non-empty; otherwise the served `labelEn` (technician keeps
+  `labelFor(language)`), then the code. No Dart copy fallback.
+- **Render sites**: technician item chips `technician_dynamic_item_page.dart:2093`; platform
+  option-set read pane `option_sets_screen.dart:710` (`OptionSetValuesPane`, made public for
+  the test) and the master-item allowed-values chips `master_item_editor_screen.dart:2700`.
+- **Keys**: `dart run tool/generate_ui_keys.dart` -> `CommonKeys` **59 -> 154** (95
+  `option.*` keys); other key classes unchanged (871 / 1293 / 1332).
+- **Tests**: technician `test/option_label_resolution_test.dart` (3: parse+absent key, helper
+  fallback, item-page chips with a translated key, a missing key and a keyless option);
+  platform `test/option_label_resolution_test.dart` (5: parse, three helper cases, read pane).
+- Suites: technician **125**, platform **47**, workshop 180, l10n 53, ui_gallery 5,
+  design_system 29, reference_data 9, api_client 5, auth 1; analyze clean; three web builds ok;
+  `npm run gate` 0. Runtime: technician item page chips read
+  `Desgastado / Cracked / Loose` from one translated bundle entry.
+
 
 
 

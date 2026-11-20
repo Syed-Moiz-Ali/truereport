@@ -9,6 +9,7 @@ import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
+import com.truereport.shared.i18n.OptionLabelKeys;
 import com.truereport.localization.TranslationGate;
 import com.truereport.shared.security.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +46,12 @@ public class PlatformOptionSetService {
     @Transactional(readOnly = true)
     public OptionSetDto get(String id) {
         return repository.findById(id).orElseThrow(ApiException::notFound);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OptionValueDto> values(String id) {
+        repository.findById(id).orElseThrow(ApiException::notFound);
+        return repository.values(id);
     }
 
     @Transactional
@@ -114,7 +121,8 @@ public class PlatformOptionSetService {
                 overlays(request.translations(), "label", request.labelAr());
         boolean allLiveProvided = translationGate.translationProvidedForLive(
                 valueTranslations, "label");
-        OptionValueDto created = repository.insertValue(setId, code, label.trim(),
+        String labelKey = resolveLabelKey(request.labelKey(), set.code(), code, null);
+        OptionValueDto created = repository.insertValue(setId, code, label.trim(), labelKey,
                 valueTranslations, request.sortOrder() == null ? 0 : request.sortOrder(),
                 request.metadataJson(), allLiveProvided ? "ACTIVE" : "DRAFT");
         OptionValueDto result = repository.findValue(created.id()).orElse(created);
@@ -125,7 +133,7 @@ public class PlatformOptionSetService {
     @Transactional
     public OptionValueDto updateValue(CurrentUser actor, String setId, String valueId,
                                       OptionValueUpdateRequest request, HttpServletRequest http) {
-        repository.findById(setId).orElseThrow(ApiException::notFound);
+        OptionSetDto set = repository.findById(setId).orElseThrow(ApiException::notFound);
         OptionValueDto existing = repository.findValue(valueId).orElseThrow(ApiException::notFound);
         String label = request.translations() == null || request.translations().get("label") == null
                 ? firstNonBlank(request.label(), request.labelEn()) : source(request.translations(), "label", firstNonBlank(request.label(), request.labelEn()));
@@ -133,7 +141,9 @@ public class PlatformOptionSetService {
         if (statusChangeToActive(existing.status(), targetStatus)) {
             translationGate.requireOverlaysApproved("OPTION_VALUE", valueId);
         }
-        repository.updateValue(valueId, label,
+        String labelKey = resolveLabelKey(request.labelKey(), set.code(), existing.code(),
+                existing.labelKey());
+        repository.updateValue(valueId, label, labelKey,
                 overlays(request.translations(), "label", request.labelAr()), request.sortOrder(),
                 request.metadataJson(), targetStatus);
         OptionValueDto updated = repository.findValue(valueId).orElse(existing);
@@ -192,6 +202,26 @@ public class PlatformOptionSetService {
                     List.of(FieldIssue.of("code", "REQUIRED", "error.field.invalid")));
         }
         return code.trim().toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * An explicit key wins; otherwise an existing key is kept and a new value
+     * gets the deterministic {@code option.<set>.<value>} convention.
+     */
+    private static String resolveLabelKey(String requested, String setCode, String valueCode,
+                                          String current) {
+        String explicit = blankToNull(requested);
+        if (explicit != null) {
+            if (!OptionLabelKeys.isValid(explicit)) {
+                throw ApiException.validation("LABEL_KEY_INVALID",
+                        "Option label key must be a dotted lowerCamel catalog key",
+                        List.of(FieldIssue.of("labelKey", "INVALID",
+                                "error.optionValue.labelKeyInvalid")));
+            }
+            return explicit;
+        }
+        String existing = blankToNull(current);
+        return existing == null ? OptionLabelKeys.generate(setCode, valueCode) : existing;
     }
 
     private String source(Map<String, Map<String, String>> provided, String field, String legacyEn) {

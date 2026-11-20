@@ -2,6 +2,7 @@ package com.truereport.technician;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.shared.i18n.OptionLabelKeys;
 import com.truereport.shared.security.PiiCipher;
 import com.truereport.shared.uuid.UuidBinaryConverter;
 import com.truereport.shared.uuid.UuidV7;
@@ -97,7 +98,7 @@ public class TechnicianStore {
     }
 
     public record OptionRow(
-            String code, String labelEn, String labelAr, int sortOrder) {
+            String code, String labelEn, String labelAr, int sortOrder, String labelKey) {
     }
 
     public record AssessmentRow(
@@ -631,9 +632,10 @@ public class TechnicianStore {
                            (SELECT body FROM platform_translations pt
                             WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
                               AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
-                           ov.sort_order
+                           ov.sort_order, ov.label_key, os.code AS option_set_code
                     FROM platform_issue_field_options ifo
                     JOIN platform_option_values ov ON ov.id = ifo.option_value_id
+                    JOIN platform_option_sets os ON os.id = ov.option_set_id
                     WHERE ifo.issue_field_id = ? AND ov.status = 'ACTIVE'
                     ORDER BY ov.sort_order, ov.code
                     """, OPTION_MAPPER, issueFieldId);
@@ -649,10 +651,11 @@ public class TechnicianStore {
                        (SELECT body FROM platform_translations pt
                         WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
                           AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
-                       ov.sort_order
+                       ov.sort_order, ov.label_key, os.code AS option_set_code
                 FROM platform_option_values ov
+                JOIN platform_option_sets os ON os.id = ov.option_set_id
                 WHERE ov.option_set_id = ? AND ov.status = 'ACTIVE'
-                ORDER BY sort_order, code
+                ORDER BY ov.sort_order, ov.code
                 """, OPTION_MAPPER, optionSetId);
     }
 
@@ -1059,9 +1062,15 @@ public class TechnicianStore {
             rs.getBoolean("signature_present"), rs.getString("created_by"),
             dateTime(rs, "created_at"), dateTime(rs, "updated_at"), rs.getInt("version"));
 
-    private final RowMapper<OptionRow> OPTION_MAPPER = (rs, i) -> new OptionRow(
-            rs.getString("code"), rs.getString("label_en"), rs.getString("label_ar"),
-            rs.getInt("sort_order"));
+    private final RowMapper<OptionRow> OPTION_MAPPER = (rs, i) -> {
+        String code = rs.getString("code");
+        String labelKey = rs.getString("label_key");
+        if (labelKey == null || labelKey.isBlank()) {
+            labelKey = OptionLabelKeys.generate(rs.getString("option_set_code"), code);
+        }
+        return new OptionRow(code, rs.getString("label_en"), rs.getString("label_ar"),
+                rs.getInt("sort_order"), labelKey);
+    };
 
     private final RowMapper<AssessmentRow> ASSESSMENT_MAPPER = (rs, i) -> new AssessmentRow(
             rs.getString("id"), rs.getString("job_id"), rs.getString("item_version_id"),

@@ -9,6 +9,7 @@ import 'package:technician_app/src/features/inspection/evidence_capture_service.
 import 'package:technician_app/src/features/inspection/evidence_capture_sheet.dart';
 import 'package:technician_app/src/features/inspection/evidence_upload_queue.dart';
 import 'package:technician_app/src/features/inspection/evidence_validation.dart';
+import 'package:technician_app/src/features/inspection/option_labels.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/technician_providers.dart';
@@ -2089,7 +2090,7 @@ class _IssueFieldInput extends StatelessWidget {
                         field.inputType == 'BOOLEAN' &&
                             (option.labelEn.isEmpty && option.labelAr.isEmpty)
                         ? booleanLabel(t, option.code)
-                        : option.labelFor(language),
+                        : issueOptionLabel(t, option, language),
                     selected: isMulti
                         ? selectedMulti.contains(option.code)
                         : selectedOptions == option.code,

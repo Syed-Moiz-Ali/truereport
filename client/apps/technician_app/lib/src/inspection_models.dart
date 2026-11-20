@@ -424,17 +424,22 @@ class IssueOption {
     required this.labelEn,
     required this.labelAr,
     required this.sortOrder,
+    this.labelKey,
   });
 
   final String code;
   final String labelEn;
   final String labelAr;
+
+  /// Backend UI-message key for the label, or null when the server has none.
+  final String? labelKey;
   final int sortOrder;
 
   factory IssueOption.fromJson(Map<String, dynamic> json) => IssueOption(
     code: _string(json['code']),
     labelEn: _string(json['labelEn']),
     labelAr: _string(json['labelAr']),
+    labelKey: _stringOrNull(json['labelKey']),
     sortOrder: _int(json['sortOrder']),
   );
 
@@ -442,6 +447,7 @@ class IssueOption {
     'code': code,
     'labelEn': labelEn,
     'labelAr': labelAr,
+    'labelKey': labelKey,
     'sortOrder': sortOrder,
   };
 

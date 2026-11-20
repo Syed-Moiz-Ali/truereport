@@ -48,7 +48,9 @@ class I18nSchemaDriftTest {
         // is the split invariant (union/schema/taxonomy tests below) and that no file
         // is empty or unexpectedly clears its family.
         assertThat(keys(read("common/en.json"))).isNotEmpty();
-        assertThat(keys(read("common/es.json"))).isEmpty();
+        // Spanish is intentionally partial: any translated key must exist in English.
+        assertThat(keys(read("common/es.json")))
+                .isSubsetOf(keys(read("common/en.json")));
         assertThat(keys(read("platform_admin/en.json"))).isNotEmpty();
         assertThat(keys(read("workshop_admin/en.json"))).isNotEmpty();
         assertThat(keys(read("technician/en.json"))).isNotEmpty();

@@ -11,6 +11,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -185,6 +187,94 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                         .content("{\"replacementCode\":\"FRONT\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("RETIRED"));
+    }
+
+    @Test
+    void optionValuesExposeDeterministicLabelKeys() throws Exception {
+        Login platform = login("platform@test.local");
+        postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
+
+        JsonNode sets = getJson(platform, "/api/v1/platform/master/option-sets");
+        JsonNode issueType = null;
+        for (JsonNode set : sets) {
+            if ("ISSUE_TYPE".equals(set.get("code").asText())) {
+                issueType = set;
+            }
+        }
+        assertThat(issueType).isNotNull();
+        String issueSetId = issueType.get("id").asText();
+        JsonNode worn = null;
+        for (JsonNode value : issueType.get("values")) {
+            assertThat(value.get("labelKey").asText()).matches(
+                    "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$");
+            if ("WORN".equals(value.get("code").asText())) {
+                worn = value;
+            }
+        }
+        assertThat(worn).isNotNull();
+        assertThat(worn.get("labelKey").asText()).isEqualTo("option.issueType.worn");
+        assertThat(worn.get("labelEn").asText()).isEqualTo("Worn");
+
+        JsonNode detail = getJson(platform,
+                "/api/v1/platform/master/option-sets/" + issueSetId);
+        assertThat(detail.get("values").get(0).has("labelKey")).isTrue();
+        JsonNode values = getJson(platform,
+                "/api/v1/platform/master/option-sets/" + issueSetId + "/values");
+        assertThat(values.size()).isEqualTo(issueType.get("values").size());
+        assertThat(values.get(0).get("labelKey").asText())
+                .matches("^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$");
+
+        List<String> storedKeys = jdbc.queryForList("""
+                SELECT label_key FROM platform_option_values WHERE label_key IS NOT NULL
+                """, String.class);
+        assertThat(storedKeys).isNotEmpty();
+        assertThat(storedKeys).allMatch(key ->
+                key.matches("^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$"));
+    }
+
+    @Test
+    void optionValueLabelKeyIsGeneratedUnlessProvided() throws Exception {
+        Login platform = login("platform@test.local");
+        JsonNode set = postJson(platform, "/api/v1/platform/master/option-sets", """
+                {"code":"LABEL_KEY_SET","name":"Label key set"}
+                """);
+        String setId = set.get("id").asText();
+
+        JsonNode generated = postJson(platform,
+                "/api/v1/platform/master/option-sets/" + setId + "/values", """
+                        {"code":"WITHOUT_KEY","label":"Without key"}
+                        """);
+        assertThat(generated.get("labelKey").asText())
+                .isEqualTo("option.labelKeySet.withoutKey");
+
+        JsonNode explicit = postJson(platform,
+                "/api/v1/platform/master/option-sets/" + setId + "/values", """
+                        {"code":"WITH_KEY","label":"With key",
+                         "labelKey":"custom.option.withKey"}
+                        """);
+        assertThat(explicit.get("labelKey").asText()).isEqualTo("custom.option.withKey");
+
+        String generatedId = generated.get("id").asText();
+        JsonNode preserved = putJson(platform,
+                "/api/v1/platform/master/option-sets/" + setId + "/values/" + generatedId,
+                "{\"label\":\"Without key renamed\"}");
+        assertThat(preserved.get("labelKey").asText())
+                .isEqualTo("option.labelKeySet.withoutKey");
+
+        JsonNode overridden = putJson(platform,
+                "/api/v1/platform/master/option-sets/" + setId + "/values/" + generatedId,
+                "{\"label\":\"Without key renamed\","
+                        + "\"labelKey\":\"explicit.override.key\"}");
+        assertThat(overridden.get("labelKey").asText()).isEqualTo("explicit.override.key");
+
+        mockMvc.perform(post("/api/v1/platform/master/option-sets/" + setId + "/values")
+                        .header("Authorization", bearer(platform))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"code":"BAD_KEY","label":"Bad key","labelKey":"Bad Key"}
+                                """))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("LABEL_KEY_INVALID"));
     }
 
     @Test

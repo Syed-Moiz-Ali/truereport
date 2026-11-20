@@ -23,6 +23,12 @@ int? _nullableInt(dynamic value) {
 
 String _str(dynamic value) => value == null ? '' : value.toString();
 
+/// Tolerant nullable string: absent, null and empty values become null.
+String? _strOrNull(dynamic value) {
+  final text = _str(value).trim();
+  return text.isEmpty ? null : text;
+}
+
 List<String> _strings(dynamic value) =>
     (value as List<dynamic>? ?? const <dynamic>[])
         .map((item) => item.toString())
@@ -768,6 +774,7 @@ class OptionValue {
     required this.metadataJson,
     this.label = '',
     this.translations = const {},
+    this.labelKey,
     String? labelEn,
   }) : _legacyLabel = labelEn ?? '';
 
@@ -781,6 +788,9 @@ class OptionValue {
   final int sortOrder;
   final String metadataJson;
   final Map<String, Map<String, String>> translations;
+
+  /// Backend UI-message key for the label, or null when the server has none.
+  final String? labelKey;
 
   final String _legacyLabel;
 
@@ -797,6 +807,7 @@ class OptionValue {
     sortOrder: _int(json['sortOrder']),
     metadataJson: _str(json['metadataJson']),
     translations: _translationMap(json['translations']),
+    labelKey: _strOrNull(json['labelKey']),
   );
 }
 
