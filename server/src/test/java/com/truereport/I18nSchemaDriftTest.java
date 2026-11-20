@@ -19,16 +19,16 @@ import java.util.regex.Pattern;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Guardrail for the Flutter key generator: {@code i18n/schema.json} is generated
- * from the ARB metadata and must match the catalogs the server serves exactly.
+ * Guardrails for the Flutter key generator and the two catalog families.
  *
- * <p>Any key added to or removed from an ARB catalog without regenerating the
- * schema fails this test in both directions, so the generator can never
- * reference a key the server does not serve (or miss one it does).</p>
+ * <p>{@code i18n/schema.json} is generated from the ARB metadata and equals the
+ * union of the two client catalogs. The clients are allowed to differ (each app
+ * migrates its own hardcoded strings), but the schema must never drift from the
+ * union in either direction.</p>
  *
- * <p>Key shapes are also enforced: backend-resolved {@code platform_admin} and
- * {@code common} keys are dotted and hierarchical, while the UI-only
- * {@code workshop_admin} and {@code technician} keys are flat camelCase.</p>
+ * <p>Backend-resolved {@code platform_admin} and {@code common} keys are dotted
+ * and hierarchical, while UI-only {@code workshop_admin} and {@code technician}
+ * keys are flat camelCase.</p>
  */
 class I18nSchemaDriftTest {
 
@@ -42,80 +42,71 @@ class I18nSchemaDriftTest {
 
     @Test
     void catalogSplitMatchesTheContract() throws Exception {
-        JsonNode commonEn = read("common/en.json");
-        JsonNode commonEs = read("common/es.json");
-        JsonNode workshopEn = read("workshop_admin/en.json");
-        JsonNode technicianEn = read("technician/en.json");
-        JsonNode workshopEs = read("workshop_admin/es.json");
-        JsonNode technicianEs = read("technician/es.json");
-
-        assertThat(commonEn.size()).isEqualTo(59);
-        assertThat(keys(commonEn)).allMatch(key -> key.indexOf('.') > 0);
-        assertThat(commonEs.size()).isZero();
-
-        assertThat(workshopEn.size()).isEqualTo(1237);
-        assertThat(keys(workshopEn)).noneMatch(key -> key.indexOf('.') > 0);
-        assertThat(workshopEn).isEqualTo(technicianEn);
-
-        assertThat(workshopEs.size()).isEqualTo(62);
-        assertThat(workshopEs).isEqualTo(technicianEs);
+        assertThat(keys(read("common/en.json")).size()).isEqualTo(59);
+        assertThat(keys(read("common/es.json")).size()).isZero();
+        assertThat(keys(read("platform_admin/en.json")).size()).isEqualTo(756);
+        assertThat(keys(read("workshop_admin/en.json")).size()).isEqualTo(1261);
+        assertThat(keys(read("technician/en.json")).size()).isEqualTo(1277);
+        assertThat(keys(read("workshop_admin/es.json")).size()).isEqualTo(62);
+        assertThat(keys(read("technician/es.json")).size()).isEqualTo(62);
     }
 
     @Test
-    void schemaKeysMatchTheArbCatalogsExactly() throws Exception {
+    void schemaKeysMatchTheUnionOfTheClientCatalogsExactly() throws Exception {
         Set<String> schema = keys(read("schema.json").get("keys"));
         Set<String> workshop = keys(read("workshop_admin/en.json"));
         Set<String> technician = keys(read("technician/en.json"));
 
-        assertThat(workshop)
-                .as("workshop and technician ARB catalogs must stay identical")
-                .isEqualTo(technician);
+        Set<String> union = new TreeSet<>(workshop);
+        union.addAll(technician);
 
-        // Exact parity in both directions: a new catalog key needs a regenerated
-        // schema, and every schema key must have a served value.
-        assertThat(schema).isEqualTo(workshop);
+        // Exact parity in both directions: a key added to either client needs a
+        // regenerated schema, and a schema key must be owned by at least one client.
+        assertThat(schema).isEqualTo(union);
     }
 
     @Test
-    void everySchemaKeyIsServedInEveryClientBundle() throws Exception {
-        Set<String> schema = keys(read("schema.json").get("keys"));
+    void everyClientKeyIsServedByItsOwnBundle() throws Exception {
         Set<String> common = keys(read("common/en.json"));
+        Set<String> schema = keys(read("schema.json").get("keys"));
 
-        for (String client : new String[]{"workshop_admin", "technician"}) {
-            Set<String> served = new HashSet<>(common);
-            served.addAll(keys(read(client + "/en.json")));
-            assertThat(served)
-                    .as("%s bundle must serve every schema key", client)
-                    .containsAll(schema);
-        }
+        Set<String> servedWorkshop = new HashSet<>(common);
+        servedWorkshop.addAll(keys(read("workshop_admin/en.json")));
+        Set<String> servedTechnician = new HashSet<>(common);
+        servedTechnician.addAll(keys(read("technician/en.json")));
+
+        assertThat(servedWorkshop)
+                .as("every workshop_admin key must be served by the workshop_admin bundle")
+                .containsAll(keys(read("workshop_admin/en.json")));
+        assertThat(servedTechnician)
+                .as("every technician key must be served by the technician bundle")
+                .containsAll(keys(read("technician/en.json")));
+
+        // Every generator key is served by at least one of the two apps.
+        Set<String> allServed = new HashSet<>(servedWorkshop);
+        allServed.addAll(servedTechnician);
+        assertThat(allServed).containsAll(schema);
     }
 
     @Test
-    void schemaPlaceholdersExistInTheEnglishText() throws Exception {
-        JsonNode schema = read("schema.json").get("keys");
-        Map<String, String> values = new LinkedHashMap<>();
-        read("workshop_admin/en.json").fields().forEachRemaining(entry ->
-                values.put(entry.getKey(), entry.getValue().asText()));
+    void sharedKeysResolveToTheSameEnglishTextInBothApps() throws Exception {
+        Map<String, String> workshop = values(read("workshop_admin/en.json"));
+        Map<String, String> technician = values(read("technician/en.json"));
 
-        for (Iterator<Map.Entry<String, JsonNode>> it = schema.fields(); it.hasNext(); ) {
-            Map.Entry<String, JsonNode> entry = it.next();
-            JsonNode placeholders = entry.getValue().get("placeholders");
-            if (placeholders == null || placeholders.isEmpty()) {
-                continue;
+        Set<String> shared = new TreeSet<>(workshop.keySet());
+        shared.retainAll(technician.keySet());
+
+        List<String> violations = new ArrayList<>();
+        for (String key : shared) {
+            if (!workshop.get(key).equals(technician.get(key))) {
+                violations.add("workshop_admin/en.json '" + key + "'='"
+                        + workshop.get(key) + "' vs technician/en.json '" + key + "'='"
+                        + technician.get(key) + "'");
             }
-            assertThat(values)
-                    .as("schema placeholder key %s must be served", entry.getKey())
-                    .containsKey(entry.getKey());
-            String text = values.get(entry.getKey());
-            Set<String> tokens = new HashSet<>();
-            Matcher matcher = PLACEHOLDER.matcher(text);
-            while (matcher.find()) {
-                tokens.add(matcher.group(1));
-            }
-            assertThat(tokens)
-                    .as("placeholders for %s in workshop_admin/en.json", entry.getKey())
-                    .containsAll(keys(placeholders));
         }
+        assertThat(violations)
+                .as("keys present in both client catalogs must resolve to the same English text")
+                .isEmpty();
     }
 
     @Test
@@ -183,9 +174,67 @@ class I18nSchemaDriftTest {
                 .isEmpty();
     }
 
+    @Test
+    void schemaPlaceholdersExistInAtLeastOneDefiningCatalog() throws Exception {
+        JsonNode schema = read("schema.json").get("keys");
+        Map<String, String> workshop = values(read("workshop_admin/en.json"));
+        Map<String, String> technician = values(read("technician/en.json"));
+
+        List<String> violations = new ArrayList<>();
+        for (Iterator<Map.Entry<String, JsonNode>> it = schema.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> entry = it.next();
+            JsonNode placeholders = entry.getValue().get("placeholders");
+            if (placeholders == null || placeholders.isEmpty()) {
+                continue;
+            }
+            String key = entry.getKey();
+            List<String> texts = new ArrayList<>();
+            if (workshop.containsKey(key)) {
+                texts.add(workshop.get(key));
+            }
+            if (technician.containsKey(key)) {
+                texts.add(technician.get(key));
+            }
+            if (texts.isEmpty()) {
+                violations.add("schema.json '" + key
+                        + "' has placeholders but is defined in neither client catalog");
+                continue;
+            }
+            for (String expected : keys(placeholders)) {
+                boolean found = texts.stream()
+                        .anyMatch(text -> tokens(text).contains(expected));
+                if (!found) {
+                    violations.add("schema.json '" + key + "' placeholder {" + expected
+                            + "} missing from its English value in "
+                            + (workshop.containsKey(key) ? "workshop_admin/en.json " : "")
+                            + (technician.containsKey(key) ? "technician/en.json" : ""));
+                }
+            }
+        }
+        assertThat(violations)
+                .as("every schema placeholder token must appear in at least one defining catalog")
+                .isEmpty();
+    }
+
+    private static Set<String> tokens(String value) {
+        Set<String> names = new HashSet<>();
+        Matcher matcher = PLACEHOLDER.matcher(value == null ? "" : value);
+        while (matcher.find()) {
+            names.add(matcher.group(1));
+        }
+        return names;
+    }
+
     private static String text(JsonNode catalog, String key) {
         JsonNode value = catalog.get(key);
         return value == null || value.isNull() ? null : value.asText();
+    }
+
+    private static Map<String, String> values(JsonNode catalog) {
+        Map<String, String> values = new LinkedHashMap<>();
+        catalog.fields().forEachRemaining(entry ->
+                values.put(entry.getKey(), entry.getValue().asText()));
+        return values;
     }
 
     private JsonNode read(String resource) throws Exception {

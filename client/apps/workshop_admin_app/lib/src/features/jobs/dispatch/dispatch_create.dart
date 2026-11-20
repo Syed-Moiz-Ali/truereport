@@ -270,6 +270,9 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
           scheduledAt: _form.scheduledAt,
           onPickSchedule: _pickSchedule,
           onStartImmediately: () => setState(_form.startImmediately),
+          consentGranted: _form.consentGranted,
+          onConsentChanged: (value) =>
+              setState(() => _form.consentGranted = value),
         );
     }
   }

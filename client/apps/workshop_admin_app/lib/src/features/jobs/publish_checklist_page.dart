@@ -33,6 +33,7 @@ class PublishChecklistPage extends ConsumerStatefulWidget {
 
 class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
   bool _busy = false;
+  bool _consentBusy = false;
   bool _pdfDownload = true;
   String? _error;
 
@@ -122,15 +123,29 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
                 PublishErrorBanner(message: _error!),
                 SizedBox(height: spacing.md),
               ],
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: JobPillButton(
-                  key: const Key('jobs-publish-button'),
-                  label: l10n.jobsPublishNow,
-                  icon: Icons.public_outlined,
-                  loading: _busy,
-                  onPressed: canPublish && !_busy ? _publish : null,
-                ),
+              Wrap(
+                spacing: spacing.sm,
+                runSpacing: spacing.sm,
+                children: [
+                  JobPillButton(
+                    key: const Key('jobs-publish-button'),
+                    label: l10n.jobsPublishNow,
+                    icon: Icons.public_outlined,
+                    loading: _busy,
+                    onPressed: canPublish && !_busy ? _publish : null,
+                  ),
+                  if (!checklist.consentGranted && job != null)
+                    JobPillButton(
+                      key: const Key('jobs-publish-consent'),
+                      label: l10n.jobsConsentGrant,
+                      icon: Icons.verified_user_outlined,
+                      variant: JobPillVariant.outline,
+                      loading: _consentBusy,
+                      onPressed: _consentBusy || _busy
+                          ? null
+                          : () => _grantConsent(job),
+                    ),
+                ],
               ),
               if (!canPublish) ...[
                 SizedBox(height: spacing.md),
@@ -167,6 +182,35 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
       if ((job.vehiclePlate ?? '').isNotEmpty) job.vehiclePlate!,
       job.assignedTechnicianName ?? l10n.unassigned,
     ];
+  }
+
+  Future<void> _grantConsent(CleanJob job) async {
+    final l10n = AppLocalizations.of(context);
+    if (job.version == null) {
+      setState(() => _error = l10n.jobsNoVersion);
+      return;
+    }
+    setState(() {
+      _consentBusy = true;
+      _error = null;
+    });
+    try {
+      await ref
+          .read(adminApiProvider)
+          .updateJobConsent(job.id, consentGranted: true, version: job.version);
+      ref.invalidate(publishChecklistProvider(widget.jobId));
+      ref.invalidate(cleanJobProvider(widget.jobId));
+    } on Object catch (error) {
+      ref.invalidate(publishChecklistProvider(widget.jobId));
+      ref.invalidate(cleanJobProvider(widget.jobId));
+      if (mounted) {
+        setState(() => _error = jobErrorCopy(l10n, error));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _consentBusy = false);
+      }
+    }
   }
 
   Future<void> _publish() async {

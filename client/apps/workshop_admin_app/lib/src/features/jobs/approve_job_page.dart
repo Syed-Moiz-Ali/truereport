@@ -37,6 +37,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   final _decisionKey = GlobalKey();
   bool _busy = false;
   bool _busyIsReject = false;
+  bool _consentBusy = false;
   bool _reasonMissing = false;
   String? _error;
   bool _errorIsConflict = false;
@@ -128,6 +129,8 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
                 _notices(context, job),
               ],
               SizedBox(height: spacing.md),
+              _consentBar(context, job),
+              SizedBox(height: spacing.md),
               _actionPills(context, job, canAct: canAct),
               SizedBox(height: spacing.lg),
               JobSplitColumns(
@@ -210,12 +213,117 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
     );
   }
 
+  Widget _consentBar(BuildContext context, CleanJob job) {
+    final l10n = AppLocalizations.of(context);
+    final ws = context.ws;
+    final spacing = context.spacing;
+    final editable =
+        job.version != null &&
+        job.status != 'PUBLISHED' &&
+        job.status != 'CANCELLED';
+    if (!editable) return const SizedBox.shrink();
+    return Container(
+      key: const Key('jobs-consent-bar'),
+      padding: EdgeInsetsDirectional.all(spacing.md),
+      decoration: BoxDecoration(
+        color: job.consentGranted ? ws.accentSoft : ws.warningSoft,
+        borderRadius: BorderRadius.circular(ws.cardRadius),
+        border: Border.all(
+          color: (job.consentGranted ? ws.accent : ws.warning).withValues(
+            alpha: 0.3,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.verified_user_outlined,
+            size: 18,
+            color: job.consentGranted ? ws.accent : ws.warning,
+          ),
+          SizedBox(width: spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.consentPublicLink,
+                  style: ws.bodyStrong.copyWith(color: ws.ink),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  job.consentGranted
+                      ? l10n.jobsConsentGranted
+                      : l10n.consentNotGranted,
+                  style: ws.meta.copyWith(color: ws.muted),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: spacing.sm),
+          JobPillButton(
+            key: const Key('jobs-consent-toggle'),
+            label: job.consentGranted
+                ? l10n.jobsConsentRevoke
+                : l10n.jobsConsentGrant,
+            icon: job.consentGranted
+                ? Icons.undo_outlined
+                : Icons.check_circle_outline,
+            variant: JobPillVariant.outline,
+            loading: _consentBusy,
+            onPressed: _consentBusy || _busy
+                ? null
+                : () => _setConsent(job, !job.consentGranted),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setConsent(CleanJob job, bool granted) async {
+    final l10n = AppLocalizations.of(context);
+    if (job.version == null) {
+      setState(() => _error = l10n.jobsNoVersion);
+      return;
+    }
+    setState(() {
+      _consentBusy = true;
+      _error = null;
+      _errorIsConflict = false;
+    });
+    try {
+      await ref
+          .read(adminApiProvider)
+          .updateJobConsent(
+            job.id,
+            consentGranted: granted,
+            version: job.version,
+          );
+      _invalidate();
+      _toast(l10n.consentRecorded);
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = jobErrorCopy(l10n, error);
+          _errorIsConflict = _isConflict(error);
+        });
+        if (_isConflict(error)) _reload();
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _consentBusy = false);
+      }
+    }
+  }
+
   Widget _actionPills(
     BuildContext context,
     CleanJob job, {
     required bool canAct,
   }) {
     final l10n = AppLocalizations.of(context);
+    final canApprove = canAct && job.consentGranted;
     return Wrap(
       spacing: context.spacing.sm,
       runSpacing: context.spacing.sm,
@@ -225,7 +333,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
           label: l10n.jobsApprove,
           icon: Icons.verified_outlined,
           loading: _busy && !_busyIsReject,
-          onPressed: canAct && !_busy ? () => _approve(job) : null,
+          onPressed: canApprove && !_busy ? () => _approve(job) : null,
         ),
         JobPillButton(
           key: const Key('jobs-reject-button'),
@@ -258,6 +366,10 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
     final l10n = AppLocalizations.of(context);
     if (job.version == null) {
       setState(() => _error = l10n.jobsNoVersion);
+      return;
+    }
+    if (!job.consentGranted) {
+      setState(() => _error = l10n.consentNotGranted);
       return;
     }
     setState(() {

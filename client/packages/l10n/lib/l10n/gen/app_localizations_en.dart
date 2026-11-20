@@ -3973,4 +3973,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get appTitleTechnician => remoteEnglish('appTitleTechnician');
 
+  @override
+  String get jobsConsentGrant => remoteEnglish('jobsConsentGrant');
+
+  @override
+  String get jobsConsentRevoke => remoteEnglish('jobsConsentRevoke');
+
 }

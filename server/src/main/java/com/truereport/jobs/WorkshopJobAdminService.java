@@ -474,7 +474,7 @@ public class WorkshopJobAdminService {
             List<FieldIssue> issues = evaluation.items().stream()
                     .filter(item -> !item.passed())
                     .map(item -> new FieldIssue(item.code(), item.code(), item.code(),
-                            item.messageEn(), item.messageAr(), item.messageEn()))
+                            item.messageEn(), item.messageEn()))
                     .toList();
             throw ApiException.validation("APPROVAL_CHECKLIST_INCOMPLETE",
                     "Approval checklist is not complete", issues);
@@ -877,29 +877,21 @@ public class WorkshopJobAdminService {
         boolean capOk = !score.capApplied() || !isBlank(safetyCapReason);
         List<ChecklistItemDto> checklist = List.of(
                 checklist("ALL_ITEMS_ASSESSED", allAssessed,
-                        "All configured items are assessed",
-                        "تم تقييم جميع العناصر المهيأة"),
+                        "All configured items are assessed"),
                 checklist("EVIDENCE_RULES_MET", evidenceOk,
-                        "Every finding meets the photo/video evidence rules",
-                        "كل نتيجة تحقق قواعد أدلة الصور والفيديو"),
+                        "Every finding meets the photo/video evidence rules"),
                 checklist("SIGNATURE_PRESENT", signature,
-                        "Technician signature is present",
-                        "توقيع الفني موجود"),
+                        "Technician signature is present"),
                 checklist("SCORE_COMPUTED", score.score() != null && score.grade() != null,
-                        "Score and grade are computed",
-                        "تم احتساب النتيجة والدرجة"),
+                        "Score and grade are computed"),
                 checklist("SAFETY_CAP_EXPLAINED", capOk,
-                        "Safety cap explanation is provided when required",
-                        "تم تقديم تفسير حد السلامة عند الحاجة"),
+                        "Safety cap explanation is provided when required"),
                 checklist("CONSENT_GRANTED", consent,
-                        "Public-link consent is granted",
-                        "تم منح الموافقة على الرابط العام"),
+                        "Public-link consent is granted"),
                 checklist("APPROVER_NOT_TECHNICIAN", approverOk,
-                        "Approver is a Workshop Admin and not the technician",
-                        "المعتمد مدير ورشة وليس الفني"),
+                        "Approver is a Workshop Admin and not the technician"),
                 checklist("DOCUMENTS_QUEUED", true,
-                        "EN and AR documents will be generated after publish",
-                        "سيتم إنشاء مستندات الإنجليزية والعربية بعد النشر"));
+                        "EN and AR documents will be generated after publish"));
         boolean ready = checklist.stream().allMatch(ChecklistItemDto::passed);
         return new Evaluation(checklist, ready, assessed, items.size(), score);
     }
@@ -1011,8 +1003,8 @@ public class WorkshopJobAdminService {
         return result;
     }
 
-    private ChecklistItemDto checklist(String code, boolean passed, String en, String ar) {
-        return new ChecklistItemDto(code, passed, en, ar);
+    private ChecklistItemDto checklist(String code, boolean passed, String en) {
+        return new ChecklistItemDto(code, passed, en);
     }
 
     private JobDto jobDto(JobRow job) {

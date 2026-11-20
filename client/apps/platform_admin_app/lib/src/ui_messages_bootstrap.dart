@@ -16,6 +16,8 @@ class UiMessagesBootstrap extends ConsumerStatefulWidget {
 }
 
 class _UiMessagesBootstrapState extends ConsumerState<UiMessagesBootstrap> {
+  bool _authFailureNotified = false;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +25,32 @@ class _UiMessagesBootstrapState extends ConsumerState<UiMessagesBootstrap> {
       if (!mounted) return;
       ref.read(uiMessageControllerProvider.notifier).bootstrap();
     });
+  }
+
+  int? _statusOf(Object? error) {
+    if (error == null) return null;
+    try {
+      final dynamic value = error;
+      final status = value.statusCode;
+      return status is int ? status : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  void _maybeSignOut(UiMessageState uiState) {
+    if (!uiState.booting &&
+        uiState.bootError != null &&
+        !_authFailureNotified) {
+      final status = _statusOf(uiState.bootError);
+      if (status == 401 || status == 403) {
+        _authFailureNotified = true;
+        final auth = ref.read(authControllerProvider);
+        if (!auth.isLoading && auth.value != null) {
+          ref.read(authControllerProvider.notifier).signOut();
+        }
+      }
+    }
   }
 
   void _syncLanguage() {
@@ -51,6 +79,7 @@ class _UiMessagesBootstrapState extends ConsumerState<UiMessagesBootstrap> {
     );
     final uiState = ref.watch(uiMessageControllerProvider);
     if (uiState.ready) return widget.child;
+    _maybeSignOut(uiState);
     final controller = ref.read(uiMessageControllerProvider.notifier);
     if (!uiState.booting && uiState.bootError != null) {
       final errorText = controller.tKey(CommonKeys.errorGeneric);

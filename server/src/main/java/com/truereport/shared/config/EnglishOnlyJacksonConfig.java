@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * English-only API surface: Arabic duplicate fields ({@code labelAr},
- * {@code messageAr}, {@code nameAr}, ...) are omitted from every JSON response.
+ * English-only API surface: legacy duplicate fields ({@code labelAr},
+ * {@code nameAr}, ...) are omitted from every JSON response.
  * The database columns and internal model stay intact for a possible future
  * bilingual release, but clients never receive Arabic content.
  */

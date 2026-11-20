@@ -1336,6 +1336,8 @@ abstract class AppLocalizations {
   String get successSynced;
   String get appTitleAdmin;
   String get appTitleTechnician;
+  String get jobsConsentGrant;
+  String get jobsConsentRevoke;
 }
 
 class _AppLocalizationsDelegate

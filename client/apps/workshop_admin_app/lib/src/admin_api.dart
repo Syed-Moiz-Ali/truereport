@@ -230,6 +230,7 @@ abstract class AdminApi {
   Future<CleanJob> updateJobConsent(
     String jobId, {
     required bool consentGranted,
+    int? version,
     String? reason,
   });
 
@@ -1111,11 +1112,16 @@ class HttpAdminApi implements AdminApi {
   Future<CleanJob> updateJobConsent(
     String jobId, {
     required bool consentGranted,
+    int? version,
     String? reason,
   }) async {
     final data = await _api.putDynamic(
       _endpoints.workshopJobConsent(jobId),
-      body: {'consentGranted': consentGranted, 'reason': reason},
+      body: {
+        'consentGranted': consentGranted,
+        'version': version,
+        'reason': reason,
+      },
     );
     return CleanJob.fromJson(data as Map<String, dynamic>);
   }

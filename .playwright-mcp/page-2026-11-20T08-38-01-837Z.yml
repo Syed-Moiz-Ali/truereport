@@ -1,0 +1,65 @@
+- generic [active] [ref=e4]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Back" [ref=e32]
+          - generic [ref=e33]: Chevrolet Camaro ZL1 2023
+          - generic [ref=e34]: DXB 12345
+          - generic [ref=e35]: Engine Oil Condition & Level
+          - generic [ref=e36]: 0/30
+          - generic:
+            - group:
+              - 'group "Engine Oil Condition & Level Inspect Engine Oil Condition & Level and record the condition with evidence. Standard specification: Oil level between MIN/MAX; amber/brown colour; normal viscosity."':
+                - generic [ref=e37]: Not checked
+                - generic [ref=e38]: "Tool: Optical Refractometer / Dipstick"
+              - group "Result Select a result":
+                - button "No issue No issue" [ref=e40]
+                - button "Attention Attention" [ref=e41]
+                - button "Defect Defect" [ref=e42]
+              - group "Issue details Choose from the configured options. Issue Type * Location * Severity *":
+                - button "Worn Worn" [ref=e46]
+                - button "Cracked Cracked" [ref=e47]
+                - button "Leaking Leaking" [ref=e48]
+                - button "Bent Bent" [ref=e49]
+                - button "Loose Loose" [ref=e50]
+                - button "Corroded Corroded" [ref=e51]
+                - button "Missing Missing" [ref=e52]
+                - button "Noisy Noisy" [ref=e53]
+                - button "Contaminated Contaminated" [ref=e54]
+                - button "Damaged Damaged" [ref=e55]
+                - button "Seized Seized" [ref=e56]
+                - button "Misaligned Misaligned" [ref=e57]
+                - button "Worn out Worn out" [ref=e58]
+                - button "Active DTC Active DTC" [ref=e59]
+                - button "Historical DTC Historical DTC" [ref=e60]
+                - button "No fault No fault" [ref=e61]
+                - button "Live Set 1794471507926 Live Set 1794471507926" [ref=e62]
+                - button "Front Left Front Left" [ref=e63]
+                - button "Front Right Front Right" [ref=e64]
+                - button "Rear Left Rear Left" [ref=e65]
+                - button "Rear Right Rear Right" [ref=e66]
+                - button "Front Front" [ref=e67]
+                - button "Rear Rear" [ref=e68]
+                - button "Left Left" [ref=e69]
+                - button "Right Right" [ref=e70]
+                - button "Underbody Underbody" [ref=e71]
+                - button "Engine Bay Engine Bay" [ref=e72]
+                - button "Cabin Cabin" [ref=e73]
+                - button "Exterior Exterior" [ref=e74]
+                - button "Wheel Arch Wheel Arch" [ref=e75]
+                - button "Minor Minor" [ref=e76]
+                - button "Moderate Moderate" [ref=e77]
+                - button "Major Major" [ref=e78]
+                - button "Safety critical Safety critical" [ref=e79]
+              - group "Evidence Evidence checklist More evidence is required for this result.":
+                - generic [ref=e81]: 0 / 1 photos
+                - generic [ref=e82]: 0 / 1 videos
+                - button "Take photo":
+                  - button "Take photo" [ref=e83]
+                - button "Record video":
+                  - button "Record video" [ref=e84]
+                - button "Add document":
+                  - button "Add document" [ref=e85]
+              - button "Save item" [disabled]:
+                - button "Save item" [disabled] [ref=e87]

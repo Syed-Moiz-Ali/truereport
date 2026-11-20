@@ -216,8 +216,7 @@ public final class WorkshopJobDtos {
     public record ChecklistItemDto(
             String code,
             boolean passed,
-            String messageEn,
-            String messageAr
+            String messageEn
     ) {
     }
 

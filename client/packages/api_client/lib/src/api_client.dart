@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:api_client/src/api_config.dart';
 import 'package:api_client/src/problem_details.dart';
 import 'package:core/core.dart';
@@ -51,6 +53,7 @@ class ApiClient {
         ),
       );
     }
+    _dio.interceptors.add(InterceptorsWrapper(onError: _handleAuthError));
   }
 
   final Dio _dio;
@@ -64,6 +67,36 @@ class ApiClient {
   /// `platform_admin`) so the backend can scope error response fields.
   String? clientName;
 
+  /// Invoked once when an authenticated request is rejected with 401 and the
+  /// refresh attempt fails (or no refresh is available).
+  ///
+  /// The session layer uses this to clear the stored session and route to
+  /// sign-in. Public endpoints never trigger it.
+  void Function()? onUnauthorized;
+
+  /// Refreshes the access token, persists the new session, and returns the new
+  /// token. Concurrent 401s share a single in-flight call.
+  Future<String?> Function()? tokenRefresher;
+
+  Future<String?>? _refreshInFlight;
+
+  static const String _retryFlag = '__auth_retried__';
+
+  /// Paths that must never carry a bearer token.
+  ///
+  /// Spring's resource server rejects an invalid token even on `permitAll`
+  /// routes, so sending stale credentials to public endpoints would otherwise
+  /// make language bootstrap and sign-in unrecoverable.
+  static bool isAnonymousPath(String path) {
+    final normalized = path.split('?').first;
+    return normalized.startsWith('/api/v1/i18n/') ||
+        normalized == '/api/v1/auth/login' ||
+        normalized == '/api/v1/auth/refresh' ||
+        normalized == '/api/v1/auth/2fa/verify' ||
+        normalized.startsWith('/r/') ||
+        normalized.startsWith('/report/');
+  }
+
   Dio get raw => _dio;
 
   Future<Map<String, dynamic>> post(
@@ -74,7 +107,7 @@ class ApiClient {
       final response = await _dio.post<Map<String, dynamic>>(
         path,
         data: body,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _authHeaders(path)),
       );
       return response.data ?? <String, dynamic>{};
     } on DioException catch (error) {
@@ -86,7 +119,7 @@ class ApiClient {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         path,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _authHeaders(path)),
       );
       return response.data ?? <String, dynamic>{};
     } on DioException catch (error) {
@@ -99,7 +132,7 @@ class ApiClient {
       final response = await _dio.get<dynamic>(
         path,
         queryParameters: query,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _authHeaders(path)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -116,7 +149,7 @@ class ApiClient {
       final response = await _dio.post<dynamic>(
         path,
         data: body,
-        options: Options(headers: _headers(headers)),
+        options: Options(headers: _headers(path, headers)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -133,7 +166,7 @@ class ApiClient {
       final response = await _dio.put<dynamic>(
         path,
         data: body,
-        options: Options(headers: _headers(headers)),
+        options: Options(headers: _headers(path, headers)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -148,7 +181,7 @@ class ApiClient {
     try {
       final response = await _dio.delete<dynamic>(
         path,
-        options: Options(headers: _headers(headers)),
+        options: Options(headers: _headers(path, headers)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -161,7 +194,7 @@ class ApiClient {
       final response = await _dio.post<dynamic>(
         path,
         data: form,
-        options: Options(headers: _authHeaders()),
+        options: Options(headers: _authHeaders(path)),
       );
       return response.data;
     } on DioException catch (error) {
@@ -195,7 +228,7 @@ class ApiClient {
         data: Stream.fromIterable([bytes]),
         options: Options(
           headers: {
-            ..._headers(headers),
+            ..._headers(path, headers),
             'Content-Type': contentType,
             'Content-Length': bytes.length.toString(),
           },
@@ -213,7 +246,7 @@ class ApiClient {
         path,
         queryParameters: query,
         options: Options(
-          headers: _authHeaders(),
+          headers: _authHeaders(path),
           responseType: ResponseType.bytes,
         ),
       );
@@ -223,14 +256,14 @@ class ApiClient {
     }
   }
 
-  Map<String, String> _headers(Map<String, String>? extra) {
-    return {..._authHeaders(), ...?extra};
+  Map<String, String> _headers(String path, Map<String, String>? extra) {
+    return {..._authHeaders(path), ...?extra};
   }
 
-  Map<String, String> _authHeaders() {
+  Map<String, String> _authHeaders(String path) {
     final headers = <String, String>{};
     final token = accessToken;
-    if (token != null && token.isNotEmpty) {
+    if (!isAnonymousPath(path) && token != null && token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
     }
     final language = acceptLanguage;
@@ -244,7 +277,58 @@ class ApiClient {
     return headers;
   }
 
+  Future<void> _handleAuthError(
+    DioException error,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final request = error.requestOptions;
+    if (error.response?.statusCode != 401 || isAnonymousPath(request.path)) {
+      handler.next(error);
+      return;
+    }
+    final alreadyRetried = request.extra[_retryFlag] == true;
+    final token = alreadyRetried ? null : await _refreshOnce();
+    if (token == null || token.isEmpty) {
+      accessToken = null;
+      final notify = onUnauthorized;
+      if (notify != null) {
+        scheduleMicrotask(notify);
+      }
+      handler.next(error);
+      return;
+    }
+    accessToken = token;
+    request.extra[_retryFlag] = true;
+    request.headers['Authorization'] = 'Bearer $token';
+    try {
+      final response = await _dio.fetch<dynamic>(request);
+      handler.resolve(response);
+    } on DioException catch (retryError) {
+      handler.next(retryError);
+    }
+  }
+
+  /// One refresh at a time; concurrent 401s await the same future.
+  Future<String?> _refreshOnce() {
+    final existing = _refreshInFlight;
+    if (existing != null) return existing;
+    final refresher = tokenRefresher;
+    if (refresher == null) return Future<String?>.value();
+    final future = refresher().then<String?>(
+      (value) => value,
+      onError: (Object _) => null,
+    );
+    _refreshInFlight = future;
+    future.whenComplete(() {
+      if (identical(_refreshInFlight, future)) {
+        _refreshInFlight = null;
+      }
+    });
+    return future;
+  }
+
   AppFailure _toFailure(DioException error) {
+    final status = error.response?.statusCode;
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {
       final problem = ProblemDetails.fromJson(data);
@@ -252,7 +336,7 @@ class ApiClient {
         code: problem.code,
         messageKey: problem.messageKey,
         traceId: problem.traceId,
-        statusCode: problem.status ?? error.response?.statusCode,
+        statusCode: problem.status ?? status,
         detail: problem.detail,
         errors: _errorList(data['errors']),
       );
@@ -260,7 +344,7 @@ class ApiClient {
     return AppFailure(
       code: error.type.name.toUpperCase(),
       messageKey: 'error.network',
-      statusCode: error.response?.statusCode,
+      statusCode: status,
     );
   }
 

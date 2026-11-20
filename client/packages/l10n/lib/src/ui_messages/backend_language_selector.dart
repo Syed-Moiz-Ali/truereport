@@ -136,17 +136,26 @@ class UiMessageBootstrap extends ConsumerStatefulWidget {
   const UiMessageBootstrap({
     required this.client,
     required this.child,
+    this.onAuthFailure,
     super.key,
   });
 
   final String client;
   final Widget child;
 
+  /// Called once when the bootstrap fails with 401/403.
+  ///
+  /// Apps wire this to the session layer so a dead token is cleared and the
+  /// router sends the user to sign-in instead of retrying forever.
+  final VoidCallback? onAuthFailure;
+
   @override
   ConsumerState<UiMessageBootstrap> createState() => _UiMessageBootstrapState();
 }
 
 class _UiMessageBootstrapState extends ConsumerState<UiMessageBootstrap> {
+  bool _authFailureNotified = false;
+
   @override
   void initState() {
     super.initState();
@@ -156,10 +165,39 @@ class _UiMessageBootstrapState extends ConsumerState<UiMessageBootstrap> {
     });
   }
 
+  int? _statusOf(Object? error) {
+    if (error == null) return null;
+    try {
+      final dynamic value = error;
+      final status = value.statusCode;
+      return status is int ? status : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  void _maybeNotifyAuthFailure(UiMessageState selection) {
+    if (selection.bootError == null) {
+      _authFailureNotified = false;
+      return;
+    }
+    if (selection.booting || _authFailureNotified) return;
+    final status = _statusOf(selection.bootError);
+    if (status != 401 && status != 403) return;
+    _authFailureNotified = true;
+    final handler = widget.onAuthFailure;
+    if (handler == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) handler();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final selection = ref.watch(languageSelectionProvider(widget.client));
     if (selection.ready) return widget.child;
+
+    _maybeNotifyAuthFailure(selection);
 
     final theme = Theme.of(context);
     if (!selection.booting && selection.bootError != null) {
@@ -167,6 +205,7 @@ class _UiMessageBootstrapState extends ConsumerState<UiMessageBootstrap> {
         color: theme.scaffoldBackgroundColor,
         child: Center(
           child: IconButton(
+            key: const Key('ui-message-retry'),
             icon: Icon(Icons.refresh_rounded, color: theme.colorScheme.primary),
             onPressed: () => ref
                 .read(languageSelectionProvider(widget.client).notifier)

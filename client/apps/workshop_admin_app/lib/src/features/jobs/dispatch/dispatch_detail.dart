@@ -214,7 +214,11 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
             try {
               await ref
                   .read(adminApiProvider)
-                  .updateJobConsent(job.id, consentGranted: true);
+                  .updateJobConsent(
+                    job.id,
+                    consentGranted: true,
+                    version: job.version,
+                  );
               _refresh();
             } catch (_) {
               if (mounted) {

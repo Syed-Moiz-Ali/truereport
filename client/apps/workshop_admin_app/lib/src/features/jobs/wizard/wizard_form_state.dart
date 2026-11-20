@@ -7,9 +7,8 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 /// page needs: per-step validation and the request body.
 ///
 /// Kept out of the composition so the page stays a layout/state shell. The
-/// request carries `consentGranted: false` (consent is recorded later from the
-/// job detail) and an optional `scheduledAt`: null starts immediately, a value
-/// creates a SCHEDULED job.
+/// request carries the operator's public-link consent choice and an optional
+/// `scheduledAt`: null starts immediately, a value creates a SCHEDULED job.
 class WizardFormState {
   static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -29,6 +28,7 @@ class WizardFormState {
   String preferredLanguage = 'en';
   String? templateVersionId;
   String? technicianId;
+  bool consentGranted = false;
 
   /// Null means "start immediately"; a value creates a SCHEDULED job.
   DateTime? scheduledAt;
@@ -105,7 +105,7 @@ class WizardFormState {
     preferredLanguage: preferredLanguage,
     scheduledAt: scheduledAtIso,
     assignedTechnicianId: technicianId,
-    consentGranted: false,
+    consentGranted: consentGranted,
   );
 
   static String? _nullIfEmpty(String value) {

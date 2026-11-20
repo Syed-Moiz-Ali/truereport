@@ -26,6 +26,7 @@ class AuthRepository {
   final ApiClient _api;
   final SessionStore _store;
   final ApiEndpoints _endpoints;
+  bool _signingOut = false;
 
   Future<Session?> restore() async {
     final stored = await _store.read();
@@ -95,7 +96,23 @@ class AuthRepository {
     return session;
   }
 
+  Future<String?> refreshAccessToken() async {
+    final stored = await _store.read();
+    final refreshToken = stored?['refreshToken'];
+    if (refreshToken is! String || refreshToken.isEmpty) {
+      return null;
+    }
+    try {
+      final session = await refresh(refreshToken);
+      return session?.accessToken;
+    } on Object {
+      return null;
+    }
+  }
+
   Future<void> signOut() async {
+    if (_signingOut) return;
+    _signingOut = true;
     try {
       await _api.post(_endpoints.authLogout, body: const <String, dynamic>{});
     } on AppFailure {
@@ -103,6 +120,7 @@ class AuthRepository {
     } finally {
       _api.accessToken = null;
       await _store.clear();
+      _signingOut = false;
     }
   }
 

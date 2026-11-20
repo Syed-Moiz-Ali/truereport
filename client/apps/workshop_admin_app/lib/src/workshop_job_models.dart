@@ -801,7 +801,7 @@ class NewCleanJob {
   final String? scheduledAt;
   final String? assignedTechnicianId;
 
-  /// Always `false` from this app until CR-5 gives consent a write path.
+  /// Recorded at creation when the operator grants public-link consent.
   final bool consentGranted;
 
   Map<String, dynamic> toJson() => {

@@ -7,8 +7,8 @@ import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/wizard/wizard_choice_group.dart';
 
 /// Step 4: technician (or assign later), the customer's preferred language,
-/// and the honest consent state. Consent cannot be recorded in this version,
-/// so the note states the consequence instead of promising a publish path.
+/// and public-link consent. Consent can be recorded at creation; otherwise it
+/// is recorded from the approve/publish surfaces before the server will accept.
 class WizardTechnicianStep extends ConsumerWidget {
   const WizardTechnicianStep({
     required this.selectedId,
@@ -18,6 +18,8 @@ class WizardTechnicianStep extends ConsumerWidget {
     required this.scheduledAt,
     required this.onPickSchedule,
     required this.onStartImmediately,
+    required this.consentGranted,
+    required this.onConsentChanged,
     super.key,
   });
 
@@ -28,6 +30,8 @@ class WizardTechnicianStep extends ConsumerWidget {
   final DateTime? scheduledAt;
   final VoidCallback onPickSchedule;
   final VoidCallback onStartImmediately;
+  final bool consentGranted;
+  final ValueChanged<bool> onConsentChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -129,10 +133,18 @@ class WizardTechnicianStep extends ConsumerWidget {
           labelFor: (value) => l10n.languageEnglish,
         ),
         SizedBox(height: spacing.lg),
-        WorkshopInlineNote(
-          key: const Key('jobs-consent-note'),
-          text: l10n.jobsConsentUnavailableNote,
-          icon: Icons.verified_user_outlined,
+        Text(l10n.consentPublicLink, style: context.ws.bodyStrong),
+        SizedBox(height: spacing.sm),
+        WorkshopOptionCard<bool>(
+          key: const Key('jobs-wizard-consent'),
+          value: true,
+          groupValue: consentGranted ? true : null,
+          onChanged: (_) => onConsentChanged(!consentGranted),
+          title: l10n.consentPublicLink,
+          caption: consentGranted
+              ? l10n.jobsConsentGranted
+              : l10n.consentNotGranted,
+          leading: const Icon(Icons.verified_user_outlined),
         ),
       ],
     );

@@ -52,7 +52,7 @@ class PublishGate extends StatelessWidget {
               _GateReason(
                 key: const Key('jobs-consent-unavailable-note'),
                 icon: Icons.verified_user_outlined,
-                text: l10n.jobsConsentUnavailableNote,
+                text: l10n.consentNotGranted,
                 tone: ws.muted,
               ),
             if (!checklist.ready) ...[

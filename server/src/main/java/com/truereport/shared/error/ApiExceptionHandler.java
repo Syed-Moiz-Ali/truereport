@@ -23,7 +23,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    private static final Locale ARABIC = Locale.forLanguageTag("ar");
     private static final Locale ENGLISH = Locale.ENGLISH;
     private static final String CLIENT_HEADER = "X-Client";
     private static final String PLATFORM_ADMIN_CLIENT = "platform_admin";
@@ -48,29 +47,24 @@ public class ApiExceptionHandler {
         Locale requested = resolveLocale(request);
         boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve(exception.messageKey(), ENGLISH, exception.getMessage());
-        String messageAr = resolve(exception.messageKey(), ARABIC, exception.getMessage());
         String detailText = platformAdmin
                 ? messageEn
                 : resolve(exception.messageKey(), requested, exception.getMessage());
 
         ProblemDetail detail = problem(exception.status(), exception.code(), exception.messageKey(),
-                detailText, messageEn, messageAr, request);
+                detailText, messageEn, request);
         if (!exception.issues().isEmpty()) {
             List<Map<String, String>> errors = new ArrayList<>();
             for (FieldIssue issue : exception.issues()) {
                 String issueEn = issue.messageEn() != null
                         ? issue.messageEn()
                         : resolve(issue.messageKey(), ENGLISH, issue.code());
-                String issueAr = issue.messageAr() != null
-                        ? issue.messageAr()
-                        : resolve(issue.messageKey(), ARABIC, issueEn);
                 Map<String, String> mapped = new LinkedHashMap<>();
                 mapped.put("field", issue.field());
                 mapped.put("code", issue.code());
                 mapped.put("messageKey", issue.messageKey());
                 if (!platformAdmin) {
                     mapped.put("messageEn", issueEn);
-                    mapped.put("messageAr", issueAr);
                 }
                 errors.add(mapped);
             }
@@ -86,14 +80,13 @@ public class ApiExceptionHandler {
         Locale requested = resolveLocale(request);
         boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.validation.failed", ENGLISH, "Validation failed");
-        String messageAr = resolve("error.validation.failed", ARABIC, messageEn);
         String detailText = platformAdmin
                 ? messageEn
                 : resolve("error.validation.failed", requested, messageEn);
         ProblemDetail detail = problem(HttpStatus.UNPROCESSABLE_ENTITY, "VALIDATION_FAILED",
-                "error.validation.failed", detailText, messageEn, messageAr, request);
+                "error.validation.failed", detailText, messageEn, request);
         List<Map<String, String>> fields = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> fieldError(error, messageEn, messageAr, platformAdmin))
+                .map(error -> fieldError(error, messageEn, platformAdmin))
                 .toList();
         detail.setProperty("fieldErrors", fields);
         detail.setProperty("errors", fields);
@@ -106,10 +99,9 @@ public class ApiExceptionHandler {
         Locale requested = resolveLocale(request);
         boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.notFound", ENGLISH, "Not found");
-        String messageAr = resolve("error.notFound", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.NOT_FOUND, "NOT_FOUND", "error.notFound",
                 platformAdmin ? messageEn : resolve("error.notFound", requested, messageEn),
-                messageEn, messageAr, request);
+                messageEn, request);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(detail);
     }
 
@@ -119,10 +111,9 @@ public class ApiExceptionHandler {
         Locale requested = resolveLocale(request);
         boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.badRequest", ENGLISH, "Invalid request");
-        String messageAr = resolve("error.badRequest", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "error.badRequest",
                 platformAdmin ? messageEn : resolve("error.badRequest", requested, messageEn),
-                messageEn, messageAr, request);
+                messageEn, request);
         return ResponseEntity.badRequest().body(detail);
     }
 
@@ -133,16 +124,15 @@ public class ApiExceptionHandler {
         Locale requested = resolveLocale(request);
         boolean platformAdmin = isPlatformAdmin(request);
         String messageEn = resolve("error.dataIntegrity", ENGLISH, "The change violates a data constraint");
-        String messageAr = resolve("error.dataIntegrity", ARABIC, messageEn);
         ProblemDetail detail = problem(HttpStatus.CONFLICT, "DATA_INTEGRITY_VIOLATION",
                 "error.dataIntegrity",
                 platformAdmin ? messageEn : resolve("error.dataIntegrity", requested, messageEn),
-                messageEn, messageAr, request);
+                messageEn, request);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(detail);
     }
 
     private Map<String, String> fieldError(FieldError error, String messageEn,
-                                           String messageAr, boolean platformAdmin) {
+                                           boolean platformAdmin) {
         Map<String, String> mapped = new LinkedHashMap<>();
         mapped.put("field", error.getField());
         mapped.put("code", error.getCode() == null ? "INVALID" : error.getCode());
@@ -154,7 +144,7 @@ public class ApiExceptionHandler {
     }
 
     private ProblemDetail problem(HttpStatus status, String code, String messageKey,
-                                  String detailText, String messageEn, String messageAr,
+                                  String detailText, String messageEn,
                                   HttpServletRequest request) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(status, detailText);
         detail.setType(URI.create("https://truereport.example/problems/" + code.toLowerCase()));

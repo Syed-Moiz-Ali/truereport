@@ -1,3 +1,4 @@
+import 'package:auth/auth.dart';
 import 'package:workshop_admin_app/src/admin_router.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/api_language_sync.dart';
@@ -30,6 +31,11 @@ class AdminApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => UiMessageBootstrap(
         client: adminUiMessageClient,
+        onAuthFailure: () {
+          final auth = ref.read(authControllerProvider);
+          if (auth.isLoading || auth.value == null) return;
+          ref.read(authControllerProvider.notifier).signOut();
+        },
         child: child ?? const SizedBox.shrink(),
       ),
       routerConfig: router,

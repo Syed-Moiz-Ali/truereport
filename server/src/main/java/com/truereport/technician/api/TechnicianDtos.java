@@ -121,7 +121,7 @@ public final class TechnicianDtos {
     }
 
     public record BlockerDto(
-            String code, String itemCode, String messageEn, String messageAr) {
+            String code, String itemCode, String messageEn) {
     }
 
     public record ReviewDto(

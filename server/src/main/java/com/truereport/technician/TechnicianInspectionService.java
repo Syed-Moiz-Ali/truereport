@@ -306,7 +306,7 @@ public class TechnicianInspectionService {
             AssessmentRow assessment = assessments.get(item.itemCode());
             if (assessment == null) {
                 blockers.add(new BlockerDto("ITEM_NOT_ASSESSED", item.itemCode(),
-                        "The item has not been assessed", "لم يتم تقييم العنصر"));
+                        "The item has not been assessed"));
                 continue;
             }
             assessed++;
@@ -314,18 +314,17 @@ public class TechnicianInspectionService {
         }
         if (!job.signaturePresent()) {
             blockers.add(new BlockerDto("SIGNATURE_MISSING", null,
-                    "Technician signature is missing", "توقيع الفني مفقود"));
+                    "Technician signature is missing"));
         }
         List<ConflictRow> conflictRows = store.conflicts(job.id(), true);
         for (ConflictRow conflict : conflictRows) {
             blockers.add(new BlockerDto("SYNC_CONFLICT", conflict.itemCode(),
-                    "The item has an unresolved sync conflict",
-                    "يوجد تعارض مزامنة غير محلول لهذا العنصر"));
+                    "The item has an unresolved sync conflict"));
         }
         ScoreResult score = computeScore(items, assessments);
         if (score.capApplied()) {
             warnings.add(new BlockerDto("SAFETY_CAP_APPLIED", null,
-                    String.valueOf(score.capReason()), String.valueOf(score.capReason())));
+                    String.valueOf(score.capReason())));
         }
         return new SummaryDto(job.id(), job.status(), assessed, items.size(), score.score(),
                 score.grade(), score.capApplied(), score.capReason(), blockers, warnings,
@@ -343,7 +342,7 @@ public class TechnicianInspectionService {
             AssessmentRow assessment = assessments.get(item.itemCode());
             if (assessment == null) {
                 blockers.add(new BlockerDto("ITEM_NOT_ASSESSED", item.itemCode(),
-                        "The item has not been assessed", "لم يتم تقييم العنصر"));
+                        "The item has not been assessed"));
                 continue;
             }
             ItemConfig config = config(item);
@@ -352,13 +351,12 @@ public class TechnicianInspectionService {
         }
         if (!job.signaturePresent()) {
             blockers.add(new BlockerDto("SIGNATURE_MISSING", null,
-                    "Technician signature is missing", "توقيع الفني مفقود"));
+                    "Technician signature is missing"));
         }
         List<ConflictRow> conflictRows = store.conflicts(job.id(), true);
         for (ConflictRow conflict : conflictRows) {
             blockers.add(new BlockerDto("SYNC_CONFLICT", conflict.itemCode(),
-                    "The item has an unresolved sync conflict",
-                    "يوجد تعارض مزامنة غير محلول لهذا العنصر"));
+                    "The item has an unresolved sync conflict"));
         }
         return new ReviewDto(job.id(), job.status(), blockers, List.of(), findings,
                 conflictRows.stream().map(this::conflictDto).toList());
@@ -433,31 +431,30 @@ public class TechnicianInspectionService {
             AssessmentRow assessment = assessments.get(item.itemCode());
             if (assessment == null) {
                 blockers.add(new BlockerDto("ITEM_NOT_ASSESSED", item.itemCode(),
-                        "The item has not been assessed", "لم يتم تقييم العنصر"));
+                        "The item has not been assessed"));
                 continue;
             }
             blockers.addAll(evidenceBlockers(job, item, config(item), assessment));
         }
         if (!job.signaturePresent()) {
             blockers.add(new BlockerDto("SIGNATURE_MISSING", null,
-                    "Technician signature is missing", "توقيع الفني مفقود"));
+                    "Technician signature is missing"));
         }
         for (ConflictRow conflict : store.conflicts(job.id(), true)) {
             blockers.add(new BlockerDto("SYNC_CONFLICT", conflict.itemCode(),
-                    "The item has an unresolved sync conflict",
-                    "يوجد تعارض مزامنة غير محلول لهذا العنصر"));
+                    "The item has an unresolved sync conflict"));
         }
         ScoreResult score = computeScore(items, assessments);
         if (score.score() == null || score.grade() == null) {
             blockers.add(new BlockerDto("SCORE_NOT_COMPUTABLE", null,
-                    "The inspection score is not computable", "لا يمكن احتساب نتيجة الفحص"));
+                    "The inspection score is not computable"));
         }
         if (!blockers.isEmpty()) {
             List<FieldIssue> issues = blockers.stream()
                     .map(value -> new FieldIssue(
                             value.itemCode() == null ? value.code() : value.itemCode(),
                             value.code(), "error.technician.completionBlocked",
-                            value.messageEn(), value.messageAr(), null))
+                            value.messageEn(), null))
                     .toList();
             throw ApiException.validation("COMPLETION_BLOCKED", "Completion is blocked", issues);
         }
@@ -1176,20 +1173,17 @@ public class TechnicianInspectionService {
         int documents = store.evidenceCount(job.id(), item.itemCode(), "DOCUMENT");
         if (photos < requirements.photos() || videos < requirements.videos()) {
             blockers.add(new BlockerDto("EVIDENCE_RULE_NOT_MET", item.itemCode(),
-                    "Photo/video evidence is incomplete",
-                    "أدلة الصور والفيديو غير مكتملة"));
+                    "Photo/video evidence is incomplete"));
         }
         if (requirements.requiredType() != null
                 && countByType(requirements.requiredType(), photos, videos, documents) == 0) {
             blockers.add(new BlockerDto("EVIDENCE_TYPE_REQUIRED", item.itemCode(),
-                    "The required document evidence is missing",
-                    "دليل المستند المطلوب مفقود"));
+                    "The required document evidence is missing"));
         }
         int noteLength = noteLength(assessment.notesEn()) + noteLength(assessment.notesAr());
         if (requirements.notes() > 0 && noteLength < requirements.notes()) {
             blockers.add(new BlockerDto("NOTES_MIN_LENGTH", item.itemCode(),
-                    "The note is shorter than the configured minimum",
-                    "الملاحظة أقصر من الحد الأدنى المهيأ"));
+                    "The note is shorter than the configured minimum"));
         }
         return blockers;
     }
@@ -1408,7 +1402,7 @@ public class TechnicianInspectionService {
     }
 
     private static FieldIssue issue(String field, String code, String messageKey) {
-        return new FieldIssue(field, code, messageKey, null, null, null);
+        return new FieldIssue(field, code, messageKey, null, null);
     }
 
     private static <T> List<T> safeList(List<T> values) {

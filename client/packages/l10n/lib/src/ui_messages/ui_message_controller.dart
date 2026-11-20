@@ -118,6 +118,7 @@ class UiMessageController extends Notifier<UiMessageState> {
   final String client;
 
   bool _bootstrapStarted = false;
+  bool _bootInFlight = false;
 
   @override
   UiMessageState build() => const UiMessageState();
@@ -132,64 +133,74 @@ class UiMessageController extends Notifier<UiMessageState> {
       UiMessageClients.namespacesFor(client).reversed.toList(growable: false);
 
   Future<void> bootstrap() async {
-    if (_bootstrapStarted) {
+    if (_bootInFlight) return;
+    if (_bootstrapStarted && state.ready) {
       await refresh();
       return;
     }
+    _bootInFlight = true;
     _bootstrapStarted = true;
     state = state.copyWith(booting: true, clearBootError: true);
-    await _cache.restore();
-    final preferred = await _cache.restoreSelectedLanguage();
-    final restored = _cache.manifest;
-    if (restored != null && !_cache.isEmpty) {
-      final active = _resolveActive(
-        restored,
-        preferred ?? state.activeLanguage,
-      );
-      state = state.copyWith(
-        manifest: restored,
-        activeLanguage: active,
-        defaultLanguage: restored.defaultLanguage,
-        ready: _cache.hasCatalog(active),
-        booting: false,
-        revision: state.revision + 1,
-      );
-    }
     try {
-      final manifest = await _api.manifest();
-      await _cache.saveManifest(manifest);
-      await _syncLanguages(manifest, onlyStale: true);
-      final active = _resolveActive(
-        manifest,
-        preferred ?? state.activeLanguage,
-      );
-      final usable = _usableLanguage(manifest, active);
-      if (usable == null) {
-        throw StateError('No usable UI message catalog');
-      }
-      state = state.copyWith(
-        manifest: manifest,
-        activeLanguage: usable,
-        defaultLanguage: manifest.defaultLanguage,
-        ready: true,
-        booting: false,
-        clearBootError: true,
-        revision: state.revision + 1,
-      );
-    } catch (error) {
-      final fallback = _usableLanguage(restored, state.activeLanguage);
-      if (restored != null && fallback != null) {
+      await _cache.restore();
+      final preferred = await _cache.restoreSelectedLanguage();
+      final restored = _cache.manifest;
+      if (restored != null && !_cache.isEmpty) {
+        final active = _resolveActive(
+          restored,
+          preferred ?? state.activeLanguage,
+        );
         state = state.copyWith(
           manifest: restored,
-          activeLanguage: fallback,
-          ready: true,
+          activeLanguage: active,
+          defaultLanguage: restored.defaultLanguage,
+          ready: _cache.hasCatalog(active),
           booting: false,
-          bootError: error,
           revision: state.revision + 1,
         );
-      } else {
-        state = state.copyWith(booting: false, ready: false, bootError: error);
       }
+      try {
+        final manifest = await _api.manifest();
+        await _cache.saveManifest(manifest);
+        await _syncLanguages(manifest, onlyStale: true);
+        final active = _resolveActive(
+          manifest,
+          preferred ?? state.activeLanguage,
+        );
+        final usable = _usableLanguage(manifest, active);
+        if (usable == null) {
+          throw StateError('No usable UI message catalog');
+        }
+        state = state.copyWith(
+          manifest: manifest,
+          activeLanguage: usable,
+          defaultLanguage: manifest.defaultLanguage,
+          ready: true,
+          booting: false,
+          clearBootError: true,
+          revision: state.revision + 1,
+        );
+      } catch (error) {
+        final fallback = _usableLanguage(restored, state.activeLanguage);
+        if (restored != null && fallback != null) {
+          state = state.copyWith(
+            manifest: restored,
+            activeLanguage: fallback,
+            ready: true,
+            booting: false,
+            bootError: error,
+            revision: state.revision + 1,
+          );
+        } else {
+          state = state.copyWith(
+            booting: false,
+            ready: false,
+            bootError: error,
+          );
+        }
+      }
+    } finally {
+      _bootInFlight = false;
     }
   }
 

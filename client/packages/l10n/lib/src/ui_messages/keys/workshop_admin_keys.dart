@@ -623,6 +623,9 @@ abstract final class WorkshopAdminKeys {
   static const jobsConflictReload = UiMessageKey.workshopAdmin(
     'jobsConflictReload',
   );
+  static const jobsConsentGrant = UiMessageKey.workshopAdmin(
+    'jobsConsentGrant',
+  );
   static const jobsConsentGranted = UiMessageKey.workshopAdmin(
     'jobsConsentGranted',
   );
@@ -631,6 +634,9 @@ abstract final class WorkshopAdminKeys {
   );
   static const jobsConsentNotRecorded = UiMessageKey.workshopAdmin(
     'jobsConsentNotRecorded',
+  );
+  static const jobsConsentRevoke = UiMessageKey.workshopAdmin(
+    'jobsConsentRevoke',
   );
   static const jobsConsentUnavailableNote = UiMessageKey.workshopAdmin(
     'jobsConsentUnavailableNote',

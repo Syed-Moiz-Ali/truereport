@@ -161,8 +161,6 @@ public class GovernanceService {
         return new HealthCheckDto("TRANSLATIONS", missing == 0 ? "OK" : "ERROR",
                 missing == 0 ? "English content is complete"
                         : missing + " translation(s) missing",
-                missing == 0 ? "English content is complete"
-                        : missing + " translation(s) missing",
                 missing, references);
     }
 
@@ -175,8 +173,6 @@ public class GovernanceService {
         return new HealthCheckDto("MEASUREMENT_BANDS", broken.isEmpty() ? "OK" : "ERROR",
                 broken.isEmpty() ? "Measurement bands are contiguous and non-overlapping"
                         : broken.size() + " item version(s) have overlapping measurement bands",
-                broken.isEmpty() ? "نطاقات القياس متصلة وغير متداخلة"
-                        : "عدد إصدارات العناصر ذات نطاقات قياس متداخلة " + broken.size(),
                 broken.size(), broken);
     }
 
@@ -190,8 +186,6 @@ public class GovernanceService {
         return new HealthCheckDto("RETIRED_OPTIONS", affected == 0 ? "OK" : "ERROR",
                 affected == 0 ? "No retired option values are referenced by active items"
                         : affected + " retired option value(s) are still referenced",
-                affected == 0 ? "لا توجد قيم خيارات موقوفة مستخدمة"
-                        : "عدد قيم الخيارات الموقوفة المستخدمة " + affected,
                 affected, List.of());
     }
 
@@ -213,8 +207,6 @@ public class GovernanceService {
         return new HealthCheckDto("SAFETY_EVIDENCE", missing.isEmpty() ? "OK" : "ERROR",
                 missing.isEmpty() ? "Safety-critical items have FAIL evidence rules"
                         : missing.size() + " safety-critical item(s) missing FAIL evidence rules",
-                missing.isEmpty() ? "العناصر الحرجة لديها قواعد أدلة للفشل"
-                        : "عدد العناصر الحرجة الناقصة لقواعد أدلة الفشل " + missing.size(),
                 missing.size(), missing);
     }
 
@@ -230,8 +222,6 @@ public class GovernanceService {
         return new HealthCheckDto("TEMPLATE_ITEMS", empty.isEmpty() ? "OK" : "ERROR",
                 empty.isEmpty() ? "All active template versions contain items"
                         : empty.size() + " template version(s) contain zero items",
-                empty.isEmpty() ? "جميع إصدارات القوالب النشطة تحتوي على عناصر"
-                        : "عدد إصدارات القوالب الفارغة " + empty.size(),
                 empty.size(), empty);
     }
 
@@ -251,8 +241,6 @@ public class GovernanceService {
         return new HealthCheckDto("NUMERIC_MEASUREMENTS", missing.isEmpty() ? "OK" : "ERROR",
                 missing.isEmpty() ? "Numeric items have measurement bands"
                         : missing.size() + " numeric item(s) lack measurement bands",
-                missing.isEmpty() ? "العناصر الرقمية لديها نطاقات قياس"
-                        : "عدد العناصر الرقمية الناقصة لنطاقات القياس " + missing.size(),
                 missing.size(), missing);
     }
 
@@ -292,9 +280,7 @@ public class GovernanceService {
         return new ImpactDto("CATEGORY", categoryId, blocked, templateCodes.size(),
                 categoryItems.size(), 0, List.copyOf(templateCodes), itemCodes,
                 blocked ? "Category is referenced by published templates and cannot be deleted"
-                        : "Category is not referenced by templates",
-                blocked ? "التصنيف مستخدم في قوالب منشورة ولا يمكن حذفه"
-                        : "التصنيف غير مستخدم في القوالب");
+                        : "Category is not referenced by templates");
     }
 
     private ImpactDto itemImpact(String itemId) {
@@ -303,9 +289,7 @@ public class GovernanceService {
         return new ImpactDto("ITEM", itemId, false, templateCodes.size(), 1, 0,
                 List.copyOf(templateCodes), List.of(item.stableCode()),
                 templateCodes.isEmpty() ? "Item is not referenced by templates"
-                        : "Item is referenced by " + templateCodes.size() + " template(s)",
-                templateCodes.isEmpty() ? "العنصر غير مستخدم في القوالب"
-                        : "العنصر مستخدم في " + templateCodes.size() + " قالب");
+                        : "Item is referenced by " + templateCodes.size() + " template(s)");
     }
 
     private ImpactDto templateImpact(String templateId) {
@@ -322,8 +306,7 @@ public class GovernanceService {
                 """, Integer.class, templateId);
         return new ImpactDto("TEMPLATE", templateId, false, 1,
                 itemCount == null ? 0 : itemCount, 0, List.of(code), List.of(),
-                "Template has " + (versionCount == null ? 0 : versionCount) + " version(s)",
-                "القالب لديه " + (versionCount == null ? 0 : versionCount) + " إصدار");
+                "Template has " + (versionCount == null ? 0 : versionCount) + " version(s)");
     }
 
     private Set<String> templateCodesForItems(List<ItemRow> sourceItems) {

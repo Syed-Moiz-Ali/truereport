@@ -1259,5 +1259,7 @@
   "reportWorkshop": "Workshop",
   "reportVin": "VIN",
   "pdfDownloadUnsupported": "PDF download is not supported on this platform",
-  "appTitleAdmin": "TrueReport Admin"
+  "appTitleAdmin": "TrueReport Admin",
+  "jobsConsentGrant": "Grant consent",
+  "jobsConsentRevoke": "Revoke consent"
 }

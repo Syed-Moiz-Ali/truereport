@@ -12,7 +12,6 @@ public final class GovernanceDtos {
             String code,
             String severity,
             String messageEn,
-            String messageAr,
             int affected,
             List<String> references
     ) {
@@ -30,8 +29,7 @@ public final class GovernanceDtos {
             int affectedJobs,
             List<String> templateCodes,
             List<String> itemCodes,
-            String messageEn,
-            String messageAr
+            String messageEn
     ) {
     }
 
@@ -63,8 +61,5 @@ public final class GovernanceDtos {
     }
 
     public record ReleaseTransitionResult(ReleaseDto release, boolean makerCheckerPending) {
-    }
-
-    public record GovernanceMessage(String messageEn, String messageAr) {
     }
 }

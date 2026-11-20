@@ -5,7 +5,20 @@ import 'package:domain/domain.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(config: ApiConfig.fromEnvironment());
+  final client = ApiClient(config: ApiConfig.fromEnvironment());
+  client.onUnauthorized = () {
+    // Any 401 on an authenticated endpoint means the stored token is dead.
+    // Clearing the session state makes the router redirect to /signin.
+    try {
+      ref.read(authControllerProvider.notifier).signOut();
+    } on Object {
+      // The controller may still be building during restore(); its own
+      // 401 path clears the store in that case.
+    }
+  };
+  client.tokenRefresher = () =>
+      ref.read(authRepositoryProvider).refreshAccessToken();
+  return client;
 });
 
 final apiEndpointsProvider = Provider<ApiEndpoints>((ref) {
