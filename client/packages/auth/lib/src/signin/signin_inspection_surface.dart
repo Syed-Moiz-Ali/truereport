@@ -1,9 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'signin_example.dart';
 import 'signin_primitives.dart';
+import 'signin_keys.dart';
 
 /// The bay window: the labelled example job, its vehicle drawn top-down, and
 /// the checklist as 24 physical ticks.
@@ -24,16 +25,12 @@ class SigninInspectionSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
-    final progress = l10n.signInExampleProgress(
-      exampleDone,
-      exampleTotal,
-      examplePercent,
-    );
+    final t = UiStrings.of(context);
+    final progress = t(SignInKeys.signInExampleProgress, {'done': exampleDone, 'total': exampleTotal, 'percent': examplePercent});
 
     return Semantics(
       container: true,
-      label: '${l10n.signInExampleLabel} · $exampleVehicle',
+      label: '${t(SignInKeys.signInExampleLabel)} · $exampleVehicle',
       child: LayoutBuilder(
         builder: (context, constraints) {
           final roomy = constraints.maxWidth >= 600;
@@ -91,7 +88,7 @@ class SigninInspectionSurface extends StatelessWidget {
                             SizedBox(width: spacing.sm),
                             Flexible(
                               child: Text(
-                                l10n.signInExampleLabel.toUpperCase(),
+                                t(SignInKeys.signInExampleLabel).toUpperCase(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: ws.eyebrow.copyWith(
@@ -134,7 +131,7 @@ class SigninInspectionSurface extends StatelessWidget {
                             // phrase wrapped.
                             Expanded(
                               child: Text(
-                                l10n.signInExampleChecklist,
+                                t(SignInKeys.signInExampleChecklist),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: ws.eyebrow.copyWith(
@@ -179,7 +176,7 @@ class SigninInspectionSurface extends StatelessWidget {
                               child: _ltr(
                                 Text(
                                   '$exampleTechnician · '
-                                  '${l10n.roleLeadTechnician}',
+                                  '${t(SignInKeys.roleLeadTechnician)}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: ws.meta.copyWith(color: ws.onAccent),
@@ -188,7 +185,7 @@ class SigninInspectionSurface extends StatelessWidget {
                             ),
                             SizedBox(width: spacing.sm),
                             Text(
-                              l10n.signInExampleStarted(exampleStartedMinutes),
+                              t(SignInKeys.signInExampleStarted, {'minutes': exampleStartedMinutes}),
                               style: ws.meta.copyWith(
                                 color: ws.onAccent.withValues(alpha: 0.62),
                               ),

@@ -11,7 +11,6 @@ class PlatformCatalogueValue {
     required this.status,
     required this.sortOrder,
     required this.labelEn,
-    required this.labelAr,
   });
 
   final String id;
@@ -19,7 +18,6 @@ class PlatformCatalogueValue {
   final String status;
   final int sortOrder;
   final String labelEn;
-  final String labelAr;
 
   factory PlatformCatalogueValue.fromJson(Map<String, dynamic> json) =>
       PlatformCatalogueValue(
@@ -28,7 +26,6 @@ class PlatformCatalogueValue {
         status: _s(json['status']),
         sortOrder: _i(json['sortOrder']),
         labelEn: _s(json['labelEn']),
-        labelAr: _s(json['labelAr']),
       );
 }
 
@@ -40,7 +37,6 @@ class PlatformCatalogueEntry {
     required this.status,
     required this.sortOrder,
     required this.labelEn,
-    required this.labelAr,
     required this.values,
   });
 
@@ -49,7 +45,6 @@ class PlatformCatalogueEntry {
   final String status;
   final int sortOrder;
   final String labelEn;
-  final String labelAr;
   final List<PlatformCatalogueValue> values;
 
   factory PlatformCatalogueEntry.fromJson(Map<String, dynamic> json) =>
@@ -59,7 +54,6 @@ class PlatformCatalogueEntry {
         status: _s(json['status']),
         sortOrder: _i(json['sortOrder']),
         labelEn: _s(json['labelEn']),
-        labelAr: _s(json['labelAr']),
         values: (json['values'] as List<dynamic>? ?? const [])
             .map(
               (item) =>

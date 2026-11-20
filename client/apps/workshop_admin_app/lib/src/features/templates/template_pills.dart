@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 
 /// Rounded control language for the templates module.
 ///
@@ -220,21 +222,22 @@ class _TemplatePillChipState extends State<TemplatePillChip> {
   }
 }
 
-/// Lifecycle badge for DRAFT / PUBLISHED / RETIRED.
-class TemplateStatusPill extends StatelessWidget {
+/// Lifecycle badge served by `statusesProvider('template')`.
+class TemplateStatusPill extends ConsumerWidget {
   const TemplateStatusPill({required this.status, super.key});
 
   final String status;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
-    final (Color bg, Color fg, String label) = switch (status) {
-      'PUBLISHED' => (ws.successSoft, ws.success, l10n.published),
-      'RETIRED' => (ws.canvas, ws.muted, l10n.retired),
-      _ => (ws.warningSoft, ws.warning, l10n.draft),
-    };
+    final record = referenceRecordFor(
+      ref.watch(statusesProvider('template')).value,
+      status,
+    );
+    final tone = workshopToneFromToken(record?.tone ?? '');
+    final (fg, bg) = workshopPillColors(tone, ws);
+    final label = referenceLabelFor(record) ?? humanizeReferenceCode(status);
     return Semantics(
       label: label,
       child: Container(

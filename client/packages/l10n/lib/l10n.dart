@@ -1,14 +1,9 @@
-export 'l10n/gen/app_localizations.dart';
-export 'src/locale_controller.dart';
-export 'src/remote_english.dart';
-export 'src/ui_messages/ui_message_api.dart';
-export 'src/ui_messages/ui_message_cache.dart';
-export 'src/ui_messages/ui_message_catalog.dart';
-export 'src/ui_messages/ui_message_controller.dart';
-export 'src/ui_messages/ui_message_key.dart';
-export 'src/ui_messages/ui_message_manifest.dart';
-export 'src/ui_messages/backend_language_selector.dart';
-export 'src/ui_messages/keys/common_keys.dart';
-export 'src/ui_messages/keys/platform_admin_keys.dart';
-export 'src/ui_messages/keys/workshop_admin_keys.dart';
-export 'src/ui_messages/keys/technician_keys.dart';
+/// Compatibility entry point.
+///
+/// The generated accessor no longer exists. Prefer
+/// `package:l10n/ui_strings.dart`; this file only forwards to it so existing
+/// imports (for example the gallery and Platform Admin preview fixtures) keep
+/// resolving the shared key classes, providers and `UiStrings`.
+library;
+
+export 'ui_strings.dart';

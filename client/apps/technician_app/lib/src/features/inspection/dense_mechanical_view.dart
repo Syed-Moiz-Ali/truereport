@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/shared/technician_intl.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
@@ -62,13 +64,13 @@ class DenseMechanicalView extends StatefulWidget {
   ];
 
   static (double, double) iconDimensions(String id) => switch (id) {
-        '1_8241' => (16.5, 16.5),
-        '1_8255' => (18.33, 18.33),
-        '1_8288' => (14.67, 17.42),
-        '1_8309' => (18.42, 18.33),
-        '1_8323' => (14.67, 18.33),
-        _ => (17.0, 17.0),
-      };
+    '1_8241' => (16.5, 16.5),
+    '1_8255' => (18.33, 18.33),
+    '1_8288' => (14.67, 17.42),
+    '1_8309' => (18.42, 18.33),
+    '1_8323' => (14.67, 18.33),
+    _ => (17.0, 17.0),
+  };
 
   @override
   State<DenseMechanicalView> createState() => _DenseMechanicalViewState();
@@ -103,14 +105,14 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final localeName = Localizations.localeOf(context).toString();
     final checklist = widget.checklist;
     final derivedInitials = fxInitials(
       checklist.job.assignedTechnicianName ?? '',
     );
     final category = checklist.items.isEmpty
-        ? l10n.checklist
+        ? t(TechnicianKeys.checklist)
         : _categoryOf(checklist.items.first, context);
     return Scaffold(
       backgroundColor: Fx.white,
@@ -143,7 +145,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                           ),
                         ),
                         Text(
-                          '${formatCountLocalized(checklist.completed, localeName)} ${l10n.technicianChecksDone} / ${formatCountLocalized(checklist.total, localeName)}',
+                          '${formatCountLocalized(checklist.completed, localeName)} ${t(TechnicianKeys.technicianChecksDone)} / ${formatCountLocalized(checklist.total, localeName)}',
                           style: Fx.body13.copyWith(color: Fx.muted),
                         ),
                       ],
@@ -159,8 +161,12 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                       foreground: Fx.ink,
                       dot: Fx.emerald,
                       dotSize: 8,
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 6),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        12,
+                        6,
+                        12,
+                        6,
+                      ),
                       style: Fx.text(
                         11,
                         14,
@@ -217,7 +223,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
             child: F2bFocusFrame(
               borderRadius: BorderRadius.zero,
               child: FxHeader(
-                title: l10n.checklist,
+                title: t(TechnicianKeys.checklist),
                 showBack: widget.onBack != null,
                 leading: widget.onBack != null
                     ? Semantics(
@@ -255,7 +261,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                             : derivedInitials,
                         iconId: '1_8348',
                         onPressed: widget.onProfile,
-                        semanticLabel: l10n.technicianProfileTitle,
+                        semanticLabel: t(TechnicianKeys.technicianProfileTitle),
                       ),
                     ),
                   ),
@@ -279,7 +285,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
                 top: false,
                 child: F2bFocusFrame(
                   child: FxButton(
-                    label: l10n.reviewAndFinalize,
+                    label: t(TechnicianKeys.reviewAndFinalize),
                     onPressed: widget.finalized ? null : widget.onContinue,
                     icon: const FxIcon(
                       id: '1_8335',
@@ -303,7 +309,7 @@ class _DenseMechanicalViewState extends State<DenseMechanicalView> {
       : item.categoryLabelEn;
 }
 
-class _ItemCard extends StatefulWidget {
+class _ItemCard extends ConsumerStatefulWidget {
   const _ItemCard({
     required this.item,
     required this.iconId,
@@ -332,10 +338,10 @@ class _ItemCard extends StatefulWidget {
   final VoidCallback onOpen;
 
   @override
-  State<_ItemCard> createState() => _ItemCardState();
+  ConsumerState<_ItemCard> createState() => _ItemCardState();
 }
 
-class _ItemCardState extends State<_ItemCard> {
+class _ItemCardState extends ConsumerState<_ItemCard> {
   String? _severity;
   String? _result;
   final FocusNode _headerFocus = FocusNode();
@@ -378,7 +384,9 @@ class _ItemCardState extends State<_ItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final severityRecords = ref.watch(enumsProvider('severity')).value;
     final item = widget.item;
     final result = _result;
     final primaryIndex = DenseMechanicalView._primary.indexOf(result ?? '');
@@ -517,52 +525,52 @@ class _ItemCardState extends State<_ItemCard> {
                                 ),
                               )
                             : done
-                                ? Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: const BoxDecoration(
-                                      color: F2b.emeraldWash,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Center(
-                                      child: FxIcon(
-                                        id: '1_8249',
-                                        size: 16.67,
-                                        color: Fx.emerald,
-                                      ),
-                                    ),
-                                  )
-                                : widget.focused
-                                    ? Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: const BoxDecoration(
-                                          color: Fx.container,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Center(
-                                          child: FxIcon(
-                                            id: '1_8296',
-                                            size: 16.67,
-                                            color: Fx.outline,
-                                          ),
-                                        ),
-                                      )
-                                    : Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: const BoxDecoration(
-                                          color: Fx.container,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Center(
-                                          child: FxIcon(
-                                            id: '1_8317',
-                                            size: 10,
-                                            color: Fx.muted,
-                                          ),
-                                        ),
-                                      ),
+                            ? Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: F2b.emeraldWash,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: FxIcon(
+                                    id: '1_8249',
+                                    size: 16.67,
+                                    color: Fx.emerald,
+                                  ),
+                                ),
+                              )
+                            : widget.focused
+                            ? Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: Fx.container,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: FxIcon(
+                                    id: '1_8296',
+                                    size: 16.67,
+                                    color: Fx.outline,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: Fx.container,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: FxIcon(
+                                    id: '1_8317',
+                                    size: 10,
+                                    color: Fx.muted,
+                                  ),
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -576,7 +584,7 @@ class _ItemCardState extends State<_ItemCard> {
               height: 36,
               optionHeight: 28,
               labels: DenseMechanicalView._primary
-                  .map((code) => resultLabel(l10n, code))
+                  .map((code) => resultLabel(resultRecords, code))
                   .toList(growable: false),
               selectedIndex: primaryIndex < 0 ? null : primaryIndex,
               onSelected: widget.finalized
@@ -594,7 +602,7 @@ class _ItemCardState extends State<_ItemCard> {
               height: 40,
               optionHeight: 32,
               labels: DenseMechanicalView._primary
-                  .map((code) => resultLabel(l10n, code))
+                  .map((code) => resultLabel(resultRecords, code))
                   .toList(growable: false),
               selectedIndex: primaryIndex < 0 ? null : primaryIndex,
               selectedShadow: const [
@@ -619,7 +627,7 @@ class _ItemCardState extends State<_ItemCard> {
               children: [
                 for (final code in DenseMechanicalView._secondary)
                   F2bChip(
-                    label: resultLabel(l10n, code),
+                    label: resultLabel(resultRecords, code),
                     selected:
                         secondaryIndex >= 0 &&
                         DenseMechanicalView._secondary[secondaryIndex] == code,
@@ -634,7 +642,7 @@ class _ItemCardState extends State<_ItemCard> {
             ),
             if (defect) ...[
               const SizedBox(height: _M.gapMid),
-              F2bSectionLabel(l10n.severity),
+              F2bSectionLabel(t(TechnicianKeys.severity)),
               const SizedBox(height: _M.gapXSmall),
               Wrap(
                 spacing: 8,
@@ -647,7 +655,7 @@ class _ItemCardState extends State<_ItemCard> {
                     'SAFETY_CRITICAL',
                   ])
                     F2bChip(
-                      label: severityLabel(l10n, code),
+                      label: severityLabel(severityRecords, code),
                       selected: _severity == code,
                       onTap: widget.finalized
                           ? () {}
@@ -667,20 +675,14 @@ class _ItemCardState extends State<_ItemCard> {
               child: TextField(
                 controller: widget.noteController,
                 maxLines: 2,
-                style: Fx.text(
-                  14,
-                  20,
-                  FontWeight.w500,
-                  -0.07,
-                  color: Fx.ink,
-                ),
+                style: Fx.text(14, 20, FontWeight.w500, -0.07, color: Fx.ink),
                 cursorColor: Fx.emerald,
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  hintText: l10n.note,
+                  hintText: t(TechnicianKeys.note),
                   hintStyle: Fx.text(
                     14,
                     20,
@@ -698,7 +700,7 @@ class _ItemCardState extends State<_ItemCard> {
                 Expanded(
                   child: F2bFocusFrame(
                     child: FxButton(
-                      label: l10n.addPhoto,
+                      label: t(TechnicianKeys.addPhoto),
                       onPressed: widget.finalized ? null : widget.onOpen,
                       tone: FxButtonTone.primary,
                       height: 48,
@@ -739,7 +741,7 @@ class _ItemCardState extends State<_ItemCard> {
                 const Spacer(),
                 F2bFocusFrame(
                   child: FxButton(
-                    label: l10n.saveAnswer,
+                    label: t(TechnicianKeys.saveAnswer),
                     onPressed: widget.finalized || result == null || widget.busy
                         ? null
                         : () => widget.onSave(

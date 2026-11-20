@@ -3,13 +3,13 @@ import 'dart:ui' as ui;
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart';
-import 'package:technician_app/src/ui_helpers.dart';
+import 'package:technician_app/src/reference_ui.dart';
 
-
-class JobIntakeView extends StatelessWidget {
+class JobIntakeView extends ConsumerWidget {
   const JobIntakeView({
     required this.job,
     required this.onStart,
@@ -40,14 +40,14 @@ class JobIntakeView extends StatelessWidget {
   final ui.Image? vehicleImage;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final finalized = job.status == 'FINALIZED';
     final cancelled = job.status == 'CANCELLED';
     final startable = job.status == 'ASSIGNED' || job.status == 'SCHEDULED';
     final showActions = !finalized && !cancelled;
     final title = job.templateName.isEmpty
-        ? l10n.technicianJobIntake
+        ? t(TechnicianKeys.technicianJobIntake)
         : job.templateName;
 
     return AppScaffold(
@@ -68,11 +68,7 @@ class JobIntakeView extends StatelessWidget {
               width: 44,
               height: 44,
               child: Center(
-                child: FxIcon(
-                  id: '1_7525',
-                  size: 20,
-                  color: Fx.ink,
-                ),
+                child: FxIcon(id: '1_7525', size: 20, color: Fx.ink),
               ),
             ),
           ),
@@ -84,13 +80,16 @@ class JobIntakeView extends StatelessWidget {
             iconId: '1_7530',
             onPressed: onProfile,
             semanticLabel:
-                job.assignedTechnicianName ?? l10n.technicianProfileTitle,
+                job.assignedTechnicianName ??
+                t(TechnicianKeys.technicianProfileTitle),
           ),
         ],
       ),
       bottomNavigationBar: showActions
           ? _StickyAction(
-              label: startable ? l10n.startInspection : l10n.resumeInspection,
+              label: startable
+                  ? t(TechnicianKeys.startInspection)
+                  : t(TechnicianKeys.resumeInspection),
               onPressed: onStart,
               loading: starting,
             )
@@ -109,11 +108,11 @@ class JobIntakeView extends StatelessWidget {
                 ),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final textScale =
-                        MediaQuery.textScalerOf(context).scale(1);
+                    final textScale = MediaQuery.textScalerOf(context).scale(1);
                     final scheduledText = scheduledTimeUtc4(job.scheduledAt);
-                    final intakeLabel = l10n.technicianJobIntake.toUpperCase();
-                    final readyLabel = technicianStatusLabel(l10n, job.status);
+                    final intakeLabel = t(TechnicianKeys.technicianJobIntake)
+                        .toUpperCase();
+                    final readyLabel = jobStatusLabel(ref, job.status);
 
                     if (constraints.maxWidth >= 340 && textScale <= 1.1) {
                       return SizedBox(
@@ -235,10 +234,7 @@ class JobIntakeView extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(
                 bottom: _M.sectionBottom,
               ),
-              child: _ReadyCard(
-                job: job,
-                onTap: onEquipment,
-              ),
+              child: _ReadyCard(job: job, onTap: onEquipment),
             ),
             if (showActions) ...[
               const SizedBox(height: _M.g16),
@@ -271,13 +267,13 @@ class _Actions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Wrap(
       spacing: _M.g8,
       runSpacing: _M.g8,
       children: [
         FxButton(
-          label: l10n.customerInformation,
+          label: t(TechnicianKeys.customerInformation),
           onPressed: onEditCustomer,
           tone: FxButtonTone.tonal,
           height: _M.actionHeight,
@@ -285,7 +281,7 @@ class _Actions extends StatelessWidget {
           trailingIcon: false,
         ),
         FxButton(
-          label: l10n.vehicleIdentification,
+          label: t(TechnicianKeys.vehicleIdentification),
           onPressed: onEditVehicle,
           tone: FxButtonTone.tonal,
           height: _M.actionHeight,
@@ -293,7 +289,7 @@ class _Actions extends StatelessWidget {
           trailingIcon: false,
         ),
         FxButton(
-          label: l10n.consent,
+          label: t(TechnicianKeys.consent),
           onPressed: onConsent,
           tone: FxButtonTone.tonal,
           height: _M.actionHeight,
@@ -301,7 +297,7 @@ class _Actions extends StatelessWidget {
           trailingIcon: false,
         ),
         FxButton(
-          label: l10n.equipment,
+          label: t(TechnicianKeys.equipment),
           onPressed: onEquipment,
           tone: FxButtonTone.tonal,
           height: _M.actionHeight,
@@ -350,8 +346,9 @@ class _VehicleHero extends StatelessWidget {
                   ),
                   child: TechnicianVehicleSilhouette(
                     height: _M.silhouetteHeight,
-                    semanticLabel: AppLocalizations.of(context)
-                        .technicianVehicleSilhouette,
+                    semanticLabel: UiStrings.of(context)(
+                      TechnicianKeys.technicianVehicleSilhouette,
+                    ),
                   ),
                 ),
               ),
@@ -396,7 +393,9 @@ class _VehicleHero extends StatelessWidget {
                   const SizedBox(height: _M.g4),
                   Text(
                     model.isEmpty
-                        ? AppLocalizations.of(context).technicianUnknownVehicle
+                        ? UiStrings.of(context)(
+                            TechnicianKeys.technicianUnknownVehicle,
+                          )
                         : model,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -442,7 +441,7 @@ class _VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final make = job.vehicleMake;
     final model = job.vehicleModel;
     final year = job.vehicleYear?.toString() ?? '';
@@ -467,7 +466,7 @@ class _VehicleCard extends StatelessWidget {
                 const SizedBox(width: _M.g12),
                 Expanded(
                   child: Text(
-                    l10n.technicianVehicleInfo,
+                    t(TechnicianKeys.technicianVehicleInfo),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
@@ -500,7 +499,7 @@ class _VehicleCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _LabeledValue(
-                  label: l10n.technicianMake,
+                  label: t(TechnicianKeys.technicianMake),
                   value: make,
                   emphasized: true,
                 ),
@@ -508,7 +507,7 @@ class _VehicleCard extends StatelessWidget {
               const SizedBox(width: _M.gridGap),
               Expanded(
                 child: _LabeledValue(
-                  label: l10n.technicianModel,
+                  label: t(TechnicianKeys.technicianModel),
                   value: model,
                   emphasized: true,
                 ),
@@ -521,7 +520,7 @@ class _VehicleCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _LabeledValue(
-                  label: l10n.technicianYear,
+                  label: t(TechnicianKeys.technicianYear),
                   value: year,
                   emphasized: true,
                 ),
@@ -529,7 +528,7 @@ class _VehicleCard extends StatelessWidget {
               const SizedBox(width: _M.gridGap),
               Expanded(
                 child: _LabeledValue(
-                  label: l10n.technicianOdometer,
+                  label: t(TechnicianKeys.technicianOdometer),
                   value: odometer,
                   emphasized: true,
                   ltr: true,
@@ -540,16 +539,14 @@ class _VehicleCard extends StatelessWidget {
           const SizedBox(height: _M.sectionGap),
           Builder(
             builder: (context) {
-              final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.1;
+              final isLargeText =
+                  MediaQuery.textScalerOf(context).scale(1) > 1.1;
               return Container(
                 height: isLargeText ? null : _M.vinHeight,
-                constraints: isLargeText ? const BoxConstraints(minHeight: _M.vinHeight) : null,
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  14,
-                  16,
-                  14,
-                  14,
-                ),
+                constraints: isLargeText
+                    ? const BoxConstraints(minHeight: _M.vinHeight)
+                    : null,
+                padding: const EdgeInsetsDirectional.fromSTEB(14, 16, 14, 14),
                 decoration: BoxDecoration(
                   color: Fx.container,
                   borderRadius: BorderRadius.circular(_M.r16),
@@ -559,46 +556,52 @@ class _VehicleCard extends StatelessWidget {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: isLargeText ? MainAxisSize.min : MainAxisSize.max,
+                        mainAxisSize: isLargeText
+                            ? MainAxisSize.min
+                            : MainAxisSize.max,
                         children: [
-                      Text(
-                        l10n.technicianVinChassis,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Fx.caption.copyWith(
-                          color: Fx.muted,
-                          letterSpacing: 0.44,
-                        ),
+                          Text(
+                            t(TechnicianKeys.technicianVinChassis),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Fx.caption.copyWith(
+                              color: Fx.muted,
+                              letterSpacing: 0.44,
+                            ),
+                          ),
+                          const SizedBox(height: _M.g2),
+                          Text(
+                            vin,
+                            textDirection: TextDirection.ltr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Fx.text(
+                              13,
+                              18,
+                              FontWeight.w600,
+                              0.65,
+                              color: Fx.inkStrong,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: _M.g2),
-                      Text(
-                        vin,
-                        textDirection: TextDirection.ltr,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Fx.text(
-                          13,
-                          18,
-                          FontWeight.w600,
-                          0.65,
-                          color: Fx.inkStrong,
-                        ),
-                      ),
-                    ],
-                  ),
                     ),
                     Semantics(
                       button: true,
-                      label: l10n.technicianCopyVin,
+                      label: t(TechnicianKeys.technicianCopyVin),
                       child: InkResponse(
                         onTap: vin.isEmpty
                             ? null
                             : () async {
-                                await Clipboard.setData(ClipboardData(text: vin));
+                                await Clipboard.setData(
+                                  ClipboardData(text: vin),
+                                );
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(l10n.technicianVinCopied),
+                                      content: Text(
+                                        t(TechnicianKeys.technicianVinCopied),
+                                      ),
                                     ),
                                   );
                                 }
@@ -640,14 +643,14 @@ class _CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final name = job.customerName;
     final phone = job.customerPhone ?? '';
     final service = job.scope.isNotEmpty
         ? job.scope
         : (job.templateName.isNotEmpty
-            ? job.templateName
-            : l10n.technicianNotProvided);
+              ? job.templateName
+              : t(TechnicianKeys.technicianNotProvided));
 
     return FxCard(
       radius: _M.sectionRadius,
@@ -668,7 +671,7 @@ class _CustomerCard extends StatelessWidget {
                 const SizedBox(width: _M.g12),
                 Expanded(
                   child: Text(
-                    l10n.technicianCustomerInfo,
+                    t(TechnicianKeys.technicianCustomerInfo),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.heading18.copyWith(color: Fx.inkStrong),
@@ -678,7 +681,7 @@ class _CustomerCard extends StatelessWidget {
                   onTap: onEditCustomer,
                   radius: 20,
                   child: FxPill(
-                    label: l10n.technicianCustomerChip,
+                    label: t(TechnicianKeys.technicianCustomerChip),
                     height: _M.ownerHeight,
                     foreground: Fx.muted,
                     padding: const EdgeInsetsDirectional.symmetric(
@@ -696,14 +699,17 @@ class _CustomerCard extends StatelessWidget {
           ),
           const SizedBox(height: _M.sectionGap),
           _LabeledValue(
-            label: l10n.customerName,
-            value: name.isEmpty ? l10n.technicianNotProvided : name,
+            label: t(TechnicianKeys.customerName),
+            value: name.isEmpty
+                ? t(TechnicianKeys.technicianNotProvided)
+                : name,
             emphasized: true,
           ),
           const SizedBox(height: _M.g16),
           Builder(
             builder: (context) {
-              final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.1;
+              final isLargeText =
+                  MediaQuery.textScalerOf(context).scale(1) > 1.1;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -714,7 +720,7 @@ class _CustomerCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.technicianPhone,
+                                t(TechnicianKeys.technicianPhone),
                                 style: Fx.text(
                                   11,
                                   14,
@@ -724,7 +730,9 @@ class _CustomerCard extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                phone.isEmpty ? l10n.technicianNotProvided : phone,
+                                phone.isEmpty
+                                    ? t(TechnicianKeys.technicianNotProvided)
+                                    : phone,
                                 textDirection: TextDirection.ltr,
                                 style: Fx.text(
                                   16,
@@ -737,9 +745,15 @@ class _CustomerCard extends StatelessWidget {
                               const SizedBox(height: _M.g8),
                               Row(
                                 children: [
-                                  _ContactButton(iconId: '1_7477', label: l10n.technicianCall),
+                                  _ContactButton(
+                                    iconId: '1_7477',
+                                    label: t(TechnicianKeys.technicianCall),
+                                  ),
                                   const SizedBox(width: _M.g8),
-                                  _ContactButton(iconId: '1_7480', label: l10n.technicianMessage),
+                                  _ContactButton(
+                                    iconId: '1_7480',
+                                    label: t(TechnicianKeys.technicianMessage),
+                                  ),
                                 ],
                               ),
                             ],
@@ -751,11 +765,13 @@ class _CustomerCard extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        l10n.technicianPhone,
+                                        t(TechnicianKeys.technicianPhone),
                                         style: Fx.text(
                                           11,
                                           14,
@@ -765,7 +781,12 @@ class _CustomerCard extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        phone.isEmpty ? l10n.technicianNotProvided : phone,
+                                        phone.isEmpty
+                                            ? t(
+                                                TechnicianKeys
+                                                    .technicianNotProvided,
+                                              )
+                                            : phone,
                                         textDirection: TextDirection.ltr,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -781,11 +802,14 @@ class _CustomerCard extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: _M.g8),
-                                _ContactButton(iconId: '1_7477', label: l10n.technicianCall),
+                                _ContactButton(
+                                  iconId: '1_7477',
+                                  label: t(TechnicianKeys.technicianCall),
+                                ),
                                 const SizedBox(width: _M.g8),
                                 _ContactButton(
                                   iconId: '1_7480',
-                                  label: l10n.technicianMessage,
+                                  label: t(TechnicianKeys.technicianMessage),
                                 ),
                               ],
                             ),
@@ -798,10 +822,12 @@ class _CustomerCard extends StatelessWidget {
                       height: isLargeText ? null : 38,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: isLargeText ? MainAxisAlignment.start : MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: isLargeText
+                            ? MainAxisAlignment.start
+                            : MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            l10n.technicianServicePackage,
+                            t(TechnicianKeys.technicianServicePackage),
                             style: Fx.text(
                               11,
                               14,
@@ -867,24 +893,24 @@ class _ContactButton extends StatelessWidget {
   }
 }
 
-class _ReadyCard extends StatelessWidget {
+class _ReadyCard extends ConsumerWidget {
   const _ReadyCard({required this.job, required this.onTap});
 
   final TechnicianJob job;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.technicianJobDetailsReady;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
+    final title = t(TechnicianKeys.technicianJobDetailsReady);
     final subtitle = [
-      technicianStatusLabel(l10n, job.status),
+      jobStatusLabel(ref, job.status),
       if (job.templateVersionNo != null)
-        '${l10n.versions} ${job.templateVersionNo}',
+        '${t(TechnicianKeys.versions)} ${job.templateVersionNo}',
     ].join(' · ');
     final right = job.templateVersionNo == null
-        ? l10n.technicianInspection
-        : '${l10n.versions} ${job.templateVersionNo}';
+        ? t(TechnicianKeys.technicianInspection)
+        : '${t(TechnicianKeys.versions)} ${job.templateVersionNo}';
 
     return InkResponse(
       onTap: onTap,

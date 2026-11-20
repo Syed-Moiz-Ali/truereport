@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Step 1 — the template's own identity.
 ///
@@ -27,7 +27,7 @@ class TemplateDetailsStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Form(
       key: formKey,
@@ -43,7 +43,10 @@ class TemplateDetailsStep extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(l10n.details, style: ws.cardTitle.copyWith(color: ws.ink)),
+            Text(
+              t(WorkshopAdminKeys.details),
+              style: ws.cardTitle.copyWith(color: ws.ink),
+            ),
             const SizedBox(height: 18),
             LayoutBuilder(
               builder: (context, c) {
@@ -51,15 +54,15 @@ class TemplateDetailsStep extends StatelessWidget {
                 final service = _field(
                   context,
                   controller: serviceType,
-                  label: l10n.serviceType,
-                  hint: l10n.serviceType,
+                  label: t(WorkshopAdminKeys.serviceType),
+                  hint: t(WorkshopAdminKeys.serviceType),
                   enabled: enabled,
                 );
                 final vehicle = _field(
                   context,
                   controller: vehicleType,
-                  label: l10n.vehicleType,
-                  hint: l10n.vehicleType,
+                  label: t(WorkshopAdminKeys.vehicleType),
+                  hint: t(WorkshopAdminKeys.vehicleType),
                   enabled: enabled,
                 );
                 return Column(
@@ -68,8 +71,8 @@ class TemplateDetailsStep extends StatelessWidget {
                     _field(
                       context,
                       controller: name,
-                      label: l10n.templateName,
-                      hint: l10n.templateName,
+                      label: t(WorkshopAdminKeys.templateName),
+                      hint: t(WorkshopAdminKeys.templateName),
                       enabled: enabled,
                       required: true,
                     ),
@@ -96,8 +99,8 @@ class TemplateDetailsStep extends StatelessWidget {
             _field(
               context,
               controller: description,
-              label: l10n.templateDescription,
-              hint: l10n.templateDescription,
+              label: t(WorkshopAdminKeys.templateDescription),
+              hint: t(WorkshopAdminKeys.templateDescription),
               enabled: enabled,
             ),
           ],
@@ -114,7 +117,7 @@ class TemplateDetailsStep extends StatelessWidget {
     required bool enabled,
     bool required = false,
   }) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return WorkshopTextField(
       controller: controller,
       label: label,
@@ -123,7 +126,7 @@ class TemplateDetailsStep extends StatelessWidget {
       textInputAction: TextInputAction.next,
       validator: required
           ? (value) => (value == null || value.trim().isEmpty)
-                ? l10n.requiredField
+                ? t(WorkshopAdminKeys.requiredField)
                 : null
           : null,
     );

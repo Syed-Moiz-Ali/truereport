@@ -1,6 +1,9 @@
 package com.truereport.jobs;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.shared.security.PiiCipher;
+import com.truereport.shared.uuid.UuidBinaryConverter;
 import com.truereport.shared.uuid.UuidV7;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,6 +15,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Clean workshop job store. Reads and writes only platform_* job tables and the
@@ -22,10 +27,12 @@ public class PlatformJobStore {
 
     private final JdbcTemplate jdbc;
     private final PiiCipher pii;
+    private final ObjectMapper objectMapper;
 
-    public PlatformJobStore(JdbcTemplate jdbc, PiiCipher pii) {
+    public PlatformJobStore(JdbcTemplate jdbc, PiiCipher pii, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
         this.pii = pii;
+        this.objectMapper = objectMapper;
     }
 
     // --------------------------------------------------------------- records
@@ -471,8 +478,9 @@ public class PlatformJobStore {
                 """, (rs, i) -> rs.getString("id"), jobId, itemCode);
     }
 
-    public Optional<EvidenceRuleRow> evidenceRule(String itemVersionId, String resultCode) {
-        return jdbc.query("""
+    public Optional<EvidenceRuleRow> evidenceRule(String templateVersionId, String itemVersionId,
+                                                  String resultCode, String workshopId) {
+        Optional<EvidenceRuleRow> platform = jdbc.query("""
                 SELECT min_photos, min_videos, required_evidence_type
                 FROM platform_evidence_rules
                 WHERE item_version_id = ? AND result_code = ?
@@ -480,12 +488,41 @@ public class PlatformJobStore {
                 rs.getInt("min_photos"), rs.getInt("min_videos"),
                 rs.getString("required_evidence_type")), itemVersionId, resultCode)
                 .stream().findFirst();
+        if (templateVersionId == null || templateVersionId.isBlank()
+                || workshopId == null || workshopId.isBlank()) {
+            return platform;
+        }
+        String rulesJson = jdbc.query("""
+                SELECT effective_rules_json FROM template_items
+                WHERE template_version_id = ? AND workshop_id = ?
+                  AND master_item_version_id = ?
+                """, (rs, i) -> rs.getString("effective_rules_json"),
+                bytes(templateVersionId), bytes(workshopId), bytes(itemVersionId))
+                .stream().findFirst().orElse(null);
+        if (rulesJson == null) {
+            return platform;
+        }
+        JsonNode rules = parse(rulesJson);
+        int minPhotos = platform.map(EvidenceRuleRow::minPhotos).orElse(0);
+        int minVideos = platform.map(EvidenceRuleRow::minVideos).orElse(0);
+        String requiredType = platform.map(EvidenceRuleRow::requiredEvidenceType).orElse(null);
+        if (rules.has("minPhotos")) {
+            minPhotos = Math.max(minPhotos, rules.path("minPhotos").asInt(0));
+        }
+        String evidenceRequirement = text(rules, "evidenceRequirement", "");
+        if (Set.of("PHOTO", "VIDEO", "DOCUMENT").contains(evidenceRequirement)) {
+            requiredType = evidenceRequirement;
+        }
+        if (minPhotos == 0 && minVideos == 0 && requiredType == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new EvidenceRuleRow(minPhotos, minVideos, requiredType));
     }
 
     // -------------------------------------------------------------- templates
 
-    public List<TemplateVersionRow> availableTemplates() {
-        return jdbc.query("""
+    public List<TemplateVersionRow> availableTemplates(String workshopId) {
+        List<TemplateVersionRow> rows = new ArrayList<>(jdbc.query("""
                 SELECT v.id AS version_id, v.template_id, t.code,
                        t.name AS name_en,
                        (SELECT body FROM platform_translations pt
@@ -498,11 +535,29 @@ public class PlatformJobStore {
                   AND (t.current_published_version_id IS NULL
                        OR t.current_published_version_id = v.id)
                 ORDER BY t.code, v.version_no DESC
-                """, TEMPLATE_VERSION_MAPPER);
+                """, TEMPLATE_VERSION_MAPPER));
+        if (workshopId != null && !workshopId.isBlank()) {
+            byte[] id = bytes(workshopId);
+            if (id == null) {
+                return rows;
+            }
+            rows.addAll(jdbc.query("""
+                    SELECT v.id AS version_id, v.template_id, NULL AS code,
+                           t.name AS name_en, NULL AS name_ar, v.version_no, v.status
+                    FROM template_versions v
+                    JOIN workshop_templates t ON t.id = v.template_id
+                    WHERE v.workshop_id = ? AND t.workshop_id = ?
+                      AND v.status = 'PUBLISHED' AND t.status <> 'RETIRED'
+                      AND (t.current_published_version_id IS NULL
+                           OR t.current_published_version_id = v.id)
+                    ORDER BY t.name, v.version_no DESC
+                    """, WORKSHOP_TEMPLATE_VERSION_MAPPER, id, id));
+        }
+        return rows;
     }
 
-    public Optional<TemplateVersionRow> templateVersion(String versionId) {
-        return jdbc.query("""
+    public Optional<TemplateVersionRow> templateVersion(String versionId, String workshopId) {
+        Optional<TemplateVersionRow> platform = jdbc.query("""
                 SELECT v.id AS version_id, v.template_id, t.code,
                        t.name AS name_en,
                        (SELECT body FROM platform_translations pt
@@ -513,9 +568,42 @@ public class PlatformJobStore {
                 JOIN platform_templates t ON t.id = v.template_id
                 WHERE v.id = ?
                 """, TEMPLATE_VERSION_MAPPER, versionId).stream().findFirst();
+        if (platform.isPresent()) {
+            return platform;
+        }
+        if (workshopId == null || workshopId.isBlank()) {
+            return Optional.empty();
+        }
+        UUID version = uuid(versionId);
+        UUID workshop = uuid(workshopId);
+        if (version == null || workshop == null) {
+            return Optional.empty();
+        }
+        return jdbc.query("""
+                SELECT v.id AS version_id, v.template_id, NULL AS code,
+                       t.name AS name_en, NULL AS name_ar, v.version_no, v.status
+                FROM template_versions v
+                JOIN workshop_templates t ON t.id = v.template_id
+                WHERE v.id = ? AND v.workshop_id = ? AND t.workshop_id = ?
+                  AND t.status <> 'RETIRED'
+                """, WORKSHOP_TEMPLATE_VERSION_MAPPER,
+                UuidBinaryConverter.toBytes(version), UuidBinaryConverter.toBytes(workshop),
+                UuidBinaryConverter.toBytes(workshop))
+                .stream().findFirst();
     }
 
-    public int templateItemCount(String versionId) {
+    public int templateItemCount(String versionId, String workshopId) {
+        byte[] workshop = bytes(workshopId);
+        byte[] version = bytes(versionId);
+        if (workshop != null && version != null) {
+            Integer workshopCount = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM template_items
+                    WHERE template_version_id = ? AND workshop_id = ? AND included = TRUE
+                    """, Integer.class, version, workshop);
+            if (workshopCount != null && workshopCount > 0) {
+                return workshopCount;
+            }
+        }
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM platform_template_items
                 WHERE template_version_id = ? AND included = TRUE
@@ -523,7 +611,28 @@ public class PlatformJobStore {
         return count == null ? 0 : count;
     }
 
-    public List<TemplateItemRow> templateItems(String versionId) {
+    public List<TemplateItemRow> templateItems(String versionId, String workshopId) {
+        byte[] workshop = bytes(workshopId);
+        byte[] version = bytes(versionId);
+        if (workshop != null && version != null) {
+            List<WorkshopItemOrder> order = jdbc.query("""
+                    SELECT master_item_version_id, sort_order, effective_rules_json
+                    FROM template_items
+                    WHERE template_version_id = ? AND workshop_id = ? AND included = TRUE
+                    ORDER BY sort_order
+                    """, (rs, i) -> new WorkshopItemOrder(
+                    UuidBinaryConverter.fromBytes(rs.getBytes("master_item_version_id")).toString(),
+                    rs.getInt("sort_order"), rs.getString("effective_rules_json")),
+                    version, workshop);
+            if (!order.isEmpty()) {
+                List<TemplateItemRow> rows = new ArrayList<>();
+                for (WorkshopItemOrder item : order) {
+                    platformTemplateItem(item.itemVersionId(), item.sortOrder(),
+                            item.rulesJson()).ifPresent(rows::add);
+                }
+                return rows;
+            }
+        }
         return jdbc.query("""
                 SELECT ti.item_version_id, i.stable_code,
                        v.label AS label_en,
@@ -535,20 +644,82 @@ public class PlatformJobStore {
                        (SELECT body FROM platform_translations pt
                         WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
                           AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_name_ar,
-                       v.safety_critical, v.measurement_unit, ti.sort_order,
-                       c.weight_percentage
+                       v.safety_critical, v.measurement_unit, ti.sort_order
                 FROM platform_template_items ti
                 JOIN platform_item_versions v ON v.id = ti.item_version_id
                 JOIN platform_items i ON i.id = v.item_id
                 JOIN platform_categories c ON c.id = i.category_id
                 WHERE ti.template_version_id = ? AND ti.included = TRUE
                 ORDER BY ti.sort_order, i.sort_order, i.stable_code
-                """, (rs, i) -> new TemplateItemRow(
-                rs.getString("item_version_id"), rs.getString("stable_code"),
-                rs.getString("label_en"), rs.getString("label_ar"), rs.getString("category_id"),
-                rs.getString("category_name_en"), rs.getString("category_name_ar"),
-                rs.getBoolean("safety_critical"), rs.getString("measurement_unit"),
-                rs.getInt("sort_order")), versionId);
+                """, (rs, i) -> templateItemRow(rs, rs.getString("item_version_id"),
+                rs.getInt("sort_order"), null), versionId);
+    }
+
+    private Optional<TemplateItemRow> platformTemplateItem(String itemVersionId, int sortOrder,
+                                                           String rulesJson) {
+        return jdbc.query("""
+                SELECT i.stable_code, v.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       i.category_id,
+                       c.name AS category_name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_name_ar,
+                       v.safety_critical, v.measurement_unit
+                FROM platform_item_versions v
+                JOIN platform_items i ON i.id = v.item_id
+                JOIN platform_categories c ON c.id = i.category_id
+                WHERE v.id = ?
+                """, (rs, i) -> templateItemRow(rs, itemVersionId, sortOrder, rulesJson),
+                itemVersionId).stream().findFirst();
+    }
+
+    private record WorkshopItemOrder(String itemVersionId, int sortOrder, String rulesJson) {
+    }
+
+    private TemplateItemRow templateItemRow(java.sql.ResultSet rs, String itemVersionId,
+                                            int sortOrder, String rulesJson)
+            throws java.sql.SQLException {
+        JsonNode rules = parse(rulesJson);
+        String labelEn = text(rules, "labelEn", rs.getString("label_en"));
+        String labelAr = text(rules, "labelAr", rs.getString("label_ar"));
+        boolean safetyCritical = rules.has("safetyCritical")
+                ? rules.path("safetyCritical").asBoolean(rs.getBoolean("safety_critical"))
+                : rs.getBoolean("safety_critical");
+        String measurementUnit = text(rules, "measurementUnit", rs.getString("measurement_unit"));
+        return new TemplateItemRow(
+                itemVersionId, rs.getString("stable_code"), labelEn, labelAr,
+                rs.getString("category_id"), rs.getString("category_name_en"),
+                rs.getString("category_name_ar"), safetyCritical, measurementUnit, sortOrder);
+    }
+
+    private JsonNode parse(String value) {
+        try {
+            return objectMapper.readTree(value == null || value.isBlank() ? "{}" : value);
+        } catch (Exception exception) {
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    private static UUID uuid(String value) {
+        try {
+            return UUID.fromString(value);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    private static byte[] bytes(String value) {
+        UUID id = uuid(value);
+        return id == null ? null : UuidBinaryConverter.toBytes(id);
+    }
+
+    private static String text(JsonNode node, String field, String fallback) {
+        JsonNode value = node.path(field);
+        return value.isMissingNode() || value.isNull() || value.asText("").isBlank()
+                ? fallback : value.asText();
     }
 
     public java.math.BigDecimal categoryWeight(String categoryId) {
@@ -865,6 +1036,13 @@ public class PlatformJobStore {
     private final RowMapper<TemplateVersionRow> TEMPLATE_VERSION_MAPPER = (rs, i) ->
             new TemplateVersionRow(
                     rs.getString("version_id"), rs.getString("template_id"),
+                    rs.getString("code"), rs.getString("name_en"), rs.getString("name_ar"),
+                    rs.getInt("version_no"), rs.getString("status"));
+
+    private final RowMapper<TemplateVersionRow> WORKSHOP_TEMPLATE_VERSION_MAPPER = (rs, i) ->
+            new TemplateVersionRow(
+                    UuidBinaryConverter.fromBytes(rs.getBytes("version_id")).toString(),
+                    UuidBinaryConverter.fromBytes(rs.getBytes("template_id")).toString(),
                     rs.getString("code"), rs.getString("name_en"), rs.getString("name_ar"),
                     rs.getInt("version_no"), rs.getString("status"));
 

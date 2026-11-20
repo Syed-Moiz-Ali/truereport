@@ -11,7 +11,13 @@ public record ReportSnapshot(
         Inspection inspection,
         Workshop workshop,
         Technician technician,
+        String customerName,
         Coverage coverage,
+        Summary summary,
+        Integer score,
+        String gradeCode,
+        boolean safetyCapApplied,
+        String safetyCapReason,
         List<ItemSnapshot> keyFindings,
         List<Category> categories,
         List<NotChecked> notChecked,
@@ -53,6 +59,18 @@ public record ReportSnapshot(
             int notApplicable,
             int notChecked,
             int couldNotVerify
+    ) {
+    }
+
+    /**
+     * Headline figures computed by the server from the stored snapshot/score.
+     * The client never derives these from the detail arrays.
+     */
+    public record Summary(
+            int findingsCount,
+            int safetyCriticalCount,
+            int passedCount,
+            double coveragePercent
     ) {
     }
 

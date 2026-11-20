@@ -4,13 +4,13 @@ import 'dart:ui' as ui;
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/auth/workshop_login_page.dart';
 
 import 'support/real_fonts.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// Gate 4 smoke capture: one screen, real glyphs, written to `docs/evidence/`.
 ///
@@ -36,14 +36,11 @@ void main() {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           locale: const Locale('en'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          supportedLocales: const <Locale>[Locale('en')],
+          localizationsDelegates: testLocalizationsDelegates,
           theme: AppTheme.light,
+          builder: (context, child) =>
+              uiStringsScope(child: child ?? const SizedBox.shrink()),
           home: RepaintBoundary(
             key: boundaryKey,
             child: const MediaQuery(

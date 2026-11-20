@@ -106,33 +106,17 @@ class DashboardScale {
 
 /// Colour for a job status inside the partition.
 ///
-/// Deliberately a *sequence*: the neutral pipeline stages fade into the accent,
-/// the decision stage is the only warning colour, and the customer-visible
-/// stages are green. Terminal failures are red at two strengths so rejected and
-/// cancelled never look identical.
-Color dashboardStatusTint(String status, WorkshopTokens ws) {
-  switch (status) {
-    case 'DRAFT':
-      return ws.ink.withValues(alpha: 0.18);
-    case 'SCHEDULED':
-      return ws.ink.withValues(alpha: 0.32);
-    case 'ASSIGNED':
-      return ws.accent.withValues(alpha: 0.40);
-    case 'IN_PROGRESS':
-      return ws.accent;
-    case 'PENDING_REVIEW':
-      return ws.warning;
-    case 'APPROVED':
-      return ws.success.withValues(alpha: 0.45);
-    case 'PUBLISHED':
-      return ws.success;
-    case 'REJECTED':
-      return ws.danger.withValues(alpha: 0.55);
-    case 'CANCELLED':
-      return ws.danger.withValues(alpha: 0.25);
-    default:
-      return ws.muted.withValues(alpha: 0.45);
-  }
+/// The colour comes from the served tone token, not a local status table. The
+/// status **sequence** stays in [dashboardStatusOrder]; only its presentation
+/// is backend-owned.
+Color dashboardStatusTint(WorkshopStatusTone tone, WorkshopTokens ws) {
+  return switch (tone) {
+    WorkshopStatusTone.success => ws.success,
+    WorkshopStatusTone.warning => ws.warning,
+    WorkshopStatusTone.danger => ws.danger,
+    WorkshopStatusTone.accent => ws.accent,
+    WorkshopStatusTone.neutral => ws.ink.withValues(alpha: 0.24),
+  };
 }
 
 /// Fixed display order of the nine verified statuses
@@ -148,13 +132,3 @@ const List<String> dashboardStatusOrder = <String>[
   'REJECTED',
   'CANCELLED',
 ];
-
-/// Badge tone for a clean-job status. Mirrors the app's shared status mapping
-/// without importing the job-presentation file used by the queue and detail.
-WorkshopStatusTone dashboardStatusTone(String status) => switch (status) {
-  'ASSIGNED' || 'IN_PROGRESS' => WorkshopStatusTone.accent,
-  'PENDING_REVIEW' => WorkshopStatusTone.warning,
-  'APPROVED' || 'PUBLISHED' => WorkshopStatusTone.success,
-  'REJECTED' || 'CANCELLED' => WorkshopStatusTone.danger,
-  _ => WorkshopStatusTone.neutral,
-};

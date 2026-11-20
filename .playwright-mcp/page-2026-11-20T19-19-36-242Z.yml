@@ -1,0 +1,8 @@
+- generic [ref=f31e1]:
+  - button "Enable accessibility" [ref=f31e2]
+  - generic [ref=f31e5]:
+    - generic:
+      - generic:
+        - textbox "name@workshop.com" [active] [ref=f31e6]: admin.a@truereport.test
+        - textbox "Enter your password": Truereport#Local123
+        - button "Submit"

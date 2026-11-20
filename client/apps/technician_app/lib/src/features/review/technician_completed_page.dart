@@ -1,17 +1,18 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
-import 'package:technician_app/src/ui_helpers.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:technician_app/src/reference_ui.dart';
 
-class TechnicianCompletedPage extends StatelessWidget {
+class TechnicianCompletedPage extends ConsumerWidget {
   const TechnicianCompletedPage({required this.jobId, super.key});
 
   final String jobId;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final colors = context.colors;
     return AppScaffold(
       backgroundColor: colors.surfaceContainerLow,
@@ -45,7 +46,7 @@ class TechnicianCompletedPage extends StatelessWidget {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 380),
                       child: Text(
-                        l10n.technicianCompletedPendingReview,
+                        t(TechnicianKeys.technicianCompletedPendingReview),
                         textAlign: TextAlign.center,
                         style: context.texts.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -58,13 +59,13 @@ class TechnicianCompletedPage extends StatelessWidget {
                   const SizedBox(height: 14),
                   Center(
                     child: StatusChip(
-                      label: technicianStatusLabel(l10n, 'PENDING_REVIEW'),
-                      tone: StatusTone.warning,
+                      label: jobStatusLabel(ref, 'PENDING_REVIEW'),
+                      tone: jobStatusTone(ref, 'PENDING_REVIEW'),
                     ),
                   ),
                   const SizedBox(height: 28),
                   AppButton(
-                    label: l10n.technicianBackToJobs,
+                    label: t(TechnicianKeys.technicianBackToJobs),
                     icon: Icons.arrow_back,
                     expand: true,
                     onPressed: () => context.go('/jobs'),

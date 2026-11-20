@@ -1,9 +1,11 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -19,16 +21,24 @@ class JobDetailReviewPublication extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final review = ref.watch(jobReviewProvider(job.id));
-    final reviewLabel = reviewStatusLabel(l10n, job.reviewStatus);
+    final reviewStatuses = ref.watch(statusesProvider('review')).value;
+    final publicationStatuses = ref
+        .watch(statusesProvider('publication'))
+        .value;
+    final consentStatuses = ref.watch(statusesProvider('consent')).value;
+    final consentCode = consentStatusCode(job.consentGranted);
+    final reviewLabel = referenceStatusText(reviewStatuses, job.reviewStatus);
     final blocked = job.status == 'APPROVED' && !job.consentGranted;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobDetailReviewPublication),
+        WorkshopSectionHeader(
+          title: t(WorkshopAdminKeys.jobDetailReviewPublication),
+        ),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: Column(
@@ -38,54 +48,62 @@ class JobDetailReviewPublication extends ConsumerWidget {
               JobFactGrid(
                 facts: [
                   JobFact(
-                    label: l10n.jobsReviewStatus,
-                    value: reviewLabel ?? l10n.commonNotAvailable,
+                    label: t(WorkshopAdminKeys.jobsReviewStatus),
+                    value: job.reviewStatus.isEmpty
+                        ? t(WorkshopAdminKeys.commonNotAvailable)
+                        : reviewLabel,
                   ),
                   JobFact(
-                    label: l10n.jobsPublicationStatus,
-                    value: publicationStatusLabel(l10n, job.publicationStatus),
+                    label: t(WorkshopAdminKeys.jobsPublicationStatus),
+                    value: referenceStatusText(
+                      publicationStatuses,
+                      job.publicationStatus,
+                    ),
                   ),
                   JobFact(
-                    label: l10n.consent,
-                    value: job.consentGranted
-                        ? l10n.jobsConsentGranted
-                        : l10n.jobsConsentMissing,
+                    label: t(WorkshopAdminKeys.consent),
+                    value: referenceStatusText(consentStatuses, consentCode),
                   ),
                 ],
               ),
               if (blocked) ...[
                 SizedBox(height: spacing.md),
                 WorkshopStatusBadge(
-                  label: l10n.jobsPublicationBlocked,
+                  label: t(WorkshopAdminKeys.jobsPublicationBlocked),
                   tone: WorkshopStatusTone.warning,
                 ),
                 SizedBox(height: spacing.sm),
-                WorkshopInlineNote(text: l10n.jobsPublicationBlockedBody),
+                WorkshopInlineNote(
+                  text: t(WorkshopAdminKeys.jobsPublicationBlockedBody),
+                ),
               ],
               SizedBox(height: spacing.lg),
               review.when(
                 loading: () => const WorkshopSkeleton(lines: 2),
-                error: (error, _) =>
-                    WorkshopInlineNote(text: l10n.commonLoadFailed),
+                error: (error, _) => WorkshopInlineNote(
+                  text: t(WorkshopAdminKeys.commonLoadFailed),
+                ),
                 data: (value) => JobFactGrid(
                   facts: [
                     JobFact(
-                      label: l10n.jobsItemsAssessed,
+                      label: t(WorkshopAdminKeys.jobsItemsAssessed),
                       value:
                           '${formatNumber(context, value.itemsAssessed)} / '
                           '${formatNumber(context, value.itemsTotal)}',
                     ),
                     JobFact(
-                      label: l10n.jobsScorePreview,
+                      label: t(WorkshopAdminKeys.jobsScorePreview),
                       value: formatScore(context, value.scorePreview),
                     ),
                     JobFact(
-                      label: l10n.jobsGradePreview,
-                      value: value.gradePreview ?? l10n.commonNotAvailable,
+                      label: t(WorkshopAdminKeys.jobsGradePreview),
+                      value:
+                          value.gradePreview ??
+                          t(WorkshopAdminKeys.commonNotAvailable),
                     ),
                     if (value.safetyCapPreview != null)
                       JobFact(
-                        label: l10n.jobsSafetyCapPreview,
+                        label: t(WorkshopAdminKeys.jobsSafetyCapPreview),
                         value: value.safetyCapPreview!,
                       ),
                   ],

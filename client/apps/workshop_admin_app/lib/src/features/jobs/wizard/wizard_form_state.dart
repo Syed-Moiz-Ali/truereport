@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 /// Field values for the create wizard, plus the two pure transformations the
@@ -58,32 +58,32 @@ class WizardFormState {
   }
 
   /// Null when the step may advance, otherwise the specific copy to show.
-  String? validateStep(int step, AppLocalizations l10n) {
+  String? validateStep(int step, UiStrings t) {
     if (step == 0) {
       if (customerName.text.trim().isEmpty) {
-        return l10n.requiredField;
+        return t(WorkshopAdminKeys.requiredField);
       }
       if (customerPhone.text.trim().isEmpty) {
-        return l10n.jobsValidationPhoneRequired;
+        return t(WorkshopAdminKeys.jobsValidationPhoneRequired);
       }
       final email = customerEmail.text.trim();
       if (email.isNotEmpty && !_emailPattern.hasMatch(email)) {
-        return l10n.jobsValidationEmailInvalid;
+        return t(WorkshopAdminKeys.jobsValidationEmailInvalid);
       }
     } else if (step == 1) {
       if (vehicleMake.text.trim().isEmpty || vehicleModel.text.trim().isEmpty) {
-        return l10n.requiredField;
+        return t(WorkshopAdminKeys.requiredField);
       }
       final vin = vehicleVin.text.trim();
       if (vin.isNotEmpty && vin.length != 17) {
-        return l10n.jobsValidationVin;
+        return t(WorkshopAdminKeys.jobsValidationVin);
       }
     } else if (step == 2 && templateVersionId == null) {
-      return l10n.requiredField;
+      return t(WorkshopAdminKeys.requiredField);
     } else if (step == 3 &&
         scheduledAt != null &&
         scheduledAt!.isBefore(DateTime.now())) {
-      return l10n.jobsScheduleRequired;
+      return t(WorkshopAdminKeys.jobsScheduleRequired);
     }
     return null;
   }

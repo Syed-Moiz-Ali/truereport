@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
@@ -32,7 +32,7 @@ class TemplateCatalogPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Container(
       padding: const EdgeInsets.all(18),
@@ -48,7 +48,7 @@ class TemplateCatalogPanel extends StatelessWidget {
           Row(
             children: [
               Text(
-                l10n.builderMasterItems,
+                t(WorkshopAdminKeys.builderMasterItems),
                 style: ws.cardTitle.copyWith(color: ws.ink),
               ),
               const SizedBox(width: 8),
@@ -64,8 +64,8 @@ class TemplateCatalogPanel extends StatelessWidget {
           const SizedBox(height: 12),
           WorkshopSearchField(
             controller: search,
-            hint: l10n.searchItems,
-            semanticLabel: l10n.searchItems,
+            hint: t(WorkshopAdminKeys.searchItems),
+            semanticLabel: t(WorkshopAdminKeys.searchItems),
             onChanged: onSearchChanged,
           ),
           const SizedBox(height: 10),
@@ -74,7 +74,7 @@ class TemplateCatalogPanel extends StatelessWidget {
             child: Row(
               children: [
                 TemplatePillChip(
-                  label: l10n.allCategories,
+                  label: t(WorkshopAdminKeys.allCategories),
                   selected: categoryId.isEmpty,
                   onTap: () => onCategoryChanged(''),
                 ),
@@ -94,7 +94,7 @@ class TemplateCatalogPanel extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Text(
-                l10n.noResults,
+                t(WorkshopAdminKeys.noResults),
                 textAlign: TextAlign.center,
                 style: ws.meta.copyWith(color: ws.muted),
               ),

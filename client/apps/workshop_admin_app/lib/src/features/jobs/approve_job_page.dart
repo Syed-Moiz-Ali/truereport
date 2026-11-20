@@ -2,7 +2,8 @@ import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve/approve_decision.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve/approve_score.dart';
@@ -11,7 +12,9 @@ import 'package:workshop_admin_app/src/features/jobs/approve/approve_summary.dar
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_action_set.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -51,7 +54,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final jobAsync = ref.watch(cleanJobProvider(widget.jobId));
@@ -62,7 +65,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
       body = SingleChildScrollView(
         padding: ws.pagePadding(width),
         child: ApproveLoadError(
-          message: jobErrorCopy(l10n, jobAsync.error!),
+          message: jobErrorCopy(t, jobAsync.error!),
           onRetry: _reload,
         ),
       );
@@ -75,7 +78,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
         error: (error, _) => SingleChildScrollView(
           padding: ws.pagePadding(width),
           child: ApproveLoadError(
-            message: jobErrorCopy(l10n, error),
+            message: jobErrorCopy(t, error),
             onRetry: _reload,
           ),
         ),
@@ -91,7 +94,8 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             JobPageBar(
-              reference: job?.reference ?? l10n.jobsApproveTitle,
+              reference:
+                  job?.reference ?? t(WorkshopAdminKeys.jobsApproveTitle),
               status: job?.status,
             ),
             Expanded(child: body),
@@ -102,11 +106,10 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   Widget _content(BuildContext context, CleanJob job) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final width = MediaQuery.sizeOf(context).width;
-    final canAct = job.version != null && job.status == 'PENDING_REVIEW';
     return SingleChildScrollView(
       padding: ws.pagePadding(width),
       child: Center(
@@ -118,7 +121,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
             children: [
               SizedBox(height: spacing.md),
               JobIdentityBlock(
-                eyebrow: l10n.jobsApproveTitle,
+                eyebrow: t(WorkshopAdminKeys.jobsApproveTitle),
                 title: job.customerName,
                 meta: _meta(context, job),
               ),
@@ -131,7 +134,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
               SizedBox(height: spacing.md),
               _consentBar(context, job),
               SizedBox(height: spacing.md),
-              _actionPills(context, job, canAct: canAct),
+              _actionPills(context, job),
               SizedBox(height: spacing.lg),
               JobSplitColumns(
                 leading: Column(
@@ -164,7 +167,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   List<String> _meta(BuildContext context, CleanJob job) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final vehicle = [
       job.vehicleMake,
       job.vehicleModel,
@@ -173,7 +176,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
     return [
       if (vehicle.isNotEmpty) vehicle,
       if ((job.vehiclePlate ?? '').isNotEmpty) job.vehiclePlate!,
-      job.assignedTechnicianName ?? l10n.unassigned,
+      job.assignedTechnicianName ?? t(WorkshopAdminKeys.unassigned),
     ];
   }
 
@@ -181,7 +184,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
       _error != null || job.version == null || job.status != 'PENDING_REVIEW';
 
   Widget _notices(BuildContext context, CleanJob job) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final notices = <Widget>[
       if (_error != null)
@@ -191,13 +194,13 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
         ),
       if (job.version == null)
         ApproveNotice(
-          message: l10n.jobsNoVersion,
+          message: t(WorkshopAdminKeys.jobsNoVersion),
           tone: ApproveNoticeTone.warning,
           onReload: _reload,
         ),
       if (job.status != 'PENDING_REVIEW')
         ApproveNotice(
-          message: l10n.jobsNotEditable,
+          message: t(WorkshopAdminKeys.jobsNotEditable),
           tone: ApproveNoticeTone.warning,
         ),
     ];
@@ -214,9 +217,14 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   Widget _consentBar(BuildContext context, CleanJob job) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
+    final consentStatuses = ref.watch(statusesProvider('consent')).value;
+    final consentCode = consentStatusCode(job.consentGranted);
+    final consentLabel = referenceStatusText(consentStatuses, consentCode);
+    final consentTone = referenceStatusTone(consentStatuses, consentCode);
+    final (consentFg, consentBg) = workshopPillColors(consentTone, ws);
     final editable =
         job.version != null &&
         job.status != 'PUBLISHED' &&
@@ -226,21 +234,13 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
       key: const Key('jobs-consent-bar'),
       padding: EdgeInsetsDirectional.all(spacing.md),
       decoration: BoxDecoration(
-        color: job.consentGranted ? ws.accentSoft : ws.warningSoft,
+        color: consentBg,
         borderRadius: BorderRadius.circular(ws.cardRadius),
-        border: Border.all(
-          color: (job.consentGranted ? ws.accent : ws.warning).withValues(
-            alpha: 0.3,
-          ),
-        ),
+        border: Border.all(color: consentFg.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.verified_user_outlined,
-            size: 18,
-            color: job.consentGranted ? ws.accent : ws.warning,
-          ),
+          Icon(Icons.verified_user_outlined, size: 18, color: consentFg),
           SizedBox(width: spacing.sm),
           Expanded(
             child: Column(
@@ -248,16 +248,11 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.consentPublicLink,
+                  t(WorkshopAdminKeys.consentPublicLink),
                   style: ws.bodyStrong.copyWith(color: ws.ink),
                 ),
-                SizedBox(height: 2),
-                Text(
-                  job.consentGranted
-                      ? l10n.jobsConsentGranted
-                      : l10n.consentNotGranted,
-                  style: ws.meta.copyWith(color: ws.muted),
-                ),
+                const SizedBox(height: 2),
+                Text(consentLabel, style: ws.meta.copyWith(color: ws.muted)),
               ],
             ),
           ),
@@ -265,8 +260,8 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
           JobPillButton(
             key: const Key('jobs-consent-toggle'),
             label: job.consentGranted
-                ? l10n.jobsConsentRevoke
-                : l10n.jobsConsentGrant,
+                ? t(WorkshopAdminKeys.jobsConsentRevoke)
+                : t(WorkshopAdminKeys.jobsConsentGrant),
             icon: job.consentGranted
                 ? Icons.undo_outlined
                 : Icons.check_circle_outline,
@@ -282,9 +277,9 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   Future<void> _setConsent(CleanJob job, bool granted) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (job.version == null) {
-      setState(() => _error = l10n.jobsNoVersion);
+      setState(() => _error = t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     setState(() {
@@ -301,11 +296,11 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
             version: job.version,
           );
       _invalidate();
-      _toast(l10n.consentRecorded);
+      _toast(t(WorkshopAdminKeys.consentRecorded));
     } on Object catch (error) {
       if (mounted) {
         setState(() {
-          _error = jobErrorCopy(l10n, error);
+          _error = jobErrorCopy(t, error);
           _errorIsConflict = _isConflict(error);
         });
         if (_isConflict(error)) _reload();
@@ -317,39 +312,52 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
     }
   }
 
-  Widget _actionPills(
-    BuildContext context,
-    CleanJob job, {
-    required bool canAct,
-  }) {
-    final l10n = AppLocalizations.of(context);
-    final canApprove = canAct && job.consentGranted;
+  Widget _actionPills(BuildContext context, CleanJob job) {
+    final review = ref.watch(jobReviewProvider(job.id)).value;
+    final actions = effectiveReviewActions(job, review: review);
+    final approve = jobActionFor(actions, const <String>[
+      'approve',
+      'reviewApprove',
+      'review',
+    ]);
+    final reject = jobActionFor(actions, const <String>['reject']);
+    final publish = jobActionFor(actions, const <String>[
+      'publishChecklist',
+      'publish',
+      'publishJob',
+    ]);
+    final canAct = job.version != null;
     return Wrap(
       spacing: context.spacing.sm,
       runSpacing: context.spacing.sm,
       children: [
-        JobPillButton(
-          key: const Key('jobs-approve-button'),
-          label: l10n.jobsApprove,
-          icon: Icons.verified_outlined,
-          loading: _busy && !_busyIsReject,
-          onPressed: canApprove && !_busy ? () => _approve(job) : null,
-        ),
-        JobPillButton(
-          key: const Key('jobs-reject-button'),
-          label: l10n.jobsReject,
-          icon: Icons.block_outlined,
-          variant: JobPillVariant.danger,
-          loading: _busy && _busyIsReject,
-          onPressed: canAct && !_busy ? () => _reject(job) : null,
-        ),
-        JobPillButton(
-          key: const Key('jobs-checklist-link'),
-          label: l10n.jobsOpenPublishChecklist,
-          icon: Icons.playlist_add_check_outlined,
-          variant: JobPillVariant.outline,
-          onPressed: _busy ? null : () => _openChecklist(context),
-        ),
+        if (approve != null)
+          JobPillButton(
+            key: const Key('jobs-approve-button'),
+            label: jobActionLabel(approve),
+            icon: Icons.verified_outlined,
+            loading: _busy && !_busyIsReject,
+            onPressed: canAct && !_busy && job.consentGranted
+                ? () => _approve(job)
+                : null,
+          ),
+        if (reject != null)
+          JobPillButton(
+            key: const Key('jobs-reject-button'),
+            label: jobActionLabel(reject),
+            icon: Icons.block_outlined,
+            variant: JobPillVariant.danger,
+            loading: _busy && _busyIsReject,
+            onPressed: canAct && !_busy ? () => _reject(job) : null,
+          ),
+        if (publish != null)
+          JobPillButton(
+            key: const Key('jobs-checklist-link'),
+            label: jobActionLabel(publish),
+            icon: Icons.playlist_add_check_outlined,
+            variant: JobPillVariant.outline,
+            onPressed: _busy ? null : () => _openChecklist(context),
+          ),
       ],
     );
   }
@@ -363,13 +371,17 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   Future<void> _approve(CleanJob job) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (job.version == null) {
-      setState(() => _error = l10n.jobsNoVersion);
+      setState(() => _error = t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     if (!job.consentGranted) {
-      setState(() => _error = l10n.consentNotGranted);
+      final label = referenceStatusText(
+        ref.read(statusesProvider('consent')).value,
+        consentStatusCode(false),
+      );
+      setState(() => _error = label);
       return;
     }
     setState(() {
@@ -389,11 +401,11 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
             version: job.version,
           );
       _invalidate();
-      _toast(l10n.jobsApproved);
+      _toast(t(WorkshopAdminKeys.jobsApproved));
     } on Object catch (error) {
       if (mounted) {
         setState(() {
-          _error = jobErrorCopy(l10n, error);
+          _error = jobErrorCopy(t, error);
           _errorIsConflict = _isConflict(error);
         });
       }
@@ -405,7 +417,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
   }
 
   Future<void> _reject(CleanJob job) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (_reason.text.trim().isEmpty) {
       setState(() {
         _reasonMissing = true;
@@ -416,7 +428,7 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
       return;
     }
     if (job.version == null) {
-      setState(() => _error = l10n.jobsNoVersion);
+      setState(() => _error = t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     setState(() {
@@ -431,11 +443,11 @@ class _ApproveIssuePageState extends ConsumerState<ApproveIssuePage> {
           .read(adminApiProvider)
           .rejectJob(widget.jobId, _reason.text.trim(), version: job.version);
       _invalidate();
-      _toast(l10n.jobsRejected);
+      _toast(t(WorkshopAdminKeys.jobsRejected));
     } on Object catch (error) {
       if (mounted) {
         setState(() {
-          _error = jobErrorCopy(l10n, error);
+          _error = jobErrorCopy(t, error);
           _errorIsConflict = _isConflict(error);
         });
       }

@@ -1,7 +1,7 @@
-﻿import 'package:design_system/design_system.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_create_page.dart';
@@ -37,7 +37,7 @@ class _StaffTabState extends ConsumerState<StaffTab> {
   }
 
   Future<void> _create() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final created = await Navigator.of(context).push<PlatformAccount>(
       MaterialPageRoute<PlatformAccount>(
         builder: (_) => const StaffCreatePage(),
@@ -49,7 +49,9 @@ class _StaffTabState extends ConsumerState<StaffTab> {
     ref.invalidate(staffProvider);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(l10n.accountCreated)));
+      ..showSnackBar(
+        SnackBar(content: Text(t(WorkshopAdminKeys.accountCreated))),
+      );
   }
 
   void _open(StaffMember member) {
@@ -62,7 +64,7 @@ class _StaffTabState extends ConsumerState<StaffTab> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final staff = ref.watch(staffProvider);
     final members = staff.value;
@@ -88,7 +90,7 @@ class _StaffTabState extends ConsumerState<StaffTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.workshopStaffTitle,
+                              t(WorkshopAdminKeys.workshopStaffTitle),
                               style: ws.pageTitle.copyWith(
                                 fontSize: width < 520 ? 26 : 30,
                                 letterSpacing: -0.6,
@@ -97,14 +99,14 @@ class _StaffTabState extends ConsumerState<StaffTab> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              l10n.staffSubtitle,
+                              t(WorkshopAdminKeys.staffSubtitle),
                               style: ws.meta.copyWith(color: ws.muted),
                             ),
                           ],
                         ),
                       ),
                       TemplatePillButton(
-                        label: l10n.create,
+                        label: t(WorkshopAdminKeys.create),
                         icon: Icons.person_add_alt_1_outlined,
                         onPressed: _create,
                       ),
@@ -118,8 +120,8 @@ class _StaffTabState extends ConsumerState<StaffTab> {
                       child: WorkshopSearchField(
                         key: const Key('staff-search'),
                         controller: _search,
-                        hint: l10n.search,
-                        semanticLabel: l10n.search,
+                        hint: t(WorkshopAdminKeys.search),
+                        semanticLabel: t(WorkshopAdminKeys.search),
                         onChanged: (_) => setState(() {}),
                       ),
                     ),
@@ -147,7 +149,7 @@ class _StaffTabState extends ConsumerState<StaffTab> {
   }
 
   Widget get _errorSurface {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     return StaffSurface(
@@ -163,12 +165,18 @@ class _StaffTabState extends ConsumerState<StaffTab> {
         children: [
           Icon(Icons.priority_high_rounded, size: 20, color: ws.danger),
           const SizedBox(height: 10),
-          Text(l10n.error, style: ws.sectionTitle.copyWith(color: ws.ink)),
+          Text(
+            t(WorkshopAdminKeys.error),
+            style: ws.sectionTitle.copyWith(color: ws.ink),
+          ),
           const SizedBox(height: 6),
-          Text(l10n.commonLoadFailed, style: ws.body.copyWith(color: ws.muted)),
+          Text(
+            t(WorkshopAdminKeys.commonLoadFailed),
+            style: ws.body.copyWith(color: ws.muted),
+          ),
           const SizedBox(height: 14),
           TemplatePillButton(
-            label: l10n.retryAction,
+            label: t(WorkshopAdminKeys.retryAction),
             icon: Icons.refresh,
             variant: TemplatePillVariant.outline,
             onPressed: () => ref.invalidate(staffProvider),
@@ -214,7 +222,7 @@ class _StaffTabState extends ConsumerState<StaffTab> {
       );
     }
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return StaffSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -226,14 +234,22 @@ class _StaffTabState extends ConsumerState<StaffTab> {
               padding: const EdgeInsetsDirectional.fromSTEB(18, 9, 14, 9),
               child: Row(
                 children: [
-                  Expanded(child: _head(context, l10n.staffTab)),
-                  SizedBox(width: 110, child: _head(context, l10n.role)),
-                  SizedBox(width: 150, child: _head(context, l10n.status)),
+                  Expanded(
+                    child: _head(context, t(WorkshopAdminKeys.staffTab)),
+                  ),
+                  SizedBox(
+                    width: 110,
+                    child: _head(context, t(WorkshopAdminKeys.role)),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: _head(context, t(WorkshopAdminKeys.status)),
+                  ),
                   SizedBox(
                     width: 220,
                     child: Padding(
                       padding: const EdgeInsetsDirectional.only(start: 10),
-                      child: _head(context, l10n.emailLabel),
+                      child: _head(context, t(WorkshopAdminKeys.emailLabel)),
                     ),
                   ),
                   const SizedBox(width: 25),
@@ -273,7 +289,7 @@ class _EmptyRoster extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return StaffSurface(
       padding: EdgeInsetsDirectional.fromSTEB(
         spacing.xl,
@@ -286,13 +302,13 @@ class _EmptyRoster extends StatelessWidget {
           const StaffGlyph(size: 52),
           const SizedBox(height: 18),
           Text(
-            l10n.noTechnicians,
+            t(WorkshopAdminKeys.noTechnicians),
             textAlign: TextAlign.center,
             style: ws.sectionTitle.copyWith(color: ws.ink),
           ),
           const SizedBox(height: 18),
           TemplatePillButton(
-            label: l10n.createTechnicianTitle,
+            label: t(WorkshopAdminKeys.createTechnicianTitle),
             icon: Icons.person_add_alt_1_outlined,
             onPressed: onCreate,
           ),
@@ -311,7 +327,7 @@ class _NoResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return StaffSurface(
       padding: EdgeInsetsDirectional.fromSTEB(
         spacing.xl,
@@ -324,13 +340,13 @@ class _NoResults extends StatelessWidget {
           const StaffGlyph(size: 52),
           const SizedBox(height: 18),
           Text(
-            l10n.noResults,
+            t(WorkshopAdminKeys.noResults),
             textAlign: TextAlign.center,
             style: ws.sectionTitle.copyWith(color: ws.ink),
           ),
           const SizedBox(height: 18),
           TemplatePillButton(
-            label: l10n.jobsClearFilters,
+            label: t(WorkshopAdminKeys.jobsClearFilters),
             variant: TemplatePillVariant.outline,
             onPressed: onClear,
           ),

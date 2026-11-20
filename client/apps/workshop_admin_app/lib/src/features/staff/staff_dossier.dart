@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 
 /// Pushed-page bar: back affordance, page title, optional trailing state.
@@ -15,7 +15,7 @@ class StaffPageBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
@@ -37,7 +37,7 @@ class StaffPageBar extends StatelessWidget {
                 children: [
                   WorkshopIconButton(
                     icon: isRtl ? Icons.arrow_forward : Icons.arrow_back,
-                    semanticLabel: l10n.commonBack,
+                    semanticLabel: t(WorkshopAdminKeys.commonBack),
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                   SizedBox(width: spacing.sm),
@@ -155,20 +155,36 @@ class StaffPasswordMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final grade = staffPasswordGrade(password);
     if (grade == StaffPasswordGrade.empty) {
       return const SizedBox.shrink();
     }
     final (filled, color, label) = switch (grade) {
-      StaffPasswordGrade.weak => (1, ws.danger, l10n.passwordStrengthWeak),
-      StaffPasswordGrade.fair => (2, ws.warning, l10n.passwordStrengthFair),
-      StaffPasswordGrade.good => (3, ws.accent, l10n.passwordStrengthGood),
-      StaffPasswordGrade.strong => (4, ws.success, l10n.passwordStrengthStrong),
+      StaffPasswordGrade.weak => (
+        1,
+        ws.danger,
+        t(WorkshopAdminKeys.passwordStrengthWeak),
+      ),
+      StaffPasswordGrade.fair => (
+        2,
+        ws.warning,
+        t(WorkshopAdminKeys.passwordStrengthFair),
+      ),
+      StaffPasswordGrade.good => (
+        3,
+        ws.accent,
+        t(WorkshopAdminKeys.passwordStrengthGood),
+      ),
+      StaffPasswordGrade.strong => (
+        4,
+        ws.success,
+        t(WorkshopAdminKeys.passwordStrengthStrong),
+      ),
       StaffPasswordGrade.empty => (0, ws.border, ''),
     };
     return Semantics(
-      label: '${l10n.passwordStrength}: $label',
+      label: '${t(WorkshopAdminKeys.passwordStrength)}: $label',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -193,7 +209,7 @@ class StaffPasswordMeter extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${l10n.passwordStrength} · $label',
+            '${t(WorkshopAdminKeys.passwordStrength)} · $label',
             style: ws.meta.copyWith(color: ws.muted),
           ),
         ],

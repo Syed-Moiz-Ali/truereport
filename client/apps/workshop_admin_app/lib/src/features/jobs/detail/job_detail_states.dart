@@ -1,7 +1,7 @@
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Skeletons in the real region geometry: identity band, two body columns.
 class JobDetailLoading extends StatelessWidget {
@@ -37,31 +37,31 @@ class JobDetailLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return SingleChildScrollView(
       padding: ws.pagePaddingOf(context),
       child: WorkshopErrorState(
-        title: l10n.error,
-        body: _loadCopy(l10n, error),
-        retryLabel: l10n.retryAction,
+        title: t(WorkshopAdminKeys.error),
+        body: _loadCopy(t, error),
+        retryLabel: t(WorkshopAdminKeys.retryAction),
         onRetry: onRetry,
       ),
     );
   }
 }
 
-String _loadCopy(AppLocalizations l10n, Object error) {
+String _loadCopy(UiStrings t, Object error) {
   if (error is AppFailure) {
     final failure = error;
     if (failure.statusCode == 403 || failure.code == 'FORBIDDEN') {
-      return l10n.jobsForbidden;
+      return t(WorkshopAdminKeys.jobsForbidden);
     }
     if (failure.statusCode == 404 || failure.code == 'JOB_NOT_FOUND') {
-      return l10n.jobsNotFound;
+      return t(WorkshopAdminKeys.jobsNotFound);
     }
   }
-  return l10n.commonLoadFailed;
+  return t(WorkshopAdminKeys.commonLoadFailed);
 }
 
 /// Persistent conflict banner: the page never silently discards a stale write.
@@ -106,7 +106,7 @@ class JobDetailVersionNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return WorkshopInlineNote(text: l10n.jobsNoVersion);
+    final t = UiStrings.of(context);
+    return WorkshopInlineNote(text: t(WorkshopAdminKeys.jobsNoVersion));
   }
 }

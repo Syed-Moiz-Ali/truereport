@@ -3,7 +3,8 @@ import 'package:design_system/design_system.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'signin/signin_keys.dart';
 
 class RoleHomeScaffold extends StatelessWidget {
   const RoleHomeScaffold({
@@ -21,13 +22,13 @@ class RoleHomeScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return AppScaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: Text(t(SignInKeys.appTitle)),
         actions: [
           IconButton(
-            tooltip: l10n.signOut,
+            tooltip: t(SignInKeys.signOut),
             onPressed: onSignOut,
             icon: const Icon(Icons.logout),
           ),
@@ -50,18 +51,18 @@ class RoleHomeScaffold extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           StatusChip(
-                            label: _roleLabel(l10n, role),
+                            label: _roleLabel(t, role),
                             tone: StatusTone.info,
                             icon: Icons.badge_outlined,
                           ),
                           SizedBox(height: context.spacing.lg),
                           Text(
-                            l10n.homeTitle,
+                            t(SignInKeys.homeTitle),
                             style: context.texts.headlineMedium,
                           ),
                           SizedBox(height: context.spacing.sm),
                           Text(
-                            l10n.homeBody,
+                            t(SignInKeys.homeBody),
                             style: context.texts.bodyLarge?.copyWith(
                               color: context.colors.onSurfaceVariant,
                             ),
@@ -79,10 +80,10 @@ class RoleHomeScaffold extends StatelessWidget {
     );
   }
 
-  String _roleLabel(AppLocalizations l10n, Role role) => switch (role) {
-    Role.technician => l10n.roleTechnician,
-    Role.workshopAdmin => l10n.roleWorkshopAdmin,
-    Role.platformAdmin => l10n.rolePlatformAdmin,
+  String _roleLabel(UiStrings t, Role role) => switch (role) {
+    Role.technician => t(SignInKeys.roleTechnician),
+    Role.workshopAdmin => t(SignInKeys.roleWorkshopAdmin),
+    Role.platformAdmin => t(SignInKeys.rolePlatformAdmin),
   };
 }
 

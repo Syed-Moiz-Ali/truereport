@@ -15,6 +15,7 @@ class DashboardAttention {
     required this.severity,
     required this.route,
     required this.icon,
+    this.actionLabel = '',
   });
 
   final String title;
@@ -22,6 +23,11 @@ class DashboardAttention {
   final DashboardSeverity severity;
   final String route;
   final IconData icon;
+
+  /// Served action label for this alert; empty when the server supplied none.
+  final String actionLabel;
+
+  bool get canOpen => route.trim().isNotEmpty;
 }
 
 @immutable
@@ -57,101 +63,51 @@ String humanizeCode(String raw) {
   ].join(' ');
 }
 
-String languageDisplayName(PlatformLanguage language) {
-  final name = language.nativeName.isNotEmpty
-      ? language.nativeName
-      : language.code.toUpperCase();
-  if (name.isEmpty) return language.code.toUpperCase();
-  return '$name (${language.code})';
-}
-
-String languageStatusLabel(UiMessageStrings strings, String status) {
-  switch (status.toUpperCase()) {
-    case 'DRAFT':
-      return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
-    case 'TRANSLATING':
-      return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
-    case 'REVIEW':
-      return strings.tKey(PlatformAdminKeys.statusLanguageReview);
-    case 'LIVE':
-      return strings.tKey(PlatformAdminKeys.statusLanguageLive);
-    case 'RETIRED':
-      return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
-    default:
-      return status;
-  }
-}
-
-UiMessageKey? _alertKey(String key) {
-  switch (key) {
-    case 'dashboard.alert.checklist.title':
-      return PlatformAdminKeys.dashboardAlertChecklistTitle;
-    case 'dashboard.alert.checklist.body':
-      return PlatformAdminKeys.dashboardAlertChecklistBody;
-    case 'dashboard.alert.languages.title':
-      return PlatformAdminKeys.dashboardAlertLanguagesTitle;
-    case 'dashboard.alert.languages.body':
-      return PlatformAdminKeys.dashboardAlertLanguagesBody;
-    case 'dashboard.alert.reportsFailed.title':
-      return PlatformAdminKeys.dashboardAlertReportsFailedTitle;
-    case 'dashboard.alert.reportsFailed.body':
-      return PlatformAdminKeys.dashboardAlertReportsFailedBody;
-    case 'dashboard.alert.reportsUnpublished.title':
-      return PlatformAdminKeys.dashboardAlertReportsUnpublishedTitle;
-    case 'dashboard.alert.reportsUnpublished.body':
-      return PlatformAdminKeys.dashboardAlertReportsUnpublishedBody;
-    default:
-      return null;
-  }
-}
-
-String _alertCopy(
+/// Resolves a served platform key with its string args.
+///
+/// Missing keys resolve to an empty string so the caller can omit the row
+/// rather than render a qualified key.
+String _servedCopy(
   UiMessageStrings strings,
-  String raw,
   String key,
-  Map<String, dynamic> args,
+  Map<String, String> args,
 ) {
-  if (key.isEmpty) return raw;
-  final resolved = _alertKey(key);
-  if (resolved == null) return raw;
-  return args.isEmpty
-      ? strings.tKey(resolved)
-      : strings.tArgsKey(resolved, args);
+  if (key.isEmpty) return '';
+  final template = strings.resolveFlatKey(key);
+  if (template == null || template.trim().isEmpty) return '';
+  var value = template;
+  for (final entry in args.entries) {
+    value = value.replaceAll('{${entry.key}}', entry.value);
+  }
+  return value;
 }
 
-/// Same rules as the previous dashboard: governance first, then unapproved
-/// work, then setup. Only rows backed by real data are produced.
+DashboardSeverity _alertSeverity(String raw) {
+  return switch (raw.toLowerCase()) {
+    'danger' || 'critical' || 'error' => DashboardSeverity.critical,
+    'info' => DashboardSeverity.info,
+    _ => DashboardSeverity.warning,
+  };
+}
+
+IconData _alertIcon(DashboardSeverity severity) {
+  return switch (severity) {
+    DashboardSeverity.critical => Icons.error_outline_rounded,
+    DashboardSeverity.warning => Icons.warning_amber_rounded,
+    DashboardSeverity.info => Icons.info_outline_rounded,
+  };
+}
+
+/// Attention rows the backend has already evaluated.
+///
+/// Pending reviews are the one client-side operational row that the overview
+/// still owns; everything else comes from `localizedAlerts` so the dashboard
+/// never re-derives a health/language verdict locally.
 List<DashboardAttention> buildDashboardAttention({
   required OverviewSummary summary,
   required UiMessageStrings strings,
-  required ConfigHealth? health,
-  required List<PlatformLanguage> languages,
 }) {
   final entries = <DashboardAttention>[];
-
-  if (health != null && !health.healthy) {
-    final failing = health.checks.where((check) => !check.ok).toList();
-    if (failing.isNotEmpty) {
-      final count = failing.length;
-      entries.add(
-        DashboardAttention(
-          title: strings.tArgsKey(
-            PlatformAdminKeys.dashboardNeedsAttentionChecklistIssues,
-            {'count': '$count'},
-          ),
-          meta: count == 1
-              ? strings.tKey(PlatformAdminKeys.dashboardHealthSummarySingle)
-              : strings.tArgsKey(
-                  PlatformAdminKeys.dashboardHealthSummaryMultiple,
-                  {'count': '$count'},
-                ),
-          severity: DashboardSeverity.critical,
-          route: '/checklist/health',
-          icon: Icons.report_gmailerrorred_outlined,
-        ),
-      );
-    }
-  }
 
   if (summary.jobs.pendingReview > 0) {
     entries.add(
@@ -168,36 +124,18 @@ List<DashboardAttention> buildDashboardAttention({
     );
   }
 
-  for (final language in languages.where((item) => item.isInSetup).take(2)) {
+  for (final alert in summary.localizedAlerts) {
+    final severity = _alertSeverity(alert.severity);
+    final title = _servedCopy(strings, alert.titleKey, alert.args);
+    if (title.isEmpty) continue;
     entries.add(
       DashboardAttention(
-        title: strings.tArgsKey(
-          PlatformAdminKeys.dashboardNeedsAttentionLanguageInSetup,
-          {
-            'language': languageDisplayName(language),
-            'status': languageStatusLabel(strings, language.status),
-          },
-        ),
-        meta: strings.tKey(PlatformAdminKeys.pageLanguagesTitle),
-        severity: DashboardSeverity.info,
-        route: '/settings/languages/${language.code}?tab=overview',
-        icon: Icons.translate_rounded,
-      ),
-    );
-  }
-
-  for (final alert in summary.alerts.take(3)) {
-    entries.add(
-      DashboardAttention(
-        title: _alertCopy(strings, alert.title, alert.titleKey, alert.args),
-        meta: _alertCopy(strings, alert.body, alert.bodyKey, alert.args),
-        severity: alert.severity.toUpperCase() == 'ERROR'
-            ? DashboardSeverity.critical
-            : DashboardSeverity.warning,
-        route: alert.route,
-        icon: alert.severity.toUpperCase() == 'ERROR'
-            ? Icons.error_outline_rounded
-            : Icons.warning_amber_rounded,
+        title: title,
+        meta: _servedCopy(strings, alert.bodyKey, alert.args),
+        severity: severity,
+        route: alert.actionRoute,
+        icon: _alertIcon(severity),
+        actionLabel: _servedCopy(strings, alert.actionLabelKey, const {}),
       ),
     );
   }

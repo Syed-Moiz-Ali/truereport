@@ -1,6 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -10,7 +13,7 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 /// only exist after publish (G-J5 / CR-6). The note states the real order of
 /// events instead. The PDF toggle belongs here because it is part of what gets
 /// published, not a separate decision.
-class ChecklistSummary extends StatelessWidget {
+class ChecklistSummary extends ConsumerWidget {
   const ChecklistSummary({
     required this.checklist,
     required this.pdfDownload,
@@ -25,15 +28,17 @@ class ChecklistSummary extends StatelessWidget {
   final bool busy;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
+    final consent = ref.watch(statusesProvider('consent')).value;
+    final consentCode = consentStatusCode(checklist.consentGranted);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobsSummary),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.jobsSummary)),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: Column(
@@ -47,8 +52,8 @@ class ChecklistSummary extends StatelessWidget {
                   WorkshopStatusBadge(
                     key: const Key('jobs-checklist-ready-chip'),
                     label: checklist.ready
-                        ? l10n.jobsChecklistReady
-                        : l10n.jobsChecklistNotReady,
+                        ? t(WorkshopAdminKeys.jobsChecklistReady)
+                        : t(WorkshopAdminKeys.jobsChecklistNotReady),
                     tone: checklist.ready
                         ? WorkshopStatusTone.success
                         : WorkshopStatusTone.danger,
@@ -58,7 +63,7 @@ class ChecklistSummary extends StatelessWidget {
                   ),
                   WorkshopStatusBadge(
                     label:
-                        '${l10n.jobsItemsAssessed}: '
+                        '${t(WorkshopAdminKeys.jobsItemsAssessed)}: '
                         '${formatNumber(context, checklist.itemsAssessed)} / '
                         '${formatNumber(context, checklist.itemsTotal)}',
                     tone: WorkshopStatusTone.accent,
@@ -66,31 +71,27 @@ class ChecklistSummary extends StatelessWidget {
                   ),
                   WorkshopStatusBadge(
                     label:
-                        '${l10n.jobsScore}: '
+                        '${t(WorkshopAdminKeys.jobsScore)}: '
                         '${formatScore(context, checklist.score)}',
                     tone: WorkshopStatusTone.neutral,
                     icon: Icons.speed_outlined,
                   ),
                   WorkshopStatusBadge(
                     label:
-                        '${l10n.jobsGrade}: '
-                        '${checklist.gradeCode ?? l10n.commonNotAvailable}',
+                        '${t(WorkshopAdminKeys.jobsGrade)}: '
+                        '${checklist.gradeCode ?? t(WorkshopAdminKeys.commonNotAvailable)}',
                     tone: WorkshopStatusTone.success,
                     icon: Icons.grade_outlined,
                   ),
                   WorkshopStatusBadge(
-                    label: checklist.consentGranted
-                        ? l10n.jobsConsentGranted
-                        : l10n.jobsConsentMissing,
-                    tone: checklist.consentGranted
-                        ? WorkshopStatusTone.success
-                        : WorkshopStatusTone.danger,
+                    label: referenceStatusText(consent, consentCode),
+                    tone: referenceStatusTone(consent, consentCode),
                     icon: Icons.verified_user_outlined,
                   ),
                   WorkshopStatusBadge(
                     label: checklist.signaturePresent
-                        ? l10n.jobsSignaturePresent
-                        : l10n.jobsSignatureMissing,
+                        ? t(WorkshopAdminKeys.jobsSignaturePresent)
+                        : t(WorkshopAdminKeys.jobsSignatureMissing),
                     tone: checklist.signaturePresent
                         ? WorkshopStatusTone.success
                         : WorkshopStatusTone.warning,
@@ -99,8 +100,8 @@ class ChecklistSummary extends StatelessWidget {
                   WorkshopStatusBadge(
                     label: checklist.safetyCapApplied
                         ? (checklist.safetyCapReason ??
-                              l10n.jobsSafetyCapApplied)
-                        : l10n.jobsSafetyCapNotApplied,
+                              t(WorkshopAdminKeys.jobsSafetyCapApplied))
+                        : t(WorkshopAdminKeys.jobsSafetyCapNotApplied),
                     tone: checklist.safetyCapApplied
                         ? WorkshopStatusTone.warning
                         : WorkshopStatusTone.neutral,
@@ -111,7 +112,7 @@ class ChecklistSummary extends StatelessWidget {
               SizedBox(height: spacing.md),
               WorkshopInlineNote(
                 key: const Key('jobs-checklist-docs-note'),
-                text: l10n.jobsDocsGeneratedAfterPublish,
+                text: t(WorkshopAdminKeys.jobsDocsGeneratedAfterPublish),
                 icon: Icons.description_outlined,
               ),
               SizedBox(height: spacing.md),
@@ -121,7 +122,7 @@ class ChecklistSummary extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      l10n.pdfDownload,
+                      t(WorkshopAdminKeys.pdfDownload),
                       style: ws.bodyStrong.copyWith(color: ws.ink),
                     ),
                   ),
@@ -156,7 +157,7 @@ class PublishOptionToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final enabled = onChanged != null;
     final duration = context.motionDuration(const Duration(milliseconds: 140));
@@ -165,7 +166,7 @@ class PublishOptionToggle extends StatelessWidget {
       button: true,
       enabled: enabled,
       toggled: value,
-      label: l10n.pdfDownload,
+      label: t(WorkshopAdminKeys.pdfDownload),
       child: InkWell(
         onTap: enabled ? () => onChanged!(!value) : null,
         borderRadius: BorderRadius.circular(17),
@@ -192,7 +193,9 @@ class PublishOptionToggle extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    value ? l10n.commonYes : l10n.commonNo,
+                    value
+                        ? t(WorkshopAdminKeys.commonYes)
+                        : t(WorkshopAdminKeys.commonNo),
                     style: ws.meta.copyWith(
                       color: fg,
                       fontSize: 12.5,

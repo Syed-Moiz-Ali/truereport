@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ui_message_controller.dart';
+import 'ui_message_gate.dart';
 import 'ui_message_manifest.dart';
 
 /// The one language selector for all apps.
@@ -132,11 +133,18 @@ class _LanguageOption extends StatelessWidget {
 }
 
 /// Boots the shared language selection for [client] once per app lifetime.
+///
+/// It also gates the first paint: until the bundle resolves, [child] (the
+/// router) is not built, so a failed or slow fetch can never produce a page of
+/// empty strings. [loadingBuilder] and [errorBuilder] let an app supply its own
+/// loading/error surfaces; the defaults are copy-free.
 class UiMessageBootstrap extends ConsumerStatefulWidget {
   const UiMessageBootstrap({
     required this.client,
     required this.child,
     this.onAuthFailure,
+    this.loadingBuilder,
+    this.errorBuilder,
     super.key,
   });
 
@@ -148,6 +156,12 @@ class UiMessageBootstrap extends ConsumerStatefulWidget {
   /// Apps wire this to the session layer so a dead token is cleared and the
   /// router sends the user to sign-in instead of retrying forever.
   final VoidCallback? onAuthFailure;
+
+  /// Shown while the bundle is loading (and before boot starts).
+  final WidgetBuilder? loadingBuilder;
+
+  /// Shown when the bundle could not be loaded. [retry] re-runs the fetch.
+  final Widget Function(BuildContext context, VoidCallback retry)? errorBuilder;
 
   @override
   ConsumerState<UiMessageBootstrap> createState() => _UiMessageBootstrapState();
@@ -195,34 +209,31 @@ class _UiMessageBootstrapState extends ConsumerState<UiMessageBootstrap> {
   @override
   Widget build(BuildContext context) {
     final selection = ref.watch(languageSelectionProvider(widget.client));
-    if (selection.ready) return widget.child;
+    final messages = ref.watch(uiMessageMessagesProvider(widget.client));
+    if (selection.ready && messages.isNotEmpty) return widget.child;
 
     _maybeNotifyAuthFailure(selection);
 
-    final theme = Theme.of(context);
-    if (!selection.booting && selection.bootError != null) {
-      return ColoredBox(
-        color: theme.scaffoldBackgroundColor,
-        child: Center(
-          child: IconButton(
-            key: const Key('ui-message-retry'),
-            icon: Icon(Icons.refresh_rounded, color: theme.colorScheme.primary),
-            onPressed: () => ref
-                .read(languageSelectionProvider(widget.client).notifier)
-                .bootstrap(),
-          ),
-        ),
+    void retry() =>
+        ref.read(languageSelectionProvider(widget.client).notifier).bootstrap();
+
+    // Failure = boot finished with an error, or a "ready" state that still has
+    // no strings (unusable bundle). Both must offer a retry, never a blank page.
+    final failed =
+        !selection.booting && (selection.bootError != null || selection.ready);
+    if (failed) {
+      final builder = widget.errorBuilder;
+      return KeyedSubtree(
+        key: UiMessageErrorGate.gateKey,
+        child: builder != null
+            ? builder(context, retry)
+            : UiMessageErrorGate(onRetry: retry),
       );
     }
-    return ColoredBox(
-      color: theme.scaffoldBackgroundColor,
-      child: const Center(
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-      ),
+    final builder = widget.loadingBuilder;
+    return KeyedSubtree(
+      key: UiMessageLoadingGate.gateKey,
+      child: builder != null ? builder(context) : const UiMessageLoadingGate(),
     );
   }
 }

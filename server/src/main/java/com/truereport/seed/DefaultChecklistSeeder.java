@@ -237,14 +237,14 @@ public class DefaultChecklistSeeder {
     private void seedBandsAndRules(ItemSeed item, String versionId) {
 
         List<EvidenceRuleDto> rules = new ArrayList<>(List.of(
-                new EvidenceRuleDto("NO_ISSUE_OBSERVED", 1, 1, 0, "PHOTO"),
-                new EvidenceRuleDto("ATTENTION_RECOMMENDED", 1, 1, 15, "PHOTO"),
-                new EvidenceRuleDto("DEFECT_FOUND", 2, 1, 15, "PHOTO")));
+                new EvidenceRuleDto("NO_ISSUE_OBSERVED", 1, 1, 0, "PHOTO", null, null),
+                new EvidenceRuleDto("ATTENTION_RECOMMENDED", 1, 1, 15, "PHOTO", null, null),
+                new EvidenceRuleDto("DEFECT_FOUND", 2, 1, 15, "PHOTO", null, null)));
         if ("OBD-SCN-01".equals(item.code())) {
             rules = new ArrayList<>(List.of(
-                    new EvidenceRuleDto("NO_ISSUE_OBSERVED", 1, 1, 0, "PHOTO"),
-                    new EvidenceRuleDto("ATTENTION_RECOMMENDED", 1, 1, 15, "DOCUMENT"),
-                    new EvidenceRuleDto("DEFECT_FOUND", 2, 1, 15, "DOCUMENT")));
+                    new EvidenceRuleDto("NO_ISSUE_OBSERVED", 1, 1, 0, "PHOTO", null, null),
+                    new EvidenceRuleDto("ATTENTION_RECOMMENDED", 1, 1, 15, "DOCUMENT", null, null),
+                    new EvidenceRuleDto("DEFECT_FOUND", 2, 1, 15, "DOCUMENT", null, null)));
         }
         itemConfig.replaceEvidenceRules(versionId, rules);
     }

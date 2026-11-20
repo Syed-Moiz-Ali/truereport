@@ -61,7 +61,7 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
               retryLabel: strings.tKey(CommonKeys.buttonRetry),
               onRetry: () => ref.invalidate(configHealthProvider),
             ),
-            data: (data) => _HealthContent(health: data),
+            data: (data) => ConfigHealthContent(health: data),
           ),
           const SizedBox(height: 20),
           _ImpactHelper(
@@ -84,8 +84,8 @@ class _ConfigHealthScreenState extends ConsumerState<ConfigHealthScreen> {
   }
 }
 
-class _HealthContent extends ConsumerWidget {
-  const _HealthContent({required this.health});
+class ConfigHealthContent extends ConsumerWidget {
+  const ConfigHealthContent({super.key, required this.health});
 
   final ConfigHealth health;
 
@@ -129,9 +129,12 @@ class _HealthContent extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PlatformStatusChip(
-                          status: health.healthy
-                              ? strings.tKey(CommonKeys.statusHealthy)
-                              : strings.tKey(CommonKeys.statusUnhealthy),
+                          status: health.healthy ? 'HEALTHY' : 'UNHEALTHY',
+                          label: strings.tKey(
+                            health.healthy
+                                ? CommonKeys.statusHealthy
+                                : CommonKeys.statusUnhealthy,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -256,7 +259,7 @@ class _HealthContent extends ConsumerWidget {
           for (final entry in groups.entries) ...[
             PlatformSectionHeader(
               title:
-                  '${healthSeverityLabel(strings, entry.key)} · ${entry.value.length}',
+                  '${healthSeverityLabel(ref, entry.key)} · ${entry.value.length}',
             ),
             const SizedBox(height: 8),
             for (final check in entry.value) ...[
@@ -292,16 +295,26 @@ class _HealthCheckCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final severityColor = check.ok
-        ? PtTheme.emerald
-        : check.severity == 'WARNING'
-        ? PtTheme.gold
-        : PtTheme.rose;
-    final severityIcon = check.ok
-        ? Icons.check_circle_outline_rounded
-        : check.severity == 'WARNING'
-        ? Icons.warning_amber_rounded
-        : Icons.error_outline_rounded;
+    final tone = check.tone.toLowerCase();
+    final severityColor = switch (tone) {
+      'success' || 'positive' => PtTheme.emerald,
+      'warning' || 'caution' => PtTheme.gold,
+      'danger' || 'error' || 'negative' || 'critical' => PtTheme.rose,
+      _ => check.ok ? PtTheme.emerald : PtTheme.muted,
+    };
+    final severityIcon = switch (tone) {
+      'success' || 'positive' => Icons.check_circle_outline_rounded,
+      'warning' || 'caution' => Icons.warning_amber_rounded,
+      'danger' ||
+      'error' ||
+      'negative' ||
+      'critical' => Icons.error_outline_rounded,
+      _ =>
+        check.ok
+            ? Icons.check_circle_outline_rounded
+            : Icons.info_outline_rounded,
+    };
+    final description = healthCheckDescription(strings, check);
     final preview = check.references.take(3).toList(growable: false);
     final remaining = check.references.length - preview.length;
     return PlatformSectionCard(
@@ -346,18 +359,20 @@ class _HealthCheckCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          check.code,
-                          style: PtTheme.font(
-                            11,
-                            weight: FontWeight.w700,
-                            color: PtTheme.muted,
-                            tracking: 0.4,
+                        if (description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            description,
+                            key: Key('health-description-${check.code}'),
+                            style: PtTheme.font(
+                              12,
+                              lineHeight: 17,
+                              color: PtTheme.muted,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        ],
                       ],
                     );
                     final chipsBlock = Wrap(
@@ -367,11 +382,7 @@ class _HealthCheckCard extends ConsumerWidget {
                       children: [
                         PlatformStatusChip(
                           status: check.severity,
-                          label: healthSeverityLabel(
-                            strings,
-                            check.severity,
-                            isOk: check.ok,
-                          ),
+                          label: healthSeverityLabel(ref, check.severity),
                         ),
                         PlatformMetaPill(
                           label: strings.tKey(
@@ -609,22 +620,18 @@ class _ReleasesSectionState extends ConsumerState<_ReleasesSection> {
     }
   }
 
-  String _actionLabel(dynamic strings, String status) {
-    switch (status) {
-      case 'DRAFT':
-        return strings.tKey(PlatformAdminKeys.buttonReleaseSubmit);
-      case 'REVIEW':
-        return strings.tKey(PlatformAdminKeys.buttonReleaseApprove);
-      case 'APPROVED':
-        return strings.tKey(PlatformAdminKeys.buttonReleasePublish);
-      case 'PUBLISHED':
-        return strings.tKey(PlatformAdminKeys.buttonReleaseDeprecate);
-      default:
-        return '';
-    }
+  String _actionLabel(UiMessageStrings strings, String status) {
+    final action = _action(status);
+    return switch (action) {
+      'submit' => strings.tKey(PlatformAdminKeys.buttonReleaseSubmit),
+      'approve' => strings.tKey(PlatformAdminKeys.buttonReleaseApprove),
+      'publish' => strings.tKey(PlatformAdminKeys.buttonReleasePublish),
+      _ => strings.tKey(PlatformAdminKeys.buttonReleaseDeprecate),
+    };
   }
 
   String _action(String status) {
+    // gate-allow: behaviour - status selects the next command, not a label.
     switch (status) {
       case 'DRAFT':
         return 'submit';

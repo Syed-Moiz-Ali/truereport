@@ -1,6 +1,6 @@
 import 'package:auth/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Keeps the shared [ApiClient] aligned with the app's active locale.
 ///

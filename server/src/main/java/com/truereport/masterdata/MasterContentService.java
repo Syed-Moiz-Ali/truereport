@@ -128,7 +128,7 @@ public class MasterContentService {
         }
         boolean wantsActive = "ACTIVE".equals(status);
         Map<String, Map<String, String>> categoryTranslations =
-                overlays(request.translations(), "name", resolveLabelAr(request));
+                providedTranslations(request.translations());
         boolean allLiveProvided = translationGate.translationProvidedForLive(
                 categoryTranslations, "name");
         CategoryDto created = content.createCategory(code, name.trim(), categoryTranslations,
@@ -157,7 +157,7 @@ public class MasterContentService {
                 ? firstNonBlank(request.name(), resolveLabelEn(request))
                 : source(request.translations(), "name", firstNonBlank(request.name(), resolveLabelEn(request)));
         CategoryDto updated = content.updateCategory(id.toString(), name,
-                overlays(request.translations(), "name", resolveLabelAr(request)),
+                providedTranslations(request.translations()),
                 request.sortOrder(), status);
         audit(actor, "MASTER_CATEGORY_UPDATED", "CATEGORY", id,
                 Map.of("code", updated.code(), "status", updated.status()));
@@ -244,8 +244,7 @@ public class MasterContentService {
                 request.stableCode().trim(), request.sampleData(),
                 request.sortOrder() == null ? 0 : request.sortOrder(),
                 label, instruction, standardSpec,
-                itemOverlays(request.translations(), request.labelAr(), request.instructionAr(),
-                        request.standardSpecAr()),
+                providedTranslations(request.translations()),
                 request.measurementUnit(), request.sensorTool(),
                 Boolean.TRUE.equals(request.safetyCritical()),
                 Boolean.TRUE.equals(request.multiPoint()), request.maxTyreAgeYears(),
@@ -344,7 +343,7 @@ public class MasterContentService {
         return reasons.findAllByOrderBySortOrderAsc().stream().map(reason -> new ReasonDto(
                 reason.getId(), reason.getCode(), reason.getStatus(), reason.getSortOrder(),
                 text(REASON, reason.getId(), "en", "label"),
-                text(REASON, reason.getId(), "ar", "label"))).toList();
+                "")).toList();
     }
 
     @Transactional
@@ -355,11 +354,10 @@ public class MasterContentService {
         MasterReason reason = reasons.save(new MasterReason(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(REASON, reason.getId(), "en", "label", request.labelEn());
-        putText(REASON, reason.getId(), "ar", "label", request.labelAr());
         audit(actor, "MASTER_REASON_CREATED", "REASON", reason.getId(),
                 Map.of("code", reason.getCode()));
         return new ReasonDto(reason.getId(), reason.getCode(), reason.getStatus(),
-                reason.getSortOrder(), request.labelEn(), request.labelAr());
+                reason.getSortOrder(), request.labelEn(), "");
     }
 
     @Transactional(readOnly = true)
@@ -383,11 +381,10 @@ public class MasterContentService {
         Equipment item = equipment.save(new Equipment(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(EQUIPMENT, item.getId(), "en", "label", request.labelEn());
-        putText(EQUIPMENT, item.getId(), "ar", "label", request.labelAr());
         audit(actor, "MASTER_EQUIPMENT_CREATED", "EQUIPMENT", item.getId(),
                 Map.of("code", item.getCode()));
         return new EquipmentDto(item.getId(), item.getCode(), item.getStatus(),
-                item.getSortOrder(), request.labelEn(), request.labelAr());
+                item.getSortOrder(), request.labelEn(), "");
     }
 
     @Transactional(readOnly = true)
@@ -395,12 +392,12 @@ public class MasterContentService {
         return dropdowns.findAllByOrderBySortOrderAsc().stream().map(dropdown -> new DropdownDto(
                 dropdown.getId(), dropdown.getCode(), dropdown.getStatus(), dropdown.getSortOrder(),
                 text(DROPDOWN, dropdown.getId(), "en", "label"),
-                text(DROPDOWN, dropdown.getId(), "ar", "label"),
+                "",
                 dropdownValues.findByDropdownIdOrderBySortOrderAsc(dropdown.getId()).stream()
                         .map(value -> new DropdownValueDto(value.getId(), value.getCode(),
                                 value.getStatus(), value.getSortOrder(),
                                 text(DROPDOWN_VALUE, value.getId(), "en", "label"),
-                                text(DROPDOWN_VALUE, value.getId(), "ar", "label")))
+                                ""))
                         .toList())).toList();
     }
 
@@ -409,11 +406,10 @@ public class MasterContentService {
         MasterDropdown dropdown = dropdowns.save(new MasterDropdown(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(DROPDOWN, dropdown.getId(), "en", "label", request.labelEn());
-        putText(DROPDOWN, dropdown.getId(), "ar", "label", request.labelAr());
         audit(actor, "MASTER_DROPDOWN_CREATED", "DROPDOWN", dropdown.getId(),
                 Map.of("code", dropdown.getCode()));
         return new DropdownDto(dropdown.getId(), dropdown.getCode(), dropdown.getStatus(),
-                dropdown.getSortOrder(), request.labelEn(), request.labelAr(), List.of());
+                dropdown.getSortOrder(), request.labelEn(), "", List.of());
     }
 
     @Transactional
@@ -423,11 +419,10 @@ public class MasterContentService {
         MasterDropdownValue value = dropdownValues.save(new MasterDropdownValue(dropdown.getId(),
                 request.code().trim(), request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(DROPDOWN_VALUE, value.getId(), "en", "label", request.labelEn());
-        putText(DROPDOWN_VALUE, value.getId(), "ar", "label", request.labelAr());
         audit(actor, "MASTER_DROPDOWN_VALUE_CREATED", "DROPDOWN_VALUE", value.getId(),
                 Map.of("dropdownCode", dropdown.getCode(), "code", value.getCode()));
         return new DropdownValueDto(value.getId(), value.getCode(), value.getStatus(),
-                value.getSortOrder(), request.labelEn(), request.labelAr());
+                value.getSortOrder(), request.labelEn(), "");
     }
 
     // -------------------------------------------------------- guide images
@@ -439,7 +434,7 @@ public class MasterContentService {
 
     @Transactional
     public GuideImageDto uploadGuideImage(CurrentUser actor, MultipartFile file, String altEn,
-                                          String altAr, String licenceNote) {
+                                          String licenceNote) {
         if (file == null || file.isEmpty()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "FILE_REQUIRED",
                     "error.file.required", "A guide image file is required");
@@ -459,9 +454,8 @@ public class MasterContentService {
             String key = "guide/" + UuidV7.generate() + "/" + safeFilename(file.getOriginalFilename());
             objectStorage.put(key, bytes, mime);
             GuideImageRow image = content.createGuideImage(key, hash, mime, bytes.length,
-                    licenceNote, firstNonBlank(altEn, altAr),
-                    altAr == null || altAr.isBlank() ? Map.of()
-                            : Map.of("alt", Map.of("ar", altAr.trim())),
+                    licenceNote, firstNonBlank(altEn, null),
+                    Map.of(),
                     actor.userId());
             audit(actor, "MASTER_GUIDE_IMAGE_UPLOADED", "GUIDE_IMAGE",
                     UUID.fromString(image.id()), Map.of("mime", mime,
@@ -532,35 +526,14 @@ public class MasterContentService {
         }
     }
 
+    private static Map<String, Map<String, String>> providedTranslations(
+            Map<String, Map<String, String>> provided) {
+        return provided == null ? Map.of() : provided;
+    }
+
     private String source(Map<String, Map<String, String>> provided, String field, String fallback) {
         String translated = translations.source(provided, field, null);
         return firstNonBlank(translated, fallback);
-    }
-
-    private Map<String, Map<String, String>> overlays(Map<String, Map<String, String>> provided,
-                                                      String field, String legacyAr) {
-        Map<String, String> legacy = new LinkedHashMap<>();
-        String value = blankToNull(legacyAr);
-        if (value != null) {
-            legacy.put(field, value);
-        }
-        return translations.mergeLegacy(provided, legacy);
-    }
-
-    private Map<String, Map<String, String>> itemOverlays(
-            Map<String, Map<String, String>> provided, String labelAr, String instructionAr,
-            String standardSpecAr) {
-        Map<String, String> legacy = new LinkedHashMap<>();
-        if (notBlank(labelAr)) {
-            legacy.put("label", labelAr.trim());
-        }
-        if (notBlank(instructionAr)) {
-            legacy.put("instruction", instructionAr.trim());
-        }
-        if (notBlank(standardSpecAr)) {
-            legacy.put("standardSpec", standardSpecAr.trim());
-        }
-        return translations.mergeLegacy(provided, legacy);
     }
 
     private static String firstNonBlank(String preferred, String fallback) {
@@ -568,10 +541,6 @@ public class MasterContentService {
             return preferred.trim();
         }
         return fallback == null ? "" : fallback.trim();
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private static boolean notBlank(String value) {
@@ -590,11 +559,6 @@ public class MasterContentService {
 
     private String resolveLabelEn(CategoryRequest request) {
         String value = notBlank(request.nameEn()) ? request.nameEn() : request.labelEn();
-        return value == null ? "" : value.trim();
-    }
-
-    private String resolveLabelAr(CategoryRequest request) {
-        String value = notBlank(request.nameAr()) ? request.nameAr() : request.labelAr();
         return value == null ? "" : value.trim();
     }
 
@@ -632,7 +596,7 @@ public class MasterContentService {
     private EquipmentDto equipmentDto(Equipment item) {
         return new EquipmentDto(item.getId(), item.getCode(), item.getStatus(), item.getSortOrder(),
                 text(EQUIPMENT, item.getId(), "en", "label"),
-                text(EQUIPMENT, item.getId(), "ar", "label"));
+                "");
     }
 
     private String safeFilename(String filename) {

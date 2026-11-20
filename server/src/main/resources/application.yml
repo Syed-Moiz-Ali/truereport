@@ -96,6 +96,8 @@ truereport:
     ttl: PT72H
   security:
     cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
+  evidence:
+    allow-file-source: ${EVIDENCE_ALLOW_FILE_SOURCE:true}
   pii:
     keys: ${APP_PII_KEYS:}
     active-key-id: ${APP_PII_ACTIVE_KEY_ID:v1}

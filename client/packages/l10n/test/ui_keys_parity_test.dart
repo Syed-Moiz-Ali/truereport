@@ -11,30 +11,46 @@ import '../tool/generate_ui_keys.dart';
 /// Re-derives the constants exactly the way `tool/generate_ui_keys.dart` does
 /// and fails when a key is missing, renamed, or left behind.
 void main() {
-  const expectedCounts = <String, int>{
-    'common': 59,
-    'platform_admin': 756,
-    'workshop_admin': 1261,
-    'technician': 1277,
-  };
-
-  test('the backend catalogs keep their approved split', () {
+  // Counts are intentionally not pinned: every phase adds keys. The invariants
+  // below (schema == union, generated files == catalogs) are what must hold.
+  test('schema.json is the exact union of the client catalogs', () {
     final root = _repoRoot();
-    for (final entry in expectedCounts.entries) {
-      final file = File(
-        '${root.path}${Platform.pathSeparator}server'
-        '${Platform.pathSeparator}src${Platform.pathSeparator}main'
-        '${Platform.pathSeparator}resources${Platform.pathSeparator}i18n'
-        '${Platform.pathSeparator}${entry.key}'
-        '${Platform.pathSeparator}en.json',
-      );
+    Set<String> readKeys(String path) {
+      final file = File('${root.path}${Platform.pathSeparator}$path');
       final decoded = jsonDecode(file.readAsStringSync());
-      expect(
-        (decoded as Map).length,
-        entry.value,
-        reason: '${entry.key}/en.json changed size',
-      );
+      return (decoded as Map).keys.whereType<String>().toSet();
     }
+
+    final workshop = readKeys(
+      'server${Platform.pathSeparator}src${Platform.pathSeparator}main'
+      '${Platform.pathSeparator}resources${Platform.pathSeparator}i18n'
+      '${Platform.pathSeparator}workshop_admin'
+      '${Platform.pathSeparator}en.json',
+    );
+    final technician = readKeys(
+      'server${Platform.pathSeparator}src${Platform.pathSeparator}main'
+      '${Platform.pathSeparator}resources${Platform.pathSeparator}i18n'
+      '${Platform.pathSeparator}technician'
+      '${Platform.pathSeparator}en.json',
+    );
+    final schemaFile = File(
+      '${root.path}${Platform.pathSeparator}server'
+      '${Platform.pathSeparator}src${Platform.pathSeparator}main'
+      '${Platform.pathSeparator}resources${Platform.pathSeparator}i18n'
+      '${Platform.pathSeparator}schema.json',
+    );
+    final schema =
+        ((jsonDecode(schemaFile.readAsStringSync()) as Map)['keys'] as Map).keys
+            .whereType<String>()
+            .toSet();
+
+    expect(workshop, isNotEmpty);
+    expect(technician, isNotEmpty);
+    expect(
+      schema,
+      equals({...workshop, ...technician}),
+      reason: 'schema.json must be the exact union of the client catalogs',
+    );
   });
 
   test('generated UI key files match the backend en catalogs', () {

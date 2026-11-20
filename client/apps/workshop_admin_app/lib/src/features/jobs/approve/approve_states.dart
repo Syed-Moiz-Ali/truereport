@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 enum ApproveNoticeTone { warning, danger }
 
@@ -18,11 +18,11 @@ class ApproveLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return WorkshopErrorState(
-      title: l10n.error,
+      title: t(WorkshopAdminKeys.error),
       body: message,
-      retryLabel: l10n.retryAction,
+      retryLabel: t(WorkshopAdminKeys.retryAction),
       onRetry: onRetry,
     );
   }
@@ -45,7 +45,7 @@ class ApproveNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final danger = tone == ApproveNoticeTone.danger;
@@ -82,7 +82,7 @@ class ApproveNotice extends StatelessWidget {
               SizedBox(height: spacing.sm),
               WorkshopButton(
                 key: const Key('jobs-approve-reload'),
-                label: l10n.refresh,
+                label: t(WorkshopAdminKeys.refresh),
                 icon: Icons.refresh,
                 variant: WorkshopButtonVariant.secondary,
                 onPressed: onReload,

@@ -4,11 +4,13 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// J12 / D4: the dashboard must be fully localized.
 ///
@@ -99,8 +101,10 @@ class _HarnessState extends ConsumerState<_Harness> {
   Widget build(BuildContext context) {
     return MaterialApp(
       locale: widget.locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const <Locale>[Locale('en')],
+      localizationsDelegates: testLocalizationsDelegates,
+      builder: (context, child) =>
+          uiStringsScope(child: child ?? const SizedBox.shrink()),
       theme: AppTheme.light,
       home: const Scaffold(body: DashboardTab()),
     );
@@ -112,12 +116,24 @@ void main() {
     tester,
   ) async {
     await _pump(tester, locale: const Locale('en'));
-    final l10n = AppLocalizations.of(tester.element(find.byType(DashboardTab)));
+    final t = UiStrings.of(tester.element(find.byType(DashboardTab)));
 
-    expect(l10n.dashFloorTotal(1), '1 job on the floor');
-    expect(l10n.dashFloorTotal(24), '24 jobs on the floor');
-    expect(l10n.dashDecisionWaiting(1), '1 is waiting for your decision');
-    expect(l10n.dashDecisionWaiting(4), '4 are waiting for your decision');
-    expect(l10n.dashFooterSum(24), contains('24'));
+    expect(
+      t(WorkshopAdminKeys.dashFloorTotal, {'count': 1}),
+      '1 job on the floor',
+    );
+    expect(
+      t(WorkshopAdminKeys.dashFloorTotal, {'count': 24}),
+      '24 jobs on the floor',
+    );
+    expect(
+      t(WorkshopAdminKeys.dashDecisionWaiting, {'count': 1}),
+      '1 is waiting for your decision',
+    );
+    expect(
+      t(WorkshopAdminKeys.dashDecisionWaiting, {'count': 4}),
+      '4 are waiting for your decision',
+    );
+    expect(t(WorkshopAdminKeys.dashFooterSum, {'total': 24}), contains('24'));
   });
 }

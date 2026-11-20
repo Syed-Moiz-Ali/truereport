@@ -16,12 +16,14 @@ import com.truereport.jobs.PlatformJobStore.ResultRow;
 import com.truereport.jobs.PlatformJobStore.ScoringRuleRow;
 import com.truereport.jobs.PlatformJobStore.TemplateItemRow;
 import com.truereport.jobs.PlatformJobStore.TemplateVersionRow;
+import com.truereport.jobs.api.WorkshopJobDtos.AllowedActionDto;
 import com.truereport.jobs.api.WorkshopJobDtos.ApproveJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.AssignTechnicianRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.AssignmentDto;
 import com.truereport.jobs.api.WorkshopJobDtos.AvailableTemplateDto;
 import com.truereport.jobs.api.WorkshopJobDtos.CancelJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.ChecklistItemDto;
+import com.truereport.shared.text.CustomerNames;
 import com.truereport.jobs.api.WorkshopJobDtos.CreateJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.JobConsentRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.JobDto;
@@ -38,6 +40,8 @@ import com.truereport.jobs.api.WorkshopJobDtos.ReviewFindingDto;
 import com.truereport.jobs.api.WorkshopJobDtos.TemplateItemDto;
 import com.truereport.jobs.api.WorkshopJobDtos.TemplateVersionDetailDto;
 import com.truereport.jobs.api.WorkshopJobDtos.UpdateJobRequest;
+import com.truereport.reference.ReferenceRepository;
+import com.truereport.reference.ReferenceRepository.TransitionRow;
 import com.truereport.shared.audit.FieldAuditService;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.error.FieldIssue;
@@ -67,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,6 +93,30 @@ public class WorkshopJobAdminService {
     private static final Set<String> LANGUAGES = Set.of("en");
     private static final List<String> GRADE_ORDER = List.of("A", "B", "C", "D");
 
+    private static final List<String> ACTION_ORDER = List.of(
+            "ASSIGN", "CONSENT", "APPROVE", "REJECT", "PUBLISH",
+            "UNPUBLISH", "ROTATE_TOKEN", "REVOKE", "CANCEL");
+
+    private static final Map<String, AllowedActionDto> ACTION_DEFINITIONS = Map.ofEntries(
+            Map.entry("ASSIGN", new AllowedActionDto("ASSIGN", "jobsAssignTechnician",
+                    "neutral", false, false)),
+            Map.entry("CONSENT", new AllowedActionDto("CONSENT", "consentPublicLink",
+                    "info", false, false)),
+            Map.entry("APPROVE", new AllowedActionDto("APPROVE", "jobsApprove",
+                    "success", false, false)),
+            Map.entry("REJECT", new AllowedActionDto("REJECT", "jobsReject",
+                    "danger", true, false)),
+            Map.entry("PUBLISH", new AllowedActionDto("PUBLISH", "jobsPublishNow",
+                    "success", false, true)),
+            Map.entry("UNPUBLISH", new AllowedActionDto("UNPUBLISH", "jobsUnpublish",
+                    "warning", true, false)),
+            Map.entry("ROTATE_TOKEN", new AllowedActionDto("ROTATE_TOKEN", "jobsRotateToken",
+                    "info", false, false)),
+            Map.entry("REVOKE", new AllowedActionDto("REVOKE", "jobsRevoke",
+                    "danger", true, false)),
+            Map.entry("CANCEL", new AllowedActionDto("CANCEL", "cancelJob",
+                    "danger", true, false)));
+
     private final PlatformJobStore store;
     private final WorkshopMembershipRepository memberships;
     private final WorkshopRepository workshops;
@@ -98,6 +127,7 @@ public class WorkshopJobAdminService {
     private final PlatformJobDocumentService documents;
     private final CleanEvidencePublicationService publicEvidence;
     private final PlatformJobTokenService tokens;
+    private final ReferenceRepository reference;
     private final PlatformQrService qr;
     private final ObjectMapper objectMapper;
     private final String publicBaseUrl;
@@ -113,6 +143,7 @@ public class WorkshopJobAdminService {
                                       CleanEvidencePublicationService publicEvidence,
                                       PlatformJobTokenService tokens,
                                       PlatformQrService qr,
+                                      ReferenceRepository reference,
                                       ObjectMapper objectMapper,
                                       @Value("${truereport.report.public-base-url:http://localhost:8080}")
                                       String publicBaseUrl) {
@@ -127,6 +158,7 @@ public class WorkshopJobAdminService {
         this.publicEvidence = publicEvidence;
         this.tokens = tokens;
         this.qr = qr;
+        this.reference = reference;
         this.objectMapper = objectMapper;
         this.publicBaseUrl = publicBaseUrl.endsWith("/")
                 ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
@@ -136,21 +168,21 @@ public class WorkshopJobAdminService {
 
     @Transactional(readOnly = true)
     public List<AvailableTemplateDto> availableTemplates(CurrentUser caller) {
-        requireWorkshop(caller);
-        return store.availableTemplates().stream()
+        String workshopId = requireWorkshop(caller);
+        return store.availableTemplates(workshopId).stream()
                 .map(row -> new AvailableTemplateDto(row.versionId(), row.templateId(), row.code(),
                         row.nameEn(), row.nameAr(), row.versionNo(),
-                        store.templateItemCount(row.versionId())))
+                        store.templateItemCount(row.versionId(), workshopId)))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public TemplateVersionDetailDto templateVersion(CurrentUser caller, String versionId) {
-        requireWorkshop(caller);
-        TemplateVersionRow version = store.templateVersion(versionId)
+        String workshopId = requireWorkshop(caller);
+        TemplateVersionRow version = store.templateVersion(versionId, workshopId)
                 .orElseThrow(() -> notFound("TEMPLATE_NOT_FOUND", "error.template.notFound",
                         "Template not found"));
-        List<TemplateItemDto> items = store.templateItems(versionId).stream()
+        List<TemplateItemDto> items = store.templateItems(versionId, workshopId).stream()
                 .map(this::templateItemDto)
                 .toList();
         return new TemplateVersionDetailDto(version.versionId(), version.templateId(),
@@ -173,8 +205,8 @@ public class WorkshopJobAdminService {
                 safePage * safeSize, safeSize);
         long total = store.countJobs(workshopId, filter, search, fromDate, toDate);
         int totalPages = safeSize == 0 ? 0 : (int) Math.ceil((double) total / safeSize);
-        return new JobPageDto(rows.stream().map(this::jobDto).toList(), safePage, safeSize,
-                total, totalPages);
+        return new JobPageDto(rows.stream().map(row -> jobDto(row, caller)).toList(),
+                safePage, safeSize, total, totalPages);
     }
 
     @Transactional(readOnly = true)
@@ -203,7 +235,7 @@ public class WorkshopJobAdminService {
         String workshopId = requireWorkshop(caller);
         return jobDto(store.findJob(workshopId, jobId)
                 .orElseThrow(() -> notFound("JOB_NOT_FOUND", "error.job.notFound",
-                        "Job not found")));
+                        "Job not found")), caller);
     }
 
     @Transactional
@@ -227,7 +259,8 @@ public class WorkshopJobAdminService {
         if (issues.size() > 0) {
             throw ApiException.validation("JOB_VALIDATION_FAILED", "Job validation failed", issues);
         }
-        TemplateVersionRow template = requirePublishedTemplate(request.templateVersionId());
+        TemplateVersionRow template = requirePublishedTemplate(workshopId,
+                request.templateVersionId());
         String technicianId = trimToNull(request.assignedTechnicianId());
         if (technicianId != null) {
             requireActiveTechnician(workshopId, technicianId);
@@ -263,7 +296,7 @@ public class WorkshopJobAdminService {
         outbox.publish("JOB", jobId, "JOB_CREATED", Map.of(
                 "jobId", jobId, "workshopId", workshopId, "reference", reference,
                 "templateVersionId", template.versionId()));
-        JobDto dto = jobDto(created);
+        JobDto dto = jobDto(created, caller);
         storeIdempotent(actorId, endpoint, idempotencyKey, 201, dto);
         return dto;
     }
@@ -305,7 +338,7 @@ public class WorkshopJobAdminService {
         JobRow updatedRow = requireJob(workshopId, jobId);
         audit.record(caller, "JOB_UPDATED", "JOB", jobId, job, updatedRow, null, null);
         outbox.publish("JOB", jobId, "JOB_UPDATED", Map.of("jobId", jobId));
-        return jobDto(updatedRow);
+        return jobDto(updatedRow, caller);
     }
 
     @Transactional
@@ -342,7 +375,7 @@ public class WorkshopJobAdminService {
                 "jobId", jobId, "technicianId", technicianId));
         notify(workshopId, technicianId, "JOB_ASSIGNED",
                 Map.of("jobId", jobId, "reference", job.reference()));
-        return jobDto(requireJob(workshopId, jobId));
+        return jobDto(requireJob(workshopId, jobId), caller);
     }
 
     @Transactional
@@ -369,7 +402,7 @@ public class WorkshopJobAdminService {
         audit.record(caller, "JOB_CONSENT_UPDATED", "JOB", jobId,
                 Map.of("consentGranted", job.consentGranted()),
                 Map.of("consentGranted", granted), reason, null);
-        return jobDto(requireJob(workshopId, jobId));
+        return jobDto(requireJob(workshopId, jobId), caller);
     }
 
     @Transactional
@@ -398,7 +431,7 @@ public class WorkshopJobAdminService {
         audit.record(caller, "JOB_CANCELLED", "JOB", jobId,
                 Map.of("status", job.status()), Map.of("status", "CANCELLED"), reason, null);
         outbox.publish("JOB", jobId, "JOB_CANCELLED", Map.of("jobId", jobId, "reason", reason));
-        return jobDto(requireJob(workshopId, jobId));
+        return jobDto(requireJob(workshopId, jobId), caller);
     }
 
     @Transactional(readOnly = true)
@@ -414,7 +447,7 @@ public class WorkshopJobAdminService {
     public ReviewDto review(CurrentUser caller, String jobId) {
         String workshopId = requireWorkshop(caller);
         JobRow job = requireJob(workshopId, jobId);
-        List<TemplateItemRow> items = store.templateItems(job.templateVersionId());
+        List<TemplateItemRow> items = store.templateItems(job.templateVersionId(), job.workshopId());
         Map<String, ResultRow> results = resultsByItem(jobId);
         List<ReviewFindingDto> findings = new ArrayList<>();
         for (TemplateItemRow item : items) {
@@ -432,7 +465,8 @@ public class WorkshopJobAdminService {
         }
         ScoreResult score = computeScore(job);
         return new ReviewDto(job.id(), job.status(), results.size(), items.size(),
-                score.score(), score.grade(), score.capReason(), findings);
+                score.score(), score.grade(), score.capReason(), findings,
+                allowedActions(job, caller));
     }
 
     @Transactional(readOnly = true)
@@ -444,7 +478,7 @@ public class WorkshopJobAdminService {
                 evaluation.assessed(), evaluation.total(), evaluation.score().score(),
                 evaluation.score().grade(), evaluation.score().capApplied(),
                 evaluation.score().capReason(), job.consentGranted(), job.signaturePresent(),
-                true);
+                true, allowedActions(job, caller));
     }
 
     @Transactional
@@ -505,7 +539,7 @@ public class WorkshopJobAdminService {
                 "reportVersionNo", reportVersionNo));
         notify(workshopId, job.createdBy(), "JOB_APPROVED",
                 Map.of("jobId", jobId, "reference", job.reference()));
-        JobDto dto = jobDto(requireJob(workshopId, jobId));
+        JobDto dto = jobDto(requireJob(workshopId, jobId), caller);
         storeIdempotent(actorId, endpoint, idempotencyKey, 200, dto);
         return dto;
     }
@@ -535,7 +569,7 @@ public class WorkshopJobAdminService {
         outbox.publish("JOB", jobId, "JOB_REJECTED", Map.of("jobId", jobId, "reason", reason));
         notify(workshopId, job.createdBy(), "JOB_REJECTED",
                 Map.of("jobId", jobId, "reference", job.reference()));
-        return jobDto(requireJob(workshopId, jobId));
+        return jobDto(requireJob(workshopId, jobId), caller);
     }
 
     // -------------------------------------------------------------- publish
@@ -556,6 +590,11 @@ public class WorkshopJobAdminService {
             LinkRow active = store.activeLink(jobId).orElseThrow(
                     () -> new ApiException(HttpStatus.CONFLICT, "JOB_ALREADY_PUBLISHED",
                             "error.job.statusInvalid", "Job is already published"));
+            if (request != null && request.pdfDownloadEnabled() != null
+                    && request.pdfDownloadEnabled() != active.pdfDownloadEnabled()) {
+                store.setPdfDownload(active.id(), request.pdfDownloadEnabled());
+                active = store.activeLink(jobId).orElse(active);
+            }
             return linkDto(job, active, true);
         }
         if (!"APPROVED".equals(job.status())) {
@@ -571,7 +610,12 @@ public class WorkshopJobAdminService {
                 .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
                         "REPORT_VERSION_MISSING", "error.job.publishState",
                         "The approved report version is missing"));
-        boolean pdfDownload = request != null && Boolean.TRUE.equals(request.pdfDownloadEnabled());
+        // The report is the product's output: enable PDF download on first
+        // publish unless the caller explicitly turns it off. Re-publishing an
+        // already-published job keeps its current value unless the caller sends
+        // an explicit flag.
+        boolean pdfDownload = request == null || request.pdfDownloadEnabled() == null
+                || request.pdfDownloadEnabled();
         String token = tokens.newToken();
         store.insertLink(jobId, version.id(), tokens.hash(token), tokens.encrypt(token),
                 pdfDownload);
@@ -777,12 +821,12 @@ public class WorkshopJobAdminService {
                 .orElseThrow(() -> notFound("JOB_NOT_FOUND", "error.job.notFound", "Job not found"));
     }
 
-    private TemplateVersionRow requirePublishedTemplate(String versionId) {
+    private TemplateVersionRow requirePublishedTemplate(String workshopId, String versionId) {
         if (isBlank(versionId)) {
             throw ApiException.validation("TEMPLATE_REQUIRED", "Template is required",
                     List.of(field("templateVersionId", "REQUIRED")));
         }
-        TemplateVersionRow template = store.templateVersion(versionId)
+        TemplateVersionRow template = store.templateVersion(versionId, workshopId)
                 .orElseThrow(() -> notFound("TEMPLATE_NOT_FOUND", "error.template.notFound",
                         "Template not found"));
         if (!"PUBLISHED".equals(template.status())) {
@@ -856,7 +900,7 @@ public class WorkshopJobAdminService {
     }
 
     private Evaluation evaluate(CurrentUser caller, JobRow job, String safetyCapReason) {
-        List<TemplateItemRow> items = store.templateItems(job.templateVersionId());
+        List<TemplateItemRow> items = store.templateItems(job.templateVersionId(), job.workshopId());
         Map<String, ResultRow> results = resultsByItem(job.id());
         int assessed = 0;
         boolean evidenceOk = true;
@@ -864,7 +908,7 @@ public class WorkshopJobAdminService {
             ResultRow result = results.get(item.itemVersionId());
             if (result != null) {
                 assessed++;
-                if (!evidenceSatisfied(item, result)) {
+                if (!evidenceSatisfied(job, item, result)) {
                     evidenceOk = false;
                 }
             }
@@ -896,11 +940,12 @@ public class WorkshopJobAdminService {
         return new Evaluation(checklist, ready, assessed, items.size(), score);
     }
 
-    private boolean evidenceSatisfied(TemplateItemRow item, ResultRow result) {
+    private boolean evidenceSatisfied(JobRow job, TemplateItemRow item, ResultRow result) {
         String code = result.resultCode();
         int defaultPhotos = "DEFECT_FOUND".equals(code) ? 2 : 1;
         int defaultVideos = 1;
-        var rule = store.evidenceRule(item.itemVersionId(), code);
+        var rule = store.evidenceRule(job.templateVersionId(), item.itemVersionId(), code,
+                job.workshopId());
         int requiredPhotos = rule.map(value -> Math.max(defaultPhotos, value.minPhotos()))
                 .orElse(defaultPhotos);
         int requiredVideos = rule.map(value -> Math.max(defaultVideos, value.minVideos()))
@@ -910,7 +955,7 @@ public class WorkshopJobAdminService {
     }
 
     private ScoreResult computeScore(JobRow job) {
-        List<TemplateItemRow> items = store.templateItems(job.templateVersionId());
+        List<TemplateItemRow> items = store.templateItems(job.templateVersionId(), job.workshopId());
         return computeScore(job, items, resultsByItem(job.id()));
     }
 
@@ -1007,8 +1052,51 @@ public class WorkshopJobAdminService {
         return new ChecklistItemDto(code, passed, en);
     }
 
-    private JobDto jobDto(JobRow job) {
-        TemplateVersionRow template = store.templateVersion(job.templateVersionId()).orElse(null);
+    private List<AllowedActionDto> allowedActions(JobRow job, CurrentUser caller) {
+        if (caller == null || !caller.isWorkshopAdmin()) {
+            return List.of();
+        }
+        LinkedHashSet<String> codes = new LinkedHashSet<>();
+        for (TransitionRow transition : reference.findTransitions("job")) {
+            if (!job.status().equals(transition.fromCode())
+                    || !"WORKSHOP_ADMIN".equals(transition.role())) {
+                continue;
+            }
+            String action = switch (transition.toCode()) {
+                case "APPROVED" -> "APPROVE";
+                case "REJECTED" -> "REJECT";
+                case "PUBLISHED" -> "PUBLISH";
+                case "CANCELLED" -> "CANCEL";
+                case "SCHEDULED", "ASSIGNED" -> "ASSIGN";
+                default -> null;
+            };
+            if (action != null) {
+                codes.add(action);
+            }
+        }
+        if (ASSIGNABLE_STATUSES.contains(job.status())) {
+            codes.add("ASSIGN");
+        }
+        if (!"PUBLISHED".equals(job.status()) && !"CANCELLED".equals(job.status())) {
+            codes.add("CONSENT");
+        }
+        if ("PUBLISHED".equals(job.status())) {
+            codes.add("UNPUBLISH");
+            codes.add("ROTATE_TOKEN");
+            codes.add("REVOKE");
+        }
+        List<AllowedActionDto> actions = new ArrayList<>();
+        for (String code : ACTION_ORDER) {
+            if (codes.contains(code)) {
+                actions.add(ACTION_DEFINITIONS.get(code));
+            }
+        }
+        return List.copyOf(actions);
+    }
+
+    private JobDto jobDto(JobRow job, CurrentUser caller) {
+        TemplateVersionRow template = store.templateVersion(job.templateVersionId(),
+                job.workshopId()).orElse(null);
         String technicianName = displayName(job.assignedTechnicianId());
         return new JobDto(job.id(), job.reference(), job.status(), job.reviewStatus(),
                 job.publicationStatus(), job.templateVersionId(),
@@ -1024,7 +1112,7 @@ public class WorkshopJobAdminService {
                 job.approvedBy(), job.cancelledBy(), job.cancelReason(), job.score(),
                 job.gradeCode(), job.safetyCapApplied(), job.safetyCapReason(),
                 job.consentGranted(), job.signaturePresent(), str(job.createdAt()),
-                str(job.updatedAt()), job.version());
+                str(job.updatedAt()), job.version(), allowedActions(job, caller));
     }
 
     private TemplateItemDto templateItemDto(TemplateItemRow item) {
@@ -1137,7 +1225,8 @@ public class WorkshopJobAdminService {
 
         Map<String, Object> inspection = new LinkedHashMap<>();
         inspection.put("scope", "Inspection");
-        inspection.put("templateVersionNo", store.templateVersion(job.templateVersionId())
+        inspection.put("templateVersionNo", store.templateVersion(job.templateVersionId(),
+                        job.workshopId())
                 .map(TemplateVersionRow::versionNo).orElse(null));
         inspection.put("dateTime", str(job.completedAt()));
 
@@ -1168,6 +1257,8 @@ public class WorkshopJobAdminService {
         coverage.put("notChecked", 0);
         coverage.put("couldNotVerify", 0);
 
+        Map<String, Object> summary = summary(job, evaluation);
+
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("reportNumber", job.reference());
         snapshot.put("reportVersion", 1);
@@ -1177,7 +1268,13 @@ public class WorkshopJobAdminService {
         snapshot.put("inspection", inspection);
         snapshot.put("workshop", workshopMap);
         snapshot.put("technician", technician);
+        snapshot.put("customerName", CustomerNames.mask(job.customerName()));
         snapshot.put("coverage", coverage);
+        snapshot.put("summary", summary);
+        snapshot.put("score", score.score());
+        snapshot.put("gradeCode", score.grade());
+        snapshot.put("safetyCapApplied", score.capApplied());
+        snapshot.put("safetyCapReason", score.capReason());
         snapshot.put("keyFindings", keyFindings);
         snapshot.put("categories", categories);
         snapshot.put("notChecked", List.of());
@@ -1196,6 +1293,42 @@ public class WorkshopJobAdminService {
             case "MINOR" -> 3;
             default -> 4;
         };
+    }
+
+    /**
+     * Headline report figures, computed from the same item/result data the
+     * score engine uses, so the report and the review endpoint cannot drift.
+     */
+    private Map<String, Object> summary(JobRow job, Evaluation evaluation) {
+        List<TemplateItemRow> items = store.templateItems(job.templateVersionId(), job.workshopId());
+        Map<String, ResultRow> results = resultsByItem(job.id());
+        int findingsCount = 0;
+        int safetyCriticalCount = 0;
+        int passedCount = 0;
+        for (TemplateItemRow item : items) {
+            ResultRow result = results.get(item.itemVersionId());
+            if (result == null) {
+                continue;
+            }
+            String code = result.resultCode();
+            if ("NO_ISSUE_OBSERVED".equals(code)) {
+                passedCount++;
+            }
+            if ("DEFECT_FOUND".equals(code) || "ATTENTION_RECOMMENDED".equals(code)) {
+                findingsCount++;
+            }
+            if (item.safetyCritical() && "DEFECT_FOUND".equals(code)) {
+                safetyCriticalCount++;
+            }
+        }
+        double coveragePercent = evaluation.total() == 0 ? 0.0
+                : Math.round(evaluation.assessed() * 1000.0 / evaluation.total()) / 10.0;
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("findingsCount", findingsCount);
+        summary.put("safetyCriticalCount", safetyCriticalCount);
+        summary.put("passedCount", passedCount);
+        summary.put("coveragePercent", coveragePercent);
+        return summary;
     }
 
     private static String maskVin(String vin) {

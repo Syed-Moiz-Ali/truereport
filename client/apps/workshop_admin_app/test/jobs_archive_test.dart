@@ -2,11 +2,13 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/archive/legacy_archive_page.dart';
 import 'package:workshop_admin_app/src/models.dart';
+
+import 'support/ui_strings_harness.dart';
 
 class _ArchiveApi implements AdminApi {
   _ArchiveApi({this.fail = false});
@@ -87,8 +89,10 @@ Future<void> _pump(
       overrides: [adminApiProvider.overrideWithValue(api)],
       child: MaterialApp(
         locale: const Locale('en'),
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const <Locale>[Locale('en')],
+        localizationsDelegates: testLocalizationsDelegates,
+        builder: (context, child) =>
+            uiStringsScope(child: child ?? const SizedBox.shrink()),
         theme: AppTheme.light,
         home: const LegacyArchivePage(),
       ),
@@ -101,13 +105,11 @@ Future<void> _pump(
 void main() {
   testWidgets('archive is read-only: banner, rows, no actions', (tester) async {
     await _pump(tester, _ArchiveApi());
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(LegacyArchivePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(LegacyArchivePage)));
 
-    expect(find.text(l10n.jobsArchiveTitle), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.jobsArchiveTitle)), findsOneWidget);
     expect(find.byKey(const Key('jobs-archive-banner')), findsOneWidget);
-    expect(find.text(l10n.jobsArchiveBanner), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.jobsArchiveBanner)), findsOneWidget);
     expect(find.byKey(const Key('legacy-job-legacy-1')), findsOneWidget);
     expect(find.byKey(const Key('legacy-job-legacy-2')), findsOneWidget);
     expect(find.text('LEG-0001'), findsOneWidget);
@@ -115,12 +117,12 @@ void main() {
 
     // No create, assign, cancel, report, publish or link controls.
     expect(find.byType(WorkshopButton), findsNothing);
-    expect(find.text(l10n.assign), findsNothing);
-    expect(find.text(l10n.reassign), findsNothing);
-    expect(find.text(l10n.cancelJob), findsNothing);
-    expect(find.text(l10n.jobsPublishNow), findsNothing);
-    expect(find.text(l10n.jobsShare), findsNothing);
-    expect(find.text(l10n.newJob), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.assign)), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.reassign)), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.cancelJob)), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.jobsPublishNow)), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.jobsShare)), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.newJob)), findsNothing);
   });
 
   testWidgets('archive local search filters without leaving the page', (
@@ -146,10 +148,8 @@ void main() {
       'no such record',
     );
     await tester.pumpAndSettle();
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(LegacyArchivePage)),
-    );
-    expect(find.text(l10n.jobsArchiveEmpty), findsOneWidget);
+    final t = UiStrings.of(tester.element(find.byType(LegacyArchivePage)));
+    expect(find.text(t(WorkshopAdminKeys.jobsArchiveEmpty)), findsOneWidget);
     expect(find.byType(WorkshopButton), findsNothing);
   });
 
@@ -158,8 +158,9 @@ void main() {
     expect(find.byType(WorkshopErrorState), findsOneWidget);
     expect(
       find.text(
-        AppLocalizations.of(tester.element(find.byType(LegacyArchivePage)))
-            .commonLoadFailed,
+        UiStrings.of(tester.element(find.byType(LegacyArchivePage)))(
+          WorkshopAdminKeys.commonLoadFailed,
+        ),
       ),
       findsOneWidget,
     );
@@ -169,15 +170,13 @@ void main() {
     tester,
   ) async {
     await _pump(tester, _ArchiveApi());
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(LegacyArchivePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(LegacyArchivePage)));
 
-    final reference = find.text(l10n.jobsReference);
-    final vehicle = find.text(l10n.jobsVehicle);
-    final customer = find.text(l10n.jobsListColumnCustomer);
-    final status = find.text(l10n.status);
-    final scheduled = find.text(l10n.jobsListColumnScheduled);
+    final reference = find.text(t(WorkshopAdminKeys.jobsReference));
+    final vehicle = find.text(t(WorkshopAdminKeys.jobsVehicle));
+    final customer = find.text(t(WorkshopAdminKeys.jobsListColumnCustomer));
+    final status = find.text(t(WorkshopAdminKeys.status));
+    final scheduled = find.text(t(WorkshopAdminKeys.jobsListColumnScheduled));
     for (final label in [reference, vehicle, customer, status, scheduled]) {
       expect(label, findsOneWidget);
     }

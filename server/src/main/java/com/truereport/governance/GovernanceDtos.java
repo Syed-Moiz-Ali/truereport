@@ -13,7 +13,11 @@ public final class GovernanceDtos {
             String severity,
             String messageEn,
             int affected,
-            List<String> references
+            List<String> references,
+            String labelKey,
+            String descriptionKey,
+            String tone,
+            String status
     ) {
     }
 

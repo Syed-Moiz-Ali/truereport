@@ -1,6 +1,6 @@
 /// Every string the shared sign-in bay renders.
 ///
-/// The workshop page resolves these from `AppLocalizations`; the technician
+/// The workshop page resolves these from the app bundle; the technician
 /// page does the same with its own keys; the platform page passes its backend
 /// UI strings. The bay itself never hardcodes product copy.
 class SignInBayCopy {

@@ -14,6 +14,9 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
+import '../../reference_status_lookup.dart';
+
+import 'package:reference_data/reference_data.dart';
 
 /// Tab identifiers for dynamic content translation only.
 ///
@@ -387,6 +390,7 @@ class _OverviewTab extends ConsumerWidget {
 }
 
 String _tabForEntityType(String entityType) {
+  // gate-allow: behaviour - entity code selects a workspace tab, not a label.
   switch (entityType.toUpperCase()) {
     case 'CATEGORY':
       return LanguageWorkspaceTab.categories;
@@ -407,36 +411,22 @@ String _tabForEntityType(String entityType) {
   }
 }
 
-String _localizedEntityName(UiMessageStrings strings, String entityType) {
-  switch (entityType.toUpperCase()) {
-    case 'CATEGORY':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabCategories);
-    case 'ITEM':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabChecklistItems);
-    case 'OPTION_SET':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabOptionSets);
-    case 'OPTION_VALUE':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabOptionValues);
-    case 'TEMPLATE':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabTemplates);
-    case 'DOCUMENT_TYPE':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabDocumentTypes);
-    case 'ISSUE_FIELD':
-      return strings.tKey(PlatformAdminKeys.languageWorkspaceTabIssueFields);
-    default:
-      return entityType;
-  }
-}
+String _localizedEntityName(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String entityType,
+) => referenceCodeLabel(strings, records, entityType);
 
-class _EntityReadinessRow extends StatelessWidget {
+class _EntityReadinessRow extends ConsumerWidget {
   const _EntityReadinessRow({required this.entry, required this.onOpenTab});
 
   final MapEntry<String, EntityReadiness> entry;
   final VoidCallback onOpenTab;
 
   @override
-  Widget build(BuildContext context) {
-    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final types = ref.watch(enumsProvider(contentTypeEnum)).value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -448,7 +438,7 @@ class _EntityReadinessRow extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  _localizedEntityName(strings, entry.key),
+                  _localizedEntityName(strings, types, entry.key),
                   style: PtTheme.font(
                     13,
                     weight: FontWeight.w700,
@@ -768,7 +758,8 @@ class _ContentTabState extends ConsumerState<_ContentTab> {
                         if (widget.sourceRoute != null)
                           PlatformSecondaryButton(
                             label: strings.tKey(
-                              PlatformAdminKeys.languageWorkspaceButtonOpenSource,
+                              PlatformAdminKeys
+                                  .languageWorkspaceButtonOpenSource,
                             ),
                             icon: Icons.open_in_new_rounded,
                             onPressed: () => context.go(widget.sourceRoute!),
@@ -840,7 +831,7 @@ class _ContentTabState extends ConsumerState<_ContentTab> {
   }
 }
 
-class _ContentRow extends StatefulWidget {
+class _ContentRow extends ConsumerStatefulWidget {
   const _ContentRow({
     super.key,
     required this.item,
@@ -861,10 +852,10 @@ class _ContentRow extends StatefulWidget {
   final VoidCallback onApprove;
 
   @override
-  State<_ContentRow> createState() => _ContentRowState();
+  ConsumerState<_ContentRow> createState() => _ContentRowState();
 }
 
-class _ContentRowState extends State<_ContentRow> {
+class _ContentRowState extends ConsumerState<_ContentRow> {
   late final TextEditingController _controller;
 
   @override
@@ -890,7 +881,8 @@ class _ContentRowState extends State<_ContentRow> {
 
   @override
   Widget build(BuildContext context) {
-    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
+    final strings = ref.watch(uiStringsProvider);
+    final contentStatuses = ref.watch(statusesProvider('checklist')).value;
     final item = widget.item;
     return PlatformSectionCard(
       padding: const EdgeInsets.all(12),
@@ -949,7 +941,11 @@ class _ContentRowState extends State<_ContentRow> {
                   ),
                   if (item.contentStatus.isNotEmpty)
                     PlatformStatusChip(
-                      status: _contentStatusLabel(strings, item.contentStatus),
+                      status: _contentStatusLabel(
+                        strings,
+                        contentStatuses,
+                        item.contentStatus,
+                      ),
                     ),
                 ],
               ),
@@ -1031,17 +1027,11 @@ String _contentFilterLabel(UiMessageStrings strings, _ContentFilter filter) {
   }
 }
 
-String _contentStatusLabel(UiMessageStrings strings, String status) {
-  switch (status.toUpperCase()) {
-    case 'DRAFT':
-      return strings.tKey(PlatformAdminKeys.statusContentDraft);
-    case 'ACTIVE':
-    case 'PUBLISHED':
-      return strings.tKey(PlatformAdminKeys.statusContentActive);
-    default:
-      return status;
-  }
-}
+String _contentStatusLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String status,
+) => referenceCodeLabel(strings, records, status);
 
 String _statusLabel(UiMessageStrings strings, String status) {
   switch (TranslationStatus.normalize(status)) {

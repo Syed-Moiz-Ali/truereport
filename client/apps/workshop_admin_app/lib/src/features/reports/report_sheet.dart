@@ -2,7 +2,10 @@ import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 
 import 'report_actions.dart';
 import 'report_copy.dart';
@@ -146,17 +149,17 @@ class ReportSheet extends StatelessWidget {
   }
 }
 
-class _SheetHeader extends StatelessWidget {
+class _SheetHeader extends ConsumerWidget {
   const _SheetHeader({required this.report});
 
   final ReportAdmin report;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final statuses = ref.watch(statusesProvider('document')).value;
     final finalized = report.finalizedAt.trim().isEmpty
         ? ''
         : WorkshopClock.formatInstant(
@@ -175,8 +178,8 @@ class _SheetHeader extends StatelessWidget {
             Expanded(child: ReportEyebrow(label: copy.eyebrow)),
             SizedBox(width: spacing.sm),
             ReportStatusPill(
-              label: generationLabel(l10n, report.generationStatus),
-              tone: generationTone(report.generationStatus),
+              label: referenceStatusText(statuses, report.generationStatus),
+              tone: referenceStatusTone(statuses, report.generationStatus),
             ),
           ],
         ),
@@ -242,20 +245,20 @@ class _ReadyBody extends StatelessWidget {
     final facts = <_Fact>[
       _Fact(
         value: summary.vehicleLine,
-        label: AppLocalizations.of(context).vehicle,
+        label: UiStrings.of(context)(WorkshopAdminKeys.vehicle),
       ),
       if (summary.customerName != null)
         _Fact(value: summary.customerName!, label: context.reportCopy.customer),
       if (summary.plate != null)
         _Fact(
           value: summary.plate!,
-          label: AppLocalizations.of(context).vehiclePlate,
+          label: UiStrings.of(context)(WorkshopAdminKeys.vehiclePlate),
           ltr: true,
         ),
       if (summary.odometer != null)
         _Fact(
           value: summary.odometer!,
-          label: AppLocalizations.of(context).odometer,
+          label: UiStrings.of(context)(WorkshopAdminKeys.odometer),
           ltr: true,
         ),
     ];
@@ -372,7 +375,7 @@ class _SheetFooter extends StatelessWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,7 +392,7 @@ class _SheetFooter extends StatelessWidget {
           SizedBox(height: spacing.md),
         ],
         if (summary.verificationHash != null) ...[
-          ReportEyebrow(label: l10n.snapshotHash),
+          ReportEyebrow(label: t(WorkshopAdminKeys.snapshotHash)),
           SizedBox(height: spacing.xxs),
           SelectableText(
             summary.verificationHash!,
@@ -419,7 +422,7 @@ class _GenerationState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final failed = report.generationStatus == 'FAILED';
     final errorText = report.generationError?.trim() ?? '';
@@ -429,16 +432,18 @@ class _GenerationState extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         WorkshopEmptyState(
-          title: failed ? l10n.reportFailed : l10n.reportNotReadyTitle,
+          title: failed
+              ? t(WorkshopAdminKeys.reportFailed)
+              : t(WorkshopAdminKeys.reportNotReadyTitle),
           body: failed
               ? (errorText.isEmpty ? null : errorText)
-              : l10n.reportNotReadyBody,
+              : t(WorkshopAdminKeys.reportNotReadyBody),
           icon: failed ? Icons.error_outline : Icons.description_outlined,
         ),
         if (failed) ...[
           SizedBox(height: spacing.lg),
           ReportActionButton(
-            label: l10n.retryReport,
+            label: t(WorkshopAdminKeys.retryReport),
             onPressed: isBusy ? null : onRetry,
             loading: isBusy,
             icon: Icons.refresh,
@@ -448,7 +453,7 @@ class _GenerationState extends StatelessWidget {
         if (canPop) ...[
           SizedBox(height: spacing.sm),
           ReportActionButton(
-            label: l10n.reportBackToJob,
+            label: t(WorkshopAdminKeys.reportBackToJob),
             onPressed: onBack,
             variant: failed
                 ? ReportActionVariant.secondary

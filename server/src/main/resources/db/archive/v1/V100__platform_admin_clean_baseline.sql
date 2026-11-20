@@ -359,7 +359,7 @@ CREATE INDEX ix_platform_outbox_status ON platform_outbox_events (status, availa
 CREATE INDEX ix_platform_audit_entity ON platform_audit_events (entity_type, entity_id, occurred_at);
 
 INSERT INTO platform_languages (code, name_en, name_ar, native_name, direction, active, is_default, sort_order, created_at, updated_at, version)
-VALUES ('en', 'English', 'الإنجليزية', 'English', 'ltr', TRUE, TRUE, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+VALUES ('en', 'English', 'English', 'English', 'ltr', TRUE, TRUE, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
 
 INSERT INTO platform_languages (code, name_en, name_ar, native_name, direction, active, is_default, sort_order, created_at, updated_at, version)
-VALUES ('ar', 'Arabic', 'العربية', 'العربية', 'rtl', TRUE, FALSE, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);
+VALUES ('ar', 'Arabic', 'Arabic', 'Arabic', 'rtl', TRUE, FALSE, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0);

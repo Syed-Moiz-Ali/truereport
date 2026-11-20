@@ -38,10 +38,7 @@ void main() {
 
   testWidgets('capture f2b3 defect-detail level1', (tester) async {
     final root = repoRoot();
-    final outDir = fidelityOutputDir(
-      root,
-      'figma/fidelity/f2b3/defect-detail',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f2b3/defect-detail');
     final previous = enableFidelityShadows();
     try {
       await _render(tester, outDir);

@@ -45,8 +45,6 @@ class _DashboardBody extends ConsumerWidget {
 
     void refresh() {
       ref.invalidate(overviewProvider);
-      ref.invalidate(configHealthProvider);
-      ref.invalidate(platformLanguagesProvider);
       ref.invalidate(auditEventsProvider);
     }
 
@@ -85,10 +83,6 @@ class _DashboardContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final health = ref.watch(configHealthProvider).asData?.value;
-    final languages =
-        ref.watch(platformLanguagesProvider).asData?.value ??
-        const <PlatformLanguage>[];
     final events =
         ref.watch(auditEventsProvider).asData?.value ??
         const <PlatformAuditEvent>[];
@@ -97,8 +91,6 @@ class _DashboardContent extends ConsumerWidget {
     final attention = buildDashboardAttention(
       summary: summary,
       strings: strings,
-      health: health,
-      languages: languages,
     );
     final activity = buildDashboardActivity(
       summary: summary,
@@ -135,12 +127,7 @@ class _DashboardContent extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TrellisBento(
-                    strings: strings,
-                    summary: summary,
-                    languages: languages,
-                    onOpen: (route) => context.go(route),
-                  ),
+                  TrellisBento(strings: strings, cards: summary.metricCards),
                   const SizedBox(height: 24),
                   TrellisActions(
                     strings: strings,

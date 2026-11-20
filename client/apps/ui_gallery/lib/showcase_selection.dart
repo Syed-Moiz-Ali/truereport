@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:ui_gallery/gallery_keys.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
 
 class ChipsShowcase extends StatelessWidget {
@@ -8,7 +9,7 @@ class ChipsShowcase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -31,7 +32,7 @@ class ChipsShowcase extends StatelessWidget {
           children: [
             for (final severity in AppSeverity.values)
               SeverityBadge(
-                label: _severityLabel(l10n, severity),
+                label: _severityLabel(t, severity),
                 appSeverity: severity,
               ),
           ],
@@ -41,12 +42,12 @@ class ChipsShowcase extends StatelessWidget {
   }
 }
 
-String _severityLabel(AppLocalizations l10n, AppSeverity severity) {
+String _severityLabel(UiStrings t, AppSeverity severity) {
   return switch (severity) {
-    AppSeverity.minor => l10n.minor,
-    AppSeverity.moderate => l10n.moderate,
-    AppSeverity.major => l10n.major,
-    AppSeverity.safetyCritical => l10n.safetyCritical,
+    AppSeverity.minor => t(GalleryKeys.minor),
+    AppSeverity.moderate => t(GalleryKeys.moderate),
+    AppSeverity.major => t(GalleryKeys.major),
+    AppSeverity.safetyCritical => t(GalleryKeys.safetyCritical),
   };
 }
 
@@ -95,14 +96,16 @@ class _ResultSelectorShowcaseState extends State<ResultSelectorShowcase> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final labels = <InspectionResult, String>{
-      InspectionResult.noIssueObserved: l10n.noIssueObserved,
-      InspectionResult.attentionRecommended: l10n.attentionRecommended,
-      InspectionResult.defectFound: l10n.defectFound,
-      InspectionResult.notChecked: l10n.notChecked,
-      InspectionResult.notApplicable: l10n.notApplicable,
-      InspectionResult.couldNotVerify: l10n.couldNotVerify,
+      InspectionResult.noIssueObserved: t(GalleryKeys.noIssueObserved),
+      InspectionResult.attentionRecommended: t(
+        GalleryKeys.attentionRecommended,
+      ),
+      InspectionResult.defectFound: t(GalleryKeys.defectFound),
+      InspectionResult.notChecked: t(GalleryKeys.notChecked),
+      InspectionResult.notApplicable: t(GalleryKeys.notApplicable),
+      InspectionResult.couldNotVerify: t(GalleryKeys.couldNotVerify),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -129,7 +132,7 @@ class ProgressShowcase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Wrap(
       spacing: context.spacing.xl,
       runSpacing: context.spacing.lg,
@@ -146,12 +149,20 @@ class ProgressShowcase extends StatelessWidget {
         GalleryTile(
           label: 'Coverage bar',
           width: 320,
-          child: AppCoverageBar(covered: 12, total: 19, label: l10n.coverage),
+          child: AppCoverageBar(
+            covered: 12,
+            total: 19,
+            label: t(GalleryKeys.coverage),
+          ),
         ),
         GalleryTile(
           label: 'Coverage bar empty',
           width: 320,
-          child: AppCoverageBar(covered: 0, total: 19, label: l10n.coverage),
+          child: AppCoverageBar(
+            covered: 0,
+            total: 19,
+            label: t(GalleryKeys.coverage),
+          ),
         ),
       ],
     );

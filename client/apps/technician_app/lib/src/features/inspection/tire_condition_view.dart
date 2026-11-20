@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
 
@@ -46,7 +46,7 @@ class _TireConditionViewState extends State<TireConditionView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,11 +56,11 @@ class _TireConditionViewState extends State<TireConditionView> {
             child: ListView(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 80, 20, 40),
               children: <Widget>[
-                _buildProgressSequence(l10n),
+                _buildProgressSequence(t),
                 const SizedBox(height: 24),
-                _buildChassisCard(l10n),
+                _buildChassisCard(t),
                 const SizedBox(height: 24),
-                _buildDetailSheet(l10n),
+                _buildDetailSheet(t),
               ],
             ),
           ),
@@ -71,7 +71,7 @@ class _TireConditionViewState extends State<TireConditionView> {
             child: F2bFocusFrame(
               borderRadius: BorderRadius.zero,
               child: FxHeader(
-                title: l10n.technicianWalkaroundInspection,
+                title: t(TechnicianKeys.technicianWalkaroundInspection),
                 titleInset: 4.5,
                 titleStyle: Fx.text(
                   18,
@@ -84,7 +84,8 @@ class _TireConditionViewState extends State<TireConditionView> {
                 leading: widget.onBack != null
                     ? Semantics(
                         button: true,
-                        label: MaterialLocalizations.of(context).backButtonTooltip,
+                        label: MaterialLocalizations.of(context)
+                            .backButtonTooltip,
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
@@ -109,7 +110,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                 actions: <Widget>[
                   Semantics(
                     button: true,
-                    label: l10n.technicianProfileTitle,
+                    label: t(TechnicianKeys.technicianProfileTitle),
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -141,7 +142,7 @@ class _TireConditionViewState extends State<TireConditionView> {
     );
   }
 
-  Widget _buildProgressSequence(AppLocalizations? l10n) {
+  Widget _buildProgressSequence(UiStrings t) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -151,7 +152,7 @@ class _TireConditionViewState extends State<TireConditionView> {
           children: <Widget>[
             Flexible(
               child: Text(
-                l10n?.tireInspectionSequence ?? '',
+                t(TechnicianKeys.tireInspectionSequence),
                 overflow: TextOverflow.ellipsis,
                 style: Fx.text(
                   11,
@@ -164,7 +165,7 @@ class _TireConditionViewState extends State<TireConditionView> {
             ),
             const SizedBox(width: 8),
             Text(
-              l10n?.tireProgressCompleted(6, 8) ?? '',
+              t(TechnicianKeys.tireProgressCompleted, {'done': 6, 'total': 8}),
               style: Fx.text(
                 11,
                 14,
@@ -180,10 +181,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         Container(
           width: 350,
           height: 6,
-          decoration: BoxDecoration(
-            
-            borderRadius: BorderRadius.circular(999),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(999)),
           alignment: AlignmentDirectional.centerStart,
           child: FractionallySizedBox(
             widthFactor: 0.75,
@@ -199,7 +197,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         const SizedBox(height: 12),
         // Heading 2 (y: 116 to 180)
         Text(
-          l10n?.tireStepTitle(6) ?? '',
+          t(TechnicianKeys.tireStepTitle, {'step': 6}),
           style: Fx.text(
             26,
             32,
@@ -211,7 +209,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         const SizedBox(height: 4),
         // Subtitle (y: 184 to 220)
         Text(
-          l10n?.tireTapWheelHint ?? '',
+          t(TechnicianKeys.tireTapWheelHint),
           style: Fx.text(
             13,
             18,
@@ -224,7 +222,7 @@ class _TireConditionViewState extends State<TireConditionView> {
     );
   }
 
-  Widget _buildChassisCard(AppLocalizations l10n) {
+  Widget _buildChassisCard(UiStrings t) {
     return Container(
       key: const ValueKey('chassis-card'),
       width: 350,
@@ -266,7 +264,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               left: 40,
               top: 48,
               child: _buildPin(
-                label: l10n.technicianTireFl,
+                label: t(TechnicianKeys.technicianTireFl),
                 selected: _selectedTire == 'FL',
                 onTap: () => _selectTire('FL'),
               ),
@@ -276,7 +274,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               left: 282,
               top: 48,
               child: _buildPin(
-                label: l10n.technicianTireFr,
+                label: t(TechnicianKeys.technicianTireFr),
                 selected: _selectedTire == 'FR',
                 onTap: () => _selectTire('FR'),
               ),
@@ -286,17 +284,13 @@ class _TireConditionViewState extends State<TireConditionView> {
               left: 282,
               top: 204,
               child: _buildPin(
-                label: l10n.technicianTireRr,
+                label: t(TechnicianKeys.technicianTireRr),
                 selected: _selectedTire == 'RR',
                 onTap: () => _selectTire('RR'),
               ),
             ),
             // Rear Left (RLT) pin & callout
-            Positioned(
-              left: 24,
-              top: 173,
-              child: _buildActiveRltPin(),
-            ),
+            Positioned(left: 24, top: 173, child: _buildActiveRltPin()),
             // Micro diagnostic legend indicator: Active Zone
             Positioned(
               left: 234.5,
@@ -304,7 +298,11 @@ class _TireConditionViewState extends State<TireConditionView> {
               child: Container(
                 width: 99.5,
                 height: 28.5,
-                padding: const EdgeInsetsDirectional.only(start: 12, top: 5.0, end: 12),
+                padding: const EdgeInsetsDirectional.only(
+                  start: 12,
+                  top: 5.0,
+                  end: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xE5FFFFFF),
                   borderRadius: BorderRadius.circular(999),
@@ -332,7 +330,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        l10n.tireActiveZone,
+                        t(TechnicianKeys.tireActiveZone),
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,
@@ -482,7 +480,7 @@ class _TireConditionViewState extends State<TireConditionView> {
     );
   }
 
-  Widget _buildDetailSheet(AppLocalizations l10n) {
+  Widget _buildDetailSheet(UiStrings t) {
     return Container(
       key: const ValueKey('detail-card'),
       width: 350,
@@ -531,7 +529,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'RLT — ${l10n.tireRearLeftTyre}',
+                      'RLT — ${t(TechnicianKeys.tireRearLeftTyre)}',
                       style: Fx.text(
                         16,
                         22,
@@ -541,7 +539,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                       ),
                     ),
                     Text(
-                      '${l10n.tireAxleLabel(2)} • Michelin Pilot Sport 4S',
+                      '${t(TechnicianKeys.tireAxleLabel, {'axle': 2})} • Michelin Pilot Sport 4S',
                       style: Fx.text(
                         13,
                         18,
@@ -578,7 +576,7 @@ class _TireConditionViewState extends State<TireConditionView> {
           const SizedBox(height: 20),
           // Physical wear assessment (y: 640 to 656)
           Text(
-            l10n.tirePhysicalWearAssessment,
+            t(TechnicianKeys.tirePhysicalWearAssessment),
             style: Fx.text(
               12,
               16,
@@ -624,7 +622,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          l10n.tireAsNew,
+                          t(TechnicianKeys.tireAsNew),
                           style: Fx.text(
                             14,
                             18,
@@ -637,7 +635,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          l10n.tireOemStandard,
+                          t(TechnicianKeys.tireOemStandard),
                           style: Fx.text(
                             11,
                             16.5,
@@ -686,7 +684,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          l10n.tirePartWorn,
+                          t(TechnicianKeys.tirePartWorn),
                           style: Fx.text(
                             14,
                             18,
@@ -699,7 +697,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          l10n.tireUsableWear,
+                          t(TechnicianKeys.tireUsableWear),
                           style: Fx.text(
                             11,
                             16.5,
@@ -724,7 +722,7 @@ class _TireConditionViewState extends State<TireConditionView> {
             children: <Widget>[
               Flexible(
                 child: Text(
-                  l10n.tireMeasuredGrooveDepth,
+                  t(TechnicianKeys.tireMeasuredGrooveDepth),
                   overflow: TextOverflow.ellipsis,
                   style: Fx.text(
                     12,
@@ -737,7 +735,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               ),
               const SizedBox(width: 8),
               Text(
-                l10n.tireLegalMinimum('1.6'),
+                t(TechnicianKeys.tireLegalMinimum, {'depth': '1.6'}),
                 style: Fx.text(
                   11,
                   14,
@@ -753,134 +751,132 @@ class _TireConditionViewState extends State<TireConditionView> {
           Container(
             height: 68,
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF4F3F8),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFFF4F3F8)),
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: AlignmentDirectional.centerStart,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                Container(
-                  width: 25,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: const <BoxShadow>[
-                      BoxShadow(
-                        color: Color(0x10000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: const FxIcon(
-                    id: '1_8582',
-                    width: 15,
-                    height: 9,
-                    color: Color(0xFF1A1B1F),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  l10n.tireTreadDepth,
-                  style: Fx.text(
-                    14,
-                    20,
-                    FontWeight.w600,
-                    -0.07,
-                    color: const Color(0xFF1A1B1F),
-                  ),
-                ),
-                const SizedBox(width: 11),
-                // Minus button
-                GestureDetector(
-                  onTap: () => _stepDepth(-0.1),
-                  child: Container(
-                    width: 32,
+                  Container(
+                    width: 25,
                     height: 32,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: <BoxShadow>[
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: const <BoxShadow>[
                         BoxShadow(
-                          color: Color(0x0D000000),
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
+                          color: Color(0x10000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
                     alignment: Alignment.center,
                     child: const FxIcon(
-                      id: '1_8588',
-                      width: 9.3,
-                      height: 1.3,
+                      id: '1_8582',
+                      width: 15,
+                      height: 9,
                       color: Color(0xFF1A1B1F),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Tread value box
-                Container(
-                  width: 64,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    boxShadow: const <BoxShadow>[
-                      BoxShadow(
-                        color: Color(0x0D000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsetsDirectional.only(start: 13),
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    _treadDepth.toStringAsFixed(1),
+                  const SizedBox(width: 12),
+                  Text(
+                    t(TechnicianKeys.tireTreadDepth),
                     style: Fx.text(
-                      16,
-                      22,
-                      FontWeight.w700,
-                      -0.16,
+                      14,
+                      20,
+                      FontWeight.w600,
+                      -0.07,
                       color: const Color(0xFF1A1B1F),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Plus button
-                GestureDetector(
-                  onTap: () => _stepDepth(0.1),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
+                  const SizedBox(width: 11),
+                  // Minus button
+                  GestureDetector(
+                    onTap: () => _stepDepth(-0.1),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const FxIcon(
+                        id: '1_8588',
+                        width: 9.3,
+                        height: 1.3,
+                        color: Color(0xFF1A1B1F),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Tread value box
+                  Container(
+                    width: 64,
+                    height: 30,
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: <BoxShadow>[
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: const <BoxShadow>[
                         BoxShadow(
                           color: Color(0x0D000000),
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
                       ],
                     ),
-                    alignment: Alignment.center,
-                    child: const FxIcon(
-                      id: '1_8598',
-                      size: 9.3,
-                      color: Color(0xFF1A1B1F),
+                    padding: const EdgeInsetsDirectional.only(start: 13),
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      _treadDepth.toStringAsFixed(1),
+                      style: Fx.text(
+                        16,
+                        22,
+                        FontWeight.w700,
+                        -0.16,
+                        color: const Color(0xFF1A1B1F),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  // Plus button
+                  GestureDetector(
+                    onTap: () => _stepDepth(0.1),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Color(0x0D000000),
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const FxIcon(
+                        id: '1_8598',
+                        size: 9.3,
+                        color: Color(0xFF1A1B1F),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
           const SizedBox(height: 20),
           // Tire wall & pressure quick snapshot (y: 885 to 941.5)
           Row(
@@ -889,10 +885,13 @@ class _TireConditionViewState extends State<TireConditionView> {
               Expanded(
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 56.5),
-                  padding: const EdgeInsetsDirectional.fromSTEB(12, 9.5, 8, 9.5),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF4F3F8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    12,
+                    9.5,
+                    8,
+                    9.5,
                   ),
+                  decoration: const BoxDecoration(color: Color(0xFFF4F3F8)),
                   child: Row(
                     children: <Widget>[
                       const FxIcon(
@@ -908,7 +907,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              l10n.tireColdPressure,
+                              t(TechnicianKeys.tireColdPressure),
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
@@ -921,7 +920,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               ),
                             ),
                             Text(
-                              '34.5 ${l10n.tireNorm}',
+                              '34.5 ${t(TechnicianKeys.tireNorm)}',
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
@@ -945,10 +944,13 @@ class _TireConditionViewState extends State<TireConditionView> {
               Expanded(
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 56.5),
-                  padding: const EdgeInsetsDirectional.fromSTEB(12, 9.5, 8, 9.5),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF4F3F8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    12,
+                    9.5,
+                    8,
+                    9.5,
                   ),
+                  decoration: const BoxDecoration(color: Color(0xFFF4F3F8)),
                   child: Row(
                     children: <Widget>[
                       const FxIcon(
@@ -977,7 +979,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               ),
                             ),
                             Text(
-                              l10n.tireNoGouges,
+                              t(TechnicianKeys.tireNoGouges),
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
@@ -1002,7 +1004,7 @@ class _TireConditionViewState extends State<TireConditionView> {
           // SAVE CTA button (y: 965.5 to 1021.5)
           Semantics(
             button: true,
-            label: l10n.technicianSaveAction,
+            label: t(TechnicianKeys.technicianSaveAction),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
@@ -1026,14 +1028,10 @@ class _TireConditionViewState extends State<TireConditionView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const FxIcon(
-                        id: '1_8619',
-                        size: 15,
-                        color: Colors.white,
-                      ),
+                      const FxIcon(id: '1_8619', size: 15, color: Colors.white),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.technicianSaveAction,
+                        t(TechnicianKeys.technicianSaveAction),
                         style: Fx.text(
                           14,
                           18,

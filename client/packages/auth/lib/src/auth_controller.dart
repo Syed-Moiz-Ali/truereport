@@ -4,7 +4,7 @@ import 'package:auth/src/session_store.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final apiClientProvider = Provider<ApiClient>((ref) {
+final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   final client = ApiClient(config: ApiConfig.fromEnvironment());
   client.onUnauthorized = () {
     // Any 401 on an authenticated endpoint means the stored token is dead.
@@ -30,13 +30,14 @@ final sessionStoreProvider = Provider<SessionStore>((ref) {
   return SecureSessionStore();
 });
 
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(
-    ref.watch(apiClientProvider),
-    ref.watch(sessionStoreProvider),
-    ref.watch(apiEndpointsProvider),
-  );
-});
+final Provider<AuthRepository> authRepositoryProvider =
+    Provider<AuthRepository>((ref) {
+      return AuthRepository(
+        ref.watch(apiClientProvider),
+        ref.watch(sessionStoreProvider),
+        ref.watch(apiEndpointsProvider),
+      );
+    });
 
 final authControllerProvider = AsyncNotifierProvider<AuthController, Session?>(
   AuthController.new,

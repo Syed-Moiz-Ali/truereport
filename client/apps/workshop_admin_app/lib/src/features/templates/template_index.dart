@@ -1,12 +1,13 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/features/templates/template_create_page.dart';
 import 'package:workshop_admin_app/src/features/templates/template_route_page.dart';
-import 'package:workshop_admin_app/src/labels.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 
@@ -36,6 +37,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final templates = ref.watch(templatesProvider);
+    final templateStatuses = ref.watch(statusesProvider('template')).value;
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -48,7 +50,8 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                 error: (error, _) => _IndexError(
                   onRetry: () => ref.invalidate(templatesProvider),
                 ),
-                data: (all) => _content(all, constraints.maxWidth),
+                data: (all) =>
+                    _content(all, constraints.maxWidth, templateStatuses),
               ),
             ),
           ),
@@ -57,16 +60,29 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
     );
   }
 
-  Widget _content(List<TemplateSummary> all, double width) {
-    final l10n = AppLocalizations.of(context);
+  Widget _content(
+    List<TemplateSummary> all,
+    double width,
+    List<ReferenceRecord>? templateStatuses,
+  ) {
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final wide = width >= 900;
-    final filtered = _filtered(all);
+    final filtered = _filtered(all, templateStatuses);
+    final filters = <({String code, String label})>[
+      (code: '', label: t(WorkshopAdminKeys.filterAll)),
+      for (final record in templateStatuses ?? const <ReferenceRecord>[])
+        if (record.selectable)
+          (
+            code: record.code,
+            label:
+                referenceLabelFor(record) ?? humanizeReferenceCode(record.code),
+          ),
+    ];
     final counts = <String, int>{
       '': all.length,
-      'PUBLISHED': all.where((t) => t.status == 'PUBLISHED').length,
-      'DRAFT': all.where((t) => t.status == 'DRAFT').length,
-      'RETIRED': all.where((t) => t.status == 'RETIRED').length,
+      for (final filter in filters.skip(1))
+        filter.code: all.where((t) => t.status == filter.code).length,
     };
 
     return Column(
@@ -76,7 +92,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
         const SizedBox(height: 8),
         if (width < 520) ...[
           Text(
-            l10n.templateListTitle,
+            t(WorkshopAdminKeys.templateListTitle),
             style: ws.pageTitle.copyWith(
               fontSize: 26,
               letterSpacing: -0.6,
@@ -85,14 +101,14 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
           ),
           const SizedBox(height: 6),
           Text(
-            l10n.templatesSubtitle,
+            t(WorkshopAdminKeys.templatesSubtitle),
             style: ws.meta.copyWith(color: ws.muted),
           ),
           const SizedBox(height: 14),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TemplatePillButton(
-              label: l10n.newTemplate,
+              label: t(WorkshopAdminKeys.newTemplate),
               icon: Icons.add,
               onPressed: () => _create(),
             ),
@@ -106,7 +122,7 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.templateListTitle,
+                      t(WorkshopAdminKeys.templateListTitle),
                       style: ws.pageTitle.copyWith(
                         fontSize: 30,
                         letterSpacing: -0.6,
@@ -115,14 +131,14 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.templatesSubtitle,
+                      t(WorkshopAdminKeys.templatesSubtitle),
                       style: ws.meta.copyWith(color: ws.muted),
                     ),
                   ],
                 ),
               ),
               TemplatePillButton(
-                label: l10n.newTemplate,
+                label: t(WorkshopAdminKeys.newTemplate),
                 icon: Icons.add,
                 onPressed: () => _create(),
               ),
@@ -136,8 +152,8 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
             child: WorkshopSearchField(
               key: const Key('templates-search'),
               controller: _search,
-              hint: l10n.search,
-              semanticLabel: l10n.search,
+              hint: t(WorkshopAdminKeys.search),
+              semanticLabel: t(WorkshopAdminKeys.search),
               onChanged: (_) => setState(() {}),
             ),
           ),
@@ -147,17 +163,12 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (final entry in [
-                ('', l10n.filterAll),
-                ('PUBLISHED', l10n.published),
-                ('DRAFT', l10n.draft),
-                ('RETIRED', l10n.retired),
-              ]) ...[
+              for (final entry in filters) ...[
                 TemplatePillChip(
-                  label: entry.$2,
-                  count: counts[entry.$1] ?? 0,
-                  selected: _status == entry.$1,
-                  onTap: () => setState(() => _status = entry.$1),
+                  label: entry.label,
+                  count: counts[entry.code] ?? 0,
+                  selected: _status == entry.code,
+                  onTap: () => setState(() => _status = entry.code),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -195,8 +206,10 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
     );
   }
 
-  List<TemplateSummary> _filtered(List<TemplateSummary> all) {
-    final l10n = AppLocalizations.of(context);
+  List<TemplateSummary> _filtered(
+    List<TemplateSummary> all,
+    List<ReferenceRecord>? templateStatuses,
+  ) {
     final query = _search.text.trim().toLowerCase();
     return all
         .where((template) {
@@ -206,7 +219,10 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
           if (query.isEmpty) {
             return true;
           }
-          final statusLabel = contentStatusLabel(l10n, template.status);
+          final statusLabel = referenceStatusText(
+            templateStatuses,
+            template.status,
+          );
           return template.name.toLowerCase().contains(query) ||
               template.serviceType.toLowerCase().contains(query) ||
               (template.vehicleType ?? '').toLowerCase().contains(query) ||
@@ -217,12 +233,12 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
 
   Widget _row(TemplateSummary template, bool first, bool wide) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final updated = WorkshopClock.formatDate(context, template.updatedAt);
     final meta = [
       template.serviceType,
       if ((template.vehicleType ?? '').isNotEmpty) template.vehicleType!,
-      l10n.templateItemsCount(template.itemCount),
+      t(WorkshopAdminKeys.templateItemsCount, {'count': template.itemCount}),
       if (template.currentVersion != null) 'v${template.currentVersion}',
     ].join(' Â· ');
     return _RowHover(
@@ -279,7 +295,9 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
                         Flexible(
                           child: Text(
                             [
-                              l10n.templateItemsCount(template.itemCount),
+                              t(WorkshopAdminKeys.templateItemsCount, {
+                                'count': template.itemCount,
+                              }),
                               if (template.currentVersion != null)
                                 'v${template.currentVersion}',
                             ].join(' Â· '),
@@ -332,10 +350,8 @@ class _TemplateIndexState extends ConsumerState<TemplateIndex> {
     ref.invalidate(templatesProvider);
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TemplateBuilderPage(
-          templateId: created.id,
-          autoDraft: true,
-        ),
+        builder: (_) =>
+            TemplateBuilderPage(templateId: created.id, autoDraft: true),
       ),
     );
     ref.invalidate(templatesProvider);
@@ -387,7 +403,7 @@ class _EmptyIndex extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 44, 24, 44),
       decoration: BoxDecoration(
@@ -400,19 +416,19 @@ class _EmptyIndex extends StatelessWidget {
           const TemplateGlyph(size: 52),
           const SizedBox(height: 16),
           Text(
-            l10n.templatesEmptyTitle,
+            t(WorkshopAdminKeys.templatesEmptyTitle),
             textAlign: TextAlign.center,
             style: ws.sectionTitle.copyWith(color: ws.ink),
           ),
           const SizedBox(height: 6),
           Text(
-            l10n.templatesEmptyBody,
+            t(WorkshopAdminKeys.templatesEmptyBody),
             textAlign: TextAlign.center,
             style: ws.body.copyWith(color: ws.muted),
           ),
           const SizedBox(height: 18),
           TemplatePillButton(
-            label: l10n.newTemplate,
+            label: t(WorkshopAdminKeys.newTemplate),
             icon: Icons.add,
             onPressed: onCreate,
           ),
@@ -429,7 +445,7 @@ class _NoResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -440,12 +456,12 @@ class _NoResults extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            l10n.noResults,
+            t(WorkshopAdminKeys.noResults),
             style: ws.body.copyWith(color: ws.ink, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           TemplatePillButton(
-            label: l10n.jobsClearFilters,
+            label: t(WorkshopAdminKeys.jobsClearFilters),
             variant: TemplatePillVariant.outline,
             onPressed: onClear,
           ),
@@ -462,7 +478,7 @@ class _IndexError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 34, 24, 34),
       decoration: BoxDecoration(
@@ -475,12 +491,18 @@ class _IndexError extends StatelessWidget {
         children: [
           Icon(Icons.priority_high_rounded, size: 20, color: ws.danger),
           const SizedBox(height: 12),
-          Text(l10n.error, style: ws.sectionTitle.copyWith(color: ws.ink)),
+          Text(
+            t(WorkshopAdminKeys.error),
+            style: ws.sectionTitle.copyWith(color: ws.ink),
+          ),
           const SizedBox(height: 6),
-          Text(l10n.commonLoadFailed, style: ws.body.copyWith(color: ws.muted)),
+          Text(
+            t(WorkshopAdminKeys.commonLoadFailed),
+            style: ws.body.copyWith(color: ws.muted),
+          ),
           const SizedBox(height: 16),
           TemplatePillButton(
-            label: l10n.retryAction,
+            label: t(WorkshopAdminKeys.retryAction),
             icon: Icons.refresh,
             variant: TemplatePillVariant.outline,
             onPressed: onRetry,
@@ -586,4 +608,3 @@ class _IndexSkeletonState extends State<_IndexSkeleton>
     );
   }
 }
-

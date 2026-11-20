@@ -2,7 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'widgets/settings_geometry.dart';
 import 'widgets/settings_language_surface.dart';
@@ -23,16 +23,16 @@ class WorkshopSettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final session = ref.watch(authControllerProvider).value;
 
     final displayName = session?.user.displayName.trim() ?? '';
     final email = session?.user.email.trim() ?? '';
     final workshopName = session != null && session.memberships.isNotEmpty
         ? session.memberships.first.workshopName
-        : l10n.workshopAdminTitle;
+        : t(WorkshopAdminKeys.workshopAdminTitle);
     final accountName = displayName.isEmpty
-        ? l10n.roleWorkshopAdmin
+        ? t(WorkshopAdminKeys.roleWorkshopAdmin)
         : displayName;
 
     return WorkshopPageScroll(
@@ -48,7 +48,7 @@ class WorkshopSettingsPage extends ConsumerWidget {
               workshopName: workshopName,
               personName: accountName,
               email: email,
-              roleLabel: l10n.roleWorkshopAdmin,
+              roleLabel: t(WorkshopAdminKeys.roleWorkshopAdmin),
               isCompact: !twoColumn,
             );
             final working = Column(
@@ -94,7 +94,7 @@ class _SettingsHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,10 +102,13 @@ class _SettingsHeading extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(l10n.settings, style: ws.pageTitle),
+          child: Text(t(WorkshopAdminKeys.settings), style: ws.pageTitle),
         ),
         const SizedBox(height: 6),
-        Text(l10n.settingsSubtitle, style: ws.body.copyWith(color: ws.muted)),
+        Text(
+          t(WorkshopAdminKeys.settingsSubtitle),
+          style: ws.body.copyWith(color: ws.muted),
+        ),
       ],
     );
   }

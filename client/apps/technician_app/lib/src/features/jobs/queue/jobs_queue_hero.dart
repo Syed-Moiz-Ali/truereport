@@ -1,27 +1,28 @@
 ﻿import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
 
 import '../../../inspection_models.dart';
+import '../../../reference_ui.dart';
 import '../../../shared/technician_intl.dart';
-import '../../../ui_helpers.dart';
 import 'jobs_queue_format.dart';
 import 'jobs_queue_primitives.dart';
 import 'jobs_queue_style.dart';
 
 /// The one focal job of the shift, shaped as a punched day pass.
-class QueueNextUpBand extends StatelessWidget {
+class QueueNextUpBand extends ConsumerWidget {
   const QueueNextUpBand({required this.job, required this.onOpen, super.key});
 
   final JobSummary job;
   final VoidCallback onOpen;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final locale = Localizations.localeOf(context).toString();
     final time = queueTimeLabel(job);
-    final status = technicianStatusLabel(l10n, job.status);
+    final status = jobStatusLabel(ref, job.status);
     return Semantics(
       container: true,
       label: '${job.reference}, ${_vehicle(job)}, ${job.customerName}',
@@ -70,7 +71,7 @@ class QueueNextUpBand extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    l10n.technicianNextUp.toUpperCase(),
+                    t(TechnicianKeys.technicianNextUp).toUpperCase(),
                     style: queueEyebrow(
                       context,
                       color: Colors.white.withValues(alpha: 0.62),
@@ -139,7 +140,7 @@ class QueueNextUpBand extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               QueueButton(
-                label: l10n.jobsOpenJob,
+                label: t(TechnicianKeys.jobsOpenJob),
                 variant: QueueButtonVariant.onDark,
                 icon: Icons.arrow_forward_rounded,
                 expand: true,

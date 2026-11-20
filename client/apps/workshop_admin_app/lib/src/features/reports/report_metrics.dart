@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'report_copy.dart';
 import 'report_data.dart';
@@ -192,26 +192,32 @@ class _FindingsFigure extends StatelessWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ReportEyebrow(label: l10n.keyFindings),
+        ReportEyebrow(label: t(WorkshopAdminKeys.keyFindings)),
         SizedBox(height: spacing.xs),
         Text(
-          '${summary.findingsCount}',
+          summary.findingsCount == null ? '—' : '${summary.findingsCount}',
           maxLines: 1,
           style: ws.heroNumber.copyWith(color: ws.ink),
         ),
         SizedBox(height: spacing.xs),
-        if (summary.safetyCriticalCount > 0)
+        if (summary.safetyCriticalCount == null)
+          Text(
+            t(WorkshopAdminKeys.commonNotAvailable),
+            style: ws.meta.copyWith(color: ws.muted),
+          )
+        else if (summary.safetyCriticalCount! > 0)
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: ReportStatusPill(
-              label: '${summary.safetyCriticalCount} ${l10n.safetyCritical}',
+              label:
+                  '${summary.safetyCriticalCount} ${t(WorkshopAdminKeys.safetyCritical)}',
               tone: WorkshopStatusTone.danger,
               icon: Icons.gpp_maybe_outlined,
             ),
@@ -233,17 +239,23 @@ class ReportCountRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     final cells = <Widget>[
       _CountCell(
         label: copy.checks,
         value: _formatCount(summary.applicableChecks ?? summary.totalChecks),
       ),
-      _CountCell(label: l10n.findings, value: '${summary.findingsCount}'),
-      _CountCell(label: copy.safety, value: '${summary.safetyCriticalCount}'),
       _CountCell(
-        label: l10n.jobsChecklistPassed,
+        label: t(WorkshopAdminKeys.findings),
+        value: _formatCount(summary.findingsCount),
+      ),
+      _CountCell(
+        label: copy.safety,
+        value: _formatCount(summary.safetyCriticalCount),
+      ),
+      _CountCell(
+        label: t(WorkshopAdminKeys.jobsChecklistPassed),
         value: _formatCount(summary.passedCount),
       ),
     ];

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// T1 / G5: one time policy.
 ///
@@ -77,8 +78,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('en'),
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: const <Locale>[Locale('en')],
+          localizationsDelegates: testLocalizationsDelegates,
           home: Scaffold(body: Builder(builder: (_) => child)),
         ),
       );

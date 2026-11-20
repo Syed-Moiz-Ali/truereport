@@ -1,12 +1,13 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'signin_copy.dart';
 import 'signin_example.dart';
 import 'signin_form.dart';
 import 'signin_mark.dart';
 import 'signin_primitives.dart';
+import 'signin_keys.dart';
 
 /// The shared admin sign-in — a full-bleed workshop photo with the portal copy
 /// and example visuals stacked on it, and a credential panel that overlaps and
@@ -254,12 +255,8 @@ class _BayPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
-    final progress = l10n.signInExampleProgress(
-      exampleDone,
-      exampleTotal,
-      examplePercent,
-    );
+    final t = UiStrings.of(context);
+    final progress = t(SignInKeys.signInExampleProgress, {'done': exampleDone, 'total': exampleTotal, 'percent': examplePercent});
     final shadow = [
       Shadow(
         color: Colors.black.withValues(alpha: 0.35),
@@ -355,7 +352,7 @@ class _BayPhoto extends StatelessWidget {
                       ),
                       SizedBox(height: spacing.xl),
                       Text(
-                        l10n.signInExampleLabel.toUpperCase(),
+                        t(SignInKeys.signInExampleLabel).toUpperCase(),
                         style: ws.eyebrow.copyWith(
                           color: ws.onAccent.withValues(alpha: 0.72),
                           letterSpacing: 1.2,
@@ -374,7 +371,7 @@ class _BayPhoto extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              l10n.signInExampleChecklist,
+                              t(SignInKeys.signInExampleChecklist),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: ws.meta.copyWith(

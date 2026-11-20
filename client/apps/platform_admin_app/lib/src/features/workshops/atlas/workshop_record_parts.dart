@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
 import '../../../platform_models.dart';
@@ -13,7 +14,7 @@ int workshopStaffTotal(HierarchyWorkshop workshop) {
 }
 
 /// Record header shared by the workspace pane and the full detail page.
-class WorkshopRecordHeader extends StatelessWidget {
+class WorkshopRecordHeader extends ConsumerWidget {
   const WorkshopRecordHeader({
     super.key,
     required this.strings,
@@ -30,7 +31,7 @@ class WorkshopRecordHeader extends StatelessWidget {
   final VoidCallback? onViewDetails;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isActive = workshop.status.toUpperCase() == 'ACTIVE';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -63,10 +64,7 @@ class WorkshopRecordHeader extends StatelessWidget {
                             ),
                           ),
                           AtlasPill(
-                            label: workshopStatusLabel(
-                              strings,
-                              workshop.status,
-                            ),
+                            label: workshopStatusLabel(ref, workshop.status),
                             tone: workshopTone(workshop.status),
                           ),
                         ],
@@ -306,7 +304,7 @@ class _Figure extends StatelessWidget {
 }
 
 /// Two-column overview: ruled facts on the left, people on the right.
-class WorkshopOverview extends StatelessWidget {
+class WorkshopOverview extends ConsumerWidget {
   const WorkshopOverview({
     super.key,
     required this.strings,
@@ -317,7 +315,7 @@ class WorkshopOverview extends StatelessWidget {
   final HierarchyWorkshop workshop;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final contact = (workshop.contactEmail ?? '').trim();
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -345,7 +343,7 @@ class WorkshopOverview extends StatelessWidget {
             ),
             AtlasKeyRow(
               label: strings.tKey(CommonKeys.tableStatus),
-              value: workshopStatusLabel(strings, workshop.status),
+              value: workshopStatusLabel(ref, workshop.status),
               last: true,
             ),
           ],

@@ -8,4 +8,3 @@ class JobCreationWizardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const DispatchCreateJob();
 }
-

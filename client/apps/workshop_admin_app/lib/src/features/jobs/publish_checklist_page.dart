@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
@@ -10,6 +10,7 @@ import 'package:workshop_admin_app/src/features/jobs/publish/checklist_items.dar
 import 'package:workshop_admin_app/src/features/jobs/publish/checklist_summary.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish/publish_gate.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish/publish_states.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_action_set.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
@@ -39,7 +40,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final checklist = ref.watch(publishChecklistProvider(widget.jobId));
@@ -47,14 +48,14 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
 
     final Widget body;
     if (checklist.hasError && !checklist.hasValue) {
-      body = _loadError(context, jobErrorCopy(l10n, checklist.error!));
+      body = _loadError(context, jobErrorCopy(t, checklist.error!));
     } else {
       body = checklist.when(
         loading: () => Padding(
           padding: ws.pagePadding(width),
           child: const WorkshopSkeleton(card: true, lines: 5),
         ),
-        error: (error, _) => _loadError(context, jobErrorCopy(l10n, error)),
+        error: (error, _) => _loadError(context, jobErrorCopy(t, error)),
         data: (value) => _content(context, value, job),
       );
     }
@@ -67,7 +68,8 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             JobPageBar(
-              reference: job?.reference ?? l10n.jobsPublishChecklist,
+              reference:
+                  job?.reference ?? t(WorkshopAdminKeys.jobsPublishChecklist),
               status: job?.status,
             ),
             Expanded(child: body),
@@ -81,9 +83,9 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
     return SingleChildScrollView(
       padding: context.ws.pagePaddingOf(context),
       child: WorkshopErrorState(
-        title: AppLocalizations.of(context).error,
+        title: UiStrings.of(context)(WorkshopAdminKeys.error),
         body: message,
-        retryLabel: AppLocalizations.of(context).retryAction,
+        retryLabel: UiStrings.of(context)(WorkshopAdminKeys.retryAction),
         onRetry: () => ref.invalidate(publishChecklistProvider(widget.jobId)),
       ),
     );
@@ -94,11 +96,20 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
     PublishChecklist checklist,
     CleanJob? job,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final width = MediaQuery.sizeOf(context).width;
-    final canPublish = checklist.ready && checklist.consentGranted;
+    final actions = effectivePublishActions(job, checklist);
+    final publish = jobActionFor(actions, const <String>[
+      'publishChecklist',
+      'publish',
+      'publishJob',
+    ]);
+    final canPublish =
+        publish != null &&
+        checklist.ready &&
+        (!publish.requiresConsent || checklist.consentGranted);
     return SingleChildScrollView(
       padding: ws.pagePadding(width),
       child: Center(
@@ -110,8 +121,10 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
             children: [
               SizedBox(height: spacing.md),
               JobIdentityBlock(
-                eyebrow: l10n.jobsPublishChecklist,
-                title: job?.customerName ?? l10n.jobsPublishChecklist,
+                eyebrow: t(WorkshopAdminKeys.jobsPublishChecklist),
+                title:
+                    job?.customerName ??
+                    t(WorkshopAdminKeys.jobsPublishChecklist),
                 meta: job == null ? const <String>[] : _meta(context, job),
               ),
               SizedBox(height: spacing.lg),
@@ -127,23 +140,25 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
                 spacing: spacing.sm,
                 runSpacing: spacing.sm,
                 children: [
-                  JobPillButton(
-                    key: const Key('jobs-publish-button'),
-                    label: l10n.jobsPublishNow,
-                    icon: Icons.public_outlined,
-                    loading: _busy,
-                    onPressed: canPublish && !_busy ? _publish : null,
-                  ),
+                  // Consent is surfaced before the action that requires it.
                   if (!checklist.consentGranted && job != null)
                     JobPillButton(
                       key: const Key('jobs-publish-consent'),
-                      label: l10n.jobsConsentGrant,
+                      label: t(WorkshopAdminKeys.jobsConsentGrant),
                       icon: Icons.verified_user_outlined,
                       variant: JobPillVariant.outline,
                       loading: _consentBusy,
                       onPressed: _consentBusy || _busy
                           ? null
                           : () => _grantConsent(job),
+                    ),
+                  if (publish != null)
+                    JobPillButton(
+                      key: const Key('jobs-publish-button'),
+                      label: jobActionLabel(publish),
+                      icon: Icons.public_outlined,
+                      loading: _busy,
+                      onPressed: canPublish && !_busy ? _publish : null,
                     ),
                 ],
               ),
@@ -171,7 +186,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
   }
 
   List<String> _meta(BuildContext context, CleanJob job) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final vehicle = [
       job.vehicleMake,
       job.vehicleModel,
@@ -180,14 +195,14 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
     return [
       if (vehicle.isNotEmpty) vehicle,
       if ((job.vehiclePlate ?? '').isNotEmpty) job.vehiclePlate!,
-      job.assignedTechnicianName ?? l10n.unassigned,
+      job.assignedTechnicianName ?? t(WorkshopAdminKeys.unassigned),
     ];
   }
 
   Future<void> _grantConsent(CleanJob job) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (job.version == null) {
-      setState(() => _error = l10n.jobsNoVersion);
+      setState(() => _error = t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     setState(() {
@@ -204,7 +219,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
       ref.invalidate(publishChecklistProvider(widget.jobId));
       ref.invalidate(cleanJobProvider(widget.jobId));
       if (mounted) {
-        setState(() => _error = jobErrorCopy(l10n, error));
+        setState(() => _error = jobErrorCopy(t, error));
       }
     } finally {
       if (mounted) {
@@ -214,7 +229,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
   }
 
   Future<void> _publish() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() {
       _busy = true;
       _error = null;
@@ -231,7 +246,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
       if (!mounted) {
         return;
       }
-      _toast(l10n.jobsPublished);
+      _toast(t(WorkshopAdminKeys.jobsPublished));
       Navigator.of(context).pushReplacement<void, void>(
         MaterialPageRoute<void>(
           builder: (_) => PublicLinkPage(jobId: link.jobId),
@@ -240,7 +255,7 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
     } on Object catch (error) {
       ref.invalidate(publishChecklistProvider(widget.jobId));
       if (mounted) {
-        setState(() => _error = jobErrorCopy(l10n, error));
+        setState(() => _error = jobErrorCopy(t, error));
       }
     } finally {
       if (mounted) {

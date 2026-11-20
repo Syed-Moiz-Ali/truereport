@@ -2,9 +2,10 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/sync/sync_providers.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
 /// The field outbox: everything saved on this phone, grouped by job, with the
@@ -20,7 +21,7 @@ class _TechnicianSyncPageState extends ConsumerState<TechnicianSyncPage> {
   bool _replaying = false;
 
   Future<void> _replay() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _replaying = true);
     final report = await ref.read(syncServiceProvider).syncAll();
     ref.invalidate(syncQueueStatusProvider);
@@ -32,14 +33,16 @@ class _TechnicianSyncPageState extends ConsumerState<TechnicianSyncPage> {
     }
     setState(() => _replaying = false);
     final message = report.conflicts > 0
-        ? l10n.technicianSyncConflictsCount(report.conflicts)
-        : l10n.technicianSyncApplied(report.synced);
+        ? t(TechnicianKeys.technicianSyncConflictsCount, {
+            'count': report.conflicts,
+          })
+        : t(TechnicianKeys.technicianSyncApplied, {'count': report.synced});
     showAppSnackBar(context, message: message);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final operationsAsync = ref.watch(pendingOperationsProvider);
     final conflictsAsync = ref.watch(allTechnicianConflictsProvider);
     final online = ref.watch(connectivityProvider).value ?? true;
@@ -50,7 +53,10 @@ class _TechnicianSyncPageState extends ConsumerState<TechnicianSyncPage> {
       backgroundColor: context.colors.surfaceContainerLow,
       body: Column(
         children: [
-          _SyncBar(title: l10n.technicianSyncTitle, online: online),
+          _SyncBar(
+            title: t(TechnicianKeys.technicianSyncTitle),
+            online: online,
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
@@ -76,14 +82,16 @@ class _TechnicianSyncPageState extends ConsumerState<TechnicianSyncPage> {
                           if (operations.isEmpty && conflicts.isEmpty) ...[
                             const SizedBox(height: 16),
                             _AllClear(
-                              title: l10n.technicianSyncNothing,
-                              body: l10n.technicianSyncAllSafe,
+                              title: t(TechnicianKeys.technicianSyncNothing),
+                              body: t(TechnicianKeys.technicianSyncAllSafe),
                             ),
                           ],
                           if (operations.isNotEmpty) ...[
                             const SizedBox(height: 18),
                             _SectionLabel(
-                              label: l10n.technicianSyncQueuedChanges,
+                              label: t(
+                                TechnicianKeys.technicianSyncQueuedChanges,
+                              ),
                               trailing: '${operations.length}',
                             ),
                             const SizedBox(height: 6),
@@ -145,15 +153,14 @@ class _JobGroupData {
   final List<SyncOperation> operations;
 }
 
-class _SyncBar extends StatelessWidget {
+class _SyncBar extends ConsumerWidget {
   const _SyncBar({required this.title, required this.online});
 
   final String title;
   final bool online;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       heightFactor: 1,
       child: ConstrainedBox(
@@ -187,10 +194,8 @@ class _SyncBar extends StatelessWidget {
                 ),
               ),
               StatusChip(
-                label: online
-                    ? l10n.technicianSyncOnline
-                    : l10n.technicianSyncOffline,
-                tone: online ? StatusTone.success : StatusTone.warning,
+                label: syncStatusLabel(ref, online ? 'ONLINE' : 'OFFLINE'),
+                tone: syncStatusTone(ref, online ? 'ONLINE' : 'OFFLINE'),
               ),
             ],
           ),
@@ -215,7 +220,7 @@ class _OutboxHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final colors = context.colors;
     final tone = online
         ? context.statusColors.success
@@ -249,8 +254,10 @@ class _OutboxHero extends StatelessWidget {
               Expanded(
                 child: Text(
                   count == 0
-                      ? l10n.technicianSyncNothing
-                      : l10n.technicianSyncChangesOnPhone(count),
+                      ? t(TechnicianKeys.technicianSyncNothing)
+                      : t(TechnicianKeys.technicianSyncChangesOnPhone, {
+                          'count': count,
+                        }),
                   style: context.texts.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
@@ -261,14 +268,14 @@ class _OutboxHero extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            l10n.technicianSyncSavedHint,
+            t(TechnicianKeys.technicianSyncSavedHint),
             style: context.texts.bodyMedium?.copyWith(
               color: colors.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 14),
           _PillButton(
-            label: l10n.technicianSyncReplayNow,
+            label: t(TechnicianKeys.technicianSyncReplayNow),
             icon: Icons.sync,
             variant: _PillVariant.soft,
             loading: replaying,
@@ -423,14 +430,14 @@ class _JobGroup extends StatelessWidget {
   }
 }
 
-class _OperationRow extends StatelessWidget {
+class _OperationRow extends ConsumerWidget {
   const _OperationRow({required this.operation});
 
   final SyncOperation operation;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final colors = context.colors;
     final failed = operation.state == 'FAILED';
     final itemCode =
@@ -442,7 +449,7 @@ class _OperationRow extends StatelessWidget {
     );
     final meta = [
       if (itemCode != null && itemCode.isNotEmpty) itemCode,
-      _stateLabel(l10n, operation.state),
+      syncStatusLabel(ref, operation.state),
       time,
     ].join(' · ');
 
@@ -474,7 +481,7 @@ class _OperationRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _operationTitle(l10n, operation.type),
+                  _operationTitle(t, operation.type),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: context.texts.bodyMedium?.copyWith(
@@ -493,7 +500,7 @@ class _OperationRow extends StatelessWidget {
                 if (failed && operation.lastError != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    '${l10n.technicianSyncLastError}: ${operation.lastError}',
+                    '${t(TechnicianKeys.technicianSyncLastError)}: ${operation.lastError}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: context.texts.bodySmall?.copyWith(
@@ -504,7 +511,9 @@ class _OperationRow extends StatelessWidget {
                 if (failed && operation.attempts > 1) ...[
                   const SizedBox(height: 2),
                   Text(
-                    l10n.technicianSyncAttempts(operation.attempts),
+                    t(TechnicianKeys.technicianSyncAttempts, {
+                      'count': operation.attempts,
+                    }),
                     style: context.texts.labelSmall?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -527,7 +536,7 @@ class _ConflictsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final colors = context.colors;
     final danger = context.statusColors.danger;
     return Container(
@@ -554,7 +563,9 @@ class _ConflictsCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        l10n.technicianSyncServerChanges(conflicts.length),
+                        t(TechnicianKeys.technicianSyncServerChanges, {
+                          'count': conflicts.length,
+                        }),
                         style: context.texts.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: danger.foreground,
@@ -565,7 +576,7 @@ class _ConflictsCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  l10n.technicianSyncConflictHint,
+                  t(TechnicianKeys.technicianSyncConflictHint),
                   style: context.texts.bodySmall?.copyWith(
                     color: danger.foreground.withValues(alpha: 0.9),
                   ),
@@ -636,8 +647,8 @@ class _ConflictRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      '${conflict.jobId} · '
-                      'rev ${conflict.clientRevision} → '
+                      '${conflict.jobId} \u00b7 '
+                      '${conflict.clientRevision} \u2192 '
                       '${conflict.serverRevision}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -733,18 +744,18 @@ class _PillButton extends StatelessWidget {
   }
 }
 
-String _operationTitle(AppLocalizations l10n, String type) {
+String _operationTitle(UiStrings t, String type) {
   switch (type.replaceAll('_clean', '')) {
     case 'assessment':
-      return l10n.technicianOpAssessment;
+      return t(TechnicianKeys.technicianOpAssessment);
     case 'evidence':
-      return l10n.technicianOpEvidence;
+      return t(TechnicianKeys.technicianOpEvidence);
     case 'customer':
-      return l10n.technicianOpCustomer;
+      return t(TechnicianKeys.technicianOpCustomer);
     case 'vehicle':
-      return l10n.technicianOpVehicle;
+      return t(TechnicianKeys.technicianOpVehicle);
     case 'consent':
-      return l10n.technicianOpConsent;
+      return t(TechnicianKeys.technicianOpConsent);
     default:
       return type;
   }
@@ -762,18 +773,5 @@ IconData _operationIcon(String type) {
       return Icons.verified_user_outlined;
     default:
       return Icons.checklist_rounded;
-  }
-}
-
-String _stateLabel(AppLocalizations l10n, String state) {
-  switch (state) {
-    case 'FAILED':
-      return l10n.technicianSyncStateFailed;
-    case 'SYNCING':
-      return l10n.technicianSyncStateSyncing;
-    case 'CONFLICT':
-      return l10n.technicianSyncStateConflict;
-    default:
-      return l10n.technicianQueued;
   }
 }

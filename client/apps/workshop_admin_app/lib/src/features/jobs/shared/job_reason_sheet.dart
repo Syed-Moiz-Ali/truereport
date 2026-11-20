@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Reason entry sheet used by cancel, unpublish and revoke flows.
 /// Returns the trimmed reason, or null when dismissed.
@@ -52,7 +52,7 @@ class _JobReasonSheetState extends State<_JobReasonSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -73,7 +73,7 @@ class _JobReasonSheetState extends State<_JobReasonSheet> {
           if (_showError) ...[
             SizedBox(height: context.spacing.xs),
             Text(
-              l10n.commonReasonRequired,
+              t(WorkshopAdminKeys.commonReasonRequired),
               style: context.ws.meta.copyWith(color: context.ws.danger),
             ),
           ],

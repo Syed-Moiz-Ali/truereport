@@ -1,33 +1,21 @@
 import 'dart:async';
 
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
-import '../../components/platform_buttons.dart';
-import '../../components/platform_category_picker.dart';
-import '../../components/platform_chips.dart';
-import '../../components/platform_dialogs.dart';
-import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
-import '../../components/platform_states.dart';
-import '../../components/platform_toolbar.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../checklist/checklist_date.dart';
-import '../checklist/checklist_page_frame.dart';
+import '../checklist/catalog/catalog_ui.dart';
 import '../checklist/checklist_status.dart';
-import '../checklist/checklist_tab_bar.dart';
-import 'master_item_editor_screen.dart';
-
-import 'package:l10n/l10n.dart';
-
-const _itemStatuses = <String>['ACTIVE', 'DRAFT', 'PUBLISHED', 'RETIRED'];
 
 class MasterLibraryScreen extends ConsumerStatefulWidget {
-  const MasterLibraryScreen({super.key});
+  const MasterLibraryScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<MasterLibraryScreen> createState() =>
@@ -35,769 +23,843 @@ class MasterLibraryScreen extends ConsumerStatefulWidget {
 }
 
 class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
+  final _searchController = TextEditingController();
+  Timer? _debounce;
   String _search = '';
   String _categoryId = '';
   String _status = '';
+  String? _selectedId;
   bool _acting = false;
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String value) {
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      setState(() => _search = value);
+  void _onSearch(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _search = value);
     });
-  }
-
-  Future<void> _openEditor([String? itemId]) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => MasterItemEditorScreen(itemId: itemId),
-      ),
-    );
-    if (!mounted) return;
-    ref.invalidate(itemsProvider);
-    ref.invalidate(categoriesProvider);
-  }
-
-  Future<void> _draftItem(PlatformItem item) async {
-    if (_acting) return;
-    setState(() => _acting = true);
-    try {
-      await ref.read(platformConfigActionsProvider).createDraft(item.id);
-      if (!mounted) return;
-      ref.invalidate(itemsProvider);
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(_failureMessage(error), isError: true);
-    } finally {
-      if (mounted) setState(() => _acting = false);
-    }
-  }
-
-  Future<void> _publishItem(PlatformItem item) async {
-    if (_acting) return;
-    final strings = ref.watch(uiStringsProvider);
-    setState(() => _acting = true);
-    try {
-      final actions = ref.read(platformConfigActionsProvider);
-      var detail = await ref
-          .read(platformConfigApiProvider)
-          .itemDetail(item.id);
-      var draft = detail.draftVersion;
-      // No draft yet: create one first so publish always acts on a draft
-      // version. Both calls below are the standard item APIs.
-      draft ??= (await actions.createDraft(item.id)).draftVersion;
-      if (draft == null) {
-        if (!mounted) return;
-        _showMessage(strings.tKey(CommonKeys.stateError), isError: true);
-        return;
-      }
-      if (!mounted) return;
-      final confirmed = await showPlatformConfirmDialog(
-        context: context,
-        title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
-        body:
-            '${strings.tKey(PlatformAdminKeys.buttonItemPublish)} · v${draft.versionNo}',
-        confirmLabel: strings.tKey(PlatformAdminKeys.buttonPublish),
-      );
-      if (confirmed != true) return;
-      await actions.publishItem(item.id, draft.id);
-      if (!mounted) return;
-      _showMessage(strings.tKey(PlatformAdminKeys.toastItemPublished));
-      ref.invalidate(itemsProvider);
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(_failureMessage(error), isError: true);
-    } finally {
-      if (mounted) setState(() => _acting = false);
-    }
-  }
-
-  Future<void> _confirmRetireItem(PlatformItem item) async {
-    final strings = ref.watch(uiStringsProvider);
-    final confirmed = await showPlatformConfirmDialog(
-      context: context,
-      title: strings.tKey(PlatformAdminKeys.buttonItemRetire),
-      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
-      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
-      destructive: true,
-    );
-    if (confirmed != true) return;
-    try {
-      await ref.read(platformConfigActionsProvider).retireItem(item.id);
-      if (!mounted) return;
-      _showMessage(strings.tKey(PlatformAdminKeys.toastItemRetired));
-      ref.invalidate(itemsProvider);
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(_failureMessage(error), isError: true);
-    }
-  }
-
-  void _showMessage(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isError ? PtTheme.rose : PtTheme.deepGreen,
-        content: Text(
-          message,
-          style: PtTheme.font(13, lineHeight: 18, color: PtTheme.white),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
     final categories =
-        categoriesAsync.asData?.value ?? const <PlatformCategory>[];
+        ref.watch(categoriesProvider).asData?.value ??
+        const <PlatformCategory>[];
     final query = ItemQuery(
       search: _search,
       categoryId: _categoryId,
       status: _status,
     );
     final itemsAsync = ref.watch(itemsProvider(query));
-    final healthAsync = ref.watch(configHealthProvider);
-    final showHealthBanner = healthAsync.maybeWhen(
-      data: (health) => !health.healthy,
-      orElse: () => false,
-    );
-    final countLabel = itemsAsync.maybeWhen(
-      data: (items) => strings.tArgsKey(
-        PlatformAdminKeys.pageChecklistItemsResultCount,
-        {'count': items.length},
-      ),
-      orElse: () => null,
-    );
+    final health = ref.watch(configHealthProvider).asData?.value;
 
-    return ChecklistPageFrame(
-      currentRoute: '/checklist/items',
-      currentTab: ChecklistTab.items,
-      onSearchChanged: _onSearchChanged,
-      actions: [
-        PlatformPrimaryButton(
-          label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
-          icon: Icons.add_rounded,
-          onPressed: () => _openEditor(),
-        ),
-      ],
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
+    final content = LayoutBuilder(
+      builder: (context, c) {
+        final wide = c.maxWidth >= 1000;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(wide ? 24 : 14, 22, wide ? 24 : 14, 36),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (showHealthBanner) ...[
-                _buildHealthBanner(strings),
-                const SizedBox(height: 20),
-              ],
-              Text(
-                strings.tKey(PlatformAdminKeys.pageChecklistItemsTitle),
-                style: PtTheme.font(
-                  18,
-                  lineHeight: 24,
-                  weight: FontWeight.w800,
-                  color: PtTheme.ink,
-                  tracking: -0.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              _Header(
+                strings: strings,
+                wide: wide,
+                onAdd: () => context.go('/checklist/items/new'),
               ),
               const SizedBox(height: 12),
-              _buildFilters(strings, categories, countLabel),
-              const SizedBox(height: 20),
-              _buildItems(strings, itemsAsync),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildHealthBanner(dynamic strings) {
-    return PlatformSectionCard(
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: PtTheme.rose.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+              CatalogTabs(
+                labels: [
+                  strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                  strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+                ],
+                selected: 0,
+                onSelected: (index) {
+                  if (index == 1) context.go('/checklist/categories');
+                  if (index == 2) context.go('/checklist/option-sets');
+                },
+              ),
+              if (health != null && !health.healthy) ...[
+                const SizedBox(height: 12),
+                _HealthStrip(
+                  strings: strings,
+                  count: health.checks.where((check) => !check.ok).length,
+                  onOpen: () => context.go('/checklist/health'),
                 ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: PtTheme.rose,
-                  size: 20,
+              ],
+              const SizedBox(height: 12),
+              _Toolbar(
+                strings: strings,
+                controller: _searchController,
+                onSearch: _onSearch,
+                categories: categories,
+                categoryId: _categoryId,
+                status: _status,
+                onCategory: (value) => setState(() => _categoryId = value),
+                onStatus: (value) => setState(() => _status = value),
+                countLabel: itemsAsync.maybeWhen(
+                  data: (items) => strings.tArgsKey(
+                    PlatformAdminKeys.pageChecklistItemsResultCount,
+                    {'count': items.length},
+                  ),
+                  orElse: () => '',
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                strings.tKey(CommonKeys.statusUnhealthy),
-                style: PtTheme.font(
-                  14,
-                  lineHeight: 20,
-                  weight: FontWeight.w700,
-                  color: PtTheme.ink,
+              const SizedBox(height: 12),
+              itemsAsync.when(
+                loading: () => const CatalogSkeleton(),
+                error: (_, _) => CatalogError(
+                  strings: strings,
+                  onRetry: () => ref.invalidate(itemsProvider),
                 ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    final filtered =
+                        _search.isNotEmpty ||
+                        _categoryId.isNotEmpty ||
+                        _status.isNotEmpty;
+                    return CatalogSurface(
+                      child: CatalogEmpty(
+                        title: strings.tKey(
+                          filtered
+                              ? PlatformAdminKeys
+                                    .checklistItemsEmptyFilteredTitle
+                              : PlatformAdminKeys
+                                    .checklistItemsEmptyInitialTitle,
+                        ),
+                        body: strings.tKey(
+                          filtered
+                              ? PlatformAdminKeys
+                                    .checklistItemsEmptyFilteredBody
+                              : PlatformAdminKeys
+                                    .checklistItemsEmptyInitialBody,
+                        ),
+                        actionLabel: filtered
+                            ? null
+                            : strings.tKey(PlatformAdminKeys.buttonItemAdd),
+                        onAction: filtered
+                            ? null
+                            : () => context.go('/checklist/items/new'),
+                      ),
+                    );
+                  }
+                  final selected = items.firstWhere(
+                    (item) => item.id == _selectedId,
+                    orElse: () => items.first,
+                  );
+                  if (wide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 380,
+                          child: _IndexPane(
+                            strings: strings,
+                            items: items,
+                            selectedId: selected.id,
+                            onSelect: (item) =>
+                                setState(() => _selectedId = item.id),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _RecordPane(
+                            strings: strings,
+                            item: selected,
+                            acting: _acting,
+                            onEdit: () => context.go(
+                              '/checklist/items/${selected.id}/edit',
+                            ),
+                            onDraft: () => _draft(strings, selected),
+                            onPublish: () => _publish(strings, selected),
+                            onRetire: () => _retire(strings, selected),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return _IndexPane(
+                    strings: strings,
+                    items: items,
+                    selectedId: null,
+                    onSelect: (item) =>
+                        context.go('/checklist/items/${item.id}/edit'),
+                  );
+                },
               ),
             ],
           ),
-          PlatformPrimaryButton(
-            label: strings.tKey(PlatformAdminKeys.buttonHealthReview),
-            icon: Icons.health_and_safety_outlined,
-            onPressed: () => context.go('/checklist/health'),
+        );
+      },
+    );
+    if (widget.embedded) return content;
+    return PlatformShell(
+      currentRoute: '/checklist/items',
+      onNavigate: (route) => context.go(route),
+      child: content,
+    );
+  }
+
+  Future<void> _draft(UiMessageStrings strings, PlatformItem item) async {
+    if (_acting) return;
+    setState(() => _acting = true);
+    try {
+      await ref.read(platformConfigActionsProvider).createDraft(item.id);
+      if (!mounted) return;
+      _toast(
+        strings.tKey(PlatformAdminKeys.checklistEditorButtonCreateDraftToEdit),
+      );
+      ref.invalidate(itemsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError), error: true);
+    } finally {
+      if (mounted) setState(() => _acting = false);
+    }
+  }
+
+  Future<void> _publish(UiMessageStrings strings, PlatformItem item) async {
+    if (_acting) return;
+    setState(() => _acting = true);
+    try {
+      final api = ref.read(platformConfigApiProvider);
+      final actions = ref.read(platformConfigActionsProvider);
+      final detail = await api.itemDetail(item.id);
+      final draft =
+          detail.draftVersion ??
+          (await actions.createDraft(item.id)).draftVersion;
+      if (draft == null) return;
+      if (!mounted) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => CatalogDialog(
+          title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
+          body: Text(
+            '${item.code} · v${draft.versionNo}',
+            style: Catalog.text(12.5),
+          ),
+          actions: [
+            CatalogButton(
+              label: strings.tKey(CommonKeys.buttonCancel),
+              secondary: true,
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+            ),
+            CatalogButton(
+              label: strings.tKey(PlatformAdminKeys.buttonPublish),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      await actions.publishItem(item.id, draft.id);
+      if (!mounted) return;
+      _toast(strings.tKey(PlatformAdminKeys.toastItemPublished));
+      ref.invalidate(itemsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError), error: true);
+    } finally {
+      if (mounted) setState(() => _acting = false);
+    }
+  }
+
+  Future<void> _retire(UiMessageStrings strings, PlatformItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(PlatformAdminKeys.buttonItemRetire),
+        body: Text(
+          strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+          style: Catalog.body,
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(PlatformAdminKeys.buttonRetire),
+            danger: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(platformConfigActionsProvider).retireItem(item.id);
+      if (!mounted) return;
+      _toast(strings.tKey(PlatformAdminKeys.toastItemRetired));
+      ref.invalidate(itemsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError), error: true);
+    }
+  }
+
+  void _toast(String message, {bool error = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: error ? PtTheme.rose : PtTheme.deepGreen,
+        content: Text(message, style: Catalog.text(12.5, color: PtTheme.white)),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.strings,
+    required this.wide,
+    required this.onAdd,
+  });
+
+  final UiMessageStrings strings;
+  final bool wide;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final block = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
+          style: Catalog.eyebrow,
+        ),
+        const SizedBox(height: 7),
+        Text(
+          strings.tKey(PlatformAdminKeys.pageChecklistItemsTitle),
+          style: Catalog.pageTitle,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          strings.tKey(PlatformAdminKeys.checklistItemsEmptyInitialBody),
+          style: Catalog.body,
+        ),
+      ],
+    );
+    final add = CatalogButton(
+      label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
+      icon: Icons.add_rounded,
+      onPressed: onAdd,
+    );
+    if (!wide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          block,
+          const SizedBox(height: 12),
+          Align(alignment: AlignmentDirectional.centerStart, child: add),
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(child: block),
+        add,
+      ],
+    );
+  }
+}
+
+class _HealthStrip extends StatelessWidget {
+  const _HealthStrip({
+    required this.strings,
+    required this.count,
+    required this.onOpen,
+  });
+
+  final UiMessageStrings strings;
+  final int count;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Catalog.amberTint,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFF1DFC2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 17,
+            color: PtTheme.gold,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              strings.tArgsKey(PlatformAdminKeys.checklistHealthAffectedCount, {
+                'count': count,
+              }),
+              style: Catalog.text(
+                11.5,
+                weight: FontWeight.w700,
+                color: const Color(0xFF7C4A05),
+              ),
+            ),
+          ),
+          CatalogButton(
+            label: strings.tKey(
+              PlatformAdminKeys.dashboardQuickActionsViewHealth,
+            ),
+            secondary: true,
+            compact: true,
+            onPressed: onOpen,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFilters(
-    dynamic strings,
-    List<PlatformCategory> categories,
-    String? countLabel,
-  ) {
-    return PlatformToolbar(
-      searchController: _searchController,
-      searchHint: strings.tKey(CommonKeys.filterSearch),
-      onSearchChanged: _onSearchChanged,
-      countLabel: countLabel,
-      filters: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 220),
-          child: PlatformDropdown<String>(
-            label: strings.tKey(CommonKeys.tableStatus),
-            value: _status,
-            items: [
-              DropdownMenuItem(
-                value: '',
-                child: Text(strings.tKey(CommonKeys.filterAll)),
+class _Toolbar extends ConsumerWidget {
+  const _Toolbar({
+    required this.strings,
+    required this.controller,
+    required this.onSearch,
+    required this.categories,
+    required this.categoryId,
+    required this.status,
+    required this.onCategory,
+    required this.onStatus,
+    required this.countLabel,
+  });
+
+  final UiMessageStrings strings;
+  final TextEditingController controller;
+  final ValueChanged<String> onSearch;
+  final List<PlatformCategory> categories;
+  final String categoryId;
+  final String status;
+  final ValueChanged<String> onCategory;
+  final ValueChanged<String> onStatus;
+  final String countLabel;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        final narrow = c.maxWidth < 720;
+        final search = CatalogSearch(
+          controller: controller,
+          hint: strings.tKey(PlatformAdminKeys.checklistBuilderSearchItems),
+          onChanged: onSearch,
+        );
+        final filters = Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _FilterPill(
+              label: strings.tKey(PlatformAdminKeys.filterAllCategories),
+              selected: categoryId.isEmpty,
+              onTap: () => onCategory(''),
+            ),
+            for (final category in categories)
+              _FilterPill(
+                label: category.name,
+                selected: categoryId == category.id,
+                onTap: () => onCategory(category.id),
               ),
-              for (final status in _itemStatuses)
-                DropdownMenuItem(
-                  value: status,
-                  child: Text(checklistStatusLabel(strings, status)),
-                ),
+            for (final value in const ['', 'PUBLISHED', 'DRAFT', 'RETIRED'])
+              _FilterPill(
+                label: value.isEmpty
+                    ? strings.tKey(CommonKeys.filterAll)
+                    : checklistStatusLabel(ref, value),
+                selected: status == value,
+                onTap: () => onStatus(value),
+              ),
+          ],
+        );
+        if (narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              search,
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: filters,
+              ),
             ],
-            onChanged: (value) {
-              setState(() => _status = value ?? '');
-            },
-          ),
-        ),
-        PlatformCategoryPicker(
-          categories: categories,
-          selectedId: _categoryId,
-          onChanged: (id) => setState(() => _categoryId = id ?? ''),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItems(
-    dynamic strings,
-    AsyncValue<List<PlatformItem>> itemsAsync,
-  ) {
-    return itemsAsync.when(
-      loading: () =>
-          PlatformLoadingView(message: strings.tKey(CommonKeys.stateLoading)),
-      error: (error, _) => PlatformErrorView(
-        message: _failureMessage(error),
-        retryLabel: strings.tKey(CommonKeys.buttonRetry),
-        onRetry: () => ref.invalidate(itemsProvider),
-      ),
-      data: (items) {
-        if (items.isEmpty) {
-          final isFiltered =
-              _search.isNotEmpty ||
-              _categoryId.isNotEmpty ||
-              _status.isNotEmpty;
-          if (isFiltered) {
-            return PlatformEmptyView(
-              icon: Icons.filter_alt_off_rounded,
-              title: strings.tKey(
-                PlatformAdminKeys.checklistItemsEmptyFilteredTitle,
-              ),
-              body: strings.tKey(
-                PlatformAdminKeys.checklistItemsEmptyFilteredBody,
-              ),
-              actionLabel: strings.tKey(PlatformAdminKeys.buttonClearFilters),
-              onAction: () {
-                _searchController.clear();
-                setState(() {
-                  _search = '';
-                  _categoryId = '';
-                  _status = '';
-                });
-              },
-            );
-          }
-          return PlatformEmptyView(
-            icon: Icons.checklist_rounded,
-            title: strings.tKey(
-              PlatformAdminKeys.checklistItemsEmptyInitialTitle,
-            ),
-            body: strings.tKey(
-              PlatformAdminKeys.checklistItemsEmptyInitialBody,
-            ),
-            actionLabel: strings.tKey(
-              PlatformAdminKeys.checklistItemsButtonCreateFirst,
-            ),
-            onAction: () => _openEditor(),
           );
         }
-        // Rich cards are the primary view on every breakpoint; two columns
-        // on wide viewports, one stacked column below the breakpoint.
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final twoColumns = constraints.maxWidth >= 1000;
-            if (!twoColumns) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final item in items) ...[
-                    _buildItemCard(strings, item),
-                    const SizedBox(height: 12),
-                  ],
-                ],
-              );
-            }
-            final rows = <Widget>[];
-            for (var index = 0; index < items.length; index += 2) {
-              rows.add(
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: _buildItemCard(strings, items[index])),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: index + 1 < items.length
-                          ? _buildItemCard(strings, items[index + 1])
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
-              );
-              rows.add(const SizedBox(height: 12));
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: rows,
-            );
-          },
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                SizedBox(width: 360, child: search),
+                const Spacer(),
+                Text(countLabel, style: Catalog.text(11, color: PtTheme.muted)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: filters,
+            ),
+          ],
         );
       },
     );
   }
+}
 
-  Widget _buildItemCard(dynamic strings, PlatformItem item) {
-    final retired = item.status == 'RETIRED';
-    final categoryLabel = item.categoryLabelEn.isEmpty
-        ? item.categoryId
-        : item.categoryLabelEn;
-    final accentColor = item.safetyCritical
-        ? PtTheme.rose
-        : (item.status == 'ACTIVE' || item.status == 'PUBLISHED'
-              ? PtTheme.deepGreen
-              : PtTheme.muted);
+class _FilterPill extends StatelessWidget {
+  const _FilterPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
-    return Container(
-      decoration: _surfaceDecoration(),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 5, color: accentColor),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: selected ? Catalog.tint : PtTheme.white,
+    borderRadius: BorderRadius.circular(999),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: 11),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: selected ? Catalog.tint : PtTheme.border),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: Catalog.text(
+            11,
+            weight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? PtTheme.deepGreen : PtTheme.muted,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _IndexPane extends StatelessWidget {
+  const _IndexPane({
+    required this.strings,
+    required this.items,
+    required this.selectedId,
+    required this.onSelect,
+  });
+
+  final UiMessageStrings strings;
+  final List<PlatformItem> items;
+  final String? selectedId;
+  final ValueChanged<PlatformItem> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return CatalogSurface(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                    style: Catalog.eyebrow,
+                  ),
+                ),
+                Text(
+                  strings.tArgsKey(
+                    PlatformAdminKeys.pageChecklistItemsResultCount,
+                    {'count': items.length},
+                  ),
+                  style: Catalog.text(10.5, color: PtTheme.muted),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: PtTheme.border),
+          for (final item in items)
+            _ItemRow(
+              strings: strings,
+              item: item,
+              selected: item.id == selectedId,
+              onTap: () => onSelect(item),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemRow extends ConsumerWidget {
+  const _ItemRow({
+    required this.strings,
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final UiMessageStrings strings;
+  final PlatformItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      color: selected
+          ? Catalog.tint.withValues(alpha: 0.55)
+          : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 11, 10, 11),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: PtTheme.border)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top row: category accent/icon, item label, status chip, overflow menu
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            item.safetyCritical
-                                ? Icons.warning_amber_rounded
-                                : Icons.fact_check_outlined,
-                            size: 18,
-                            color: accentColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _itemLabel(item),
-                                      style: PtTheme.font(
-                                        16,
-                                        lineHeight: 22,
-                                        weight: FontWeight.w700,
-                                        color: PtTheme.ink,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  PlatformStatusChip(
-                                    status: item.status,
-                                    label: checklistStatusLabel(
-                                      strings,
-                                      item.status,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  PopupMenuButton<String>(
-                                    tooltip: strings.tKey(
-                                      CommonKeys.tableActions,
-                                    ),
-                                    icon: const Icon(
-                                      Icons.more_vert_rounded,
-                                      size: 20,
-                                    ),
-                                    onSelected: (value) {
-                                      if (value == 'draft') {
-                                        _draftItem(item);
-                                      }
-                                      if (value == 'publish') {
-                                        _publishItem(item);
-                                      }
-                                      if (value == 'retire') {
-                                        _confirmRetireItem(item);
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      PopupMenuItem(
-                                        value: 'draft',
-                                        enabled: !_acting,
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.note_add_outlined,
-                                              size: 18,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              strings.tKey(
-                                                CommonKeys.buttonCreateDraft,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      if (!retired)
-                                        PopupMenuItem(
-                                          value: 'publish',
-                                          enabled: !_acting,
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.publish_rounded,
-                                                size: 18,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                strings.tKey(
-                                                  PlatformAdminKeys
-                                                      .buttonItemPublish,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (!retired)
-                                        PopupMenuItem(
-                                          value: 'retire',
-                                          enabled: !_acting,
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.archive_outlined,
-                                                size: 18,
-                                                color: PtTheme.rose,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                strings.tKey(
-                                                  PlatformAdminKeys
-                                                      .buttonItemRetire,
-                                                ),
-                                                style: const TextStyle(
-                                                  color: PtTheme.rose,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    Text(
+                      item.label.isNotEmpty ? item.label : item.code,
+                      style: Catalog.text(12, weight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 10),
-                    // Second row: code, version, category
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: PtTheme.canvas,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: PtTheme.border),
-                          ),
-                          child: Text(
-                            item.code,
-                            style: PtTheme.font(
-                              11,
-                              weight: FontWeight.w700,
-                              color: PtTheme.muted,
-                              tracking: 0.4,
-                            ),
-                          ),
-                        ),
-                        if (item.currentVersion != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: PtTheme.canvas,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'v${item.currentVersion}',
-                              style: PtTheme.font(
-                                11,
-                                weight: FontWeight.w600,
-                                color: PtTheme.muted,
-                              ),
-                            ),
-                          ),
-                        PlatformMetaPill(
-                          label: strings.tKey(CommonKeys.labelCategory),
-                          value: categoryLabel,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    // Third row: safety-critical badge, measurement unit, sensor/tool, updated date
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        if (item.safetyCritical)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: PtTheme.rose.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: PtTheme.rose.withValues(alpha: 0.25),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.shield_outlined,
-                                  size: 14,
-                                  color: PtTheme.rose,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  strings.tKey(
-                                    PlatformAdminKeys.badgeSafetyCritical,
-                                  ),
-                                  style: PtTheme.font(
-                                    11,
-                                    weight: FontWeight.w700,
-                                    color: PtTheme.rose,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        Semantics(
-                          label:
-                              '${strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit)}: ${item.measurementUnit.isEmpty ? '—' : item.measurementUnit}',
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: PtTheme.canvas,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: PtTheme.border),
-                            ),
-                            child: Text(
-                              item.measurementUnit.isEmpty
-                                  ? '—'
-                                  : item.measurementUnit,
-                              style: PtTheme.font(
-                                11,
-                                lineHeight: 14,
-                                weight: FontWeight.w700,
-                                color: PtTheme.ink,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        if (item.sensorTool.isNotEmpty)
-                          PlatformMetaPill(
-                            label: strings.tKey(
-                              PlatformAdminKeys.fieldItemSensorTool,
-                            ),
-                            value: item.sensorTool,
-                          ),
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.tableItemEvidence,
-                          ),
-                          value: '—',
-                        ),
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.tableItemUpdated,
-                          ),
-                          value: item.updatedAt.isEmpty
-                              ? '—'
-                              : checklistUpdatedAtLabel(
-                                  item.updatedAt,
-                                  Localizations.localeOf(context).toString(),
-                                ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1),
-                    const SizedBox(height: 10),
-                    // Action row: Edit (primary visible), Create draft, Publish
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        PlatformPrimaryButton(
-                          label: strings.tKey(CommonKeys.buttonEdit),
-                          icon: Icons.edit_outlined,
-                          onPressed: _acting
-                              ? null
-                              : () => _openEditor(item.id),
-                        ),
-                        Wrap(
-                          spacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            PlatformSecondaryButton(
-                              label: strings.tKey(CommonKeys.buttonCreateDraft),
-                              icon: Icons.note_add_outlined,
-                              onPressed: _acting
-                                  ? null
-                                  : () => _draftItem(item),
-                            ),
-                            if (!retired)
-                              PlatformSecondaryButton(
-                                label: strings.tKey(
-                                  PlatformAdminKeys.buttonItemPublish,
-                                ),
-                                icon: Icons.publish_rounded,
-                                onPressed: _acting
-                                    ? null
-                                    : () => _publishItem(item),
-                              ),
-                          ],
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.code} · ${item.categoryLabelEn}',
+                      style: Catalog.text(9.5, color: PtTheme.muted),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              CatalogPill(
+                label: checklistStatusLabel(ref, item.status),
+                tone: item.status == 'PUBLISHED' || item.status == 'ACTIVE'
+                    ? CatalogTone.good
+                    : item.status == 'RETIRED'
+                    ? CatalogTone.bad
+                    : CatalogTone.warn,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  BoxDecoration _surfaceDecoration() {
-    return BoxDecoration(
-      color: PtTheme.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: PtTheme.border),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x06000000),
-          blurRadius: 8,
-          offset: Offset(0, 2),
-        ),
-      ],
+class _RecordPane extends ConsumerWidget {
+  const _RecordPane({
+    required this.strings,
+    required this.item,
+    required this.acting,
+    required this.onEdit,
+    required this.onDraft,
+    required this.onPublish,
+    required this.onRetire,
+  });
+
+  final UiMessageStrings strings;
+  final PlatformItem item;
+  final bool acting;
+  final VoidCallback onEdit;
+  final VoidCallback onDraft;
+  final VoidCallback onPublish;
+  final VoidCallback onRetire;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final published = item.status.toUpperCase() == 'PUBLISHED';
+    final retired = item.status.toUpperCase() == 'RETIRED';
+    return CatalogSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.code,
+                      style: Catalog.text(
+                        10.5,
+                        weight: FontWeight.w800,
+                        color: PtTheme.deepGreen,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.label.isNotEmpty ? item.label : item.code,
+                      style: Catalog.text(
+                        20,
+                        weight: FontWeight.w800,
+                        tracking: -0.4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.categoryLabelEn,
+                      style: Catalog.text(11, color: PtTheme.muted),
+                    ),
+                  ],
+                ),
+              ),
+              CatalogPill(
+                label: checklistStatusLabel(ref, item.status),
+                tone: item.status == 'PUBLISHED' || item.status == 'ACTIVE'
+                    ? CatalogTone.good
+                    : retired
+                    ? CatalogTone.bad
+                    : CatalogTone.warn,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: PtTheme.border),
+          const SizedBox(height: 12),
+          _Fact(
+            label: strings.tKey(PlatformAdminKeys.fieldItemCode),
+            value: item.code,
+          ),
+          _Fact(
+            label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
+            value: item.measurementUnit.isEmpty ? '—' : item.measurementUnit,
+          ),
+          _Fact(
+            label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
+            value: item.sensorTool.isEmpty ? '—' : item.sensorTool,
+          ),
+          _Fact(
+            label: strings.tKey(PlatformAdminKeys.fieldItemStandardSpecEn),
+            value: item.standardSpec.isEmpty ? '—' : item.standardSpec,
+          ),
+          _Fact(
+            label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
+            value: '${item.sortOrder}',
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              if (item.safetyCritical)
+                CatalogPill(
+                  label: strings.tKey(PlatformAdminKeys.badgeSafetyCritical),
+                  tone: CatalogTone.bad,
+                ),
+              if (item.multiPoint)
+                CatalogPill(
+                  label: strings.tKey(PlatformAdminKeys.fieldItemMultiPoint),
+                  tone: CatalogTone.info,
+                ),
+              if (item.allowFreeTextNote)
+                CatalogPill(
+                  label: strings.tKey(PlatformAdminKeys.fieldItemAllowFreeText),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              CatalogButton(
+                label: strings.tKey(CommonKeys.buttonEdit),
+                icon: Icons.edit_outlined,
+                secondary: true,
+                onPressed: onEdit,
+              ),
+              if (item.draftVersionExists)
+                CatalogButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonPublish),
+                  icon: Icons.check_rounded,
+                  onPressed: acting ? null : onPublish,
+                )
+              else
+                CatalogButton(
+                  label: strings.tKey(
+                    PlatformAdminKeys.checklistEditorButtonCreateDraftToEdit,
+                  ),
+                  secondary: true,
+                  onPressed: acting ? null : onDraft,
+                ),
+              if (!retired)
+                CatalogButton(
+                  label: strings.tKey(PlatformAdminKeys.buttonItemRetire),
+                  danger: true,
+                  onPressed: acting ? null : onRetire,
+                ),
+            ],
+          ),
+          if (published) ...[
+            const SizedBox(height: 12),
+            Text(
+              strings.tKey(PlatformAdminKeys.alertVersionImmutable),
+              style: Catalog.text(10.5, color: PtTheme.muted),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
 
-String _failureMessage(Object error) {
-  if (error is AppFailure) {
-    return error.statusCode == null
-        ? error.messageKey
-        : '${error.messageKey} (${error.statusCode})';
-  }
-  return error.toString();
+class _Fact extends StatelessWidget {
+  const _Fact({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 9),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 130,
+          child: Text(label, style: Catalog.text(10.5, color: PtTheme.muted)),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: Catalog.text(11.5, weight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
-/// Source-language (default) label for a platform item.
-String _itemLabel(PlatformItem item) {
-  return item.label.isEmpty ? item.code : item.label;
+extension on PlatformItem {
+  bool get draftVersionExists => status.toUpperCase() == 'DRAFT';
 }

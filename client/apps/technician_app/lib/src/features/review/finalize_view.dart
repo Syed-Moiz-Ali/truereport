@@ -3,7 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/shared/technician_intl.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
@@ -46,7 +48,7 @@ class FinalizeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final localeName = Localizations.localeOf(context).toString();
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final flagged = checklist.items
@@ -61,7 +63,7 @@ class FinalizeView extends StatelessWidget {
         '${job.vehicleYear == null ? '' : '${job.vehicleYear} '}${job.vehicleMake} ${job.vehicleModel}'
             .trim();
     final odometer = job.odometerValue == null
-        ? l10n.technicianNotProvided
+        ? t(TechnicianKeys.technicianNotProvided)
         : formatOdometerLocalized(
             job.odometerValue,
             job.odometerUnit,
@@ -89,10 +91,7 @@ class FinalizeView extends StatelessWidget {
                   avatar: avatarImage,
                   vehicleImage: vehicleImage,
                 ),
-                _FlaggedMargin(
-                  flagged: flagged,
-                  isAr: isAr,
-                ),
+                _FlaggedMargin(flagged: flagged, isAr: isAr),
                 const _DisclaimerMargin(),
                 const SizedBox(height: 128),
               ],
@@ -122,10 +121,7 @@ class FinalizeView extends StatelessWidget {
                 start: 0,
                 end: 0,
                 height: 64,
-                child: _Header(
-                  onBack: onBack,
-                  onProfile: onProfile,
-                ),
+                child: _Header(onBack: onBack, onProfile: onProfile),
               ),
             ],
           );
@@ -140,7 +136,7 @@ class _Intro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SizedBox(
       width: 390,
       height: 126,
@@ -178,7 +174,7 @@ class _Intro extends StatelessWidget {
                     width: 137.88,
                     height: 14,
                     child: Text(
-                      l10n.reviewAndFinalize.toUpperCase(),
+                      t(TechnicianKeys.reviewAndFinalize).toUpperCase(),
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.clip,
@@ -207,7 +203,7 @@ class _Intro extends StatelessWidget {
                   width: 350,
                   height: 32,
                   child: Text(
-                    l10n.reviewAndFinalize,
+                    t(TechnicianKeys.reviewAndFinalize),
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.clip,
@@ -230,7 +226,7 @@ class _Intro extends StatelessWidget {
               width: 350,
               height: 40,
               child: Text(
-                l10n.finalizeIrreversible,
+                t(TechnicianKeys.finalizeIrreversible),
                 maxLines: 2,
                 softWrap: false,
                 overflow: TextOverflow.clip,
@@ -341,25 +337,13 @@ class _SummaryCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _VehicleHeader(
-              job: job,
-              vehicle: vehicle,
-            ),
+            _VehicleHeader(job: job, vehicle: vehicle),
             const SizedBox(width: 302, height: 20),
-            _PhotoBlock(
-              odometer: odometer,
-              image: vehicleImage,
-            ),
+            _PhotoBlock(odometer: odometer, image: vehicleImage),
             const SizedBox(width: 302, height: 24),
-            _StatsRow(
-              completed: review.completed,
-              defects: defects,
-            ),
+            _StatsRow(completed: review.completed, defects: defects),
             const SizedBox(width: 302, height: 24),
-            _TechnicianRow(
-              job: job,
-              avatar: avatar,
-            ),
+            _TechnicianRow(job: job, avatar: avatar),
             const SizedBox(width: 302, height: 24),
           ],
         ),
@@ -369,25 +353,25 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _VehicleHeader extends StatelessWidget {
-  const _VehicleHeader({
-    required this.job,
-    required this.vehicle,
-  });
+  const _VehicleHeader({required this.job, required this.vehicle});
 
   final TechnicianJob job;
   final String vehicle;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final displayVehicle =
-        vehicle.isEmpty ? l10n.technicianUnknownVehicle : vehicle;
+    final t = UiStrings.of(context);
+    final displayVehicle = vehicle.isEmpty
+        ? t(TechnicianKeys.technicianUnknownVehicle)
+        : vehicle;
     final displayVin = job.vehicleVin == null || job.vehicleVin!.isEmpty
         ? job.reference
-        : '${l10n.vehicleVin} \u2022 ${job.vehicleVin}';
+        : '${t(TechnicianKeys.vehicleVin)} \u2022 ${job.vehicleVin}';
     final chipLabel = job.vehiclePlate != null && job.vehiclePlate!.isNotEmpty
         ? job.vehiclePlate!
-        : (job.reference.isNotEmpty ? job.reference : l10n.jobsTab);
+        : (job.reference.isNotEmpty
+              ? job.reference
+              : t(TechnicianKeys.jobsTab));
 
     return SizedBox(
       height: 48,
@@ -505,18 +489,15 @@ class _VehicleHeader extends StatelessWidget {
 }
 
 class _PhotoBlock extends StatelessWidget {
-  const _PhotoBlock({
-    required this.odometer,
-    this.image,
-  });
+  const _PhotoBlock({required this.odometer, this.image});
 
   final String odometer;
   final ui.Image? image;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final odometerLabel = '${l10n.technicianOdometer}: $odometer';
+    final t = UiStrings.of(context);
+    final odometerLabel = '${t(TechnicianKeys.technicianOdometer)}: $odometer';
 
     return SizedBox(
       width: 302,
@@ -533,7 +514,7 @@ class _PhotoBlock extends StatelessWidget {
               alignment: Alignment.center,
               child: TechnicianVehicleSilhouette(
                 height: 110,
-                semanticLabel: l10n.technicianVehicleSilhouette,
+                semanticLabel: t(TechnicianKeys.technicianVehicleSilhouette),
               ),
             ),
           PositionedDirectional(
@@ -615,17 +596,14 @@ class _PhotoBlock extends StatelessWidget {
 }
 
 class _StatsRow extends StatelessWidget {
-  const _StatsRow({
-    required this.completed,
-    required this.defects,
-  });
+  const _StatsRow({required this.completed, required this.defects});
 
   final int completed;
   final int defects;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final countLeft = '$completed';
     final countRight = '$defects';
 
@@ -644,7 +622,7 @@ class _StatsRow extends StatelessWidget {
               iconColor: F2b.pineDeep,
               count: countLeft,
               countWidth: 37.19,
-              lines: [l10n.completedItems],
+              lines: [t(TechnicianKeys.completedItems)],
               lineWidths: const [47.14, 71.44],
             ),
           ),
@@ -661,7 +639,7 @@ class _StatsRow extends StatelessWidget {
               countWidth: 113,
               tileGap: 24,
               countBottomPad: 4,
-              lines: [l10n.defectFound],
+              lines: [t(TechnicianKeys.defectFound)],
               lineWidths: const [91.41],
             ),
           ),
@@ -779,10 +757,7 @@ class _StatTile extends StatelessWidget {
       );
     }
     children.add(
-      SizedBox(
-        width: 113,
-        height: countBottomPad == 0 ? 4 : countBottomPad,
-      ),
+      SizedBox(width: 113, height: countBottomPad == 0 ? 4 : countBottomPad),
     );
 
     return Container(
@@ -799,19 +774,17 @@ class _StatTile extends StatelessWidget {
 }
 
 class _TechnicianRow extends StatelessWidget {
-  const _TechnicianRow({
-    required this.job,
-    this.avatar,
-  });
+  const _TechnicianRow({required this.job, this.avatar});
 
   final TechnicianJob job;
   final ui.Image? avatar;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final techName = job.assignedTechnicianName ?? l10n.roleTechnician;
-    final role1 = l10n.technicianHomeTitle;
+    final t = UiStrings.of(context);
+    final techName =
+        job.assignedTechnicianName ?? t(TechnicianKeys.roleTechnician);
+    final role1 = t(TechnicianKeys.technicianHomeTitle);
     final role2 = job.reference;
 
     return Container(
@@ -1039,10 +1012,7 @@ class _TechnicianRow extends StatelessWidget {
 }
 
 class _FlaggedMargin extends StatelessWidget {
-  const _FlaggedMargin({
-    required this.flagged,
-    required this.isAr,
-  });
+  const _FlaggedMargin({required this.flagged, required this.isAr});
 
   final List<InspectionItem> flagged;
   final bool isAr;
@@ -1053,29 +1023,26 @@ class _FlaggedMargin extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 214),
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 0),
-        child: _FlaggedCard(
-          flagged: flagged,
-          isAr: isAr,
-        ),
+        child: _FlaggedCard(flagged: flagged, isAr: isAr),
       ),
     );
   }
 }
 
-class _FlaggedCard extends StatelessWidget {
-  const _FlaggedCard({
-    required this.flagged,
-    required this.isAr,
-  });
+class _FlaggedCard extends ConsumerWidget {
+  const _FlaggedCard({required this.flagged, required this.isAr});
 
   final List<InspectionItem> flagged;
   final bool isAr;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.missingItems;
-    final badge = l10n.technicianAttentionCount(flagged.length);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final title = t(TechnicianKeys.missingItems);
+    final badge = t(TechnicianKeys.technicianAttentionCount, {
+      'count': flagged.length,
+    });
 
     return Container(
       width: 350,
@@ -1140,7 +1107,7 @@ class _FlaggedCard extends StatelessWidget {
           const SizedBox(width: 310, height: 12),
           if (flagged.isEmpty) ...[
             Text(
-              l10n.noResults,
+              t(TechnicianKeys.noResults),
               style: Fx.body13.copyWith(color: Fx.muted),
             ),
           ] else ...[
@@ -1152,7 +1119,7 @@ class _FlaggedCard extends StatelessWidget {
                 body: flagged[i].assessment?.note?.isNotEmpty == true
                     ? flagged[i].assessment!.note!
                     : resultLabel(
-                        l10n,
+                        resultRecords,
                         flagged[i].assessment?.resultCode ?? '',
                       ),
               ),
@@ -1271,8 +1238,8 @@ class _DisclaimerMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final disclaimer = l10n.finalizeIrreversible;
+    final t = UiStrings.of(context);
+    final disclaimer = t(TechnicianKeys.finalizeIrreversible);
 
     return SizedBox(
       width: 390,
@@ -1317,8 +1284,8 @@ class _Dock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final label = l10n.finalize;
+    final t = UiStrings.of(context);
+    final label = t(TechnicianKeys.finalize);
 
     return Container(
       width: 390,
@@ -1342,7 +1309,7 @@ class _Dock extends StatelessWidget {
             child: finalized
                 ? F2bFocusFrame(
                     child: FxButton(
-                      label: l10n.finalized,
+                      label: t(TechnicianKeys.finalized),
                       onPressed: null,
                       icon: const FxIcon(
                         id: '1_8930',
@@ -1357,7 +1324,7 @@ class _Dock extends StatelessWidget {
                     child: F2bSlideToConfirm(
                       label: label,
                       enabled: enabled,
-                      semanticActionLabel: l10n.finalizeConfirm,
+                      semanticActionLabel: t(TechnicianKeys.finalizeConfirm),
                       onConfirmed: () {
                         onFinalize();
                       },
@@ -1513,10 +1480,7 @@ class _InteractiveSlideState extends State<_InteractiveSlide> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({
-    this.onBack,
-    this.onProfile,
-  });
+  const _Header({this.onBack, this.onProfile});
 
   final VoidCallback? onBack;
   final VoidCallback? onProfile;
@@ -1580,7 +1544,9 @@ class _Header extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Text(
-                            AppLocalizations.of(context).reviewAndFinalize,
+                            UiStrings.of(context)(
+                              TechnicianKeys.reviewAndFinalize,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

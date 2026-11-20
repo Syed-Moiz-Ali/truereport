@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
@@ -54,7 +54,7 @@ class _LegacyArchivePageState extends ConsumerState<LegacyArchivePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final jobs = ref.watch(jobsProvider(''));
@@ -67,7 +67,7 @@ class _LegacyArchivePageState extends ConsumerState<LegacyArchivePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             JobTitleBar(
-              title: l10n.jobsArchiveTitle,
+              title: t(WorkshopAdminKeys.jobsArchiveTitle),
               trailing: jobs.hasValue ? _CountPill(count: items.length) : null,
             ),
             Expanded(
@@ -90,14 +90,14 @@ class _LegacyArchivePageState extends ConsumerState<LegacyArchivePage> {
                             child: WorkshopSearchField(
                               key: const Key('jobs-archive-search'),
                               controller: _search,
-                              hint: l10n.jobSearch,
-                              semanticLabel: l10n.jobSearch,
+                              hint: t(WorkshopAdminKeys.jobSearch),
+                              semanticLabel: t(WorkshopAdminKeys.jobSearch),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _body(context, jobs, items, l10n),
+                        _body(context, jobs, items, t),
                         const SizedBox(height: 28),
                       ],
                     ),
@@ -115,24 +115,24 @@ class _LegacyArchivePageState extends ConsumerState<LegacyArchivePage> {
     BuildContext context,
     AsyncValue<List<WorkshopJob>> jobs,
     List<WorkshopJob> items,
-    AppLocalizations l10n,
+    UiStrings t,
   ) {
     if (jobs.isLoading && !jobs.hasValue) {
       return const WorkshopSkeleton(card: true, lines: 6);
     }
     if (jobs.hasError && !jobs.hasValue) {
       return WorkshopErrorState(
-        title: l10n.error,
-        body: _loadCopy(l10n, jobs.error!),
-        retryLabel: l10n.retryAction,
+        title: t(WorkshopAdminKeys.error),
+        body: _loadCopy(t, jobs.error!),
+        retryLabel: t(WorkshopAdminKeys.retryAction),
         onRetry: () => ref.invalidate(jobsProvider('')),
       );
     }
     if (items.isEmpty) {
       return _ArchiveEmpty(
-        title: l10n.jobsArchiveEmpty,
+        title: t(WorkshopAdminKeys.jobsArchiveEmpty),
         filtered: _search.text.trim().isNotEmpty,
-        noResults: l10n.noResults,
+        noResults: t(WorkshopAdminKeys.noResults),
       );
     }
     return _ArchiveSurface(items: items);
@@ -140,16 +140,16 @@ class _LegacyArchivePageState extends ConsumerState<LegacyArchivePage> {
 }
 
 /// Distinct list errors: 403 is a permission state, 404 is a gone record.
-String _loadCopy(AppLocalizations l10n, Object error) {
+String _loadCopy(UiStrings t, Object error) {
   if (error is AppFailure) {
     if (error.statusCode == 403 || error.code == 'FORBIDDEN') {
-      return l10n.jobsForbidden;
+      return t(WorkshopAdminKeys.jobsForbidden);
     }
     if (error.statusCode == 404 || error.code == 'JOB_NOT_FOUND') {
-      return l10n.jobsNotFound;
+      return t(WorkshopAdminKeys.jobsNotFound);
     }
   }
-  return l10n.commonLoadFailed;
+  return t(WorkshopAdminKeys.commonLoadFailed);
 }
 
 /// Neutral count pill in the same full-radius geometry as the lifecycle pills.
@@ -163,7 +163,7 @@ class _CountPill extends StatelessWidget {
     final ws = context.ws;
     final label = formatNumber(context, count);
     return Semantics(
-      label: '${AppLocalizations.of(context).jobsTab} $label',
+      label: '${UiStrings.of(context)(WorkshopAdminKeys.jobsTab)} $label',
       child: Container(
         height: 24,
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
@@ -191,7 +191,7 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       key: const Key('jobs-archive-banner'),
       padding: const EdgeInsetsDirectional.symmetric(
@@ -210,7 +210,7 @@ class _Banner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              l10n.jobsArchiveBanner,
+              t(WorkshopAdminKeys.jobsArchiveBanner),
               style: ws.meta.copyWith(color: ws.ink, height: 1.5),
             ),
           ),
@@ -269,7 +269,7 @@ class _ArchiveHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     Widget cell(int flex, String label) => Expanded(
       flex: flex,
@@ -288,11 +288,11 @@ class _ArchiveHeader extends StatelessWidget {
       padding: const EdgeInsetsDirectional.fromSTEB(18, 9, 18, 9),
       child: Row(
         children: [
-          cell(2, l10n.jobsReference),
-          cell(3, l10n.jobsVehicle),
-          cell(2, l10n.jobsListColumnCustomer),
-          cell(2, l10n.status),
-          cell(2, l10n.jobsListColumnScheduled),
+          cell(2, t(WorkshopAdminKeys.jobsReference)),
+          cell(3, t(WorkshopAdminKeys.jobsVehicle)),
+          cell(2, t(WorkshopAdminKeys.jobsListColumnCustomer)),
+          cell(2, t(WorkshopAdminKeys.status)),
+          cell(2, t(WorkshopAdminKeys.jobsListColumnScheduled)),
         ],
       ),
     );
@@ -308,11 +308,13 @@ class _ArchiveRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final vehicle = '${job.vehicleMake} ${job.vehicleModel}'.trim();
     final plate = job.vehiclePlate?.trim() ?? '';
     final schedule = pinDigits(formatInstant(context, job.scheduledAt));
-    final scheduleText = schedule.isEmpty ? l10n.commonNotAvailable : schedule;
+    final scheduleText = schedule.isEmpty
+        ? t(WorkshopAdminKeys.commonNotAvailable)
+        : schedule;
 
     if (!wide) {
       return Padding(

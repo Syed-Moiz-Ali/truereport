@@ -1,6 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 /// Why the publish pill is disabled, stated next to it instead of promising a
@@ -10,16 +13,23 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 /// public-link consent must be granted. Both are named when both fail. When the
 /// gate allows publishing this renders nothing, so the copy can never imply a
 /// block that is not there.
-class PublishGate extends StatelessWidget {
+class PublishGate extends ConsumerWidget {
   const PublishGate({required this.checklist, super.key});
 
   final PublishChecklist checklist;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
+    final consent = ref.watch(statusesProvider('consent')).value;
+    final consentCode = consentStatusCode(false);
+    final consentLabel = referenceStatusText(consent, consentCode);
+    final (consentTone, _) = workshopPillColors(
+      referenceStatusTone(consent, consentCode),
+      ws,
+    );
     if (checklist.ready && checklist.consentGranted) {
       return const SizedBox.shrink();
     }
@@ -38,12 +48,12 @@ class PublishGate extends StatelessWidget {
           children: [
             if (!checklist.consentGranted) ...[
               Text(
-                l10n.jobsPublicationBlocked,
+                t(WorkshopAdminKeys.jobsPublicationBlocked),
                 style: ws.bodyStrong.copyWith(color: ws.danger),
               ),
               SizedBox(height: spacing.xs),
               Text(
-                l10n.jobsPublicationBlockedBody,
+                t(WorkshopAdminKeys.jobsPublicationBlockedBody),
                 style: ws.body.copyWith(color: ws.ink),
               ),
               SizedBox(height: spacing.sm),
@@ -52,15 +62,15 @@ class PublishGate extends StatelessWidget {
               _GateReason(
                 key: const Key('jobs-consent-unavailable-note'),
                 icon: Icons.verified_user_outlined,
-                text: l10n.consentNotGranted,
-                tone: ws.muted,
+                text: consentLabel,
+                tone: consentTone,
               ),
             if (!checklist.ready) ...[
               if (!checklist.consentGranted) SizedBox(height: spacing.xs),
               _GateReason(
                 key: const Key('jobs-checklist-blocked-note'),
                 icon: Icons.error_outline,
-                text: l10n.jobsChecklistNotReady,
+                text: t(WorkshopAdminKeys.jobsChecklistNotReady),
                 tone: ws.danger,
               ),
             ],

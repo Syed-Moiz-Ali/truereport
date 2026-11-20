@@ -73,6 +73,16 @@ public class PublicReportController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping({"/r/{token}/video/{derivativeId}", "/report/{token}/video/{derivativeId}"})
+    public ResponseEntity<byte[]> video(@PathVariable String token, @PathVariable UUID derivativeId) {
+        return service.video(token, derivativeId)
+                .map(video -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(video.mime()))
+                        .cacheControl(CacheControl.noStore())
+                        .body(video.bytes()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping({"/r/{token}/pdf", "/report/{token}/pdf"})
     public ResponseEntity<byte[]> pdf(@PathVariable String token) {
         return service.pdf(token)

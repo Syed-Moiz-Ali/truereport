@@ -70,8 +70,8 @@
         <!-- Top: Vehicle Header & Status Badges -->
         <div class="vehicle-card-header">
           <div class="vehicle-tag-row">
-            <span class="tag-pill tag-pill-year" th:text="${r.vehicle.year}"></span>
-            <span class="tag-pill tag-pill-specs" th:text="${r.vehicle.specsOrigin}"></span>
+            <span class="tag-pill tag-pill-year" th:if="${r.vehicle['year'] != null}" th:text="${r.vehicle['year']}"></span>
+            <span class="tag-pill tag-pill-specs" th:if="${r.vehicle['specsOrigin'] != null and r.vehicle['specsOrigin'] != ''}" th:text="${r.vehicle['specsOrigin']}"></span>
             <span class="tag-pill tag-pill-accent">
               <span aria-hidden="true" th:text="'✓'"></span>
               <span th:text="${r.labels.officialInspection}"></span>
@@ -98,17 +98,17 @@
             </div>
           </div>
           <div class="photo-banner-strip">
-            <div class="banner-stat-col" th:if="${r.vehicle.odometer != ''}">
+            <div class="banner-stat-col" th:if="${r.vehicle['odometer'] != null and r.vehicle['odometer'] != ''}">
               <span class="banner-stat-lbl" th:text="${r.labels.odometer}"></span>
-              <strong class="banner-stat-val" th:text="${r.vehicle.odometer}"></strong>
+              <strong class="banner-stat-val" th:text="${r.vehicle['odometer']}"></strong>
             </div>
-            <div class="banner-stat-col">
+            <div class="banner-stat-col" th:if="${r.vehicle['gearbox'] != null and r.vehicle['gearbox'] != ''}">
               <span class="banner-stat-lbl" th:text="${r.labels.gearbox}"></span>
-              <strong class="banner-stat-val" th:text="${r.vehicle.gearbox}"></strong>
+              <strong class="banner-stat-val" th:text="${r.vehicle['gearbox']}"></strong>
             </div>
-            <div class="banner-stat-col">
+            <div class="banner-stat-col" th:if="${r.vehicle['fuelType'] != null and r.vehicle['fuelType'] != ''}">
               <span class="banner-stat-lbl" th:text="${r.labels.fuelType}"></span>
-              <strong class="banner-stat-val" th:text="${r.vehicle.fuelType}"></strong>
+              <strong class="banner-stat-val" th:text="${r.vehicle['fuelType']}"></strong>
             </div>
           </div>
         </div>
@@ -120,9 +120,9 @@
             <span class="snapshot-toggle-icon" aria-hidden="true" th:text="'▾'"></span>
           </summary>
           <div class="vehicle-specs-grid">
-            <div class="spec-item" th:title="${r.vehicle.clientName}">
+            <div class="spec-item" th:if="${r.vehicle['clientName'] != null and r.vehicle['clientName'] != ''}" th:title="${r.vehicle['clientName']}">
               <span class="spec-label" th:text="${r.labels.clientName}"></span>
-              <span class="spec-value" th:text="${r.vehicle.clientName}"></span>
+              <span class="spec-value" th:text="${r.vehicle['clientName']}"></span>
             </div>
             <div class="spec-item" th:title="${r.vehicle.vinMasked}">
               <span class="spec-label" th:text="${r.labels.vin}"></span>
@@ -133,13 +133,13 @@
                 </button>
               </div>
             </div>
-            <div class="spec-item" th:title="${r.vehicle.drivetrain}">
+            <div class="spec-item" th:if="${r.vehicle['drivetrain'] != null and r.vehicle['drivetrain'] != ''}" th:title="${r.vehicle['drivetrain']}">
               <span class="spec-label" th:text="${r.labels.drivetrain}"></span>
-              <span class="spec-value" th:text="${r.vehicle.drivetrain}"></span>
+              <span class="spec-value" th:text="${r.vehicle['drivetrain']}"></span>
             </div>
-            <div class="spec-item" th:title="${r.vehicle.engineSize}">
+            <div class="spec-item" th:if="${r.vehicle['engineSize'] != null and r.vehicle['engineSize'] != ''}" th:title="${r.vehicle['engineSize']}">
               <span class="spec-label" th:text="${r.labels.engineSize}"></span>
-              <span class="spec-value" th:text="${r.vehicle.engineSize}"></span>
+              <span class="spec-value" th:text="${r.vehicle['engineSize']}"></span>
             </div>
             <div class="spec-item" th:title="${r.inspection.dateTime}">
               <span class="spec-label" th:text="${r.labels.inspection}"></span>

@@ -24,6 +24,7 @@ class ReportSummary {
     this.applicableChecks,
     this.totalChecks,
     this.passedCount,
+    this.coveragePercent,
     this.score,
     this.grade,
     this.safetyCapApplied = false,
@@ -34,8 +35,11 @@ class ReportSummary {
   final Map<String, dynamic> vehicle;
   final List<Map<String, dynamic>> keyFindings;
   final List<Map<String, dynamic>> categories;
-  final int findingsCount;
-  final int safetyCriticalCount;
+
+  /// Served summary counts. Null when the snapshot has no `summary` object;
+  /// the UI shows the empty state instead of deriving a number.
+  final int? findingsCount;
+  final int? safetyCriticalCount;
   final String? customerName;
   final String? plate;
   final String? vin;
@@ -47,6 +51,7 @@ class ReportSummary {
   final int? applicableChecks;
   final int? totalChecks;
   final int? passedCount;
+  final int? coveragePercent;
   final num? score;
   final String? grade;
   final bool safetyCapApplied;
@@ -70,15 +75,6 @@ class ReportSummary {
       return null;
     }
     return '$completed / $applicable';
-  }
-
-  int? get coveragePercent {
-    final completed = completedChecks;
-    final applicable = applicableChecks;
-    if (completed == null || applicable == null || applicable <= 0) {
-      return null;
-    }
-    return (completed * 100 / applicable).round();
   }
 }
 
@@ -144,6 +140,7 @@ abstract final class ReportData {
   static ReportSummary summarize(ReportAdmin report) {
     final content = report.content ?? const <String, dynamic>{};
     final coverage = map(content['coverage']);
+    final summary = map(content['summary']);
     final keyFindings = maps(content['keyFindings']);
     final categories = maps(content['categories']);
     final vehicle = map(content['vehicle']);
@@ -151,28 +148,6 @@ abstract final class ReportData {
     final workshop = map(content['workshop']);
     final technician = map(content['technician']);
     final customer = map(content['customer']);
-
-    var safetyCritical = 0;
-    for (final item in keyFindings) {
-      final code = text(item['severityCode']).toUpperCase();
-      if (code == 'SAFETY_CRITICAL') {
-        safetyCritical++;
-      }
-    }
-
-    var passed = 0;
-    var sawItems = false;
-    for (final category in categories) {
-      final items = maps(category['items']);
-      if (items.isNotEmpty) {
-        sawItems = true;
-      }
-      for (final item in items) {
-        if (text(item['resultCode']).toUpperCase() == 'NO_ISSUE_OBSERVED') {
-          passed++;
-        }
-      }
-    }
 
     final odometerValue = integer(vehicle['odometerValue']);
     final odometerUnit = text(vehicle['odometerUnit']);
@@ -198,8 +173,8 @@ abstract final class ReportData {
       vehicle: vehicle,
       keyFindings: keyFindings,
       categories: categories,
-      findingsCount: keyFindings.length,
-      safetyCriticalCount: safetyCritical,
+      findingsCount: integer(summary['findingsCount']),
+      safetyCriticalCount: integer(summary['safetyCriticalCount']),
       customerName: customerName,
       plate: plate.isEmpty ? null : plate,
       vin: vinMasked.isNotEmpty
@@ -220,7 +195,8 @@ abstract final class ReportData {
       completedChecks: integer(coverage['completed']),
       applicableChecks: integer(coverage['applicable']),
       totalChecks: integer(coverage['total']),
-      passedCount: sawItems ? passed : null,
+      passedCount: integer(summary['passedCount']),
+      coveragePercent: integer(summary['coveragePercent']),
       score: number(content['score']),
       grade: text(content['gradeCode']).isEmpty
           ? null

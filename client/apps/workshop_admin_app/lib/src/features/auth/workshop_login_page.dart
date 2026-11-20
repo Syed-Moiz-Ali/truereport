@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Workshop Admin sign-in — the shared "bay" (`packages/auth`).
 ///
@@ -40,7 +40,7 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       SemanticsService.sendAnnouncement(
         View.of(context),
-        AppLocalizations.of(context).signinCheckFields,
+        UiStrings.of(context)(WorkshopAdminKeys.signinCheckFields),
         Directionality.of(context),
       );
       return;
@@ -92,7 +92,7 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
 
   String? _required(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return AppLocalizations.of(context).requiredField;
+      return UiStrings.of(context)(WorkshopAdminKeys.requiredField);
     }
     return null;
   }
@@ -104,35 +104,35 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     }
     return Validators.email(value) == null
         ? null
-        : AppLocalizations.of(context).invalidEmail;
+        : UiStrings.of(context)(WorkshopAdminKeys.invalidEmail);
   }
 
-  String? _errorText(AppLocalizations l10n) {
+  String? _errorText(UiStrings t) {
     return switch (_errorKey) {
-      'invalidCredentials' => l10n.invalidCredentials,
-      'networkError' => l10n.networkError,
-      'twoFactorRequired' => l10n.twoFactorRequired,
-      'genericError' => l10n.genericError,
+      'invalidCredentials' => t(WorkshopAdminKeys.invalidCredentials),
+      'networkError' => t(WorkshopAdminKeys.networkError),
+      'twoFactorRequired' => t(WorkshopAdminKeys.twoFactorRequired),
+      'genericError' => t(WorkshopAdminKeys.genericError),
       _ => null,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final copy = SignInBayCopy(
-      portalLabel: l10n.signInPortalLabel,
-      title: l10n.signInTitle,
-      subtitle: l10n.signInSubtitle,
-      help: l10n.signInHelp,
-      emailLabel: l10n.emailLabel,
-      passwordLabel: l10n.passwordLabel,
-      emailHint: l10n.signinEmailHint,
-      passwordHint: l10n.signinPasswordHint,
-      codeLabel: l10n.twoFactorLabel,
-      signInLabel: l10n.signInButton,
-      verifyLabel: l10n.signInButton,
-      loadingLabel: l10n.signingIn,
+      portalLabel: t(WorkshopAdminKeys.signInPortalLabel),
+      title: t(WorkshopAdminKeys.signInTitle),
+      subtitle: t(WorkshopAdminKeys.signInSubtitle),
+      help: t(WorkshopAdminKeys.signInHelp),
+      emailLabel: t(WorkshopAdminKeys.emailLabel),
+      passwordLabel: t(WorkshopAdminKeys.passwordLabel),
+      emailHint: t(WorkshopAdminKeys.signinEmailHint),
+      passwordHint: t(WorkshopAdminKeys.signinPasswordHint),
+      codeLabel: t(WorkshopAdminKeys.twoFactorLabel),
+      signInLabel: t(WorkshopAdminKeys.signInButton),
+      verifyLabel: t(WorkshopAdminKeys.signInButton),
+      loadingLabel: t(WorkshopAdminKeys.signingIn),
     );
 
     return SignInBayView(
@@ -143,7 +143,7 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       codeController: _code,
       obscurePassword: _obscurePassword,
       submitting: _submitting,
-      errorText: _errorText(l10n),
+      errorText: _errorText(t),
       onToggleObscure: () =>
           setState(() => _obscurePassword = !_obscurePassword),
       onSubmit: _submit,

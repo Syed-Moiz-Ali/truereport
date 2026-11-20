@@ -53,7 +53,9 @@ public final class PlatformMasterDtos {
             int minPhotos,
             int minVideos,
             int minNotesChars,
-            String requiredEvidenceType
+            String requiredEvidenceType,
+            Integer minDurationSeconds,
+            Integer maxDurationSeconds
     ) {
     }
 

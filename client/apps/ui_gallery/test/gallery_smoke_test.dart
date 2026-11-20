@@ -5,7 +5,7 @@ import 'package:ui_gallery/gallery_app.dart';
 void main() {
   // Light-only (C0 Workstream B): the theme toggle was removed; this covers
   // the A2 strategy switch instead.
-  testWidgets('gallery renders and switches locale, strategy and text scale', (
+  testWidgets('gallery renders and switches strategy, text scale and font', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -27,12 +27,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('العربية').first);
+    // English-only product: the locale/RTL toggle was removed, so the font
+    // switch is the remaining direction-adjacent control under test.
+    await tester.tap(find.text('IBM Plex Sans Arabic').first);
     await tester.pump(const Duration(milliseconds: 600));
-    expect(
-      Directionality.of(tester.element(find.byType(Scaffold).first)),
-      TextDirection.rtl,
-    );
     expect(tester.takeException(), isNull);
   });
 

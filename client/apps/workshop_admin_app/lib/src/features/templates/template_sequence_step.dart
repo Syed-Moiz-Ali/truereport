@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/templates/template_selected_item.dart';
 
 /// Step 2, left pane — the ordered inspection route.
@@ -26,7 +26,7 @@ class TemplateSequenceStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 6),
@@ -42,12 +42,14 @@ class TemplateSequenceStep extends StatelessWidget {
           Row(
             children: [
               Text(
-                l10n.builderSequenceTitle,
+                t(WorkshopAdminKeys.builderSequenceTitle),
                 style: ws.cardTitle.copyWith(color: ws.ink),
               ),
               const Spacer(),
               Text(
-                l10n.templateItemsCount(items.length),
+                t(WorkshopAdminKeys.templateItemsCount, {
+                  'count': items.length,
+                }),
                 style: ws.meta.copyWith(color: ws.muted),
               ),
             ],
@@ -59,9 +61,15 @@ class TemplateSequenceStep extends StatelessWidget {
                 children: [
                   Icon(Icons.route_outlined, size: 22, color: ws.muted),
                   const SizedBox(height: 10),
-                  Text(l10n.noItems, style: ws.body.copyWith(color: ws.ink)),
+                  Text(
+                    t(WorkshopAdminKeys.noItems),
+                    style: ws.body.copyWith(color: ws.ink),
+                  ),
                   const SizedBox(height: 4),
-                  Text(l10n.addItems, style: ws.meta.copyWith(color: ws.muted)),
+                  Text(
+                    t(WorkshopAdminKeys.addItems),
+                    style: ws.meta.copyWith(color: ws.muted),
+                  ),
                 ],
               ),
             )
@@ -79,7 +87,7 @@ class TemplateSequenceStep extends StatelessWidget {
     int index,
     TemplateSelectedItem item,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final first = index == 0;
     final last = index == items.length - 1;
     return Container(
@@ -131,19 +139,19 @@ class TemplateSequenceStep extends StatelessWidget {
             _icon(
               context,
               icon: Icons.arrow_upward,
-              tooltip: l10n.moveUp,
+              tooltip: t(WorkshopAdminKeys.moveUp),
               onPressed: first ? null : () => onMoveUp(index),
             ),
             _icon(
               context,
               icon: Icons.arrow_downward,
-              tooltip: l10n.moveDown,
+              tooltip: t(WorkshopAdminKeys.moveDown),
               onPressed: last ? null : () => onMoveDown(index),
             ),
             _icon(
               context,
               icon: Icons.close,
-              tooltip: l10n.remove,
+              tooltip: t(WorkshopAdminKeys.remove),
               onPressed: () => onRemove(index),
             ),
           ],

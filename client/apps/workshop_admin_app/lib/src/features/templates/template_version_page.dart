@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
@@ -32,7 +32,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final version = ref.watch(templateVersionProvider(_key));
@@ -61,13 +61,13 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward
                             : Icons.arrow_back,
-                        semanticLabel: l10n.commonBack,
+                        semanticLabel: t(WorkshopAdminKeys.commonBack),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.readOnlyVersion,
+                          t(WorkshopAdminKeys.readOnlyVersion),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: ws.bodyStrong.copyWith(color: ws.ink),
@@ -88,14 +88,14 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                 error: (error, _) => SingleChildScrollView(
                   padding: ws.pagePadding(width),
                   child: WorkshopErrorState(
-                    title: l10n.error,
-                    body: l10n.genericError,
-                    retryLabel: l10n.retryAction,
+                    title: t(WorkshopAdminKeys.error),
+                    body: t(WorkshopAdminKeys.genericError),
+                    retryLabel: t(WorkshopAdminKeys.retryAction),
                     onRetry: () =>
                         ref.invalidate(templateVersionProvider(_key)),
                   ),
                 ),
-                data: (value) => _body(context, l10n, value),
+                data: (value) => _body(context, t, value),
               ),
             ),
           ],
@@ -104,11 +104,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
     );
   }
 
-  Widget _body(
-    BuildContext context,
-    AppLocalizations l10n,
-    TemplateVersionView value,
-  ) {
+  Widget _body(BuildContext context, UiStrings t, TemplateVersionView value) {
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     return SingleChildScrollView(
@@ -149,7 +145,9 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                                 style: ws.meta.copyWith(color: ws.muted),
                               ),
                             Text(
-                              l10n.templateItemsCount(value.items.length),
+                              t(WorkshopAdminKeys.templateItemsCount, {
+                                'count': value.items.length,
+                              }),
                               style: ws.meta.copyWith(color: ws.muted),
                             ),
                           ],
@@ -160,13 +158,13 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                   Row(
                     children: [
                       TemplatePillChip(
-                        label: l10n.previewEn,
+                        label: t(WorkshopAdminKeys.previewEn),
                         selected: !_arabic,
                         onTap: () => setState(() => _arabic = false),
                       ),
                       const SizedBox(width: 8),
                       TemplatePillChip(
-                        label: l10n.previewAr,
+                        label: t(WorkshopAdminKeys.previewAr),
                         selected: _arabic,
                         onTap: () => setState(() => _arabic = true),
                       ),
@@ -185,7 +183,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                     ? Padding(
                         padding: const EdgeInsets.all(28),
                         child: Text(
-                          l10n.noItems,
+                          t(WorkshopAdminKeys.noItems),
                           textAlign: TextAlign.center,
                           style: ws.body.copyWith(color: ws.muted),
                         ),
@@ -212,7 +210,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
     TemplateItemView item,
     int index,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final label = _arabic ? item.labelAr : item.labelEn;
     final instruction = _arabic ? item.instructionAr : item.instructionEn;
     final category = _arabic ? item.categoryLabelAr : item.categoryLabelEn;
@@ -251,7 +249,7 @@ class _TemplateVersionPageState extends ConsumerState<TemplateVersionPage> {
                 Text(
                   '$category · v${item.versionNo} · '
                   '${item.noteRequirement}/${item.evidenceRequirement} · '
-                  '${l10n.lockedByPlatform}',
+                  '${t(WorkshopAdminKeys.lockedByPlatform)}',
                   style: ws.meta.copyWith(color: ws.muted, fontSize: 11),
                 ),
               ],

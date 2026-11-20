@@ -5,6 +5,8 @@ import com.truereport.inspections.EvidenceAsset;
 import com.truereport.inspections.EvidenceAssetRepository;
 import com.truereport.shared.storage.ObjectStorage;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ import java.util.UUID;
 
 @Service
 public class ReportGenerationService {
+
+    private static final Logger log = LoggerFactory.getLogger(ReportGenerationService.class);
 
     private final ReportGenerationJobRepository jobs;
     private final ReportVersionRepository versions;
@@ -100,6 +104,9 @@ public class ReportGenerationService {
             jobs.save(job);
             meterRegistry.counter("truereport.report.generation", "status", "ready").increment();
         } catch (Exception exception) {
+            log.error("Report generation failed for version {} (generation job {}): {}",
+                    job.getReportVersionId(), job.getId(),
+                    exception.getMessage(), exception);
             job.markFailed(exception.getMessage());
             jobs.save(job);
             meterRegistry.counter("truereport.report.generation", "status", "failed").increment();

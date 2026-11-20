@@ -1,5 +1,6 @@
-﻿import 'package:design_system/design_system.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
@@ -8,7 +9,7 @@ import 'package:workshop_admin_app/src/models.dart';
 /// The row is an index entry, not an editor: monogram, name, role, account
 /// state and the masked email, and it opens the member page. Below 1000 px the
 /// role and email move under the name so the table never squeezes the identity.
-class StaffRosterRow extends StatelessWidget {
+class StaffRosterRow extends ConsumerWidget {
   const StaffRosterRow({
     required this.member,
     required this.wide,
@@ -23,13 +24,13 @@ class StaffRosterRow extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
-    final roleLabel = staffRoleLabel(context, member.role);
+    final roleLabel = staffRoleLabel(ref, member.role);
     final semantics = [
       member.displayName,
       roleLabel,
-      staffStatusLabel(context, member.status),
+      staffStatusLabel(ref, member.status),
     ].join(', ');
 
     return StaffTappable(

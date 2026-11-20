@@ -1,11 +1,16 @@
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_sheet.dart';
+import 'package:technician_app/src/features/inspection/evidence_upload_queue.dart';
+import 'package:technician_app/src/features/inspection/evidence_validation.dart';
 import 'package:technician_app/src/inspection_models.dart';
+import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 import 'package:uuid/uuid.dart';
@@ -20,14 +25,14 @@ class TechnicianItemPage extends ConsumerWidget {
   final String itemCode;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final checklistAsync = ref.watch(technicianChecklistProvider(jobId));
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: checklistAsync.when(
         loading: () => Column(
           children: [
-            _SimpleBar(title: l10n.technicianAssessmentState),
+            _SimpleBar(title: t(TechnicianKeys.technicianAssessmentState)),
             const Expanded(
               child: Padding(
                 padding: EdgeInsetsDirectional.all(20),
@@ -38,16 +43,22 @@ class TechnicianItemPage extends ConsumerWidget {
         ),
         error: (error, _) => Column(
           children: [
-            _SimpleBar(title: l10n.technicianAssessmentState),
+            _SimpleBar(title: t(TechnicianKeys.technicianAssessmentState)),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.all(20),
-                child: ErrorState(
-                  title: l10n.error,
-                  body: l10n.genericError,
-                  onRetry: () =>
-                      ref.invalidate(technicianChecklistProvider(jobId)),
-                  retryLabel: l10n.retryAction,
+              child: Align(
+                alignment: AlignmentDirectional.topCenter,
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(20),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: ErrorState(
+                      title: t(TechnicianKeys.error),
+                      body: t(TechnicianKeys.technicianItemLoadFailed),
+                      onRetry: () =>
+                          ref.invalidate(technicianChecklistProvider(jobId)),
+                      retryLabel: t(TechnicianKeys.retryAction),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -58,14 +69,20 @@ class TechnicianItemPage extends ConsumerWidget {
           if (item == null) {
             return Column(
               children: [
-                _SimpleBar(title: l10n.technicianAssessmentState),
+                _SimpleBar(title: t(TechnicianKeys.technicianAssessmentState)),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.all(20),
-                    child: EmptyState(
-                      title: l10n.technicianNoItems,
-                      body: l10n.technicianNoItems,
-                      icon: Icons.search_off,
+                  child: Align(
+                    alignment: AlignmentDirectional.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.all(20),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 560),
+                        child: EmptyState(
+                          title: t(TechnicianKeys.technicianItemNotFoundTitle),
+                          body: t(TechnicianKeys.technicianItemNotFound),
+                          icon: Icons.search_off,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -74,7 +91,7 @@ class TechnicianItemPage extends ConsumerWidget {
           }
           return Column(
             children: [
-              _AssessmentTopBar(checklist: checklist, item: item),
+              _AssessmentTopBar(checklist: checklist),
               Expanded(
                 child: _AssessmentForm(
                   key: ValueKey(
@@ -93,10 +110,9 @@ class TechnicianItemPage extends ConsumerWidget {
 }
 
 class _AssessmentTopBar extends StatelessWidget {
-  const _AssessmentTopBar({required this.checklist, required this.item});
+  const _AssessmentTopBar({required this.checklist});
 
   final Checklist checklist;
-  final ChecklistItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -167,39 +183,33 @@ class _AssessmentTopBar extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            item.labelFor(
-                              Localizations.localeOf(context).languageCode,
-                            ),
-                            maxLines: 1,
-                            style: context.texts.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+              Semantics(
+                label: UiStrings.of(context)(
+                  TechnicianKeys.technicianItemsAssessed,
+                  {'done': checklist.completed, 'total': checklist.total},
                 ),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: colors.outlineVariant),
-                ),
-                child: Text(
-                  '${checklist.completed}/${checklist.total}',
-                  style: context.texts.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                child: Container(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: colors.outlineVariant),
+                  ),
+                  child: Text(
+                    '${checklist.completed}/${checklist.total}',
+                    style: context.texts.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ),
@@ -258,11 +268,11 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   final Map<String, Map<String?, Set<String>>> _multiValues = {};
   final Map<String, Map<String?, TextEditingController>> _fieldControllers = {};
   final _service = EvidenceCaptureService();
+  late final EvidenceUploadQueue _queue;
   Map<String, ApiFieldError> _fieldErrors = {};
   String? _result;
   String? _error;
   String? _evidenceError;
-  String? _uploadingType;
   bool _resultManuallyChosen = false;
   bool _scoreManuallyEdited = false;
   bool _saving = false;
@@ -275,6 +285,13 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   @override
   void initState() {
     super.initState();
+    _queue = EvidenceUploadQueue(
+      api: ref.read(technicianApiProvider),
+      store: ref.read(offlineStoreProvider),
+      jobId: widget.jobId,
+      itemCode: widget.item.itemCode,
+      deviceId: DeviceIdentity.deviceId,
+    )..state.addListener(_onQueueChanged);
     _result = item.assessment?.resultCode;
     _score.text = item.assessment?.score?.toString() ?? '';
     _notesEn.text = item.assessment?.notesEn ?? '';
@@ -316,8 +333,16 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     _recomputeSuggestion(applyResult: _result == null, notify: false);
   }
 
+  void _onQueueChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    _queue.state.removeListener(_onQueueChanged);
+    _queue.dispose();
     _score.dispose();
     _notesEn.dispose();
     _notesAr.dispose();
@@ -415,8 +440,8 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return options;
   }
 
-  String _booleanLabel(AppLocalizations l10n, String code) =>
-      code == 'YES' ? l10n.commonYes : l10n.commonNo;
+  String _booleanLabel(UiStrings t, String code) =>
+      code == 'YES' ? t(TechnicianKeys.commonYes) : t(TechnicianKeys.commonNo);
   bool _dependencySatisfied(IssueField field, String? index) {
     final parentCode = field.dependsOnFieldCode;
     if (parentCode == null || parentCode.isEmpty) {
@@ -436,8 +461,9 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return _optionValues[parentCode]?[parentIndex] == field.dependsOnValueCode;
   }
 
-  bool _requiredFor(IssueField field) =>
-      field.required || field.requiredForStatuses.contains(_result);
+  bool _requiredFor(IssueField field) => field.requiredForStatuses.isEmpty
+      ? field.required
+      : field.requiredForStatuses.contains(_result);
   bool _isMissing(IssueField field, String? index) {
     if (!_requiredFor(field)) {
       return false;
@@ -488,6 +514,77 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
         (!requirement.requiresDocument || documents > 0);
   }
 
+  ({String label, StatusTone tone, IconData icon}) _evidenceStage(
+    UiStrings t,
+    EvidenceUploadState upload,
+    bool evidenceOk,
+  ) {
+    return switch (upload.stage) {
+      EvidenceUploadStage.capturing => (
+        label: t(TechnicianKeys.technicianEvidenceStateCapturing),
+        tone: StatusTone.info,
+        icon: Icons.photo_camera_outlined,
+      ),
+      EvidenceUploadStage.uploading => (
+        label: t(TechnicianKeys.technicianEvidenceStateUploading),
+        tone: StatusTone.info,
+        icon: Icons.cloud_upload_outlined,
+      ),
+      EvidenceUploadStage.queued => (
+        label: t(TechnicianKeys.technicianEvidenceStateQueued),
+        tone: StatusTone.warning,
+        icon: Icons.cloud_off_outlined,
+      ),
+      EvidenceUploadStage.failed => (
+        label: t(TechnicianKeys.technicianEvidenceStateFailed),
+        tone: StatusTone.danger,
+        icon: Icons.error_outline,
+      ),
+      EvidenceUploadStage.cancelled => (
+        label: t(TechnicianKeys.technicianEvidenceCancelled),
+        tone: StatusTone.neutral,
+        icon: Icons.cancel_outlined,
+      ),
+      EvidenceUploadStage.complete || EvidenceUploadStage.idle =>
+        evidenceOk
+            ? (
+                label: t(TechnicianKeys.technicianEvidenceStateComplete),
+                tone: StatusTone.success,
+                icon: Icons.check_circle_outline,
+              )
+            : (
+                label: t(TechnicianKeys.technicianEvidenceStateRequired),
+                tone: StatusTone.warning,
+                icon: Icons.pending_outlined,
+              ),
+    };
+  }
+
+  Future<void> _flushQueuedEvidence() async {
+    if (_queue.isBusy) {
+      return;
+    }
+    final report = await ref.read(syncServiceProvider).syncAll();
+    ref.invalidate(syncQueueStatusProvider);
+    if (!mounted) {
+      return;
+    }
+    if (report.synced > 0 || report.conflicts > 0) {
+      _invalidateEvidence();
+      showAppSnackBar(
+        context,
+        message: report.conflicts > 0
+            ? UiStrings.of(context)(
+                TechnicianKeys.technicianSyncConflictsCount,
+                {'count': report.conflicts},
+              )
+            : UiStrings.of(context)(TechnicianKeys.technicianSyncApplied, {
+                'count': report.synced,
+              }),
+      );
+    }
+  }
+
   bool _formValid(List<Evidence> evidence) {
     if (_result == null || _result!.isEmpty) {
       return false;
@@ -522,14 +619,14 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   }
 
   Future<void> _save(List<Evidence> evidence) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() {
       _showValidation = true;
       _error = null;
       _fieldErrors = {};
     });
     if (!_formValid(evidence)) {
-      setState(() => _error = l10n.technicianIssueFieldRequired);
+      setState(() => _error = t(TechnicianKeys.technicianIssueFieldRequired));
       return;
     }
     final request = AssessmentRequest(
@@ -564,7 +661,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
         _saving = false;
         _saved = true;
       });
-      showAppSnackBar(context, message: l10n.technicianItemSaved);
+      showAppSnackBar(context, message: t(TechnicianKeys.technicianItemSaved));
     } on Object catch (failure) {
       if (!mounted) {
         return;
@@ -578,7 +675,10 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
           _saving = false;
           _saved = true;
         });
-        showAppSnackBar(context, message: l10n.technicianOfflineQueued);
+        showAppSnackBar(
+          context,
+          message: t(TechnicianKeys.technicianOfflineQueued),
+        );
       } else {
         final fields = fieldErrorsByCode(failure);
         final lang = Localizations.localeOf(context).languageCode;
@@ -590,7 +690,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
           _saving = false;
           _fieldErrors = fields;
           _error = messages.isEmpty
-              ? l10n.commonActionFailed
+              ? t(TechnicianKeys.commonActionFailed)
               : messages.join('\n');
         });
       }
@@ -750,170 +850,213 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   }
 
   Future<void> _captureEvidence(String type) async {
-    final l10n = AppLocalizations.of(context);
-    final request = await showEvidenceCaptureSheet(context, evidenceType: type);
+    final t = UiStrings.of(context);
+    if (_queue.isBusy) {
+      return;
+    }
+    final request = await showEvidenceCaptureSheet(
+      context,
+      evidenceType: type,
+      evidenceTypes:
+          ref.read(enumsProvider('evidence-type')).value ??
+          const <ReferenceRecord>[],
+    );
     if (request == null || !mounted) {
       return;
     }
-    setState(() {
-      _uploadingType = type;
-      _evidenceError = null;
-    });
-    CapturedEvidence? captured;
+    setState(() => _evidenceError = null);
+    _queue.markCapturing(type);
     try {
-      captured = await _capture(type, request);
+      final existing = await _existingSha256();
+      final captured = await _capture(type, request, existing);
       if (captured == null) {
-        if (mounted) {
-          setState(() => _uploadingType = null);
-        }
+        _queue.clearCapturing();
         return;
       }
-      await _uploadEvidence(captured, request);
-      ref.invalidate(
-        technicianEvidenceListProvider((jobId: jobId, itemCode: item.itemCode)),
+      final result = await _queue.enqueue(
+        captured,
+        captionEn: request.captionEn,
+        captionAr: null,
+        existingSha256: existing,
       );
-      ref.invalidate(technicianChecklistProvider(jobId));
       if (!mounted) {
         return;
       }
-      setState(() => _uploadingType = null);
+      await _handleEvidenceResult(result);
     } on EvidenceCaptureException catch (error) {
+      _queue.clearCapturing();
       if (!mounted) {
         return;
       }
-      setState(() {
-        _uploadingType = null;
-        _evidenceError = switch (error.failure) {
-          EvidenceCaptureFailure.tooShort => l10n.technicianVideoTooShort,
-          EvidenceCaptureFailure.tooLong => l10n.technicianVideoTooLong,
-          EvidenceCaptureFailure.tooLarge => l10n.technicianFileTooLarge,
-          EvidenceCaptureFailure.unavailable => l10n.technicianEvidenceFailed,
-        };
-      });
+      setState(() => _evidenceError = _evidenceFailureLabel(t, error.failure));
     } on Object catch (error) {
+      _queue.clearCapturing();
       if (!mounted) {
         return;
       }
-      if (isNetworkFailure(error) && captured != null) {
-        await _queueCapturedEvidence(captured, request);
-        if (!mounted) {
-          return;
-        }
-        setState(() => _uploadingType = null);
-        showAppSnackBar(context, message: l10n.technicianOfflineQueued);
-      } else {
-        final fields = fieldErrorsByCode(error);
-        final lang = Localizations.localeOf(context).languageCode;
-        final message = fields.values
-            .map((value) => value.messageFor(lang))
-            .where((value) => value.isNotEmpty)
-            .join('\n');
-        setState(() {
-          _uploadingType = null;
-          _evidenceError = message.isEmpty
-              ? l10n.technicianEvidenceFailed
-              : message;
-        });
-      }
+      setState(() => _evidenceError = _serverEvidenceError(t, error));
     }
   }
 
   Future<CapturedEvidence?> _capture(
     String type,
     EvidenceCaptureRequest request,
+    List<String> existingSha256,
   ) {
     return switch (type) {
-      'PHOTO' => _service.capturePhoto(),
-      'VIDEO' => _service.recordVideo(capturePoster: request.capturePoster),
+      'PHOTO' => _service.capturePhoto(source: request.source),
+      'VIDEO' => _service.recordVideo(
+        source: request.source,
+        capturePoster: request.capturePoster,
+        existingSha256: existingSha256,
+      ),
       _ => _service.pickDocument(),
     };
   }
 
-  Future<void> _uploadEvidence(
-    CapturedEvidence captured,
-    EvidenceCaptureRequest request,
-  ) async {
-    final api = ref.read(technicianApiProvider);
-    final device = await DeviceIdentity.deviceId();
-    final init = await api.cleanInitEvidence(
-      jobId,
-      item.itemCode,
-      EvidenceInitRequest(
-        type: captured.type,
-        mime: captured.mime,
-        bytes: captured.bytes.length,
-        sha256: sha256Hex(captured.bytes),
-        capturedAt: captured.capturedAt,
-        captureSource: captured.captureSource,
-        deviceId: device,
-        width: captured.width,
-        height: captured.height,
-        durationMs: captured.durationMs,
-        captionEn: request.captionEn,
-        captionAr: request.captionAr,
-        posterBase64: captured.posterBase64,
-      ),
-      idempotencyKey: 'evidence-${const Uuid().v7()}',
+  Future<List<String>> _existingSha256() async {
+    final evidence =
+        ref
+            .read(
+              technicianEvidenceListProvider((
+                jobId: jobId,
+                itemCode: item.itemCode,
+              )),
+            )
+            .value ??
+        const <Evidence>[];
+    final local = await ref
+        .read(offlineStoreProvider)
+        .evidenceForItem(jobId, item.itemCode);
+    return <String>[
+      ...evidence.map((value) => value.sha256).whereType<String>(),
+      ...local
+          .where((value) => value.state != 'RECEIVED')
+          .map((value) => value.sha256),
+    ];
+  }
+
+  Future<void> _handleEvidenceResult(EvidenceUploadResult result) async {
+    final t = UiStrings.of(context);
+    switch (result.outcome) {
+      case EvidenceUploadOutcome.uploaded:
+        _invalidateEvidence();
+        showAppSnackBar(
+          context,
+          message: t(TechnicianKeys.technicianEvidenceUploaded),
+        );
+      case EvidenceUploadOutcome.queued:
+        _invalidateEvidence();
+        ref.invalidate(syncQueueStatusProvider);
+        showAppSnackBar(
+          context,
+          message: t(TechnicianKeys.technicianOfflineQueued),
+        );
+      case EvidenceUploadOutcome.invalid:
+        setState(
+          () => _evidenceError = _evidenceFailureLabel(t, result.failure!),
+        );
+      case EvidenceUploadOutcome.failed:
+        setState(() => _evidenceError = _serverEvidenceError(t, result.error!));
+      case EvidenceUploadOutcome.cancelled:
+        showAppSnackBar(
+          context,
+          message: t(TechnicianKeys.technicianEvidenceCancelled),
+        );
+    }
+  }
+
+  void _invalidateEvidence() {
+    ref.invalidate(
+      technicianEvidenceListProvider((jobId: jobId, itemCode: item.itemCode)),
     );
-    if (init.status != 'VERIFIED') {
-      await api.uploadEvidenceContent(
-        jobId,
-        item.itemCode,
-        init.id,
-        captured.bytes,
-        contentType: captured.mime,
-      );
-      await api.cleanCompleteEvidence(
-        jobId,
-        item.itemCode,
-        init.id,
-        EvidenceCompleteRequest(
-          captionEn: request.captionEn,
-          captionAr: request.captionAr,
-          posterBase64: captured.posterBase64,
+    ref.invalidate(technicianChecklistProvider(jobId));
+    ref.invalidate(technicianSummaryProvider(jobId));
+    ref.invalidate(syncQueueStatusProvider);
+  }
+
+  Future<void> _retryEvidence() async {
+    final result = await _queue.retryLast();
+    if (!mounted) {
+      return;
+    }
+    await _handleEvidenceResult(result);
+  }
+
+  void _cancelEvidence() {
+    _queue.cancel();
+    if (mounted) {
+      showAppSnackBar(
+        context,
+        message: UiStrings.of(context)(
+          TechnicianKeys.technicianEvidenceCancelled,
         ),
       );
     }
   }
 
-  Future<void> _queueCapturedEvidence(
-    CapturedEvidence captured,
-    EvidenceCaptureRequest request,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final device = await DeviceIdentity.deviceId();
-    await ref
-        .read(offlineStoreProvider)
-        .queueEvidence(
-          jobId: jobId,
-          itemId: item.itemCode,
-          bytes: captured.bytes,
-          mimeType: captured.mime,
-          sha256: sha256Hex(captured.bytes),
-          type: captured.type,
-          captionEn: request.captionEn,
-          captionAr: request.captionAr,
-          posterBase64: captured.posterBase64,
-          durationMs: captured.durationMs,
-          captureSource: captured.captureSource,
-          deviceId: device,
-          width: captured.width,
-          height: captured.height,
-          clean: true,
-        );
-    ref.invalidate(syncQueueStatusProvider);
-    if (mounted) {
-      showAppSnackBar(context, message: l10n.technicianOfflineQueued);
+  String _evidenceFailureLabel(UiStrings t, EvidenceValidationFailure failure) {
+    return switch (failure) {
+      EvidenceValidationFailure.tooShort => t(
+        TechnicianKeys.technicianVideoTooShort,
+      ),
+      EvidenceValidationFailure.tooLong => t(
+        TechnicianKeys.technicianVideoTooLong,
+      ),
+      EvidenceValidationFailure.tooLarge => t(
+        TechnicianKeys.technicianFileTooLarge,
+      ),
+      EvidenceValidationFailure.resolutionTooLow => t(
+        TechnicianKeys.technicianPhotoResolutionTooLow,
+      ),
+      EvidenceValidationFailure.unsupportedPhotoType => t(
+        TechnicianKeys.technicianPhotoTypeUnsupported,
+      ),
+      EvidenceValidationFailure.unsupportedVideoType => t(
+        TechnicianKeys.technicianVideoTypeUnsupported,
+      ),
+      EvidenceValidationFailure.unsupportedDocumentType => t(
+        TechnicianKeys.technicianDocumentTypeUnsupported,
+      ),
+      EvidenceValidationFailure.cameraRequired => t(
+        TechnicianKeys.technicianCameraRequired,
+      ),
+      EvidenceValidationFailure.durationUnavailable => t(
+        TechnicianKeys.technicianVideoDurationUnavailable,
+      ),
+      EvidenceValidationFailure.duplicate => t(
+        TechnicianKeys.technicianEvidenceDuplicate,
+      ),
+      EvidenceValidationFailure.empty ||
+      EvidenceValidationFailure.invalidHash ||
+      EvidenceValidationFailure.unsupportedType => t(
+        TechnicianKeys.technicianEvidenceFailed,
+      ),
+    };
+  }
+
+  String _serverEvidenceError(UiStrings t, Object error) {
+    if (error is AppFailure && error.code == 'DUPLICATE_EVIDENCE') {
+      return t(TechnicianKeys.technicianEvidenceDuplicate);
     }
+    final fields = fieldErrorsByCode(error);
+    final lang = Localizations.localeOf(context).languageCode;
+    final message = fields.values
+        .map((value) => value.messageFor(lang))
+        .where((value) => value.isNotEmpty)
+        .join('\n');
+    return message.isEmpty
+        ? t(TechnicianKeys.technicianEvidenceFailed)
+        : message;
   }
 
   Future<void> _deleteEvidence(Evidence evidence) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
-      title: l10n.technicianDeleteEvidence,
-      message: l10n.technicianDeleteEvidence,
-      confirmLabel: l10n.commonConfirm,
+      title: t(TechnicianKeys.technicianDeleteEvidence),
+      message: t(TechnicianKeys.technicianDeleteEvidence),
+      confirmLabel: t(TechnicianKeys.commonConfirm),
       cancelLabel: MaterialLocalizations.of(context).cancelButtonLabel,
       destructive: true,
     );
@@ -921,27 +1064,40 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       return;
     }
     try {
+      if (evidence.id.startsWith('local-')) {
+        await ref
+            .read(offlineStoreProvider)
+            .deleteLocalEvidence(evidence.id.substring('local-'.length));
+        _invalidateEvidence();
+        return;
+      }
       await ref
           .read(technicianApiProvider)
           .deleteEvidence(jobId, item.itemCode, evidence.id);
-      ref.invalidate(
-        technicianEvidenceListProvider((jobId: jobId, itemCode: item.itemCode)),
-      );
-      ref.invalidate(technicianChecklistProvider(jobId));
+      _invalidateEvidence();
     } on Object {
       if (mounted) {
-        setState(() => _evidenceError = l10n.technicianEvidenceFailed);
+        setState(
+          () => _evidenceError = t(TechnicianKeys.technicianEvidenceFailed),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final language = Localizations.localeOf(context).languageCode;
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      if (next.value == true && previous?.value != true) {
+        _flushQueuedEvidence();
+      }
+    });
     final evidenceAsync = ref.watch(
       technicianEvidenceListProvider((jobId: jobId, itemCode: item.itemCode)),
     );
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final evidenceTypes = ref.watch(enumsProvider('evidence-type')).value;
     final evidence = evidenceAsync.asData?.value ?? const <Evidence>[];
     final requirement = _evidenceRequirement;
     final photos = evidence.where((value) => value.isPhoto).length;
@@ -949,6 +1105,17 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     final documents = evidence.where((value) => value.isDocument).length;
     final evidenceOk = _evidenceSatisfied(evidence);
     final canSave = !_saving && _formValid(evidence);
+    final upload = _queue.state.value;
+    final stage = _evidenceStage(t, upload, evidenceOk);
+    final requiredType = requirement.requiredEvidenceType;
+    final requiredCount = requiredType == null
+        ? 1
+        : requirement.countFor(
+            requiredType,
+            photos: photos,
+            videos: videos,
+            documents: documents,
+          );
     return Align(
       alignment: AlignmentDirectional.topCenter,
       child: ConstrainedBox(
@@ -964,14 +1131,14 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             ],
             if (_saved) ...[
               StatusChip(
-                label: l10n.technicianItemSaved,
+                label: t(TechnicianKeys.technicianItemSaved),
                 tone: StatusTone.success,
                 icon: Icons.check_circle_outline,
               ),
               const SizedBox(height: 8),
             ],
             _Section(
-              title: l10n.technicianResult,
+              title: t(TechnicianKeys.technicianResult),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -979,12 +1146,11 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                     codes: item.resultOptions,
                     selected: _result,
                     onSelect: _selectResult,
-                    l10n: l10n,
                   ),
                   if (_result == null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      l10n.technicianSelectResult,
+                      t(TechnicianKeys.technicianSelectResult),
                       style: context.texts.bodySmall?.copyWith(
                         color: context.colors.onSurfaceVariant,
                       ),
@@ -993,9 +1159,9 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                   if (_suggestedResult != null) ...[
                     SizedBox(height: context.spacing.xs),
                     Text(
-                      '${l10n.technicianSuggestedResult}: '
-                      '${resultLabel(l10n, _suggestedResult!)}'
-                      '${_suggestedScore == null ? '' : ' Â· ${l10n.technicianScore} $_suggestedScore'}',
+                      '${t(TechnicianKeys.technicianSuggestedResult)}: '
+                      '${resultLabel(resultRecords, _suggestedResult!)}'
+                      '${_suggestedScore == null ? '' : ' Â· ${t(TechnicianKeys.technicianScore)} $_suggestedScore'}',
                       style: context.texts.bodyMedium,
                     ),
                   ],
@@ -1010,7 +1176,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             if (item.measurementUnit != null ||
                 item.measurementBands.isNotEmpty)
               _Section(
-                title: l10n.technicianMeasurement,
+                title: t(TechnicianKeys.technicianMeasurement),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -1018,8 +1184,8 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                       AppTextField(
                         controller: _measurements[index]!,
                         label: index == null
-                            ? l10n.technicianMeasurement
-                            : '${l10n.technicianMeasurement} Â· $index',
+                            ? t(TechnicianKeys.technicianMeasurement)
+                            : '${t(TechnicianKeys.technicianMeasurement)} Â· $index',
                         labelAbove: true,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
@@ -1029,7 +1195,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                             _showValidation &&
                                 _measurementRequired &&
                                 _measurementFor(index) == null
-                            ? l10n.technicianMeasurementRequired
+                            ? t(TechnicianKeys.technicianMeasurementRequired)
                             : _measurementError(index, language),
                       ),
                       SizedBox(height: context.spacing.sm),
@@ -1040,27 +1206,27 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             SizedBox(height: context.spacing.sm),
             if (_selectedScoreBand != null)
               _Section(
-                title: l10n.technicianScoreOverride,
+                title: t(TechnicianKeys.technicianScoreOverride),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AppTextField(
                       controller: _score,
-                      label: l10n.technicianScore,
+                      label: t(TechnicianKeys.technicianScore),
                       labelAbove: true,
                       keyboardType: TextInputType.number,
                       enabled: _selectedScoreBand != null,
                       helperText: _selectedScoreBand == null
                           ? null
-                          : l10n.technicianScoreHint(
-                              _selectedScoreBand!.minScore,
-                              _selectedScoreBand!.maxScore,
-                            ),
+                          : t(TechnicianKeys.technicianScoreHint, {
+                              'min': _selectedScoreBand!.minScore,
+                              'max': _selectedScoreBand!.maxScore,
+                            }),
                       errorText: !_scoreValid
-                          ? l10n.technicianScoreOutOfRange(
-                              _selectedScoreBand!.minScore,
-                              _selectedScoreBand!.maxScore,
-                            )
+                          ? t(TechnicianKeys.technicianScoreOutOfRange, {
+                              'min': _selectedScoreBand!.minScore,
+                              'max': _selectedScoreBand!.maxScore,
+                            })
                           : _fieldErrors['score']?.messageFor(language),
                       onChanged: (_) {
                         _scoreManuallyEdited = true;
@@ -1073,8 +1239,8 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             if (item.issueFields.isNotEmpty) ...[
               SizedBox(height: context.spacing.sm),
               _Section(
-                title: l10n.technicianIssueDetails,
-                subtitle: l10n.technicianIssueDetailsHint,
+                title: t(TechnicianKeys.technicianIssueDetails),
+                subtitle: t(TechnicianKeys.technicianIssueDetailsHint),
                 child: _IssueFields(
                   item: item,
                   result: _result,
@@ -1120,23 +1286,25 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             if (item.allowFreeTextNote) ...[
               SizedBox(height: context.spacing.sm),
               _Section(
-                title: l10n.technicianNotes,
+                title: t(TechnicianKeys.technicianNotes),
                 subtitle: requirement.minNotesChars > 0
-                    ? l10n.technicianNotesHint(requirement.minNotesChars)
+                    ? t(TechnicianKeys.technicianNotesHint, {
+                        'count': requirement.minNotesChars,
+                      })
                     : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AppTextField(
                       controller: _notesEn,
-                      label: l10n.technicianCaptionsEn,
+                      label: t(TechnicianKeys.technicianCaptionsEn),
                       labelAbove: true,
                       maxLines: 3,
                     ),
                     SizedBox(height: context.spacing.sm),
                     AppTextField(
                       controller: _notesAr,
-                      label: l10n.technicianCaptionsAr,
+                      label: t(TechnicianKeys.technicianCaptionsAr),
                       labelAbove: true,
                       maxLines: 3,
                       textDirection: TextDirection.rtl,
@@ -1147,30 +1315,52 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             ],
             SizedBox(height: context.spacing.sm),
             _Section(
-              title: l10n.technicianEvidence,
-              subtitle: l10n.technicianEvidenceCounts,
+              title: t(TechnicianKeys.technicianEvidence),
+              subtitle: t(TechnicianKeys.technicianEvidenceCounts),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Row(
+                    children: [
+                      StatusChip(
+                        label: stage.label,
+                        tone: stage.tone,
+                        icon: stage.icon,
+                      ),
+                      if (upload.stage == EvidenceUploadStage.uploading) ...[
+                        SizedBox(width: context.spacing.xs),
+                        Text(
+                          t(TechnicianKeys.technicianEvidenceAttempt, {
+                            'attempt': upload.attempt,
+                            'max': EvidenceUploadQueue.maxAttempts,
+                          }),
+                          style: context.texts.labelSmall?.copyWith(
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: context.spacing.xs),
                   Wrap(
                     spacing: context.spacing.xs,
                     runSpacing: context.spacing.xs,
                     children: [
                       StatusChip(
-                        label: l10n.technicianEvidencePhotoCount(
-                          photos,
-                          requirement.minPhotos,
-                        ),
+                        label: t(TechnicianKeys.technicianEvidencePhotoCount, {
+                          'count': photos,
+                          'required': requirement.minPhotos,
+                        }),
                         tone: photos >= requirement.minPhotos
                             ? StatusTone.success
                             : StatusTone.warning,
                         icon: Icons.photo_camera_outlined,
                       ),
                       StatusChip(
-                        label: l10n.technicianEvidenceVideoCount(
-                          videos,
-                          requirement.minVideos,
-                        ),
+                        label: t(TechnicianKeys.technicianEvidenceVideoCount, {
+                          'count': videos,
+                          'required': requirement.minVideos,
+                        }),
                         tone: videos >= requirement.minVideos
                             ? StatusTone.success
                             : StatusTone.warning,
@@ -1178,9 +1368,9 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                       ),
                       if (requirement.requiresDocument)
                         StatusChip(
-                          label: l10n.technicianEvidenceDocumentCount(
-                            documents,
-                            1,
+                          label: t(
+                            TechnicianKeys.technicianEvidenceDocumentCount,
+                            {'count': documents, 'required': 1},
                           ),
                           tone: documents > 0
                               ? StatusTone.success
@@ -1192,55 +1382,124 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                   SizedBox(height: context.spacing.xs),
                   Text(
                     evidenceOk
-                        ? l10n.technicianEvidenceSatisfied
-                        : l10n.technicianEvidenceRequired,
+                        ? t(TechnicianKeys.technicianEvidenceSatisfied)
+                        : t(TechnicianKeys.technicianEvidenceRequired),
                     style: context.texts.bodySmall?.copyWith(
                       color: evidenceOk
                           ? context.statusColors.success.foreground
                           : context.statusColors.warning.foreground,
                     ),
                   ),
+                  if (requiredType != null && requiredCount == 0) ...[
+                    SizedBox(height: context.spacing.xs),
+                    _InlineError(
+                      message: t(
+                        TechnicianKeys.technicianEvidenceTypeRequired,
+                        {
+                          'type': evidenceTypeLabel(
+                            evidenceTypes,
+                            requiredType,
+                          ),
+                        },
+                      ),
+                    ),
+                  ],
                   SizedBox(height: context.spacing.sm),
                   Wrap(
                     spacing: context.spacing.sm,
                     runSpacing: context.spacing.sm,
                     children: [
                       AppButton(
-                        label: l10n.technicianCapturePhoto,
+                        label: t(TechnicianKeys.technicianCapturePhoto),
                         icon: Icons.photo_camera_outlined,
                         variant: AppButtonVariant.tonal,
-                        onPressed: _uploadingType == null
-                            ? () => _captureEvidence('PHOTO')
-                            : null,
+                        onPressed: _queue.isBusy
+                            ? null
+                            : () => _captureEvidence('PHOTO'),
                       ),
                       AppButton(
-                        label: l10n.technicianCaptureVideo,
+                        label: t(TechnicianKeys.technicianCaptureVideo),
                         icon: Icons.videocam_outlined,
                         variant: AppButtonVariant.tonal,
-                        onPressed: _uploadingType == null
-                            ? () => _captureEvidence('VIDEO')
-                            : null,
+                        onPressed: _queue.isBusy
+                            ? null
+                            : () => _captureEvidence('VIDEO'),
                       ),
                       AppButton(
-                        label: l10n.technicianCaptureDocument,
+                        label: t(TechnicianKeys.technicianCaptureDocument),
                         icon: Icons.description_outlined,
                         variant: AppButtonVariant.tonal,
-                        onPressed: _uploadingType == null
-                            ? () => _captureEvidence('DOCUMENT')
-                            : null,
+                        onPressed: _queue.isBusy
+                            ? null
+                            : () => _captureEvidence('DOCUMENT'),
                       ),
                     ],
                   ),
-                  if (_uploadingType != null) ...[
+                  if (upload.busy) ...[
                     SizedBox(height: context.spacing.sm),
                     Text(
-                      l10n.technicianEvidenceUploading(
-                        evidenceTypeLabel(l10n, _uploadingType!),
-                      ),
+                      upload.stage == EvidenceUploadStage.capturing
+                          ? t(TechnicianKeys.technicianEvidenceStateCapturing)
+                          : t(TechnicianKeys.technicianEvidenceUploading, {
+                              'type': evidenceTypeLabel(
+                                evidenceTypes,
+                                upload.type ?? 'PHOTO',
+                              ),
+                            }),
                       style: context.texts.bodySmall,
                     ),
-                    SizedBox(height: context.spacing.xxs),
-                    const LinearProgressIndicator(semanticsLabel: null),
+                    if (upload.stage == EvidenceUploadStage.uploading) ...[
+                      SizedBox(height: context.spacing.xxs),
+                      LinearProgressIndicator(
+                        value: upload.progress,
+                        semanticsLabel: t(
+                          TechnicianKeys.technicianUploadProgress,
+                        ),
+                      ),
+                      SizedBox(height: context.spacing.xs),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              upload.progress == null
+                                  ? ''
+                                  : t(
+                                      TechnicianKeys.technicianEvidencePercent,
+                                      {
+                                        'percent': (upload.progress! * 100)
+                                            .round(),
+                                      },
+                                    ),
+                              style: context.texts.labelSmall?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          AppButton(
+                            label: t(TechnicianKeys.technicianEvidenceCancel),
+                            variant: AppButtonVariant.text,
+                            onPressed: _cancelEvidence,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                  if (upload.stage == EvidenceUploadStage.queued) ...[
+                    SizedBox(height: context.spacing.xs),
+                    _InlineBanner(
+                      message: t(TechnicianKeys.technicianEvidenceQueued),
+                      tone: StatusTone.warning,
+                    ),
+                  ],
+                  if (upload.stage == EvidenceUploadStage.failed &&
+                      upload.failure == null) ...[
+                    SizedBox(height: context.spacing.xs),
+                    AppButton(
+                      label: t(TechnicianKeys.technicianRetryUpload),
+                      icon: Icons.refresh_rounded,
+                      variant: AppButtonVariant.tonal,
+                      onPressed: _retryEvidence,
+                    ),
                   ],
                   if (_evidenceError != null) ...[
                     SizedBox(height: context.spacing.xs),
@@ -1261,7 +1520,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
             ),
             SizedBox(height: context.spacing.lg),
             AppButton(
-              label: l10n.technicianSaveItem,
+              label: t(TechnicianKeys.technicianSaveItem),
               icon: Icons.save_outlined,
               large: true,
               expand: true,
@@ -1303,12 +1562,11 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   int? _suggestedScore;
 }
 
-class _ResultChoices extends StatelessWidget {
+class _ResultChoices extends ConsumerWidget {
   const _ResultChoices({
     required this.codes,
     required this.selected,
     required this.onSelect,
-    required this.l10n,
   });
 
   static const _primary = [
@@ -1320,10 +1578,10 @@ class _ResultChoices extends StatelessWidget {
   final List<String> codes;
   final String? selected;
   final ValueChanged<String> onSelect;
-  final AppLocalizations l10n;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultRecords = ref.watch(enumsProvider('result')).value;
     final primary = [
       for (final code in _primary)
         if (codes.contains(code)) code,
@@ -1341,11 +1599,7 @@ class _ResultChoices extends StatelessWidget {
               Expanded(
                 child: _ResultTile(
                   code: primary[index],
-                  label: switch (primary[index]) {
-                    'NO_ISSUE_OBSERVED' => l10n.technicianResultNoIssue,
-                    'ATTENTION_RECOMMENDED' => l10n.technicianResultAttention,
-                    _ => l10n.technicianResultDefect,
-                  },
+                  label: resultLabel(resultRecords, primary[index]),
                   selected: selected == primary[index],
                   onTap: () => onSelect(primary[index]),
                 ),
@@ -1362,7 +1616,7 @@ class _ResultChoices extends StatelessWidget {
             children: [
               for (final code in rest)
                 AppFilterChip(
-                  label: resultLabel(l10n, code),
+                  label: resultLabel(resultRecords, code),
                   selected: selected == code,
                   onSelected: (_) => onSelect(code),
                 ),
@@ -1374,7 +1628,7 @@ class _ResultChoices extends StatelessWidget {
   }
 }
 
-class _ResultTile extends StatelessWidget {
+class _ResultTile extends ConsumerWidget {
   const _ResultTile({
     required this.code,
     required this.label,
@@ -1388,8 +1642,9 @@ class _ResultTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final pair = context.statusColors.forTone(resultTone(code));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final pair = context.statusColors.forTone(resultTone(resultRecords, code));
     final colors = context.colors;
     final icon = switch (code) {
       'NO_ISSUE_OBSERVED' => Icons.check_rounded,
@@ -1405,7 +1660,7 @@ class _ResultTile extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
-          height: 74,
+          constraints: const BoxConstraints(minHeight: 74),
           decoration: BoxDecoration(
             color: selected ? pair.background : colors.surface,
             borderRadius: BorderRadius.circular(14),
@@ -1443,15 +1698,16 @@ class _ResultTile extends StatelessWidget {
   }
 }
 
-class _ItemHeader extends StatelessWidget {
+class _ItemHeader extends ConsumerWidget {
   const _ItemHeader({required this.item, required this.result});
 
   final ChecklistItem item;
   final String? result;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final t = UiStrings.of(context);
     final language = Localizations.localeOf(context).languageCode;
     final instruction = item.instructionFor(language);
     final spec = item.standardSpecFor(language);
@@ -1482,9 +1738,9 @@ class _ItemHeader extends StatelessWidget {
               const SizedBox(width: 8),
               StatusChip(
                 label: result == null
-                    ? l10n.notChecked
-                    : resultLabel(l10n, result!),
-                tone: resultTone(result),
+                    ? t(TechnicianKeys.notChecked)
+                    : resultLabel(resultRecords, result!),
+                tone: resultTone(resultRecords, result),
               ),
             ],
           ),
@@ -1518,7 +1774,7 @@ class _ItemHeader extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      '${l10n.technicianStandardSpec}: $spec',
+                      '${t(TechnicianKeys.technicianStandardSpec)}: $spec',
                       style: context.texts.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -1535,25 +1791,27 @@ class _ItemHeader extends StatelessWidget {
             children: [
               if (item.safetyCritical)
                 StatusChip(
-                  label: l10n.technicianSafetyCritical,
+                  label: t(TechnicianKeys.technicianSafetyCritical),
                   tone: StatusTone.danger,
                   icon: Icons.health_and_safety_outlined,
                 ),
               if (item.multiPoint)
                 StatusChip(
-                  label: l10n.technicianMultiPoint,
+                  label: t(TechnicianKeys.technicianMultiPoint),
                   tone: StatusTone.info,
                   icon: Icons.grid_on_outlined,
                 ),
               if (item.measurementUnit != null)
                 StatusChip(
-                  label: '${l10n.technicianUnit}: ${item.measurementUnit}',
+                  label:
+                      '${t(TechnicianKeys.technicianUnit)}: ${item.measurementUnit}',
                   tone: StatusTone.neutral,
                   icon: Icons.straighten,
                 ),
               if (item.sensorTool != null && item.sensorTool!.isNotEmpty)
                 StatusChip(
-                  label: '${l10n.technicianTool}: ${item.sensorTool}',
+                  label:
+                      '${t(TechnicianKeys.technicianTool)}: ${item.sensorTool}',
                   tone: StatusTone.neutral,
                   icon: Icons.handyman_outlined,
                 ),
@@ -1689,10 +1947,10 @@ class _IssueFields extends StatelessWidget {
   onMultiChanged;
   final TextEditingController Function(IssueField field, String? index)
   controllerFor;
-  final String Function(AppLocalizations l10n, String code) booleanLabel;
+  final String Function(UiStrings t, String code) booleanLabel;
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final fields = [...item.issueFields]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     return Column(
@@ -1719,7 +1977,7 @@ class _IssueFields extends StatelessWidget {
                   errorText:
                       fieldErrors[field.fieldCode]?.messageFor(language) ??
                       (showValidation && missing(field, index)
-                          ? l10n.technicianIssueFieldRequired
+                          ? t(TechnicianKeys.technicianIssueFieldRequired)
                           : null),
                   onOptionChanged: (code) =>
                       onOptionChanged(field, index, code),
@@ -1759,13 +2017,13 @@ class _IssueFieldInput extends StatelessWidget {
   final TextEditingController controller;
   final List<IssueOption> options;
   final bool isMulti;
-  final String Function(AppLocalizations l10n, String code) booleanLabel;
+  final String Function(UiStrings t, String code) booleanLabel;
   final String? errorText;
   final ValueChanged<String> onOptionChanged;
   final void Function(String code, bool selected) onMultiChanged;
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final label = index == null
         ? field.labelFor(language)
         : '${field.labelFor(language)} · $index';
@@ -1830,7 +2088,7 @@ class _IssueFieldInput extends StatelessWidget {
                     label:
                         field.inputType == 'BOOLEAN' &&
                             (option.labelEn.isEmpty && option.labelAr.isEmpty)
-                        ? booleanLabel(l10n, option.code)
+                        ? booleanLabel(t, option.code)
                         : option.labelFor(language),
                     selected: isMulti
                         ? selectedMulti.contains(option.code)
@@ -1854,15 +2112,16 @@ class _IssueFieldInput extends StatelessWidget {
   }
 }
 
-class _EvidenceRow extends StatelessWidget {
+class _EvidenceRow extends ConsumerWidget {
   const _EvidenceRow({required this.evidence, required this.onDelete});
   final Evidence evidence;
   final VoidCallback onDelete;
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final language = Localizations.localeOf(context).languageCode;
     final caption = evidence.captionFor(language);
+    final evidenceTypes = ref.watch(enumsProvider('evidence-type')).value;
     return Container(
       padding: EdgeInsetsDirectional.all(context.spacing.sm),
       decoration: BoxDecoration(
@@ -1885,9 +2144,19 @@ class _EvidenceRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  evidenceTypeLabel(l10n, evidence.type),
-                  style: context.texts.labelLarge,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        evidenceTypeLabel(evidenceTypes, evidence.type),
+                        style: context.texts.labelLarge,
+                      ),
+                    ),
+                    StatusChip(
+                      label: evidenceStatusLabel(ref, evidence.status),
+                      tone: evidenceStatusTone(ref, evidence.status),
+                    ),
+                  ],
                 ),
                 if (caption != null && caption.isNotEmpty)
                   Text(
@@ -1903,7 +2172,7 @@ class _EvidenceRow extends StatelessWidget {
           ),
           AppIconButton(
             icon: Icons.delete_outline,
-            semanticLabel: l10n.technicianDeleteEvidence,
+            semanticLabel: t(TechnicianKeys.technicianDeleteEvidence),
             onPressed: onDelete,
           ),
         ],

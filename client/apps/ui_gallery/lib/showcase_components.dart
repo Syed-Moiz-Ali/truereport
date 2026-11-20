@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:ui_gallery/gallery_keys.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
 
 class ButtonsShowcase extends StatelessWidget {
@@ -220,7 +221,7 @@ class _InputsShowcaseState extends State<InputsShowcase> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Wrap(
       spacing: context.spacing.md,
       runSpacing: context.spacing.md,
@@ -247,7 +248,7 @@ class _InputsShowcaseState extends State<InputsShowcase> {
             controller: _errorController,
             label: 'Email',
             hint: 'name@example.com',
-            errorText: l10n.invalidEmail,
+            errorText: t(GalleryKeys.invalidEmail),
           ),
         ),
         GalleryTile(
@@ -275,7 +276,7 @@ class _InputsShowcaseState extends State<InputsShowcase> {
           child: AppTextField(
             controller: _errorSearchController,
             label: 'Search',
-            errorText: l10n.requiredField,
+            errorText: t(GalleryKeys.requiredField),
           ),
         ),
       ],

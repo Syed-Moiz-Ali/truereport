@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'signin_tokens.dart';
 import 'widgets/signin_dock.dart';
@@ -54,7 +54,7 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -78,9 +78,9 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
                 textScale < 1.4;
 
             final hero = SignInHero(
-              title: l10n.appTitle,
-              statement: l10n.signInSubtitle,
-              tagline: l10n.technicianSignInTagline,
+              title: t(TechnicianKeys.appTitle),
+              statement: t(TechnicianKeys.signInSubtitle),
+              tagline: t(TechnicianKeys.technicianSignInTagline),
               wide: wide,
               gutter: gutter,
             );
@@ -91,17 +91,17 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
               emailFocus: widget.emailFocus,
               passwordFocus: widget.passwordFocus,
               codeFocus: widget.codeFocus,
-              emailLabel: l10n.emailLabel,
-              passwordLabel: l10n.passwordLabel,
-              codeLabel: l10n.twoFactorLabel,
-              emailHint: l10n.technicianEmailHint,
-              passwordHint: l10n.technicianPasswordHint,
+              emailLabel: t(TechnicianKeys.emailLabel),
+              passwordLabel: t(TechnicianKeys.passwordLabel),
+              codeLabel: t(TechnicianKeys.twoFactorLabel),
+              emailHint: t(TechnicianKeys.technicianEmailHint),
+              passwordHint: t(TechnicianKeys.technicianPasswordHint),
               primaryLabel: widget.challenge
-                  ? l10n.verifyButton
-                  : l10n.signInButton,
-              accessPrompt: l10n.technicianNeedTechnicianAccess,
-              helpLabel: l10n.technicianContactAdmin,
-              securityLine: l10n.technicianSecurityLine,
+                  ? t(TechnicianKeys.verifyButton)
+                  : t(TechnicianKeys.signInButton),
+              accessPrompt: t(TechnicianKeys.technicianNeedTechnicianAccess),
+              helpLabel: t(TechnicianKeys.technicianContactAdmin),
+              securityLine: t(TechnicianKeys.technicianSecurityLine),
               emailValidator: widget.onValidateEmail,
               passwordValidator: widget.onValidateRequired,
               codeValidator: widget.onValidateCode,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../platform_theme.dart';
+import '../reference_status_lookup.dart';
 
 /// Selectable filter chip used in toolbars and views.
 class PlatformFilterChip extends StatelessWidget {
@@ -61,9 +63,12 @@ class PlatformFilterChip extends StatelessWidget {
   }
 }
 
-/// Status badge for lifecycle state (ACTIVE/PUBLISHED green, DRAFT/PENDING amber,
-/// RETIRED/DISABLED rose, others muted).
-class PlatformStatusChip extends StatelessWidget {
+/// Status badge for a lifecycle state.
+///
+/// The tone comes from the served reference taxonomy (`statusesProvider`);
+/// there is no local status→colour switch. Until the taxonomy resolves, the
+/// chip stays neutral.
+class PlatformStatusChip extends ConsumerWidget {
   const PlatformStatusChip({super.key, required this.status, this.label});
 
   final String status;
@@ -72,22 +77,26 @@ class PlatformStatusChip extends StatelessWidget {
   final String? label;
 
   @override
-  Widget build(BuildContext context) {
-    final normalized = status.toUpperCase();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tone = ref.watch(statusToneTokenProvider(status))?.toLowerCase();
     Color foreground = PtTheme.muted;
     Color background = PtTheme.canvas;
-
-    if (normalized == 'ACTIVE' || normalized == 'PUBLISHED') {
-      foreground = PtTheme.deepGreen;
-      background = PtTheme.emerald.withValues(alpha: 0.12);
-    } else if (normalized == 'DRAFT' || normalized == 'PENDING') {
-      foreground = PtTheme.amber;
-      background = const Color(0xFFFFFBEB);
-    } else if (normalized == 'RETIRED' ||
-        normalized == 'DISABLED' ||
-        normalized == 'FAILED') {
-      foreground = PtTheme.rose;
-      background = PtTheme.rose.withValues(alpha: 0.08);
+    switch (tone) {
+      case 'success':
+      case 'positive':
+        foreground = PtTheme.deepGreen;
+        background = PtTheme.emerald.withValues(alpha: 0.12);
+      case 'warning':
+      case 'caution':
+        // amber-800 on the cream chip: 8.6:1, AA for the 11px label.
+        foreground = const Color(0xFF92400E);
+        background = const Color(0xFFFFFBEB);
+      case 'danger':
+      case 'error':
+      case 'negative':
+      case 'critical':
+        foreground = PtTheme.rose;
+        background = PtTheme.rose.withValues(alpha: 0.08);
     }
 
     return Container(

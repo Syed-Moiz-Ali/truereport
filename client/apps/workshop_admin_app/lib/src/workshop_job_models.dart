@@ -67,6 +67,46 @@ List<dynamic> _list(dynamic value) =>
 Map<String, dynamic> _map(dynamic value) =>
     value is Map<String, dynamic> ? value : const <String, dynamic>{};
 
+/// One server-computed action for a job.
+///
+/// `labelKey` resolves through the active UI bundle; `code` selects the dialog
+/// or route. Absent until the backend adds `allowedActions` to the payload, so
+/// callers keep a code-only fallback matrix.
+class JobAction {
+  const JobAction({
+    required this.code,
+    this.labelKey = '',
+    this.tone = 'neutral',
+    this.dangerous = false,
+    this.requiresConsent = false,
+  });
+
+  final String code;
+  final String labelKey;
+  final String tone;
+  final bool dangerous;
+  final bool requiresConsent;
+
+  factory JobAction.fromJson(Map<String, dynamic> json) => JobAction(
+    code: _string(json['code']),
+    labelKey: _string(json['labelKey']),
+    tone: _string(json['tone']),
+    dangerous: _bool(json['dangerous']),
+    requiresConsent: _bool(json['requiresConsent']),
+  );
+
+  static List<JobAction> parseList(dynamic value) {
+    final actions = <JobAction>[];
+    for (final item in _list(value)) {
+      if (item is Map<String, dynamic>) {
+        final action = JobAction.fromJson(item);
+        if (action.code.isNotEmpty) actions.add(action);
+      }
+    }
+    return List<JobAction>.unmodifiable(actions);
+  }
+}
+
 class AvailableTemplate {
   const AvailableTemplate({
     required this.versionId,
@@ -218,6 +258,7 @@ class CleanJob {
     required this.createdAt,
     required this.updatedAt,
     required this.version,
+    this.allowedActions = const <JobAction>[],
   });
 
   final String id;
@@ -261,6 +302,7 @@ class CleanJob {
   final String? createdAt;
   final String? updatedAt;
   final int? version;
+  final List<JobAction> allowedActions;
 
   CleanJob copyWith({
     String? id,
@@ -304,6 +346,7 @@ class CleanJob {
     String? createdAt,
     String? updatedAt,
     int? version,
+    List<JobAction>? allowedActions,
   }) => CleanJob(
     id: id ?? this.id,
     reference: reference ?? this.reference,
@@ -347,6 +390,7 @@ class CleanJob {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     version: version ?? this.version,
+    allowedActions: allowedActions ?? this.allowedActions,
   );
 
   factory CleanJob.fromJson(Map<String, dynamic> json) => CleanJob(
@@ -391,6 +435,7 @@ class CleanJob {
     createdAt: _stringOrNull(json['createdAt']),
     updatedAt: _stringOrNull(json['updatedAt']),
     version: _intOrNull(json['version']),
+    allowedActions: JobAction.parseList(json['allowedActions']),
   );
 }
 
@@ -539,6 +584,7 @@ class JobReview {
     required this.gradePreview,
     required this.safetyCapPreview,
     required this.findings,
+    this.allowedActions = const <JobAction>[],
   });
 
   final String jobId;
@@ -549,6 +595,7 @@ class JobReview {
   final String? gradePreview;
   final String? safetyCapPreview;
   final List<ReviewFinding> findings;
+  final List<JobAction> allowedActions;
 
   factory JobReview.fromJson(Map<String, dynamic> json) => JobReview(
     jobId: _string(json['jobId']),
@@ -558,6 +605,7 @@ class JobReview {
     scorePreview: _doubleOrNull(json['scorePreview']),
     gradePreview: _stringOrNull(json['gradePreview']),
     safetyCapPreview: _stringOrNull(json['safetyCapPreview']),
+    allowedActions: JobAction.parseList(json['allowedActions']),
     findings: _list(json['findings'])
         .whereType<Map<String, dynamic>>()
         .map(ReviewFinding.fromJson)
@@ -600,6 +648,7 @@ class PublishChecklist {
     required this.consentGranted,
     required this.signaturePresent,
     required this.documentsReady,
+    this.allowedActions = const <JobAction>[],
   });
 
   final String jobId;
@@ -614,6 +663,7 @@ class PublishChecklist {
   final bool consentGranted;
   final bool signaturePresent;
   final bool documentsReady;
+  final List<JobAction> allowedActions;
 
   factory PublishChecklist.fromJson(Map<String, dynamic> json) =>
       PublishChecklist(
@@ -632,6 +682,7 @@ class PublishChecklist {
         consentGranted: _bool(json['consentGranted']),
         signaturePresent: _bool(json['signaturePresent']),
         documentsReady: _bool(json['documentsReady']),
+        allowedActions: JobAction.parseList(json['allowedActions']),
       );
 }
 

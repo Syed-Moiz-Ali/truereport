@@ -2,7 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/jobs_tab.dart';
 import 'package:workshop_admin_app/src/features/jobs/workshop_notifications_page.dart';
@@ -57,44 +57,44 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final session = ref.watch(authControllerProvider).value;
     final displayName = session?.user.displayName.trim() ?? '';
     final email = session?.user.email.trim() ?? '';
     final workshopName = session != null && session.memberships.isNotEmpty
         ? session.memberships.first.workshopName
-        : l10n.workshopAdminTitle;
+        : t(WorkshopAdminKeys.workshopAdminTitle);
     final accountName = displayName.isEmpty
-        ? l10n.roleWorkshopAdmin
+        ? t(WorkshopAdminKeys.roleWorkshopAdmin)
         : displayName;
 
     final destinations = <WorkshopNavDestination>[
       WorkshopNavDestination(
-        label: l10n.dashboardTab,
+        label: t(WorkshopAdminKeys.dashboardTab),
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard,
         key: const Key('workshop-tab-overview'),
       ),
       WorkshopNavDestination(
-        label: l10n.jobsTab,
+        label: t(WorkshopAdminKeys.jobsTab),
         icon: Icons.work_outline,
         selectedIcon: Icons.work,
         key: const Key('workshop-tab-jobs'),
       ),
       WorkshopNavDestination(
-        label: l10n.staffTab,
+        label: t(WorkshopAdminKeys.staffTab),
         icon: Icons.groups_outlined,
         selectedIcon: Icons.groups,
         key: const Key('workshop-tab-staff'),
       ),
       WorkshopNavDestination(
-        label: l10n.templatesTab,
+        label: t(WorkshopAdminKeys.templatesTab),
         icon: Icons.dashboard_customize_outlined,
         selectedIcon: Icons.dashboard_customize,
         key: const Key('workshop-tab-templates'),
       ),
       WorkshopNavDestination(
-        label: l10n.settings,
+        label: t(WorkshopAdminKeys.settings),
         icon: Icons.settings_outlined,
         selectedIcon: Icons.settings,
         key: const Key('workshop-tab-settings'),
@@ -115,15 +115,15 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
         onSettings: () => _select(4),
         onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
         onToggleLanguage: () => ref.read(localeProvider.notifier).toggle(),
-        languageLabel: l10n.languageEnglish,
-        moreLabel: l10n.navMore,
-        navigationLabel: l10n.navMain,
-        signOutLabel: l10n.signOut,
-        settingsLabel: l10n.settings,
+        languageLabel: t(WorkshopAdminKeys.languageEnglish),
+        moreLabel: t(WorkshopAdminKeys.navMore),
+        navigationLabel: t(WorkshopAdminKeys.navMain),
+        signOutLabel: t(WorkshopAdminKeys.signOut),
+        settingsLabel: t(WorkshopAdminKeys.settings),
         notificationsAction: WorkshopIconButton(
           key: const Key('workshop-notifications'),
           icon: Icons.notifications_none,
-          semanticLabel: l10n.jobsNotificationsTab,
+          semanticLabel: t(WorkshopAdminKeys.jobsNotificationsTab),
           onPressed: _openNotifications,
         ),
         child: _SectionHost(

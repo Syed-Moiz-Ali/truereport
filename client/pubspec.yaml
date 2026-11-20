@@ -13,6 +13,7 @@ workspace:
   - packages/design_system
   - packages/l10n
   - packages/api_client
+  - packages/reference_data
   - packages/domain
   - packages/auth
   - packages/offline_sync

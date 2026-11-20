@@ -39,10 +39,10 @@ void main() {
       );
     }
 
-    final support =
-        Directory('${root.path}/client/apps/technician_app/test/support');
-    final f2bViews =
-        File('${support.path}/f2b_views.dart').readAsStringSync();
+    final support = Directory(
+      '${root.path}/client/apps/technician_app/test/support',
+    );
+    final f2bViews = File('${support.path}/f2b_views.dart').readAsStringSync();
     expect(
       f2bViews.contains('.png'),
       isFalse,
@@ -53,8 +53,7 @@ void main() {
       '${root.path}/client/apps/technician_app/build/web/assets/AssetManifest.json',
     );
     if (manifest.existsSync()) {
-      final assets = (jsonDecode(manifest.readAsStringSync()) as Map)
-          .keys
+      final assets = (jsonDecode(manifest.readAsStringSync()) as Map).keys
           .cast<String>();
       expect(
         assets.any(

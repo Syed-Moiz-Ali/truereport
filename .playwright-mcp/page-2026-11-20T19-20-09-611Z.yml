@@ -1,0 +1,8 @@
+- generic [ref=f33e1]:
+  - button "Enable accessibility" [ref=f33e2]
+  - generic [ref=f33e5]:
+    - generic:
+      - generic:
+        - textbox "name@truereport.local" [active] [ref=f33e6]
+        - textbox "••••••••••••"
+        - button "Submit"

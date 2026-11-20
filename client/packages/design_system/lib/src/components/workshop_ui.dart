@@ -1051,9 +1051,9 @@ class WorkshopAccountMenu extends StatefulWidget {
     required this.onSignOut,
     required this.onToggleLanguage,
     required this.languageLabel,
+    required this.settingsLabel,
+    required this.signOutLabel,
     this.compact = false,
-    this.settingsLabel = 'Settings',
-    this.signOutLabel = 'Sign out',
     super.key,
   });
 

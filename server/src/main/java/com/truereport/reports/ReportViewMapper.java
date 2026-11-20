@@ -1,6 +1,7 @@
 package com.truereport.reports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.shared.text.CustomerNames;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,12 @@ public class ReportViewMapper {
     public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
                                           String language, boolean pdfDownloadEnabled,
                                           String token) throws Exception {
+        return publicPage(version, derivatives, language, pdfDownloadEnabled, token, null);
+    }
+
+    public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
+                                          String language, boolean pdfDownloadEnabled,
+                                          String token, String customerName) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
                 .filter(d -> d.getPurpose().equals("PUBLIC_FULL"))
@@ -51,7 +58,12 @@ public class ReportViewMapper {
         root.put("finalizedAt", formatDate(snapshot.finalizedAt(), language));
         root.put("publishedAt", formatDate(snapshot.publishedAt(), language));
         root.put("verificationHash", snapshot.verificationHash());
-        root.put("vehicle", vehicle(snapshot.vehicle(), language));
+        root.put("score", snapshot.score());
+        root.put("gradeCode", snapshot.gradeCode());
+        root.put("safetyCapApplied", snapshot.safetyCapApplied());
+        root.put("safetyCapReason", snapshot.safetyCapReason());
+        root.put("vehicle", vehicle(snapshot.vehicle(),
+                firstNonBlank(customerName, snapshot.customerName())));
         root.put("inspection", inspection(snapshot.inspection(), language));
         root.put("workshop", workshop(snapshot.workshop()));
         root.put("technician", technician(snapshot.technician()));
@@ -109,7 +121,7 @@ public class ReportViewMapper {
         root.put("tyreAssemblies", tyreAssemblies(snapshot, byEvidence, token));
         root.put("damageZones", damageZones(snapshot, byEvidence, token));
         root.put("inspectorSummary", List.of());
-        root.put("inspectionVideos", List.of());
+        root.put("inspectionVideos", videos(snapshot, byEvidence, token));
         List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language, token);
         root.put("vehicleShowcase", showcase);
         root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
@@ -126,6 +138,11 @@ public class ReportViewMapper {
 
     public Map<String, Object> printPage(ReportVersion version, List<EvidenceDerivative> derivatives)
             throws Exception {
+        return printPage(version, derivatives, null);
+    }
+
+    public Map<String, Object> printPage(ReportVersion version, List<EvidenceDerivative> derivatives,
+                                         String customerName) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
                 .filter(d -> d.getPurpose().equals("PUBLIC_FULL"))
@@ -139,7 +156,12 @@ public class ReportViewMapper {
         root.put("finalizedAt", formatDate(snapshot.finalizedAt(), "en"));
         root.put("publishedAt", formatDate(snapshot.publishedAt(), "en"));
         root.put("verificationHash", snapshot.verificationHash());
-        root.put("vehicle", vehicle(snapshot.vehicle(), "en"));
+        root.put("score", snapshot.score());
+        root.put("gradeCode", snapshot.gradeCode());
+        root.put("safetyCapApplied", snapshot.safetyCapApplied());
+        root.put("safetyCapReason", snapshot.safetyCapReason());
+        root.put("vehicle", vehicle(snapshot.vehicle(),
+                firstNonBlank(customerName, snapshot.customerName())));
         root.put("inspection", inspection(snapshot.inspection(), "en"));
         root.put("workshop", workshop(snapshot.workshop()));
         root.put("technician", technician(snapshot.technician()));
@@ -191,16 +213,22 @@ public class ReportViewMapper {
         catSummaryEn.put("checklistSummaryText", passCatPrint + " • " + attnCatPrint);
         catSummaryEn.put("servicesText", passCatPrint + " • " + attnCatPrint);
         root.put("categoriesSummary", catSummaryEn);
-        root.put("tyreAssemblies", List.of());
-        root.put("damageZones", List.of());
+        List<Map<String, Object>> printShowcase = vehicleShowcase(snapshot, byEvidence, "en", null);
+        root.put("tyreAssemblies", tyreAssemblies(snapshot, byEvidence, null));
+        root.put("damageZones", damageZones(snapshot, byEvidence, null));
         root.put("inspectorSummary", List.of());
         root.put("inspectionVideos", List.of());
-        root.put("vehicleShowcase", List.of());
-        root.put("showcaseExterior", List.of());
-        root.put("showcaseInterior", List.of());
-        root.put("showcaseMechanical", List.of());
-        root.put("showcaseImperfections", List.of());
-        root.put("showcaseUnderbody", List.of());
+        root.put("vehicleShowcase", printShowcase);
+        root.put("showcaseExterior", printShowcase.stream()
+                .filter(i -> "exterior".equals(i.get("category"))).toList());
+        root.put("showcaseInterior", printShowcase.stream()
+                .filter(i -> "interior".equals(i.get("category"))).toList());
+        root.put("showcaseMechanical", printShowcase.stream()
+                .filter(i -> "mechanical".equals(i.get("category"))).toList());
+        root.put("showcaseImperfections", printShowcase.stream()
+                .filter(i -> "imperfections".equals(i.get("category"))).toList());
+        root.put("showcaseUnderbody", printShowcase.stream()
+                .filter(i -> "underbody".equals(i.get("category"))).toList());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
         root.put("limitationsEn", limitations());
@@ -213,35 +241,49 @@ public class ReportViewMapper {
         return publicPage(version, derivatives, "en", false);
     }
 
-    private Map<String, Object> vehicle(ReportSnapshot.Vehicle vehicle, String language) {
+    private Map<String, Object> vehicle(ReportSnapshot.Vehicle vehicle, String customerName) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("make", vehicle.make());
-        map.put("model", vehicle.model());
-        map.put("year", vehicle.year());
-        map.put("vinMasked", vehicle.vinMasked());
-        map.put("odometer", vehicle.odometerValue() == null ? "" :
-                String.format(Locale.ROOT, "%,d %s", vehicle.odometerValue(),
-                        vehicle.odometerUnit() == null ? "" : vehicle.odometerUnit()));
-        map.put("vehicleType", vehicle.vehicleType());
-        // Only values captured on the job are rendered. Fields the product has
-        // not captured are left blank rather than filled with demo facts.
-        map.put("gearbox", blankIfNull(vehicle.transmission()));
-        map.put("fuelType", blankIfNull(vehicle.fuelType()));
-        map.put("drivetrain", "");
-        map.put("specsOrigin", "");
-        map.put("conditionBadge", "");
-        map.put("engineSize", "");
-        map.put("horsepower", "");
-        map.put("cylinders", "");
-        map.put("exteriorColor", "");
-        map.put("interiorTrim", "");
-        map.put("wheels", "");
-        map.put("steeringSide", "");
-        map.put("keysCount", "");
-        map.put("emirate", "");
-        map.put("clientName", "");
-        map.put("inspectionCenter", "");
+        putIfText(map, "make", vehicle.make());
+        putIfText(map, "model", vehicle.model());
+        if (vehicle.year() != null) {
+            map.put("year", vehicle.year());
+        }
+        putIfText(map, "vinMasked", vehicle.vinMasked());
+        if (vehicle.odometerValue() != null) {
+            map.put("odometer", String.format(Locale.ROOT, "%,d %s", vehicle.odometerValue(),
+                    vehicle.odometerUnit() == null ? "" : vehicle.odometerUnit()).trim());
+        }
+        putIfText(map, "vehicleType", vehicle.vehicleType());
+        // Only values captured on the job are rendered. Optional specs that have
+        // no data are omitted so the templates hide the whole labelled cell.
+        putIfText(map, "gearbox", vehicle.transmission());
+        putIfText(map, "fuelType", vehicle.fuelType());
+        String masked = CustomerNames.mask(customerName);
+        if (masked != null) {
+            map.put("clientName", masked);
+        }
         return map;
+    }
+
+    /**
+     * Masks a customer name for the public page:
+     * {@code "E2E Customer"} becomes {@code "E2E C***"}.
+     */
+    public static String maskCustomerName(String name) {
+        return CustomerNames.mask(name);
+    }
+
+    private static String firstNonBlank(String preferred, String fallback) {
+        if (preferred != null && !preferred.isBlank()) {
+            return preferred;
+        }
+        return fallback == null || fallback.isBlank() ? null : fallback;
+    }
+
+    private static void putIfText(Map<String, Object> map, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            map.put(key, value);
+        }
     }
 
     private Map<String, Object> inspection(ReportSnapshot.Inspection inspection, String language) {
@@ -412,6 +454,47 @@ public class ReportViewMapper {
         return result;
     }
 
+    private List<Map<String, Object>> videos(ReportSnapshot snapshot,
+                                             Map<UUID, EvidenceDerivative> byEvidence,
+                                             String token) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ReportSnapshot.Category category : snapshot.categories()) {
+            for (ReportSnapshot.ItemSnapshot item : category.items()) {
+                for (String raw : item.evidenceIds()) {
+                    UUID evidenceId;
+                    try {
+                        evidenceId = UUID.fromString(raw);
+                    } catch (RuntimeException ignored) {
+                        continue;
+                    }
+                    EvidenceDerivative derivative = byEvidence.get(evidenceId);
+                    if (derivative == null || derivative.getMime() == null
+                            || !derivative.getMime().startsWith("video/")) {
+                        continue;
+                    }
+                    Map<String, Object> video = new LinkedHashMap<>();
+                    video.put("id", derivative.getId());
+                    video.put("title", item.labelEn());
+                    video.put("category", category.labelEn());
+                    video.put("videoUrl", videoUrl(token, derivative.getId()));
+                    video.put("thumbnailUrl", firstPhotoUrl(item, byEvidence, token));
+                    video.put("duration", "");
+                    video.put("caption", item.note() == null || item.note().isBlank()
+                            ? item.reasonText() : item.note());
+                    result.add(video);
+                }
+            }
+        }
+        return result;
+    }
+
+    private String videoUrl(String token, Object derivativeId) {
+        if (token == null || derivativeId == null) {
+            return null;
+        }
+        return "/r/" + token + "/video/" + derivativeId;
+    }
+
     private List<Map<String, Object>> photos(List<String> evidenceIds,
                                              Map<UUID, EvidenceDerivative> derivatives,
                                              String language, boolean bilingual) {
@@ -424,7 +507,8 @@ public class ReportViewMapper {
                 continue;
             }
             EvidenceDerivative derivative = derivatives.get(evidenceId);
-            if (derivative == null) {
+            if (derivative == null || derivative.getMime() == null
+                    || !derivative.getMime().startsWith("image/")) {
                 continue;
             }
             Map<String, Object> map = new LinkedHashMap<>();
@@ -492,7 +576,8 @@ public class ReportViewMapper {
         for (String raw : item.evidenceIds()) {
             try {
                 EvidenceDerivative derivative = byEvidence.get(UUID.fromString(raw));
-                if (derivative != null) {
+                if (derivative != null && derivative.getMime() != null
+                        && derivative.getMime().startsWith("image/")) {
                     return photoUrl(token, derivative.getId());
                 }
             } catch (RuntimeException ignored) {
@@ -530,7 +615,8 @@ public class ReportViewMapper {
                         continue;
                     }
                     EvidenceDerivative derivative = byEvidence.get(evidenceId);
-                    if (derivative == null) {
+                    if (derivative == null || derivative.getMime() == null
+                            || !derivative.getMime().startsWith("image/")) {
                         continue;
                     }
                     Map<String, Object> photo = new LinkedHashMap<>();

@@ -4,7 +4,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'features/auth/signin/technician_sign_in_page.dart';
 import 'features/inspection/technician_dynamic_item_page.dart';
@@ -125,18 +125,18 @@ class _TechnicianUnauthorizedPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return AppScaffold(
-      appBar: AppBar(title: Text(l10n.technicianHomeTitle)),
+      appBar: AppBar(title: Text(t(TechnicianKeys.technicianHomeTitle))),
       body: Center(
         child: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           child: EmptyState(
-            title: l10n.error,
-            body: l10n.signInSubtitle,
+            title: t(TechnicianKeys.error),
+            body: t(TechnicianKeys.signInSubtitle),
             icon: Icons.lock_outline,
             action: AppButton(
-              label: l10n.signOut,
+              label: t(TechnicianKeys.signOut),
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).signOut(),
               variant: AppButtonVariant.tonal,

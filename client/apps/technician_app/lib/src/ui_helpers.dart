@@ -1,57 +1,20 @@
 import 'package:design_system/design_system.dart';
-import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:technician_app/src/reference_ui.dart';
 
-String technicianStatusLabel(AppLocalizations l10n, String status) =>
-    switch (status) {
-      'DRAFT' => l10n.draft,
-      'SCHEDULED' || 'Scheduled' => l10n.statusScheduled,
-      'ASSIGNED' => l10n.statusAssigned,
-      'IN_PROGRESS' => l10n.statusInProgress,
-      'READY_TO_FINALIZE' => l10n.statusReadyToFinalize,
-      'FINALIZED' => l10n.statusFinalized,
-      'PENDING_REVIEW' => l10n.jobsStatusPendingReview,
-      'APPROVED' => l10n.jobsStatusApproved,
-      'PUBLISHED' => l10n.jobsStatusPublished,
-      'REJECTED' => l10n.jobsStatusRejected,
-      'CANCELLED' => l10n.statusCancelled,
-      'READY' || 'Ready' => l10n.statusReady,
-      'HIGH_PRIORITY' || 'High Priority' => l10n.jobsHighPriority,
-      _ => l10n.notAvailable,
-    };
+/// Labels and tones for item-contract enum codes.
+///
+/// The maps live in `/reference/enums/result` and `/reference/enums/severity`.
+/// These helpers only resolve served records; an unknown code is humanized.
+String resultLabel(Iterable<ReferenceRecord>? records, String result) =>
+    referenceStatusCodeLabel(records, result);
 
-StatusTone technicianStatusTone(String status) => switch (status) {
-  'FINALIZED' || 'APPROVED' || 'PUBLISHED' => StatusTone.success,
-  'CANCELLED' || 'REJECTED' => StatusTone.danger,
-  'PENDING_REVIEW' => StatusTone.warning,
-  'ASSIGNED' || 'IN_PROGRESS' || 'READY_TO_FINALIZE' => StatusTone.info,
-  'SCHEDULED' => StatusTone.warning,
-  _ => StatusTone.neutral,
-};
+String severityLabel(Iterable<ReferenceRecord>? records, String severity) =>
+    referenceStatusCodeLabel(records, severity);
 
-String resultLabel(AppLocalizations l10n, String result) => switch (result) {
-  'NO_ISSUE_OBSERVED' => l10n.noIssueObserved,
-  'ATTENTION_RECOMMENDED' => l10n.attentionRecommended,
-  'DEFECT_FOUND' => l10n.defectFound,
-  'NOT_CHECKED' => l10n.notChecked,
-  'NOT_APPLICABLE' => l10n.notApplicable,
-  'COULD_NOT_VERIFY' => l10n.couldNotVerify,
-  _ => l10n.notAvailable,
-};
-
-String severityLabel(AppLocalizations l10n, String severity) =>
-    switch (severity) {
-      'MINOR' => l10n.minor,
-      'MODERATE' => l10n.moderate,
-      'MAJOR' => l10n.major,
-      'SAFETY_CRITICAL' => l10n.safetyCritical,
-      _ => l10n.notAvailable,
-    };
-
-StatusTone resultTone(String? result) => switch (result) {
-  'NO_ISSUE_OBSERVED' => StatusTone.success,
-  'ATTENTION_RECOMMENDED' => StatusTone.warning,
-  'DEFECT_FOUND' => StatusTone.danger,
-  'NOT_CHECKED' || 'COULD_NOT_VERIFY' => StatusTone.warning,
-  'NOT_APPLICABLE' => StatusTone.neutral,
-  _ => StatusTone.neutral,
-};
+StatusTone resultTone(Iterable<ReferenceRecord>? records, String? result) {
+  if (result == null || result.trim().isEmpty) {
+    return StatusTone.neutral;
+  }
+  return referenceStatusCodeTone(records, result);
+}

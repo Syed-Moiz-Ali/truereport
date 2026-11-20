@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'settings_primitives.dart';
 
@@ -16,7 +16,7 @@ class SettingsSessionSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
 
     return SettingsSurface(
@@ -26,17 +26,20 @@ class SettingsSessionSurface extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l10n.settingsSession, style: ws.sectionTitle),
+              Text(
+                t(WorkshopAdminKeys.settingsSession),
+                style: ws.sectionTitle,
+              ),
               const SizedBox(height: 8),
               Text(
-                l10n.settingsSignOutBody,
+                t(WorkshopAdminKeys.settingsSignOutBody),
                 style: ws.body.copyWith(color: ws.muted),
               ),
             ],
           );
           final action = SettingsActionButton(
             key: const Key('settings-sign-out'),
-            label: l10n.signOut,
+            label: t(WorkshopAdminKeys.signOut),
             icon: Icons.logout,
             expand: constraints.maxWidth < 420,
             onPressed: onSignOut,

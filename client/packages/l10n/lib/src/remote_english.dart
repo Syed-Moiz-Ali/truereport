@@ -14,6 +14,13 @@ void setRemoteEnglish(Map<String, String> values) {
 
 void clearRemoteEnglish() => _remoteEnglish.clear();
 
+/// A read-only view of the resolved backend messages.
+///
+/// Used by `UiStrings` bootstrapping and by tests that need a bundle without
+/// constructing the generated localizations class.
+Map<String, String> get remoteEnglishValues =>
+    Map<String, String>.unmodifiable(_remoteEnglish);
+
 String remoteEnglish(String key) => _remoteEnglish[key] ?? '';
 
 /// Formats a backend template with simple `{name}` placeholders and ICU

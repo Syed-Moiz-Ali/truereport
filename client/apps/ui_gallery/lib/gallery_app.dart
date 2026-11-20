@@ -1,11 +1,14 @@
-﻿import 'package:design_system/design_system.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:ui_gallery/gallery_keys.dart';
 import 'package:ui_gallery/fixture_guard.dart';
 import 'package:ui_gallery/showcase_chrome.dart';
 import 'package:ui_gallery/showcase_components.dart';
 import 'package:ui_gallery/showcase_fidelity.dart';
 import 'package:ui_gallery/showcase_selection.dart';
+import 'package:ui_gallery/showcase_reference.dart';
 import 'package:ui_gallery/showcase_tokens.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
 import 'package:ui_gallery/workshop_showcase.dart';
@@ -72,25 +75,32 @@ class _GalleryAppState extends State<GalleryApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TrueReport UI Gallery',
-      debugShowCheckedModeBanner: false,
-      theme: _theme,
-      themeMode: ThemeMode.light,
-      locale: _locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: TextScaler.linear(_textScale)),
-            child: child ?? const SizedBox.shrink(),
-          ),
-        );
-      },
-      home: _GalleryBody(state: this),
+    return UiStringsScope(
+      strings: UiStrings.fromRemoteEnglish(),
+      child: MaterialApp(
+        title: 'TrueReport UI Gallery',
+        debugShowCheckedModeBanner: false,
+        theme: _theme,
+        themeMode: ThemeMode.light,
+        locale: _locale,
+        supportedLocales: const <Locale>[Locale('en')],
+        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        builder: (context, child) {
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(_textScale)),
+              child: child ?? const SizedBox.shrink(),
+            ),
+          );
+        },
+        home: _GalleryBody(state: this),
+      ),
     );
   }
 }
@@ -285,12 +295,12 @@ class _GallerySections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          l10n.appTitle,
+          t(GalleryKeys.appTitle),
           style: context.texts.headlineLarge,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -353,6 +363,12 @@ class _GallerySections extends StatelessWidget {
         const GallerySection(
           title: 'Chips, status and severity',
           child: ChipsShowcase(),
+        ),
+        const GallerySection(
+          title: 'Reference data widgets',
+          subtitle:
+              'Status chip, closed option dropdown and allowed transitions.',
+          child: ReferenceWidgetsShowcase(),
         ),
         const GallerySection(
           title: 'Segmented control and language switch',

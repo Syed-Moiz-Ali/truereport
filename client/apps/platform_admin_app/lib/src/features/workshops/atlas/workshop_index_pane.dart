@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
 import '../../../platform_models.dart';
@@ -8,7 +9,7 @@ import 'atlas_ui.dart';
 
 /// Left-hand index of the Atlas workspace: search, status filters, and one
 /// scannable row per workshop.
-class WorkshopIndexPane extends StatelessWidget {
+class WorkshopIndexPane extends ConsumerWidget {
   const WorkshopIndexPane({
     super.key,
     required this.strings,
@@ -45,7 +46,7 @@ class WorkshopIndexPane extends StatelessWidget {
   bool get _hasFilters => query.trim().isNotEmpty || statusFilter.isNotEmpty;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final header = Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: Column(
@@ -91,7 +92,7 @@ class WorkshopIndexPane extends StatelessWidget {
                 for (final status in statuses) ...[
                   const SizedBox(width: 6),
                   _FilterPill(
-                    label: workshopStatusLabel(strings, status),
+                    label: workshopStatusLabel(ref, status),
                     count: workshops
                         .where((w) => w.status.toUpperCase() == status)
                         .length,
@@ -167,7 +168,7 @@ class WorkshopIndexPane extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        workshopStatusLabel(strings, status),
+                        workshopStatusLabel(ref, status),
                         style: Atlas.text(10.5, color: PtTheme.muted),
                       ),
                       const SizedBox(width: 4),
@@ -269,7 +270,7 @@ class _FilterPill extends StatelessWidget {
   }
 }
 
-class WorkshopIndexRow extends StatefulWidget {
+class WorkshopIndexRow extends ConsumerStatefulWidget {
   const WorkshopIndexRow({
     super.key,
     required this.strings,
@@ -286,10 +287,10 @@ class WorkshopIndexRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<WorkshopIndexRow> createState() => _WorkshopIndexRowState();
+  ConsumerState<WorkshopIndexRow> createState() => _WorkshopIndexRowState();
 }
 
-class _WorkshopIndexRowState extends State<WorkshopIndexRow> {
+class _WorkshopIndexRowState extends ConsumerState<WorkshopIndexRow> {
   bool _hover = false;
 
   @override
@@ -422,10 +423,7 @@ class _WorkshopIndexRowState extends State<WorkshopIndexRow> {
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
-                                      workshopStatusLabel(
-                                        widget.strings,
-                                        workshop.status,
-                                      ),
+                                      workshopStatusLabel(ref, workshop.status),
                                       maxLines: 1,
                                       style: Atlas.text(
                                         10,

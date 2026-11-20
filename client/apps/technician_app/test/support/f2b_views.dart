@@ -1,9 +1,8 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:l10n/l10n.dart';
-import 'package:l10n/l10n/gen/app_localizations_en.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/features/inspection/defect_detail_view.dart';
@@ -16,7 +15,8 @@ import 'package:technician_app/src/features/review/success_view.dart';
 import 'package:technician_app/src/features/inspection/tire_condition_view.dart';
 
 import 'f2a_fixture_data.dart';
-import 'figma_l10n_override.dart';
+import 'test_reference_overrides.dart';
+import 'ui_strings_harness.dart';
 
 const f2bScreenIds = <String>[
   'defect-detail',
@@ -45,7 +45,7 @@ const f2bHeights = <String, double>{
 ///
 /// Data wording (names, labels, references) travels through the normal model
 /// fields (see [f2bScreen] `figma: true`). Chrome copy travels here through
-/// the regular [AppLocalizations] API so production widgets render Figma text
+/// a [UiStringsScope] bundle so production widgets render Figma text
 /// without any `figmaText` switch in `lib/`. English only.
 abstract final class F2bFigmaStrings {
   // Defect detail (09).
@@ -83,96 +83,40 @@ abstract final class F2bFigmaStrings {
   static const backToJobs = 'Back to Job List';
 }
 
-class F2bFigmaTestLocalizations extends AppLocalizationsEn {
-  F2bFigmaTestLocalizations() : super('en');
-  static String? activeScreenId;
+/// Test-only Figma copy for F2-B chrome, keyed by backend message key.
+/// The active screen picks the wording for shared keys.
+String? f2bActiveScreenId;
 
-  @override
-  String get result => F2bFigmaStrings.inspectionStatus;
-
-  @override
-  String get severity => F2bFigmaStrings.defectClassification;
-
-  @override
-  String get attachments => F2bFigmaStrings.photographicEvidence;
-
-  @override
-  String get saveAnswer => F2bFigmaStrings.saveDefect;
-
-  @override
-  String get addPhoto => F2bFigmaStrings.takePhoto;
-
-  @override
-  String get photoRequired => F2bFigmaStrings.tapToCapture;
-
-  @override
-  String get note => F2bFigmaStrings.defectNoteHint;
-
-  @override
-  String get reviewAndFinalize => activeScreenId == 'dense-mechanical'
-      ? F2bFigmaStrings.confirmFluidLevels
-      : activeScreenId == 'final-review'
-      ? F2bFigmaStrings.reviewFindings
-      : F2bFigmaStrings.reviewFinalizeTitle;
-
-  @override
-  String get finalize => F2bFigmaStrings.finalizeAction;
-
-  @override
-  String get syncQueue => F2bFigmaStrings.uploadQueue;
-
-  @override
-  String get syncNow => F2bFigmaStrings.retrySyncNow;
-
-  @override
-  String get finalizedSuccessfully => F2bFigmaStrings.inspectionFinalizedTitle;
-
-  @override
-  String get technicianJobsTitle => F2bFigmaStrings.backToJobs;
-
-  @override
-  String get technicianSyncTitle => F2bFigmaStrings.syncStatus;
-
-  @override
-  String get noIssueObserved => 'Pass';
-
-  @override
-  String get attentionRecommended => 'Minor';
-
-  @override
-  String get defectFound => 'Major';
-
-  @override
-  String get checklist => 'Diagnostic Checklist';
+Map<String, String> f2bFigmaOverrides() {
+  final screen = f2bActiveScreenId;
+  return <String, String>{
+    'result': F2bFigmaStrings.inspectionStatus,
+    'severity': F2bFigmaStrings.defectClassification,
+    'attachments': F2bFigmaStrings.photographicEvidence,
+    'saveAnswer': F2bFigmaStrings.saveDefect,
+    'addPhoto': F2bFigmaStrings.takePhoto,
+    'photoRequired': F2bFigmaStrings.tapToCapture,
+    'note': F2bFigmaStrings.defectNoteHint,
+    'reviewAndFinalize': screen == 'dense-mechanical'
+        ? F2bFigmaStrings.confirmFluidLevels
+        : screen == 'final-review'
+        ? F2bFigmaStrings.reviewFindings
+        : F2bFigmaStrings.reviewFinalizeTitle,
+    'finalize': F2bFigmaStrings.finalizeAction,
+    'syncQueue': F2bFigmaStrings.uploadQueue,
+    'syncNow': F2bFigmaStrings.retrySyncNow,
+    'finalizedSuccessfully': F2bFigmaStrings.inspectionFinalizedTitle,
+    'technicianJobsTitle': F2bFigmaStrings.backToJobs,
+    'technicianSyncTitle': F2bFigmaStrings.syncStatus,
+    'noIssueObserved': 'Pass',
+    'attentionRecommended': 'Minor',
+    'defectFound': 'Major',
+    'checklist': 'Diagnostic Checklist',
+  };
 }
 
-class F2bFigmaTestLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
-  const F2bFigmaTestLocalizationsDelegate();
-
-  @override
-  bool isSupported(Locale locale) => locale.languageCode == 'en';
-
-  @override
-  Future<AppLocalizations> load(Locale locale) async =>
-      F2bFigmaTestLocalizations();
-
-  @override
-  bool shouldReload(F2bFigmaTestLocalizationsDelegate old) => false;
-}
-
-const f2bFigmaLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
-  F2bFigmaTestLocalizationsDelegate(),
-  // Fall back to the F2-A Figma override for any key not covered above would
-  // need chaining; instead keep product English for the rest via the real
-  // delegate order: Figma delegate first, then globals. Keys not overridden
-  // fall through to AppLocalizationsEn defaults? No — the delegate replaces
-  // AppLocalizations entirely, so every non-overridden getter returns real
-  // English copy from AppLocalizationsEn. That is exactly what we want.
-  GlobalMaterialLocalizations.delegate,
-  GlobalCupertinoLocalizations.delegate,
-  GlobalWidgetsLocalizations.delegate,
-];
+/// Backend English with the F2-B Figma copy layered on top.
+UiStrings f2bFigmaStrings() => UiStrings.fromRemoteEnglish(f2bFigmaOverrides());
 
 InspectionItem _f2bFigmaItem() => const InspectionItem(
   inspectionItemId: 'item-door-fl',
@@ -569,7 +513,7 @@ Widget f2bScreen(
         photoImage: evidenceImage,
       );
     case 'dense-mechanical':
-      F2bFigmaTestLocalizations.activeScreenId = 'dense-mechanical';
+      f2bActiveScreenId = 'dense-mechanical';
       return DenseMechanicalView(
         checklist: _f2bChecklist(figma: figma),
         onResult: (_, _) {},
@@ -590,7 +534,7 @@ Widget f2bScreen(
         onSelectTire: (_) {},
       );
     case 'final-review':
-      F2bFigmaTestLocalizations.activeScreenId = 'final-review';
+      f2bActiveScreenId = 'final-review';
       return FinalReviewView(
         job: figma
             ? figmaJob(
@@ -606,7 +550,7 @@ Widget f2bScreen(
         onProfile: () {},
       );
     case 'finalize':
-      F2bFigmaTestLocalizations.activeScreenId = 'finalize';
+      f2bActiveScreenId = 'finalize';
       final checklist = _f2bChecklist(figma: figma);
       return FinalizeView(
         job: figma
@@ -718,19 +662,23 @@ Widget f2bHost({
   double textScale = 1,
   bool figmaStrings = false,
 }) {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    locale: locale,
-    supportedLocales: AppLocalizations.supportedLocales,
-    localizationsDelegates: figmaStrings
-        ? f2bFigmaLocalizationsDelegates
-        : AppLocalizations.localizationsDelegates,
-    theme: theme,
-    builder: (context, appChild) => MediaQuery(
-      data: MediaQuery.of(context)
-          .copyWith(textScaler: TextScaler.linear(textScale)),
-      child: appChild ?? const SizedBox.shrink(),
+  return ProviderScope(
+    overrides: testReferenceStatusOverrides(),
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: const <Locale>[Locale('en')],
+      localizationsDelegates: testLocalizationsDelegates,
+      theme: theme,
+      builder: (context, appChild) => UiStringsScope(
+        strings: figmaStrings ? f2bFigmaStrings() : baseStrings(),
+        child: MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
+          child: appChild ?? const SizedBox.shrink(),
+        ),
+      ),
+      home: child,
     ),
-    home: child,
   );
 }

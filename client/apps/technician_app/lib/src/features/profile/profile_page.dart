@@ -2,7 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
 /// Full-screen technician profile: identity badge, language, sign out.
@@ -11,10 +11,10 @@ class TechnicianProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final colors = context.colors;
     final session = ref.watch(authControllerProvider).value;
-    final role = l10n.roleTechnician;
+    final role = t(TechnicianKeys.roleTechnician);
     final name = session?.user.displayName ?? role;
     final email = session?.user.email;
 
@@ -48,7 +48,7 @@ class TechnicianProfilePage extends ConsumerWidget {
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      l10n.technicianProfileTitle,
+                      t(TechnicianKeys.technicianProfileTitle),
                       style: context.texts.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.4,
@@ -140,7 +140,7 @@ class TechnicianProfilePage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 22),
                       Text(
-                        l10n.settingsLanguage,
+                        t(TechnicianKeys.settingsLanguage),
                         style: context.texts.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -156,7 +156,7 @@ class TechnicianProfilePage extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Center(
                         child: _SignOutButton(
-                          label: l10n.signOut,
+                          label: t(TechnicianKeys.signOut),
                           onPressed: () => ref
                               .read(authControllerProvider.notifier)
                               .signOut(),
@@ -165,7 +165,7 @@ class TechnicianProfilePage extends ConsumerWidget {
                       const SizedBox(height: 24),
                       Center(
                         child: Text(
-                          'TrueReport · $role',
+                          '${t(TechnicianKeys.appTitle)} \u00b7 $role',
                           style: context.texts.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),

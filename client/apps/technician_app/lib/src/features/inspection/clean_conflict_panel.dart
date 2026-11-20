@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
 
 class ConflictViewData {
@@ -31,7 +31,7 @@ class ConflictPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     return AppCard(
       variant: AppCardVariant.flat,
@@ -40,15 +40,15 @@ class ConflictPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           TechnicianSectionTitle(
-            title: l10n.technicianSyncConflictTitle,
+            title: t(TechnicianKeys.technicianSyncConflictTitle),
             subtitle: reloaded
-                ? l10n.technicianConflictReloaded
-                : l10n.technicianConflictExists,
+                ? t(TechnicianKeys.technicianConflictReloaded)
+                : t(TechnicianKeys.technicianConflictExists),
           ),
           if (conflicts.isEmpty) ...[
             SizedBox(height: spacing.sm),
             Text(
-              l10n.technicianNoConflicts,
+              t(TechnicianKeys.technicianNoConflicts),
               style: context.texts.bodyMedium?.copyWith(
                 color: context.colors.onSurfaceVariant,
               ),
@@ -72,7 +72,7 @@ class _ConflictCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     return Container(
       padding: EdgeInsetsDirectional.all(spacing.md),
@@ -92,19 +92,19 @@ class _ConflictCard extends StatelessWidget {
           ),
           SizedBox(height: spacing.sm),
           _PayloadBlock(
-            label: l10n.technicianServerPayload,
+            label: t(TechnicianKeys.technicianServerPayload),
             payload: conflict.serverPayload,
           ),
           SizedBox(height: spacing.sm),
           _PayloadBlock(
-            label: l10n.technicianClientPayload,
+            label: t(TechnicianKeys.technicianClientPayload),
             payload: conflict.clientPayload,
           ),
           SizedBox(height: spacing.sm),
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: AppButton(
-              label: l10n.technicianReloadServer,
+              label: t(TechnicianKeys.technicianReloadServer),
               icon: Icons.refresh,
               variant: AppButtonVariant.tonal,
               onPressed: () => onReload(conflict),

@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/wizard/wizard_choice_group.dart';
 
 /// Step 2: the vehicle. There is deliberately no scheduled-time field here
@@ -37,7 +37,7 @@ class WizardVehicleStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,8 +46,8 @@ class WizardVehicleStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-vehicle-make'),
           controller: make,
-          label: l10n.vehicleMake,
-          hint: l10n.vehicleMake,
+          label: t(WorkshopAdminKeys.vehicleMake),
+          hint: t(WorkshopAdminKeys.vehicleMake),
           textInputAction: TextInputAction.next,
           prefixIcon: const Icon(Icons.directions_car_outlined),
         ),
@@ -55,8 +55,8 @@ class WizardVehicleStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-vehicle-model'),
           controller: model,
-          label: l10n.vehicleModel,
-          hint: l10n.vehicleModel,
+          label: t(WorkshopAdminKeys.vehicleModel),
+          hint: t(WorkshopAdminKeys.vehicleModel),
           textInputAction: TextInputAction.next,
           prefixIcon: const Icon(Icons.speed_outlined),
         ),
@@ -67,8 +67,8 @@ class WizardVehicleStep extends StatelessWidget {
             final yearField = WorkshopTextField(
               key: const Key('jobs-wizard-vehicle-year'),
               controller: year,
-              label: l10n.vehicleYear,
-              hint: l10n.vehicleYear,
+              label: t(WorkshopAdminKeys.vehicleYear),
+              hint: t(WorkshopAdminKeys.vehicleYear),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
               prefixIcon: const Icon(Icons.calendar_today_outlined),
@@ -76,8 +76,8 @@ class WizardVehicleStep extends StatelessWidget {
             final odometerField = WorkshopTextField(
               key: const Key('jobs-wizard-odometer'),
               controller: odometer,
-              label: l10n.jobsFieldOdometer,
-              hint: l10n.jobsFieldOdometer,
+              label: t(WorkshopAdminKeys.jobsFieldOdometer),
+              hint: t(WorkshopAdminKeys.jobsFieldOdometer),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
               prefixIcon: const Icon(Icons.straighten_outlined),
@@ -107,8 +107,8 @@ class WizardVehicleStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-vehicle-vin'),
           controller: vin,
-          label: l10n.vehicleVin,
-          hint: l10n.vehicleVin,
+          label: t(WorkshopAdminKeys.vehicleVin),
+          hint: t(WorkshopAdminKeys.vehicleVin),
           textInputAction: TextInputAction.next,
           prefixIcon: const Icon(Icons.pin_outlined),
         ),
@@ -116,14 +116,14 @@ class WizardVehicleStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-vehicle-plate'),
           controller: plate,
-          label: l10n.vehiclePlate,
-          hint: l10n.vehiclePlate,
+          label: t(WorkshopAdminKeys.vehiclePlate),
+          hint: t(WorkshopAdminKeys.vehiclePlate),
           textInputAction: TextInputAction.done,
           prefixIcon: const Icon(Icons.badge_outlined),
         ),
         SizedBox(height: spacing.lg),
         WizardChoiceGroup(
-          label: l10n.jobsFieldOdometerUnit,
+          label: t(WorkshopAdminKeys.jobsFieldOdometerUnit),
           values: const ['KM', 'MI'],
           selected: odometerUnit,
           onChanged: onOdometerUnit,
@@ -131,7 +131,7 @@ class WizardVehicleStep extends StatelessWidget {
         ),
         SizedBox(height: spacing.md),
         WizardChoiceGroup(
-          label: l10n.jobsFieldTransmission,
+          label: t(WorkshopAdminKeys.jobsFieldTransmission),
           values: const ['AUTOMATIC', 'MANUAL', 'CVT'],
           selected: transmission,
           onChanged: onTransmission,
@@ -139,7 +139,7 @@ class WizardVehicleStep extends StatelessWidget {
         ),
         SizedBox(height: spacing.md),
         WizardChoiceGroup(
-          label: l10n.jobsFieldFuelType,
+          label: t(WorkshopAdminKeys.jobsFieldFuelType),
           values: const ['PETROL', 'DIESEL', 'HYBRID', 'ELECTRIC'],
           selected: fuelType,
           onChanged: onFuelType,

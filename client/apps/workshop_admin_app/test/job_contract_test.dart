@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 import 'support/job_fixtures.dart';
@@ -88,7 +88,10 @@ void main() {
       });
       expect(unknown.status, 'AWAITING_PARTS');
       // Unknown codes fall through to a neutral tone, never a crash.
-      expect(workshopJobTone(unknown.status), WorkshopStatusTone.neutral);
+      expect(
+        referenceStatusTone(null, unknown.status),
+        WorkshopStatusTone.neutral,
+      );
     });
 
     test('missing optional keys default instead of throwing', () {

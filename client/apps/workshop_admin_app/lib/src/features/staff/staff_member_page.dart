@@ -1,9 +1,9 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
@@ -18,7 +18,7 @@ import 'package:workshop_admin_app/src/models.dart';
 /// facts and the password/lifecycle work in a 5/4 split.
 ///
 /// Everything rendered comes from `StaffMember` (name, role, status, masked
-/// email) — no counters, shifts or sign-in history are invented. Actions write
+/// email) � no counters, shifts or sign-in history are invented. Actions write
 /// through the calls this app already holds: `disableUser`, `reactivateUser`
 /// and `resetTechnicianPassword`.
 class StaffMemberPage extends ConsumerStatefulWidget {
@@ -112,7 +112,7 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final staff = ref.watch(staffProvider);
     final loaded = staff.value;
@@ -126,7 +126,9 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             StaffPageBar(
-              title: member?.displayName ?? l10n.workshopStaffTitle,
+              title:
+                  member?.displayName ??
+                  t(WorkshopAdminKeys.workshopStaffTitle),
               trailing: member == null
                   ? null
                   : StaffStatusPill(status: member.status),
@@ -135,16 +137,16 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
               child: staff.when(
                 loading: () => const StaffMemberSkeleton(),
                 error: (error, _) => StaffMemberMessage(
-                  title: l10n.error,
-                  body: l10n.commonLoadFailed,
+                  title: t(WorkshopAdminKeys.error),
+                  body: t(WorkshopAdminKeys.commonLoadFailed),
                   onRetry: () => ref.invalidate(staffProvider),
                 ),
                 data: (members) {
                   final value = _member(members);
                   if (value == null) {
                     return StaffMemberMessage(
-                      title: l10n.noTechnicians,
-                      body: l10n.staffSubtitle,
+                      title: t(WorkshopAdminKeys.noTechnicians),
+                      body: t(WorkshopAdminKeys.staffSubtitle),
                       onBack: () => Navigator.of(context).maybePop(),
                     );
                   }
@@ -160,7 +162,7 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
 
   Widget _record(StaffMember member) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final width = MediaQuery.sizeOf(context).width;
     return SingleChildScrollView(
@@ -183,7 +185,7 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
                 leading: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    WorkshopSectionHeader(title: l10n.details),
+                    WorkshopSectionHeader(title: t(WorkshopAdminKeys.details)),
                     SizedBox(height: spacing.sm),
                     WorkshopCard(
                       child: Column(
@@ -191,21 +193,21 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           StaffFact(
-                            label: l10n.displayName,
+                            label: t(WorkshopAdminKeys.displayName),
                             value: member.displayName,
                           ),
                           StaffFact(
-                            label: l10n.emailLabel,
+                            label: t(WorkshopAdminKeys.emailLabel),
                             value: member.emailMasked,
                             ltr: true,
                           ),
                           StaffFact(
-                            label: l10n.role,
-                            value: staffRoleLabel(context, member.role),
+                            label: t(WorkshopAdminKeys.role),
+                            value: staffRoleLabel(ref, member.role),
                           ),
                           StaffFact(
-                            label: l10n.status,
-                            value: staffStatusLabel(context, member.status),
+                            label: t(WorkshopAdminKeys.status),
+                            value: staffStatusLabel(ref, member.status),
                           ),
                         ],
                       ),
@@ -289,11 +291,11 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  staffRoleLabel(context, member.role),
+                  staffRoleLabel(ref, member.role),
                   style: ws.meta.copyWith(color: ws.muted),
                 ),
                 Text(
-                  '·\u00A0${member.emailMasked}',
+                  '�\u00A0${member.emailMasked}',
                   textDirection: TextDirection.ltr,
                   style: ws.meta.copyWith(color: ws.ink),
                 ),
@@ -321,12 +323,12 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
 
   /// The two account states this module has, as a state strip.
   ///
-  /// This is deliberately not a progress rail: Active → Disabled is a
+  /// This is deliberately not a progress rail: Active ? Disabled is a
   /// transition, not a later stage. The current state is inked, the other two
   /// stay quiet outlines, and no connector is drawn between them.
   Widget _statusStrip(StaffMember member) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     // No invitation flow exists: staff are created with credentials, so only
     // Active and Disabled are named.
@@ -334,7 +336,7 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
 
     Widget pill(String status) {
       final current = status == member.status;
-      final label = staffStatusLabel(context, status);
+      final label = staffStatusLabel(ref, status);
       return Semantics(
         selected: current,
         label: label,
@@ -364,7 +366,7 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
     }
 
     final label = Text(
-      l10n.status.toUpperCase(),
+      t(WorkshopAdminKeys.status).toUpperCase(),
       style: ws.eyebrow.copyWith(color: ws.muted),
     );
     return Align(
@@ -404,18 +406,20 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
   }
 
   Widget _actions(StaffMember member) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final active = member.status == 'ACTIVE';
     final disabled = member.status == 'DISABLED';
     final pills = <Widget>[
       TemplatePillButton(
-        label: l10n.staffResetPassword,
+        label: t(WorkshopAdminKeys.staffResetPassword),
         icon: Icons.lock_reset,
         onPressed: _focusReset,
       ),
       if ((active || disabled) && !_lifecycleOpen)
         TemplatePillButton(
-          label: disabled ? l10n.reactivate : l10n.deactivate,
+          label: disabled
+              ? t(WorkshopAdminKeys.reactivate)
+              : t(WorkshopAdminKeys.deactivate),
           icon: disabled ? Icons.lock_open_outlined : Icons.lock_outline,
           variant: disabled
               ? TemplatePillVariant.outline

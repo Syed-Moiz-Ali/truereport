@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'report_actions.dart';
 
@@ -33,7 +33,7 @@ class ReportTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final gutter = ws.pageGutter(MediaQuery.sizeOf(context).width);
     final compact = MediaQuery.sizeOf(context).width < 560;
 
@@ -55,7 +55,7 @@ class ReportTopBar extends StatelessWidget {
                   children: [
                     WorkshopIconButton(
                       icon: isRtl ? Icons.arrow_forward : Icons.arrow_back,
-                      semanticLabel: l10n.commonBack,
+                      semanticLabel: t(WorkshopAdminKeys.commonBack),
                       onPressed: onBack,
                     ),
                     SizedBox(width: spacing.sm),
@@ -63,7 +63,7 @@ class ReportTopBar extends StatelessWidget {
                     SizedBox(width: spacing.sm),
                     WorkshopIconButton(
                       icon: Icons.refresh,
-                      semanticLabel: l10n.refresh,
+                      semanticLabel: t(WorkshopAdminKeys.refresh),
                       onPressed: onRefresh,
                     ),
                     if (reportReady) ...[
@@ -71,13 +71,13 @@ class ReportTopBar extends StatelessWidget {
                       if (compact)
                         WorkshopIconButton(
                           icon: Icons.download_outlined,
-                          semanticLabel: l10n.downloadPdf,
-                          tooltip: l10n.downloadPdf,
+                          semanticLabel: t(WorkshopAdminKeys.downloadPdf),
+                          tooltip: t(WorkshopAdminKeys.downloadPdf),
                           onPressed: isBusy ? null : onDownload,
                         )
                       else
                         ReportActionButton(
-                          label: l10n.downloadPdf,
+                          label: t(WorkshopAdminKeys.downloadPdf),
                           onPressed: isBusy ? null : onDownload,
                           loading: isBusy,
                           icon: Icons.download_outlined,
@@ -104,13 +104,16 @@ class _Breadcrumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Semantics(
       container: true,
-      label: '${l10n.jobsTab}, $reference',
+      label: '${t(WorkshopAdminKeys.jobsTab)}, $reference',
       child: Row(
         children: [
-          Text(l10n.jobsTab, style: ws.meta.copyWith(color: ws.muted)),
+          Text(
+            t(WorkshopAdminKeys.jobsTab),
+            style: ws.meta.copyWith(color: ws.muted),
+          ),
           Padding(
             padding: EdgeInsetsDirectional.symmetric(horizontal: spacing.sm),
             child: ExcludeSemantics(

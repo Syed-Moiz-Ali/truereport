@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
 import 'support/fake_admin_api.dart';
+
+import 'support/ui_strings_harness.dart';
 
 class _RevokedApi extends FakeAdminApi {
   @override
@@ -41,8 +43,10 @@ Future<void> _pump(
       overrides: [adminApiProvider.overrideWithValue(api)],
       child: MaterialApp(
         locale: const Locale('en'),
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const <Locale>[Locale('en')],
+        localizationsDelegates: testLocalizationsDelegates,
+        builder: (context, child) =>
+            uiStringsScope(child: child ?? const SizedBox.shrink()),
         theme: AppTheme.light,
         home: const PublicLinkPage(jobId: 'job-3'),
       ),
@@ -57,15 +61,16 @@ void main() {
     'public link keeps the URL, token and QR under the dispatch bar',
     (tester) async {
       await _pump(tester, api: FakeAdminApi());
-      final l10n = AppLocalizations.of(
-        tester.element(find.byType(PublicLinkPage)),
-      );
+      final t = UiStrings.of(tester.element(find.byType(PublicLinkPage)));
 
-      expect(find.text(l10n.jobsPublicLinkTitle), findsOneWidget);
+      expect(
+        find.text(t(WorkshopAdminKeys.jobsPublicLinkTitle)),
+        findsOneWidget,
+      );
       expect(find.text('https://reports.test.local/r/token-3'), findsOneWidget);
       expect(find.text('token-3'), findsOneWidget);
-      expect(find.text(l10n.pdfDownload), findsOneWidget);
-      expect(find.text(l10n.jobsQrUnavailable), findsOneWidget);
+      expect(find.text(t(WorkshopAdminKeys.pdfDownload)), findsOneWidget);
+      expect(find.text(t(WorkshopAdminKeys.jobsQrUnavailable)), findsOneWidget);
 
       // Active actions, unchanged guards and keys.
       expect(find.byKey(const Key('jobs-share-button')), findsOneWidget);
@@ -99,14 +104,12 @@ void main() {
     );
 
     await _pump(tester, api: FakeAdminApi());
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(PublicLinkPage)),
-    );
-    await tester.tap(find.text(l10n.copyLink));
+    final t = UiStrings.of(tester.element(find.byType(PublicLinkPage)));
+    await tester.tap(find.text(t(WorkshopAdminKeys.copyLink)));
     await tester.pumpAndSettle();
 
     expect(copied, 'https://reports.test.local/r/token-3');
-    expect(find.text(l10n.linkCopied), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.linkCopied)), findsOneWidget);
   });
 
   testWidgets('revoked link shows the reason and never offers revoke again', (
@@ -114,7 +117,7 @@ void main() {
   ) async {
     await _pump(tester, api: _RevokedApi());
 
-    expect(find.text('REVOKED'), findsOneWidget);
+    expect(find.text('Revoked'), findsOneWidget);
     expect(find.text('Customer asked to withdraw the report'), findsOneWidget);
     expect(
       find.byKey(const Key('jobs-publish-checklist-button')),

@@ -38,10 +38,7 @@ void main() {
 
   testWidgets('capture f2b3 offline-sync level1', (tester) async {
     final root = repoRoot();
-    final outDir = fidelityOutputDir(
-      root,
-      'figma/fidelity/f2b3/offline-sync',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f2b3/offline-sync');
     final previous = enableFidelityShadows();
     try {
       await _render(tester, outDir);

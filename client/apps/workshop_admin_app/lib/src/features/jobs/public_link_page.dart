@@ -2,12 +2,14 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -33,10 +35,13 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final link = ref.watch(publicLinkProvider(widget.jobId));
+    final publicationStatuses = ref
+        .watch(statusesProvider('publication'))
+        .value;
     final qr = ref.watch(jobQrProvider(widget.jobId));
     return Scaffold(
       backgroundColor: ws.canvas,
@@ -46,12 +51,20 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             JobTitleBar(
-              title: l10n.jobsPublicLinkTitle,
+              title: t(WorkshopAdminKeys.jobsPublicLinkTitle),
               trailing: link.value == null
                   ? null
                   : _StatePill(
-                      label: link.value!.status,
-                      tone: _linkTone(link.value!.status),
+                      label: referenceStatusText(
+                        publicationStatuses,
+                        link.value!.status,
+                      ),
+                      tone: _pillTone(
+                        referenceStatusTone(
+                          publicationStatuses,
+                          link.value!.status,
+                        ),
+                      ),
                     ),
             ),
             Expanded(
@@ -73,9 +86,9 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
                           loading: () =>
                               const WorkshopSkeleton(card: true, lines: 4),
                           error: (error, _) => WorkshopErrorState(
-                            title: l10n.error,
-                            body: l10n.commonLoadFailed,
-                            retryLabel: l10n.retryAction,
+                            title: t(WorkshopAdminKeys.error),
+                            body: t(WorkshopAdminKeys.commonLoadFailed),
+                            retryLabel: t(WorkshopAdminKeys.retryAction),
                             onRetry: () => ref.invalidate(
                               publicLinkProvider(widget.jobId),
                             ),
@@ -116,21 +129,21 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   }
 
   Widget _actions(BuildContext context, PublicLink link, bool active) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final url = link.publicUrl;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: [
         JobPillButton(
-          label: l10n.copyLink,
+          label: t(WorkshopAdminKeys.copyLink),
           icon: Icons.copy,
           variant: active ? JobPillVariant.filled : JobPillVariant.outline,
           onPressed: _busy || url == null ? null : () => _copy(url),
         ),
         JobPillButton(
           key: const Key('jobs-share-button'),
-          label: l10n.jobsShare,
+          label: t(WorkshopAdminKeys.jobsShare),
           icon: Icons.share_outlined,
           variant: JobPillVariant.outline,
           onPressed: _busy || url == null ? null : () => _share(url),
@@ -138,13 +151,13 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
         if (!active)
           JobPillButton(
             key: const Key('jobs-publish-checklist-button'),
-            label: l10n.jobsOpenPublishChecklist,
+            label: t(WorkshopAdminKeys.jobsOpenPublishChecklist),
             icon: Icons.playlist_add_check_outlined,
             onPressed: _busy ? null : _openChecklist,
           ),
         if (active)
           JobPillButton(
-            label: l10n.jobsRotateToken,
+            label: t(WorkshopAdminKeys.jobsRotateToken),
             icon: Icons.autorenew,
             variant: JobPillVariant.outline,
             onPressed: _busy ? null : _rotate,
@@ -152,7 +165,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
         if (active)
           JobPillButton(
             key: const Key('jobs-unpublish-button'),
-            label: l10n.jobsUnpublish,
+            label: t(WorkshopAdminKeys.jobsUnpublish),
             icon: Icons.visibility_off_outlined,
             variant: JobPillVariant.ghost,
             onPressed: _busy ? null : _unpublish,
@@ -160,7 +173,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
         if (link.status != 'REVOKED')
           JobPillButton(
             key: const Key('jobs-revoke-button'),
-            label: l10n.jobsRevoke,
+            label: t(WorkshopAdminKeys.jobsRevoke),
             icon: Icons.link_off,
             variant: JobPillVariant.danger,
             onPressed: _busy ? null : _revoke,
@@ -172,7 +185,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   /// The link itself is the focal point: one surface, label above, the URL in
   /// wrapping tabular-free text, then the facts a support call needs.
   Widget _linkSurface(BuildContext context, PublicLink link) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final url = link.publicUrl;
     return Container(
@@ -192,7 +205,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l10n.jobsPublicUrl.toUpperCase(),
+                  t(WorkshopAdminKeys.jobsPublicUrl).toUpperCase(),
                   style: ws.eyebrow.copyWith(color: ws.muted),
                 ),
               ),
@@ -200,7 +213,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
           ),
           const SizedBox(height: 10),
           SelectableText(
-            url ?? l10n.commonNotAvailable,
+            url ?? t(WorkshopAdminKeys.commonNotAvailable),
             textDirection: TextDirection.ltr,
             style: ws.bodyStrong.copyWith(
               fontSize: 16,
@@ -212,28 +225,30 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
           Container(height: 1, color: ws.border),
           const SizedBox(height: 12),
           _Fact(
-            label: l10n.jobsPublicToken,
-            value: link.token ?? l10n.commonNotAvailable,
+            label: t(WorkshopAdminKeys.jobsPublicToken),
+            value: link.token ?? t(WorkshopAdminKeys.commonNotAvailable),
             valueDirection: TextDirection.ltr,
             selectable: true,
           ),
           _Fact(
-            label: l10n.pdfDownload,
-            value: link.pdfDownloadEnabled ? l10n.commonYes : l10n.commonNo,
+            label: t(WorkshopAdminKeys.pdfDownload),
+            value: link.pdfDownloadEnabled
+                ? t(WorkshopAdminKeys.commonYes)
+                : t(WorkshopAdminKeys.commonNo),
           ),
           if (link.activatedAt != null)
             _Fact(
-              label: l10n.jobsActivatedAt,
+              label: t(WorkshopAdminKeys.jobsActivatedAt),
               value: formatInstant(context, link.activatedAt),
             ),
           if (link.revokedAt != null)
             _Fact(
-              label: l10n.jobsRevokedAt,
+              label: t(WorkshopAdminKeys.jobsRevokedAt),
               value: formatInstant(context, link.revokedAt),
             ),
           if (link.revocationReason != null)
             _Fact(
-              label: l10n.jobsRevocationReason,
+              label: t(WorkshopAdminKeys.jobsRevocationReason),
               value: link.revocationReason!,
             ),
         ],
@@ -242,7 +257,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   }
 
   Widget _qrSurface(BuildContext context, AsyncValue<List<int>> qr) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 18),
@@ -256,7 +271,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            l10n.jobsQrTitle.toUpperCase(),
+            t(WorkshopAdminKeys.jobsQrTitle).toUpperCase(),
             style: ws.eyebrow.copyWith(color: ws.muted),
           ),
           const SizedBox(height: 14),
@@ -272,7 +287,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
                 Image.memory(
                   Uint8List.fromList(bytes),
                   fit: BoxFit.contain,
-                  semanticLabel: l10n.jobsQrTitle,
+                  semanticLabel: t(WorkshopAdminKeys.jobsQrTitle),
                   errorBuilder: (context, error, stackTrace) =>
                       _qrPlaceholder(context),
                 ),
@@ -314,7 +329,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   }
 
   Widget _qrPlaceholder(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return _qrFrame(
       context,
@@ -324,7 +339,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
           Icon(Icons.qr_code_2_outlined, size: 44, color: ws.muted),
           const SizedBox(height: 10),
           Text(
-            l10n.jobsQrUnavailable,
+            t(WorkshopAdminKeys.jobsQrUnavailable),
             textAlign: TextAlign.center,
             style: ws.meta.copyWith(color: ws.muted),
           ),
@@ -334,20 +349,22 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   }
 
   Future<void> _copy(String url) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await Clipboard.setData(ClipboardData(text: url));
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t(WorkshopAdminKeys.linkCopied))));
     }
   }
 
   Future<void> _share(String url) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await Clipboard.setData(ClipboardData(text: url));
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t(WorkshopAdminKeys.linkCopied))));
     }
   }
 
@@ -362,25 +379,26 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
   }
 
   Future<void> _rotate() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await _run(() async {
       await ref.read(adminApiProvider).rotateJobToken(widget.jobId);
       ref.invalidate(publicLinkProvider(widget.jobId));
       ref.invalidate(jobQrProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.jobsTokenRotated)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.jobsTokenRotated))),
+        );
       }
     });
   }
 
   Future<void> _unpublish() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final reason = await showJobReasonSheet(
       context,
-      title: l10n.jobsUnpublish,
-      label: l10n.jobsUnpublishReason,
-      confirmLabel: l10n.jobsUnpublish,
+      title: t(WorkshopAdminKeys.jobsUnpublish),
+      label: t(WorkshopAdminKeys.jobsUnpublishReason),
+      confirmLabel: t(WorkshopAdminKeys.jobsUnpublish),
     );
     if (reason == null || !mounted) {
       return;
@@ -389,19 +407,20 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
       await ref.read(adminApiProvider).unpublishJob(widget.jobId, reason);
       ref.invalidate(publicLinkProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.jobsLinkUnpublished)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.jobsLinkUnpublished))),
+        );
       }
     });
   }
 
   Future<void> _revoke() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final reason = await showJobReasonSheet(
       context,
-      title: l10n.jobsRevoke,
-      label: l10n.jobsRevokeReason,
-      confirmLabel: l10n.jobsRevoke,
+      title: t(WorkshopAdminKeys.jobsRevoke),
+      label: t(WorkshopAdminKeys.jobsRevokeReason),
+      confirmLabel: t(WorkshopAdminKeys.jobsRevoke),
     );
     if (reason == null || !mounted) {
       return;
@@ -411,14 +430,15 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
       ref.invalidate(publicLinkProvider(widget.jobId));
       ref.invalidate(jobQrProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.linkRevoked)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.linkRevoked))),
+        );
       }
     });
   }
 
   Future<void> _run(Future<void> Function() action) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() {
       _busy = true;
       _error = null;
@@ -427,7 +447,7 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
       await action();
     } on Object {
       if (mounted) {
-        setState(() => _error = l10n.commonActionFailed);
+        setState(() => _error = t(WorkshopAdminKeys.commonActionFailed));
       }
     } finally {
       if (mounted) {
@@ -439,10 +459,11 @@ class _PublicLinkPageState extends ConsumerState<PublicLinkPage> {
 
 enum _PillTone { success, warning, danger, neutral }
 
-_PillTone _linkTone(String status) => switch (status) {
-  'ACTIVE' => _PillTone.success,
-  'REVOKED' => _PillTone.danger,
-  _ => _PillTone.warning,
+_PillTone _pillTone(WorkshopStatusTone tone) => switch (tone) {
+  WorkshopStatusTone.success => _PillTone.success,
+  WorkshopStatusTone.danger => _PillTone.danger,
+  WorkshopStatusTone.accent || WorkshopStatusTone.warning => _PillTone.warning,
+  WorkshopStatusTone.neutral => _PillTone.neutral,
 };
 
 /// State pill in the module's full-radius badge geometry. Colour is paired

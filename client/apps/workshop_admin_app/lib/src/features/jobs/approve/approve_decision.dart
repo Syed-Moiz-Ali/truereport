@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// The note a reviewer leaves with their decision.
 ///
@@ -25,14 +25,14 @@ class ApproveDecision extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.reviewAndFinalize),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.reviewAndFinalize)),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: Column(
@@ -42,13 +42,13 @@ class ApproveDecision extends StatelessWidget {
               WorkshopTextField(
                 key: const Key('jobs-approve-reason'),
                 controller: reason,
-                label: l10n.jobsApproveReasonOptional,
+                label: t(WorkshopAdminKeys.jobsApproveReasonOptional),
                 onChanged: onReasonChanged,
               ),
               if (reasonMissing) ...[
                 SizedBox(height: spacing.xs),
                 Text(
-                  l10n.commonReasonRequired,
+                  t(WorkshopAdminKeys.commonReasonRequired),
                   style: ws.meta.copyWith(color: ws.danger),
                 ),
               ],
@@ -56,11 +56,11 @@ class ApproveDecision extends StatelessWidget {
               WorkshopTextField(
                 key: const Key('jobs-safety-cap-reason'),
                 controller: safetyCapReason,
-                label: l10n.jobsSafetyCapReason,
+                label: t(WorkshopAdminKeys.jobsSafetyCapReason),
               ),
               SizedBox(height: spacing.md),
               Text(
-                l10n.jobsRejectHint,
+                t(WorkshopAdminKeys.jobsRejectHint),
                 style: ws.meta.copyWith(color: ws.muted),
               ),
             ],

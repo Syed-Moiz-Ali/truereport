@@ -189,8 +189,7 @@ class _DenseMechanicalLevel1 extends StatelessWidget {
                       width: 390,
                       height: 818,
                       child: Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: _M.gutter),
+                        padding: EdgeInsets.symmetric(horizontal: _M.gutter),
                         child: Column(
                           children: [
                             _CardOne(),
@@ -213,18 +212,8 @@ class _DenseMechanicalLevel1 extends StatelessWidget {
             ),
           ],
         ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: _Level1Header(),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _Level1Dock(),
-        ),
+        Positioned(top: 0, left: 0, right: 0, child: _Level1Header()),
+        Positioned(bottom: 0, left: 0, right: 0, child: _Level1Dock()),
       ],
     );
   }
@@ -264,7 +253,11 @@ class _ZoneHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          _M.gutter, _M.padMid, _M.gutter, _M.gapSmall),
+        _M.gutter,
+        _M.padMid,
+        _M.gutter,
+        _M.gapSmall,
+      ),
       child: SizedBox(
         width: 350,
         height: 34,
@@ -279,8 +272,13 @@ class _ZoneHeader extends StatelessWidget {
                     'INSPECTION ZONE 04',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(12, 16, FontWeight.w600, 0.6,
-                        color: Fx.outline),
+                    style: Fx.text(
+                      12,
+                      16,
+                      FontWeight.w600,
+                      0.6,
+                      color: Fx.outline,
+                    ),
                   ),
                   Text(
                     '3 of 6 checkpoints logged',
@@ -307,7 +305,11 @@ class _LiveBayPill extends StatelessWidget {
     return Container(
       height: 26,
       padding: const EdgeInsets.fromLTRB(
-          _M.gapMid, _M.halfGap, _M.gapMid, _M.halfGap),
+        _M.gapMid,
+        _M.halfGap,
+        _M.gapMid,
+        _M.halfGap,
+      ),
       decoration: BoxDecoration(
         color: Fx.container,
         borderRadius: BorderRadius.circular(Fx.pillRadius),
@@ -321,8 +323,7 @@ class _LiveBayPill extends StatelessWidget {
             'Live Bay #2',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style:
-                Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.ink),
+            style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.ink),
           ),
         ],
       ),
@@ -338,8 +339,10 @@ class _Dot extends StatelessWidget {
     return Container(
       width: 8,
       height: 8,
-      decoration:
-          const BoxDecoration(color: Fx.emerald, shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+        color: Fx.emerald,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }
@@ -373,8 +376,13 @@ class _CardOne extends StatelessWidget {
                     'Engine Oil Level',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(18, 24, FontWeight.w700, -0.45,
-                        color: Fx.ink),
+                    style: Fx.text(
+                      18,
+                      24,
+                      FontWeight.w700,
+                      -0.45,
+                      color: Fx.ink,
+                    ),
                   ),
                   Text(
                     'Dipstick at optimal line \u2022 5W-30 synthetic',
@@ -470,8 +478,13 @@ class _CardTwo extends StatelessWidget {
                           'Coolant',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Fx.text(18, 24, FontWeight.w700, -0.45,
-                              color: Fx.ink),
+                          style: Fx.text(
+                            18,
+                            24,
+                            FontWeight.w700,
+                            -0.45,
+                            color: Fx.ink,
+                          ),
                         ),
                         Text(
                           'Expansion reservoir inspection',
@@ -486,8 +499,13 @@ class _CardTwo extends StatelessWidget {
                     label: 'ACTIVE',
                     background: Fx.surfaceHighest,
                     foreground: Fx.secondaryInk,
-                    style: Fx.text(11, 14, FontWeight.w700, 0.55,
-                        color: Fx.secondaryInk),
+                    style: Fx.text(
+                      11,
+                      14,
+                      FontWeight.w700,
+                      0.55,
+                      color: Fx.secondaryInk,
+                    ),
                   ),
                 ],
               ),
@@ -510,8 +528,7 @@ class _CardTwo extends StatelessWidget {
                       onPressed: null,
                       height: 48,
                       trailingIcon: false,
-                      icon: FxIcon(
-                          id: '1_8277', size: 16.67, color: Fx.white),
+                      icon: FxIcon(id: '1_8277', size: 16.67, color: Fx.white),
                     ),
                   ),
                   SizedBox(width: 12),
@@ -543,8 +560,7 @@ class _LevelSegmented extends StatelessWidget {
         children: [
           Expanded(child: _SegmentOption(label: 'Normal', selected: true)),
           Expanded(child: _SegmentOption(label: 'Low', selected: false)),
-          Expanded(
-              child: _SegmentOption(label: 'Critical', selected: false)),
+          Expanded(child: _SegmentOption(label: 'Critical', selected: false)),
         ],
       ),
     );
@@ -581,8 +597,9 @@ class _SegmentOption extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
         style: Fx.label12.copyWith(
-            color: selected ? Fx.ink : Fx.muted,
-            fontWeight: FontWeight.w600),
+          color: selected ? Fx.ink : Fx.muted,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -599,7 +616,11 @@ class _NoteArea extends StatelessWidget {
           width: 310,
           height: 68,
           padding: const EdgeInsets.fromLTRB(
-              _M.gapLarge, _M.gapLarge, _M.gapLarge, _M.noteBottom),
+            _M.gapLarge,
+            _M.gapLarge,
+            _M.gapLarge,
+            _M.noteBottom,
+          ),
           decoration: const BoxDecoration(color: Fx.container),
           child: SizedBox(
             width: 282,
@@ -608,8 +629,7 @@ class _NoteArea extends StatelessWidget {
               'Enter fluid level / notes',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Fx.text(14, 20, FontWeight.w500, -0.07,
-                  color: Fx.outline),
+              style: Fx.text(14, 20, FontWeight.w500, -0.07, color: Fx.outline),
             ),
           ),
         ),
@@ -672,8 +692,13 @@ class _CardThree extends StatelessWidget {
                           'Brake Fluid Level',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Fx.text(18, 24, FontWeight.w700, -0.45,
-                              color: Fx.ink),
+                          style: Fx.text(
+                            18,
+                            24,
+                            FontWeight.w700,
+                            -0.45,
+                            color: Fx.ink,
+                          ),
                         ),
                         Text(
                           'DOT 4 standard \u2022 Reservoir visual',
@@ -774,8 +799,13 @@ class _CardFour extends StatelessWidget {
                     'Transmission Fluid',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(18, 24, FontWeight.w700, -0.45,
-                        color: Fx.ink),
+                    style: Fx.text(
+                      18,
+                      24,
+                      FontWeight.w700,
+                      -0.45,
+                      color: Fx.ink,
+                    ),
                   ),
                   Text(
                     'Sealed system \u2022 Check overflow valve',
@@ -842,8 +872,13 @@ class _CardFive extends StatelessWidget {
                     'Washer Fluid',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(18, 24, FontWeight.w700, -0.45,
-                        color: Fx.ink),
+                    style: Fx.text(
+                      18,
+                      24,
+                      FontWeight.w700,
+                      -0.45,
+                      color: Fx.ink,
+                    ),
                   ),
                   Text(
                     'Topped to max reservoir line',

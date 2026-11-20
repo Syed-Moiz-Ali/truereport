@@ -13,9 +13,11 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../../reference_status_lookup.dart';
 import '../checklist/checklist_status.dart';
 
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 const _resultCodes = <String>[
   'NO_ISSUE_OBSERVED',
@@ -32,65 +34,29 @@ const _inputTypes = <String>[
 const _evidenceTypes = <String>['PHOTO', 'VIDEO', 'DOCUMENT', ''];
 const _directions = <String>['HIGHER_IS_BETTER', 'LOWER_IS_BETTER'];
 
-String _resultLabel(UiMessageStrings strings, String code) {
-  switch (code) {
-    case 'NO_ISSUE_OBSERVED':
-      return strings.tKey(PlatformAdminKeys.labelResultCodeNoIssueObserved);
-    case 'ATTENTION_RECOMMENDED':
-      return strings.tKey(
-        PlatformAdminKeys.labelResultCodeAttentionRecommended,
-      );
-    case 'DEFECT_FOUND':
-      return strings.tKey(PlatformAdminKeys.labelResultCodeDefectFound);
-    default:
-      return code;
-  }
-}
+String _resultLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String code,
+) => referenceCodeLabel(strings, records, code);
 
-String _evidenceTypeLabel(UiMessageStrings strings, String type) {
-  switch (type) {
-    case 'PHOTO':
-      return strings.tKey(PlatformAdminKeys.labelEvidenceTypePhoto);
-    case 'VIDEO':
-      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeVideo);
-    case 'DOCUMENT':
-      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeDocument);
-    case '':
-      return strings.tKey(PlatformAdminKeys.labelEvidenceTypeNone);
-    default:
-      return type;
-  }
-}
+String _evidenceTypeLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String type,
+) => referenceCodeLabel(strings, records, type);
 
-String _inputTypeLabel(UiMessageStrings strings, String type) {
-  switch (type) {
-    case 'SELECT':
-      return strings.tKey(PlatformAdminKeys.labelInputTypeSelect);
-    case 'MULTI_SELECT':
-      return strings.tKey(PlatformAdminKeys.labelInputTypeMultiSelect);
-    case 'NUMBER':
-      return strings.tKey(PlatformAdminKeys.labelInputTypeNumber);
-    case 'BOOLEAN':
-      return strings.tKey(PlatformAdminKeys.labelInputTypeBoolean);
-    case 'TEXT':
-      return strings.tKey(PlatformAdminKeys.labelInputTypeText);
-    default:
-      return type;
-  }
-}
+String _inputTypeLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String type,
+) => referenceCodeLabel(strings, records, type);
 
-String _directionLabel(UiMessageStrings strings, String direction) {
-  switch (direction) {
-    case 'HIGHER_IS_BETTER':
-      return strings.tKey(
-        PlatformAdminKeys.labelMeasureDirectionHigherIsBetter,
-      );
-    case 'LOWER_IS_BETTER':
-      return strings.tKey(PlatformAdminKeys.labelMeasureDirectionLowerIsBetter);
-    default:
-      return direction;
-  }
-}
+String _directionLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String direction,
+) => referenceCodeLabel(strings, records, direction);
 
 const _requiredForStatuses = <String>[
   'NO_ISSUE_OBSERVED',
@@ -2033,6 +1999,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   Future<void> save() => _save();
   late List<_EvidenceRuleForm> _forms;
   bool _saving = false;
+  String? _error;
 
   @override
   void initState() {
@@ -2080,12 +2047,32 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   }
 
   Future<void> _save() async {
-    setState(() => _saving = true);
+    final strings = ref.read(uiStringsProvider);
+    if (_forms.any((form) => form.hasInvalidDuration)) {
+      setState(
+        () => _error = strings.tKey(
+          PlatformAdminKeys.evidenceRulesInvalidDuration,
+        ),
+      );
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
       await widget.onSave(_forms.map((form) => form.toRule()).toList());
     } catch (error) {
       if (!mounted) return;
-      _showSnack(context, _failureMessage(error), isError: true);
+      final invalidRules =
+          error is AppFailure && error.code == 'EVIDENCE_RULES_INVALID';
+      setState(
+        () => _error = strings.tKey(
+          invalidRules
+              ? PlatformAdminKeys.evidenceRulesInvalidDuration
+              : PlatformAdminKeys.evidenceRulesSaveFailed,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -2104,6 +2091,22 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
             _buildRuleRow(strings, index),
+            const SizedBox(height: 10),
+          ],
+          if (_error != null) ...[
+            Container(
+              key: const Key('evidence-rules-error'),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: PtTheme.rose.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: PtTheme.rose.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                _error!,
+                style: PtTheme.font(12.5, color: PtTheme.rose),
+              ),
+            ),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -2144,6 +2147,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
 
   Widget _buildRuleRow(dynamic strings, int index) {
     final form = _forms[index];
+    final isVideo = form.isVideo;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2168,7 +2172,13 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
                         for (final code in _resultCodes)
                           DropdownMenuItem(
                             value: code,
-                            child: Text(_resultLabel(strings, code)),
+                            child: Text(
+                              _resultLabel(
+                                strings,
+                                ref.watch(enumsProvider('result')).value,
+                                code,
+                              ),
+                            ),
                           ),
                       ],
                       onChanged: (value) {
@@ -2223,6 +2233,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
                       ),
                       enabled: widget.editable,
                       keyboardType: TextInputType.number,
+                      onChanged: (_) => setState(() {}),
                     ),
                     PlatformTextField(
                       controller: form.minNotes,
@@ -2248,7 +2259,15 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
                             for (final type in _evidenceTypes)
                               DropdownMenuItem(
                                 value: type,
-                                child: Text(_evidenceTypeLabel(strings, type)),
+                                child: Text(
+                                  _evidenceTypeLabel(
+                                    strings,
+                                    ref
+                                        .watch(enumsProvider('evidence-type'))
+                                        .value,
+                                    type,
+                                  ),
+                                ),
                               ),
                           ],
                           onChanged: (value) {
@@ -2265,6 +2284,48 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
               );
             },
           ),
+          if (isVideo) ...[
+            const SizedBox(height: 10),
+            Text(
+              strings.tKey(PlatformAdminKeys.fieldEvidenceDurationHelper),
+              style: PtTheme.font(11.5, color: PtTheme.muted, lineHeight: 16),
+            ),
+            const SizedBox(height: 8),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final fieldWidth = constraints.maxWidth >= 700
+                    ? (constraints.maxWidth - 16) / 2
+                    : constraints.maxWidth;
+                return Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  children: [
+                    for (final field in <Widget>[
+                      PlatformTextField(
+                        key: Key('evidence-min-duration-$index'),
+                        controller: form.minDuration,
+                        label: strings.tKey(
+                          PlatformAdminKeys.fieldEvidenceMinDuration,
+                        ),
+                        enabled: widget.editable,
+                        keyboardType: TextInputType.number,
+                      ),
+                      PlatformTextField(
+                        key: Key('evidence-max-duration-$index'),
+                        controller: form.maxDuration,
+                        label: strings.tKey(
+                          PlatformAdminKeys.fieldEvidenceMaxDuration,
+                        ),
+                        enabled: widget.editable,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ])
+                      SizedBox(width: fieldWidth, child: field),
+                  ],
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -2279,13 +2340,32 @@ class _EvidenceRuleForm {
       requiredEvidenceType = rule.requiredEvidenceType,
       minPhotos = TextEditingController(text: rule.minPhotos.toString()),
       minVideos = TextEditingController(text: rule.minVideos.toString()),
-      minNotes = TextEditingController(text: rule.minNotesChars.toString());
+      minNotes = TextEditingController(text: rule.minNotesChars.toString()),
+      minDuration = TextEditingController(
+        text: rule.minDurationSeconds?.toString() ?? '',
+      ),
+      maxDuration = TextEditingController(
+        text: rule.maxDurationSeconds?.toString() ?? '',
+      );
 
   String resultCode;
   String requiredEvidenceType;
   final TextEditingController minPhotos;
   final TextEditingController minVideos;
   final TextEditingController minNotes;
+  final TextEditingController minDuration;
+  final TextEditingController maxDuration;
+
+  bool get isVideo =>
+      (int.tryParse(minVideos.text.trim()) ?? 0) > 0 ||
+      requiredEvidenceType == 'VIDEO';
+
+  int? get minDurationSeconds => evidenceDurationSeconds(minDuration.text);
+
+  int? get maxDurationSeconds => evidenceDurationSeconds(maxDuration.text);
+
+  bool get hasInvalidDuration =>
+      evidenceDurationsInvalid(minDuration.text, maxDuration.text);
 
   EvidenceRule toRule() => EvidenceRule(
     resultCode: resultCode,
@@ -2293,12 +2373,16 @@ class _EvidenceRuleForm {
     minVideos: int.tryParse(minVideos.text.trim()) ?? 0,
     minNotesChars: int.tryParse(minNotes.text.trim()) ?? 0,
     requiredEvidenceType: requiredEvidenceType,
+    minDurationSeconds: minDurationSeconds,
+    maxDurationSeconds: maxDurationSeconds,
   );
 
   void dispose() {
     minPhotos.dispose();
     minVideos.dispose();
     minNotes.dispose();
+    minDuration.dispose();
+    maxDuration.dispose();
   }
 }
 
@@ -2489,7 +2573,15 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                             for (final type in _inputTypes)
                               DropdownMenuItem(
                                 value: type,
-                                child: Text(_inputTypeLabel(strings, type)),
+                                child: Text(
+                                  _inputTypeLabel(
+                                    strings,
+                                    ref
+                                        .watch(enumsProvider(inputTypeEnum))
+                                        .value,
+                                    type,
+                                  ),
+                                ),
                               ),
                           ],
                           onChanged: (value) {
@@ -2667,7 +2759,11 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                 children: [
                   for (final status in _requiredForStatuses)
                     PlatformFilterChip(
-                      label: _resultLabel(strings, status),
+                      label: _resultLabel(
+                        strings,
+                        ref.watch(enumsProvider('result')).value,
+                        status,
+                      ),
                       selected: form.requiredForStatuses.contains(status),
                       onTap: () => setState(() {
                         if (form.requiredForStatuses.contains(status)) {
@@ -2969,7 +3065,17 @@ class _MeasurementBandsSectionState
                               DropdownMenuItem(
                                 value: direction,
                                 child: Text(
-                                  _directionLabel(strings, direction),
+                                  _directionLabel(
+                                    strings,
+                                    ref
+                                        .watch(
+                                          enumsProvider(
+                                            measurementDirectionEnum,
+                                          ),
+                                        )
+                                        .value,
+                                    direction,
+                                  ),
                                 ),
                               ),
                           ],
@@ -3008,7 +3114,13 @@ class _MeasurementBandsSectionState
                             for (final code in _resultCodes)
                               DropdownMenuItem(
                                 value: code,
-                                child: Text(_resultLabel(strings, code)),
+                                child: Text(
+                                  _resultLabel(
+                                    strings,
+                                    ref.watch(enumsProvider('result')).value,
+                                    code,
+                                  ),
+                                ),
                               ),
                           ],
                           onChanged: (value) {

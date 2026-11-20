@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import '../../../admin_providers.dart';
 import 'settings_geometry.dart';
@@ -23,7 +23,7 @@ class SettingsLanguageSurface extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final selection = ref.watch(languageSelectionProvider(client));
     final languages =
@@ -37,7 +37,7 @@ class SettingsLanguageSurface extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(l10n.settingsLanguage, style: ws.sectionTitle),
+          Text(t(WorkshopAdminKeys.settingsLanguage), style: ws.sectionTitle),
           const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {

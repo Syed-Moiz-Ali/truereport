@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
@@ -18,7 +18,7 @@ class JobDetailSummary extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final staff = ref.watch(staffProvider).value;
@@ -73,24 +73,26 @@ class JobDetailSummary extends ConsumerWidget {
             minColumns: 2,
             facts: [
               JobFact(
-                label: l10n.scheduledAt,
-                value: schedule.isEmpty ? l10n.commonNotAvailable : schedule,
+                label: t(WorkshopAdminKeys.scheduledAt),
+                value: schedule.isEmpty
+                    ? t(WorkshopAdminKeys.commonNotAvailable)
+                    : schedule,
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.jobsAssignedTechnician,
-                value: jobTechnicianName(l10n, job, staff),
+                label: t(WorkshopAdminKeys.jobsAssignedTechnician),
+                value: jobTechnicianName(t, job, staff),
               ),
               JobFact(
-                label: l10n.template,
+                label: t(WorkshopAdminKeys.template),
                 value: template.isEmpty
-                    ? l10n.commonNotAvailable
+                    ? t(WorkshopAdminKeys.commonNotAvailable)
                     : job.templateVersionNo == null
                     ? template
                     : '$template v${job.templateVersionNo}',
               ),
               JobFact(
-                label: l10n.jobsScore,
+                label: t(WorkshopAdminKeys.jobsScore),
                 value: formatScore(context, job.score),
               ),
             ],

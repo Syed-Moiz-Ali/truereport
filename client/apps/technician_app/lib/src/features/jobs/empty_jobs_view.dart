@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Screen 03: 3._Empty_State_Dashboard
 ///
@@ -38,7 +38,7 @@ class EmptyJobsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final textScale = MediaQuery.textScalerOf(context).scale(1.0);
     final isLargeText = textScale > 1.05;
@@ -47,7 +47,7 @@ class EmptyJobsView extends StatelessWidget {
       backgroundColor: Fx.white,
       extendBody: true,
       appBar: FxHeader(
-        title: l10n.technicianInspectionQueue,
+        title: t(TechnicianKeys.technicianInspectionQueue),
         titleStyle: Fx.text(16, 22, FontWeight.w700, -0.4),
         horizontalPadding: _Metrics.gutter,
         endPadding: 18.75,
@@ -71,9 +71,9 @@ class EmptyJobsView extends StatelessWidget {
       bottomNavigationBar: _JobsDock(
         selectedIndex: selectedIndex,
         jobsLabel: isAr ? 'استلام' : 'Intake',
-        fleetLabel: isAr ? 'الأسطول' : l10n.statusFinalized,
-        syncLabel: l10n.technicianSyncTitle,
-        profileLabel: l10n.technicianProfileTitle,
+        fleetLabel: isAr ? 'الأسطول' : t(TechnicianKeys.statusFinalized),
+        syncLabel: t(TechnicianKeys.technicianSyncTitle),
+        profileLabel: t(TechnicianKeys.technicianProfileTitle),
         onIntake: onIntake,
         onSync: onSync,
         onProfile: onProfile,
@@ -92,12 +92,11 @@ class EmptyJobsView extends StatelessWidget {
           children: [
             // Top Row: Avatar (48x48) + Shift Pill (116.48x22) + Bay Pill (84.69x26)
             ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _Metrics.topRowHeight),
+              constraints: const BoxConstraints(
+                minHeight: _Metrics.topRowHeight,
+              ),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  top: 8,
-                  bottom: 16,
-                ),
+                padding: const EdgeInsetsDirectional.only(top: 8, bottom: 16),
                 child: Row(
                   children: [
                     FxAvatar(
@@ -119,16 +118,16 @@ class EmptyJobsView extends StatelessWidget {
                     if (isLargeText)
                       Flexible(
                         child: _ShiftPill(
-                          label: l10n.technicianQueueEmpty,
+                          label: t(TechnicianKeys.technicianQueueEmpty),
                         ),
                       )
                     else
-                      _ShiftPill(
-                        label: l10n.technicianQueueEmpty,
-                      ),
+                      _ShiftPill(label: t(TechnicianKeys.technicianQueueEmpty)),
                     const Spacer(),
                     _BayPill(
-                      label: l10n.technicianJobsCount(0),
+                      label: t(TechnicianKeys.technicianJobsCount, {
+                        'count': 0,
+                      }),
                     ),
                   ],
                 ),
@@ -137,14 +136,16 @@ class EmptyJobsView extends StatelessWidget {
 
             // Welcome Section
             ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _Metrics.welcomeHeight),
+              constraints: const BoxConstraints(
+                minHeight: _Metrics.welcomeHeight,
+              ),
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(top: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.technicianWelcomeBack,
+                      t(TechnicianKeys.technicianWelcomeBack),
                       style: Fx.welcome16.copyWith(color: Fx.muted),
                     ),
                     const SizedBox(height: _Metrics.g2),
@@ -189,7 +190,12 @@ class EmptyJobsView extends StatelessWidget {
                     child: Center(
                       child: Container(
                         height: 22,
-                        padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          12,
+                          4,
+                          12,
+                          4,
+                        ),
                         decoration: BoxDecoration(
                           color: Fx.tintEmerald,
                           borderRadius: BorderRadius.circular(9999),
@@ -204,7 +210,9 @@ class EmptyJobsView extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              l10n.technicianJobsInQueue(0).toUpperCase(),
+                              t(TechnicianKeys.technicianJobsInQueue, {
+                                'count': 0,
+                              }).toUpperCase(),
                               style: Fx.text(
                                 11,
                                 14,
@@ -228,7 +236,7 @@ class EmptyJobsView extends StatelessWidget {
                       child: SizedBox(
                         width: _Metrics.headingWidth,
                         child: Text(
-                          l10n.technicianAllCaughtUp,
+                          t(TechnicianKeys.technicianAllCaughtUp),
                           textAlign: TextAlign.center,
                           style: Fx.display22.copyWith(color: Fx.ink),
                         ),
@@ -245,7 +253,7 @@ class EmptyJobsView extends StatelessWidget {
                       child: SizedBox(
                         width: 280,
                         child: Text(
-                          l10n.technicianNoJobsBody,
+                          t(TechnicianKeys.technicianNoJobsBody),
                           textAlign: TextAlign.center,
                           style: Fx.text(
                             14,
@@ -265,7 +273,7 @@ class EmptyJobsView extends StatelessWidget {
                     left: 87.47,
                     width: _Metrics.refreshWidth,
                     child: _RefreshButton(
-                      label: l10n.technicianRefreshQueue,
+                      label: t(TechnicianKeys.technicianRefreshQueue),
                       onPressed: onRefresh,
                     ),
                   ),
@@ -281,7 +289,12 @@ class EmptyJobsView extends StatelessWidget {
                         child: Container(
                           width: 251.74,
                           height: 26,
-                          padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 6),
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            16,
+                            6,
+                            16,
+                            6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEEEDF3),
                             borderRadius: BorderRadius.circular(9999),
@@ -290,7 +303,7 @@ class EmptyJobsView extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                l10n.queueCurrentSynced,
+                                t(TechnicianKeys.queueCurrentSynced),
                                 style: Fx.text(
                                   11,
                                   14,
@@ -311,7 +324,9 @@ class EmptyJobsView extends StatelessWidget {
 
             // Summary Strip
             ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _Metrics.summaryHeight),
+              constraints: const BoxConstraints(
+                minHeight: _Metrics.summaryHeight,
+              ),
               child: _SummaryCard(
                 completedToday: completedToday,
                 isLargeText: isLargeText,
@@ -400,13 +415,7 @@ class _BayPill extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Fx.text(
-                11,
-                14,
-                FontWeight.w700,
-                0.44,
-                color: Fx.ink,
-              ),
+              style: Fx.text(11, 14, FontWeight.w700, 0.44, color: Fx.ink),
             ),
           ),
         ],
@@ -505,10 +514,7 @@ class _Bars extends StatelessWidget {
 }
 
 class _RefreshButton extends StatelessWidget {
-  const _RefreshButton({
-    required this.label,
-    required this.onPressed,
-  });
+  const _RefreshButton({required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback onPressed;
@@ -549,13 +555,7 @@ class _RefreshButton extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Fx.text(
-                    14,
-                    18,
-                    FontWeight.w700,
-                    -0.14,
-                    color: Fx.ink,
-                  ),
+                  style: Fx.text(14, 18, FontWeight.w700, -0.14, color: Fx.ink),
                 ),
               ),
             ],
@@ -567,40 +567,25 @@ class _RefreshButton extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.completedToday,
-    this.isLargeText = false,
-  });
+  const _SummaryCard({required this.completedToday, this.isLargeText = false});
 
   final int completedToday;
   final bool isLargeText;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          l10n.technicianTodaySummary,
-          style: Fx.text(
-            11,
-            14,
-            FontWeight.w600,
-            0.44,
-            color: Fx.muted,
-          ),
+          t(TechnicianKeys.technicianTodaySummary),
+          style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
         ),
         Text(
-          l10n.technicianCompletedToday(completedToday),
-          style: Fx.text(
-            16,
-            22,
-            FontWeight.w700,
-            -0.16,
-            color: Fx.ink,
-          ),
+          t(TechnicianKeys.technicianCompletedToday, {'count': completedToday}),
+          style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.ink),
         ),
       ],
     );
@@ -611,7 +596,7 @@ class _SummaryCard extends StatelessWidget {
         if (isLargeText)
           Flexible(
             child: Text(
-              l10n.technicianCoverageOnly,
+              t(TechnicianKeys.technicianCoverageOnly),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Fx.text(
@@ -625,22 +610,11 @@ class _SummaryCard extends StatelessWidget {
           )
         else
           Text(
-            l10n.technicianCoverageOnly,
-            style: Fx.text(
-              12,
-              16,
-              FontWeight.w700,
-              0.24,
-              color: Fx.deepGreen,
-            ),
+            t(TechnicianKeys.technicianCoverageOnly),
+            style: Fx.text(12, 16, FontWeight.w700, 0.24, color: Fx.deepGreen),
           ),
         const SizedBox(width: 4),
-        const FxIcon(
-          id: '1_7360',
-          width: 15,
-          height: 9,
-          color: Fx.deepGreen,
-        ),
+        const FxIcon(id: '1_7360', width: 15, height: 9, color: Fx.deepGreen),
       ],
     );
 
@@ -678,10 +652,7 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // Center Text: TODAY'S SUMMARY + {n} Completed
-          if (isLargeText)
-            Flexible(child: titleBlock)
-          else
-            titleBlock,
+          if (isLargeText) Flexible(child: titleBlock) else titleBlock,
           const Spacer(),
           // Right cluster: summary metrics
           passRateBlock,
@@ -698,10 +669,10 @@ class _SyncPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final label = online
-        ? l10n.technicianOnlineSync
-        : l10n.technicianOfflineSync;
+        ? t(TechnicianKeys.technicianOnlineSync)
+        : t(TechnicianKeys.technicianOfflineSync);
     return Container(
       width: 65.75,
       height: 36,

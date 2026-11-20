@@ -44,6 +44,28 @@ public final class OverviewDtos {
         }
     }
 
+    public record MetricCardDto(
+            String code,
+            String labelKey,
+            String value,
+            String captionKey,
+            String tone,
+            int order) {
+    }
+
+    public record AlertActionDto(String labelKey, String route) {
+    }
+
+    public record LocalizedAlertDto(
+            String code,
+            String severity,
+            int order,
+            String titleKey,
+            String bodyKey,
+            java.util.Map<String, String> args,
+            AlertActionDto action) {
+    }
+
     public record OverviewDto(
             WorkshopsSummaryDto workshops,
             StaffSummaryDto staff,
@@ -52,7 +74,9 @@ public final class OverviewDtos {
             ChecklistSummaryDto checklist,
             LanguagesSummaryDto languages,
             List<RecentActivityDto> recentActivity,
-            List<AlertDto> alerts
+            List<AlertDto> alerts,
+            List<MetricCardDto> metricCards,
+            List<LocalizedAlertDto> localizedAlerts
     ) {
     }
 }

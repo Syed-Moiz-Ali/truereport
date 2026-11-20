@@ -111,6 +111,17 @@ public class PlatformItemService {
                     && !ConfigValidators.EVIDENCE_TYPES.contains(rule.requiredEvidenceType())) {
                 throw ApiException.unprocessable("EVIDENCE_RULES_INVALID", "Invalid evidence type");
             }
+            Integer minDuration = rule.minDurationSeconds();
+            Integer maxDuration = rule.maxDurationSeconds();
+            if ((minDuration != null && minDuration <= 0)
+                    || (maxDuration != null && maxDuration <= 0)) {
+                throw ApiException.unprocessable("EVIDENCE_RULES_INVALID",
+                        "Evidence durations must be positive seconds or null");
+            }
+            if (minDuration != null && maxDuration != null && minDuration >= maxDuration) {
+                throw ApiException.unprocessable("EVIDENCE_RULES_INVALID",
+                        "minDurationSeconds must be less than maxDurationSeconds");
+            }
         }
         itemConfig.replaceEvidenceRules(versionId.toString(), rules);
         audit.record(actor, "MASTER_ITEM_EVIDENCE_RULES_UPDATED", "MASTER_ITEM_VERSION",

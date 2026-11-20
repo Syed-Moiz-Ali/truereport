@@ -4,7 +4,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_style.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
@@ -17,6 +17,8 @@ import 'package:workshop_admin_app/src/features/staff/staff_tab.dart';
 import 'package:workshop_admin_app/src/features/templates/templates_tab.dart';
 
 import 'support/fake_admin_api.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// Structure and shell contract for the rebuilt dashboard (direction B).
 ///
@@ -53,13 +55,15 @@ Future<void> _pump(
       container: container,
       child: MaterialApp(
         locale: locale,
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const <Locale>[Locale('en')],
+        localizationsDelegates: testLocalizationsDelegates,
         theme: AppTheme.light,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(textScale)),
-          child: child ?? const SizedBox.shrink(),
+        builder: (context, child) => uiStringsScope(
+          child: MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child ?? const SizedBox.shrink(),
+          ),
         ),
         home: const WorkshopAdminHomePage(),
       ),
@@ -79,9 +83,7 @@ void main() {
     await _pump(tester);
     expect(tester.takeException(), isNull);
 
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
 
     // Regions, in order.
     expect(find.byType(DashboardHero), findsOneWidget);
@@ -99,15 +101,18 @@ void main() {
     }
 
     // Group titles.
-    expect(find.text(l10n.dashGroupWaiting), findsOneWidget);
-    expect(find.text(l10n.dashGroupInBay), findsOneWidget);
-    expect(find.text(l10n.dashGroupReady), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashGroupWaiting)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashGroupInBay)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashGroupReady)), findsOneWidget);
 
     // The footer states the meaning of the partition.
-    expect(find.text(l10n.dashFooterSum(3)), findsOneWidget);
+    expect(
+      find.text(t(WorkshopAdminKeys.dashFooterSum, {'total': 3})),
+      findsOneWidget,
+    );
 
     // Exactly one filled primary action on the page.
-    expect(find.text(l10n.newJob), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.newJob)), findsOneWidget);
   });
 
   testWidgets('1024 keeps the horizontal atlas at the mid scale', (

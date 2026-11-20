@@ -1,7 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
@@ -18,14 +20,14 @@ class JobDetailInspection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final review = ref.watch(jobReviewProvider(job.id));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobDetailInspection),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.jobDetailInspection)),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: Column(
@@ -36,22 +38,26 @@ class JobDetailInspection extends ConsumerWidget {
                 minColumns: 2,
                 facts: [
                   JobFact(
-                    label: l10n.jobsGrade,
-                    value: job.gradeCode ?? l10n.commonNotAvailable,
+                    label: t(WorkshopAdminKeys.jobsGrade),
+                    value:
+                        job.gradeCode ??
+                        t(WorkshopAdminKeys.commonNotAvailable),
                   ),
                   JobFact(
-                    label: l10n.safetyCap,
+                    label: t(WorkshopAdminKeys.safetyCap),
                     value: job.safetyCapApplied
-                        ? (job.safetyCapReason ?? l10n.jobsSafetyCapApplied)
-                        : l10n.jobsSafetyCapNotApplied,
+                        ? (job.safetyCapReason ??
+                              t(WorkshopAdminKeys.jobsSafetyCapApplied))
+                        : t(WorkshopAdminKeys.jobsSafetyCapNotApplied),
                   ),
                 ],
               ),
               SizedBox(height: spacing.lg),
               review.when(
                 loading: () => const WorkshopSkeleton(lines: 3),
-                error: (error, _) =>
-                    WorkshopInlineNote(text: l10n.commonLoadFailed),
+                error: (error, _) => WorkshopInlineNote(
+                  text: t(WorkshopAdminKeys.commonLoadFailed),
+                ),
                 data: (value) => _Findings(review: value),
               ),
             ],
@@ -69,11 +75,11 @@ class _Findings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     if (review.findings.isEmpty) {
       return Text(
-        l10n.jobsNoFindings,
+        t(WorkshopAdminKeys.jobsNoFindings),
         style: ws.meta.copyWith(color: ws.muted),
       );
     }
@@ -90,28 +96,18 @@ class _Findings extends StatelessWidget {
   }
 }
 
-class _FindingRow extends StatelessWidget {
+class _FindingRow extends ConsumerWidget {
   const _FindingRow({required this.finding});
 
   final ReviewFinding finding;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final (
-      String label,
-      WorkshopStatusTone tone,
-    ) = switch (finding.resultCode) {
-      'NO_ISSUE_OBSERVED' => (l10n.noIssueObserved, WorkshopStatusTone.success),
-      'DEFECT_FOUND' => (l10n.defectFound, WorkshopStatusTone.danger),
-      'ATTENTION_RECOMMENDED' => (
-        l10n.attentionRecommended,
-        WorkshopStatusTone.warning,
-      ),
-      _ => (l10n.commonNotAvailable, WorkshopStatusTone.neutral),
-    };
+    final results = ref.watch(enumsProvider('result')).value;
+    final label = referenceStatusText(results, finding.resultCode ?? '');
+    final tone = referenceStatusTone(results, finding.resultCode ?? '');
     return Padding(
       padding: EdgeInsetsDirectional.symmetric(vertical: spacing.md),
       child: Row(

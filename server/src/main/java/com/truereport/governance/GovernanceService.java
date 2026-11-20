@@ -158,10 +158,11 @@ public class GovernanceService {
                 .flatMap(entry -> entry.getValue().missing().stream()
                         .map(name -> entry.getKey() + "." + name))
                 .limit(50).toList();
-        return new HealthCheckDto("TRANSLATIONS", missing == 0 ? "OK" : "ERROR",
+        return check("TRANSLATIONS", missing == 0 ? "OK" : "ERROR",
                 missing == 0 ? "English content is complete"
                         : missing + " translation(s) missing",
-                missing, references);
+                missing, references,
+                "health.check.translations.label", "health.check.translations.description");
     }
 
     private HealthCheckDto measurementBandCheck() {
@@ -170,10 +171,12 @@ public class GovernanceService {
         List<String> broken = versionIds.stream()
                 .filter(versionId -> !nonOverlapping(itemConfig.measurementBands(versionId)))
                 .toList();
-        return new HealthCheckDto("MEASUREMENT_BANDS", broken.isEmpty() ? "OK" : "ERROR",
+        return check("MEASUREMENT_BANDS", broken.isEmpty() ? "OK" : "ERROR",
                 broken.isEmpty() ? "Measurement bands are contiguous and non-overlapping"
                         : broken.size() + " item version(s) have overlapping measurement bands",
-                broken.size(), broken);
+                broken.size(), broken,
+                "health.check.measurementBands.label",
+                "health.check.measurementBands.description");
     }
 
     private HealthCheckDto retiredOptionCheck() {
@@ -183,10 +186,12 @@ public class GovernanceService {
                 WHERE v.status = 'RETIRED'
                 """, Integer.class);
         int affected = count == null ? 0 : count;
-        return new HealthCheckDto("RETIRED_OPTIONS", affected == 0 ? "OK" : "ERROR",
+        return check("RETIRED_OPTIONS", affected == 0 ? "OK" : "ERROR",
                 affected == 0 ? "No retired option values are referenced by active items"
                         : affected + " retired option value(s) are still referenced",
-                affected, List.of());
+                affected, List.of(),
+                "health.check.retiredOptions.label",
+                "health.check.retiredOptions.description");
     }
 
     private HealthCheckDto safetyEvidenceCheck() {
@@ -204,10 +209,12 @@ public class GovernanceService {
                 missing.add(content.item(itemId).map(ItemRow::stableCode).orElse(itemId));
             }
         }
-        return new HealthCheckDto("SAFETY_EVIDENCE", missing.isEmpty() ? "OK" : "ERROR",
+        return check("SAFETY_EVIDENCE", missing.isEmpty() ? "OK" : "ERROR",
                 missing.isEmpty() ? "Safety-critical items have FAIL evidence rules"
                         : missing.size() + " safety-critical item(s) missing FAIL evidence rules",
-                missing.size(), missing);
+                missing.size(), missing,
+                "health.check.safetyEvidence.label",
+                "health.check.safetyEvidence.description");
     }
 
     private HealthCheckDto templateItemCheck() {
@@ -219,10 +226,12 @@ public class GovernanceService {
                 GROUP BY t.code, tv.id
                 HAVING COUNT(ti.id) = 0
                 """, (rs, i) -> rs.getString(1));
-        return new HealthCheckDto("TEMPLATE_ITEMS", empty.isEmpty() ? "OK" : "ERROR",
+        return check("TEMPLATE_ITEMS", empty.isEmpty() ? "OK" : "ERROR",
                 empty.isEmpty() ? "All active template versions contain items"
                         : empty.size() + " template version(s) contain zero items",
-                empty.size(), empty);
+                empty.size(), empty,
+                "health.check.templateItems.label",
+                "health.check.templateItems.description");
     }
 
     private HealthCheckDto numericMeasurementCheck() {
@@ -238,10 +247,21 @@ public class GovernanceService {
                 missing.add(content.item(itemId).map(ItemRow::stableCode).orElse(itemId));
             }
         }
-        return new HealthCheckDto("NUMERIC_MEASUREMENTS", missing.isEmpty() ? "OK" : "ERROR",
+        return check("NUMERIC_MEASUREMENTS", missing.isEmpty() ? "OK" : "ERROR",
                 missing.isEmpty() ? "Numeric items have measurement bands"
                         : missing.size() + " numeric item(s) lack measurement bands",
-                missing.size(), missing);
+                missing.size(), missing,
+                "health.check.numericMeasurements.label",
+                "health.check.numericMeasurements.description");
+    }
+
+    private static HealthCheckDto check(String code, String status, String message,
+                                        int affected, List<String> references,
+                                        String labelKey, String descriptionKey) {
+        String tone = "OK".equals(status) ? "success"
+                : ("WARNING".equals(status) ? "warning" : "danger");
+        return new HealthCheckDto(code, status, message, affected, references,
+                labelKey, descriptionKey, tone, status);
     }
 
     private boolean nonOverlapping(List<MeasurementBandDto> bands) {

@@ -110,7 +110,6 @@ class TechnicianJob {
   };
 }
 
-
 class EquipmentItem {
   const EquipmentItem({
     required this.equipmentId,
@@ -382,117 +381,6 @@ class ReviewResult {
         .map((item) => ReviewIssue.fromJson(item as Map<String, dynamic>))
         .toList(growable: false),
   );
-}
-
-class FinalizeResult {
-  const FinalizeResult({
-    required this.jobId,
-    required this.status,
-    required this.finalizedAt,
-    required this.snapshotHash,
-    required this.itemCount,
-    required this.warnings,
-  });
-
-  final String jobId;
-  final String status;
-  final String finalizedAt;
-  final String snapshotHash;
-  final int itemCount;
-  final List<String> warnings;
-
-  factory FinalizeResult.fromJson(Map<String, dynamic> json) => FinalizeResult(
-    jobId: json['jobId'] as String? ?? '',
-    status: json['status'] as String? ?? '',
-    finalizedAt: json['finalizedAt'] as String? ?? '',
-    snapshotHash: json['snapshotHash'] as String? ?? '',
-    itemCount: json['itemCount'] as int? ?? 0,
-    warnings: _strings(json['warnings']),
-  );
-}
-
-class TemplateVersionOption {
-  const TemplateVersionOption({
-    required this.versionId,
-    required this.templateId,
-    required this.templateName,
-    required this.versionNo,
-    required this.serviceType,
-    required this.vehicleType,
-  });
-
-  final String versionId;
-  final String templateId;
-  final String templateName;
-  final int versionNo;
-  final String serviceType;
-  final String? vehicleType;
-
-  factory TemplateVersionOption.fromJson(Map<String, dynamic> json) =>
-      TemplateVersionOption(
-        versionId: json['versionId'] as String? ?? '',
-        templateId: json['templateId'] as String? ?? '',
-        templateName: json['templateName'] as String? ?? '',
-        versionNo: json['versionNo'] as int? ?? 0,
-        serviceType: json['serviceType'] as String? ?? '',
-        vehicleType: json['vehicleType'] as String?,
-      );
-}
-
-class InspectionEvidence {
-  const InspectionEvidence({
-    required this.id,
-    required this.inspectionItemId,
-    required this.mime,
-    required this.bytes,
-    required this.capturedAt,
-    required this.status,
-    required this.sha256,
-  });
-
-  final String id;
-  final String inspectionItemId;
-  final String mime;
-  final int bytes;
-  final String capturedAt;
-  final String status;
-  final String sha256;
-
-  factory InspectionEvidence.fromJson(Map<String, dynamic> json) =>
-      InspectionEvidence(
-        id: json['id'] as String? ?? '',
-        inspectionItemId: json['inspectionItemId'] as String? ?? '',
-        mime: json['mime'] as String? ?? '',
-        bytes: json['bytes'] as int? ?? 0,
-        capturedAt: json['capturedAt'] as String? ?? '',
-        status: json['status'] as String? ?? '',
-        sha256: json['sha256'] as String? ?? '',
-      );
-}
-
-class EvidenceInitResult {
-  const EvidenceInitResult({
-    required this.evidenceId,
-    required this.status,
-    required this.uploadUrl,
-    required this.uploadToken,
-    required this.expiresAt,
-  });
-
-  final String evidenceId;
-  final String status;
-  final String? uploadUrl;
-  final String? uploadToken;
-  final String expiresAt;
-
-  factory EvidenceInitResult.fromJson(Map<String, dynamic> json) =>
-      EvidenceInitResult(
-        evidenceId: json['evidenceId'] as String? ?? '',
-        status: json['status'] as String? ?? '',
-        uploadUrl: json['uploadUrl'] as String?,
-        uploadToken: json['uploadToken'] as String?,
-        expiresAt: json['expiresAt'] as String? ?? '',
-      );
 }
 
 List<String> _strings(dynamic value) => (value as List<dynamic>? ?? <dynamic>[])

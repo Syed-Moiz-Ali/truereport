@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 enum AnnotationTool { draw, undo, crop }
 
@@ -54,12 +54,15 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
-    final effectiveTitle = widget.title ?? l10n.technicianInspection;
-    final effectiveItemName = widget.itemName ?? l10n.attachments;
+    final effectiveTitle =
+        widget.title ?? t(TechnicianKeys.technicianInspection);
+    final effectiveItemName = widget.itemName ?? t(TechnicianKeys.attachments);
     final effectiveFileName = widget.fileName ?? 'PHOTO_01.JPG';
-    final effectiveCallout = widget.defectCallout ?? l10n.annotationDefectCount(1);
+    final effectiveCallout =
+        widget.defectCallout ??
+        t(TechnicianKeys.annotationDefectCount, {'count': 1});
     final effectiveMeasurement = widget.defectMeasurement ?? 'Scuff';
 
     return Scaffold(
@@ -88,9 +91,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                   children: [
                     Semantics(
                       button: true,
-                      label: MaterialLocalizations.of(context).backButtonTooltip,
+                      label: MaterialLocalizations.of(context)
+                          .backButtonTooltip,
                       child: InkResponse(
-                        onTap: widget.onBack ?? () => Navigator.of(context).maybePop(),
+                        onTap:
+                            widget.onBack ??
+                            () => Navigator.of(context).maybePop(),
                         radius: 22,
                         child: const SizedBox(
                           width: 44,
@@ -133,11 +139,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: const FxIcon(
-                  id: '1_8219',
-                  size: 12,
-                  color: Fx.white,
-                ),
+                child: const FxIcon(id: '1_8219', size: 12, color: Fx.white),
               ),
             ],
           ),
@@ -154,7 +156,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                 ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 48),
                   child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 12),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      20,
+                      8,
+                      20,
+                      12,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -198,7 +205,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                         ),
                         Container(
                           height: 22,
-                          padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
+                          padding: const EdgeInsetsDirectional.fromSTEB(
+                            12,
+                            4,
+                            12,
+                            4,
+                          ),
                           decoration: const BoxDecoration(
                             color: Fx.white,
                             borderRadius: BorderRadius.all(
@@ -226,7 +238,9 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                AppLocalizations.of(context).annotationMarkupActive,
+                                UiStrings.of(context)(
+                                  TechnicianKeys.annotationMarkupActive,
+                                ),
                                 maxLines: 1,
                                 style: Fx.text(
                                   11,
@@ -246,7 +260,9 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
 
                 // Photo Canvas Card (y: 112..549.5, height 437.5).
                 Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 20,
+                  ),
                   child: Container(
                     key: const ValueKey('photo-annotation-card'),
                     width: 350,
@@ -324,7 +340,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                             children: [
                               Container(
                                 height: 26,
-                                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 14, 6),
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                  14,
+                                  6,
+                                  14,
+                                  6,
+                                ),
                                 decoration: const BoxDecoration(
                                   color: Fx.whiteE5,
                                   borderRadius: BorderRadius.all(
@@ -390,7 +411,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                             children: [
                               Container(
                                 height: 26,
-                                padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 14, 6),
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                  14,
+                                  6,
+                                  14,
+                                  6,
+                                ),
                                 decoration: const BoxDecoration(
                                   color: Color(0xF2FFFFFF),
                                   borderRadius: BorderRadius.all(
@@ -427,7 +453,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                               ),
                               Container(
                                 height: 26,
-                                padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 6),
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                  12,
+                                  6,
+                                  12,
+                                  6,
+                                ),
                                 decoration: const BoxDecoration(
                                   color: Color(0xF2FFFFFF),
                                   borderRadius: BorderRadius.all(
@@ -460,12 +491,19 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
 
                 // Annotation Tools Card (y: 569.5..829.5, height 260).
                 Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 20,
+                  ),
                   child: Container(
                     key: const ValueKey('photo-annotation-tools'),
                     width: 350,
                     constraints: const BoxConstraints(minHeight: 260),
-                    padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      20,
+                      20,
+                      20,
+                      20,
+                    ),
                     decoration: const BoxDecoration(
                       color: Fx.white,
                       borderRadius: BorderRadius.all(Radius.circular(32)),
@@ -489,7 +527,9 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                         ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 44),
                           child: Padding(
-                            padding: const EdgeInsetsDirectional.only(bottom: 4),
+                            padding: const EdgeInsetsDirectional.only(
+                              bottom: 4,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -497,10 +537,13 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                 Expanded(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        AppLocalizations.of(context).annotationTools,
+                                        UiStrings.of(context)(
+                                          TechnicianKeys.annotationTools,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Fx.text(
@@ -512,7 +555,9 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                         ),
                                       ),
                                       Text(
-                                        AppLocalizations.of(context).annotationDrawHint,
+                                        UiStrings.of(context)(
+                                          TechnicianKeys.annotationDrawHint,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Fx.text(
@@ -529,7 +574,12 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                 const SizedBox(width: 8),
                                 Container(
                                   height: 22,
-                                  padding: const EdgeInsetsDirectional.fromSTEB(10, 4, 10, 4),
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                    10,
+                                    4,
+                                    10,
+                                    4,
+                                  ),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFFF4F3F8),
                                     borderRadius: BorderRadius.all(
@@ -538,7 +588,8 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       const FxIcon(
                                         id: '1_8185',
@@ -575,39 +626,45 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                               Expanded(
                                 child: _ToolButton(
                                   key: const ValueKey('photo-annotation-draw'),
-                                  label: l10n.technicianDraw,
+                                  label: t(TechnicianKeys.technicianDraw),
                                   iconId: '1_8191',
                                   iconSize: 20,
                                   selected: _tool == AnnotationTool.draw,
                                   onTap: () {
                                     setState(() => _tool = AnnotationTool.draw);
-                                    widget.onSelectTool?.call(AnnotationTool.draw);
+                                    widget.onSelectTool?.call(
+                                      AnnotationTool.draw,
+                                    );
                                   },
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _ToolButton(
-                                  label: l10n.technicianUndo,
+                                  label: t(TechnicianKeys.technicianUndo),
                                   iconId: '1_8196',
                                   iconSize: 17,
                                   selected: _tool == AnnotationTool.undo,
                                   onTap: () {
                                     setState(() => _tool = AnnotationTool.undo);
-                                    widget.onSelectTool?.call(AnnotationTool.undo);
+                                    widget.onSelectTool?.call(
+                                      AnnotationTool.undo,
+                                    );
                                   },
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _ToolButton(
-                                  label: l10n.technicianCrop,
+                                  label: t(TechnicianKeys.technicianCrop),
                                   iconId: '1_8201',
                                   iconSize: 22,
                                   selected: _tool == AnnotationTool.crop,
                                   onTap: () {
                                     setState(() => _tool = AnnotationTool.crop);
-                                    widget.onSelectTool?.call(AnnotationTool.crop);
+                                    widget.onSelectTool?.call(
+                                      AnnotationTool.crop,
+                                    );
                                   },
                                 ),
                               ),
@@ -619,7 +676,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
 
                         // Save Photo button (h: 56).
                         FxButton(
-                          label: l10n.technicianSavePhoto,
+                          label: t(TechnicianKeys.technicianSavePhoto),
                           trailingIcon: false,
                           icon: const FxIcon(
                             id: '1_8206',

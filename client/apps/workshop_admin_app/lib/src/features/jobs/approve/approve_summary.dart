@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_fact.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_fact_grid.dart';
@@ -16,7 +16,7 @@ class ApproveSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final template = localizedText(
       context,
@@ -27,35 +27,38 @@ class ApproveSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobsSummary),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.jobsSummary)),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: JobFactGrid(
             minColumns: 2,
             facts: [
               JobFact(
-                label: l10n.jobsAssignedTechnician,
-                value: job.assignedTechnicianName ?? l10n.unassigned,
+                label: t(WorkshopAdminKeys.jobsAssignedTechnician),
+                value:
+                    job.assignedTechnicianName ??
+                    t(WorkshopAdminKeys.unassigned),
               ),
               JobFact(
-                label: l10n.jobsTemplate,
+                label: t(WorkshopAdminKeys.jobsTemplate),
                 value: job.templateVersionNo == null
                     ? template
                     : '$template\u00A0·\u00A0v${formatNumber(context, job.templateVersionNo!)}',
               ),
               JobFact(
-                label: l10n.jobsScore,
+                label: t(WorkshopAdminKeys.jobsScore),
                 value: formatScore(context, job.score),
               ),
               JobFact(
-                label: l10n.jobsGrade,
-                value: job.gradeCode ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.jobsGrade),
+                value: job.gradeCode ?? t(WorkshopAdminKeys.commonNotAvailable),
               ),
               JobFact(
-                label: l10n.safetyCap,
+                label: t(WorkshopAdminKeys.safetyCap),
                 value: job.safetyCapApplied
-                    ? (job.safetyCapReason ?? l10n.jobsSafetyCapApplied)
-                    : l10n.jobsSafetyCapNotApplied,
+                    ? (job.safetyCapReason ??
+                          t(WorkshopAdminKeys.jobsSafetyCapApplied))
+                    : t(WorkshopAdminKeys.jobsSafetyCapNotApplied),
               ),
             ],
           ),

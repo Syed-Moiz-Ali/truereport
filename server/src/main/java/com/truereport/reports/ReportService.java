@@ -8,6 +8,11 @@ import com.truereport.inspections.InspectionFinalSnapshot;
 import com.truereport.inspections.InspectionFinalSnapshotRepository;
 import com.truereport.jobs.InspectionJob;
 import com.truereport.jobs.InspectionJobRepository;
+import com.truereport.jobs.PlatformJobStore;
+import com.truereport.jobs.PlatformJobStore.DocumentRow;
+import com.truereport.jobs.PlatformJobStore.JobRow;
+import com.truereport.jobs.PlatformJobStore.LinkRow;
+import com.truereport.jobs.PlatformJobStore.ReportVersionRow;
 import com.truereport.reports.api.ReportAdminDto;
 import com.truereport.reports.api.ReportLinkResponse;
 import com.truereport.reports.api.ReportStatusDto;
@@ -43,6 +48,7 @@ public class ReportService {
     private final PublicShareLinkRepository links;
     private final EvidenceDerivativeRepository derivatives;
     private final InspectionJobRepository jobs;
+    private final PlatformJobStore platformJobs;
     private final InspectionFinalSnapshotRepository finalSnapshots;
     private final ConsentRecordRepository consents;
     private final ReportSnapshotBuilder snapshotBuilder;
@@ -59,6 +65,7 @@ public class ReportService {
                          PublicShareLinkRepository links,
                          EvidenceDerivativeRepository derivatives,
                          InspectionJobRepository jobs,
+                         PlatformJobStore platformJobs,
                          InspectionFinalSnapshotRepository finalSnapshots,
                          ConsentRecordRepository consents,
                          ReportSnapshotBuilder snapshotBuilder,
@@ -74,6 +81,7 @@ public class ReportService {
         this.links = links;
         this.derivatives = derivatives;
         this.jobs = jobs;
+        this.platformJobs = platformJobs;
         this.finalSnapshots = finalSnapshots;
         this.consents = consents;
         this.snapshotBuilder = snapshotBuilder;
@@ -108,8 +116,82 @@ public class ReportService {
 
     @Transactional
     public ReportAdminDto adminForJob(CurrentUser caller, UUID jobId) {
-        ReportContext context = contextForAdmin(caller, jobId);
-        return adminDto(context);
+        try {
+            ReportContext context = contextForAdmin(caller, jobId);
+            return adminDto(context);
+        } catch (ApiException exception) {
+            if (exception.status() != HttpStatus.NOT_FOUND) {
+                throw exception;
+            }
+            ReportAdminDto platform = platformAdminForJob(caller, jobId);
+            if (platform == null) {
+                throw exception;
+            }
+            return platform;
+        }
+    }
+
+    /**
+     * Admin report for a job created through the clean workshop tables. The
+     * public report already reads {@code platform_report_versions}; the admin
+     * screen must see the same stored snapshot, including its server-computed
+     * {@code summary}.
+     */
+    private ReportAdminDto platformAdminForJob(CurrentUser caller, UUID jobId) {
+        if (!caller.isWorkshopAdmin() || caller.workshopId() == null) {
+            return null;
+        }
+        String jobKey = jobId.toString();
+        JobRow job = platformJobs.findJob(caller.workshopId().toString(), jobKey).orElse(null);
+        if (job == null) {
+            return null;
+        }
+        ReportVersionRow version = platformJobs.latestReportVersion(jobKey).orElse(null);
+        if (version == null) {
+            return null;
+        }
+        List<DocumentRow> documents = platformJobs.documents(version.id());
+        String generationStatus = generationStatus(documents);
+        String generationError = documents.stream()
+                .map(DocumentRow::error)
+                .filter(error -> error != null && !error.isBlank())
+                .findFirst().orElse(null);
+        LinkRow link = platformJobs.latestLink(jobKey).orElse(null);
+        String linkState = link == null
+                ? "PENDING_CONSENT"
+                : ("PENDING".equals(link.status()) ? "PENDING_CONSENT" : link.status());
+        String finalizedAt = job.completedAt() != null
+                ? job.completedAt().toString()
+                : version.createdAt().toString();
+        return new ReportAdminDto(
+                uuid(version.id()), jobId, job.reference(), version.versionNo(),
+                generationStatus, generationError, 0, true, false,
+                link != null && link.pdfDownloadEnabled(), linkState,
+                job.consentGranted() ? "GRANTED" : "MISSING_OR_NOT_GRANTED",
+                null, finalizedAt, version.snapshotHash(),
+                platformJobs.activeLink(jobKey).isPresent() ? 1 : 0,
+                parseSnapshotJson(version.snapshotJson()));
+    }
+
+    private static String generationStatus(List<DocumentRow> documents) {
+        if (documents.isEmpty()) {
+            return "READY";
+        }
+        if (documents.stream().anyMatch(document -> "FAILED".equals(document.status()))) {
+            return "FAILED";
+        }
+        if (documents.stream().anyMatch(document -> !"READY".equals(document.status()))) {
+            return "GENERATING";
+        }
+        return "READY";
+    }
+
+    private static UUID uuid(String value) {
+        try {
+            return UUID.fromString(value);
+        } catch (RuntimeException ignored) {
+            return UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     @Transactional
@@ -194,16 +276,46 @@ public class ReportService {
 
     @Transactional
     public ReportLinkResponse setPdfDownload(CurrentUser caller, UUID jobId, boolean enabled) {
-        ReportContext context = contextForAdmin(caller, jobId);
-        PublicShareLink link = context.link();
+        try {
+            ReportContext context = contextForAdmin(caller, jobId);
+            PublicShareLink link = context.link();
+            if (link == null) {
+                throw new ApiException(HttpStatus.CONFLICT, "LINK_NOT_CREATED",
+                        "error.link.notCreated", "No public link exists");
+            }
+            link.setPdfDownloadEnabled(enabled);
+            links.save(link);
+            audit(caller, context.report(), "PDF_DOWNLOAD_SETTING_CHANGED", enabled ? "ENABLED" : "DISABLED");
+            return new ReportLinkResponse(link.getStatus(), null, link.isPdfDownloadEnabled());
+        } catch (ApiException exception) {
+            if (exception.status() != HttpStatus.NOT_FOUND) {
+                throw exception;
+            }
+            ReportLinkResponse clean = setCleanPdfDownload(caller, jobId, enabled);
+            if (clean == null) {
+                throw exception;
+            }
+            return clean;
+        }
+    }
+
+    private ReportLinkResponse setCleanPdfDownload(CurrentUser caller, UUID jobId, boolean enabled) {
+        if (!caller.isWorkshopAdmin() || caller.workshopId() == null) {
+            return null;
+        }
+        String jobKey = jobId.toString();
+        JobRow job = platformJobs.findJob(caller.workshopId().toString(), jobKey).orElse(null);
+        if (job == null) {
+            return null;
+        }
+        LinkRow link = platformJobs.latestLink(jobKey).orElse(null);
         if (link == null) {
             throw new ApiException(HttpStatus.CONFLICT, "LINK_NOT_CREATED",
                     "error.link.notCreated", "No public link exists");
         }
-        link.setPdfDownloadEnabled(enabled);
-        links.save(link);
-        audit(caller, context.report(), "PDF_DOWNLOAD_SETTING_CHANGED", enabled ? "ENABLED" : "DISABLED");
-        return new ReportLinkResponse(link.getStatus(), null, link.isPdfDownloadEnabled());
+        platformJobs.setPdfDownload(link.id(), enabled);
+        LinkRow updated = platformJobs.latestLink(jobKey).orElse(link);
+        return new ReportLinkResponse(updated.status(), null, updated.pdfDownloadEnabled());
     }
 
     @Transactional
@@ -326,11 +438,55 @@ public class ReportService {
     }
 
     private ReportSnapshot parseSnapshot(ReportVersion version) {
+        return parseSnapshotJson(version.getSnapshotJson());
+    }
+
+    private ReportSnapshot parseSnapshotJson(String snapshotJson) {
         try {
-            return objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
+            return withSummary(objectMapper.readValue(snapshotJson, ReportSnapshot.class));
         } catch (Exception exception) {
             throw new IllegalStateException("Invalid report snapshot", exception);
         }
+    }
+
+    /**
+     * Snapshots written before the summary contract shipped still need a
+     * summary. Derive it from the stored coverage/findings; new snapshots carry
+     * the exact score-engine figures.
+     */
+    private ReportSnapshot withSummary(ReportSnapshot snapshot) {
+        if (snapshot == null || snapshot.summary() != null) {
+            return snapshot;
+        }
+        int findingsCount = snapshot.keyFindings() == null ? 0 : snapshot.keyFindings().size();
+        int safetyCriticalCount = snapshot.keyFindings() == null ? 0 : (int) snapshot.keyFindings()
+                .stream()
+                .filter(item -> "DEFECT_FOUND".equals(item.resultCode())
+                        && "SAFETY_CRITICAL".equals(item.severityCode()))
+                .count();
+        int passedCount = snapshot.categories() == null ? 0 : (int) snapshot.categories().stream()
+                .flatMap(category -> category.items().stream())
+                .filter(item -> "NO_ISSUE_OBSERVED".equals(item.resultCode()))
+                .count();
+        ReportSnapshot.Summary summary = new ReportSnapshot.Summary(
+                findingsCount, safetyCriticalCount, passedCount,
+                coveragePercent(snapshot.coverage()));
+        return new ReportSnapshot(
+                snapshot.reportNumber(), snapshot.reportVersion(), snapshot.finalizedAt(),
+                snapshot.publishedAt(), snapshot.vehicle(), snapshot.inspection(),
+                snapshot.workshop(), snapshot.technician(), snapshot.customerName(),
+                snapshot.coverage(), summary, snapshot.score(), snapshot.gradeCode(),
+                snapshot.safetyCapApplied(), snapshot.safetyCapReason(),
+                snapshot.keyFindings(), snapshot.categories(),
+                snapshot.notChecked(), snapshot.limitations(), snapshot.disclaimer(),
+                snapshot.verificationHash());
+    }
+
+    private static double coveragePercent(ReportSnapshot.Coverage coverage) {
+        if (coverage == null || coverage.applicable() <= 0) {
+            return 0.0;
+        }
+        return Math.round(coverage.completed() * 1000.0 / coverage.applicable()) / 10.0;
     }
 
     private LocalDateTime now() {

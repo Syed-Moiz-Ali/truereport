@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 
 import '../../inspection_models.dart';
 import '../../ui_helpers.dart';
@@ -56,17 +58,17 @@ class InspectionDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final locale = Localizations.localeOf(context).toString();
     final categories = [...checklist.categories]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
     if (categories.isEmpty) {
       return _chrome(
         context,
-        l10n,
+        t,
         child: EmptyState(
-          title: l10n.technicianNoCategories,
-          body: l10n.technicianNoItems,
+          title: t(TechnicianKeys.technicianNoCategories),
+          body: t(TechnicianKeys.technicianNoItems),
           icon: Icons.checklist_rounded,
         ),
       );
@@ -108,7 +110,7 @@ class InspectionDeck extends StatelessWidget {
             ],
             if (focused != null) ...[
               Text(
-                '${l10n.technicianInspection.toUpperCase()} · '
+                '${t(TechnicianKeys.technicianInspection).toUpperCase()} · '
                 '${category.nameFor(language).toUpperCase()}',
                 style: _eyebrow(context),
               ),
@@ -116,7 +118,7 @@ class InspectionDeck extends StatelessWidget {
               _FocusedItemCard(
                 item: focused,
                 language: language,
-                l10n: l10n,
+                t: t,
                 onOpen: () => onOpen(focused),
               ),
             ],
@@ -125,7 +127,7 @@ class InspectionDeck extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    l10n.technicianNextUp.toUpperCase(),
+                    t(TechnicianKeys.technicianNextUp).toUpperCase(),
                     style: _eyebrow(context),
                   ),
                   const SizedBox(width: 10),
@@ -141,7 +143,7 @@ class InspectionDeck extends StatelessWidget {
               _NextItems(
                 items: next,
                 language: language,
-                l10n: l10n,
+                t: t,
                 onFocus: onFocus,
                 onOpen: onOpen,
               ),
@@ -191,11 +193,7 @@ class InspectionDeck extends StatelessWidget {
     );
   }
 
-  Widget _chrome(
-    BuildContext context,
-    AppLocalizations l10n, {
-    required Widget child,
-  }) {
+  Widget _chrome(BuildContext context, UiStrings t, {required Widget child}) {
     return Column(
       children: [
         _TopBar(checklist: checklist, onBack: onBack),
@@ -417,7 +415,7 @@ class _CategoryRail extends StatelessWidget {
       padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 24),
       children: [
         Text(
-          AppLocalizations.of(context).technicianInspectionModules
+          UiStrings.of(context)(TechnicianKeys.technicianInspectionModules)
               .toUpperCase(),
           style: _eyebrow(context),
         ),
@@ -438,7 +436,7 @@ class _CategoryRail extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            AppLocalizations.of(context).technicianStartHint,
+            UiStrings.of(context)(TechnicianKeys.technicianStartHint),
             style: _text(
               context,
               12,
@@ -624,21 +622,22 @@ class _SectionChips extends StatelessWidget {
   }
 }
 
-class _FocusedItemCard extends StatelessWidget {
+class _FocusedItemCard extends ConsumerWidget {
   const _FocusedItemCard({
     required this.item,
     required this.language,
-    required this.l10n,
+    required this.t,
     required this.onOpen,
   });
 
   final ChecklistItem item;
   final String language;
-  final AppLocalizations l10n;
+  final UiStrings t;
   final VoidCallback onOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultRecords = ref.watch(enumsProvider('result')).value;
     final colors = context.colors;
     final result = item.assessment?.resultCode;
     final instruction = item.instructionFor(language);
@@ -671,9 +670,9 @@ class _FocusedItemCard extends StatelessWidget {
               const SizedBox(width: 8),
               _ResultChip(
                 label: result == null
-                    ? l10n.notChecked
-                    : resultLabel(l10n, result),
-                tone: resultTone(result),
+                    ? t(TechnicianKeys.notChecked)
+                    : resultLabel(resultRecords, result),
+                tone: resultTone(resultRecords, result),
               ),
             ],
           ),
@@ -730,19 +729,20 @@ class _FocusedItemCard extends StatelessWidget {
             children: [
               if (item.safetyCritical)
                 _ToneChip(
-                  label: l10n.technicianSafetyCritical,
+                  label: t(TechnicianKeys.technicianSafetyCritical),
                   tone: StatusTone.danger,
                   icon: Icons.health_and_safety_outlined,
                 ),
               if (item.multiPoint)
                 _ToneChip(
-                  label: l10n.technicianMultiPoint,
+                  label: t(TechnicianKeys.technicianMultiPoint),
                   tone: StatusTone.info,
                   icon: Icons.grid_on_outlined,
                 ),
               if (item.measurementUnit != null)
                 _ToneChip(
-                  label: '${l10n.technicianUnit}: ${item.measurementUnit}',
+                  label:
+                      '${t(TechnicianKeys.technicianUnit)}: ${item.measurementUnit}',
                   tone: StatusTone.neutral,
                 ),
             ],
@@ -750,8 +750,8 @@ class _FocusedItemCard extends StatelessWidget {
           const SizedBox(height: 14),
           _PillButton(
             label: result == null
-                ? l10n.start
-                : l10n.technicianContinueChecklist,
+                ? t(TechnicianKeys.start)
+                : t(TechnicianKeys.technicianContinueChecklist),
             icon: Icons.arrow_forward_rounded,
             onPressed: onOpen,
           ),
@@ -765,14 +765,14 @@ class _NextItems extends StatelessWidget {
   const _NextItems({
     required this.items,
     required this.language,
-    required this.l10n,
+    required this.t,
     required this.onFocus,
     required this.onOpen,
   });
 
   final List<ChecklistItem> items;
   final String language;
-  final AppLocalizations l10n;
+  final UiStrings t;
   final ValueChanged<ChecklistItem> onFocus;
   final ValueChanged<ChecklistItem> onOpen;
 
@@ -794,7 +794,7 @@ class _NextItems extends StatelessWidget {
               _NextRow(
                 item: visible[index],
                 language: language,
-                l10n: l10n,
+                t: t,
                 onTap: () {
                   onFocus(visible[index]);
                   onOpen(visible[index]);
@@ -815,21 +815,22 @@ class _NextItems extends StatelessWidget {
   }
 }
 
-class _NextRow extends StatelessWidget {
+class _NextRow extends ConsumerWidget {
   const _NextRow({
     required this.item,
     required this.language,
-    required this.l10n,
+    required this.t,
     required this.onTap,
   });
 
   final ChecklistItem item;
   final String language;
-  final AppLocalizations l10n;
+  final UiStrings t;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultRecords = ref.watch(enumsProvider('result')).value;
     final colors = context.colors;
     final result = item.assessment?.resultCode;
     return Semantics(
@@ -849,7 +850,7 @@ class _NextRow extends StatelessWidget {
                   color: result == null
                       ? colors.outline
                       : context.statusColors
-                            .forTone(resultTone(result))
+                            .forTone(resultTone(resultRecords, result))
                             .foreground,
                   shape: BoxShape.circle,
                 ),
@@ -868,7 +869,9 @@ class _NextRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                result == null ? l10n.notChecked : resultLabel(l10n, result),
+                result == null
+                    ? t(TechnicianKeys.notChecked)
+                    : resultLabel(resultRecords, result),
                 style: _text(
                   context,
                   11.5,
@@ -897,11 +900,11 @@ class _SummaryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final colors = context.colors;
     return Semantics(
       button: true,
-      label: l10n.technicianOpenSummary,
+      label: t(TechnicianKeys.technicianOpenSummary),
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -922,7 +925,7 @@ class _SummaryStrip extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  l10n.technicianOpenSummary,
+                  t(TechnicianKeys.technicianOpenSummary),
                   style: _text(
                     context,
                     13.5,

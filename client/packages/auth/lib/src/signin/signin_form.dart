@@ -1,9 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'signin_copy.dart';
 import 'signin_submit_button.dart';
+import 'signin_keys.dart';
 
 /// The door: title block, labelled fields, the inline failure banner and the
 /// single primary action.
@@ -56,7 +57,7 @@ class SigninForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return Form(
       key: formKey,
@@ -114,8 +115,7 @@ class SigninForm extends StatelessWidget {
                   validator: validatePassword,
                   suffixIcon: IconButton(
                     tooltip: obscurePassword
-                        ? l10n.showPassword
-                        : l10n.hidePassword,
+                        ? t(SignInKeys.showPassword): t(SignInKeys.hidePassword),
                     icon: Icon(
                       obscurePassword
                           ? Icons.visibility_outlined

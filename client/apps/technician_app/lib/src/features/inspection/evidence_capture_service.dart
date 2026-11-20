@@ -1,18 +1,28 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
-import 'package:video_player/video_player.dart';
+import 'package:technician_app/src/features/inspection/evidence_validation.dart';
+import 'package:technician_app/src/features/inspection/video_duration_probe.dart';
 
-enum EvidenceCaptureFailure { tooShort, tooLong, tooLarge, unavailable }
+/// Where a photo/video came from. The server stores this as CAMERA or FILE.
+enum EvidenceSource { camera, file }
+
+extension EvidenceSourceWire on EvidenceSource {
+  String get wire => this == EvidenceSource.camera ? 'CAMERA' : 'FILE';
+}
+
+typedef VideoDurationProbe = Future<Duration?> Function(String path);
+typedef ImageSizeDecoder = Future<({int width, int height})?> Function(
+  List<int> bytes,
+);
 
 class EvidenceCaptureException implements Exception {
   const EvidenceCaptureException(this.failure);
 
-  final EvidenceCaptureFailure failure;
+  final EvidenceValidationFailure failure;
 }
 
 class CapturedEvidence {
@@ -40,55 +50,63 @@ class CapturedEvidence {
 }
 
 class EvidenceCaptureService {
-  EvidenceCaptureService({ImagePicker? picker})
-    : _picker = picker ?? ImagePicker();
-
-  static const int maxVideoBytes = 50 * 1024 * 1024;
-  static const Duration minVideoDuration = Duration(seconds: 15);
-  static const Duration maxVideoDuration = Duration(seconds: 30);
+  EvidenceCaptureService({
+    ImagePicker? picker,
+    VideoDurationProbe? durationProbe,
+    ImageSizeDecoder? imageSizeDecoder,
+  }) : _picker = picker ?? ImagePicker(),
+       _durationProbe = durationProbe ?? probeVideoDuration,
+       _imageSizeDecoder = imageSizeDecoder ?? decodeImageSize;
 
   final ImagePicker _picker;
+  final VideoDurationProbe _durationProbe;
+  final ImageSizeDecoder _imageSizeDecoder;
 
-  Future<CapturedEvidence?> capturePhoto() async {
+  ImageSource _imageSource(EvidenceSource source) =>
+      source == EvidenceSource.camera
+      ? ImageSource.camera
+      : ImageSource.gallery;
+
+  String _mimeFor(XFile file, String fallback) {
+    final byPath = mimeForPath(file.path, fallback: '');
+    if (byPath.isNotEmpty) {
+      return byPath;
+    }
+    final declared = file.mimeType?.trim().toLowerCase() ?? '';
+    if (declared.isNotEmpty && !declared.contains('*')) {
+      return declared;
+    }
+    return fallback;
+  }
+
+  Future<CapturedEvidence?> capturePhoto({
+    EvidenceSource source = EvidenceSource.camera,
+  }) async {
     final file = await _picker.pickImage(
-      source: ImageSource.camera,
+      source: _imageSource(source),
       imageQuality: 88,
       maxWidth: 2400,
     );
     if (file == null) {
       return null;
     }
-    return _photoEvidence(file);
+    return _photoEvidence(file, source);
   }
 
-  Future<CapturedEvidence?> recordVideo({bool capturePoster = false}) async {
-    final file = await _picker.pickVideo(source: ImageSource.camera);
+  Future<CapturedEvidence?> recordVideo({
+    EvidenceSource source = EvidenceSource.camera,
+    bool capturePoster = false,
+    Iterable<String> existingSha256 = const <String>[],
+  }) async {
+    final file = await _picker.pickVideo(
+      source: _imageSource(source),
+      maxDuration: const Duration(milliseconds: maxVideoDurationMs),
+    );
     if (file == null) {
       return null;
     }
     final bytes = await file.readAsBytes();
-    if (bytes.length > maxVideoBytes) {
-      throw const EvidenceCaptureException(EvidenceCaptureFailure.tooLarge);
-    }
-    Duration? duration;
-    VideoPlayerController? controller;
-    try {
-      controller = VideoPlayerController.file(File(file.path));
-      await controller.initialize();
-      duration = controller.value.duration;
-    } on Object {
-      duration = null;
-    } finally {
-      await controller?.dispose();
-    }
-    if (duration != null) {
-      if (duration < minVideoDuration) {
-        throw const EvidenceCaptureException(EvidenceCaptureFailure.tooShort);
-      }
-      if (duration > maxVideoDuration) {
-        throw const EvidenceCaptureException(EvidenceCaptureFailure.tooLong);
-      }
-    }
+    final duration = await _durationProbe(file.path);
     String? poster;
     if (capturePoster) {
       final posterFile = await _picker.pickImage(source: ImageSource.camera);
@@ -96,38 +114,42 @@ class EvidenceCaptureService {
         poster = base64Encode(await posterFile.readAsBytes());
       }
     }
-    return CapturedEvidence(
+    final captured = CapturedEvidence(
       type: 'VIDEO',
       bytes: bytes,
-      mime: mimeForPath(file.path, fallback: 'video/mp4'),
+      mime: _mimeFor(file, 'video/mp4'),
       capturedAt: DateTime.now().toUtc().toIso8601String(),
-      captureSource: 'CAMERA',
+      captureSource: source.wire,
       durationMs: duration?.inMilliseconds,
       posterBase64: poster,
     );
+    _ensureValid(captured, existingSha256);
+    return captured;
   }
 
   Future<CapturedEvidence?> pickDocument() async {
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: const [
+        'pdf',
+        'jpg',
+        'jpeg',
+        'png',
+        'heic',
+        'heif',
+        'webp',
+      ],
     );
     if (files.isEmpty) {
       return null;
     }
     final file = files.single;
     final bytes = await file.readAsBytes();
-    if (bytes.isEmpty) {
-      throw const EvidenceCaptureException(EvidenceCaptureFailure.unavailable);
-    }
-    if (bytes.length > maxVideoBytes) {
-      throw const EvidenceCaptureException(EvidenceCaptureFailure.tooLarge);
-    }
     final mime = mimeForPath(file.name);
     final size = mime.startsWith('image/')
-        ? await decodeImageSize(bytes)
+        ? await _imageSizeDecoder(bytes)
         : null;
-    return CapturedEvidence(
+    final captured = CapturedEvidence(
       type: 'DOCUMENT',
       bytes: bytes,
       mime: mime,
@@ -136,19 +158,46 @@ class EvidenceCaptureService {
       width: size?.width,
       height: size?.height,
     );
+    _ensureValid(captured);
+    return captured;
   }
 
-  Future<CapturedEvidence> _photoEvidence(XFile file) async {
+  Future<CapturedEvidence> _photoEvidence(
+    XFile file,
+    EvidenceSource source,
+  ) async {
     final bytes = await file.readAsBytes();
-    final size = await decodeImageSize(bytes);
-    return CapturedEvidence(
+    final size = await _imageSizeDecoder(bytes);
+    final captured = CapturedEvidence(
       type: 'PHOTO',
       bytes: bytes,
-      mime: mimeForPath(file.path, fallback: 'image/jpeg'),
+      mime: _mimeFor(file, 'image/jpeg'),
       capturedAt: DateTime.now().toUtc().toIso8601String(),
-      captureSource: 'CAMERA',
+      captureSource: source.wire,
       width: size?.width,
       height: size?.height,
     );
+    _ensureValid(captured);
+    return captured;
+  }
+
+  void _ensureValid(
+    CapturedEvidence captured, [
+    Iterable<String> existingSha256 = const <String>[],
+  ]) {
+    final failure = validateEvidenceMetadata(
+      type: captured.type,
+      mime: captured.mime,
+      bytes: captured.bytes.length,
+      sha256: sha256Hex(captured.bytes),
+      captureSource: captured.captureSource,
+      width: captured.width,
+      height: captured.height,
+      durationMs: captured.durationMs,
+      existingSha256: existingSha256,
+    );
+    if (failure != null) {
+      throw EvidenceCaptureException(failure);
+    }
   }
 }

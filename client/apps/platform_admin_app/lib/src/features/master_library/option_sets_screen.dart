@@ -1,1398 +1,774 @@
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
-import '../../components/platform_buttons.dart';
-import '../../components/platform_chips.dart';
-import '../../components/platform_dialogs.dart';
-import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
-import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../checklist/checklist_page_frame.dart';
+import '../checklist/catalog/catalog_ui.dart';
 import '../checklist/checklist_status.dart';
-import '../checklist/checklist_tab_bar.dart';
-
-import 'package:l10n/l10n.dart';
 
 class OptionSetsScreen extends ConsumerStatefulWidget {
-  const OptionSetsScreen({super.key});
+  const OptionSetsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<OptionSetsScreen> createState() => _OptionSetsScreenState();
 }
 
 class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
+  final _search = TextEditingController();
+  String _query = '';
+  String? _selectedId;
   bool _busy = false;
-  String? _selectedSetId;
-
-  late final TextEditingController _setSearchController;
-  late final TextEditingController _valueSearchController;
-
-  // In-page set editor: panel replacing the detail panel (no new route).
-  bool _editorOpen = false;
-  OptionSet? _editorTarget; // null => adding a new set.
-  TextEditingController? _editorCode;
-  TextEditingController? _editorName;
-  TextEditingController? _editorOrder;
-  GlobalKey<FormState>? _editorFormKey;
-
-  // Inline value editor pinned at the top of the values panel.
-  // [_editingValueId] null => add mode; otherwise edit mode for that value.
-  String? _editingValueId;
-  late final TextEditingController _valueCodeController;
-  late final TextEditingController _valueLabelController;
-  late final TextEditingController _valueMetadataController;
-  final _valueFormKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _setSearchController = TextEditingController();
-    _valueSearchController = TextEditingController();
-    _valueCodeController = TextEditingController();
-    _valueLabelController = TextEditingController();
-    _valueMetadataController = TextEditingController();
-  }
 
   @override
   void dispose() {
-    _closeEditorControllers();
-    _setSearchController.dispose();
-    _valueSearchController.dispose();
-    _valueCodeController.dispose();
-    _valueLabelController.dispose();
-    _valueMetadataController.dispose();
+    _search.dispose();
     super.dispose();
   }
-
-  void _closeEditorControllers() {
-    _editorCode?.dispose();
-    _editorName?.dispose();
-    _editorOrder?.dispose();
-    _editorCode = null;
-    _editorName = null;
-    _editorOrder = null;
-    _editorFormKey = null;
-  }
-
-  String get _setQuery => _setSearchController.text.trim().toLowerCase();
-
-  String get _valueQuery => _valueSearchController.text.trim().toLowerCase();
-
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await action();
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(_failureMessage(error), isError: true);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  void _showMessage(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isError ? PtTheme.rose : PtTheme.deepGreen,
-        content: Text(
-          message,
-          style: PtTheme.font(13, lineHeight: 18, color: PtTheme.white),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------ set editor
-
-  void _openSetEditor(OptionSet? set, {String initialCode = ''}) {
-    _closeEditorControllers();
-    setState(() {
-      _editorOpen = true;
-      _editorTarget = set;
-      _editorCode = TextEditingController(text: set?.code ?? initialCode);
-      _editorName = TextEditingController(text: set?.name ?? '');
-      _editorOrder = TextEditingController(
-        text: (set?.sortOrder ?? 0).toString(),
-      );
-      _editorFormKey = GlobalKey<FormState>();
-    });
-  }
-
-  void _closeSetEditor() {
-    if (!_editorOpen) return;
-    setState(() {
-      _editorOpen = false;
-      _editorTarget = null;
-      _closeEditorControllers();
-    });
-  }
-
-  Future<void> _saveSetEditor() async {
-    final formKey = _editorFormKey;
-    if (formKey == null || formKey.currentState?.validate() != true) return;
-    final isNew = _editorTarget == null;
-    final code = _editorCode?.text.trim() ?? '';
-    final name = _editorName?.text.trim() ?? '';
-    final sortOrder = int.tryParse(_editorOrder?.text.trim() ?? '') ?? 0;
-    await _run(() async {
-      final actions = ref.read(platformConfigActionsProvider);
-      final body = <String, dynamic>{
-        'code': code,
-        'name': name,
-        'sortOrder': sortOrder,
-      };
-      if (isNew) {
-        final created = await actions.createOptionSet(body);
-        if (mounted) {
-          setState(() {
-            _selectedSetId = created.id;
-            _valueSearchController.clear();
-            _cancelValueEdit(silent: true);
-          });
-        }
-      } else {
-        await actions.updateOptionSet(_editorTarget!.id, body);
-      }
-      if (mounted) _closeSetEditor();
-    });
-  }
-
-  Future<void> _confirmRetireSet(OptionSet set) async {
-    final strings = ref.watch(uiStringsProvider);
-    final confirmed = await showPlatformConfirmDialog(
-      context: context,
-      title: strings.tKey(PlatformAdminKeys.buttonRetire),
-      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
-      confirmLabel: strings.tKey(PlatformAdminKeys.buttonRetire),
-      destructive: true,
-    );
-    if (confirmed != true) return;
-    await _run(() async {
-      await ref.read(platformConfigActionsProvider).retireOptionSet(set.id);
-      if (mounted) {
-        setState(() {
-          _selectedSetId = null;
-          if (_editorTarget?.id == set.id) {
-            _editorOpen = false;
-            _editorTarget = null;
-            _closeEditorControllers();
-          }
-        });
-      }
-    });
-  }
-
-  Future<void> _activateSet(OptionSet set) async {
-    await _run(() async {
-      await ref.read(platformConfigActionsProvider).updateOptionSet(set.id, {
-        'name': set.name,
-        'status': 'ACTIVE',
-      });
-    });
-  }
-
-  Future<void> _activateValue(OptionSet set, OptionValue value) async {
-    await _run(() async {
-      await ref.read(platformConfigActionsProvider).updateOptionValue(
-        set.id,
-        value.id,
-        {'label': value.label, 'status': 'ACTIVE'},
-      );
-    });
-  }
-
-  // ---------------------------------------------------------- value editor
-
-  void _startEditValue(OptionValue value) {
-    setState(() {
-      _editingValueId = value.id;
-      _valueCodeController.text = value.code;
-      _valueLabelController.text = value.label;
-      _valueMetadataController.text = value.metadataJson;
-    });
-  }
-
-  void _cancelValueEdit({bool silent = false}) {
-    void apply() {
-      _editingValueId = null;
-      _valueCodeController.clear();
-      _valueLabelController.clear();
-      _valueMetadataController.clear();
-    }
-
-    if (silent) {
-      apply();
-    } else {
-      setState(apply);
-    }
-  }
-
-  void _focusValueEditor({String? prefillCode}) {
-    setState(() {
-      _editingValueId = null;
-      if (prefillCode != null && prefillCode.isNotEmpty) {
-        _valueCodeController.text = prefillCode;
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _valueFormKey.currentContext;
-      if (context != null && context.mounted) {
-        Scrollable.ensureVisible(
-          context,
-          duration: const Duration(milliseconds: 200),
-          alignment: 0.1,
-        );
-      }
-    });
-  }
-
-  Future<void> _saveValue(OptionSet set) async {
-    if (_valueFormKey.currentState?.validate() != true) return;
-    final code = _valueCodeController.text.trim();
-    final label = _valueLabelController.text.trim();
-    final metadata = _valueMetadataController.text.trim();
-    final editingId = _editingValueId;
-    await _run(() async {
-      final actions = ref.read(platformConfigActionsProvider);
-      if (editingId == null) {
-        var nextOrder = 0;
-        for (final value in set.values) {
-          if (value.sortOrder >= nextOrder) nextOrder = value.sortOrder + 1;
-        }
-        await actions.addOptionValue(set.id, <String, dynamic>{
-          'code': code,
-          'label': label,
-          'sortOrder': nextOrder,
-          'metadataJson': metadata,
-        });
-        if (mounted) {
-          setState(() {
-            _valueCodeController.clear();
-            _valueLabelController.clear();
-            _valueMetadataController.clear();
-          });
-        }
-      } else {
-        var sortOrder = 0;
-        for (final value in set.values) {
-          if (value.id == editingId) sortOrder = value.sortOrder;
-        }
-        await actions.updateOptionValue(set.id, editingId, <String, dynamic>{
-          'label': label,
-          'sortOrder': sortOrder,
-          'metadataJson': metadata,
-        });
-        if (mounted) _cancelValueEdit();
-      }
-    });
-  }
-
-  Future<void> _confirmRetireValue(OptionSet set, OptionValue value) async {
-    final strings = ref.watch(uiStringsProvider);
-    final replacementController = TextEditingController();
-    String? errorText;
-    var submitting = false;
-    StateSetter? refreshBody;
-    StateSetter? refreshActions;
-
-    void refresh() {
-      refreshBody?.call(() {});
-      refreshActions?.call(() {});
-    }
-
-    final retired = await showPlatformDialog<bool>(
-      context: context,
-      title: strings.tKey(PlatformAdminKeys.buttonRetire),
-      body: StatefulBuilder(
-        builder: (context, setState) {
-          refreshBody = setState;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
-                style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
-              ),
-              const SizedBox(height: 14),
-              PlatformTextField(
-                key: const Key('opt-value-replacement'),
-                controller: replacementController,
-                label: strings.tKey(PlatformAdminKeys.tableOptionValueUsedBy),
-                enabled: !submitting,
-              ),
-              if (errorText != null) ...[
-                const SizedBox(height: 10),
-                Text(errorText!, style: PtTheme.font(12, color: PtTheme.rose)),
-              ],
-            ],
-          );
-        },
-      ),
-      actionsBuilder: (dialogContext) => [
-        StatefulBuilder(
-          builder: (context, setState) {
-            refreshActions = setState;
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              alignment: WrapAlignment.end,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: submitting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(false),
-                  child: Text(
-                    strings.tKey(CommonKeys.buttonCancel),
-                    style: PtTheme.font(
-                      13,
-                      weight: FontWeight.w700,
-                      color: PtTheme.muted,
-                    ),
-                  ),
-                ),
-                FilledButton(
-                  onPressed: submitting
-                      ? null
-                      : () async {
-                          submitting = true;
-                          errorText = null;
-                          refresh();
-                          try {
-                            await ref
-                                .read(platformConfigActionsProvider)
-                                .retireOptionValue(
-                                  set.id,
-                                  value.id,
-                                  replacementCode:
-                                      replacementController.text.trim().isEmpty
-                                      ? null
-                                      : replacementController.text.trim(),
-                                );
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop(true);
-                            }
-                          } catch (error) {
-                            if (!dialogContext.mounted) return;
-                            submitting = false;
-                            errorText = _failureMessage(error);
-                            refresh();
-                          }
-                        },
-                  style: FilledButton.styleFrom(backgroundColor: PtTheme.rose),
-                  child: submitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: PtTheme.white,
-                          ),
-                        )
-                      : Text(
-                          strings.tKey(PlatformAdminKeys.buttonRetire),
-                          style: PtTheme.font(
-                            13,
-                            weight: FontWeight.w700,
-                            color: PtTheme.white,
-                          ),
-                        ),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-    Future<void>.delayed(
-      const Duration(milliseconds: 400),
-      replacementController.dispose,
-    );
-    if (retired == true && mounted) {
-      if (_editingValueId == value.id) _cancelValueEdit();
-      ref.invalidate(optionSetsProvider);
-    }
-  }
-
-  Future<void> _reorderValue(OptionSet set, String valueId, int delta) async {
-    final ordered = [...set.values]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    final index = ordered.indexWhere((value) => value.id == valueId);
-    final target = index + delta;
-    if (index < 0 || target < 0 || target >= ordered.length) return;
-    final codes = ordered.map((value) => value.code).toList();
-    final moved = codes.removeAt(index);
-    codes.insert(target, moved);
-    await _run(() async {
-      await ref
-          .read(platformConfigApiProvider)
-          .reorderOptionValues(set.id, codes);
-      ref.invalidate(optionSetsProvider);
-    });
-  }
-
-  // -------------------------------------------------------------- selection
-
-  OptionSet? _resolveSelection(List<OptionSet> sets) {
-    if (sets.isEmpty) return null;
-    if (_selectedSetId != null) {
-      for (final set in sets) {
-        if (set.id == _selectedSetId) return set;
-      }
-    }
-    return sets.first;
-  }
-
-  List<OptionSet> _filteredSets(List<OptionSet> sets) {
-    final query = _setQuery;
-    if (query.isEmpty) return sets;
-    return sets
-        .where(
-          (set) =>
-              set.code.toLowerCase().contains(query) ||
-              set.name.toLowerCase().contains(query),
-        )
-        .toList(growable: false);
-  }
-
-  List<OptionValue> _filteredValues(OptionSet set) {
-    final query = _valueQuery;
-    final ordered = [...set.values]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    if (query.isEmpty) return ordered;
-    return ordered
-        .where(
-          (value) =>
-              value.code.toLowerCase().contains(query) ||
-              value.label.toLowerCase().contains(query) ||
-              value.metadataJson.toLowerCase().contains(query),
-        )
-        .toList(growable: false);
-  }
-
-  // ------------------------------------------------------------------ build
 
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
     final setsAsync = ref.watch(optionSetsProvider);
-
-    return ChecklistPageFrame(
-      currentRoute: '/checklist/option-sets',
-      currentTab: ChecklistTab.issueOptions,
-      showSearch: false,
-      actions: [
-        PlatformPrimaryButton(
-          key: const Key('btn-add-option-set'),
-          label: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
-          icon: Icons.add_rounded,
-          onPressed: _busy ? null : () => _openSetEditor(null),
-        ),
-      ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _HelperBanner(
-            message: strings.tKey(PlatformAdminKeys.pageIssueOptionsHelper),
-          ),
-          const SizedBox(height: 16),
-          setsAsync.when(
-            loading: () => Center(
-              child: PlatformLoadingView(
-                message: strings.tKey(CommonKeys.stateLoading),
+    final content = LayoutBuilder(
+      builder: (context, c) {
+        final wide = c.maxWidth >= 1000;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(wide ? 24 : 14, 22, wide ? 24 : 14, 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(
+                strings: strings,
+                wide: wide,
+                onAdd: () => _setDialog(strings),
               ),
-            ),
-            error: (error, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: PlatformErrorView(
-                  message: _failureMessage(error),
-                  retryLabel: strings.tKey(CommonKeys.buttonRetry),
+              const SizedBox(height: 12),
+              CatalogTabs(
+                labels: [
+                  strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                  strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+                ],
+                selected: 2,
+                onSelected: (index) {
+                  if (index == 0) context.go('/checklist/items');
+                  if (index == 1) context.go('/checklist/categories');
+                },
+              ),
+              const SizedBox(height: 10),
+              Text(
+                strings.tKey(PlatformAdminKeys.pageIssueOptionsHelper),
+                style: Catalog.body,
+              ),
+              const SizedBox(height: 12),
+              CatalogSearch(
+                controller: _search,
+                hint: strings.tKey(PlatformAdminKeys.filterOptionSetsSearch),
+                onChanged: (value) =>
+                    setState(() => _query = value.toLowerCase()),
+              ),
+              const SizedBox(height: 12),
+              setsAsync.when(
+                loading: () => const CatalogSkeleton(),
+                error: (_, _) => CatalogError(
+                  strings: strings,
                   onRetry: () => ref.invalidate(optionSetsProvider),
                 ),
-              ),
-            ),
-            data: (sets) {
-              final selected = _resolveSelection(sets);
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  // Master-detail: side-by-side on medium+ widths,
-                  // stacked panels on compact widths.
-                  final isWide = constraints.maxWidth >= 760;
-                  final listPanel = _buildSetsPanel(strings, sets);
-                  // In-page editor panel replaces the detail panel while
-                  // open (no new route). Controllers are disposed
-                  // synchronously on close, so no exit animation may
-                  // outlive them (see D-069 for the dialog variant).
-                  final detailPanel = _editorOpen
-                      ? _buildSetEditor(strings)
-                      : selected == null
-                      ? _buildDetailEmpty(strings)
-                      : _buildSetDetail(strings, selected);
-                  if (isWide) {
+                data: (sets) {
+                  final filtered = sets
+                      .where(
+                        (set) =>
+                            _query.isEmpty ||
+                            set.name.toLowerCase().contains(_query) ||
+                            set.code.toLowerCase().contains(_query),
+                      )
+                      .toList(growable: false);
+                  if (filtered.isEmpty) {
+                    return CatalogSurface(
+                      child: CatalogEmpty(
+                        title: strings.tKey(
+                          sets.isEmpty
+                              ? CommonKeys.emptyTitle
+                              : CommonKeys.emptySearch,
+                        ),
+                        body: strings.tKey(
+                          PlatformAdminKeys.pageIssueOptionsHelper,
+                        ),
+                        actionLabel: sets.isEmpty
+                            ? strings.tKey(PlatformAdminKeys.buttonOptionSetAdd)
+                            : null,
+                        onAction: sets.isEmpty
+                            ? () => _setDialog(strings)
+                            : null,
+                      ),
+                    );
+                  }
+                  final selected = filtered.firstWhere(
+                    (set) => set.id == _selectedId,
+                    orElse: () => filtered.first,
+                  );
+                  if (wide) {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 2, child: listPanel),
-                        const SizedBox(width: 20),
-                        Expanded(flex: 3, child: detailPanel),
+                        SizedBox(
+                          width: 340,
+                          child: _SetList(
+                            strings: strings,
+                            sets: filtered,
+                            selectedId: selected.id,
+                            onSelect: (set) =>
+                                setState(() => _selectedId = set.id),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _ValuesPane(
+                            strings: strings,
+                            set: selected,
+                            busy: _busy,
+                            onAdd: () => _valueDialog(strings, selected),
+                            onEdit: (value) =>
+                                _valueDialog(strings, selected, value),
+                            onRetire: (value) =>
+                                _retireValue(strings, selected, value),
+                            onActivate: (value) =>
+                                _activateValue(strings, selected, value),
+                            onMove: (value, delta) =>
+                                _moveValue(strings, selected, value, delta),
+                          ),
+                        ),
                       ],
                     );
                   }
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      listPanel,
-                      const SizedBox(height: 16),
-                      detailPanel,
+                      _SetList(
+                        strings: strings,
+                        sets: filtered,
+                        selectedId: selected.id,
+                        onSelect: (set) => setState(() => _selectedId = set.id),
+                      ),
+                      const SizedBox(height: 14),
+                      _ValuesPane(
+                        strings: strings,
+                        set: selected,
+                        busy: _busy,
+                        onAdd: () => _valueDialog(strings, selected),
+                        onEdit: (value) =>
+                            _valueDialog(strings, selected, value),
+                        onRetire: (value) =>
+                            _retireValue(strings, selected, value),
+                        onActivate: (value) =>
+                            _activateValue(strings, selected, value),
+                        onMove: (value, delta) =>
+                            _moveValue(strings, selected, value, delta),
+                      ),
                     ],
                   );
                 },
-              );
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (widget.embedded) return content;
+    return PlatformShell(
+      currentRoute: '/checklist/option-sets',
+      onNavigate: (route) => context.go(route),
+      child: content,
+    );
+  }
+
+  Future<void> _setDialog(UiMessageStrings strings, [OptionSet? set]) async {
+    final code = TextEditingController(text: set?.code ?? '');
+    final name = TextEditingController(text: set?.name ?? '');
+    final order = TextEditingController(text: '${set?.sortOrder ?? 0}');
+    final formKey = GlobalKey<FormState>();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(
+          set == null
+              ? PlatformAdminKeys.buttonOptionSetAdd
+              : PlatformAdminKeys.dialogCategoryEditTitle,
+        ),
+        body: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CatalogField(
+                controller: code,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
+                validator: (value) => (value ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: name,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
+                validator: (value) => (value ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: order,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
+                keyboardType: TextInputType.number,
+                validator: (value) => int.tryParse((value ?? '').trim()) == null
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonSave),
+            onPressed: () {
+              if (formKey.currentState?.validate() != true) return;
+              Navigator.of(dialogContext).pop(true);
             },
           ),
         ],
       ),
     );
+    if (saved != true) return;
+    try {
+      final actions = ref.read(platformConfigActionsProvider);
+      final body = <String, dynamic>{
+        'code': code.text.trim(),
+        'name': name.text.trim(),
+        'sortOrder': int.tryParse(order.text.trim()) ?? 0,
+        'active': true,
+      };
+      if (set == null) {
+        await actions.createOptionSet(body);
+      } else {
+        await actions.updateOptionSet(set.id, body);
+      }
+      ref.invalidate(optionSetsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
   }
 
-  // ------------------------------------------------------------ list panel
+  Future<void> _valueDialog(
+    UiMessageStrings strings,
+    OptionSet set, [
+    OptionValue? value,
+  ]) async {
+    final code = TextEditingController(text: value?.code ?? '');
+    final label = TextEditingController(text: value?.labelEn ?? '');
+    final description = TextEditingController();
+    final order = TextEditingController(
+      text: '${value?.sortOrder ?? set.values.length}',
+    );
+    final formKey = GlobalKey<FormState>();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(
+          value == null
+              ? PlatformAdminKeys.buttonOptionValueAdd
+              : CommonKeys.buttonEdit,
+        ),
+        body: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CatalogField(
+                controller: code,
+                label: strings.tKey(PlatformAdminKeys.fieldOptionValueCode),
+                validator: (v) => (v ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: label,
+                label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
+                validator: (v) => (v ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: description,
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldOptionValueDescription,
+                ),
+                validator: (_) => null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: order,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
+                keyboardType: TextInputType.number,
+                validator: (v) => int.tryParse((v ?? '').trim()) == null
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonSave),
+            onPressed: () {
+              if (formKey.currentState?.validate() != true) return;
+              Navigator.of(dialogContext).pop(true);
+            },
+          ),
+        ],
+      ),
+    );
+    if (saved != true) return;
+    try {
+      final actions = ref.read(platformConfigActionsProvider);
+      final body = <String, dynamic>{
+        'code': code.text.trim(),
+        'label': label.text.trim(),
+        'description': description.text.trim(),
+        'sortOrder': int.tryParse(order.text.trim()) ?? 0,
+        'active': true,
+      };
+      if (value == null) {
+        await actions.addOptionValue(set.id, body);
+      } else {
+        await actions.updateOptionValue(set.id, value.id, body);
+      }
+      ref.invalidate(optionSetsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
+  }
 
-  Widget _buildSetsPanel(dynamic strings, List<OptionSet> sets) {
-    final filtered = _filteredSets(sets);
-    final selected = _resolveSelection(sets);
-    final countLabel = _setQuery.isEmpty
-        ? '${sets.length}'
-        : '${filtered.length} / ${sets.length}';
-    return PlatformSectionCard(
-      child: Column(
+  Future<void> _retireValue(
+    UiMessageStrings strings,
+    OptionSet set,
+    OptionValue value,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(PlatformAdminKeys.buttonRetire),
+        body: Text(
+          strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+          style: Catalog.body,
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(PlatformAdminKeys.buttonRetire),
+            danger: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref
+          .read(platformConfigActionsProvider)
+          .retireOptionValue(set.id, value.id);
+      ref.invalidate(optionSetsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
+  }
+
+  Future<void> _activateValue(
+    UiMessageStrings strings,
+    OptionSet set,
+    OptionValue value,
+  ) async {
+    try {
+      await ref.read(platformConfigActionsProvider).updateOptionValue(
+        set.id,
+        value.id,
+        {
+          'code': value.code,
+          'label': value.labelEn,
+          'description': '',
+          'sortOrder': value.sortOrder,
+          'active': true,
+        },
+      );
+      ref.invalidate(optionSetsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
+  }
+
+  Future<void> _moveValue(
+    UiMessageStrings strings,
+    OptionSet set,
+    OptionValue value,
+    int delta,
+  ) async {
+    if (_busy) return;
+    final values = [...set.values]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final index = values.indexWhere((item) => item.id == value.id);
+    final target = index + delta;
+    if (index < 0 || target < 0 || target >= values.length) return;
+    setState(() => _busy = true);
+    try {
+      final other = values[target];
+      final actions = ref.read(platformConfigActionsProvider);
+      await actions.updateOptionValue(set.id, value.id, {
+        'code': value.code,
+        'label': value.labelEn,
+        'description': '',
+        'sortOrder': other.sortOrder,
+        'active': true,
+      });
+      await actions.updateOptionValue(set.id, other.id, {
+        'code': other.code,
+        'label': other.labelEn,
+        'description': '',
+        'sortOrder': value.sortOrder,
+        'active': true,
+      });
+      ref.invalidate(optionSetsProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _toast(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: PtTheme.rose,
+        content: Text(message, style: Catalog.text(12.5, color: PtTheme.white)),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.strings,
+    required this.wide,
+    required this.onAdd,
+  });
+
+  final UiMessageStrings strings;
+  final bool wide;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final block = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
+          style: Catalog.eyebrow,
+        ),
+        const SizedBox(height: 7),
+        Text(
+          strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+          style: Catalog.pageTitle,
+        ),
+      ],
+    );
+    final add = CatalogButton(
+      label: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
+      icon: Icons.add_rounded,
+      onPressed: onAdd,
+    );
+    if (!wide) {
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          block,
+          const SizedBox(height: 12),
+          Align(alignment: AlignmentDirectional.centerStart, child: add),
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(child: block),
+        add,
+      ],
+    );
+  }
+}
+
+class _SetList extends ConsumerWidget {
+  const _SetList({
+    required this.strings,
+    required this.sets,
+    required this.selectedId,
+    required this.onSelect,
+  });
+
+  final UiMessageStrings strings;
+  final List<OptionSet> sets;
+  final String selectedId;
+  final ValueChanged<OptionSet> onSelect;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => CatalogSurface(
+    padding: EdgeInsets.zero,
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          child: Row(
             children: [
               Expanded(
                 child: Text(
                   strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
-                  style: PtTheme.sectionTitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  style: Catalog.eyebrow,
                 ),
               ),
-              const SizedBox(width: 12),
               Text(
-                countLabel,
-                style: PtTheme.font(
-                  12,
-                  weight: FontWeight.w700,
-                  color: PtTheme.muted,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _SearchField(
-            key: const Key('opt-set-search'),
-            controller: _setSearchController,
-            hint: strings.tKey(PlatformAdminKeys.filterOptionSetsSearch),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 12),
-          if (sets.isEmpty)
-            PlatformEmptyView(
-              title: strings.tKey(CommonKeys.emptyTitle),
-              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
-              onAction: _busy ? null : () => _openSetEditor(null),
-            )
-          else if (filtered.isEmpty)
-            PlatformEmptyView(
-              title: strings.tKey(CommonKeys.emptySearch),
-              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
-              onAction: _busy
-                  ? null
-                  : () => _openSetEditor(
-                      null,
-                      initialCode: _setSearchController.text.trim(),
-                    ),
-            )
-          else
-            for (final set in filtered) ...[
-              _buildSetTile(strings, set, selected?.id == set.id),
-              const SizedBox(height: 8),
-            ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSetTile(dynamic strings, OptionSet set, bool isSelected) {
-    final ordered = [...set.values]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    final preview = ordered.take(3).toList(growable: false);
-    final remaining = ordered.length - preview.length;
-    return InkWell(
-      key: Key('opt-set-tile-${set.id}'),
-      onTap: () {
-        setState(() {
-          if (_editorOpen && _editorTarget != null) _closeSetEditor();
-          _selectedSetId = set.id;
-        });
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Semantics(
-        button: true,
-        selected: isSelected,
-        label: set.code,
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? PtTheme.deepGreen.withValues(alpha: 0.08)
-                : PtTheme.canvas,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? PtTheme.deepGreen.withValues(alpha: 0.35)
-                  : PtTheme.border,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      set.code,
-                      style: PtTheme.font(
-                        11,
-                        weight: FontWeight.w700,
-                        color: PtTheme.deepGreen,
-                        tracking: 0.4,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Semantics(
-                    label:
-                        '${strings.tKey(CommonKeys.tableStatus)}: ${checklistStatusLabel(strings, set.status)}',
-                    child: PlatformStatusChip(
-                      status: set.status,
-                      label: checklistStatusLabel(strings, set.status),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _optionSetName(set),
-                style: PtTheme.font(
-                  14,
-                  weight: FontWeight.w700,
-                  color: PtTheme.ink,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: [
-                  PlatformMetaPill(
-                    label: strings.tKey(
-                      PlatformAdminKeys.sectionOptionSetValues,
-                    ),
-                    value: '${set.values.length}',
-                  ),
-                ],
-              ),
-              // Values preview for unselected sets; the selected set lists
-              // its values in the detail panel, so its tile omits the
-              // preview to avoid duplicating the same labels.
-              if (preview.isNotEmpty && !isSelected) ...[
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 10, 8),
-                  decoration: BoxDecoration(
-                    color: PtTheme.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: PtTheme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final value in preview)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Row(
-                            children: [
-                              Text(
-                                value.code,
-                                style: PtTheme.font(
-                                  11,
-                                  weight: FontWeight.w700,
-                                  color: PtTheme.muted,
-                                  tracking: 0.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _optionValueLabel(value),
-                                  style: PtTheme.font(
-                                    12,
-                                    weight: FontWeight.w600,
-                                    color: PtTheme.ink,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (remaining > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            '+$remaining ${strings.tKey(PlatformAdminKeys.sectionOptionSetValues)}',
-                            style: PtTheme.font(
-                              11,
-                              weight: FontWeight.w600,
-                              color: PtTheme.muted,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------- editor panel
-
-  Widget _buildSetEditor(dynamic strings) {
-    final isNew = _editorTarget == null;
-    final formKey = _editorFormKey;
-    if (formKey == null) return const SizedBox.shrink();
-    return PlatformSectionCard(
-      key: const Key('opt-set-editor'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  isNew
-                      ? strings.tKey(PlatformAdminKeys.buttonOptionSetAdd)
-                      : strings.tKey(CommonKeys.buttonEdit),
-                  style: PtTheme.sectionTitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 12),
-              IconButton(
-                key: const Key('opt-set-editor-close'),
-                tooltip: strings.tKey(CommonKeys.buttonClose),
-                icon: const Icon(Icons.close_rounded, size: 20),
-                onPressed: _busy ? null : _closeSetEditor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PlatformTextField(
-                  key: const Key('opt-set-code'),
-                  controller: _editorCode,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
-                  enabled: isNew && !_busy,
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  key: const Key('opt-set-name'),
-                  controller: _editorName,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
-                  enabled: !_busy,
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  key: const Key('opt-set-order'),
-                  controller: _editorOrder,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-                  keyboardType: TextInputType.number,
-                  enabled: !_busy,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              PlatformSecondaryButton(
-                label: strings.tKey(CommonKeys.buttonCancel),
-                onPressed: _busy ? null : _closeSetEditor,
-              ),
-              PlatformPrimaryButton(
-                key: const Key('opt-set-save'),
-                label: strings.tKey(CommonKeys.buttonSave),
-                isLoading: _busy,
-                onPressed: _busy ? null : _saveSetEditor,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailEmpty(dynamic strings) {
-    return PlatformEmptyView(
-      key: const Key('opt-detail-empty'),
-      title: strings.tKey(CommonKeys.emptyTitle),
-      actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionSetAdd),
-      onAction: _busy ? null : () => _openSetEditor(null),
-    );
-  }
-
-  // ---------------------------------------------------------- detail panel
-
-  Widget _buildSetDetail(dynamic strings, OptionSet set) {
-    return Column(
-      key: Key('opt-set-detail-${set.id}'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PlatformSectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 12,
-                runSpacing: 10,
-                children: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 520),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              set.code,
-                              style: PtTheme.font(
-                                11,
-                                weight: FontWeight.w700,
-                                color: PtTheme.deepGreen,
-                                tracking: 0.4,
-                              ),
-                            ),
-                            PlatformStatusChip(
-                              status: set.status,
-                              label: checklistStatusLabel(strings, set.status),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _optionSetName(set),
-                          style: PtTheme.font(
-                            18,
-                            weight: FontWeight.w700,
-                            color: PtTheme.ink,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (set.status == 'DRAFT')
-                        PlatformPrimaryButton(
-                          key: const Key('opt-set-activate'),
-                          label: strings.tKey(
-                            PlatformAdminKeys.buttonContentActivate,
-                          ),
-                          icon: Icons.check_circle_outline_rounded,
-                          onPressed: _busy ? null : () => _activateSet(set),
-                        ),
-                      PlatformSecondaryButton(
-                        key: const Key('opt-set-edit'),
-                        label: strings.tKey(CommonKeys.buttonEdit),
-                        icon: Icons.edit_outlined,
-                        onPressed: _busy ? null : () => _openSetEditor(set),
-                      ),
-                      PlatformSecondaryButton(
-                        key: const Key('opt-set-retire'),
-                        label: strings.tKey(PlatformAdminKeys.buttonRetire),
-                        icon: Icons.archive_outlined,
-                        destructive: true,
-                        onPressed: _busy ? null : () => _confirmRetireSet(set),
-                      ),
-                    ],
-                  ),
-                ],
+                '${sets.length}',
+                style: Catalog.text(10.5, color: PtTheme.muted),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        _buildValuesPanel(strings, set),
-      ],
-    );
-  }
-
-  Widget _buildValuesPanel(dynamic strings, OptionSet set) {
-    final filtered = _filteredValues(set);
-    final countLabel = _valueQuery.isEmpty
-        ? '${set.values.length}'
-        : '${filtered.length} / ${set.values.length}';
-    final reorderEnabled = _valueQuery.isEmpty;
-    return PlatformSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PlatformSectionHeader(
-            title: strings.tKey(PlatformAdminKeys.sectionOptionSetValues),
-            subtitle: strings.tKey(
-              PlatformAdminKeys.pageIssueOptionsInlineHint,
-            ),
-            action: Text(
-              countLabel,
-              style: PtTheme.font(
-                12,
-                weight: FontWeight.w700,
-                color: PtTheme.muted,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _SearchField(
-            key: const Key('opt-value-search'),
-            controller: _valueSearchController,
-            hint: strings.tKey(PlatformAdminKeys.filterOptionValuesSearch),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 12),
-          _buildValueEditor(strings, set),
-          const SizedBox(height: 12),
-          if (set.values.isEmpty)
-            PlatformEmptyView(
-              title: strings.tKey(CommonKeys.emptyTitle),
-              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
-              onAction: () => _focusValueEditor(),
-            )
-          else if (filtered.isEmpty)
-            PlatformEmptyView(
-              title: strings.tKey(CommonKeys.emptySearch),
-              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
-              onAction: () => _focusValueEditor(
-                prefillCode: _valueSearchController.text.trim(),
-              ),
-            )
-          else
-            for (final value in filtered) ...[
-              _buildValueRow(strings, set, value, reorderEnabled),
-              const SizedBox(height: 8),
-            ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildValueEditor(dynamic strings, OptionSet set) {
-    final isEdit = _editingValueId != null;
-    return Container(
-      key: const Key('opt-value-editor'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-      ),
-      child: Form(
-        key: _valueFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    isEdit
-                        ? strings.tKey(CommonKeys.buttonEdit)
-                        : strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
-                    style: PtTheme.font(
-                      13,
-                      weight: FontWeight.w700,
-                      color: PtTheme.ink,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+        const Divider(height: 1, color: PtTheme.border),
+        for (final set in sets)
+          Material(
+            color: set.id == selectedId
+                ? Catalog.tint.withValues(alpha: 0.55)
+                : Colors.transparent,
+            child: InkWell(
+              onTap: () => onSelect(set),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 11, 10, 11),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: PtTheme.border)),
                 ),
-                if (isEdit) ...[
-                  const SizedBox(width: 8),
-                  TextButton(
-                    key: const Key('opt-value-cancel'),
-                    onPressed: _busy ? null : _cancelValueEdit,
-                    child: Text(
-                      strings.tKey(CommonKeys.buttonCancel),
-                      style: PtTheme.font(
-                        13,
-                        weight: FontWeight.w700,
-                        color: PtTheme.muted,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 10),
-            PlatformTextField(
-              key: const Key('opt-value-code'),
-              controller: _valueCodeController,
-              label: strings.tKey(PlatformAdminKeys.fieldOptionValueCode),
-              enabled: !isEdit && !_busy,
-              validator: (input) => _required(input, strings),
-            ),
-            const SizedBox(height: 10),
-            PlatformTextField(
-              key: const Key('opt-value-label'),
-              controller: _valueLabelController,
-              label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
-              enabled: !_busy,
-              validator: (input) => _required(input, strings),
-            ),
-            const SizedBox(height: 10),
-            PlatformTextField(
-              key: const Key('opt-value-metadata'),
-              controller: _valueMetadataController,
-              label: strings.tKey(
-                PlatformAdminKeys.fieldOptionValueDescription,
-              ),
-              hint: '{}',
-              enabled: !_busy,
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: PlatformPrimaryButton(
-                key: const Key('opt-value-save'),
-                label: isEdit
-                    ? strings.tKey(CommonKeys.buttonSave)
-                    : strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
-                icon: isEdit ? null : Icons.add_rounded,
-                isLoading: _busy,
-                onPressed: _busy ? null : () => _saveValue(set),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildValueRow(
-    dynamic strings,
-    OptionSet set,
-    OptionValue value,
-    bool reorderEnabled,
-  ) {
-    final ordered = [...set.values]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    final index = ordered.indexWhere((item) => item.id == value.id);
-    return Container(
-      key: Key('opt-value-row-${value.id}'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: PtTheme.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                child: Row(
                   children: [
-                    Text(
-                      value.code,
-                      style: PtTheme.font(
-                        11,
-                        weight: FontWeight.w700,
-                        color: PtTheme.muted,
-                        tracking: 0.4,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            set.name,
+                            style: Catalog.text(12, weight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${set.code} · ${set.values.length} ${strings.tKey(PlatformAdminKeys.sectionOptionSetValues)}',
+                            style: Catalog.text(9.5, color: PtTheme.muted),
+                          ),
+                        ],
                       ),
                     ),
-                    PlatformStatusChip(
-                      status: value.status,
-                      label: checklistStatusLabel(strings, value.status),
-                    ),
-                    Text(
-                      '${strings.tKey(PlatformAdminKeys.fieldCategoryOrder)}: ${value.sortOrder}',
-                      style: PtTheme.font(11, color: PtTheme.muted),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    CatalogPill(
+                      label: checklistStatusLabel(ref, set.status),
+                      tone: set.status.toUpperCase() == 'ACTIVE'
+                          ? CatalogTone.good
+                          : CatalogTone.neutral,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _smallIconButton(
-                    key: Key('opt-value-up-${value.id}'),
-                    tooltip: strings.tKey(CommonKeys.buttonMoveUp),
-                    icon: Icons.arrow_upward_rounded,
-                    onPressed: !reorderEnabled || index <= 0
-                        ? null
-                        : () => _reorderValue(set, value.id, -1),
-                  ),
-                  _smallIconButton(
-                    key: Key('opt-value-down-${value.id}'),
-                    tooltip: strings.tKey(CommonKeys.buttonMoveDown),
-                    icon: Icons.arrow_downward_rounded,
-                    onPressed:
-                        !reorderEnabled ||
-                            index < 0 ||
-                            index >= ordered.length - 1
-                        ? null
-                        : () => _reorderValue(set, value.id, 1),
-                  ),
-                  if (value.status == 'DRAFT')
-                    _smallIconButton(
-                      key: Key('opt-value-activate-${value.id}'),
-                      tooltip: strings.tKey(
-                        PlatformAdminKeys.buttonContentActivate,
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+class _ValuesPane extends ConsumerWidget {
+  const _ValuesPane({
+    required this.strings,
+    required this.set,
+    required this.busy,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onRetire,
+    required this.onActivate,
+    required this.onMove,
+  });
+
+  final UiMessageStrings strings;
+  final OptionSet set;
+  final bool busy;
+  final VoidCallback onAdd;
+  final ValueChanged<OptionValue> onEdit;
+  final ValueChanged<OptionValue> onRetire;
+  final ValueChanged<OptionValue> onActivate;
+  final void Function(OptionValue, int) onMove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final values = [...set.values]
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return CatalogSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      set.code,
+                      style: Catalog.text(
+                        10.5,
+                        weight: FontWeight.w800,
+                        color: PtTheme.deepGreen,
                       ),
-                      icon: Icons.check_circle_outline_rounded,
-                      color: PtTheme.deepGreen,
-                      onPressed: _busy
-                          ? null
-                          : () => _activateValue(set, value),
                     ),
-                  _smallIconButton(
-                    key: Key('opt-value-edit-${value.id}'),
-                    tooltip: strings.tKey(CommonKeys.buttonEdit),
-                    icon: Icons.edit_outlined,
-                    onPressed: _busy ? null : () => _startEditValue(value),
-                  ),
-                  _smallIconButton(
-                    key: Key('opt-value-retire-${value.id}'),
-                    tooltip: strings.tKey(PlatformAdminKeys.buttonRetire),
-                    icon: Icons.archive_outlined,
-                    color: PtTheme.rose,
-                    onPressed: _busy
-                        ? null
-                        : () => _confirmRetireValue(set, value),
-                  ),
-                ],
+                    const SizedBox(height: 3),
+                    Text(
+                      set.name,
+                      style: Catalog.text(
+                        20,
+                        weight: FontWeight.w800,
+                        tracking: -0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              CatalogButton(
+                label: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
+                icon: Icons.add_rounded,
+                secondary: true,
+                compact: true,
+                onPressed: onAdd,
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
-            _optionValueLabel(value),
-            style: PtTheme.font(
-              13,
-              weight: FontWeight.w600,
-              color: PtTheme.ink,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            strings.tKey(PlatformAdminKeys.sectionOptionSetValues),
+            style: Catalog.eyebrow,
           ),
-          if (value.metadataJson.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              value.metadataJson,
-              style: PtTheme.caption,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          const SizedBox(height: 6),
+          if (values.isEmpty)
+            CatalogEmpty(
+              title: strings.tKey(CommonKeys.emptyTitle),
+              body: strings.tKey(PlatformAdminKeys.pageIssueOptionsInlineHint),
+              actionLabel: strings.tKey(PlatformAdminKeys.buttonOptionValueAdd),
+              onAction: onAdd,
+            )
+          else
+            for (final value in values)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: PtTheme.border)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            value.labelEn,
+                            style: Catalog.text(12, weight: FontWeight.w700),
+                          ),
+                          Text(
+                            value.code,
+                            style: Catalog.text(9.5, color: PtTheme.muted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CatalogPill(
+                      label: checklistStatusLabel(ref, value.status),
+                      tone: value.status.toUpperCase() == 'ACTIVE'
+                          ? CatalogTone.good
+                          : CatalogTone.bad,
+                    ),
+                    _icon(
+                      Icons.arrow_upward_rounded,
+                      strings.tKey(CommonKeys.buttonMoveUp),
+                      () => onMove(value, -1),
+                    ),
+                    _icon(
+                      Icons.arrow_downward_rounded,
+                      strings.tKey(CommonKeys.buttonMoveDown),
+                      () => onMove(value, 1),
+                    ),
+                    _icon(
+                      Icons.edit_outlined,
+                      strings.tKey(CommonKeys.buttonEdit),
+                      () => onEdit(value),
+                    ),
+                    _icon(
+                      value.status.toUpperCase() == 'ACTIVE'
+                          ? Icons.block_outlined
+                          : Icons.check_circle_outlined,
+                      strings.tKey(
+                        value.status.toUpperCase() == 'ACTIVE'
+                            ? PlatformAdminKeys.buttonRetire
+                            : PlatformAdminKeys.buttonContentActivate,
+                      ),
+                      value.status.toUpperCase() == 'ACTIVE'
+                          ? () => onRetire(value)
+                          : () => onActivate(value),
+                      danger: value.status.toUpperCase() == 'ACTIVE',
+                    ),
+                  ],
+                ),
+              ),
         ],
       ),
     );
   }
 
-  Widget _smallIconButton({
-    required Key key,
-    required String tooltip,
-    required IconData icon,
-    required VoidCallback? onPressed,
-    Color color = PtTheme.muted,
-  }) {
-    return IconButton(
-      key: key,
-      tooltip: tooltip,
+  Widget _icon(
+    IconData icon,
+    String tooltip,
+    VoidCallback onPressed, {
+    bool danger = false,
+  }) => Tooltip(
+    message: tooltip,
+    child: IconButton(
+      icon: Icon(icon, size: 17),
+      color: danger ? PtTheme.rose : PtTheme.muted,
       visualDensity: VisualDensity.compact,
-      icon: Icon(
-        icon,
-        size: 17,
-        color: onPressed == null ? PtTheme.border : color,
-      ),
-      onPressed: _busy ? null : onPressed,
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Shared bits (in-file, screen-owned).
-
-class _HelperBanner extends StatelessWidget {
-  const _HelperBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        color: PtTheme.emerald.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PtTheme.deepGreen.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.info_outline_rounded,
-            size: 18,
-            color: PtTheme.deepGreen,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: PtTheme.bodyMuted,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    super.key,
-    required this.controller,
-    required this.hint,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final String hint;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: PtTheme.font(14, lineHeight: 20, color: PtTheme.muted),
-        prefixIcon: const Icon(
-          Icons.search_rounded,
-          size: 18,
-          color: PtTheme.muted,
-        ),
-        filled: true,
-        fillColor: PtTheme.canvas,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        constraints: const BoxConstraints(minHeight: 44),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.deepGreen, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
-String? _required(String? value, dynamic strings) {
-  if (value == null || value.trim().isEmpty) {
-    return strings.tKey(CommonKeys.validationRequired);
-  }
-  return null;
-}
-
-String _optionSetName(OptionSet set) {
-  return set.name.isEmpty ? set.code : set.name;
-}
-
-String _optionValueLabel(OptionValue value) {
-  return value.label.isEmpty ? value.code : value.label;
-}
-
-String _failureMessage(Object error) {
-  if (error is AppFailure) {
-    return error.statusCode == null
-        ? error.messageKey
-        : '${error.messageKey} (${error.statusCode})';
-  }
-  return error.toString();
+      onPressed: busy ? null : onPressed,
+    ),
+  );
 }

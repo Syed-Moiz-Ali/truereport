@@ -1,6 +1,9 @@
 package com.truereport.technician;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.shared.security.PiiCipher;
+import com.truereport.shared.uuid.UuidBinaryConverter;
 import com.truereport.shared.uuid.UuidV7;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,8 +16,12 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * JDBC store for technician inspection execution. Reads and writes only the
@@ -25,10 +32,12 @@ public class TechnicianStore {
 
     private final JdbcTemplate jdbc;
     private final PiiCipher pii;
+    private final ObjectMapper objectMapper;
 
-    public TechnicianStore(JdbcTemplate jdbc, PiiCipher pii) {
+    public TechnicianStore(JdbcTemplate jdbc, PiiCipher pii, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
         this.pii = pii;
+        this.objectMapper = objectMapper;
     }
 
     // --------------------------------------------------------------- records
@@ -59,7 +68,7 @@ public class TechnicianStore {
             String standardSpecAr, String measurementUnit, String sensorTool,
             boolean safetyCritical, boolean multiPoint, boolean allowFreeTextNote,
             String noteRequirement, String resultOptionsJson, String severityPolicyJson,
-            String reasonCodesJson) {
+            String reasonCodesJson, String templateVersionId) {
     }
 
     public record ScoreBandRow(
@@ -251,7 +260,7 @@ public class TechnicianStore {
     // ------------------------------------------------------------- templates
 
     public Optional<TemplateRow> template(String versionId) {
-        return jdbc.query("""
+        Optional<TemplateRow> platform = jdbc.query("""
                 SELECT v.id AS version_id, v.template_id, t.code,
                        t.name AS name_en,
                        (SELECT body FROM platform_translations pt
@@ -265,9 +274,47 @@ public class TechnicianStore {
                 rs.getString("version_id"), rs.getString("template_id"), rs.getString("code"),
                 rs.getString("name_en"), rs.getString("name_ar"), rs.getInt("version_no"),
                 rs.getString("status")), versionId).stream().findFirst();
+        if (platform.isPresent()) {
+            return platform;
+        }
+        UUID version = uuid(versionId);
+        if (version == null) {
+            return Optional.empty();
+        }
+        return jdbc.query("""
+                SELECT v.id AS version_id, v.template_id, NULL AS code,
+                       t.name AS name_en, NULL AS name_ar, v.version_no, v.status
+                FROM template_versions v
+                JOIN workshop_templates t ON t.id = v.template_id
+                WHERE v.id = ?
+                """, (rs, i) -> new TemplateRow(
+                UuidBinaryConverter.fromBytes(rs.getBytes("version_id")).toString(),
+                UuidBinaryConverter.fromBytes(rs.getBytes("template_id")).toString(),
+                rs.getString("code"), rs.getString("name_en"), rs.getString("name_ar"),
+                rs.getInt("version_no"), rs.getString("status")),
+                UuidBinaryConverter.toBytes(version)).stream().findFirst();
     }
 
     public List<ItemRow> items(String templateVersionId) {
+        UUID version = uuid(templateVersionId);
+        if (version != null) {
+            List<WorkshopItemOrder> order = jdbc.query("""
+                    SELECT master_item_version_id, sort_order, effective_rules_json
+                    FROM template_items
+                    WHERE template_version_id = ? AND included = TRUE
+                    ORDER BY sort_order
+                    """, (rs, i) -> new WorkshopItemOrder(
+                    UuidBinaryConverter.fromBytes(rs.getBytes("master_item_version_id")).toString(),
+                    rs.getInt("sort_order"), rs.getString("effective_rules_json")),
+                    UuidBinaryConverter.toBytes(version));
+            if (!order.isEmpty()) {
+                List<ItemRow> rows = new ArrayList<>();
+                for (WorkshopItemOrder item : order) {
+                    platformWorkshopItem(templateVersionId, item).ifPresent(rows::add);
+                }
+                return rows;
+            }
+        }
         return jdbc.query("""
                 SELECT ti.item_version_id, v.item_id, i.stable_code AS item_code,
                        i.category_id, c.code AS category_code, c.name AS category_name_en,
@@ -298,7 +345,78 @@ public class TechnicianStore {
                 JOIN platform_categories c ON c.id = i.category_id
                 WHERE ti.template_version_id = ? AND ti.included = TRUE
                 ORDER BY ti.sort_order, i.sort_order, i.stable_code
-                """, (rs, i) -> new ItemRow(
+                """, (rs, i) -> platformItemRow(rs, templateVersionId), templateVersionId);
+    }
+
+    private Optional<ItemRow> platformWorkshopItem(String templateVersionId,
+                                                    WorkshopItemOrder item) {
+        return jdbc.query("""
+                SELECT v.item_id, i.stable_code AS item_code,
+                       i.category_id, c.code AS category_code, c.name AS category_name_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_name_ar,
+                       c.sort_order AS category_sort_order,
+                       v.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       v.instruction AS instruction_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'instruction' AND pt.lang = 'ar') AS instruction_ar,
+                       v.standard_spec AS standard_spec_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'standardSpec' AND pt.lang = 'ar') AS standard_spec_ar,
+                       v.measurement_unit, v.sensor_tool,
+                       v.safety_critical, v.multi_point, v.allow_free_text_note,
+                       v.note_requirement, v.result_options_json, v.severity_policy_json,
+                       v.reason_codes_json
+                FROM platform_item_versions v
+                JOIN platform_items i ON i.id = v.item_id
+                JOIN platform_categories c ON c.id = i.category_id
+                WHERE v.id = ?
+                """, (rs, i) -> workshopItemRow(rs, templateVersionId, item.itemVersionId(),
+                item.sortOrder(), item.effectiveRulesJson()), item.itemVersionId())
+                .stream().findFirst();
+    }
+
+    private record WorkshopItemOrder(String itemVersionId, int sortOrder,
+                                     String effectiveRulesJson) {
+    }
+
+    private ItemRow workshopItemRow(java.sql.ResultSet rs, String templateVersionId,
+                                    String itemVersionId, int itemSortOrder, String rulesJson)
+            throws java.sql.SQLException {
+        JsonNode rules = parse(rulesJson);
+        return new ItemRow(
+                itemVersionId, rs.getString("item_id"),
+                rs.getString("item_code"), rs.getString("category_id"),
+                rs.getString("category_code"), rs.getString("category_name_en"),
+                rs.getString("category_name_ar"), rs.getInt("category_sort_order"),
+                itemSortOrder,
+                text(rules, "labelEn", rs.getString("label_en")),
+                text(rules, "labelAr", rs.getString("label_ar")),
+                text(rules, "instructionEn", rs.getString("instruction_en")),
+                text(rules, "instructionAr", rs.getString("instruction_ar")),
+                rs.getString("standard_spec_en"), rs.getString("standard_spec_ar"),
+                text(rules, "measurementUnit", rs.getString("measurement_unit")),
+                rs.getString("sensor_tool"),
+                rules.has("safetyCritical")
+                        ? rules.path("safetyCritical").asBoolean(rs.getBoolean("safety_critical"))
+                        : rs.getBoolean("safety_critical"),
+                rs.getBoolean("multi_point"), rs.getBoolean("allow_free_text_note"),
+                text(rules, "noteRequirement", rs.getString("note_requirement")),
+                jsonField(rules, "resultOptions", rs.getString("result_options_json")),
+                jsonField(rules, "severityPolicy", rs.getString("severity_policy_json")),
+                jsonField(rules, "reasonCodes", rs.getString("reason_codes_json")),
+                templateVersionId);
+    }
+
+    private ItemRow platformItemRow(java.sql.ResultSet rs, String templateVersionId)
+            throws java.sql.SQLException {
+        return new ItemRow(
                 rs.getString("item_version_id"), rs.getString("item_id"),
                 rs.getString("item_code"), rs.getString("category_id"),
                 rs.getString("category_code"), rs.getString("category_name_en"),
@@ -310,7 +428,37 @@ public class TechnicianStore {
                 rs.getBoolean("safety_critical"), rs.getBoolean("multi_point"),
                 rs.getBoolean("allow_free_text_note"), rs.getString("note_requirement"),
                 rs.getString("result_options_json"), rs.getString("severity_policy_json"),
-                rs.getString("reason_codes_json")), templateVersionId);
+                rs.getString("reason_codes_json"), templateVersionId);
+    }
+
+    private JsonNode parse(String value) {
+        try {
+            return objectMapper.readTree(value == null || value.isBlank() ? "{}" : value);
+        } catch (Exception exception) {
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    private static UUID uuid(String value) {
+        try {
+            return UUID.fromString(value);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    private static String text(JsonNode node, String field, String fallback) {
+        JsonNode value = node.path(field);
+        return value.isMissingNode() || value.isNull() || value.asText("").isBlank()
+                ? fallback : value.asText();
+    }
+
+    private static String jsonField(JsonNode node, String field, String fallback) {
+        JsonNode value = node.path(field);
+        if (value.isMissingNode() || value.isNull()) {
+            return fallback;
+        }
+        return value.isTextual() ? value.asText() : value.toString();
     }
 
     public Optional<ItemRow> itemByCode(String templateVersionId, String itemCode) {
@@ -320,6 +468,16 @@ public class TechnicianStore {
     }
 
     public int templateItemCount(String templateVersionId) {
+        UUID version = uuid(templateVersionId);
+        if (version != null) {
+            Integer workshopCount = jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM template_items
+                    WHERE template_version_id = ? AND included = TRUE
+                    """, Integer.class, UuidBinaryConverter.toBytes(version));
+            if (workshopCount != null && workshopCount > 0) {
+                return workshopCount;
+            }
+        }
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM platform_template_items
                 WHERE template_version_id = ? AND included = TRUE
@@ -343,8 +501,8 @@ public class TechnicianStore {
                 rs.getString("criteria_ar"), rs.getInt("sort_order")), itemVersionId);
     }
 
-    public List<EvidenceRuleRow> evidenceRules(String itemVersionId) {
-        return jdbc.query("""
+    public List<EvidenceRuleRow> evidenceRules(String templateVersionId, String itemVersionId) {
+        List<EvidenceRuleRow> platform = jdbc.query("""
                 SELECT result_code, min_photos, min_videos, min_notes_chars,
                        required_evidence_type
                 FROM platform_evidence_rules WHERE item_version_id = ?
@@ -353,6 +511,68 @@ public class TechnicianStore {
                 rs.getString("result_code"), rs.getInt("min_photos"), rs.getInt("min_videos"),
                 rs.getInt("min_notes_chars"), rs.getString("required_evidence_type")),
                 itemVersionId);
+        UUID version = uuid(templateVersionId);
+        UUID itemVersion = uuid(itemVersionId);
+        if (version == null || itemVersion == null) {
+            return platform;
+        }
+        JsonNode rules = jdbc.query("""
+                SELECT effective_rules_json
+                FROM template_items
+                WHERE template_version_id = ? AND master_item_version_id = ?
+                """, (rs, i) -> parse(rs.getString("effective_rules_json")),
+                UuidBinaryConverter.toBytes(version), UuidBinaryConverter.toBytes(itemVersion))
+                .stream().findFirst().orElse(null);
+        if (rules == null) {
+            return platform;
+        }
+        int overridePhotos = rules.path("minPhotos").asInt(0);
+        String requirement = text(rules, "evidenceRequirement", "");
+        String overrideType = Set.of("PHOTO", "VIDEO", "DOCUMENT").contains(requirement)
+                ? requirement : null;
+        if (overridePhotos == 0 && overrideType == null) {
+            return platform;
+        }
+        Map<String, EvidenceRuleRow> merged = new LinkedHashMap<>();
+        for (EvidenceRuleRow rule : platform) {
+            merged.put(rule.resultCode(), rule);
+        }
+        for (String code : resultCodes(rules, itemVersionId)) {
+            EvidenceRuleRow base = merged.get(code);
+            int photos = Math.max(base == null ? 0 : base.minPhotos(), overridePhotos);
+            int videos = base == null ? 0 : base.minVideos();
+            int notes = base == null ? 0 : base.minNotesChars();
+            String type = overrideType != null ? overrideType
+                    : (base == null ? null : base.requiredEvidenceType());
+            merged.put(code, new EvidenceRuleRow(code, photos, videos, notes, type));
+        }
+        return new ArrayList<>(merged.values());
+    }
+
+    private List<String> resultCodes(JsonNode rules, String itemVersionId) {
+        List<String> codes = new ArrayList<>();
+        JsonNode configured = rules.path("resultOptions");
+        if (configured.isArray()) {
+            configured.forEach(value -> {
+                if (value.isTextual() && !value.asText().isBlank()) {
+                    codes.add(value.asText());
+                }
+            });
+        }
+        if (codes.isEmpty()) {
+            String stored = jdbc.queryForObject("""
+                    SELECT result_options_json FROM platform_item_versions WHERE id = ?
+                    """, String.class, itemVersionId);
+            JsonNode values = parse(stored);
+            if (values.isArray()) {
+                values.forEach(value -> {
+                    if (value.isTextual() && !value.asText().isBlank()) {
+                        codes.add(value.asText());
+                    }
+                });
+            }
+        }
+        return codes;
     }
 
     public List<MeasureBandRow> measurementBands(String itemVersionId) {

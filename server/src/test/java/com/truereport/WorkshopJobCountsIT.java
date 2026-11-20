@@ -231,10 +231,10 @@ class WorkshopJobCountsIT extends IntegrationTestBase {
                 "{\"reason\":\"No longer needed\"}");
     }
 
-    private void start(Login login, String jobId) throws Exception {
-        mockMvc.perform(post("/api/v1/technician/legacy/jobs/" + jobId + "/start")
-                        .header("Authorization", "Bearer " + login.accessToken()))
-                .andExpect(status().isOk());
+    private void start(Login login, String jobId) {
+        InspectionJob job = inspectionJobs.findById(UUID.fromString(jobId)).orElseThrow();
+        job.start(LocalDateTime.now());
+        inspectionJobs.save(job);
     }
 
     private void markReady(String jobId, LocalDateTime at) {

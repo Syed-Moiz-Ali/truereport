@@ -4,8 +4,10 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_create_page.dart';
@@ -16,6 +18,8 @@ import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
 import 'support/fake_admin_api.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// Staff roster — the queue-shaped table, its counted pill filters and the
 /// routes it owns (member record, create page).
@@ -108,13 +112,15 @@ class _HarnessState extends ConsumerState<_Harness> {
     final locale = ref.watch(localeProvider);
     return MaterialApp(
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const <Locale>[Locale('en')],
+      localizationsDelegates: testLocalizationsDelegates,
       theme: AppTheme.light,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context)
-            .copyWith(textScaler: TextScaler.linear(widget.textScale)),
-        child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => uiStringsScope(
+        child: MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(widget.textScale)),
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
       home: widget.home,
     );
@@ -138,7 +144,10 @@ Future<_StaffApi> _pumpStaff(
 }) async {
   final effective = api ?? _StaffApi();
   final container = ProviderContainer(
-    overrides: [adminApiProvider.overrideWithValue(effective)],
+    overrides: [
+      adminApiProvider.overrideWithValue(effective),
+      ..._referenceOverrides,
+    ],
   );
   addTearDown(container.dispose);
   await tester.pumpWidget(
@@ -156,8 +165,8 @@ Future<_StaffApi> _pumpStaff(
   return effective;
 }
 
-AppLocalizations _l10n(WidgetTester tester) =>
-    AppLocalizations.of(tester.element(find.byType(StaffTab)));
+UiStrings _l10n(WidgetTester tester) =>
+    UiStrings.of(tester.element(find.byType(StaffTab)));
 
 List<TemplatePillChip> _chips(WidgetTester tester) => tester
     .widgetList<TemplatePillChip>(find.byType(TemplatePillChip))
@@ -186,6 +195,37 @@ int _rowCount(WidgetTester tester) => const [
   'admin-2',
 ].where((id) => find.byKey(Key('staff-$id')).evaluate().isNotEmpty).length;
 
+final List<Override> _referenceOverrides = <Override>[
+  enumsProvider('role').overrideWith(
+    (ref) async => const <ReferenceRecord>[
+      ReferenceRecord(
+        code: 'WORKSHOP_ADMIN',
+        labelKey: 'role.workshopAdmin',
+        tone: 'info',
+      ),
+      ReferenceRecord(
+        code: 'TECHNICIAN',
+        labelKey: 'role.technician',
+        tone: 'neutral',
+      ),
+    ],
+  ),
+  statusesProvider('workshop').overrideWith(
+    (ref) async => const <ReferenceRecord>[
+      ReferenceRecord(
+        code: 'ACTIVE',
+        labelKey: 'status.workshop.active',
+        tone: 'success',
+      ),
+      ReferenceRecord(
+        code: 'DISABLED',
+        labelKey: 'status.disabled',
+        tone: 'danger',
+      ),
+    ],
+  ),
+];
+
 void main() {
   for (final locale in const [Locale('en')]) {
     testWidgets(
@@ -195,18 +235,21 @@ void main() {
         await _pumpStaff(tester, locale: locale);
         expect(tester.takeException(), isNull);
 
-        final l10n = _l10n(tester);
-        expect(find.text(l10n.workshopStaffTitle), findsOneWidget);
+        final t = _l10n(tester);
+        expect(
+          find.text(t(WorkshopAdminKeys.workshopStaffTitle)),
+          findsOneWidget,
+        );
         expect(find.byKey(const Key('staff-search')), findsOneWidget);
 
         // Filters are the shared pill chips, with roster-wide counts.
         final chips = _chips(tester);
         expect(chips, hasLength(3));
-        expect(chips[0].label, l10n.filterAll);
+        expect(chips[0].label, t(WorkshopAdminKeys.filterAll));
         expect(chips[0].count, 4);
-        expect(chips[1].label, l10n.staffFilterTechnicians);
+        expect(chips[1].label, 'Workshop Admin');
         expect(chips[1].count, 2);
-        expect(chips[2].label, l10n.staffFilterAdmins);
+        expect(chips[2].label, 'Technician');
         expect(chips[2].count, 2);
         expect(find.byType(WorkshopFilterChip), findsNothing);
         expect(find.byType(TabBar), findsNothing);
@@ -226,16 +269,34 @@ void main() {
           expect(label.maxLines, isNull);
           expect(label.overflow, isNot(TextOverflow.ellipsis));
         }
-        expect(find.text(l10n.roleTechnician), findsNWidgets(2));
-        expect(find.text(l10n.roleWorkshopAdmin), findsNWidgets(2));
-        expect(find.text(l10n.filterActive), findsNWidgets(2));
-        expect(find.text(l10n.disabled), findsOneWidget);
+        expect(
+          find.text(t(WorkshopAdminKeys.roleTechnician)),
+          findsNWidgets(3),
+        );
+        expect(
+          find.text(t(WorkshopAdminKeys.roleWorkshopAdmin)),
+          findsNWidgets(3),
+        );
+        expect(find.text(t(WorkshopAdminKeys.filterActive)), findsNWidgets(2));
+        expect(find.text(t(WorkshopAdminKeys.disabled)), findsOneWidget);
 
         // The table has a real header row at this width.
-        expect(find.text(l10n.staffTab.toUpperCase()), findsOneWidget);
-        expect(find.text(l10n.role.toUpperCase()), findsOneWidget);
-        expect(find.text(l10n.status.toUpperCase()), findsOneWidget);
-        expect(find.text(l10n.emailLabel.toUpperCase()), findsOneWidget);
+        expect(
+          find.text(t(WorkshopAdminKeys.staffTab).toUpperCase()),
+          findsOneWidget,
+        );
+        expect(
+          find.text(t(WorkshopAdminKeys.role).toUpperCase()),
+          findsOneWidget,
+        );
+        expect(
+          find.text(t(WorkshopAdminKeys.status).toUpperCase()),
+          findsOneWidget,
+        );
+        expect(
+          find.text(t(WorkshopAdminKeys.emailLabel).toUpperCase()),
+          findsOneWidget,
+        );
 
         // The create action is a pill, not a Material button.
         expect(find.byType(TemplatePillButton), findsWidgets);
@@ -261,9 +322,15 @@ void main() {
         expect(find.text('Mariam Abdulrahman Al Suwaidi'), findsOneWidget);
         // Below 1000 the table header disappears and role/email stack under
         // the name, so the identity is never squeezed by fixed columns.
-        final l10n = _l10n(tester);
-        expect(find.text(l10n.role.toUpperCase()), findsNothing);
-        expect(find.text(l10n.emailLabel.toUpperCase()), findsNothing);
+        final t = _l10n(tester);
+        expect(
+          find.text(t(WorkshopAdminKeys.role).toUpperCase()),
+          findsNothing,
+        );
+        expect(
+          find.text(t(WorkshopAdminKeys.emailLabel).toUpperCase()),
+          findsNothing,
+        );
         expect(find.text('m***@test.local'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
@@ -274,17 +341,17 @@ void main() {
       (tester) async {
         _setSize(tester, const Size(1440, 900));
         await _pumpStaff(tester, locale: locale);
-        final l10n = _l10n(tester);
+        final t = _l10n(tester);
 
-        await _tapChip(tester, l10n.staffFilterTechnicians);
+        await _tapChip(tester, 'Technician');
         expect(_rowCount(tester), 2);
         expect(find.text('Omar Saeed Al Marri'), findsNothing);
 
-        await _tapChip(tester, l10n.staffFilterAdmins);
+        await _tapChip(tester, 'Workshop Admin');
         expect(_rowCount(tester), 2);
         expect(find.text('Mariam Abdulrahman Al Suwaidi'), findsNothing);
 
-        await _tapChip(tester, l10n.filterAll);
+        await _tapChip(tester, t(WorkshopAdminKeys.filterAll));
         expect(_rowCount(tester), 4);
 
         await tester.enterText(find.byKey(const Key('staff-search')), 'hessa');
@@ -296,13 +363,13 @@ void main() {
         await tester.enterText(find.byKey(const Key('staff-search')), 'zzz');
         await tester.pumpAndSettle();
         expect(_rowCount(tester), 0);
-        expect(find.text(l10n.noResults), findsOneWidget);
+        expect(find.text(t(WorkshopAdminKeys.noResults)), findsOneWidget);
         expect(_chips(tester)[0].count, 4);
         await tester.tap(
           find.byWidgetPredicate(
             (widget) =>
                 widget is TemplatePillButton &&
-                widget.label == l10n.jobsClearFilters,
+                widget.label == t(WorkshopAdminKeys.jobsClearFilters),
           ),
         );
         await tester.pumpAndSettle();
@@ -318,7 +385,10 @@ void main() {
 
         final hanging = _StaffApi(hang: true);
         final container = ProviderContainer(
-          overrides: [adminApiProvider.overrideWithValue(hanging)],
+          overrides: [
+            adminApiProvider.overrideWithValue(hanging),
+            ..._referenceOverrides,
+          ],
         );
         addTearDown(container.dispose);
         await tester.pumpWidget(
@@ -336,14 +406,14 @@ void main() {
 
         hanging.gate!.complete(<StaffMember>[]);
         await tester.pumpAndSettle();
-        final l10n = _l10n(tester);
-        expect(find.text(l10n.noTechnicians), findsOneWidget);
-        expect(find.text(l10n.staffSubtitle), findsOneWidget);
+        final t = _l10n(tester);
+        expect(find.text(t(WorkshopAdminKeys.noTechnicians)), findsOneWidget);
+        expect(find.text(t(WorkshopAdminKeys.staffSubtitle)), findsOneWidget);
         expect(
           find.byWidgetPredicate(
             (widget) =>
                 widget is TemplatePillButton &&
-                widget.label == l10n.createTechnicianTitle,
+                widget.label == t(WorkshopAdminKeys.createTechnicianTitle),
           ),
           findsOneWidget,
         );
@@ -360,10 +430,13 @@ void main() {
           locale: locale,
           api: _StaffApi(staffError: true),
         );
-        final l10n = _l10n(tester);
-        expect(find.text(l10n.error), findsOneWidget);
-        expect(find.text(l10n.commonLoadFailed), findsOneWidget);
-        expect(find.text(l10n.retryAction), findsOneWidget);
+        final t = _l10n(tester);
+        expect(find.text(t(WorkshopAdminKeys.error)), findsOneWidget);
+        expect(
+          find.text(t(WorkshopAdminKeys.commonLoadFailed)),
+          findsOneWidget,
+        );
+        expect(find.text(t(WorkshopAdminKeys.retryAction)), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
@@ -391,12 +464,13 @@ void main() {
       (tester) async {
         _setSize(tester, const Size(390, 844));
         final api = await _pumpStaff(tester, locale: locale);
-        final l10n = _l10n(tester);
+        final t = _l10n(tester);
 
         await tester.tap(
           find.byWidgetPredicate(
             (widget) =>
-                widget is TemplatePillButton && widget.label == l10n.create,
+                widget is TemplatePillButton &&
+                widget.label == t(WorkshopAdminKeys.create),
           ),
         );
         await tester.pumpAndSettle();
@@ -405,19 +479,19 @@ void main() {
 
         expect(
           _hint(tester, const Key('staff-create-name')),
-          l10n.fullNameHint,
+          t(WorkshopAdminKeys.fullNameHint),
         );
         expect(
           _hint(tester, const Key('staff-create-email')),
-          l10n.technicianEmailHint,
+          t(WorkshopAdminKeys.technicianEmailHint),
         );
         expect(
           _hint(tester, const Key('staff-create-password')),
-          l10n.temporaryPassword,
+          t(WorkshopAdminKeys.temporaryPassword),
         );
         expect(
           _hint(tester, const Key('staff-create-confirm')),
-          l10n.confirmPasswordHint,
+          t(WorkshopAdminKeys.confirmPasswordHint),
         );
 
         await tester.enterText(
@@ -437,11 +511,11 @@ void main() {
           'temporary-pass-123',
         );
         await tester.pump();
-        await tester.tap(find.text(l10n.create).last);
+        await tester.tap(find.text(t(WorkshopAdminKeys.create)).last);
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(api.createdTechnicians, contains('tech.c@test.local'));
-        expect(find.text(l10n.accountCreated), findsOneWidget);
+        expect(find.text(t(WorkshopAdminKeys.accountCreated)), findsOneWidget);
       },
     );
   }

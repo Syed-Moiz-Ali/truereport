@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
@@ -36,7 +36,7 @@ class TemplatePublishStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,7 +57,9 @@ class TemplatePublishStep extends StatelessWidget {
                   TemplateStatusPill(status: status),
                   const Spacer(),
                   Text(
-                    l10n.templateItemsCount(itemCount),
+                    t(WorkshopAdminKeys.templateItemsCount, {
+                      'count': itemCount,
+                    }),
                     style: ws.meta.copyWith(color: ws.muted),
                   ),
                 ],
@@ -74,20 +76,20 @@ class TemplatePublishStep extends StatelessWidget {
                 children: [
                   if (hasDraft)
                     TemplatePillButton(
-                      label: l10n.publishTemplate,
+                      label: t(WorkshopAdminKeys.publishTemplate),
                       icon: Icons.publish_outlined,
                       loading: busy,
                       onPressed: busy ? null : onPublish,
                     ),
                   TemplatePillButton(
-                    label: l10n.preview,
+                    label: t(WorkshopAdminKeys.preview),
                     icon: Icons.visibility_outlined,
                     variant: TemplatePillVariant.outline,
                     onPressed: busy ? null : onPreview,
                   ),
                   if (status != 'RETIRED')
                     TemplatePillButton(
-                      label: l10n.retire,
+                      label: t(WorkshopAdminKeys.retire),
                       variant: TemplatePillVariant.danger,
                       onPressed: busy ? null : onRetire,
                     ),
@@ -108,7 +110,7 @@ class TemplatePublishStep extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                l10n.versionHistory,
+                t(WorkshopAdminKeys.versionHistory),
                 style: ws.cardTitle.copyWith(color: ws.ink),
               ),
               const SizedBox(height: 6),
@@ -127,7 +129,7 @@ class TemplatePublishStep extends StatelessWidget {
     TemplateVersionSummary version,
     bool first,
   ) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return InkWell(
       onTap: () => onOpenVersion(version.id),
       child: Container(
@@ -148,7 +150,7 @@ class TemplatePublishStep extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '${l10n.templateItemsCount(version.itemCount)}'
+                '${t(WorkshopAdminKeys.templateItemsCount, {'count': version.itemCount})}'
                 '${version.publishedAt.isEmpty ? '' : ' · ${version.publishedAt}'}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

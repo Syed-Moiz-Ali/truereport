@@ -23,22 +23,22 @@ class MasterContentIT extends IntegrationTestBase {
         Login platform = login("platform@test.local");
 
         JsonNode category = postJson(platform, "/api/v1/platform/master/categories", """
-                {"slug":"sample-exterior","labelEn":"Sample exterior","labelAr":"هيكل تجريبي","sortOrder":1}
+                {"slug":"sample-exterior","labelEn":"Sample exterior","labelAr":"Test text","sortOrder":1}
                 """);
         String categoryId = category.get("id").asText();
 
         JsonNode equipment = postJson(platform, "/api/v1/platform/master/equipment", """
-                {"code":"FLASHLIGHT","labelEn":"Flashlight","labelAr":"مصباح يدوي","sortOrder":1}
+                {"code":"FLASHLIGHT","labelEn":"Flashlight","labelAr":"Test text","sortOrder":1}
                 """);
         JsonNode reason = postJson(platform, "/api/v1/platform/master/reasons", """
-                {"code":"NOT_ACCESSIBLE","labelEn":"Not accessible","labelAr":"غير متاح","sortOrder":1}
+                {"code":"NOT_ACCESSIBLE","labelEn":"Not accessible","labelAr":"Test text","sortOrder":1}
                 """);
 
         JsonNode item = postJson(platform, "/api/v1/platform/master/items", """
                 {"stableCode":"SAMPLE-EXT-001","categoryId":"%s",
-                 "labelEn":"Sample body panel check","labelAr":"فحص لوحة الهيكل التجريبي",
+                 "labelEn":"Sample body panel check","labelAr":"Test text",
                  "instructionEn":"Inspect the panel and record any defect.",
-                 "instructionAr":"افحص اللوحة وسجل أي عيب.",
+                 "instructionAr":"Test text",
                  "sampleData":true,
                  "resultOptions":["NO_ISSUE_OBSERVED","DEFECT_FOUND","NOT_CHECKED"],
                  "severityPolicy":"{\\"DEFECT_FOUND\\":\\"MODERATE\\"}",
@@ -83,7 +83,7 @@ class MasterContentIT extends IntegrationTestBase {
                         .header("Authorization", "Bearer " + platform.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"label":"فحص لوحة الجسم","instruction":"تعليمات محدثة."}
+                                {"label":"Test text","instruction":"Test text"}
                                 """))
                 .andExpect(status().isOk());
 
@@ -91,7 +91,7 @@ class MasterContentIT extends IntegrationTestBase {
                         .header("Authorization", "Bearer " + platform.accessToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"standardSpecEn":"Updated spec","standardSpecAr":"المواصفات المحدثة"}
+                                {"standardSpecEn":"Updated spec","standardSpecAr":"Test text"}
                                 """))
                 .andExpect(status().isOk());
 
@@ -133,7 +133,7 @@ class MasterContentIT extends IntegrationTestBase {
         var result = mockMvc.perform(multipart("/api/v1/platform/master/guide-images")
                         .file(file)
                         .param("altEn", "Guide image showing the panel")
-                        .param("altAr", "صورة إرشادية توضح اللوحة")
+                        .param("altEn", "Test text")
                         .param("licenceNote", "Original placeholder")
                         .header("Authorization", "Bearer " + platform.accessToken()))
                 .andExpect(status().isCreated())

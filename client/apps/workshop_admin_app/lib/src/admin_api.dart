@@ -791,6 +791,10 @@ class HttpAdminApi implements AdminApi {
         .toList(growable: false);
   }
 
+  /// Legacy `inspection_jobs` archive only.
+  ///
+  /// TODO(phase6): `/workshop/legacy/jobs` has no clean equivalent; the clean
+  /// `/workshop/jobs` feed cannot see rows that were never migrated.
   @override
   Future<List<WorkshopJob>> jobs({
     String search = '',

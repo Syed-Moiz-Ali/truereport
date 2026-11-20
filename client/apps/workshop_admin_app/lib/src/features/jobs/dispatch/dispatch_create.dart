@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
@@ -38,17 +38,17 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
     super.dispose();
   }
 
-  List<String> _labels(AppLocalizations l10n) => [
-    l10n.jobsCreateStepCustomer,
-    l10n.jobsCreateStepVehicle,
-    l10n.jobsCreateStepTemplate,
-    l10n.jobsCreateStepTechnician,
+  List<String> _labels(UiStrings t) => [
+    t(WorkshopAdminKeys.jobsCreateStepCustomer),
+    t(WorkshopAdminKeys.jobsCreateStepVehicle),
+    t(WorkshopAdminKeys.jobsCreateStepTemplate),
+    t(WorkshopAdminKeys.jobsCreateStepTechnician),
   ];
 
   /// Validates every step up to [target] so a jump cannot skip a required field.
-  bool _validateUpTo(int target, AppLocalizations l10n) {
+  bool _validateUpTo(int target, UiStrings t) {
     for (var step = 0; step < target; step++) {
-      final error = _form.validateStep(step, l10n);
+      final error = _form.validateStep(step, t);
       if (error != null) {
         setState(() {
           _step = step;
@@ -68,8 +68,8 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
   }
 
   Future<void> _next() async {
-    final l10n = AppLocalizations.of(context);
-    if (!_validateUpTo(_step + 1, l10n)) {
+    final t = UiStrings.of(context);
+    if (!_validateUpTo(_step + 1, t)) {
       return;
     }
     if (_step < _steps - 1) {
@@ -79,11 +79,11 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
       });
       return;
     }
-    await _create(l10n);
+    await _create(t);
   }
 
   void _jump(int step) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (step <= _step) {
       setState(() {
         _step = step;
@@ -91,7 +91,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
       });
       return;
     }
-    if (!_validateUpTo(step, l10n)) {
+    if (!_validateUpTo(step, t)) {
       return;
     }
     setState(() {
@@ -100,7 +100,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
     });
   }
 
-  Future<void> _create(AppLocalizations l10n) async {
+  Future<void> _create(UiStrings t) async {
     setState(() {
       _busy = true;
       _error = null;
@@ -116,7 +116,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
       }
     } on Object catch (error) {
       if (mounted) {
-        setState(() => _error = jobErrorCopy(l10n, error));
+        setState(() => _error = jobErrorCopy(t, error));
       }
     } finally {
       if (mounted) {
@@ -127,10 +127,10 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
-    final labels = _labels(l10n);
+    final labels = _labels(t);
 
     return Scaffold(
       backgroundColor: ws.canvas,
@@ -157,13 +157,13 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward
                             : Icons.arrow_back,
-                        semanticLabel: l10n.commonBack,
+                        semanticLabel: t(WorkshopAdminKeys.commonBack),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.jobsCreateTitle,
+                          t(WorkshopAdminKeys.jobsCreateTitle),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: ws.bodyStrong.copyWith(color: ws.ink),
@@ -203,7 +203,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          l10n.scheduleJobSubtitle,
+                          t(WorkshopAdminKeys.scheduleJobSubtitle),
                           style: ws.meta.copyWith(color: ws.muted),
                         ),
                         const SizedBox(height: 18),
@@ -224,7 +224,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
               ),
             ),
             if (_error != null) _errorBanner(context),
-            _footer(context, l10n),
+            _footer(context, t),
           ],
         ),
       ),
@@ -402,7 +402,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
     );
   }
 
-  Widget _footer(BuildContext context, AppLocalizations l10n) {
+  Widget _footer(BuildContext context, UiStrings t) {
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final last = _step == _steps - 1;
@@ -422,7 +422,7 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
             children: [
               if (_step == 0)
                 JobPillButton(
-                  label: l10n.cancel,
+                  label: t(WorkshopAdminKeys.cancel),
                   variant: JobPillVariant.ghost,
                   onPressed: _busy
                       ? null
@@ -430,14 +430,16 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
                 )
               else
                 JobPillButton(
-                  label: l10n.commonBack,
+                  label: t(WorkshopAdminKeys.commonBack),
                   icon: Icons.arrow_back,
                   variant: JobPillVariant.ghost,
                   onPressed: _busy ? null : _back,
                 ),
               const Spacer(),
               JobPillButton(
-                label: last ? l10n.create : l10n.commonNext,
+                label: last
+                    ? t(WorkshopAdminKeys.create)
+                    : t(WorkshopAdminKeys.commonNext),
                 icon: last ? Icons.check : null,
                 loading: _busy,
                 onPressed: _busy ? null : _next,

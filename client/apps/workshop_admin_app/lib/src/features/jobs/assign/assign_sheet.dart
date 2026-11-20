@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
 import 'package:workshop_admin_app/src/models.dart';
@@ -73,7 +73,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = jobErrorCopy(AppLocalizations.of(context), error);
+          _error = jobErrorCopy(UiStrings.of(context), error);
         });
       }
     }
@@ -81,7 +81,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final staff = ref.watch(staffProvider);
     final technicians = staff.value
@@ -106,20 +106,22 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           WorkshopSectionHeader(
-            title: l10n.assignTechnicianTitle,
-            subtitle: l10n.assignTechnicianSubtitle,
+            title: t(WorkshopAdminKeys.assignTechnicianTitle),
+            subtitle: t(WorkshopAdminKeys.assignTechnicianSubtitle),
           ),
           SizedBox(height: spacing.md),
           staff.when(
             loading: () => const WorkshopSkeleton(lines: 3),
             error: (error, _) =>
-                WorkshopInlineNote(text: l10n.commonLoadFailed),
+                WorkshopInlineNote(text: t(WorkshopAdminKeys.commonLoadFailed)),
             data: (members) {
               final list = members
                   .where((member) => member.role == 'TECHNICIAN')
                   .toList(growable: false);
               if (list.isEmpty) {
-                return WorkshopInlineNote(text: l10n.noTechnicians);
+                return WorkshopInlineNote(
+                  text: t(WorkshopAdminKeys.noTechnicians),
+                );
               }
               return WorkshopCard(
                 padding: EdgeInsets.zero,
@@ -149,12 +151,12 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
           WorkshopTextField(
             key: const Key('assign-reason'),
             controller: _reason,
-            label: l10n.jobsAssignmentReason,
+            label: t(WorkshopAdminKeys.jobsAssignmentReason),
             enabled: !_busy,
           ),
           if (version == null) ...[
             SizedBox(height: spacing.sm),
-            WorkshopInlineNote(text: l10n.jobsNoVersion),
+            WorkshopInlineNote(text: t(WorkshopAdminKeys.jobsNoVersion)),
           ],
           if (_error != null) ...[
             SizedBox(height: spacing.sm),
@@ -166,7 +168,7 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
               Expanded(
                 child: WorkshopButton(
                   key: const Key('assign-cancel'),
-                  label: l10n.cancel,
+                  label: t(WorkshopAdminKeys.cancel),
                   variant: WorkshopButtonVariant.secondary,
                   onPressed: _busy ? null : () => Navigator.of(context).pop(),
                 ),
@@ -176,8 +178,8 @@ class _AssignSheetState extends ConsumerState<_AssignSheet> {
                 child: WorkshopButton(
                   key: const Key('assign-confirm'),
                   label: widget.job.assignedTechnicianId == null
-                      ? l10n.assign
-                      : l10n.reassign,
+                      ? t(WorkshopAdminKeys.assign)
+                      : t(WorkshopAdminKeys.reassign),
                   isLoading: _busy,
                   onPressed: canSubmit
                       ? () => _submit(selectedTechnicianId)

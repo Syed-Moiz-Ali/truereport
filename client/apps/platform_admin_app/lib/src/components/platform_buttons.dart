@@ -36,27 +36,27 @@ class PlatformPrimaryButton extends StatelessWidget {
             ),
           )
         : (icon == null
-            ? Text(
-                label,
-                style: labelStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 16, color: PtTheme.white),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      label,
-                      style: labelStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              ? Text(
+                  label,
+                  style: labelStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, size: 16, color: PtTheme.white),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: labelStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
-              ));
+                  ],
+                ));
 
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
@@ -67,9 +67,7 @@ class PlatformPrimaryButton extends StatelessWidget {
         disabledForegroundColor: PtTheme.white.withValues(alpha: 0.7),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 0,
       ),
       child: child,
@@ -110,9 +108,7 @@ class PlatformSecondaryButton extends StatelessWidget {
         disabledForegroundColor: PtTheme.muted.withValues(alpha: 0.4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: isLoading
           ? SizedBox(
@@ -121,37 +117,37 @@ class PlatformSecondaryButton extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
           : (icon == null
-              ? Text(
-                  label,
-                  style: PtTheme.font(
-                    13,
-                    lineHeight: 18,
-                    weight: FontWeight.w500,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 16, color: color),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: PtTheme.font(
-                          13,
-                          lineHeight: 18,
-                          weight: FontWeight.w500,
-                          color: color,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                ? Text(
+                    label,
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: FontWeight.w500,
+                      color: color,
                     ),
-                  ],
-                )),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: color),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: PtTheme.font(
+                            13,
+                            lineHeight: 18,
+                            weight: FontWeight.w500,
+                            color: color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )),
     );
   }
 }
@@ -183,9 +179,7 @@ class PlatformGhostButton extends StatelessWidget {
         foregroundColor: color,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: isLoading
           ? SizedBox(
@@ -194,37 +188,37 @@ class PlatformGhostButton extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
           : (icon == null
-              ? Text(
-                  label,
-                  style: PtTheme.font(
-                    13,
-                    lineHeight: 18,
-                    weight: FontWeight.w500,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 16, color: color),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: PtTheme.font(
-                          13,
-                          lineHeight: 18,
-                          weight: FontWeight.w500,
-                          color: color,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                ? Text(
+                    label,
+                    style: PtTheme.font(
+                      13,
+                      lineHeight: 18,
+                      weight: FontWeight.w500,
+                      color: color,
                     ),
-                  ],
-                )),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: color),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: PtTheme.font(
+                            13,
+                            lineHeight: 18,
+                            weight: FontWeight.w500,
+                            color: color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )),
     );
   }
 }
@@ -261,9 +255,7 @@ class PlatformDestructiveButton extends StatelessWidget {
         disabledBackgroundColor: PtTheme.rose.withValues(alpha: 0.3),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         elevation: 0,
       ),
       child: isLoading
@@ -276,27 +268,27 @@ class PlatformDestructiveButton extends StatelessWidget {
               ),
             )
           : (icon == null
-              ? Text(
-                  label,
-                  style: labelStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, size: 16, color: PtTheme.white),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: labelStyle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                ? Text(
+                    label,
+                    style: labelStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: PtTheme.white),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: labelStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
-                )),
+                    ],
+                  )),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
@@ -112,14 +112,14 @@ class _TechnicianSignaturePageState
   }
 
   Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (_strokes.isEmpty || _name.text.trim().isEmpty) {
-      setState(() => _error = l10n.technicianSignatureRequired);
+      setState(() => _error = t(TechnicianKeys.technicianSignatureRequired));
       return;
     }
     final bytes = await _exportPng();
     if (bytes == null) {
-      setState(() => _error = l10n.technicianSignatureRequired);
+      setState(() => _error = t(TechnicianKeys.technicianSignatureRequired));
       return;
     }
     setState(() {
@@ -146,7 +146,10 @@ class _TechnicianSignaturePageState
       if (!mounted) {
         return;
       }
-      showAppSnackBar(context, message: l10n.technicianSignatureSuccess);
+      showAppSnackBar(
+        context,
+        message: t(TechnicianKeys.technicianSignatureSuccess),
+      );
       Navigator.of(context).pop();
     } on Object {
       if (!mounted) {
@@ -154,19 +157,19 @@ class _TechnicianSignaturePageState
       }
       setState(() {
         _submitting = false;
-        _error = l10n.commonActionFailed;
+        _error = t(TechnicianKeys.commonActionFailed);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: Column(
         children: [
-          _SignatureBar(title: l10n.technicianSignatureTitle),
+          _SignatureBar(title: t(TechnicianKeys.technicianSignatureTitle)),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 20),
@@ -177,7 +180,7 @@ class _TechnicianSignaturePageState
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        l10n.technicianSignatureHint,
+                        t(TechnicianKeys.technicianSignatureHint),
                         style: context.texts.bodyMedium?.copyWith(
                           color: context.colors.onSurfaceVariant,
                         ),
@@ -186,7 +189,7 @@ class _TechnicianSignaturePageState
                       AppTextField(
                         key: const Key('signature-name'),
                         controller: _name,
-                        label: l10n.technicianSignerName,
+                        label: t(TechnicianKeys.technicianSignerName),
                         labelAbove: true,
                       ),
                       const SizedBox(height: 14),
@@ -238,14 +241,14 @@ class _TechnicianSignaturePageState
                         children: [
                           AppButton(
                             key: const Key('signature-clear'),
-                            label: l10n.technicianClearSignature,
+                            label: t(TechnicianKeys.technicianClearSignature),
                             icon: Icons.clear,
                             variant: AppButtonVariant.tonal,
                             onPressed: _submitting ? null : _clear,
                           ),
                           AppButton(
                             key: const Key('signature-undo'),
-                            label: l10n.technicianUndo,
+                            label: t(TechnicianKeys.technicianUndo),
                             icon: Icons.undo,
                             variant: AppButtonVariant.tonal,
                             onPressed: _submitting ? null : _undo,
@@ -271,7 +274,7 @@ class _TechnicianSignaturePageState
                 constraints: const BoxConstraints(maxWidth: 560),
                 child: AppButton(
                   key: const Key('signature-submit'),
-                  label: l10n.technicianSignature,
+                  label: t(TechnicianKeys.technicianSignature),
                   icon: Icons.check,
                   large: true,
                   expand: true,

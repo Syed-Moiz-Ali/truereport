@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 
 /// Screen 06. Equipment Checklist.
@@ -24,17 +24,18 @@ class EquipmentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final count = equipment.length;
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final isFlexible = textScale > 1.05 ||
+    final isFlexible =
+        textScale > 1.05 ||
         Directionality.of(context) == TextDirection.rtl ||
         MediaQuery.sizeOf(context).width < 380;
 
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: title ?? l10n.equipment,
+        title: title ?? t(TechnicianKeys.equipment),
         showBack: true,
         titleStyle: Fx.text(18, 24, FontWeight.w700, -0.45),
         horizontalPadding: _M.headerPad,
@@ -49,11 +50,7 @@ class EquipmentView extends StatelessWidget {
               width: _M.backButton,
               height: _M.backButton,
               child: Center(
-                child: FxIcon(
-                  id: '1_7736',
-                  size: 20,
-                  color: Fx.ink,
-                ),
+                child: FxIcon(id: '1_7736', size: 20, color: Fx.ink),
               ),
             ),
           ),
@@ -64,7 +61,7 @@ class EquipmentView extends StatelessWidget {
             initials: '',
             iconId: '1_7741',
             onPressed: onProfile,
-            semanticLabel: l10n.technicianProfileTitle,
+            semanticLabel: t(TechnicianKeys.technicianProfileTitle),
           ),
         ],
       ),
@@ -98,13 +95,19 @@ class EquipmentView extends StatelessWidget {
                       child: Text(
                         '01',
                         textDirection: TextDirection.ltr,
-                        style: Fx.text(11, 14, FontWeight.w600, -0.275, color: const Color(0xFF1A1B1F)),
+                        style: Fx.text(
+                          11,
+                          14,
+                          FontWeight.w600,
+                          -0.275,
+                          color: const Color(0xFF1A1B1F),
+                        ),
                       ),
                     ),
                     const SizedBox(width: _M.g8),
                     Expanded(
                       child: Text(
-                        l10n.technicianPreInspectionSetup,
+                        t(TechnicianKeys.technicianPreInspectionSetup),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -118,7 +121,9 @@ class EquipmentView extends StatelessWidget {
                     ),
                     const SizedBox(width: _M.g8),
                     FxPill(
-                      label: l10n.technicianItemsCount(count),
+                      label: t(TechnicianKeys.technicianItemsCount, {
+                        'count': count,
+                      }),
                       background: const Color(0xFFF4F3F8),
                       foreground: Fx.emerald,
                       height: _M.verifiedHeight,
@@ -148,12 +153,14 @@ class EquipmentView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.technicianRequiredEquipment,
-                      style: Fx.display26.copyWith(color: const Color(0xFF1B1B25)),
+                      t(TechnicianKeys.technicianRequiredEquipment),
+                      style: Fx.display26.copyWith(
+                        color: const Color(0xFF1B1B25),
+                      ),
                     ),
                     const SizedBox(height: _M.g4),
                     Text(
-                      l10n.technicianEquipmentIntro,
+                      t(TechnicianKeys.technicianEquipmentIntro),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Fx.body14.copyWith(color: const Color(0xFF5E5D69)),
@@ -167,14 +174,15 @@ class EquipmentView extends StatelessWidget {
                 radius: _M.cardRadius,
                 padding: EdgeInsets.all(context.spacing.gutter),
                 child: Text(
-                  l10n.noResults,
+                  t(TechnicianKeys.noResults),
                   style: Fx.body14.copyWith(color: Fx.muted),
                 ),
               ),
             ] else ...[
               ...List.generate(count, (index) {
                 final item = equipment[index];
-                final languageCode = Localizations.localeOf(context).languageCode;
+                final languageCode = Localizations.localeOf(context)
+                    .languageCode;
                 final label = item.labelFor(languageCode);
                 final itemTitle = label.isNotEmpty
                     ? label
@@ -193,7 +201,9 @@ class EquipmentView extends StatelessWidget {
                     title: itemTitle,
                     body: itemBody,
                     iconId: _icons[index % _icons.length],
-                    verified: item.status == 'VERIFIED' || (item.status == 'ACTIVE' && index == 0),
+                    verified:
+                        item.status == 'VERIFIED' ||
+                        (item.status == 'ACTIVE' && index == 0),
                     cardHeight: index == 1 ? 98 : 88,
                   ),
                 );
@@ -239,7 +249,7 @@ class EquipmentView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.technicianEquipmentStandards,
+                          t(TechnicianKeys.technicianEquipmentStandards),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Fx.text(
@@ -251,7 +261,7 @@ class EquipmentView extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          l10n.technicianEquipmentStandardsBody,
+                          t(TechnicianKeys.technicianEquipmentStandardsBody),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: Fx.text(
@@ -270,7 +280,7 @@ class EquipmentView extends StatelessWidget {
             ),
             const SizedBox(height: _M.g40),
             FxButton(
-              label: l10n.technicianProceed,
+              label: t(TechnicianKeys.technicianProceed),
               onPressed: onProceed,
               icon: const FxIcon(
                 id: '1_7730',
@@ -305,7 +315,8 @@ class _EquipmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final isFlexible = textScale > 1.05 ||
+    final isFlexible =
+        textScale > 1.05 ||
         Directionality.of(context) == TextDirection.rtl ||
         MediaQuery.sizeOf(context).width < 380;
 
@@ -342,13 +353,25 @@ class _EquipmentCard extends StatelessWidget {
                     title,
                     maxLines: isFlexible ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(16, 22, FontWeight.w700, -0.16, color: const Color(0xFF1B1B25)),
+                    style: Fx.text(
+                      16,
+                      22,
+                      FontWeight.w700,
+                      -0.16,
+                      color: const Color(0xFF1B1B25),
+                    ),
                   ),
                   Text(
                     body,
                     maxLines: isFlexible ? 3 : 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(13, 18, FontWeight.w400, 0, color: const Color(0xFF5E5D69)),
+                    style: Fx.text(
+                      13,
+                      18,
+                      FontWeight.w400,
+                      0,
+                      color: const Color(0xFF5E5D69),
+                    ),
                   ),
                 ],
               ),

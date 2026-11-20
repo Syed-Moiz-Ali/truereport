@@ -6,7 +6,7 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 ///
@@ -62,18 +62,18 @@ class _UnauthorizedPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return AppScaffold(
-      appBar: AppBar(title: Text(l10n.appTitle)),
+      appBar: AppBar(title: Text(t(WorkshopAdminKeys.appTitle))),
       body: Center(
         child: Padding(
           padding: EdgeInsetsDirectional.all(context.spacing.lg),
           child: EmptyState(
-            title: l10n.error,
-            body: l10n.signInSubtitle,
+            title: t(WorkshopAdminKeys.error),
+            body: t(WorkshopAdminKeys.signInSubtitle),
             icon: Icons.lock_outline,
             action: AppButton(
-              label: l10n.signOut,
+              label: t(WorkshopAdminKeys.signOut),
               onPressed: () =>
                   ref.read(authControllerProvider.notifier).signOut(),
               variant: AppButtonVariant.tonal,

@@ -4,7 +4,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/features/sync/sync_providers.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
@@ -28,7 +28,7 @@ class _TechnicianConflictPageState
   bool _busy = false;
 
   Future<void> _useServer(SyncConflictRecord conflict) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _busy = true);
     await ref.read(offlineStoreProvider).resolveConflict(conflict.id);
     ref.invalidate(allTechnicianConflictsProvider);
@@ -41,20 +41,23 @@ class _TechnicianConflictPageState
       return;
     }
     setState(() => _busy = false);
-    showAppSnackBar(context, message: l10n.technicianConflictReloaded);
+    showAppSnackBar(
+      context,
+      message: t(TechnicianKeys.technicianConflictReloaded),
+    );
     context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final conflictsAsync = ref.watch(allTechnicianConflictsProvider);
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: conflictsAsync.when(
         loading: () => Column(
           children: [
-            _ConflictBar(title: l10n.technicianSyncConflictTitle),
+            _ConflictBar(title: t(TechnicianKeys.technicianSyncConflictTitle)),
             const Expanded(
               child: Padding(
                 padding: EdgeInsetsDirectional.all(20),
@@ -65,15 +68,15 @@ class _TechnicianConflictPageState
         ),
         error: (error, _) => Column(
           children: [
-            _ConflictBar(title: l10n.technicianSyncConflictTitle),
+            _ConflictBar(title: t(TechnicianKeys.technicianSyncConflictTitle)),
             Expanded(
               child: Padding(
                 padding: const EdgeInsetsDirectional.all(20),
                 child: ErrorState(
-                  title: l10n.error,
-                  body: l10n.genericError,
+                  title: t(TechnicianKeys.error),
+                  body: t(TechnicianKeys.genericError),
                   onRetry: () => ref.invalidate(allTechnicianConflictsProvider),
-                  retryLabel: l10n.retryAction,
+                  retryLabel: t(TechnicianKeys.retryAction),
                 ),
               ),
             ),
@@ -85,16 +88,16 @@ class _TechnicianConflictPageState
           );
           if (index == -1) {
             return _MissingConflict(
-              title: l10n.technicianSyncConflictTitle,
-              message: l10n.technicianConflictUnavailable,
-              body: l10n.technicianSyncNothing,
+              title: t(TechnicianKeys.technicianSyncConflictTitle),
+              message: t(TechnicianKeys.technicianConflictUnavailable),
+              body: t(TechnicianKeys.technicianSyncNothing),
             );
           }
           final conflict = conflicts[index];
           return Column(
             children: [
               _ConflictBar(
-                title: l10n.technicianSyncConflictTitle,
+                title: t(TechnicianKeys.technicianSyncConflictTitle),
                 counter: '${index + 1} / ${conflicts.length}',
               ),
               Expanded(
@@ -116,7 +119,9 @@ class _TechnicianConflictPageState
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              l10n.technicianConflictJob(conflict.jobId),
+                              t(TechnicianKeys.technicianConflictJob, {
+                                'jobId': conflict.jobId,
+                              }),
                               style: context.texts.bodyMedium?.copyWith(
                                 color: context.colors.onSurfaceVariant,
                               ),
@@ -128,13 +133,17 @@ class _TechnicianConflictPageState
                             const SizedBox(height: 16),
                             _Note(
                               icon: Icons.info_outline,
-                              text: l10n.technicianConflictPhoneHint,
+                              text: t(
+                                TechnicianKeys.technicianConflictPhoneHint,
+                              ),
                               tone: StatusTone.warning,
                             ),
                             const SizedBox(height: 8),
                             _Note(
                               icon: Icons.check_circle_outline,
-                              text: l10n.technicianConflictRevalidate,
+                              text: t(
+                                TechnicianKeys.technicianConflictRevalidate,
+                              ),
                               tone: StatusTone.neutral,
                             ),
                           ],
@@ -145,7 +154,7 @@ class _TechnicianConflictPageState
                 ),
               ),
               _ConflictActionBar(
-                label: l10n.technicianConflictUseServer,
+                label: t(TechnicianKeys.technicianConflictUseServer),
                 busy: _busy,
                 onPressed: _busy ? null : () => _useServer(conflict),
               ),
@@ -214,7 +223,7 @@ class _RevisionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final colors = context.colors;
     Widget column(String value, String label) {
       return Expanded(
@@ -252,7 +261,10 @@ class _RevisionCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          column('${conflict.clientRevision}', l10n.technicianConflictPhoneRev),
+          column(
+            '${conflict.clientRevision}',
+            t(TechnicianKeys.technicianConflictPhoneRev),
+          ),
           Padding(
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
             child: Icon(
@@ -263,7 +275,7 @@ class _RevisionCard extends StatelessWidget {
           ),
           column(
             '${conflict.serverRevision}',
-            l10n.technicianConflictServerRev,
+            t(TechnicianKeys.technicianConflictServerRev),
           ),
         ],
       ),
@@ -278,7 +290,7 @@ class _PayloadComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final client = _asMap(conflict.clientPayloadJson);
     final server = _asMap(conflict.serverPayloadJson);
 
@@ -291,18 +303,18 @@ class _PayloadComparison extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Caption(label: l10n.technicianConflictCompare),
+          _Caption(label: t(TechnicianKeys.technicianConflictCompare)),
           const SizedBox(height: 6),
           if (clientRaw.isNotEmpty) ...[
             _RawPayload(
-              caption: l10n.technicianConflictPhone,
+              caption: t(TechnicianKeys.technicianConflictPhone),
               payload: clientRaw,
             ),
             const SizedBox(height: 8),
           ],
           if (serverRaw.isNotEmpty)
             _RawPayload(
-              caption: l10n.technicianConflictServer,
+              caption: t(TechnicianKeys.technicianConflictServer),
               payload: serverRaw,
             ),
         ],
@@ -326,25 +338,25 @@ class _PayloadComparison extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Caption(label: l10n.technicianConflictCompare),
+        _Caption(label: t(TechnicianKeys.technicianConflictCompare)),
         const SizedBox(height: 6),
         _PayloadCard(
-          caption: l10n.technicianConflictPhone,
+          caption: t(TechnicianKeys.technicianConflictPhone),
           tone: StatusTone.info,
           icon: Icons.smartphone,
           keys: keys,
           valueOf: (key) => onlyServer.contains(key)
-              ? l10n.technicianConflictOnlyServer
+              ? t(TechnicianKeys.technicianConflictOnlyServer)
               : _valueText(client?[key]),
         ),
         const SizedBox(height: 8),
         _PayloadCard(
-          caption: l10n.technicianConflictServer,
+          caption: t(TechnicianKeys.technicianConflictServer),
           tone: StatusTone.success,
           icon: Icons.cloud_outlined,
           keys: keys,
           valueOf: (key) => onlyClient.contains(key)
-              ? l10n.technicianConflictOnlyPhone
+              ? t(TechnicianKeys.technicianConflictOnlyPhone)
               : _valueText(server?[key]),
         ),
       ],

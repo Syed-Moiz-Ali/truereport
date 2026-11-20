@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 
 abstract final class _M {
@@ -145,9 +145,9 @@ class _ContextRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final sessionLabel = '${l10n.jobsTab} #${job.reference}';
-    final statusChip = l10n.finalized;
+    final t = UiStrings.of(context);
+    final sessionLabel = '${t(TechnicianKeys.jobsTab)} #${job.reference}';
+    final statusChip = t(TechnicianKeys.finalized);
     final gap = cardWidth >= 350
         ? 55.8
         : math.max(8.0, cardWidth - 173.64 - 120.56);
@@ -357,16 +357,16 @@ class _BadgeMargin extends StatelessWidget {
 
 /// Figma `1:8942` — 302.2 x 92 typography margin.
 class _TypographyMargin extends StatelessWidget {
-  const _TypographyMargin({required this.job,});
+  const _TypographyMargin({required this.job});
 
   final TechnicianJob job;
 
-
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.finalizedSuccessfully;
-    final subtitle = '${l10n.report} #${job.reference} - ${l10n.finalized}';
+    final t = UiStrings.of(context);
+    final title = t(TechnicianKeys.finalizedSuccessfully);
+    final subtitle =
+        '${t(TechnicianKeys.report)} #${job.reference} - ${t(TechnicianKeys.finalized)}';
 
     return Column(
       children: [
@@ -411,17 +411,14 @@ class _TypographyMargin extends StatelessWidget {
 
 /// Figma `1:8948` — 350 x 145 delivery card.
 class _DeliveryCard extends StatelessWidget {
-  const _DeliveryCard({
-    required this.deliveries,
-    required this.cardWidth,
-  });
+  const _DeliveryCard({required this.deliveries, required this.cardWidth});
 
   final List<TechnicianDelivery> deliveries;
   final double cardWidth;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return FxCard(
       key: const ValueKey('delivery'),
       padding: const EdgeInsets.all(_M.gutter),
@@ -445,11 +442,11 @@ class _DeliveryCard extends StatelessWidget {
             _ChannelRow(
               iconId: '1_8965',
               iconSize: 18.33,
-              channel: l10n.successWebPortal,
+              channel: t(TechnicianKeys.successWebPortal),
               channelWidth: 87.13,
               leftWidth: 135.13,
               chipWidth: 85.73,
-              status: l10n.successSynced,
+              status: t(TechnicianKeys.successSynced),
             ),
           ],
         ),
@@ -576,7 +573,7 @@ class _MetadataMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final vin = job.vehicleVin ?? '';
     final vinEnding = vin.length >= 4 ? vin.substring(vin.length - 4) : '8492';
     final vinDisplay = '·$vinEnding';
@@ -607,7 +604,7 @@ class _MetadataMargin extends StatelessWidget {
           children: [
             _MetaCell(
               width: 67.91,
-              label: l10n.technicianVinEnding,
+              label: t(TechnicianKeys.technicianVinEnding),
               labelWidth: 67.91,
               value: vinDisplay,
               valueWidth: 45.02,
@@ -617,7 +614,7 @@ class _MetadataMargin extends StatelessWidget {
             SizedBox(width: gap),
             _MetaCell(
               width: 88.75,
-              label: l10n.technicianItemsChecked,
+              label: t(TechnicianKeys.technicianItemsChecked),
               labelWidth: 88.75,
               value: verifiedDisplay,
               valueWidth: 52.45,
@@ -627,7 +624,7 @@ class _MetadataMargin extends StatelessWidget {
             SizedBox(width: gap),
             _MetaCell(
               width: 53.3,
-              label: l10n.technicianPdfSize,
+              label: t(TechnicianKeys.technicianPdfSize),
               labelWidth: 50.19,
               value: '2.4 MB',
               valueWidth: 53.3,
@@ -708,7 +705,7 @@ class _CtaMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SizedBox(
       width: cardWidth,
       height: 72,
@@ -716,7 +713,7 @@ class _CtaMargin extends StatelessWidget {
         padding: const EdgeInsets.only(top: _M.padMid),
         child: FxButton(
           key: const ValueKey('cta'),
-          label: l10n.technicianBackToJobList,
+          label: t(TechnicianKeys.technicianBackToJobList),
           onPressed: onBackToJobs,
           icon: const FxIcon(id: '1_9005', size: 13.33, color: Fx.white),
         ),

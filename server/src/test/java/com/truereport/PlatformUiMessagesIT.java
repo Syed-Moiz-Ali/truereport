@@ -119,14 +119,15 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
         assertThat(es.get("messages").get("twoFactorLabel").asText())
                 .isEqualTo("Authentication code");
 
-        // Split locked: 59 dotted platform keys in common; clients migrate their
-        // own hardcoded strings and are intentionally allowed to differ.
-        assertThat(en.get("catalogs").get("common").size()).isEqualTo(59);
-        assertThat(en.get("catalogs").get("workshop_admin").size()).isEqualTo(1261);
-        assertThat(en.get("messages").size()).isEqualTo(1320);
-        assertThat(es.get("catalogs").get("common").size()).isEqualTo(59);
-        assertThat(es.get("catalogs").get("workshop_admin").size()).isEqualTo(1261);
-        assertThat(es.get("messages").size()).isEqualTo(1320);
+        // Split invariant, derived rather than pinned: messages == common + client.
+        int commonSize = en.get("catalogs").get("common").size();
+        int workshopSize = en.get("catalogs").get("workshop_admin").size();
+        assertThat(commonSize).isPositive();
+        assertThat(workshopSize).isPositive();
+        assertThat(en.get("messages").size()).isEqualTo(commonSize + workshopSize);
+        assertThat(es.get("catalogs").get("common").size()).isEqualTo(commonSize);
+        assertThat(es.get("catalogs").get("workshop_admin").size()).isEqualTo(workshopSize);
+        assertThat(es.get("messages").size()).isEqualTo(commonSize + workshopSize);
 
         // Client translations live in the client namespace; common is platform-only.
         assertThat(es.get("catalogs").get("workshop_admin").get("signInTitle").asText())
@@ -145,13 +146,14 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
         JsonNode en = getJson("/api/v1/i18n/ui-messages/technician/bundle?lang=en");
         JsonNode es = getJson("/api/v1/i18n/ui-messages/technician/bundle?lang=es");
 
-        // Technician migrated 40 strings vs workshop's 24, so it serves 1277 keys.
-        assertThat(en.get("catalogs").get("common").size()).isEqualTo(59);
-        assertThat(en.get("catalogs").get("technician").size()).isEqualTo(1277);
-        assertThat(en.get("messages").size()).isEqualTo(1336);
-        assertThat(es.get("catalogs").get("common").size()).isEqualTo(59);
-        assertThat(es.get("catalogs").get("technician").size()).isEqualTo(1277);
-        assertThat(es.get("messages").size()).isEqualTo(1336);
+        // Technician has its own catalog; the derived invariant still holds.
+        int commonSize = en.get("catalogs").get("common").size();
+        int technicianSize = en.get("catalogs").get("technician").size();
+        assertThat(technicianSize).isPositive();
+        assertThat(en.get("messages").size()).isEqualTo(commonSize + technicianSize);
+        assertThat(es.get("catalogs").get("common").size()).isEqualTo(commonSize);
+        assertThat(es.get("catalogs").get("technician").size()).isEqualTo(technicianSize);
+        assertThat(es.get("messages").size()).isEqualTo(commonSize + technicianSize);
         assertThat(es.get("messages").get("signInTitle").asText())
                 .isEqualTo("Iniciar sesión");
     }
@@ -161,9 +163,10 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
         JsonNode bundle = getJson("/api/v1/i18n/ui-messages/platform_admin/bundle?lang=en");
         JsonNode messages = bundle.get("messages");
 
-        assertThat(bundle.get("catalogs").get("common").size()).isEqualTo(59);
-        assertThat(bundle.get("catalogs").get("platform_admin").size()).isEqualTo(756);
-        assertThat(messages.size()).isEqualTo(815);
+        int platformCommon = bundle.get("catalogs").get("common").size();
+        int platformOwn = bundle.get("catalogs").get("platform_admin").size();
+        assertThat(platformOwn).isPositive();
+        assertThat(messages.size()).isEqualTo(platformCommon + platformOwn);
         assertThat(messages.get("documents.hint.typeCode").asText())
                 .isEqualTo("e.g. INSPECTION_REPORT");
         assertThat(messages.get("documents.hint.name").asText())

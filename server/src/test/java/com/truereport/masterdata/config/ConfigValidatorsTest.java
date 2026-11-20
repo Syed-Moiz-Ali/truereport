@@ -37,7 +37,7 @@ class ConfigValidatorsTest {
         IssueFieldDto field = new IssueFieldDto(null, "ISSUE_TYPE", "Issue Type",
                 "SELECT", null, null, true, List.of("DEFECT_FOUND"), null, null, 0,
                 null, null, false, false, 1, List.of(), Map.of(),
-                "Issue Type", "نوع المشكلة");
+                "Issue Type", "Issue Type");
         assertThatThrownBy(() -> ConfigValidators.validateIssueFields(List.of(field), Set.of()))
                 .isInstanceOf(ApiException.class)
                 .satisfies(error -> assertThat(((ApiException) error).issues()).isNotEmpty());
@@ -46,6 +46,6 @@ class ConfigValidatorsTest {
     private MeasurementBandDto band(String min, String max, String result) {
         return new MeasurementBandDto("MEASUREMENT", "MM", "HIGHER_IS_BETTER",
                 new BigDecimal(min), new BigDecimal(max), result, 100, "Label", 1,
-                Map.of(), "Label", "التسمية");
+                Map.of(), "Label", "Label");
     }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:api_client/src/api_config.dart';
 import 'package:api_client/src/problem_details.dart';
+import 'package:api_client/src/request_cancellation.dart';
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
@@ -19,6 +20,23 @@ class ApiFailure extends AppFailure {
   });
 
   final List<Map<String, dynamic>> errors;
+}
+
+/// Raw conditional response: body, status and cache validators.
+class ApiResponse {
+  const ApiResponse({
+    required this.statusCode,
+    this.data,
+    this.etag,
+    this.headers = const <String, List<String>>{},
+  });
+
+  final int statusCode;
+  final dynamic data;
+  final String? etag;
+  final Map<String, List<String>> headers;
+
+  bool get notModified => statusCode == 304;
 }
 
 class ApiClient {
@@ -140,6 +158,40 @@ class ApiClient {
     }
   }
 
+  /// GET that keeps the ETag and returns 304 as data rather than an error.
+  ///
+  /// Used by the reference-data cache. Auth headers, refresh-on-401 and the
+  /// public-path rules still apply.
+  Future<ApiResponse> getConditional(
+    String path, {
+    String? etag,
+    Map<String, dynamic>? query,
+  }) async {
+    try {
+      final response = await _dio.get<dynamic>(
+        path,
+        queryParameters: query,
+        options: Options(
+          headers: <String, String>{
+            ..._authHeaders(path),
+            if (etag != null && etag.isNotEmpty) 'If-None-Match': etag,
+          },
+          validateStatus: (status) =>
+              status == 304 ||
+              (status != null && status >= 200 && status < 300),
+        ),
+      );
+      return ApiResponse(
+        statusCode: response.statusCode ?? 200,
+        data: response.data,
+        etag: response.headers.value('etag'),
+        headers: response.headers.map,
+      );
+    } on DioException catch (error) {
+      throw _toFailure(error);
+    }
+  }
+
   Future<dynamic> postDynamic(
     String path, {
     Object? body,
@@ -207,12 +259,16 @@ class ApiClient {
     required List<int> bytes,
     required String contentType,
     Map<String, String>? headers,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
   }) async {
     await putBytesWithHeaders(
       path,
       bytes: bytes,
       contentType: contentType,
       headers: headers,
+      onSendProgress: onSendProgress,
+      cancellation: cancellation,
     );
   }
 
@@ -221,6 +277,8 @@ class ApiClient {
     required List<int> bytes,
     required String contentType,
     Map<String, String>? headers,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
   }) async {
     try {
       final response = await _dio.put<dynamic>(
@@ -233,6 +291,8 @@ class ApiClient {
             'Content-Length': bytes.length.toString(),
           },
         ),
+        onSendProgress: onSendProgress,
+        cancelToken: cancellation?.token,
       );
       return response.data;
     } on DioException catch (error) {
@@ -328,6 +388,14 @@ class ApiClient {
   }
 
   AppFailure _toFailure(DioException error) {
+    if (error.type == DioExceptionType.cancel) {
+      // Cancellation is a user decision, never an offline/network failure.
+      return const AppFailure(
+        code: 'CANCELLED',
+        messageKey: 'error.cancelled',
+        statusCode: 499,
+      );
+    }
     final status = error.response?.statusCode;
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {

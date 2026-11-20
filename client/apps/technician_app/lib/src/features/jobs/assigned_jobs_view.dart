@@ -2,17 +2,18 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
-import 'package:technician_app/src/ui_helpers.dart';
+import 'package:technician_app/src/reference_ui.dart';
 
 String formatOdometer(int? value, String? unit) {
   if (value == null) {
     return '';
   }
-  final formatted =
-      NumberFormat.decimalPattern(Intl.getCurrentLocale()).format(value);
+  final formatted = NumberFormat.decimalPattern(Intl.getCurrentLocale())
+      .format(value);
   return '$formatted ${(unit ?? 'KM').toUpperCase()}';
 }
 
@@ -84,7 +85,7 @@ class AssignedJobsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final now = nowUtc ?? DateTime.now().toUtc();
     final today = jobs
         .where((job) => scheduledTodayUtc4(job.scheduledAt, now))
@@ -99,8 +100,10 @@ class AssignedJobsView extends StatelessWidget {
               job.status == 'IN_PROGRESS' || job.status == 'READY_TO_FINALIZE',
         )
         .length;
-    final title = l10n.technicianInspectionQueue;
-    final shiftLabel = l10n.technicianShiftToday(today.length);
+    final title = t(TechnicianKeys.technicianInspectionQueue);
+    final shiftLabel = t(TechnicianKeys.technicianShiftToday, {
+      'count': today.length,
+    });
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return AppScaffold(
@@ -130,10 +133,10 @@ class AssignedJobsView extends StatelessWidget {
       ),
       bottomNavigationBar: _JobsDock(
         selectedIndex: selectedIndex,
-        jobsLabel: l10n.technicianJobIntake,
-        fleetLabel: l10n.statusFinalized,
-        syncLabel: l10n.technicianSyncTitle,
-        profileLabel: l10n.technicianProfileTitle,
+        jobsLabel: t(TechnicianKeys.technicianJobIntake),
+        fleetLabel: t(TechnicianKeys.statusFinalized),
+        syncLabel: t(TechnicianKeys.technicianSyncTitle),
+        profileLabel: t(TechnicianKeys.technicianProfileTitle),
         onIntake: onIntake,
         onSync: onSync,
         onProfile: onProfile,
@@ -234,7 +237,7 @@ class AssignedJobsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.technicianWelcomeBack,
+                        t(TechnicianKeys.technicianWelcomeBack),
                         style: Fx.text(
                           18,
                           24,
@@ -265,7 +268,7 @@ class AssignedJobsView extends StatelessWidget {
                       Expanded(
                         child: _SnapshotCard(
                           value: snapshotPendingValue ?? '$pendingCheck',
-                          label: l10n.technicianPendingCheck,
+                          label: t(TechnicianKeys.technicianPendingCheck),
                           iconId: '1_7158',
                           iconWidth: 18.33,
                           iconHeight: 13.82,
@@ -277,7 +280,9 @@ class AssignedJobsView extends StatelessWidget {
                       Expanded(
                         child: _SnapshotCard(
                           value: snapshotSecondaryValue ?? '$inProgress',
-                          label: snapshotSecondaryLabel ?? l10n.statusInProgress,
+                          label:
+                              snapshotSecondaryLabel ??
+                              t(TechnicianKeys.statusInProgress),
                           iconId: '1_7167',
                           iconWidth: 16.5,
                           iconHeight: 19.25,
@@ -301,7 +306,8 @@ class AssignedJobsView extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            l10n.technicianAssignedToday.toUpperCase(),
+                            t(TechnicianKeys.technicianAssignedToday)
+                                .toUpperCase(),
                             style: Fx.text(
                               14,
                               18,
@@ -312,7 +318,9 @@ class AssignedJobsView extends StatelessWidget {
                           ),
                         ),
                         FxPill(
-                          label: l10n.technicianJobsInQueue(today.length),
+                          label: t(TechnicianKeys.technicianJobsInQueue, {
+                            'count': today.length,
+                          }),
                           background: Fx.tintEmerald,
                           foreground: Fx.deepGreen,
                           height: _M.queuePillHeight,
@@ -360,7 +368,7 @@ class AssignedJobsView extends StatelessWidget {
                     bottom: _M.ctaBottom,
                   ),
                   child: FxButton(
-                    label: l10n.walkInJob,
+                    label: t(TechnicianKeys.walkInJob),
                     onPressed: onWalkIn,
                     icon: const FxIcon(
                       id: '1_7249',
@@ -411,13 +419,13 @@ class EmptyJobsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     return AppScaffold(
       backgroundColor: Fx.white,
       extendBody: true,
       appBar: FxHeader(
-        title: l10n.technicianInspectionQueue,
+        title: t(TechnicianKeys.technicianInspectionQueue),
         titleStyle: Fx.text(16, 22, FontWeight.w700, -0.4),
         horizontalPadding: _M.gutter,
         endPadding: 18.75,
@@ -440,10 +448,10 @@ class EmptyJobsView extends StatelessWidget {
       ),
       bottomNavigationBar: _JobsDock(
         selectedIndex: selectedIndex,
-        jobsLabel: l10n.technicianJobIntake,
-        fleetLabel: l10n.statusFinalized,
-        syncLabel: l10n.technicianSyncTitle,
-        profileLabel: l10n.technicianProfileTitle,
+        jobsLabel: t(TechnicianKeys.technicianJobIntake),
+        fleetLabel: t(TechnicianKeys.statusFinalized),
+        syncLabel: t(TechnicianKeys.technicianSyncTitle),
+        profileLabel: t(TechnicianKeys.technicianProfileTitle),
         onIntake: onIntake,
         onSync: onSync,
         onProfile: onProfile,
@@ -497,7 +505,7 @@ class EmptyJobsView extends StatelessWidget {
                                 child: _InfoPill(
                                   iconId: '1_7143',
                                   leadingDot: true,
-                                  label: l10n.technicianQueueEmpty,
+                                  label: t(TechnicianKeys.technicianQueueEmpty),
                                   height: _M.emptyShiftHeight,
                                   textStyle: Fx.text(
                                     11,
@@ -515,7 +523,9 @@ class EmptyJobsView extends StatelessWidget {
                         _InfoPill(
                           iconId: '1_7143',
                           iconColor: Fx.deepGreen,
-                          label: l10n.technicianJobsCount(0),
+                          label: t(TechnicianKeys.technicianJobsCount, {
+                            'count': 0,
+                          }),
                           height: _M.emptyBayHeight,
                           textStyle: Fx.text(
                             11,
@@ -539,7 +549,7 @@ class EmptyJobsView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.technicianWelcomeBack,
+                      t(TechnicianKeys.technicianWelcomeBack),
                       style: Fx.welcome16.copyWith(color: Fx.muted),
                     ),
                     const SizedBox(height: _M.g2),
@@ -576,7 +586,9 @@ class EmptyJobsView extends StatelessWidget {
                     right: 0,
                     child: Center(
                       child: FxPill(
-                        label: l10n.technicianJobsInQueue(0).toUpperCase(),
+                        label: t(TechnicianKeys.technicianJobsInQueue, {
+                          'count': 0,
+                        }).toUpperCase(),
                         background: Fx.tintEmerald,
                         foreground: Fx.emerald,
                         height: 22,
@@ -608,7 +620,7 @@ class EmptyJobsView extends StatelessWidget {
                       child: SizedBox(
                         width: _M.headingWidth,
                         child: Text(
-                          l10n.technicianAllCaughtUp,
+                          t(TechnicianKeys.technicianAllCaughtUp),
                           textAlign: TextAlign.center,
                           style: Fx.display22.copyWith(color: Fx.ink),
                         ),
@@ -621,7 +633,7 @@ class EmptyJobsView extends StatelessWidget {
                     right: 35,
                     child: Center(
                       child: Text(
-                        l10n.technicianNoJobsBody,
+                        t(TechnicianKeys.technicianNoJobsBody),
                         textAlign: TextAlign.center,
                         style: Fx.text(
                           14,
@@ -641,7 +653,7 @@ class EmptyJobsView extends StatelessWidget {
                       child: SizedBox(
                         width: _M.refreshWidth,
                         child: FxButton(
-                          label: l10n.technicianRefreshQueue,
+                          label: t(TechnicianKeys.technicianRefreshQueue),
                           onPressed: onRefresh,
                           tone: FxButtonTone.tonal,
                           height: 48,
@@ -761,19 +773,14 @@ class _SyncPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final label = online
-        ? l10n.technicianOnlineSync
-        : l10n.technicianOfflineSync;
+        ? t(TechnicianKeys.technicianOnlineSync)
+        : t(TechnicianKeys.technicianOfflineSync);
     return Container(
       width: 65.75,
       height: _M.syncPillHeight,
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        10,
-        4,
-        10,
-        4,
-      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 4, 10, 4),
       decoration: BoxDecoration(
         color: Fx.container,
         borderRadius: BorderRadius.circular(_M.pill),
@@ -830,12 +837,7 @@ class _InfoPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(minHeight: height),
-      padding: const EdgeInsetsDirectional.fromSTEB(
-        12,
-        6,
-        12,
-        6,
-      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 6),
       decoration: BoxDecoration(
         color: Fx.container,
         borderRadius: BorderRadius.circular(_M.pill),
@@ -941,7 +943,7 @@ class _SnapshotCard extends StatelessWidget {
   }
 }
 
-class _JobCard extends StatelessWidget {
+class _JobCard extends ConsumerWidget {
   const _JobCard({required this.job, required this.index, required this.onTap});
 
   final TechnicianJob job;
@@ -949,24 +951,22 @@ class _JobCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final service = job.scope.isNotEmpty ? job.scope : job.templateName;
     final reference = job.vehiclePlate == null || job.vehiclePlate!.isEmpty
         ? job.reference
-        : '${job.reference} · ${job.vehiclePlate}';
-    final dotColor = switch (job.status) {
-      'ASSIGNED' || 'High Priority' => Fx.warningRed,
-      'SCHEDULED' || 'Scheduled' => Fx.sage,
-      _ => Fx.emerald,
-    };
+        : '${job.reference} \u00b7 ${job.vehiclePlate}';
+    final dotColor = context.statusColors
+        .forTone(jobStatusTone(ref, job.status))
+        .foreground;
     return FxCard(
       radius: _M.jobCardRadius,
       padding: EdgeInsets.all(context.spacing.gutter),
       onTap: onTap,
       semanticLabel:
           '${job.vehicleMake} ${job.vehicleModel}, $reference, '
-          '${technicianStatusLabel(l10n, job.status)}',
+          '${jobStatusLabel(ref, job.status)}',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1054,7 +1054,9 @@ class _JobCard extends StatelessWidget {
                   const SizedBox(width: _M.g6),
                   Expanded(
                     child: Text(
-                      service.isEmpty ? l10n.technicianTemplate : service,
+                      service.isEmpty
+                          ? t(TechnicianKeys.technicianTemplate)
+                          : service,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Fx.captionMedium.copyWith(
@@ -1065,7 +1067,7 @@ class _JobCard extends StatelessWidget {
                   ),
                   const SizedBox(width: _M.g8),
                   FxPill(
-                    label: technicianStatusLabel(l10n, job.status),
+                    label: jobStatusLabel(ref, job.status),
                     height: _M.statusPillHeight,
                     padding: const EdgeInsetsDirectional.symmetric(
                       horizontal: 10,
@@ -1096,7 +1098,7 @@ class _EmptyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return FxCard(
       radius: _M.jobCardRadius,
       padding: EdgeInsets.all(context.spacing.gutter),
@@ -1105,26 +1107,28 @@ class _EmptyPanel extends StatelessWidget {
           const _EmptyArt(),
           const SizedBox(height: _M.g16),
           FxPill(
-            label: l10n.technicianJobsInQueue(0).toUpperCase(),
+            label: t(TechnicianKeys.technicianJobsInQueue, {
+              'count': 0,
+            }).toUpperCase(),
             background: Fx.tintEmerald,
             foreground: Fx.emerald,
             style: Fx.caption.copyWith(color: Fx.emerald),
           ),
           const SizedBox(height: _M.g12),
           Text(
-            l10n.technicianAllCaughtUp,
+            t(TechnicianKeys.technicianAllCaughtUp),
             textAlign: TextAlign.center,
             style: Fx.display22.copyWith(color: Fx.ink),
           ),
           const SizedBox(height: _M.g8),
           Text(
-            l10n.technicianNoJobsBody,
+            t(TechnicianKeys.technicianNoJobsBody),
             textAlign: TextAlign.center,
             style: Fx.body14.copyWith(color: Fx.muted),
           ),
           const SizedBox(height: _M.g20),
           FxButton(
-            label: l10n.technicianRefreshQueue,
+            label: t(TechnicianKeys.technicianRefreshQueue),
             onPressed: onRefresh,
             tone: FxButtonTone.tonal,
             height: 48,
@@ -1133,7 +1137,7 @@ class _EmptyPanel extends StatelessWidget {
           ),
           const SizedBox(height: _M.g8),
           FxButton(
-            label: l10n.walkInJob,
+            label: t(TechnicianKeys.walkInJob),
             onPressed: onWalkIn,
             tone: FxButtonTone.text,
             height: 48,
@@ -1228,7 +1232,7 @@ class _SummaryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       constraints: const BoxConstraints(minHeight: _M.summaryHeight),
       padding: EdgeInsets.all(context.spacing.lg),
@@ -1256,7 +1260,7 @@ class _SummaryStrip extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  l10n.technicianTodaySummary,
+                  t(TechnicianKeys.technicianTodaySummary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Fx.caption.copyWith(
@@ -1266,7 +1270,9 @@ class _SummaryStrip extends StatelessWidget {
                 ),
                 const SizedBox(height: _M.g2),
                 Text(
-                  l10n.technicianCompletedToday(completedToday),
+                  t(TechnicianKeys.technicianCompletedToday, {
+                    'count': completedToday,
+                  }),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.ink),
@@ -1281,7 +1287,7 @@ class _SummaryStrip extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    l10n.technicianCoverageOnly,
+                    t(TechnicianKeys.technicianCoverageOnly),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,

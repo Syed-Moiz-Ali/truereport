@@ -2,7 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import '../../inspection_models.dart';
 import '../../technician_providers.dart';
@@ -25,14 +25,14 @@ class _TechnicianWorkspacePageState
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final checklistAsync = ref.watch(technicianChecklistProvider(widget.jobId));
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: checklistAsync.when(
         loading: () => AppScaffold(
           appBar: TechnicianAppBar(
-            title: l10n.technicianInspectionHub,
+            title: t(TechnicianKeys.technicianInspectionHub),
             showBack: true,
           ),
           body: const Padding(
@@ -42,17 +42,17 @@ class _TechnicianWorkspacePageState
         ),
         error: (error, _) => AppScaffold(
           appBar: TechnicianAppBar(
-            title: l10n.technicianInspectionHub,
+            title: t(TechnicianKeys.technicianInspectionHub),
             showBack: true,
           ),
           body: Padding(
             padding: const EdgeInsetsDirectional.all(20),
             child: ErrorState(
-              title: l10n.error,
-              body: l10n.genericError,
+              title: t(TechnicianKeys.error),
+              body: t(TechnicianKeys.genericError),
               onRetry: () =>
                   ref.invalidate(technicianChecklistProvider(widget.jobId)),
-              retryLabel: l10n.retryAction,
+              retryLabel: t(TechnicianKeys.retryAction),
             ),
           ),
         ),

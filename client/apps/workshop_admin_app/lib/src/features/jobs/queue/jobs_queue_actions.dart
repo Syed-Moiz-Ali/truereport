@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve_job_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/archive/archive_route.dart';
@@ -13,6 +13,7 @@ import 'package:workshop_admin_app/src/features/jobs/public_link_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish_checklist_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/queue/queue_theme.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_actions.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_action_set.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
@@ -63,15 +64,15 @@ class JobsQueueActions {
     ref.invalidate(cleanJobCountsProvider);
     AppSnackBar.show(
       context,
-      message: AppLocalizations.of(context).jobsCreated,
+      message: UiStrings.of(context)(WorkshopAdminKeys.jobsCreated),
       icon: Icons.add,
     );
   }
 
   Future<void> assign(CleanJob job) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (job.version == null) {
-      AppSnackBar.show(context, message: l10n.jobsNoVersion);
+      AppSnackBar.show(context, message: t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     final assigned = await showAssignSheet(context, job: job);
@@ -81,22 +82,22 @@ class JobsQueueActions {
     _invalidate(job);
     AppSnackBar.show(
       context,
-      message: l10n.jobAssigned,
+      message: t(WorkshopAdminKeys.jobAssigned),
       icon: Icons.person_add_alt_1_outlined,
     );
   }
 
   Future<void> cancel(CleanJob job) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (job.version == null) {
-      AppSnackBar.show(context, message: l10n.jobsNoVersion);
+      AppSnackBar.show(context, message: t(WorkshopAdminKeys.jobsNoVersion));
       return;
     }
     final reason = await showJobReasonSheet(
       context,
-      title: l10n.cancelJob,
-      label: l10n.jobsCancelReason,
-      confirmLabel: l10n.cancelJob,
+      title: t(WorkshopAdminKeys.cancelJob),
+      label: t(WorkshopAdminKeys.jobsCancelReason),
+      confirmLabel: t(WorkshopAdminKeys.cancelJob),
     );
     if (reason == null || !context.mounted) {
       return;
@@ -111,12 +112,12 @@ class JobsQueueActions {
       _invalidate(job);
       AppSnackBar.show(
         context,
-        message: l10n.jobCancelled,
+        message: t(WorkshopAdminKeys.jobCancelled),
         icon: Icons.cancel_outlined,
       );
     } on Object catch (error) {
       if (context.mounted) {
-        onConflict(jobErrorCopy(l10n, error));
+        onConflict(jobErrorCopy(t, error));
       }
     }
   }
@@ -135,6 +136,53 @@ class JobsQueueActions {
         open(JobDetailPage(jobId: job.id));
       case JobPrimaryAction.none:
         break;
+    }
+  }
+
+  /// Runs a served action by code. Unknown codes are disabled by the renderer
+  /// and never reach this method.
+  void onServerAction(CleanJob job, JobAction action) {
+    switch (normalizedJobActionCode(action.code)) {
+      case 'ASSIGN':
+        assign(job);
+      case 'CONSENT':
+        grantConsent(job);
+      case 'CANCEL':
+        cancel(job);
+      case 'APPROVE' || 'REJECT' || 'REVIEW':
+        open(ApproveIssuePage(jobId: job.id));
+      case 'PUBLISH' || 'PUBLISHCHECKLIST':
+        open(PublishChecklistPage(jobId: job.id));
+      case 'UNPUBLISH' || 'ROTATE_TOKEN' || 'REVOKE' || 'PUBLIC_LINK':
+        open(PublicLinkPage(jobId: job.id));
+      case 'OPEN_JOB' || 'VIEW':
+        openDetail(job);
+      default:
+        break;
+    }
+  }
+
+  Future<void> grantConsent(CleanJob job) async {
+    final t = UiStrings.of(context);
+    if (job.version == null) {
+      AppSnackBar.show(context, message: t(WorkshopAdminKeys.jobsNoVersion));
+      return;
+    }
+    try {
+      await ref
+          .read(adminApiProvider)
+          .updateJobConsent(job.id, consentGranted: true, version: job.version);
+      if (!context.mounted) return;
+      _invalidate(job);
+      AppSnackBar.show(
+        context,
+        message: t(WorkshopAdminKeys.jobsConsentGranted),
+        icon: Icons.verified_user_outlined,
+      );
+    } on Object catch (error) {
+      if (context.mounted) {
+        onConflict(jobErrorCopy(t, error));
+      }
     }
   }
 

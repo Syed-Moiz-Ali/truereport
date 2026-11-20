@@ -19,6 +19,9 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
+import '../../reference_status_lookup.dart';
+
+import 'package:reference_data/reference_data.dart';
 
 /// Dedicated translation work queue for one language.
 ///
@@ -96,26 +99,11 @@ class _TranslationQueueScreenState
   }
 }
 
-String _entityLabel(UiMessageStrings strings, String entityType) {
-  switch (entityType.toUpperCase()) {
-    case 'CATEGORY':
-      return strings.tKey(PlatformAdminKeys.tabChecklistCategories);
-    case 'ITEM':
-      return strings.tKey(PlatformAdminKeys.tabChecklistItems);
-    case 'OPTION_SET':
-      return strings.tKey(PlatformAdminKeys.tabChecklistOptionSets);
-    case 'TEMPLATE':
-      return strings.tKey(PlatformAdminKeys.tabTemplates);
-    case 'DOCUMENT_TYPE':
-      return strings.tKey(PlatformAdminKeys.pageDocumentTypesTitle);
-    case 'ISSUE_FIELD':
-      return strings.tKey(PlatformAdminKeys.sectionItemIssueFields);
-    case 'OPTION_VALUE':
-      return strings.tKey(PlatformAdminKeys.labelOptionValue);
-    default:
-      return entityType;
-  }
-}
+String _entityLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String entityType,
+) => referenceCodeLabel(strings, records, entityType);
 
 String _itemStatusLabel(UiMessageStrings strings, String status) {
   switch (status) {
@@ -132,24 +120,11 @@ String _itemStatusLabel(UiMessageStrings strings, String status) {
   }
 }
 
-String _languageStatusLabel(UiMessageStrings strings, String status) {
-  switch (status.toUpperCase()) {
-    case 'DRAFT':
-      return strings.tKey(PlatformAdminKeys.statusLanguageDraft);
-    case 'TRANSLATING':
-      return strings.tKey(PlatformAdminKeys.statusLanguageTranslating);
-    case 'REVIEW':
-      return strings.tKey(PlatformAdminKeys.statusLanguageReview);
-    case 'LIVE':
-      return strings.tKey(PlatformAdminKeys.statusLanguageLive);
-    case 'RETIRED':
-      return strings.tKey(PlatformAdminKeys.statusLanguageRetired);
-    default:
-      return status.isEmpty
-          ? strings.tKey(PlatformAdminKeys.statusLanguageDraft)
-          : status;
-  }
-}
+String _languageStatusLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String status,
+) => referenceCodeLabel(strings, records, status);
 
 class _QueueBody extends ConsumerStatefulWidget {
   const _QueueBody({
@@ -331,6 +306,10 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
+    final contentTypes = ref.watch(enumsProvider(contentTypeEnum)).value;
+    final translationStatuses = ref
+        .watch(statusesProvider(translationStatusDomain))
+        .value;
     final backlog = widget.backlog;
     final filtered = _filtered();
     final counts = _counts();
@@ -349,7 +328,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
         PlatformPageHeader(
           title: strings.tKey(PlatformAdminKeys.pageTranslationQueueTitle),
           subtitle:
-              '${widget.nativeName} · ${_languageStatusLabel(strings, status)} · ${percent.toStringAsFixed(0)}%',
+              '${widget.nativeName} · ${_languageStatusLabel(strings, translationStatuses, status)} · ${percent.toStringAsFixed(0)}%',
           actions: [
             PlatformSecondaryButton(
               label: strings.tKey(PlatformAdminKeys.buttonQueueExport),
@@ -419,7 +398,7 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
                     DropdownMenuItem(
                       value: type,
                       child: Text(
-                        _entityLabel(strings, type),
+                        _entityLabel(strings, contentTypes, type),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -486,7 +465,11 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           PlatformSectionHeader(
-                            title: _entityLabel(strings, group.entityType),
+                            title: _entityLabel(
+                              strings,
+                              contentTypes,
+                              group.entityType,
+                            ),
                             subtitle: '${group.approved}/${group.total}',
                           ),
                           const SizedBox(height: 8),

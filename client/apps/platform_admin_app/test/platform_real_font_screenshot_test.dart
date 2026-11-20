@@ -192,6 +192,7 @@ Widget _buildSamplePageContent() {
     },
   );
 }
+
 Widget _screenshotHarness({
   required Widget child,
   required GlobalKey boundaryKey,

@@ -1,6 +1,7 @@
-﻿import 'package:design_system/design_system.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:ui_gallery/gallery_keys.dart';
 import 'package:ui_gallery/support/gallery_widgets.dart';
 
 class NavigationShowcase extends StatefulWidget {
@@ -219,7 +220,7 @@ class _SheetSample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -234,7 +235,7 @@ class _SheetSample extends StatelessWidget {
         ),
         SizedBox(height: context.spacing.lg),
         AppButton(
-          label: l10n.create,
+          label: t(GalleryKeys.create),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

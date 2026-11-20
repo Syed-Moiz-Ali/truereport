@@ -205,12 +205,11 @@ void main() {
     expect(find.textContaining('/ Overview'), findsNothing);
   });
 
-  testWidgets('the language control is visible without opening a menu', (
-    tester,
-  ) async {
+  testWidgets('the account menu is visible in the shell', (tester) async {
     await pumpShell(tester, size: const Size(390, 844));
-    expect(find.text('Arabic'), findsOneWidget);
-    expect(find.byIcon(Icons.translate), findsOneWidget);
+    expect(find.byType(WorkshopAccountMenu), findsOneWidget);
+    // English-only product: no language switcher in the shell.
+    expect(find.byIcon(Icons.translate), findsNothing);
   });
 
   testWidgets('content can never be trapped behind the dock', (tester) async {

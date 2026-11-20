@@ -30,7 +30,12 @@ public class ReportPdfService {
     }
 
     public byte[] render(ReportVersion version, List<EvidenceDerivative> derivatives) throws Exception {
-        Map<String, Object> root = viewMapper.printPage(version, derivatives);
+        return render(version, derivatives, null);
+    }
+
+    public byte[] render(ReportVersion version, List<EvidenceDerivative> derivatives,
+                         String customerName) throws Exception {
+        Map<String, Object> root = viewMapper.printPage(version, derivatives, customerName);
         Map<UUID, EvidenceDerivative> byId = new LinkedHashMap<>();
         for (EvidenceDerivative derivative : derivatives) {
             if (derivative.getPurpose().equals("PUBLIC_FULL")) {

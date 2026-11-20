@@ -2,14 +2,15 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_style.dart';
 import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_atlas.dart';
 import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_groups.dart';
 import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_hero.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_creation_wizard_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
-import 'package:workshop_admin_app/src/labels.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
@@ -73,13 +74,14 @@ class DashboardTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
 
     final counts = ref.watch(cleanJobCountsProvider);
     final pending = ref.watch(cleanJobsProvider(_pendingKey));
     final inBay = ref.watch(cleanJobsProvider(_inBayKey));
     final approved = ref.watch(cleanJobsProvider(_approvedKey));
+    final jobStatuses = ref.watch(statusesProvider('job')).value;
 
     void openJob(String jobId) => Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => JobDetailPage(jobId: jobId)),
@@ -142,21 +144,21 @@ class DashboardTab extends ConsumerWidget {
                             ? null
                             : formatNumber(context, total),
                         label: (total ?? 0) == 1
-                            ? l10n.dashFloorLabelOne
-                            : l10n.dashFloorLabel,
+                            ? t(WorkshopAdminKeys.dashFloorLabelOne)
+                            : t(WorkshopAdminKeys.dashFloorLabel),
                         sentence: total == null
                             ? null
                             : (counts.value!.pendingReview == 0
-                                  ? l10n.dashNothingWaiting
-                                  : l10n.dashDecisionWaiting(
-                                      counts.value!.pendingReview,
-                                    )),
-                        emptyTitle: l10n.dashFloorEmpty,
-                        emptyBody: l10n.dashFloorEmptyBody,
-                        errorMessage: l10n.commonLoadFailed,
-                        retryLabel: l10n.retryAction,
+                                  ? t(WorkshopAdminKeys.dashNothingWaiting)
+                                  : t(WorkshopAdminKeys.dashDecisionWaiting, {
+                                      'count': counts.value!.pendingReview,
+                                    })),
+                        emptyTitle: t(WorkshopAdminKeys.dashFloorEmpty),
+                        emptyBody: t(WorkshopAdminKeys.dashFloorEmptyBody),
+                        errorMessage: t(WorkshopAdminKeys.commonLoadFailed),
+                        retryLabel: t(WorkshopAdminKeys.retryAction),
                         onRetry: () => ref.invalidate(cleanJobCountsProvider),
-                        newJobLabel: l10n.newJob,
+                        newJobLabel: t(WorkshopAdminKeys.newJob),
                         onNewJob: newJob,
                       ),
 
@@ -167,10 +169,15 @@ class DashboardTab extends ConsumerWidget {
                         SizedBox(height: spacing.xxl),
                         DashboardAtlas(
                           key: const Key('dashboard-atlas'),
-                          segments: _segments(context, l10n, counts.value!),
+                          segments: _segments(
+                            context,
+                            t,
+                            counts.value!,
+                            jobStatuses,
+                          ),
                           total: total!,
                           height: scale.atlasHeight,
-                          semanticLabel: l10n.dashAtlasLabel,
+                          semanticLabel: t(WorkshopAdminKeys.dashAtlasLabel),
                         ),
                       ],
 
@@ -181,17 +188,18 @@ class DashboardTab extends ConsumerWidget {
                         _groups(
                           context: context,
                           ref: ref,
-                          l10n: l10n,
+                          t: t,
                           scale: scale,
                           pending: pending,
                           inBay: inBay,
                           approved: approved,
                           counts: counts.value,
+                          jobStatuses: jobStatuses,
                           onOpen: openJob,
                         ),
                         if (total != null) ...[
                           SizedBox(height: spacing.xl),
-                          _footer(context, l10n, total),
+                          _footer(context, t, total),
                         ],
                       ],
                     ],
@@ -207,8 +215,9 @@ class DashboardTab extends ConsumerWidget {
 
   List<AtlasSegment> _segments(
     BuildContext context,
-    AppLocalizations l10n,
+    UiStrings t,
     CleanJobCounts counts,
+    List<ReferenceRecord>? jobStatuses,
   ) {
     final ws = context.ws;
     int countOf(String status) => switch (status) {
@@ -227,9 +236,12 @@ class DashboardTab extends ConsumerWidget {
       for (final status in dashboardStatusOrder)
         AtlasSegment(
           status: status,
-          label: jobStatusLabel(l10n, status),
+          label: referenceStatusText(jobStatuses, status),
           count: countOf(status),
-          color: dashboardStatusTint(status, ws),
+          color: dashboardStatusTint(
+            referenceStatusTone(jobStatuses, status),
+            ws,
+          ),
         ),
     ];
     // A status the client does not know still counts towards `total` on the
@@ -240,9 +252,9 @@ class DashboardTab extends ConsumerWidget {
       segments.add(
         AtlasSegment(
           status: '__other__',
-          label: l10n.dashSegmentOther,
+          label: t(WorkshopAdminKeys.dashSegmentOther),
           count: unaccounted,
-          color: dashboardStatusTint('OTHER', ws),
+          color: dashboardStatusTint(WorkshopStatusTone.neutral, ws),
           isRemainder: true,
         ),
       );
@@ -253,12 +265,13 @@ class DashboardTab extends ConsumerWidget {
   Widget _groups({
     required BuildContext context,
     required WidgetRef ref,
-    required AppLocalizations l10n,
+    required UiStrings t,
     required DashboardScale scale,
     required AsyncValue<JobPage> pending,
     required AsyncValue<JobPage> inBay,
     required AsyncValue<JobPage> approved,
     required CleanJobCounts? counts,
+    required List<ReferenceRecord>? jobStatuses,
     required void Function(String jobId) onOpen,
   }) {
     final ws = context.ws;
@@ -279,8 +292,8 @@ class DashboardTab extends ConsumerWidget {
           technician: job.assignedTechnicianName,
           schedule: schedule,
         ),
-        statusLabel: jobStatusLabel(l10n, job.status),
-        tone: dashboardStatusTone(job.status),
+        statusLabel: referenceStatusText(jobStatuses, job.status),
+        tone: referenceStatusTone(jobStatuses, job.status),
         onOpen: () => onOpen(job.id),
         verbLabel: verb,
         onVerb: verb == null ? null : () => onOpen(job.id),
@@ -289,18 +302,21 @@ class DashboardTab extends ConsumerWidget {
 
     final waiting = DashboardGroup(
       swatch: ws.warning,
-      title: l10n.dashGroupWaiting,
+      title: t(WorkshopAdminKeys.dashGroupWaiting),
       meta: counts == null
           ? null
-          : l10n.dashGroupCountPending(counts.pendingReview),
+          : t(WorkshopAdminKeys.dashGroupCountPending, {
+              'count': counts.pendingReview,
+            }),
       rows: pending.whenData(
         (page) => [
-          for (final job in page.items) map(job, verb: l10n.dashReviewVerb),
+          for (final job in page.items)
+            map(job, verb: t(WorkshopAdminKeys.dashReviewVerb)),
         ],
       ),
-      emptyText: l10n.dashGroupEmpty,
-      loadFailed: l10n.commonLoadFailed,
-      retryLabel: l10n.retryAction,
+      emptyText: t(WorkshopAdminKeys.dashGroupEmpty),
+      loadFailed: t(WorkshopAdminKeys.commonLoadFailed),
+      retryLabel: t(WorkshopAdminKeys.retryAction),
       onRetry: () => ref.invalidate(cleanJobsProvider(_pendingKey)),
       verbInline: scale.verbInline,
       rowKeyPrefix: 'dashboard-job-waiting',
@@ -308,12 +324,16 @@ class DashboardTab extends ConsumerWidget {
 
     final bay = DashboardGroup(
       swatch: ws.accent,
-      title: l10n.dashGroupInBay,
-      meta: counts == null ? null : l10n.dashGroupCountInBay(counts.inProgress),
+      title: t(WorkshopAdminKeys.dashGroupInBay),
+      meta: counts == null
+          ? null
+          : t(WorkshopAdminKeys.dashGroupCountInBay, {
+              'count': counts.inProgress,
+            }),
       rows: inBay.whenData((page) => [for (final job in page.items) map(job)]),
-      emptyText: l10n.dashGroupEmpty,
-      loadFailed: l10n.commonLoadFailed,
-      retryLabel: l10n.retryAction,
+      emptyText: t(WorkshopAdminKeys.dashGroupEmpty),
+      loadFailed: t(WorkshopAdminKeys.commonLoadFailed),
+      retryLabel: t(WorkshopAdminKeys.retryAction),
       onRetry: () => ref.invalidate(cleanJobsProvider(_inBayKey)),
       verbInline: scale.verbInline,
       rowKeyPrefix: 'dashboard-job-bay',
@@ -321,16 +341,21 @@ class DashboardTab extends ConsumerWidget {
 
     final ready = DashboardGroup(
       swatch: ws.success,
-      title: l10n.dashGroupReady,
-      meta: counts == null ? null : l10n.dashGroupCountReady(counts.approved),
+      title: t(WorkshopAdminKeys.dashGroupReady),
+      meta: counts == null
+          ? null
+          : t(WorkshopAdminKeys.dashGroupCountReady, {
+              'count': counts.approved,
+            }),
       rows: approved.whenData(
         (page) => [
-          for (final job in page.items) map(job, verb: l10n.dashPublishVerb),
+          for (final job in page.items)
+            map(job, verb: t(WorkshopAdminKeys.dashPublishVerb)),
         ],
       ),
-      emptyText: l10n.dashGroupEmpty,
-      loadFailed: l10n.commonLoadFailed,
-      retryLabel: l10n.retryAction,
+      emptyText: t(WorkshopAdminKeys.dashGroupEmpty),
+      loadFailed: t(WorkshopAdminKeys.commonLoadFailed),
+      retryLabel: t(WorkshopAdminKeys.retryAction),
       onRetry: () => ref.invalidate(cleanJobsProvider(_approvedKey)),
       verbInline: scale.verbInline,
       rowKeyPrefix: 'dashboard-job-ready',
@@ -371,7 +396,7 @@ class DashboardTab extends ConsumerWidget {
     );
   }
 
-  Widget _footer(BuildContext context, AppLocalizations l10n, int total) {
+  Widget _footer(BuildContext context, UiStrings t, int total) {
     final ws = context.ws;
     final spacing = context.spacing;
     return Column(
@@ -381,7 +406,7 @@ class DashboardTab extends ConsumerWidget {
         Container(height: 1, color: ws.border),
         SizedBox(height: spacing.md),
         Text(
-          l10n.dashFooterSum(total),
+          t(WorkshopAdminKeys.dashFooterSum, {'total': total}),
           style: ws.meta.copyWith(color: ws.muted),
         ),
       ],

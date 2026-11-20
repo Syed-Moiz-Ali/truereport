@@ -103,10 +103,10 @@ class ReportDeliveryBundleParityTest {
     }
 
     @Test
-    void legacyLanguageArgumentsStillResolveToEnglish() {
-        assertThat(ReportMessages.labels("ar"))
+    void nonEnglishLanguageArgumentsResolveToEnglish() {
+        assertThat(ReportMessages.labels("es"))
                 .containsExactlyInAnyOrderEntriesOf(ReportMessages.labels("en"));
-        assertThat(DeliveryMessages.forEmail("ar", "TR-42").body())
+        assertThat(DeliveryMessages.forEmail("es", "TR-42").body())
                 .isEqualTo(DeliveryMessages.forEmail("en", "TR-42").body());
     }
 

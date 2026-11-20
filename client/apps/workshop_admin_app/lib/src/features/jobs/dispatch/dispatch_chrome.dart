@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 
 /// Document bar for a job sub-page: back, the job reference, its lifecycle pill.
@@ -17,7 +17,7 @@ class JobPageBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     return Container(
@@ -36,7 +36,7 @@ class JobPageBar extends StatelessWidget {
             children: [
               WorkshopIconButton(
                 icon: rtl ? Icons.arrow_forward : Icons.arrow_back,
-                semanticLabel: l10n.commonBack,
+                semanticLabel: t(WorkshopAdminKeys.commonBack),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
               SizedBox(width: spacing.sm),
@@ -80,7 +80,7 @@ class JobTitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     return Container(
@@ -99,7 +99,7 @@ class JobTitleBar extends StatelessWidget {
             children: [
               WorkshopIconButton(
                 icon: rtl ? Icons.arrow_forward : Icons.arrow_back,
-                semanticLabel: l10n.commonBack,
+                semanticLabel: t(WorkshopAdminKeys.commonBack),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
               SizedBox(width: spacing.sm),

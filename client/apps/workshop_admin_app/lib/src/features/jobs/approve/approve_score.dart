@@ -1,8 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -16,21 +18,21 @@ class ApproveScore extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final review = ref.watch(jobReviewProvider(jobId));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobsReviewTitle),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.jobsReviewTitle)),
         SizedBox(height: spacing.sm),
         review.when(
           loading: () => const WorkshopSkeleton(card: true, lines: 3),
           error: (error, _) => WorkshopErrorState(
-            title: l10n.error,
-            body: l10n.commonLoadFailed,
-            retryLabel: l10n.retryAction,
+            title: t(WorkshopAdminKeys.error),
+            body: t(WorkshopAdminKeys.commonLoadFailed),
+            retryLabel: t(WorkshopAdminKeys.retryAction),
             onRetry: () => ref.invalidate(jobReviewProvider(jobId)),
           ),
           data: (value) => _ScoreCard(review: value),
@@ -47,7 +49,7 @@ class _ScoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     return WorkshopCard(
@@ -61,7 +63,7 @@ class _ScoreCard extends StatelessWidget {
             children: [
               WorkshopStatusBadge(
                 label:
-                    '${l10n.jobsItemsAssessed}: '
+                    '${t(WorkshopAdminKeys.jobsItemsAssessed)}: '
                     '${formatNumber(context, review.itemsAssessed)} / '
                     '${formatNumber(context, review.itemsTotal)}',
                 tone: WorkshopStatusTone.accent,
@@ -69,22 +71,22 @@ class _ScoreCard extends StatelessWidget {
               ),
               WorkshopStatusBadge(
                 label:
-                    '${l10n.jobsScorePreview}: '
+                    '${t(WorkshopAdminKeys.jobsScorePreview)}: '
                     '${formatScore(context, review.scorePreview)}',
                 tone: WorkshopStatusTone.neutral,
                 icon: Icons.speed_outlined,
               ),
               WorkshopStatusBadge(
                 label:
-                    '${l10n.jobsGradePreview}: '
-                    '${review.gradePreview ?? l10n.commonNotAvailable}',
+                    '${t(WorkshopAdminKeys.jobsGradePreview)}: '
+                    '${review.gradePreview ?? t(WorkshopAdminKeys.commonNotAvailable)}',
                 tone: WorkshopStatusTone.success,
                 icon: Icons.grade_outlined,
               ),
               if (review.safetyCapPreview != null)
                 WorkshopStatusBadge(
                   label:
-                      '${l10n.jobsSafetyCapPreview}: '
+                      '${t(WorkshopAdminKeys.jobsSafetyCapPreview)}: '
                       '${review.safetyCapPreview}',
                   tone: WorkshopStatusTone.warning,
                   icon: Icons.shield_outlined,
@@ -97,7 +99,7 @@ class _ScoreCard extends StatelessWidget {
             Padding(
               padding: EdgeInsetsDirectional.only(top: spacing.md),
               child: Text(
-                l10n.jobsNoFindings,
+                t(WorkshopAdminKeys.jobsNoFindings),
                 style: ws.meta.copyWith(color: ws.muted),
               ),
             )
@@ -112,28 +114,18 @@ class _ScoreCard extends StatelessWidget {
   }
 }
 
-class _FindingRow extends StatelessWidget {
+class _FindingRow extends ConsumerWidget {
   const _FindingRow({required this.finding});
 
   final ReviewFinding finding;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final (
-      String label,
-      WorkshopStatusTone tone,
-    ) = switch (finding.resultCode) {
-      'NO_ISSUE_OBSERVED' => (l10n.noIssueObserved, WorkshopStatusTone.success),
-      'DEFECT_FOUND' => (l10n.defectFound, WorkshopStatusTone.danger),
-      'ATTENTION_RECOMMENDED' => (
-        l10n.attentionRecommended,
-        WorkshopStatusTone.warning,
-      ),
-      _ => (l10n.commonNotAvailable, WorkshopStatusTone.neutral),
-    };
+    final results = ref.watch(enumsProvider('result')).value;
+    final label = referenceStatusText(results, finding.resultCode ?? '');
+    final tone = referenceStatusTone(results, finding.resultCode ?? '');
     return Padding(
       padding: EdgeInsetsDirectional.symmetric(vertical: spacing.md),
       child: LayoutBuilder(

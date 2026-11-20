@@ -113,6 +113,10 @@ class _PlatformSettingsScreenState
                       width: cardWidth,
                       child: _buildDeveloperCard(strings),
                     ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _buildTaxonomyCard(strings),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -249,6 +253,49 @@ class _PlatformSettingsScreenState
         label: strings.tKey(PlatformAdminKeys.buttonHealthReview),
         icon: Icons.fact_check_outlined,
         onPressed: () => context.go('/checklist/health'),
+      ),
+    );
+  }
+
+  Widget _buildTaxonomyCard(UiMessageStrings strings) {
+    return _SettingsHubCard(
+      icon: Icons.account_tree_outlined,
+      title: strings.tKey(PlatformAdminKeys.taxonomySectionTitle),
+      body: strings.tKey(PlatformAdminKeys.taxonomyPageTitle),
+      data: Text(
+        <String>[
+          strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
+          strings.tKey(PlatformAdminKeys.taxonomyEnumsTitle),
+          strings.tKey(PlatformAdminKeys.taxonomyDropdownsTitle),
+          strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
+        ].join(' · '),
+        style: PtTheme.bodyMuted,
+      ),
+      action: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: <Widget>[
+          PlatformGhostButton(
+            key: const Key('open-reference-statuses'),
+            label: strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
+            onPressed: () => context.go('/configuration/statuses'),
+          ),
+          PlatformGhostButton(
+            key: const Key('open-reference-enums'),
+            label: strings.tKey(PlatformAdminKeys.taxonomyEnumsTitle),
+            onPressed: () => context.go('/configuration/enums'),
+          ),
+          PlatformGhostButton(
+            key: const Key('open-reference-dropdowns'),
+            label: strings.tKey(PlatformAdminKeys.taxonomyDropdownsTitle),
+            onPressed: () => context.go('/configuration/dropdowns'),
+          ),
+          PlatformGhostButton(
+            key: const Key('open-reference-transitions'),
+            label: strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
+            onPressed: () => context.go('/configuration/transitions'),
+          ),
+        ],
       ),
     );
   }

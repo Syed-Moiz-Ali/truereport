@@ -43,10 +43,7 @@ class F2b3FinalizeFixture extends StatelessWidget {
     return const SizedBox(
       width: width,
       height: height,
-      child: ColoredBox(
-        color: Fx.white,
-        child: _Body(),
-      ),
+      child: ColoredBox(color: Fx.white, child: _Body()),
     );
   }
 }
@@ -71,7 +68,10 @@ class _Body extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const _Intro(),
-                _SummaryMargin(avatar: fixture.avatar, vehicle: fixture.vehicle),
+                _SummaryMargin(
+                  avatar: fixture.avatar,
+                  vehicle: fixture.vehicle,
+                ),
                 const _FlaggedMargin(),
                 const _DisclaimerMargin(),
                 const SizedBox(width: 390, height: 128),
@@ -80,15 +80,9 @@ class _Body extends StatelessWidget {
           ),
         ),
         // 1:8910 swipe dock @0,1126.63 390x104.
-        const Positioned(
-          top: 1126.63,
-          child: _Dock(),
-        ),
+        const Positioned(top: 1126.63, child: _Dock()),
         // 1:8920 header @0,0 390x64.
-        const Positioned(
-          top: 0,
-          child: _Header(),
-        ),
+        const Positioned(top: 0, child: _Header()),
       ],
     );
   }
@@ -312,11 +306,7 @@ class _VehicleHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // 1:8826 car circle 48x48 r9999 #F4F3F8; icon 19.5x17.33.
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: _CarCircle(),
-                ),
+                SizedBox(width: 48, height: 48, child: _CarCircle()),
                 SizedBox(width: 12, height: 48),
                 SizedBox(
                   width: 164.55,
@@ -452,11 +442,7 @@ class _PhotoBlock extends StatelessWidget {
       child: Stack(
         children: [
           RawImage(image: image, scale: 2),
-          const Positioned(
-            left: 8,
-            top: 114,
-            child: _OdometerChip(),
-          ),
+          const Positioned(left: 8, top: 114, child: _OdometerChip()),
         ],
       ),
     );
@@ -696,7 +682,9 @@ class _StatTile extends StatelessWidget {
         ),
       );
     }
-    children.add(SizedBox(width: 113, height: countBottomPad == 0 ? 4 : countBottomPad));
+    children.add(
+      SizedBox(width: 113, height: countBottomPad == 0 ? 4 : countBottomPad),
+    );
     return Container(
       width: 145,
       height: 152,
@@ -740,12 +728,8 @@ class _TechnicianRow extends StatelessWidget {
                   width: 34.94,
                   height: 40,
                   child: ClipRRect(
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(9999),
-                    ),
-                    child: Center(
-                      child: RawImage(image: avatar, scale: 2),
-                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(9999)),
+                    child: Center(child: RawImage(image: avatar, scale: 2)),
                   ),
                 ),
                 const SizedBox(width: 12, height: 66),
@@ -1037,14 +1021,16 @@ class _FlaggedCard extends StatelessWidget {
           _FlagRow(
             iconId: '1_8891',
             title: 'Front Left Tire Tread Depth',
-            body: 'Measured at 3/32 in. Marginal wear pattern\n'
+            body:
+                'Measured at 3/32 in. Marginal wear pattern\n'
                 'documented.',
           ),
           SizedBox(width: 310, height: 12),
           _FlagRow(
             iconId: '1_8901',
             title: 'Rear Cargo Door Latch',
-            body: 'Minor resistance observed on secondary\n'
+            body:
+                'Minor resistance observed on secondary\n'
                 'strike latch.',
           ),
         ],
@@ -1413,11 +1399,7 @@ class _Header extends StatelessWidget {
                 ),
                 SizedBox(width: 102.47, height: 44),
                 // 1:8928 avatar 32x32 r9999 #006C49; icon 12x12.
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: _HeaderAvatar(),
-                ),
+                SizedBox(width: 32, height: 32, child: _HeaderAvatar()),
               ],
             ),
           ),

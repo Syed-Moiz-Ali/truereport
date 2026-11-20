@@ -58,6 +58,7 @@ import com.truereport.technician.api.TechnicianDtos.SummaryDto;
 import com.truereport.technician.api.TechnicianDtos.SyncMutation;
 import com.truereport.technician.api.TechnicianDtos.SyncRequest;
 import com.truereport.technician.api.TechnicianDtos.SyncResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,6 +111,8 @@ public class TechnicianInspectionService {
             "image/webp");
     private static final Set<String> SIGNATURE_METHODS = Set.of(
             "DRAWN", "TYPED", "PIN", "DEVICE");
+    private static final Set<String> PHOTO_VIDEO_SOURCES = Set.of("CAMERA", "FILE", "IMPORT");
+    private static final Set<String> DOCUMENT_SOURCES = Set.of("CAMERA", "FILE", "SCANNER", "IMPORT");
     private static final List<String> GRADE_ORDER = List.of("A", "B", "C", "D");
     private static final long MAX_PHOTO_BYTES = 20L * 1024 * 1024;
     private static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024;
@@ -121,16 +124,20 @@ public class TechnicianInspectionService {
     private final IdempotencyService idempotency;
     private final ObjectStorage storage;
     private final ObjectMapper objectMapper;
+    private final boolean allowFileSource;
 
     public TechnicianInspectionService(TechnicianStore store, FieldAuditService audit,
                                        OutboxService outbox, IdempotencyService idempotency,
-                                       ObjectStorage storage, ObjectMapper objectMapper) {
+                                       ObjectStorage storage, ObjectMapper objectMapper,
+                                       @Value("${truereport.evidence.allow-file-source:true}")
+                                       boolean allowFileSource) {
         this.store = store;
         this.audit = audit;
         this.outbox = outbox;
         this.idempotency = idempotency;
         this.storage = storage;
         this.objectMapper = objectMapper;
+        this.allowFileSource = allowFileSource;
     }
 
     // ------------------------------------------------------------------ jobs
@@ -536,12 +543,11 @@ public class TechnicianInspectionService {
         }
         String source = request == null || isBlank(request.captureSource()) ? ""
                 : request.captureSource().trim().toUpperCase(Locale.ROOT);
-        if ("PHOTO".equals(type) || "VIDEO".equals(type)) {
-            if (!"CAMERA".equals(source)) {
-                issues.add(issue("captureSource", "CAMERA_REQUIRED",
-                        "error.technician.cameraRequired"));
-            }
-        } else if (!Set.of("CAMERA", "FILE", "SCANNER", "IMPORT").contains(source)) {
+        String sourceError = captureSourceError(type, source, allowFileSource);
+        if ("CAMERA_REQUIRED".equals(sourceError)) {
+            issues.add(issue("captureSource", "CAMERA_REQUIRED",
+                    "error.technician.cameraRequired"));
+        } else if (sourceError != null) {
             issues.add(issue("captureSource", "SOURCE_INVALID",
                     "error.technician.evidenceInvalid"));
         }
@@ -767,7 +773,7 @@ public class TechnicianInspectionService {
                     store.unitCodes(field.unitSetId())));
         }
         return new ItemConfig(item, store.scoreBands(item.itemVersionId()),
-                store.evidenceRules(item.itemVersionId()), fields,
+                store.evidenceRules(item.templateVersionId(), item.itemVersionId()), fields,
                 store.measurementBands(item.itemVersionId()));
     }
 
@@ -1399,6 +1405,16 @@ public class TechnicianInspectionService {
         return new ApiException(HttpStatus.CONFLICT, "SYNC_CONFLICT",
                 "error.technician.syncConflict", message,
                 List.of(issue(itemCode, "SYNC_CONFLICT", "error.technician.syncConflict")));
+    }
+
+    static String captureSourceError(String type, String source, boolean allowFileSource) {
+        if ("PHOTO".equals(type) || "VIDEO".equals(type)) {
+            if (!PHOTO_VIDEO_SOURCES.contains(source)) {
+                return "SOURCE_INVALID";
+            }
+            return !allowFileSource && !"CAMERA".equals(source) ? "CAMERA_REQUIRED" : null;
+        }
+        return DOCUMENT_SOURCES.contains(source) ? null : "SOURCE_INVALID";
     }
 
     private static FieldIssue issue(String field, String code, String messageKey) {

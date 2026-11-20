@@ -1,10 +1,10 @@
 ﻿import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../inspection_models.dart';
+import '../../../reference_ui.dart';
 import '../../../shared/technician_intl.dart';
-import '../../../ui_helpers.dart';
 import 'jobs_queue_format.dart';
 import 'jobs_queue_primitives.dart';
 import 'jobs_queue_style.dart';
@@ -79,7 +79,7 @@ class QueueDayGroup extends StatelessWidget {
   }
 }
 
-class QueueJobRow extends StatefulWidget {
+class QueueJobRow extends ConsumerStatefulWidget {
   const QueueJobRow({
     required this.job,
     required this.highlighted,
@@ -92,22 +92,21 @@ class QueueJobRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<QueueJobRow> createState() => _QueueJobRowState();
+  ConsumerState<QueueJobRow> createState() => _QueueJobRowState();
 }
 
-class _QueueJobRowState extends State<QueueJobRow> {
+class _QueueJobRowState extends ConsumerState<QueueJobRow> {
   bool _hovered = false;
   bool _focused = false;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toString();
     final colors = context.colors;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final job = widget.job;
-    final statusLabel = technicianStatusLabel(l10n, job.status);
-    final statusTone = technicianStatusTone(job.status);
+    final statusLabel = jobStatusLabel(ref, job.status);
+    final statusTone = jobStatusTone(ref, job.status);
     final vehicle = _vehicleLabel(job);
     final time = queueTimeLabel(job);
     final background = widget.highlighted

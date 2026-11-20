@@ -34,8 +34,7 @@ void main() {
       '${root.path}/client/apps/technician_app/build/web/assets/AssetManifest.json',
     );
     if (manifest.existsSync()) {
-      final assets = (jsonDecode(manifest.readAsStringSync()) as Map)
-          .keys
+      final assets = (jsonDecode(manifest.readAsStringSync()) as Map).keys
           .cast<String>();
       expect(
         assets.any(
@@ -46,7 +45,8 @@ void main() {
               key.contains('1_7757'),
         ),
         isFalse,
-        reason: 'The Figma raster fixtures must not be in the web asset bundle.',
+        reason:
+            'The Figma raster fixtures must not be in the web asset bundle.',
       );
     }
   });

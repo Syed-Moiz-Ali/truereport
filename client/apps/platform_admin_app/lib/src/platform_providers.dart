@@ -2,6 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 import 'platform_api.dart';
 import 'platform_catalogue_models.dart';
@@ -40,6 +41,8 @@ ProviderScope platformUiMessageScope({
   return ProviderScope(
     overrides: [
       uiMessageStoreProvider.overrideWithValue(store),
+      // Reference taxonomy uses the same authenticated client as the app.
+      referenceApiProvider.overrideWith((ref) => ref.watch(apiClientProvider)),
       uiMessageFetcherProvider.overrideWith((ref) {
         final client = ref.watch(apiClientProvider);
         return (String path, Map<String, String> query) async {

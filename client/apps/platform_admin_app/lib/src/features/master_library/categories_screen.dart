@@ -1,25 +1,19 @@
-import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:l10n/l10n.dart';
 
-import '../../components/platform_buttons.dart';
-import '../../components/platform_chips.dart';
-import '../../components/platform_dialogs.dart';
-import '../../components/platform_form.dart';
-import '../../components/platform_states.dart';
-import '../../components/platform_toolbar.dart';
+import '../../components/platform_shell.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../checklist/checklist_page_frame.dart';
+import '../checklist/catalog/catalog_ui.dart';
 import '../checklist/checklist_status.dart';
-import '../checklist/checklist_tab_bar.dart';
-
-import 'package:l10n/l10n.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
-  const CategoriesScreen({super.key});
+  const CategoriesScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
@@ -27,192 +21,221 @@ class CategoriesScreen extends ConsumerStatefulWidget {
 
 class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   bool _busy = false;
-  final TextEditingController _searchController = TextEditingController();
-  String _search = '';
-  String _status = '';
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    final strings = ref.watch(uiStringsProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final content = LayoutBuilder(
+      builder: (context, c) {
+        final wide = c.maxWidth >= 1000;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(wide ? 24 : 14, 22, wide ? 24 : 14, 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(
+                strings: strings,
+                wide: wide,
+                onAdd: () => _editDialog(strings),
+              ),
+              const SizedBox(height: 12),
+              CatalogTabs(
+                labels: [
+                  strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                  strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+                ],
+                selected: 1,
+                onSelected: (index) {
+                  if (index == 0) context.go('/checklist/items');
+                  if (index == 2) context.go('/checklist/option-sets');
+                },
+              ),
+              const SizedBox(height: 12),
+              categoriesAsync.when(
+                loading: () => const CatalogSkeleton(),
+                error: (_, _) => CatalogError(
+                  strings: strings,
+                  onRetry: () => ref.invalidate(categoriesProvider),
+                ),
+                data: (categories) {
+                  if (categories.isEmpty) {
+                    return CatalogSurface(
+                      child: CatalogEmpty(
+                        title: strings.tKey(
+                          PlatformAdminKeys.checklistCategoriesEmptyTitle,
+                        ),
+                        body: strings.tKey(
+                          PlatformAdminKeys.checklistCategoriesEmptyBody,
+                        ),
+                        actionLabel: strings.tKey(
+                          PlatformAdminKeys.buttonCategoryAdd,
+                        ),
+                        onAction: () => _editDialog(strings),
+                      ),
+                    );
+                  }
+                  return CatalogSurface(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        for (var i = 0; i < categories.length; i++)
+                          _CategoryRow(
+                            strings: strings,
+                            category: categories[i],
+                            busy: _busy,
+                            first: i == 0,
+                            last: i == categories.length - 1,
+                            onUp: () => _move(strings, categories, i, -1),
+                            onDown: () => _move(strings, categories, i, 1),
+                            onEdit: () => _editDialog(strings, categories[i]),
+                            onRetire: () => _retire(strings, categories[i]),
+                            onActivate: () => _activate(strings, categories[i]),
+                            onItems: () => context.go(
+                              '/checklist/items?category=${categories[i].id}',
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (widget.embedded) return content;
+    return PlatformShell(
+      currentRoute: '/checklist/categories',
+      onNavigate: (route) => context.go(route),
+      child: content,
+    );
   }
 
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
-    setState(() => _busy = true);
+  Future<void> _editDialog(
+    UiMessageStrings strings, [
+    PlatformCategory? category,
+  ]) async {
+    final code = TextEditingController(text: category?.code ?? '');
+    final name = TextEditingController(text: category?.name ?? '');
+    final order = TextEditingController(text: '${category?.sortOrder ?? 0}');
+    final formKey = GlobalKey<FormState>();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(
+          category == null
+              ? PlatformAdminKeys.buttonCategoryAdd
+              : PlatformAdminKeys.dialogCategoryEditTitle,
+        ),
+        body: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CatalogField(
+                controller: code,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
+                validator: (value) => (value ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: name,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
+                validator: (value) => (value ?? '').trim().isEmpty
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                controller: order,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
+                keyboardType: TextInputType.number,
+                validator: (value) => int.tryParse((value ?? '').trim()) == null
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonSave),
+            onPressed: () {
+              if (formKey.currentState?.validate() != true) return;
+              Navigator.of(dialogContext).pop(true);
+            },
+          ),
+        ],
+      ),
+    );
+    if (saved != true) return;
     try {
-      await action();
-    } catch (error) {
-      if (!mounted) return;
-      _showMessage(_failureMessage(error), isError: true);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      await ref
+          .read(platformConfigActionsProvider)
+          .saveCategory(
+            id: category?.id,
+            code: code.text.trim(),
+            name: name.text.trim(),
+            sortOrder: int.tryParse(order.text.trim()) ?? 0,
+            active: true,
+          );
+      ref.invalidate(categoriesProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
     }
   }
 
-  void _showMessage(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isError ? PtTheme.rose : PtTheme.deepGreen,
-        content: Text(
-          message,
-          style: PtTheme.font(13, lineHeight: 18, color: PtTheme.white),
-        ),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  Future<void> _showCategoryDialog(PlatformCategory? category) async {
-    final strings = ref.watch(uiStringsProvider);
-    final codeController = TextEditingController(text: category?.code ?? '');
-    final nameController = TextEditingController(text: category?.name ?? '');
-    final sortOrderController = TextEditingController(
-      text: (category?.sortOrder ?? 0).toString(),
-    );
-    final formKey = GlobalKey<FormState>();
-    var active = category?.active ?? true;
-
-    final shouldSave = await showPlatformDialog<bool>(
+  Future<void> _retire(
+    UiMessageStrings strings,
+    PlatformCategory category,
+  ) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      title: category == null
-          ? strings.tKey(PlatformAdminKeys.buttonCategoryAdd)
-          : strings.tKey(PlatformAdminKeys.dialogCategoryEditTitle),
-      body: StatefulBuilder(
-        builder: (dialogContext, setDialogState) {
-          return Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PlatformTextField(
-                  key: const Key('category-code'),
-                  controller: codeController,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryCode),
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  key: const Key('category-name'),
-                  controller: nameController,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryNameEn),
-                  validator: (value) => _required(value, strings),
-                ),
-                const SizedBox(height: 12),
-                PlatformTextField(
-                  key: const Key('category-order'),
-                  controller: sortOrderController,
-                  label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (int.tryParse((value ?? '').trim()) == null) {
-                      return strings.tKey(PlatformAdminKeys.fieldCategoryOrder);
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeThumbColor: PtTheme.deepGreen,
-                  title: Text(
-                    strings.tKey(CommonKeys.statusActive),
-                    style: PtTheme.font(
-                      13,
-                      weight: FontWeight.w600,
-                      color: PtTheme.ink,
-                    ),
-                  ),
-                  value: active,
-                  onChanged: (value) {
-                    setDialogState(() => active = value);
-                  },
-                ),
-              ],
-            ),
-          );
-        },
+      builder: (dialogContext) => CatalogDialog(
+        title: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
+        body: Text(
+          strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
+          style: Catalog.body,
+        ),
+        actions: [
+          CatalogButton(
+            label: strings.tKey(CommonKeys.buttonCancel),
+            secondary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+          ),
+          CatalogButton(
+            label: strings.tKey(PlatformAdminKeys.buttonRetire),
+            danger: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+          ),
+        ],
       ),
-      actionsBuilder: (dialogContext) => [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(
-            strings.tKey(CommonKeys.buttonCancel),
-            style: PtTheme.font(
-              13,
-              weight: FontWeight.w700,
-              color: PtTheme.muted,
-            ),
-          ),
-        ),
-        FilledButton(
-          onPressed: () {
-            if (formKey.currentState?.validate() != true) return;
-            Navigator.of(dialogContext).pop(true);
-          },
-          style: FilledButton.styleFrom(backgroundColor: PtTheme.deepGreen),
-          child: Text(
-            strings.tKey(CommonKeys.buttonSave),
-            style: PtTheme.font(
-              13,
-              weight: FontWeight.w700,
-              color: PtTheme.white,
-            ),
-          ),
-        ),
-      ],
-    );
-
-    final code = codeController.text.trim();
-    final name = nameController.text.trim();
-    final sortOrder = int.tryParse(sortOrderController.text.trim()) ?? 0;
-    Future<void>.delayed(const Duration(milliseconds: 400), () {
-      codeController.dispose();
-      nameController.dispose();
-      sortOrderController.dispose();
-    });
-
-    if (shouldSave != true) return;
-    await _run(() async {
-      final api = ref.read(platformConfigApiProvider);
-      final body = <String, dynamic>{
-        'code': code,
-        'name': name,
-        'sortOrder': sortOrder,
-        'status': active ? 'ACTIVE' : 'RETIRED',
-        'active': active,
-      };
-      if (category == null) {
-        await api.createCategory(body);
-      } else {
-        await api.updateCategory(category.id, body);
-      }
-      ref.invalidate(categoriesProvider);
-      ref.invalidate(itemsProvider);
-      ref.invalidate(configHealthProvider);
-    });
-  }
-
-  Future<void> _confirmRetire(PlatformCategory category) async {
-    final strings = ref.watch(uiStringsProvider);
-    final confirmed = await showPlatformConfirmDialog(
-      context: context,
-      title: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
-      body: strings.tKey(PlatformAdminKeys.dialogRetireConfirm),
-      confirmLabel: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
-      destructive: true,
     );
     if (confirmed != true) return;
-    await _run(() async {
+    try {
       await ref.read(platformConfigActionsProvider).retireCategory(category.id);
-    });
+      ref.invalidate(categoriesProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
   }
 
-  Future<void> _activate(PlatformCategory category) async {
-    await _run(() async {
+  Future<void> _activate(
+    UiMessageStrings strings,
+    PlatformCategory category,
+  ) async {
+    try {
       await ref
           .read(platformConfigActionsProvider)
           .saveCategory(
@@ -222,457 +245,236 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             sortOrder: category.sortOrder,
             active: true,
           );
-    });
+      ref.invalidate(categoriesProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    }
   }
 
-  Future<void> _reorder(
-    List<PlatformCategory> ordered,
+  Future<void> _move(
+    UiMessageStrings strings,
+    List<PlatformCategory> categories,
     int index,
     int delta,
   ) async {
     final target = index + delta;
-    if (target < 0 || target >= ordered.length) return;
-    final ids = ordered.map((category) => category.id).toList();
+    if (target < 0 || target >= categories.length || _busy) return;
+    final ids = categories.map((category) => category.id).toList();
     final moved = ids.removeAt(index);
     ids.insert(target, moved);
-    await _run(() async {
+    setState(() => _busy = true);
+    try {
       await ref.read(platformConfigActionsProvider).reorderCategories(ids);
-    });
+      ref.invalidate(categoriesProvider);
+    } catch (_) {
+      if (mounted) _toast(strings.tKey(CommonKeys.stateError));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
+
+  void _toast(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: PtTheme.rose,
+        content: Text(message, style: Catalog.text(12.5, color: PtTheme.white)),
+      ),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.strings,
+    required this.wide,
+    required this.onAdd,
+  });
+
+  final UiMessageStrings strings;
+  final bool wide;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
-    final strings = ref.watch(uiStringsProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
-
-    return ChecklistPageFrame(
-      currentRoute: '/checklist/categories',
-      currentTab: ChecklistTab.categories,
-      showSearch: false,
-      actions: [
-        PlatformPrimaryButton(
-          label: strings.tKey(PlatformAdminKeys.buttonCategoryAdd),
-          icon: Icons.add_rounded,
-          onPressed: _busy ? null : () => _showCategoryDialog(null),
+    final block = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
+          style: Catalog.eyebrow,
+        ),
+        const SizedBox(height: 7),
+        Text(
+          strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+          style: Catalog.pageTitle,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          strings.tKey(PlatformAdminKeys.checklistCategoriesEmptyBody),
+          style: Catalog.body,
         ),
       ],
-      child: categoriesAsync.when(
-        loading: () =>
-            PlatformLoadingView(message: strings.tKey(CommonKeys.stateLoading)),
-        error: (error, _) => PlatformErrorView(
-          message: _failureMessage(error),
-          retryLabel: strings.tKey(CommonKeys.buttonRetry),
-          onRetry: () => ref.invalidate(categoriesProvider),
-        ),
-        data: (categories) {
-          final ordered = [...categories]
-            ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-          final query = _search.trim().toLowerCase();
-          final filtered = ordered
-              .where((category) {
-                if (_status.isNotEmpty && category.status != _status) {
-                  return false;
-                }
-                if (query.isEmpty) return true;
-                return category.code.toLowerCase().contains(query) ||
-                    _categoryName(category).toLowerCase().contains(query);
-              })
-              .toList(growable: false);
-          final countLabel = query.isEmpty && _status.isEmpty
-              ? '${ordered.length}'
-              : '${filtered.length} / ${ordered.length}';
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PlatformToolbar(
-                searchController: _searchController,
-                searchHint: strings.tKey(CommonKeys.filterSearch),
-                onSearchChanged: (value) => setState(() => _search = value),
-                countLabel: countLabel,
-                filters: [
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 220),
-                    child: PlatformDropdown<String>(
-                      label: strings.tKey(CommonKeys.tableStatus),
-                      value: _status,
-                      items: [
-                        DropdownMenuItem(
-                          value: '',
-                          child: Text(strings.tKey(CommonKeys.filterAll)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'ACTIVE',
-                          child: Text(checklistStatusLabel(strings, 'ACTIVE')),
-                        ),
-                        DropdownMenuItem(
-                          value: 'DRAFT',
-                          child: Text(checklistStatusLabel(strings, 'DRAFT')),
-                        ),
-                        DropdownMenuItem(
-                          value: 'RETIRED',
-                          child: Text(checklistStatusLabel(strings, 'RETIRED')),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() => _status = value ?? '');
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (filtered.isEmpty)
-                PlatformEmptyView(
-                  icon: Icons.folder_open_outlined,
-                  title: strings.tKey(PlatformAdminKeys.checklistCategoriesEmptyTitle),
-                  body: strings.tKey(PlatformAdminKeys.checklistCategoriesEmptyBody),
-                  actionLabel: strings.tKey(PlatformAdminKeys.buttonCategoryAdd),
-                  onAction: () => _showCategoryDialog(null),
-                )
-              else
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final twoColumns = constraints.maxWidth >= 1000;
-                    if (!twoColumns) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (
-                            var index = 0;
-                            index < filtered.length;
-                            index++
-                          ) ...[
-                            _buildCategoryCard(
-                              strings,
-                              filtered,
-                              ordered,
-                              index,
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ],
-                      );
-                    }
-                    final rows = <Widget>[];
-                    for (var index = 0; index < filtered.length; index += 2) {
-                      rows.add(
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _buildCategoryCard(
-                                strings,
-                                filtered,
-                                ordered,
-                                index,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: index + 1 < filtered.length
-                                  ? _buildCategoryCard(
-                                      strings,
-                                      filtered,
-                                      ordered,
-                                      index + 1,
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
-                          ],
-                        ),
-                      );
-                      rows.add(const SizedBox(height: 12));
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: rows,
-                    );
-                  },
-                ),
-              const SizedBox(height: 16),
-            ],
-          );
-        },
-      ),
+    );
+    final add = CatalogButton(
+      label: strings.tKey(PlatformAdminKeys.buttonCategoryAdd),
+      icon: Icons.add_rounded,
+      onPressed: onAdd,
+    );
+    if (!wide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          block,
+          const SizedBox(height: 12),
+          Align(alignment: AlignmentDirectional.centerStart, child: add),
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(child: block),
+        add,
+      ],
     );
   }
+}
 
-  Widget _buildCategoryCard(
-    dynamic strings,
-    List<PlatformCategory> visible,
-    List<PlatformCategory> ordered,
-    int visibleIndex,
-  ) {
-    final category = visible[visibleIndex];
-    final orderedIndex = ordered.indexWhere((item) => item.id == category.id);
-    final canMoveUp = orderedIndex > 0;
-    final canMoveDown = orderedIndex >= 0 && orderedIndex < ordered.length - 1;
-    final accentColor = category.status == 'ACTIVE'
-        ? PtTheme.deepGreen
-        : (category.status == 'DRAFT' ? PtTheme.amber : PtTheme.muted);
+class _CategoryRow extends ConsumerWidget {
+  const _CategoryRow({
+    required this.strings,
+    required this.category,
+    required this.busy,
+    required this.first,
+    required this.last,
+    required this.onUp,
+    required this.onDown,
+    required this.onEdit,
+    required this.onRetire,
+    required this.onActivate,
+    required this.onItems,
+  });
 
+  final UiMessageStrings strings;
+  final PlatformCategory category;
+  final bool busy;
+  final bool first;
+  final bool last;
+  final VoidCallback onUp;
+  final VoidCallback onDown;
+  final VoidCallback onEdit;
+  final VoidCallback onRetire;
+  final VoidCallback onActivate;
+  final VoidCallback onItems;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final active =
+        category.active && category.status.toUpperCase() != 'RETIRED';
     return Container(
-      decoration: _surfaceDecoration(),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: 5,
-              color: accentColor,
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Top row: icon tile, category name, status, order controls
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.folder_outlined,
-                            size: 20,
-                            color: accentColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _categoryName(category),
-                                      style: PtTheme.font(
-                                        17,
-                                        lineHeight: 22,
-                                        weight: FontWeight.w700,
-                                        color: PtTheme.ink,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  PlatformStatusChip(
-                                    status: category.status,
-                                    label: checklistStatusLabel(strings, category.status),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                category.code,
-                                style: PtTheme.font(
-                                  12,
-                                  weight: FontWeight.w700,
-                                  color: PtTheme.muted,
-                                  tracking: 0.4,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _reorderButton(
-                              icon: Icons.arrow_upward_rounded,
-                              tooltip: strings.tKey(CommonKeys.buttonReorder),
-                              onPressed: canMoveUp
-                                  ? () => _reorder(ordered, orderedIndex, -1)
-                                  : null,
-                            ),
-                            _reorderButton(
-                              icon: Icons.arrow_downward_rounded,
-                              tooltip: strings.tKey(CommonKeys.buttonReorder),
-                              onPressed: canMoveDown
-                                  ? () => _reorder(ordered, orderedIndex, 1)
-                                  : null,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    // Prominent stat & order row
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: PtTheme.canvas,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: PtTheme.border),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.format_list_bulleted_rounded, size: 15, color: PtTheme.deepGreen),
-                              const SizedBox(width: 5),
-                              Text(
-                                '${category.itemCount}',
-                                style: PtTheme.font(
-                                  14,
-                                  lineHeight: 16,
-                                  weight: FontWeight.w800,
-                                  color: PtTheme.ink,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                strings.tKey(PlatformAdminKeys.tabChecklistItems),
-                                style: PtTheme.font(
-                                  12,
-                                  weight: FontWeight.w500,
-                                  color: PtTheme.muted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: PtTheme.canvas,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: PtTheme.border),
-                          ),
-                          child: Text(
-                            strings.tArgsKey(PlatformAdminKeys.checklistCategoriesOrder, {
-                              'order': '${category.sortOrder}',
-                            }),
-                            style: PtTheme.font(
-                              12,
-                              weight: FontWeight.w600,
-                              color: PtTheme.muted,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1),
-                    const SizedBox(height: 10),
-                    // Action row: Edit (primary), View items, Activate, Retire
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        Wrap(
-                          spacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            PlatformPrimaryButton(
-                              label: strings.tKey(CommonKeys.buttonEdit),
-                              icon: Icons.edit_outlined,
-                              onPressed: _busy ? null : () => _showCategoryDialog(category),
-                            ),
-                            PlatformSecondaryButton(
-                              label: strings.tKey(PlatformAdminKeys.checklistCategoriesButtonViewItems),
-                              icon: Icons.filter_list_rounded,
-                              onPressed: () => context.go('/checklist/items?category=${category.id}'),
-                            ),
-                          ],
-                        ),
-                        Wrap(
-                          spacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (category.status == 'DRAFT')
-                              PlatformSecondaryButton(
-                                label: strings.tKey(PlatformAdminKeys.buttonContentActivate),
-                                icon: Icons.check_circle_outline_rounded,
-                                onPressed: _busy ? null : () => _activate(category),
-                              ),
-                            PlatformSecondaryButton(
-                              label: strings.tKey(PlatformAdminKeys.dialogCategoryRetireTitle),
-                              icon: Icons.archive_outlined,
-                              destructive: true,
-                              onPressed: _busy ? null : () => _confirmRetire(category),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 10, 12),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: PtTheme.border)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 28,
+            child: Text(
+              '${category.sortOrder}',
+              style: Catalog.text(
+                10.5,
+                weight: FontWeight.w700,
+                tabular: true,
+                color: PtTheme.muted,
               ),
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  category.name,
+                  style: Catalog.text(12.5, weight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${category.code} · ${strings.tArgsKey(PlatformAdminKeys.checklistCategoriesItemCount, {'count': category.itemCount})}',
+                  style: Catalog.text(10, color: PtTheme.muted),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          CatalogPill(
+            label: checklistStatusLabel(ref, category.status),
+            tone: active ? CatalogTone.good : CatalogTone.bad,
+          ),
+          const SizedBox(width: 6),
+          _Icon(
+            icon: Icons.arrow_upward_rounded,
+            tooltip: strings.tKey(CommonKeys.buttonMoveUp),
+            onPressed: busy || first ? null : onUp,
+          ),
+          _Icon(
+            icon: Icons.arrow_downward_rounded,
+            tooltip: strings.tKey(CommonKeys.buttonMoveDown),
+            onPressed: busy || last ? null : onDown,
+          ),
+          _Icon(
+            icon: Icons.visibility_outlined,
+            tooltip: strings.tKey(
+              PlatformAdminKeys.checklistCategoriesButtonViewItems,
+            ),
+            onPressed: onItems,
+          ),
+          _Icon(
+            icon: Icons.edit_outlined,
+            tooltip: strings.tKey(CommonKeys.buttonEdit),
+            onPressed: onEdit,
+          ),
+          _Icon(
+            icon: active ? Icons.block_outlined : Icons.check_circle_outlined,
+            tooltip: strings.tKey(
+              active
+                  ? PlatformAdminKeys.dialogCategoryRetireTitle
+                  : PlatformAdminKeys.buttonContentActivate,
+            ),
+            danger: active,
+            onPressed: active ? onRetire : onActivate,
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _reorderButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback? onPressed,
-  }) {
-    return IconButton(
-      tooltip: tooltip,
+class _Icon extends StatelessWidget {
+  const _Icon({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.danger = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: IconButton(
+      icon: Icon(icon, size: 18),
+      color: danger ? PtTheme.rose : PtTheme.muted,
+      onPressed: onPressed,
       visualDensity: VisualDensity.compact,
-      icon: Icon(
-        icon,
-        size: 18,
-        color: onPressed == null ? PtTheme.border : PtTheme.muted,
-      ),
-      onPressed: _busy ? null : onPressed,
-    );
-  }
-
-  BoxDecoration _surfaceDecoration() {
-    return BoxDecoration(
-      color: PtTheme.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: PtTheme.border),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x06000000),
-          blurRadius: 8,
-          offset: Offset(0, 2),
-        ),
-      ],
-    );
-  }
-}
-
-String? _required(String? value, dynamic strings) {
-  if (value == null || value.trim().isEmpty) {
-    return strings.tKey(CommonKeys.validationRequired);
-  }
-  return null;
-}
-
-String _categoryName(PlatformCategory category) {
-  return category.name.isEmpty ? category.code : category.name;
-}
-
-String _failureMessage(Object error) {
-  if (error is AppFailure) {
-    return error.statusCode == null
-        ? error.messageKey
-        : '${error.messageKey} (${error.statusCode})';
-  }
-  return error.toString();
+    ),
+  );
 }

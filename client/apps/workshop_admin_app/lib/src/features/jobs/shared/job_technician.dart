@@ -1,4 +1,4 @@
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -8,14 +8,10 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 /// If it is null, empty, or identical to the id (some mutation responses echo
 /// the id), the staff directory resolves the id; an unresolvable id reads
 /// "Unassigned" rather than a UUID.
-String jobTechnicianName(
-  AppLocalizations l10n,
-  CleanJob job,
-  List<StaffMember>? staff,
-) {
+String jobTechnicianName(UiStrings t, CleanJob job, List<StaffMember>? staff) {
   final id = job.assignedTechnicianId?.trim();
   if (id == null || id.isEmpty) {
-    return l10n.unassigned;
+    return t(WorkshopAdminKeys.unassigned);
   }
   final name = job.assignedTechnicianName?.trim();
   if (name != null && name.isNotEmpty && name != id) {
@@ -29,5 +25,5 @@ String jobTechnicianName(
       }
     }
   }
-  return l10n.unassigned;
+  return t(WorkshopAdminKeys.unassigned);
 }

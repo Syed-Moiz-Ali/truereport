@@ -3,14 +3,17 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 
 /// Screen 09. 9._Defect_Detail_&_Evidence (node `1:8021`, 390 x 1031.67).
-class DefectDetailView extends StatelessWidget {
+class DefectDetailView extends ConsumerWidget {
   const DefectDetailView({
     required this.job,
     required this.item,
@@ -57,8 +60,8 @@ class DefectDetailView extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final isAr = Localizations.localeOf(context).languageCode == 'ar';
     final category = isAr ? item.categoryLabelAr : item.categoryLabelEn;
     final label = isAr ? item.labelAr : item.labelEn;
@@ -74,7 +77,8 @@ class DefectDetailView extends StatelessWidget {
               children: [
                 _ContextHalf(
                   job: job,
-                  l10n: l10n,
+                  t: t,
+                  statusLabel: jobStatusLabel(ref, job.status),
                   onClose: onClose,
                   wireframeImage: wireframeImage,
                 ),
@@ -107,21 +111,20 @@ class DefectDetailView extends StatelessWidget {
 class _ContextHalf extends StatelessWidget {
   const _ContextHalf({
     required this.job,
-    required this.l10n,
+    required this.t,
+    required this.statusLabel,
     required this.onClose,
     this.wireframeImage,
   });
 
   final TechnicianJob job;
-  final AppLocalizations l10n;
+  final UiStrings t;
+  final String statusLabel;
   final VoidCallback onClose;
   final ui.Image? wireframeImage;
 
   @override
   Widget build(BuildContext context) {
-    final statusLabel =
-        '\u2066${job.reference.toUpperCase()}\u2069 \u2022 ${technicianStatusLabel(l10n, job.status).toUpperCase()}';
-
     return SizedBox(
       width: double.infinity,
       height: 320,
@@ -141,7 +144,7 @@ class _ContextHalf extends StatelessWidget {
                     children: [
                       F2bIconButton(
                         iconId: '1_8026',
-                        semanticLabel: l10n.close,
+                        semanticLabel: t(TechnicianKeys.close),
                         onPressed: onClose,
                         size: 48,
                         iconSize: 14,
@@ -180,7 +183,7 @@ class _ContextHalf extends StatelessWidget {
                       ),
                       F2bIconButton(
                         iconId: '1_8033',
-                        semanticLabel: l10n.technicianInspection,
+                        semanticLabel: t(TechnicianKeys.technicianInspection),
                         onPressed: () {},
                         size: 48,
                         iconSize: 18.33,
@@ -525,7 +528,7 @@ class _StatusBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 70),
       child: Column(
@@ -533,14 +536,14 @@ class _StatusBlock extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 14),
-            child: F2bSectionLabel(l10n.result),
+            child: F2bSectionLabel(t(TechnicianKeys.result)),
           ),
           const SizedBox(height: 4),
           F2bSegmented(
             labels: [
-              l10n.noIssueObserved,
-              l10n.attentionRecommended,
-              l10n.defectFound,
+              t(TechnicianKeys.noIssueObserved),
+              t(TechnicianKeys.attentionRecommended),
+              t(TechnicianKeys.defectFound),
             ],
             selectedIndex: primaryIndex,
             selectedColor: const Color(0xFFFED7AA),
@@ -575,7 +578,7 @@ class _StatusBlock extends StatelessWidget {
   }
 }
 
-class _ClassificationBlock extends StatelessWidget {
+class _ClassificationBlock extends ConsumerWidget {
   const _ClassificationBlock({
     required this.selectedSeverity,
     required this.onSeverity,
@@ -587,8 +590,9 @@ class _ClassificationBlock extends StatelessWidget {
   final bool finalized;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
+    final severityRecords = ref.watch(enumsProvider('severity')).value;
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 88),
       child: Column(
@@ -600,11 +604,11 @@ class _ClassificationBlock extends StatelessWidget {
               runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                F2bSectionLabel(l10n.severity),
+                F2bSectionLabel(t(TechnicianKeys.severity)),
                 Text(
                   selectedSeverity != null
-                      ? '1 ${l10n.itemsSelected}'
-                      : '0 ${l10n.itemsSelected}',
+                      ? '1 ${t(TechnicianKeys.itemsSelected)}'
+                      : '0 ${t(TechnicianKeys.itemsSelected)}',
                   style: Fx.text(
                     11,
                     14,
@@ -622,13 +626,13 @@ class _ClassificationBlock extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: F2bSectionLabel(l10n.severity)),
+                  Expanded(child: F2bSectionLabel(t(TechnicianKeys.severity))),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       selectedSeverity != null
-                          ? '1 ${l10n.itemsSelected}'
-                          : '0 ${l10n.itemsSelected}',
+                          ? '1 ${t(TechnicianKeys.itemsSelected)}'
+                          : '0 ${t(TechnicianKeys.itemsSelected)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Fx.text(
@@ -659,7 +663,7 @@ class _ClassificationBlock extends StatelessWidget {
                       top: 0,
                       child: Semantics(
                         button: true,
-                        label: severityLabel(l10n, 'MINOR'),
+                        label: severityLabel(severityRecords, 'MINOR'),
                         child: GestureDetector(
                           onTap: finalized ? null : () => onSeverity('MINOR'),
                           child: Container(
@@ -686,7 +690,7 @@ class _ClassificationBlock extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  severityLabel(l10n, 'MINOR'),
+                                  severityLabel(severityRecords, 'MINOR'),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: Fx.text(
@@ -708,7 +712,7 @@ class _ClassificationBlock extends StatelessWidget {
                       top: 0,
                       child: Semantics(
                         button: true,
-                        label: severityLabel(l10n, 'MODERATE'),
+                        label: severityLabel(severityRecords, 'MODERATE'),
                         child: GestureDetector(
                           onTap: finalized
                               ? null
@@ -727,7 +731,7 @@ class _ClassificationBlock extends StatelessWidget {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              severityLabel(l10n, 'MODERATE'),
+                              severityLabel(severityRecords, 'MODERATE'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: Fx.text(
@@ -747,7 +751,7 @@ class _ClassificationBlock extends StatelessWidget {
                       top: 40,
                       child: Semantics(
                         button: true,
-                        label: severityLabel(l10n, 'MAJOR'),
+                        label: severityLabel(severityRecords, 'MAJOR'),
                         child: GestureDetector(
                           onTap: finalized ? null : () => onSeverity('MAJOR'),
                           child: Container(
@@ -764,7 +768,7 @@ class _ClassificationBlock extends StatelessWidget {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              severityLabel(l10n, 'MAJOR'),
+                              severityLabel(severityRecords, 'MAJOR'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: Fx.text(
@@ -809,9 +813,11 @@ class _EvidenceBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final countText =
-        l10n.defectEvidenceRequired(photos.length, item.minPhotos > 0 ? item.minPhotos : 1);
+    final t = UiStrings.of(context);
+    final countText = t(TechnicianKeys.defectEvidenceRequired, {
+      'done': photos.length,
+      'required': item.minPhotos > 0 ? item.minPhotos : 1,
+    });
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 185),
@@ -824,7 +830,7 @@ class _EvidenceBlock extends StatelessWidget {
               runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                F2bSectionLabel(l10n.attachments),
+                F2bSectionLabel(t(TechnicianKeys.attachments)),
                 Text(
                   countText,
                   style: Fx.text(
@@ -844,7 +850,9 @@ class _EvidenceBlock extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: F2bSectionLabel(l10n.attachments)),
+                  Expanded(
+                    child: F2bSectionLabel(t(TechnicianKeys.attachments)),
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -900,9 +908,9 @@ class _FilledTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return F2bEvidenceTile(
-      label: l10n.attachments,
+      label: t(TechnicianKeys.attachments),
       caption: 'Tagged',
       onTap: onTap,
       decoration: const BoxDecoration(
@@ -1013,10 +1021,10 @@ class _EmptyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return F2bEvidenceTile(
-      label: l10n.addPhoto,
-      caption: l10n.photoRequired,
+      label: t(TechnicianKeys.addPhoto),
+      caption: t(TechnicianKeys.photoRequired),
       busy: busy,
       onTap: onTap,
       decoration: const BoxDecoration(
@@ -1038,7 +1046,7 @@ class _EmptyTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.addPhoto,
+            t(TechnicianKeys.addPhoto),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -1046,7 +1054,7 @@ class _EmptyTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.photoRequired,
+            t(TechnicianKeys.photoRequired),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -1065,7 +1073,7 @@ class _NoteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final t = UiStrings.of(context);
 
     return Container(
       height: 56.67,
@@ -1089,7 +1097,7 @@ class _NoteRow extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: l10n!.note,
+                hintText: t(TechnicianKeys.note),
                 hintStyle: Fx.body13.copyWith(color: Fx.muted),
                 contentPadding: EdgeInsets.zero,
               ),
@@ -1122,12 +1130,12 @@ class _SaveBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 4.5, bottom: 7.5),
       child: FxButton(
         key: const ValueKey('f2b3-save-button'),
-        label: l10n.saveAnswer.toUpperCase(),
+        label: t(TechnicianKeys.saveAnswer).toUpperCase(),
         labelStyle: Fx.text(14, 18, FontWeight.w700, 0.7, color: Fx.white),
         onPressed: busy || finalized ? null : onSave,
         icon: const FxIcon(id: '1_8134', size: 13.58, color: Fx.white),

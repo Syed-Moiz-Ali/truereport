@@ -337,6 +337,12 @@
     "retryDelivery": {},
     "deliveryQueued": {},
     "deliverySent": {},
+    "deliveryStatusQueued": {},
+    "deliveryStatusSent": {},
+    "deliveryStatusDelivered": {},
+    "deliveryStatusFailed": {},
+    "deliveryStatusRetryPending": {},
+    "deliveryStatusDeadLetter": {},
     "noDeliveries": {},
     "channelWhatsapp": {},
     "channelSms": {},
@@ -1749,6 +1755,82 @@
     "appTitleAdmin": {},
     "appTitleTechnician": {},
     "jobsConsentGrant": {},
-    "jobsConsentRevoke": {}
+    "jobsConsentRevoke": {},
+    "statusNotSubmitted": {},
+    "documentStatusPending": {},
+    "documentStatusReady": {},
+    "documentStatusFailed": {},
+    "evidenceStatusPending": {},
+    "evidenceStatusUploaded": {},
+    "evidenceStatusVerified": {},
+    "evidenceStatusDeleted": {},
+    "gradeA": {},
+    "gradeB": {},
+    "gradeC": {},
+    "gradeD": {},
+    "unitMM": {},
+    "unitUM": {},
+    "unitV": {},
+    "unitPSI": {},
+    "unitPERCENT": {},
+    "unitA": {},
+    "unitCCA": {},
+    "unitRPM": {},
+    "unitNM": {},
+    "unitBAR": {},
+    "unitKM": {},
+    "unitDegC": {},
+    "technicianEvidenceDuplicate": {},
+    "technicianPhotoResolutionTooLow": {},
+    "technicianPhotoTypeUnsupported": {},
+    "technicianVideoTypeUnsupported": {},
+    "technicianDocumentTypeUnsupported": {},
+    "technicianCameraRequired": {},
+    "technicianVideoDurationUnavailable": {},
+    "technicianEvidenceCancel": {},
+    "technicianEvidenceCancelled": {},
+    "technicianEvidenceQueued": {},
+    "technicianEvidenceUploaded": {},
+    "technicianEvidenceStateRequired": {},
+    "technicianEvidenceStateCapturing": {},
+    "technicianEvidenceStateUploading": {},
+    "technicianEvidenceStateComplete": {},
+    "technicianEvidenceStateQueued": {},
+    "technicianEvidenceStateFailed": {},
+    "technicianEvidenceAttempt": {
+      "placeholders": {
+        "attempt": {
+          "type": "int"
+        },
+        "max": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEvidenceTypeRequired": {
+      "placeholders": {
+        "type": {
+          "type": "String"
+        }
+      }
+    },
+    "technicianCompleteBlocked": {},
+    "technicianOpenItem": {},
+    "technicianResolveBlocker": {},
+    "technicianEvidencePercent": {
+      "placeholders": {
+        "percent": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianItemLoadFailed": {},
+    "technicianItemNotFoundTitle": {},
+    "technicianItemNotFound": {},
+    "technicianVideoWindow": {},
+    "technicianPhotoGuide": {},
+    "technicianDocumentGuide": {},
+    "technicianChooseSource": {},
+    "technicianSourceFiles": {}
   }
 }

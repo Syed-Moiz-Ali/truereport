@@ -5,15 +5,18 @@ import 'dart:ui' as ui;
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+
+import 'support/ui_strings_harness.dart';
 
 import 'support/f2a_fidelity_harness.dart';
 import 'support/f2a_test_images.dart';
 import 'support/f2a_test_fonts.dart';
 import 'support/f2a_views.dart';
 import 'support/fidelity_output.dart';
-import 'support/figma_l10n_override.dart';
+import 'support/test_reference_overrides.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -107,39 +110,44 @@ Future<void> _render(
   final theme = AppTheme.light;
 
   await tester.pumpWidget(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: theme,
-      locale: const Locale('en'),
-      supportedLocales: AppLocalizations.supportedLocales,
-      // The figma-text variant renders Figma sample wording through the
-      // test-only localization override; lib/ has no figmaText switch.
-      localizationsDelegates: variant.figma
-          ? figmaLocalizationsDelegates
-          : AppLocalizations.localizationsDelegates,
-      home: Directionality(
-        textDirection: TextDirection.ltr,
-        child: MediaQuery(
-          data: MediaQueryData(
-            size: Size(390, height),
-            devicePixelRatio: dpr,
-            textScaler: TextScaler.noScaling,
-          ),
-          child: RepaintBoundary(
-            key: rootKey,
-            child: SizedBox(
-              width: 390,
-              height: height,
-              child: ColoredBox(
-                color: Colors.white,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Builder(
-                    builder: (context) => f2aScreen(
-                      id,
-                      figma: variant.figma,
-                      avatarImage: avatarImage,
-                      vehicleImage: vehicleImage,
+    ProviderScope(
+      overrides: testReferenceStatusOverrides(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: theme,
+        locale: const Locale('en'),
+        supportedLocales: const <Locale>[Locale('en')],
+        // The figma-text variant renders Figma sample wording through the
+        // test-only string bundle; lib/ has no figmaText switch.
+        localizationsDelegates: testLocalizationsDelegates,
+        builder: (context, appChild) => UiStringsScope(
+          strings: variant.figma ? figmaStringsBundle() : baseStrings(),
+          child: appChild ?? const SizedBox.shrink(),
+        ),
+        home: Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: MediaQueryData(
+              size: Size(390, height),
+              devicePixelRatio: dpr,
+              textScaler: TextScaler.noScaling,
+            ),
+            child: RepaintBoundary(
+              key: rootKey,
+              child: SizedBox(
+                width: 390,
+                height: height,
+                child: ColoredBox(
+                  color: Colors.white,
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Builder(
+                      builder: (context) => f2aScreen(
+                        id,
+                        figma: variant.figma,
+                        avatarImage: avatarImage,
+                        vehicleImage: vehicleImage,
+                      ),
                     ),
                   ),
                 ),

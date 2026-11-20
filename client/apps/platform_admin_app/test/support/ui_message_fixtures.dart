@@ -12,15 +12,17 @@ Map<String, Map<String, String>> _loadCatalog(String file, {String? fromDir}) {
     File('${fromDir ?? _catalogDir}/$file').readAsStringSync(),
   ) as Map<String, dynamic>;
   final catalogs = <String, Map<String, String>>{};
+  final qualified = RegExp(
+    r'^(common|platform_admin|workshop_admin|technician)\.',
+  );
   for (final entry in decoded.entries) {
-    final dot = entry.key.indexOf('.');
-    if (dot <= 0 || dot == entry.key.length - 1) {
-      throw StateError(
-        'Catalog key "${entry.key}" must be namespace-qualified.',
-      );
-    }
-    final namespace = entry.key.substring(0, dot);
-    final key = entry.key.substring(dot + 1);
+    final match = qualified.firstMatch(entry.key);
+    // EN bundles are namespace-scoped with flat keys (`dashboard.alert...`);
+    // the AR fixture is fully qualified (`platform_admin.dashboard.alert...`).
+    final namespace = match?.group(1) ?? 'platform_admin';
+    final key = match == null
+        ? entry.key
+        : entry.key.substring(match.group(0)!.length);
     catalogs.putIfAbsent(namespace, () => <String, String>{})[key] =
         entry.value as String;
   }

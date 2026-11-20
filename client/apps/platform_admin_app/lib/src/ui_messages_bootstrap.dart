@@ -1,9 +1,7 @@
 import 'package:auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
-
-import 'components/platform_states.dart';
+import 'package:l10n/ui_strings.dart';
 
 class UiMessagesBootstrap extends ConsumerStatefulWidget {
   const UiMessagesBootstrap({super.key, required this.child});
@@ -78,69 +76,25 @@ class _UiMessagesBootstrapState extends ConsumerState<UiMessagesBootstrap> {
       (_, _) => _syncLanguage(),
     );
     final uiState = ref.watch(uiMessageControllerProvider);
-    if (uiState.ready) return widget.child;
+    final messages = ref.watch(
+      uiMessageMessagesProvider(UiMessageClients.platformAdmin),
+    );
+    if (uiState.ready && messages.isNotEmpty) return widget.child;
     _maybeSignOut(uiState);
-    final controller = ref.read(uiMessageControllerProvider.notifier);
-    if (!uiState.booting && uiState.bootError != null) {
-      final errorText = controller.tKey(CommonKeys.errorGeneric);
-      final retryText = controller.tKey(CommonKeys.buttonRetry);
-      if (errorText == CommonKeys.errorGeneric.qualified &&
-          retryText == CommonKeys.buttonRetry.qualified) {
-        return const _BootstrapRetryFallback();
-      }
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: PlatformErrorView(
-            message: errorText,
-            retryLabel: retryText == CommonKeys.buttonRetry.qualified
-                ? null
-                : retryText,
-            onRetry: () =>
-                ref.read(uiMessageControllerProvider.notifier).bootstrap(),
-          ),
-        ),
+
+    void retry() => ref.read(uiMessageControllerProvider.notifier).bootstrap();
+
+    final failed =
+        !uiState.booting && (uiState.bootError != null || uiState.ready);
+    if (failed) {
+      return KeyedSubtree(
+        key: UiMessageErrorGate.gateKey,
+        child: UiMessageErrorGate(onRetry: retry),
       );
     }
-    final loadingText = controller.tKey(CommonKeys.stateLoading);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: PlatformLoadingView(
-          message: loadingText == CommonKeys.stateLoading.qualified
-              ? ''
-              : loadingText,
-        ),
-      ),
-    );
-  }
-}
-
-class _BootstrapRetryFallback extends ConsumerWidget {
-  const _BootstrapRetryFallback();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 36,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 12),
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              onPressed: () =>
-                  ref.read(uiMessageControllerProvider.notifier).bootstrap(),
-            ),
-          ],
-        ),
-      ),
+    return const KeyedSubtree(
+      key: UiMessageLoadingGate.gateKey,
+      child: UiMessageLoadingGate(),
     );
   }
 }

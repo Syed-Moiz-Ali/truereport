@@ -174,7 +174,10 @@ class _ChecklistCatalogSnapshot extends ConsumerWidget {
                       ? '—'
                       : (isHealthy
                             ? strings.tKey(CommonKeys.statusHealthy)
-                            : strings.tArgsKey(PlatformAdminKeys.checklistIssuesCount, {'count': healthIssues})),
+                            : strings.tArgsKey(
+                                PlatformAdminKeys.checklistIssuesCount,
+                                {'count': healthIssues},
+                              )),
                   color: isHealthy ? PtTheme.emerald : PtTheme.rose,
                   onTap: () => context.go('/checklist/health'),
                 ),

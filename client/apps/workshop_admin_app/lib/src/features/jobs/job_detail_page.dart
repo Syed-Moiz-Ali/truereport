@@ -10,4 +10,3 @@ class JobDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DispatchJobDetail(jobId: jobId);
 }
-

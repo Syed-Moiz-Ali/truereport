@@ -2,7 +2,7 @@
 //
 // Lives under test/ deliberately: it never ships, it is not imported by
 // production code, and the repository's source-scan rules apply to `lib/`
-// features only. Hardcoded sample copy is fine here; the real shell reads l10n.
+// features only. Hardcoded sample copy is fine here; the real shell reads the backend bundle.
 //
 // Three structurally different shells, each with the same neutral content so the
 // eye judges the chrome and the width it leaves behind.

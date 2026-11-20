@@ -103,6 +103,23 @@ class SecurityEndpointInventoryIT extends IntegrationTestBase {
     }
 
     @Test
+    void legacyTechnicianRoutesAreNotRegistered() throws Exception {
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/v3/api-docs"))
+                .andExpect(status().isOk()).andReturn();
+        var paths = objectMapper.readTree(result.getResponse().getContentAsString()).path("paths");
+        List<String> legacy = new ArrayList<>();
+        String legacyPrefix = "/api/v1/technician/" + "legacy";
+        var names = paths.fieldNames();
+        while (names.hasNext()) {
+            String path = names.next();
+            if (path.startsWith(legacyPrefix)) {
+                legacy.add(path);
+            }
+        }
+        assertThat(legacy).as("removed legacy technician routes must not be registered").isEmpty();
+    }
+
+    @Test
     void rawStoragePathsAreNotExposed() throws Exception {
         Login admin = login("admin.a@test.local");
         for (String path : java.util.List.of(

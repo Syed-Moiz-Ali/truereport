@@ -81,4 +81,3 @@ class SignInPrimary extends StatelessWidget {
     );
   }
 }
-

@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_technician.dart';
@@ -19,7 +19,7 @@ class JobDetailAssignment extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final assignments = ref.watch(jobAssignmentsProvider(job.id));
@@ -28,7 +28,7 @@ class JobDetailAssignment extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobDetailAssignment),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.jobDetailAssignment)),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: Column(
@@ -36,18 +36,19 @@ class JobDetailAssignment extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               JobFact(
-                label: l10n.jobsAssignedTechnician,
-                value: jobTechnicianName(l10n, job, staff),
+                label: t(WorkshopAdminKeys.jobsAssignedTechnician),
+                value: jobTechnicianName(t, job, staff),
               ),
               SizedBox(height: spacing.md),
               assignments.when(
                 loading: () => const WorkshopSkeleton(lines: 2),
-                error: (error, _) =>
-                    WorkshopInlineNote(text: l10n.commonLoadFailed),
+                error: (error, _) => WorkshopInlineNote(
+                  text: t(WorkshopAdminKeys.commonLoadFailed),
+                ),
                 data: (items) {
                   if (items.isEmpty) {
                     return Text(
-                      l10n.jobsAssignmentsEmpty,
+                      t(WorkshopAdminKeys.jobsAssignmentsEmpty),
                       style: ws.meta.copyWith(color: ws.muted),
                     );
                   }

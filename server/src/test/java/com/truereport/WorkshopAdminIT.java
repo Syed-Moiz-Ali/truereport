@@ -172,17 +172,6 @@ class WorkshopAdminIT extends IntegrationTestBase {
         JsonNode assigned = postJson(adminA, "/api/v1/workshop/legacy/jobs/" + jobA + "/assign",
                 "{\"technicianId\":\"" + fixture.techA().getId() + "\",\"reason\":\"Assigned\"}");
         assertThat(assigned.get("status").asText()).isEqualTo("ASSIGNED");
-        JsonNode technicianJobs = getJson(technician, "/api/v1/technician/legacy/jobs");
-        assertThat(technicianJobs.toString()).contains(jobA);
-        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs/" + jobA).get("id").asText())
-                .isEqualTo(jobA);
-
-        String unassignedJob = createJob(adminA, versionA, "Unassigned customer").get("id").asText();
-        assertThat(getJson(technician, "/api/v1/technician/legacy/jobs").toString())
-                .doesNotContain(unassignedJob);
-        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + unassignedJob)
-                        .header("Authorization", "Bearer " + technician.accessToken()))
-                .andExpect(status().isNotFound());
 
         assertForbidden(technician, platform, "/api/v1/workshop/templates", false);
         assertForbidden(technician, platform, "/api/v1/workshop/templates/versions", false);
@@ -193,20 +182,8 @@ class WorkshopAdminIT extends IntegrationTestBase {
         assertForbidden(technician, platform, "/api/v1/workshop/legacy/jobs/" + jobA + "/assignments", false);
         assertForbidden(technician, platform, "/api/v1/workshop/templates", true);
         assertForbidden(technician, platform, "/api/v1/workshop/legacy/jobs", true);
-        mockMvc.perform(get("/api/v1/technician/legacy/jobs")
-                        .header("Authorization", "Bearer " + adminA.accessToken()))
-                .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/legacy/jobs")
-                        .header("Authorization", "Bearer " + platform.accessToken()))
-                .andExpect(status().isForbidden());
 
         String random = UUID.randomUUID().toString();
-        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + random)
-                        .header("Authorization", "Bearer " + adminA.accessToken()))
-                .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/v1/technician/legacy/jobs/" + random)
-                        .header("Authorization", "Bearer " + platform.accessToken()))
-                .andExpect(status().isForbidden());
         String[] protectedGets = {
                 "/api/v1/workshop/master/categories",
                 "/api/v1/workshop/master/items",
@@ -313,6 +290,112 @@ class WorkshopAdminIT extends IntegrationTestBase {
         return count == null ? 0 : count;
     }
 
+    @Test
+    void availableTemplatesIncludeOwnWorkshopTemplateAndExcludeOtherWorkshop() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login adminB = login("admin.b@test.local");
+        UUID categoryId = category("available");
+        MasterItem item = publishedItem(categoryId, "WS-AVAIL-001", "Workshop available item",
+                "OPTIONAL", "NONE", 0);
+
+        String templateA = createTemplate(adminA, "A available template");
+        saveDraft(adminA, templateA, List.of(item.versionId()), "A available template");
+        String versionA = postJson(adminA,
+                "/api/v1/workshop/templates/" + templateA + "/publish", "{}")
+                .get("currentPublishedVersionId").asText();
+
+        String templateB = createTemplate(adminB, "B available template");
+        saveDraft(adminB, templateB, List.of(item.versionId()), "B available template");
+        String versionB = postJson(adminB,
+                "/api/v1/workshop/templates/" + templateB + "/publish", "{}")
+                .get("currentPublishedVersionId").asText();
+
+        JsonNode available = getJson(adminA, "/api/v1/workshop/template-versions/available");
+        List<String> versions = new ArrayList<>();
+        JsonNode rowA = null;
+        for (JsonNode row : available) {
+            versions.add(row.get("versionId").asText());
+            if (versionA.equals(row.get("versionId").asText())) {
+                rowA = row;
+            }
+        }
+        assertThat(versions).contains(versionA).doesNotContain(versionB);
+        assertThat(rowA).isNotNull();
+        assertThat(rowA.path("code").isNull() || rowA.path("code").isMissingNode()).isTrue();
+        assertThat(rowA.get("itemCount").asInt()).isEqualTo(1);
+        assertThat(rowA.get("nameEn").asText()).isEqualTo("A available template");
+    }
+
+    @Test
+    void workshopTemplateDrivesCleanJobChecklistAndItemOverrides() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        UUID categoryId = category("job-template");
+        MasterItem first = publishedItem(categoryId, "WS-JOB-001", "Workshop item one",
+                "OPTIONAL", "NONE", 0);
+        MasterItem second = publishedItem(categoryId, "WS-JOB-002", "Workshop item two",
+                "OPTIONAL", "NONE", 0);
+        MasterItem third = publishedItem(categoryId, "WS-JOB-003", "Workshop item three",
+                "OPTIONAL", "NONE", 0);
+
+        String templateId = createTemplate(adminA, "Workshop job template");
+        saveDraft(adminA, templateId,
+                List.of(first.versionId(), second.versionId(), third.versionId()),
+                "Workshop job template");
+        String versionId = postJson(adminA,
+                "/api/v1/workshop/templates/" + templateId + "/publish", "{}")
+                .get("currentPublishedVersionId").asText();
+
+        jdbc.update("""
+                UPDATE template_items SET effective_rules_json = ?
+                WHERE template_version_id = ? AND master_item_version_id = ?
+                """, "{\"minPhotos\":3,\"evidenceRequirement\":\"PHOTO\"}",
+                UUID.fromString(versionId), first.versionId());
+
+        JsonNode job = postJson(adminA, "/api/v1/workshop/jobs",
+                cleanJobBody(UUID.fromString(versionId), "Workshop template customer",
+                        fixture.techA().getId()));
+        String jobId = job.get("id").asText();
+        assertThat(job.get("templateVersionId").asText()).isEqualTo(versionId);
+
+        JsonNode checklist = getJson(techA,
+                "/api/v1/technician/jobs/" + jobId + "/checklist");
+        assertThat(checklist.get("items").size()).isEqualTo(3);
+        List<String> itemCodes = new ArrayList<>();
+        JsonNode overridden = null;
+        for (JsonNode item : checklist.get("items")) {
+            String code = item.get("itemCode").asText();
+            itemCodes.add(code);
+            if ("WS-JOB-001".equals(code)) {
+                overridden = item;
+            }
+        }
+        assertThat(itemCodes).containsExactlyInAnyOrder("WS-JOB-001", "WS-JOB-002", "WS-JOB-003");
+        assertThat(overridden).isNotNull();
+        boolean overrideReached = false;
+        for (JsonNode rule : overridden.get("evidenceRules")) {
+            if (rule.get("minPhotos").asInt() == 3
+                    && "PHOTO".equals(rule.get("requiredEvidenceType").asText())) {
+                overrideReached = true;
+            }
+        }
+        assertThat(overrideReached).as("workshop item evidence override reaches the checklist")
+                .isTrue();
+    }
+
+    private String cleanJobBody(UUID versionId, String customer, UUID technicianId) {
+        return """
+                {"templateVersionId":"%s","customerName":"%s",
+                 "customerPhone":"+971500000000","customerEmail":"customer@test.local",
+                 "vehicleVin":"1HGCM82633A004352","vehicleMake":"Toyota",
+                 "vehicleModel":"Camry","vehicleYear":2022,"vehiclePlate":"A12345",
+                 "odometerValue":12000,"odometerUnit":"KM","transmission":"AUTOMATIC",
+                 "fuelType":"PETROL","preferredLanguage":"en",
+                 "scheduledAt":"2026-11-20T09:00:00","consentGranted":true,
+                 "assignedTechnicianId":"%s"}
+                """.formatted(versionId, customer, technicianId);
+    }
+
     private UUID category(String suffix) {
         CategoryDto category = masterContent.createCategory(platformActor(),
                 new CategoryRequest("phase4-" + suffix + "-" + UUID.randomUUID(),
@@ -342,7 +425,7 @@ class WorkshopAdminIT extends IntegrationTestBase {
         masterContent.updateTranslation(platformActor(), item.itemId(), version.id(), "en",
                 new TranslationRequest(label, "Updated instruction"));
         masterContent.updateTranslation(platformActor(), item.itemId(), version.id(), "en",
-                new TranslationRequest("نسخة محدثة", "تعليمات محدثة"));
+                new TranslationRequest("Updated version", "Updated instructions"));
         masterContent.publish(platformActor(), item.itemId(), version.id());
         return version.id();
     }
@@ -414,8 +497,10 @@ class WorkshopAdminIT extends IntegrationTestBase {
     private JsonNode getJson(Login login, String path) throws Exception {
         var result = mockMvc.perform(get(path)
                         .header("Authorization", "Bearer " + login.accessToken()))
-                .andExpect(status().isOk())
                 .andReturn();
+        assertThat(result.getResponse().getStatus())
+                .as(result.getResponse().getContentAsString())
+                .isEqualTo(200);
         return objectMapper.readTree(result.getResponse().getContentAsString());
     }
 

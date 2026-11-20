@@ -175,11 +175,7 @@ class _L1 extends StatelessWidget {
                     boxShadow: Fx.pillShadow,
                   ),
                   child: const Center(
-                    child: FxIcon(
-                      id: '1_8367',
-                      size: 22,
-                      color: Fx.dangerRed,
-                    ),
+                    child: FxIcon(id: '1_8367', size: 22, color: Fx.dangerRed),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -291,13 +287,7 @@ class _L1 extends StatelessWidget {
           child: Text(
             numeral,
             textDirection: TextDirection.ltr,
-            style: Fx.text(
-              11,
-              16.5,
-              FontWeight.w700,
-              0,
-              color: F2b.redMaroon,
-            ),
+            style: Fx.text(11, 16.5, FontWeight.w700, 0, color: F2b.redMaroon),
           ),
         ),
       ),
@@ -437,11 +427,7 @@ class _L1 extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: FxIcon(
-                      id: iconId,
-                      size: iconSize,
-                      color: Fx.ink,
-                    ),
+                    child: FxIcon(id: iconId, size: iconSize, color: Fx.ink),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -577,13 +563,7 @@ class _L1 extends StatelessWidget {
         maxLines: 1,
         softWrap: false,
         overflow: TextOverflow.clip,
-        style: Fx.text(
-          11,
-          14,
-          FontWeight.w600,
-          0.44,
-          color: Fx.dangerRed,
-        ),
+        style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.dangerRed),
       ),
     );
   }
@@ -812,11 +792,7 @@ class _L1 extends StatelessWidget {
                         width: 44,
                         height: 44,
                         child: Center(
-                          child: FxIcon(
-                            id: '1_8473',
-                            size: 20,
-                            color: Fx.ink,
-                          ),
+                          child: FxIcon(id: '1_8473', size: 20, color: Fx.ink),
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -852,11 +828,7 @@ class _L1 extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
-                    child: FxIcon(
-                      id: '1_8478',
-                      size: 12,
-                      color: Fx.white,
-                    ),
+                    child: FxIcon(id: '1_8478', size: 12, color: Fx.white),
                   ),
                 ),
               ],
@@ -877,10 +849,7 @@ void main() {
 
   testWidgets('capture f2b3 final-review level1', (tester) async {
     final root = repoRoot();
-    final outDir = fidelityOutputDir(
-      root,
-      'figma/fidelity/f2b3/final-review',
-    );
+    final outDir = fidelityOutputDir(root, 'figma/fidelity/f2b3/final-review');
     final previous = enableFidelityShadows();
     try {
       const dpr = 2.0;
@@ -903,10 +872,7 @@ void main() {
               height: height,
               child: ColoredBox(
                 color: Fx.white,
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: _L1(),
-                ),
+                child: Material(type: MaterialType.transparency, child: _L1()),
               ),
             ),
           ),

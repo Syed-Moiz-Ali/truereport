@@ -2,7 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/documents/document_row.dart';
@@ -33,7 +33,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final documents = ref.watch(jobDocumentsProvider(widget.jobId));
@@ -63,13 +63,13 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward
                             : Icons.arrow_back,
-                        semanticLabel: l10n.commonBack,
+                        semanticLabel: t(WorkshopAdminKeys.commonBack),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.jobsDocumentsTitle,
+                          t(WorkshopAdminKeys.jobsDocumentsTitle),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: ws.bodyStrong.copyWith(color: ws.ink),
@@ -90,14 +90,14 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
             ),
             Expanded(
               child: documents.hasError && !documents.hasValue
-                  ? _errorState(context, jobErrorCopy(l10n, documents.error!))
+                  ? _errorState(context, jobErrorCopy(t, documents.error!))
                   : documents.when(
                       loading: () => SingleChildScrollView(
                         padding: ws.pagePadding(width),
                         child: const WorkshopSkeleton(card: true, lines: 4),
                       ),
                       error: (error, _) =>
-                          _errorState(context, jobErrorCopy(l10n, error)),
+                          _errorState(context, jobErrorCopy(t, error)),
                       data: (items) => _content(context, items),
                     ),
             ),
@@ -108,7 +108,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   }
 
   Widget _errorState(BuildContext context, String message) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return SingleChildScrollView(
       padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
@@ -116,9 +116,9 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 860),
           child: WorkshopErrorState(
-            title: l10n.error,
+            title: t(WorkshopAdminKeys.error),
             body: message,
-            retryLabel: l10n.retryAction,
+            retryLabel: t(WorkshopAdminKeys.retryAction),
             onRetry: () => ref.invalidate(jobDocumentsProvider(widget.jobId)),
           ),
         ),
@@ -127,7 +127,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   }
 
   Widget _content(BuildContext context, List<JobDocument> items) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     return SingleChildScrollView(
@@ -141,7 +141,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
             children: [
               const SizedBox(height: 16),
               Text(
-                l10n.jobsDocumentsTitle,
+                t(WorkshopAdminKeys.jobsDocumentsTitle),
                 style: ws.pageTitle.copyWith(
                   fontSize: width < 520 ? 26 : 30,
                   letterSpacing: -0.6,
@@ -150,7 +150,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
               ),
               const SizedBox(height: 6),
               Text(
-                _error ?? l10n.jobsDocsGeneratedAfterPublish,
+                _error ?? t(WorkshopAdminKeys.jobsDocsGeneratedAfterPublish),
                 style: ws.meta.copyWith(
                   color: _error == null ? ws.muted : ws.danger,
                 ),
@@ -169,13 +169,13 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                       const JobGlyph(size: 52),
                       const SizedBox(height: 16),
                       Text(
-                        l10n.jobsDocumentsEmpty,
+                        t(WorkshopAdminKeys.jobsDocumentsEmpty),
                         textAlign: TextAlign.center,
                         style: ws.sectionTitle.copyWith(color: ws.ink),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        l10n.jobsDocsGeneratedAfterPublish,
+                        t(WorkshopAdminKeys.jobsDocsGeneratedAfterPublish),
                         textAlign: TextAlign.center,
                         style: ws.body.copyWith(color: ws.muted),
                       ),
@@ -214,7 +214,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   }
 
   Future<void> _retry(JobDocument document) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() {
       _busy = true;
       _error = null;
@@ -224,10 +224,10 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
           .read(adminApiProvider)
           .retryJobDocument(widget.jobId, document.documentTypeCode);
       ref.invalidate(jobDocumentsProvider(widget.jobId));
-      _toast(l10n.jobsDocumentRetried);
+      _toast(t(WorkshopAdminKeys.jobsDocumentRetried));
     } on Object catch (error) {
       if (mounted) {
-        setState(() => _error = jobErrorCopy(l10n, error));
+        setState(() => _error = jobErrorCopy(t, error));
       }
     } finally {
       if (mounted) {
@@ -237,9 +237,9 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
   }
 
   Future<void> _copy(String url) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await Clipboard.setData(ClipboardData(text: url));
-    _toast(l10n.linkCopied);
+    _toast(t(WorkshopAdminKeys.linkCopied));
   }
 
   void _toast(String message) {

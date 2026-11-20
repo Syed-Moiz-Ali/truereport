@@ -22,6 +22,7 @@ class _StatePanel extends StatelessWidget {
       child: Padding(
         padding: EdgeInsetsDirectional.all(context.sizing.cardPadding),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, size: context.sizing.iconXl, color: iconColor),

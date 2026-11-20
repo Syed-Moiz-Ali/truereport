@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'src/platform_providers.dart';
 import 'src/platform_router.dart';
@@ -35,21 +36,25 @@ class PlatformAdminApp extends ConsumerWidget {
     ref.read(apiClientProvider).acceptLanguage = 'en';
     ref.read(apiClientProvider).clientName = 'platform_admin';
 
-    return MaterialApp.router(
-      onGenerateTitle: (_) => title,
-      debugShowCheckedModeBanner: false,
-      theme: _platformTheme(),
-      locale: const Locale('en'),
-      supportedLocales: const [Locale('en')],
-      localizationsDelegates: const [
-        ...signInBayLocalizationsDelegates,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      builder: (context, child) =>
-          UiMessagesBootstrap(child: child ?? const SizedBox.shrink()),
-      routerConfig: router,
+    return UiStringsScope(
+      strings: UiStrings.fromMessages(
+        ref.watch(uiMessageMessagesProvider(UiMessageClients.platformAdmin)),
+      ),
+      child: MaterialApp.router(
+        onGenerateTitle: (_) => title,
+        debugShowCheckedModeBanner: false,
+        theme: _platformTheme(),
+        locale: const Locale('en'),
+        supportedLocales: const [Locale('en')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        builder: (context, child) =>
+            UiMessagesBootstrap(child: child ?? const SizedBox.shrink()),
+        routerConfig: router,
+      ),
     );
   }
 }

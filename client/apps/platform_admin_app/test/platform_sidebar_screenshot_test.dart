@@ -29,9 +29,7 @@ Widget _screenshotWrapper({
 }) {
   return ProviderScope(
     overrides: [
-      uiStringsProvider.overrideWithValue(
-        fakeEnUiStrings(),
-      ),
+      uiStringsProvider.overrideWithValue(fakeEnUiStrings()),
       platformLocaleProvider.overrideWith(() => _MockLocaleController(locale)),
     ],
     child: MaterialApp(
@@ -182,8 +180,6 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _capture(tester, key, 'compact_360.png');
-
-
 
       tester.binding.setSurfaceSize(null);
     },

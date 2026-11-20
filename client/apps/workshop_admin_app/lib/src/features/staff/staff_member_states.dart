@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_atoms.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 
@@ -24,7 +24,7 @@ class StaffMemberMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SingleChildScrollView(
       padding: ws.pagePadding(MediaQuery.sizeOf(context).width),
       child: Center(
@@ -45,7 +45,7 @@ class StaffMemberMessage extends StatelessWidget {
                 children: [
                   if (onRetry != null)
                     TemplatePillButton(
-                      label: l10n.retryAction,
+                      label: t(WorkshopAdminKeys.retryAction),
                       icon: Icons.refresh,
                       variant: TemplatePillVariant.outline,
                       onPressed: onRetry,
@@ -54,7 +54,7 @@ class StaffMemberMessage extends StatelessWidget {
                     const SizedBox(width: 10),
                   if (onBack != null)
                     TemplatePillButton(
-                      label: l10n.commonBack,
+                      label: t(WorkshopAdminKeys.commonBack),
                       variant: TemplatePillVariant.ghost,
                       onPressed: onBack,
                     ),

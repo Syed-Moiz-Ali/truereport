@@ -2,14 +2,9 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
-enum VehiclePerspective {
-  front,
-  driver,
-  passenger,
-  rear,
-}
+enum VehiclePerspective { front, driver, passenger, rear }
 
 /// Screen 08. 360 Exterior Wireframe.
 class ExteriorWireframeView extends StatelessWidget {
@@ -50,12 +45,12 @@ class ExteriorWireframeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: title ?? l10n.technicianWalkaroundInspection,
+        title: title ?? t(TechnicianKeys.technicianWalkaroundInspection),
         showBack: true,
         titleStyle: Fx.text(18, 24, FontWeight.w700, -0.45, color: Fx.ink),
         horizontalPadding: _M.headerPad,
@@ -88,7 +83,7 @@ class ExteriorWireframeView extends StatelessWidget {
             size: 32,
             image: avatarImage,
             onPressed: onProfile,
-            semanticLabel: l10n.technicianProfileTitle,
+            semanticLabel: t(TechnicianKeys.technicianProfileTitle),
           ),
         ],
       ),
@@ -114,7 +109,7 @@ class ExteriorWireframeView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        l10n.technicianExteriorInspection,
+                        t(TechnicianKeys.technicianExteriorInspection),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -152,7 +147,9 @@ class ExteriorWireframeView extends StatelessWidget {
                           const FxDot(size: 8, color: Fx.emerald),
                           const SizedBox(width: 6),
                           Text(
-                            l10n.technicianDetectedCount(detectedCount),
+                            t(TechnicianKeys.technicianDetectedCount, {
+                              'count': detectedCount,
+                            }),
                             style: Fx.text(
                               11,
                               14,
@@ -175,7 +172,7 @@ class ExteriorWireframeView extends StatelessWidget {
                   bottom: _M.headingBottom,
                 ),
                 child: Text(
-                  stepTitle ?? l10n.technicianExteriorStep2,
+                  stepTitle ?? t(TechnicianKeys.technicianExteriorStep2),
                   style: Fx.text(
                     26,
                     32,
@@ -189,14 +186,8 @@ class ExteriorWireframeView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.subtitleHeight),
               child: Text(
-                stepSubtitle ?? l10n.technicianExteriorHint,
-                style: Fx.text(
-                  13,
-                  18,
-                  FontWeight.w400,
-                  0,
-                  color: Fx.muted,
-                ),
+                stepSubtitle ?? t(TechnicianKeys.technicianExteriorHint),
+                style: Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
               ),
             ),
 
@@ -238,7 +229,7 @@ class ExteriorWireframeView extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  l10n.technicianDriverSideView,
+                                  t(TechnicianKeys.technicianDriverSideView),
                                   style: Fx.text(
                                     11,
                                     14,
@@ -253,7 +244,7 @@ class ExteriorWireframeView extends StatelessWidget {
                           const Spacer(),
                           Semantics(
                             button: true,
-                            label: l10n.technicianTapToRotate,
+                            label: t(TechnicianKeys.technicianTapToRotate),
                             child: InkResponse(
                               onTap: onReset360,
                               radius: 16,
@@ -287,99 +278,99 @@ class ExteriorWireframeView extends StatelessWidget {
                         width: _M.schematicWidth,
                         height: _M.schematicHeight,
                         child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Base car line-art
-                          const Positioned(
-                            left: 0,
-                            top: 8,
-                            width: 310,
-                            height: 177.8,
-                            child: FxIcon(
-                              id: '1_7977',
+                          clipBehavior: Clip.none,
+                          children: [
+                            // Base car line-art
+                            const Positioned(
+                              left: 0,
+                              top: 8,
                               width: 310,
                               height: 177.8,
+                              child: FxIcon(
+                                id: '1_7977',
+                                width: 310,
+                                height: 177.8,
+                              ),
                             ),
-                          ),
-                          // Pin Front Fender (1:7996: [91.1, 380.5, 28, 28])
-                          const Positioned(
-                            left: 51.1,
-                            top: 94.5,
-                            child: _WireframePin(),
-                          ),
-                          // Pin Windshield Edge (1:7998: [131.4, 343.7, 28, 28])
-                          const Positioned(
-                            left: 91.4,
-                            top: 57.7,
-                            child: _WireframePin(),
-                          ),
-                          // Selected Damage: Driver Door (1:8000: [168.9, 378.5, 33.6, 32.0])
-                          Positioned(
-                            left: 121.7,
-                            top: 84.5,
-                            width: 48,
-                            height: 48,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0x4010B981),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0x4D10B981),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Container(
-                                  width: 33.6,
-                                  height: 33.6,
-                                  decoration: const BoxDecoration(
-                                    color: Fx.emerald,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Color(0x7310B981),
-                                        offset: Offset(0, 8),
-                                        blurRadius: 24,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Center(
-                                    child: FxIcon(
-                                      id: '1_8005',
-                                      width: 12.53,
-                                      height: 9.55,
-                                      color: Fx.white,
+                            // Pin Front Fender (1:7996: [91.1, 380.5, 28, 28])
+                            const Positioned(
+                              left: 51.1,
+                              top: 94.5,
+                              child: _WireframePin(),
+                            ),
+                            // Pin Windshield Edge (1:7998: [131.4, 343.7, 28, 28])
+                            const Positioned(
+                              left: 91.4,
+                              top: 57.7,
+                              child: _WireframePin(),
+                            ),
+                            // Selected Damage: Driver Door (1:8000: [168.9, 378.5, 33.6, 32.0])
+                            Positioned(
+                              left: 121.7,
+                              top: 84.5,
+                              width: 48,
+                              height: 48,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0x4010B981),
+                                      shape: BoxShape.circle,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0x4D10B981),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 33.6,
+                                    height: 33.6,
+                                    decoration: const BoxDecoration(
+                                      color: Fx.emerald,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0x7310B981),
+                                          offset: Offset(0, 8),
+                                          blurRadius: 24,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: FxIcon(
+                                        id: '1_8005',
+                                        width: 12.53,
+                                        height: 9.55,
+                                        color: Fx.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          // Pin Roof Edge (1:8006: [205.8, 322.4, 28, 28])
-                          const Positioned(
-                            left: 165.8,
-                            top: 36.4,
-                            child: _WireframePin(),
-                          ),
-                          // Pin Rear Quarter (1:8008: [261.6, 376.6, 28, 28])
-                          const Positioned(
-                            left: 221.6,
-                            top: 90.6,
-                            child: _WireframePin(),
-                          ),
-                        ],
+                            // Pin Roof Edge (1:8006: [205.8, 322.4, 28, 28])
+                            const Positioned(
+                              left: 165.8,
+                              top: 36.4,
+                              child: _WireframePin(),
+                            ),
+                            // Pin Rear Quarter (1:8008: [261.6, 376.6, 28, 28])
+                            const Positioned(
+                              left: 221.6,
+                              top: 90.6,
+                              child: _WireframePin(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                     const SizedBox(height: _M.calloutTop),
 
                     // Active Damage Callout Card (1:7963: [40, 495.75, 310, 86])
@@ -422,7 +413,8 @@ class ExteriorWireframeView extends StatelessWidget {
                                   child: Align(
                                     alignment: AlignmentDirectional.centerStart,
                                     child: Text(
-                                      defectTitle ?? l10n.defectFound,
+                                      defectTitle ??
+                                          t(TechnicianKeys.defectFound),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: Fx.text(
@@ -440,7 +432,8 @@ class ExteriorWireframeView extends StatelessWidget {
                                   child: Align(
                                     alignment: AlignmentDirectional.centerStart,
                                     child: Text(
-                                      defectSubtitle ?? l10n.attachments,
+                                      defectSubtitle ??
+                                          t(TechnicianKeys.attachments),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: Fx.text(
@@ -459,7 +452,7 @@ class ExteriorWireframeView extends StatelessWidget {
                           const SizedBox(width: _M.calloutIconGap),
                           Semantics(
                             button: true,
-                            label: l10n.edit,
+                            label: t(TechnicianKeys.edit),
                             child: InkResponse(
                               onTap: onEditDamage,
                               radius: 20,
@@ -479,7 +472,7 @@ class ExteriorWireframeView extends StatelessWidget {
                                   ],
                                 ),
                                 child: Text(
-                                  l10n.edit,
+                                  t(TechnicianKeys.edit),
                                   style: Fx.text(
                                     11,
                                     14,
@@ -512,7 +505,7 @@ class ExteriorWireframeView extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            l10n.technicianAnglePerspective,
+                            t(TechnicianKeys.technicianAnglePerspective),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Fx.text(
@@ -526,7 +519,7 @@ class ExteriorWireframeView extends StatelessWidget {
                         ),
                         const Spacer(),
                         Text(
-                          l10n.technicianTapToRotate,
+                          t(TechnicianKeys.technicianTapToRotate),
                           style: Fx.text(
                             11,
                             14,
@@ -546,37 +539,55 @@ class ExteriorWireframeView extends StatelessWidget {
                       child: Row(
                         children: [
                           _PerspectiveButton(
-                            label: l10n.technicianPerspectiveFront,
+                            label: t(TechnicianKeys.technicianPerspectiveFront),
                             iconId: '1_7922',
-                            isActive: selectedPerspective == VehiclePerspective.front,
-                            onTap: () => onSelectPerspective?.call(VehiclePerspective.front),
+                            isActive:
+                                selectedPerspective == VehiclePerspective.front,
+                            onTap: () => onSelectPerspective?.call(
+                              VehiclePerspective.front,
+                            ),
                             width: _M.perspectiveBtnWidth,
                             height: _M.perspectiveBtnHeight,
                           ),
                           const SizedBox(width: _M.perspectiveBtnGap),
                           _PerspectiveButton(
-                            label: l10n.technicianPerspectiveDriver,
+                            label: t(
+                              TechnicianKeys.technicianPerspectiveDriver,
+                            ),
                             iconId: '1_7928',
-                            isActive: selectedPerspective == VehiclePerspective.driver,
-                            onTap: () => onSelectPerspective?.call(VehiclePerspective.driver),
+                            isActive:
+                                selectedPerspective ==
+                                VehiclePerspective.driver,
+                            onTap: () => onSelectPerspective?.call(
+                              VehiclePerspective.driver,
+                            ),
                             width: _M.perspectiveBtnWidth,
                             height: _M.perspectiveBtnHeight,
                           ),
                           const SizedBox(width: _M.perspectiveBtnGap),
                           _PerspectiveButton(
-                            label: l10n.technicianPerspectivePassenger,
+                            label: t(
+                              TechnicianKeys.technicianPerspectivePassenger,
+                            ),
                             iconId: '1_7934',
-                            isActive: selectedPerspective == VehiclePerspective.passenger,
-                            onTap: () => onSelectPerspective?.call(VehiclePerspective.passenger),
+                            isActive:
+                                selectedPerspective ==
+                                VehiclePerspective.passenger,
+                            onTap: () => onSelectPerspective?.call(
+                              VehiclePerspective.passenger,
+                            ),
                             width: _M.perspectiveBtnWidth,
                             height: _M.perspectiveBtnHeight,
                           ),
                           const SizedBox(width: _M.perspectiveBtnGap),
                           _PerspectiveButton(
-                            label: l10n.technicianPerspectiveRear,
+                            label: t(TechnicianKeys.technicianPerspectiveRear),
                             iconId: '1_7940',
-                            isActive: selectedPerspective == VehiclePerspective.rear,
-                            onTap: () => onSelectPerspective?.call(VehiclePerspective.rear),
+                            isActive:
+                                selectedPerspective == VehiclePerspective.rear,
+                            onTap: () => onSelectPerspective?.call(
+                              VehiclePerspective.rear,
+                            ),
                             width: _M.perspectiveBtnRearWidth,
                             height: _M.perspectiveBtnHeight,
                           ),
@@ -595,7 +606,7 @@ class ExteriorWireframeView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   FxButton(
-                    label: l10n.technicianConfirmExteriorMarkup,
+                    label: t(TechnicianKeys.technicianConfirmExteriorMarkup),
                     onPressed: onConfirm ?? () {},
                     icon: const FxIcon(
                       id: '1_7948',
@@ -608,7 +619,7 @@ class ExteriorWireframeView extends StatelessWidget {
                   const SizedBox(height: _M.secondaryBtnTop),
                   Semantics(
                     button: true,
-                    label: l10n.technicianNoDamageOnPanel,
+                    label: t(TechnicianKeys.technicianNoDamageOnPanel),
                     child: InkWell(
                       onTap: onNoDamage,
                       borderRadius: BorderRadius.circular(_M.pill),
@@ -616,7 +627,7 @@ class ExteriorWireframeView extends StatelessWidget {
                         height: _M.secondaryBtnHeight,
                         child: Center(
                           child: Text(
-                            l10n.technicianNoDamageOnPanel,
+                            t(TechnicianKeys.technicianNoDamageOnPanel),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Fx.text(
@@ -661,9 +672,7 @@ class _WireframePin extends StatelessWidget {
           ),
         ],
       ),
-      child: const Center(
-        child: FxDot(size: 8, color: Fx.emerald),
-      ),
+      child: const Center(child: FxDot(size: 8, color: Fx.emerald)),
     );
   }
 }

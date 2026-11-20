@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'settings_geometry.dart';
 import 'settings_primitives.dart';
@@ -30,7 +30,7 @@ class SettingsRecordPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final initials = settingsInitials(personName);
     final padding = isCompact ? 22.0 : 24.0;
@@ -61,7 +61,7 @@ class SettingsRecordPlate extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        l10n.settingsWorkshop.toUpperCase(),
+                        t(WorkshopAdminKeys.settingsWorkshop).toUpperCase(),
                         style: ws.eyebrow.copyWith(
                           color: ws.surface.withValues(alpha: 0.5),
                         ),
@@ -88,7 +88,7 @@ class SettingsRecordPlate extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    l10n.settingsAccount.toUpperCase(),
+                    t(WorkshopAdminKeys.settingsAccount).toUpperCase(),
                     style: ws.eyebrow.copyWith(
                       color: ws.surface.withValues(alpha: 0.5),
                     ),

@@ -1,0 +1,69 @@
+- generic [active] [ref=f2e4]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Back" [ref=f2e5]
+          - generic [ref=f2e6]: C-55017
+          - generic [ref=f2e7]: Lexus LX 600 2024
+          - generic [ref=f2e8]: 0 / 30 items assessed 0/30
+          - generic:
+            - group:
+              - group "Result":
+                - button "No issue observed No issue observed" [ref=f2e9]
+                - button "Attention recommended Attention recommended" [ref=f2e10]
+                - button "Defect found Defect found" [ref=f2e11]
+              - generic [ref=f2e14]:
+                - textbox "Score override Score" [disabled] [ref=f2e15]
+                - generic [ref=f2e16]:
+                  - textbox [ref=f2e17]
+                  - generic [ref=f2e18]: Allowed range 85–100
+              - group "Issue details Choose from the configured options. Issue Type * Location * Severity *":
+                - button "Worn Worn" [ref=f2e20]
+                - button "Cracked Cracked" [ref=f2e21]
+                - button "Leaking Leaking" [ref=f2e22]
+                - button "Bent Bent" [ref=f2e23]
+                - button "Loose Loose" [ref=f2e24]
+                - button "Corroded Corroded" [ref=f2e25]
+                - button "Missing Missing" [ref=f2e26]
+                - button "Noisy Noisy" [ref=f2e27]
+                - button "Contaminated Contaminated" [ref=f2e28]
+                - button "Damaged Damaged" [ref=f2e29]
+                - button "Seized Seized" [ref=f2e30]
+                - button "Misaligned Misaligned" [ref=f2e31]
+                - button "Worn out Worn out" [ref=f2e32]
+                - button "Active DTC Active DTC" [ref=f2e33]
+                - button "Historical DTC Historical DTC" [ref=f2e34]
+                - button "No fault No fault" [ref=f2e35]
+                - button "Live Set 1794471507926 Live Set 1794471507926" [ref=f2e36]
+                - button "Front Left Front Left" [ref=f2e37]
+                - button "Front Right Front Right" [ref=f2e38]
+                - button "Rear Left Rear Left" [ref=f2e39]
+                - button "Rear Right Rear Right" [ref=f2e40]
+                - button "Front Front" [ref=f2e41]
+                - button "Rear Rear" [ref=f2e42]
+                - button "Left Left" [ref=f2e43]
+                - button "Right Right" [ref=f2e44]
+                - button "Underbody Underbody" [ref=f2e45]
+                - button "Engine Bay Engine Bay" [ref=f2e46]
+                - button "Cabin Cabin" [ref=f2e47]
+                - button "Exterior Exterior" [ref=f2e48]
+                - button "Wheel Arch Wheel Arch" [ref=f2e49]
+                - button "Minor Minor" [ref=f2e50]
+                - button "Moderate Moderate" [ref=f2e51]
+                - button "Major Major" [ref=f2e52]
+                - button "Safety critical Safety critical" [ref=f2e53]
+              - 'group "Evidence Evidence checklist More evidence is required for this result. Required evidence is missing: Photos. Evidence upload failed."':
+                - generic [ref=f2e55]: Failed
+                - generic [ref=f2e56]: 0 / 1 photos
+                - generic [ref=f2e57]: 0 / 1 videos
+                - button "Take photo":
+                  - button "Take photo" [ref=f2e58]
+                - button "Record video":
+                  - button "Record video" [ref=f2e59]
+                - button "Add document":
+                  - button "Add document" [ref=f2e60]
+                - button "Retry upload":
+                  - button "Retry upload" [ref=f2e61]
+              - button "Save item" [disabled]:
+                - button "Save item" [disabled] [ref=f2e63]

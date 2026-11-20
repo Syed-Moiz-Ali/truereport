@@ -4,7 +4,9 @@ import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 
 import 'report_actions.dart';
 import 'report_copy.dart';
@@ -43,7 +45,7 @@ class ReportDistribution extends StatelessWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final items = deliveries.asData?.value ?? const <ReportDelivery>[];
     final delivered = items
         .where((item) => item.status == 'SENT' || item.status == 'DELIVERED')
@@ -94,20 +96,20 @@ class ReportDistribution extends StatelessWidget {
             const WorkshopDivider(),
             SizedBox(height: spacing.md),
             WorkshopInlineNote(
-              text: l10n.deliveryConsentHint,
+              text: t(WorkshopAdminKeys.deliveryConsentHint),
               icon: Icons.info_outline,
             ),
             SizedBox(height: spacing.md),
             deliveries.when(
               loading: () => const WorkshopSkeleton(lines: 3),
               error: (error, _) => WorkshopInlineNote(
-                text: l10n.genericError,
+                text: t(WorkshopAdminKeys.genericError),
                 icon: Icons.error_outline,
               ),
               data: (list) {
                 if (list.isEmpty) {
                   return WorkshopInlineNote(
-                    text: l10n.noDeliveries,
+                    text: t(WorkshopAdminKeys.noDeliveries),
                     icon: Icons.history,
                   );
                 }
@@ -132,7 +134,7 @@ class ReportDistribution extends StatelessWidget {
             ),
             SizedBox(height: spacing.lg),
             ReportActionButton(
-              label: l10n.sendReport,
+              label: t(WorkshopAdminKeys.sendReport),
               onPressed: isBusy ? null : onSend,
               loading: isBusy,
               icon: Icons.send_outlined,
@@ -145,7 +147,7 @@ class ReportDistribution extends StatelessWidget {
   }
 }
 
-class _LinkBlock extends StatelessWidget {
+class _LinkBlock extends ConsumerWidget {
   const _LinkBlock({
     required this.report,
     required this.publicUrl,
@@ -165,11 +167,15 @@ class _LinkBlock extends StatelessWidget {
   final VoidCallback onTogglePdf;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
+    final publicationStatuses = ref
+        .watch(statusesProvider('publication'))
+        .value;
+    final consentStatuses = ref.watch(statusesProvider('consent')).value;
     final url = publicUrl?.trim() ?? '';
     final showUrl = url.isNotEmpty;
     final hasConsent = report.consentState == 'GRANTED';
@@ -185,15 +191,19 @@ class _LinkBlock extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             ReportStatusPill(
-              label: linkLabel(l10n, report.linkState),
-              tone: linkTone(report.linkState),
+              label: referenceStatusText(publicationStatuses, report.linkState),
+              tone: referenceStatusTone(publicationStatuses, report.linkState),
               icon: linkIcon(report.linkState),
             ),
             ReportStatusPill(
-              label: consentLabel(l10n, report.consentState),
-              tone: hasConsent
-                  ? WorkshopStatusTone.success
-                  : WorkshopStatusTone.neutral,
+              label: referenceStatusText(
+                consentStatuses,
+                consentStatusCode(hasConsent),
+              ),
+              tone: referenceStatusTone(
+                consentStatuses,
+                consentStatusCode(hasConsent),
+              ),
             ),
           ],
         ),
@@ -216,21 +226,21 @@ class _LinkBlock extends StatelessWidget {
           children: [
             if (canCreate)
               ReportActionButton(
-                label: l10n.createLink,
+                label: t(WorkshopAdminKeys.createLink),
                 onPressed: isBusy ? null : onCreateLink,
                 icon: Icons.link,
                 variant: ReportActionVariant.secondary,
               ),
             if (showUrl)
               ReportActionButton(
-                label: l10n.copyLink,
+                label: t(WorkshopAdminKeys.copyLink),
                 onPressed: isBusy ? null : onCopy,
                 icon: Icons.copy,
                 variant: ReportActionVariant.secondary,
               ),
             if (report.linkState != 'REVOKED')
               ReportActionButton(
-                label: l10n.deactivateLink,
+                label: t(WorkshopAdminKeys.deactivateLink),
                 onPressed: isBusy ? null : onRevoke,
                 icon: Icons.link_off,
                 variant: ReportActionVariant.danger,
@@ -240,7 +250,7 @@ class _LinkBlock extends StatelessWidget {
         SizedBox(height: spacing.md),
         _PdfToggle(
           label:
-              '${l10n.pdfDownload} · ${report.pdfDownloadEnabled ? copy.inUse : copy.notInUse}',
+              '${t(WorkshopAdminKeys.pdfDownload)} · ${report.pdfDownloadEnabled ? copy.inUse : copy.notInUse}',
           selected: report.pdfDownloadEnabled,
           onTap: isBusy ? null : onTogglePdf,
         ),
@@ -300,7 +310,7 @@ class _PdfToggle extends StatelessWidget {
   }
 }
 
-class _DeliveryBlock extends StatelessWidget {
+class _DeliveryBlock extends ConsumerWidget {
   const _DeliveryBlock({
     required this.item,
     required this.isBusy,
@@ -312,19 +322,22 @@ class _DeliveryBlock extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
-    final language = item.language == 'ar' ? l10n.arabic : l10n.english;
+    final t = UiStrings.of(context);
+    final deliveryStatuses = ref.watch(statusesProvider('delivery')).value;
+    final language = item.language == 'ar'
+        ? t(WorkshopAdminKeys.arabic)
+        : t(WorkshopAdminKeys.english);
     final lastError = item.lastErrorMessage?.trim() ?? '';
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final stackStatus = constraints.maxWidth < 300;
         final status = ReportStatusPill(
-          label: item.status,
-          tone: deliveryTone(item.status),
+          label: referenceStatusText(deliveryStatuses, item.status),
+          tone: referenceStatusTone(deliveryStatuses, item.status),
         );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -370,7 +383,7 @@ class _DeliveryBlock extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${l10n.deliveryAttempts} ',
+                      '${t(WorkshopAdminKeys.deliveryAttempts)} ',
                       style: ws.meta.copyWith(color: ws.muted),
                     ),
                     Text(
@@ -382,7 +395,7 @@ class _DeliveryBlock extends StatelessWidget {
                 ),
                 if (item.pdfAttached)
                   Text(
-                    l10n.deliveryPdfAttached,
+                    t(WorkshopAdminKeys.deliveryPdfAttached),
                     style: ws.meta.copyWith(color: ws.muted),
                   ),
               ],
@@ -394,7 +407,7 @@ class _DeliveryBlock extends StatelessWidget {
                 runSpacing: spacing.xxs,
                 children: [
                   Text(
-                    '${l10n.deliveryError}:',
+                    '${t(WorkshopAdminKeys.deliveryError)}:',
                     style: ws.meta.copyWith(color: ws.danger),
                   ),
                   Text(
@@ -412,7 +425,7 @@ class _DeliveryBlock extends StatelessWidget {
                 runSpacing: spacing.xxs,
                 children: [
                   Text(
-                    '${l10n.deliveryNextAttempt}:',
+                    '${t(WorkshopAdminKeys.deliveryNextAttempt)}:',
                     style: ws.meta.copyWith(color: ws.muted),
                   ),
                   Text(
@@ -428,7 +441,7 @@ class _DeliveryBlock extends StatelessWidget {
             if (item.retryable) ...[
               SizedBox(height: spacing.sm),
               ReportActionButton(
-                label: l10n.retryDelivery,
+                label: t(WorkshopAdminKeys.retryDelivery),
                 onPressed: isBusy ? null : onRetry,
                 icon: Icons.refresh,
                 variant: ReportActionVariant.secondary,

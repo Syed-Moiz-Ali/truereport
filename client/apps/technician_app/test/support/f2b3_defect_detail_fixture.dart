@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
 
 /// F2-B.3 Part 2 — Level 1 exact-structure fixture for Figma screen 09
@@ -330,10 +330,7 @@ class _Sheet extends StatelessWidget {
           // 1:8058 grab handle 350 x 10, bottom pad 4.
           const SizedBox(
             height: 10,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: _GrabBar(),
-            ),
+            child: Align(alignment: Alignment.topCenter, child: _GrabBar()),
           ),
           const SizedBox(height: 24),
           // 1:8060 header 350 x 50.
@@ -411,8 +408,13 @@ class _Header extends StatelessWidget {
                       'EXTERIOR BODYWORK',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          Fx.text(11, 14, FontWeight.w600, 0.55, color: Fx.muted),
+                      style: Fx.text(
+                        11,
+                        14,
+                        FontWeight.w600,
+                        0.55,
+                        color: Fx.muted,
+                      ),
                     ),
                   ],
                 ),
@@ -453,19 +455,22 @@ class _StatusBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SizedBox(
       height: 70,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(height: 14, child: F2bSectionLabel(l10n.result)),
+          SizedBox(
+            height: 14,
+            child: F2bSectionLabel(t(TechnicianKeys.result)),
+          ),
           const SizedBox(height: 4),
           _SegmentedTrack(
             labels: [
-              l10n.noIssueObserved,
-              l10n.attentionRecommended,
-              l10n.defectFound,
+              t(TechnicianKeys.noIssueObserved),
+              t(TechnicianKeys.attentionRecommended),
+              t(TechnicianKeys.defectFound),
             ],
             selectedIndex: 1,
           ),
@@ -494,11 +499,26 @@ class _SegmentedTrack extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _SegmentOption(label: labels[0], selected: selectedIndex == 0)),
+          Expanded(
+            child: _SegmentOption(
+              label: labels[0],
+              selected: selectedIndex == 0,
+            ),
+          ),
           const SizedBox(width: 6),
-          Expanded(child: _SegmentOption(label: labels[1], selected: selectedIndex == 1)),
+          Expanded(
+            child: _SegmentOption(
+              label: labels[1],
+              selected: selectedIndex == 1,
+            ),
+          ),
           const SizedBox(width: 6),
-          Expanded(child: _SegmentOption(label: labels[2], selected: selectedIndex == 2)),
+          Expanded(
+            child: _SegmentOption(
+              label: labels[2],
+              selected: selectedIndex == 2,
+            ),
+          ),
         ],
       ),
     );
@@ -525,8 +545,7 @@ class _SegmentOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFFED7AA) : Fx.transparent,
-          borderRadius:
-              const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+          borderRadius: const BorderRadius.all(Radius.circular(Fx.pillRadius)),
           boxShadow: selected
               ? const [
                   BoxShadow(
@@ -562,7 +581,7 @@ class _ClassificationBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SizedBox(
       height: 88,
       child: Column(
@@ -574,7 +593,7 @@ class _ClassificationBlock extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                F2bSectionLabel(l10n.severity),
+                F2bSectionLabel(t(TechnicianKeys.severity)),
                 Text(
                   '1 Selected',
                   maxLines: 1,
@@ -730,7 +749,7 @@ class _EvidenceBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return SizedBox(
       height: 185,
       child: Column(
@@ -742,7 +761,7 @@ class _EvidenceBlock extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                F2bSectionLabel(l10n.attachments),
+                F2bSectionLabel(t(TechnicianKeys.attachments)),
                 Text(
                   '1 of 4 Required',
                   maxLines: 1,
@@ -817,11 +836,7 @@ class _FilledTile extends StatelessWidget {
                   child: Container(
                     color: Fx.whiteE5,
                     alignment: Alignment.center,
-                    child: const FxIcon(
-                      id: '1_8107',
-                      size: 12,
-                      color: Fx.ink,
-                    ),
+                    child: const FxIcon(id: '1_8107', size: 12, color: Fx.ink),
                   ),
                 ),
               ),
@@ -834,13 +849,13 @@ class _FilledTile extends StatelessWidget {
             child: Container(
               height: 18,
               decoration: const BoxDecoration(
-                borderRadius:
-                    BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
                 boxShadow: Fx.pillShadow,
               ),
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(Fx.pillRadius),
+                ),
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                   child: Container(
@@ -889,7 +904,7 @@ class _EmptyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       width: 167,
       height: 167,
@@ -913,7 +928,7 @@ class _EmptyTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.addPhoto,
+            t(TechnicianKeys.addPhoto),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -921,7 +936,7 @@ class _EmptyTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.photoRequired,
+            t(TechnicianKeys.photoRequired),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -941,7 +956,7 @@ class _NoteRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       height: 56.67,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -961,7 +976,7 @@ class _NoteRow extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              l10n.note,
+              t(TechnicianKeys.note),
               maxLines: 1,
               overflow: TextOverflow.visible,
               style: Fx.body13.copyWith(color: Fx.muted),
@@ -992,46 +1007,47 @@ class _SaveBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 4.5, bottom: 7.5),
       child: Semantics(
         button: true,
-        label: l10n.saveAnswer.toUpperCase(),
+        label: t(TechnicianKeys.saveAnswer).toUpperCase(),
         child: Container(
           key: const ValueKey('f2b3-save-button'),
           height: 56,
           decoration: const BoxDecoration(
             color: Fx.emerald,
-            borderRadius:
-                BorderRadius.all(Radius.circular(Fx.pillRadius)),
+            borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
             boxShadow: Fx.ctaShadow,
           ),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
               onTap: _noop,
-              borderRadius:
-                  const BorderRadius.all(Radius.circular(Fx.pillRadius)),
+              borderRadius: const BorderRadius.all(
+                Radius.circular(Fx.pillRadius),
+              ),
               child: Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      l10n.saveAnswer.toUpperCase(),
+                      t(TechnicianKeys.saveAnswer).toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style:
-                          Fx.text(14, 18, FontWeight.w700, 0.7, color: Fx.white),
+                      style: Fx.text(
+                        14,
+                        18,
+                        FontWeight.w700,
+                        0.7,
+                        color: Fx.white,
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    const FxIcon(
-                      id: '1_8134',
-                      size: 13.58,
-                      color: Fx.white,
-                    ),
+                    const FxIcon(id: '1_8134', size: 13.58, color: Fx.white),
                   ],
                 ),
               ),

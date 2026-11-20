@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/features/jobs/queue/jobs_queue_actions.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
@@ -55,12 +57,13 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= 1000;
     final jobs = ref.watch(cleanJobsProvider(_key));
     final counts = ref.watch(cleanJobCountsProvider).value;
+    final stages = _filterStages(ref.watch(statusesProvider('job')).value);
     final actions = JobsQueueActions(
       context: context,
       ref: ref,
@@ -88,7 +91,7 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.jobsTab,
+                              t(WorkshopAdminKeys.jobsTab),
                               style: ws.pageTitle.copyWith(
                                 fontSize: width < 520 ? 26 : 30,
                                 letterSpacing: -0.6,
@@ -97,14 +100,14 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              l10n.jobsQueueSubtitle,
+                              t(WorkshopAdminKeys.jobsQueueSubtitle),
                               style: ws.meta.copyWith(color: ws.muted),
                             ),
                           ],
                         ),
                       ),
                       JobPillButton(
-                        label: l10n.newJob,
+                        label: t(WorkshopAdminKeys.newJob),
                         icon: Icons.add,
                         onPressed: actions.openCreate,
                       ),
@@ -118,8 +121,8 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                       child: WorkshopSearchField(
                         key: const Key('jobs-search'),
                         controller: _search,
-                        hint: l10n.search,
-                        semanticLabel: l10n.search,
+                        hint: t(WorkshopAdminKeys.search),
+                        semanticLabel: t(WorkshopAdminKeys.search),
                         onChanged: _onSearch,
                       ),
                     ),
@@ -130,26 +133,18 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                     child: Row(
                       children: [
                         JobPillChip(
-                          label: l10n.filterAll,
+                          label: t(WorkshopAdminKeys.filterAll),
                           count: counts?.total,
                           selected: _status.isEmpty,
                           onTap: () => _select(''),
                         ),
                         const SizedBox(width: 8),
-                        for (final stage in const [
-                          'DRAFT',
-                          'SCHEDULED',
-                          'ASSIGNED',
-                          'IN_PROGRESS',
-                          'PENDING_REVIEW',
-                          'APPROVED',
-                          'PUBLISHED',
-                        ]) ...[
+                        for (final stage in stages) ...[
                           JobPillChip(
-                            label: jobStatusLabel(l10n, stage),
-                            count: _countFor(counts, stage),
-                            selected: _status == stage,
-                            onTap: () => _select(stage),
+                            label: stage.label,
+                            count: _countFor(counts, stage.code),
+                            selected: _status == stage.code,
+                            onTap: () => _select(stage.code),
                           ),
                           const SizedBox(width: 8),
                         ],
@@ -203,6 +198,47 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
     );
   }
 
+  static const _fallbackStages = <String>[
+    'DRAFT',
+    'SCHEDULED',
+    'ASSIGNED',
+    'IN_PROGRESS',
+    'PENDING_REVIEW',
+    'APPROVED',
+    'PUBLISHED',
+  ];
+
+  List<({String code, String label})> _filterStages(
+    List<ReferenceRecord>? records,
+  ) {
+    if (records == null || records.isEmpty) {
+      return <({String code, String label})>[
+        for (final code in _fallbackStages)
+          (code: code, label: humanizeReferenceCode(code)),
+      ];
+    }
+    final stages = <({String code, String label})>[];
+    for (final record in records) {
+      if (!record.selectable) continue;
+      if (record.visibleFor.isNotEmpty &&
+          !record.visibleFor.contains('queue') &&
+          !record.visibleFor.contains('job')) {
+        continue;
+      }
+      stages.add((
+        code: record.code,
+        label: referenceLabelFor(record) ?? humanizeReferenceCode(record.code),
+      ));
+    }
+    if (stages.isEmpty) {
+      return <({String code, String label})>[
+        for (final code in _fallbackStages)
+          (code: code, label: humanizeReferenceCode(code)),
+      ];
+    }
+    return stages;
+  }
+
   int? _countFor(CleanJobCounts? counts, String status) {
     if (counts == null) {
       return null;
@@ -231,7 +267,7 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
 
   Widget _table(JobPage page, JobsQueueActions actions, bool wide) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       decoration: BoxDecoration(
         color: ws.surface,
@@ -250,18 +286,29 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                 children: [
                   SizedBox(
                     width: 92,
-                    child: _head(context, l10n.jobsReference),
+                    child: _head(context, t(WorkshopAdminKeys.jobsReference)),
                   ),
-                  Expanded(child: _head(context, l10n.jobsCustomer)),
-                  Expanded(child: _head(context, l10n.jobsVehicle)),
+                  Expanded(
+                    child: _head(context, t(WorkshopAdminKeys.jobsCustomer)),
+                  ),
+                  Expanded(
+                    child: _head(context, t(WorkshopAdminKeys.jobsVehicle)),
+                  ),
                   SizedBox(
                     width: 132,
-                    child: _head(context, l10n.jobsTechnician),
+                    child: _head(context, t(WorkshopAdminKeys.jobsTechnician)),
                   ),
-                  SizedBox(width: 140, child: _head(context, l10n.status)),
+                  SizedBox(
+                    width: 140,
+                    child: _head(context, t(WorkshopAdminKeys.status)),
+                  ),
                   SizedBox(
                     width: 132,
-                    child: _head(context, l10n.scheduledAt, end: true),
+                    child: _head(
+                      context,
+                      t(WorkshopAdminKeys.scheduledAt),
+                      end: true,
+                    ),
                   ),
                 ],
               ),
@@ -415,16 +462,16 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
 
   Widget _pager(JobPage page) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Row(
       children: [
         Text(
-          '${l10n.commonPage} ${page.page + 1} ${l10n.commonOf} ${page.totalPages}',
+          '${t(WorkshopAdminKeys.commonPage)} ${page.page + 1} ${t(WorkshopAdminKeys.commonOf)} ${page.totalPages}',
           style: ws.meta.copyWith(color: ws.muted),
         ),
         const Spacer(),
         JobPillButton(
-          label: l10n.commonPrevious,
+          label: t(WorkshopAdminKeys.commonPrevious),
           icon: Icons.arrow_back,
           variant: JobPillVariant.outline,
           compact: true,
@@ -434,7 +481,7 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
         ),
         const SizedBox(width: 8),
         JobPillButton(
-          label: l10n.commonNext,
+          label: t(WorkshopAdminKeys.commonNext),
           icon: Icons.arrow_forward,
           variant: JobPillVariant.outline,
           compact: true,
@@ -558,7 +605,7 @@ class _QueueError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(22, 30, 22, 30),
       decoration: BoxDecoration(
@@ -571,12 +618,18 @@ class _QueueError extends StatelessWidget {
         children: [
           Icon(Icons.priority_high_rounded, size: 20, color: ws.danger),
           const SizedBox(height: 10),
-          Text(l10n.error, style: ws.sectionTitle.copyWith(color: ws.ink)),
+          Text(
+            t(WorkshopAdminKeys.error),
+            style: ws.sectionTitle.copyWith(color: ws.ink),
+          ),
           const SizedBox(height: 6),
-          Text(l10n.commonLoadFailed, style: ws.body.copyWith(color: ws.muted)),
+          Text(
+            t(WorkshopAdminKeys.commonLoadFailed),
+            style: ws.body.copyWith(color: ws.muted),
+          ),
           const SizedBox(height: 14),
           JobPillButton(
-            label: l10n.retryAction,
+            label: t(WorkshopAdminKeys.retryAction),
             icon: Icons.refresh,
             variant: JobPillVariant.outline,
             onPressed: onRetry,
@@ -601,7 +654,7 @@ class _QueueEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 40, 24, 40),
       decoration: BoxDecoration(
@@ -614,19 +667,25 @@ class _QueueEmpty extends StatelessWidget {
           const JobGlyph(size: 52),
           const SizedBox(height: 16),
           Text(
-            filtered ? l10n.jobsNoJobsInView : l10n.jobsEmptyFirstUseTitle,
+            filtered
+                ? t(WorkshopAdminKeys.jobsNoJobsInView)
+                : t(WorkshopAdminKeys.jobsEmptyFirstUseTitle),
             textAlign: TextAlign.center,
             style: ws.sectionTitle.copyWith(color: ws.ink),
           ),
           const SizedBox(height: 6),
           Text(
-            filtered ? l10n.noResults : l10n.jobsEmptyFirstUseBody,
+            filtered
+                ? t(WorkshopAdminKeys.noResults)
+                : t(WorkshopAdminKeys.jobsEmptyFirstUseBody),
             textAlign: TextAlign.center,
             style: ws.body.copyWith(color: ws.muted),
           ),
           const SizedBox(height: 18),
           JobPillButton(
-            label: filtered ? l10n.jobsClearFilters : l10n.jobsCreateCta,
+            label: filtered
+                ? t(WorkshopAdminKeys.jobsClearFilters)
+                : t(WorkshopAdminKeys.jobsCreateCta),
             icon: filtered ? null : Icons.add,
             onPressed: filtered ? onClear : onCreate,
           ),

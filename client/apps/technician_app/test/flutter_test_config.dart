@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// English copy is not shipped in Flutter; it is served by the backend bundle.
 /// Tests load that same bundle from the backend catalog so screens render the

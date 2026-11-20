@@ -1,0 +1,40 @@
+- generic [ref=f4e4]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f4e5]:
+            - generic [active]: Thu 26 Nov
+          - generic [ref=f4e6]: Inspection queue
+          - button "Search Search" [ref=f4e7]
+          - button "Profile Technician A" [ref=f4e8]
+          - group:
+            - generic [ref=f4e9]: This week
+            - button "FRI 20 FRI 20" [ref=f4e10]
+            - button "SAT 21 SAT 21" [ref=f4e11]
+            - button "SUN 22 SUN 22" [ref=f4e12]
+            - button "MON 23 MON 23" [ref=f4e13]
+            - button "TUE 24 TUE 24" [ref=f4e14]
+            - button "WED 25 WED 25" [ref=f4e15]
+            - button "THU 26 THU 26" [ref=f4e16]
+            - generic [ref=f4e17]: FILTER
+            - button "All All" [ref=f4e18]
+            - button "Draft Draft" [ref=f4e19]
+            - button "Scheduled Scheduled" [ref=f4e20]
+            - button "Assigned Assigned" [ref=f4e21]
+            - button "In progress In progress" [ref=f4e22]
+            - button "Pending review Pending review" [ref=f4e23]
+            - button "Approved Approved" [ref=f4e24]
+            - button "Published Published" [ref=f4e25]
+            - button "Rejected Rejected" [ref=f4e26]
+            - button "Cancelled Cancelled" [ref=f4e27]
+            - generic [ref=f4e28]: No changes waiting to sync
+            - button "Sync now Sync now" [ref=f4e29]
+          - group:
+            - generic [ref=f4e30]: You are all caught up
+            - generic [ref=f4e31]: No inspections are assigned to you.
+            - button "Refresh Refresh" [ref=f4e32]
+          - generic:
+            - button "Jobs" [ref=f4e33]
+            - button "Sync" [ref=f4e34]
+            - button "Profile" [ref=f4e35]

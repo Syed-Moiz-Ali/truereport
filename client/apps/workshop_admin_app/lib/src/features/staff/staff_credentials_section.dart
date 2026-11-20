@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_dossier.dart';
 import 'package:workshop_admin_app/src/features/staff/staff_form_rules.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
@@ -68,7 +68,7 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
       _confirmFocus.requestFocus();
       return;
     }
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _busy = true);
     try {
       await widget.onSubmit(_password.text);
@@ -81,12 +81,16 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
       setState(() => _submitted = false);
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(l10n.contentSaved)));
+        ..showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.contentSaved))),
+        );
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
+          ..showSnackBar(
+            SnackBar(content: Text(t(WorkshopAdminKeys.actionFailed))),
+          );
       }
     } finally {
       if (mounted) {
@@ -97,14 +101,14 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.passwordLabel),
+        WorkshopSectionHeader(title: t(WorkshopAdminKeys.passwordLabel)),
         SizedBox(height: spacing.sm),
         AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -129,12 +133,12 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
                 final password = WorkshopTextField(
                   key: const Key('staff-reset-password'),
                   controller: _password,
-                  label: l10n.temporaryPassword,
-                  hint: l10n.temporaryPassword,
+                  label: t(WorkshopAdminKeys.temporaryPassword),
+                  hint: t(WorkshopAdminKeys.temporaryPassword),
                   obscureText: _obscure,
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.next,
-                  validator: (value) => staffPasswordError(l10n, value),
+                  validator: (value) => staffPasswordError(t, value),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscure
@@ -142,21 +146,23 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
                           : Icons.visibility_off_outlined,
                       size: 18,
                     ),
-                    tooltip: _obscure ? l10n.showPassword : l10n.hidePassword,
+                    tooltip: _obscure
+                        ? t(WorkshopAdminKeys.showPassword)
+                        : t(WorkshopAdminKeys.hidePassword),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 );
                 final confirm = WorkshopTextField(
                   key: const Key('staff-confirm-password'),
                   controller: _confirm,
-                  label: l10n.confirmPasswordLabel,
-                  hint: l10n.confirmPasswordHint,
+                  label: t(WorkshopAdminKeys.confirmPasswordLabel),
+                  hint: t(WorkshopAdminKeys.confirmPasswordHint),
                   obscureText: true,
                   keyboardType: TextInputType.visiblePassword,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
                   validator: (value) =>
-                      staffConfirmError(l10n, _password.text, value),
+                      staffConfirmError(t, _password.text, value),
                 );
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,7 +191,7 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
                         if (constraints.maxWidth < 320)
                           Expanded(
                             child: TemplatePillButton(
-                              label: l10n.save,
+                              label: t(WorkshopAdminKeys.save),
                               loading: _busy,
                               expand: true,
                               onPressed: _canSubmit ? _submit : null,
@@ -193,7 +199,7 @@ class _StaffCredentialsSectionState extends State<StaffCredentialsSection> {
                           )
                         else
                           TemplatePillButton(
-                            label: l10n.save,
+                            label: t(WorkshopAdminKeys.save),
                             loading: _busy,
                             onPressed: _canSubmit ? _submit : null,
                           ),

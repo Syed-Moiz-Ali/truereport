@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:l10n/l10n.dart';
-import 'package:l10n/l10n/gen/app_localizations_en.dart';
+import 'package:l10n/ui_strings.dart';
 
-/// Test-only Figma-text localization override.
+/// Test-only Figma-text overrides.
 ///
 /// The F2-A fidelity fixtures compare production widgets against the Figma
 /// mock pixel-for-pixel. Figma sample wording (e.g. `TechInspect`,
@@ -13,15 +10,14 @@ import 'package:l10n/l10n/gen/app_localizations_en.dart';
 /// Figma wording that is *data* (names, VINs, plates) travels through the
 /// normal product model fields ([figmaJobs], [figmaJob], [figmaChecklist]).
 /// Figma wording that is *chrome copy* is supplied here: [FigmaTestStrings]
-/// documents every sample string, and [FigmaTestLocalizations] serves it
-/// through the regular [AppLocalizations] API so production widgets render
-/// Figma text without any `figmaText` switch in `lib/`.
+/// documents every sample string, and [figmaMessageOverrides] serves it as
+/// backend-keyed message templates so production widgets render Figma text
+/// without any `figmaText` switch in `lib/`.
 ///
-/// Usage: pump the screen with [figmaLocalizationsDelegates] instead of
-/// [AppLocalizations.localizationsDelegates] (see `f2a_views.dart`).
-/// English only; product Arabic coverage is exercised with the real delegate.
+/// Usage: pump the screen with [figmaStrings] installed in a [UiStringsScope]
+/// (see `f2aHost`). English only.
 abstract final class FigmaTestStrings {
-  // Login (auth/SignInView reads these from AppLocalizations).
+  // Login (auth/SignInView reads these through UiStrings).
   static const brand = 'TechInspect';
   static const tagline = 'Vehicle Condition & Fleet Diagnostics';
   static const forgotPassword = 'Forgot password?';
@@ -101,214 +97,68 @@ abstract final class FigmaTestStrings {
   static String checksDone(int done, int total) => '$done/$total Done';
 }
 
-/// English [AppLocalizations] that returns Figma sample wording for the keys
-/// listed in [FigmaTestStrings]. Every other key falls through to the real
-/// English copy.
-class FigmaTestLocalizations extends AppLocalizationsEn {
-  FigmaTestLocalizations() : super('en');
+/// Backend-keyed Figma copy. Every other key falls through to the real
+/// English bundle served by the backend catalog.
+const Map<String, String> figmaMessageOverrides = <String, String>{
+  'appTitle': FigmaTestStrings.brand,
+  'technicianSignInTagline': FigmaTestStrings.tagline,
+  'technicianPasswordHelp': FigmaTestStrings.forgotPassword,
+  'signInButton': FigmaTestStrings.signIn,
+  'technicianContactAdmin': FigmaTestStrings.requestId,
+  'technicianNeedTechnicianAccess': FigmaTestStrings.needAccess,
+  'technicianSecurityLine': FigmaTestStrings.isoSecurity,
+  'technicianShiftToday': FigmaTestStrings.shiftAndBay,
+  'technicianOnlineSync': FigmaTestStrings.onlineSync,
+  'technicianJobIntake': 'INTAKE PHASE',
+  'statusAssigned': 'Ready for Check',
+  'technicianJobsTitle': FigmaTestStrings.intakeTab,
+  'statusFinalized': FigmaTestStrings.fleetTab,
+  'technicianJobsInQueue': '{count} In Queue',
+  'walkInJob': FigmaTestStrings.scanVin,
+  'technicianInspectionQueue': 'Inspection Queue',
+  'technicianQueueEmpty': FigmaTestStrings.shiftActive,
+  'technicianJobsCount': FigmaTestStrings.bayPill,
+  'technicianAllCaughtUp': FigmaTestStrings.caughtUp,
+  'technicianNoJobsBody': FigmaTestStrings.noJobsBody,
+  'technicianRefreshQueue': FigmaTestStrings.refreshQueue,
+  'technicianCoverageOnly': FigmaTestStrings.passRate,
+  'technicianWelcomeBack': 'Welcome back,',
+  'technicianAssignedToday': 'Assigned today',
+  'technicianVehicleInfo': FigmaTestStrings.vehicleInfo,
+  'technicianPhone': 'Phone Number',
+  'technicianCustomerChip': FigmaTestStrings.primaryOwner,
+  'technicianJobDetailsReady': FigmaTestStrings.jobReady,
+  'startInspection': FigmaTestStrings.startInspection,
+  'technicianConsentStep': FigmaTestStrings.consentSteps,
+  'consent': FigmaTestStrings.authorizations,
+  'technicianConsentIntro': FigmaTestStrings.consentIntro,
+  'consentPublicLink': FigmaTestStrings.allowPdf,
+  'technicianConsentPublicLinkBody': FigmaTestStrings.allowPdfBody,
+  'consentProcessing': FigmaTestStrings.roadTest,
+  'technicianConsentProcessingBody': FigmaTestStrings.roadTestBody,
+  'technicianDataStorage': FigmaTestStrings.dataStorage,
+  'technicianUnavailable': FigmaTestStrings.dataStorageBody,
+  'technicianConsentDecision': FigmaTestStrings.digitalSignature,
+  'technicianConsentHint': FigmaTestStrings.signHint,
+  'technicianNoSignature': FigmaTestStrings.signAbove,
+  'technicianConsentSave': FigmaTestStrings.saveConsent,
+  'technicianPreInspectionSetup': FigmaTestStrings.setupKicker,
+  'technicianItemsCount': FigmaTestStrings.verifiedPill,
+  'technicianRequiredEquipment': FigmaTestStrings.requiredEquipment,
+  'technicianEquipmentIntro': FigmaTestStrings.equipmentIntro,
+  'technicianEquipmentStandards': FigmaTestStrings.stationStandards,
+  'technicianEquipmentStandardsBody': FigmaTestStrings.stationStandardsBody,
+  'technicianInspectionHub': FigmaTestStrings.hubTitle,
+  'technicianNoIssueCount': '{count} ${FigmaTestStrings.passedPill}',
+  'technicianAttentionCount': '{count} ${FigmaTestStrings.actionItems}',
+  'technicianInspectionModules': FigmaTestStrings.modulesTitle,
+  'technicianModuleNotStarted': FigmaTestStrings.queued,
+  'technicianModuleInProgress': 'Active Bay',
+  'technicianCategoriesCount': ' Categories',
+  'technicianContinueChecklist': 'Continue Interior Checklist',
+  'technicianChecksCount': '{done}/{total} Done',
+  'defectFound': 'Front Left Door Dent',
+};
 
-  @override
-  String get appTitle => FigmaTestStrings.brand;
-
-  @override
-  String get technicianSignInTagline => FigmaTestStrings.tagline;
-
-  @override
-  String get technicianPasswordHelp => FigmaTestStrings.forgotPassword;
-
-  @override
-  String get signInButton => FigmaTestStrings.signIn;
-
-  @override
-  String get technicianContactAdmin => FigmaTestStrings.requestId;
-
-  @override
-  String get technicianNeedTechnicianAccess => FigmaTestStrings.needAccess;
-
-  @override
-  String get technicianSecurityLine => FigmaTestStrings.isoSecurity;
-
-  @override
-  String technicianShiftToday(int count) => FigmaTestStrings.shiftAndBay;
-
-  @override
-  String get technicianOnlineSync => FigmaTestStrings.onlineSync;
-
-  @override
-  String get technicianJobIntake => 'INTAKE PHASE';
-
-  @override
-  String get statusAssigned => 'Ready for Check';
-
-  @override
-  String get technicianJobsTitle => FigmaTestStrings.intakeTab;
-
-  @override
-  String get statusFinalized => FigmaTestStrings.fleetTab;
-
-  @override
-  String technicianJobsInQueue(int count) => FigmaTestStrings.inQueue(count);
-
-  @override
-  String get walkInJob => FigmaTestStrings.scanVin;
-
-  @override
-  String get technicianInspectionQueue => 'Inspection Queue';
-
-  @override
-  String get technicianQueueEmpty => FigmaTestStrings.shiftActive;
-
-  @override
-  String technicianJobsCount(int count) => FigmaTestStrings.bayPill;
-
-  @override
-  String get technicianAllCaughtUp => FigmaTestStrings.caughtUp;
-
-  @override
-  String get technicianNoJobsBody => FigmaTestStrings.noJobsBody;
-
-  @override
-  String get technicianRefreshQueue => FigmaTestStrings.refreshQueue;
-
-  @override
-  String get technicianCoverageOnly => FigmaTestStrings.passRate;
-
-  @override
-  String get technicianWelcomeBack => 'Welcome back,';
-
-  @override
-  String get technicianAssignedToday => 'Assigned today';
-
-  @override
-  String get technicianVehicleInfo => FigmaTestStrings.vehicleInfo;
-
-  @override
-  String get technicianPhone => 'Phone Number';
-
-  @override
-  String get technicianCustomerChip => FigmaTestStrings.primaryOwner;
-
-  @override
-  String get technicianJobDetailsReady => FigmaTestStrings.jobReady;
-
-  @override
-  String get startInspection => FigmaTestStrings.startInspection;
-
-  @override
-  String get technicianConsentStep => FigmaTestStrings.consentSteps;
-
-  @override
-  String get consent => FigmaTestStrings.authorizations;
-
-  @override
-  String get technicianConsentIntro => FigmaTestStrings.consentIntro;
-
-  @override
-  String get consentPublicLink => FigmaTestStrings.allowPdf;
-
-  @override
-  String get technicianConsentPublicLinkBody => FigmaTestStrings.allowPdfBody;
-
-  @override
-  String get consentProcessing => FigmaTestStrings.roadTest;
-
-  @override
-  String get technicianConsentProcessingBody => FigmaTestStrings.roadTestBody;
-
-  @override
-  String get technicianDataStorage => FigmaTestStrings.dataStorage;
-
-  @override
-  String get technicianUnavailable => FigmaTestStrings.dataStorageBody;
-
-  @override
-  String get technicianConsentDecision => FigmaTestStrings.digitalSignature;
-
-  @override
-  String get technicianConsentHint => FigmaTestStrings.signHint;
-
-  @override
-  String get technicianNoSignature => FigmaTestStrings.signAbove;
-
-  @override
-  String get technicianConsentSave => FigmaTestStrings.saveConsent;
-
-  @override
-  String get technicianPreInspectionSetup => FigmaTestStrings.setupKicker;
-
-  @override
-  String technicianItemsCount(int count) => FigmaTestStrings.verifiedPill;
-
-  @override
-  String get technicianRequiredEquipment => FigmaTestStrings.requiredEquipment;
-
-  @override
-  String get technicianEquipmentIntro => FigmaTestStrings.equipmentIntro;
-
-  @override
-  String get technicianEquipmentStandards => FigmaTestStrings.stationStandards;
-
-  @override
-  String get technicianEquipmentStandardsBody =>
-      FigmaTestStrings.stationStandardsBody;
-
-  @override
-  String get technicianInspectionHub => FigmaTestStrings.hubTitle;
-
-  @override
-  String technicianNoIssueCount(int count) =>
-      '$count ${FigmaTestStrings.passedPill}';
-
-  @override
-  String technicianAttentionCount(int count) =>
-      '$count ${FigmaTestStrings.actionItems}';
-
-  @override
-  String get technicianInspectionModules => FigmaTestStrings.modulesTitle;
-
-  @override
-  String get technicianModuleNotStarted => FigmaTestStrings.queued;
-
-  @override
-  String get technicianModuleInProgress => 'Active Bay';
-
-  @override
-  String technicianCategoriesCount(int count) => ' Categories';
-
-  @override
-  String get technicianContinueChecklist => 'Continue Interior Checklist';
-
-  @override
-  String technicianChecksCount(int done, int total) =>
-      FigmaTestStrings.checksDone(done, total);
-
-  @override
-  String get defectFound => 'Front Left Door Dent';
-}
-
-/// [LocalizationsDelegate] serving [FigmaTestLocalizations] for English.
-/// Replaces [AppLocalizations.delegate] in fidelity fixtures; global
-/// Material/Cupertino/Widgets delegates must still be provided by the host.
-class FigmaTestLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
-  const FigmaTestLocalizationsDelegate();
-
-  @override
-  bool isSupported(Locale locale) => locale.languageCode == 'en';
-
-  @override
-  Future<AppLocalizations> load(Locale locale) async =>
-      FigmaTestLocalizations();
-
-  @override
-  bool shouldReload(FigmaTestLocalizationsDelegate old) => false;
-}
-
-/// Drop-in replacement for [AppLocalizations.localizationsDelegates] that
-/// renders Figma sample copy instead of product copy. English only.
-const figmaLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
-  FigmaTestLocalizationsDelegate(),
-  GlobalMaterialLocalizations.delegate,
-  GlobalCupertinoLocalizations.delegate,
-  GlobalWidgetsLocalizations.delegate,
-];
+/// Figma copy layered over the backend English bundle.
+UiStrings figmaStrings() => UiStrings.fromRemoteEnglish(figmaMessageOverrides);

@@ -1,67 +1,30 @@
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reference_data/reference_data.dart';
 
-/// Canonical workshop statuses, normalized before lookup so backend values such
-/// as `active`, `DEPOT_HUB`, or ` depot hub ` resolve to the same label.
-const Map<String, UiMessageKey> _workshopStatusKeys = {
-  'ACTIVE': PlatformAdminKeys.statusWorkshopActive,
-  'INACTIVE': PlatformAdminKeys.statusWorkshopInactive,
-  'STANDBY': PlatformAdminKeys.statusWorkshopStandby,
-  'RETIRED': PlatformAdminKeys.statusWorkshopRetired,
-  'DEPOT HUB': PlatformAdminKeys.statusWorkshopDepotHub,
-};
+import '../../platform_providers.dart';
+import '../../reference_status_lookup.dart';
 
-const Map<String, UiMessageKey> _relatedStatusKeys = {
-  'ACTIVE': CommonKeys.statusActive,
-  'INACTIVE': CommonKeys.statusInactive,
-  'DISABLED': CommonKeys.statusDisabled,
-  'DRAFT': CommonKeys.statusDraft,
-  'PUBLISHED': PlatformAdminKeys.statusPublished,
-  'RETIRED': CommonKeys.statusRetired,
-};
-
-/// Converts a backend workshop status into its localized display label.
+/// Converts a backend workshop status into its served label.
 ///
-/// Unknown free-form values are humanized instead of leaking raw uppercase
-/// snake case. For example, `OUT_OF_SERVICE` becomes `Out Of Service`.
-String workshopStatusLabel(UiMessageStrings strings, String status) {
-  final normalized = normalizeWorkshopStatus(status);
-  if (normalized.isEmpty) return '—';
-
-  final key = _workshopStatusKeys[normalized];
-  if (key != null) return strings.tKey(key);
-
-  return _humanizeWorkshopStatus(status);
-}
-
-/// Uppercase, trim, and collapse spaces, underscores, and hyphens.
-String normalizeWorkshopStatus(String status) {
-  return status.trim().replaceAll(RegExp(r'[\s_-]+'), ' ').toUpperCase();
+/// The label comes from `statusesProvider('workshop')`; unknown free-form values
+/// are humanized instead of leaking raw uppercase snake case. There is no local
+/// status→label table.
+String workshopStatusLabel(WidgetRef ref, String status) {
+  if (status.trim().isEmpty) return '—';
+  final strings = ref.watch(uiStringsProvider);
+  final record = referenceRecordForStatus(
+    ref.watch(statusesProvider('workshop')).value,
+    status,
+  );
+  return referenceStatusLabelFrom(strings, record) ??
+      humanizeStatusCode(status);
 }
 
 /// Localized staff-account status used inside workshop detail.
-String workshopMemberStatusLabel(UiMessageStrings strings, String status) {
-  return _relatedStatusLabel(strings, status);
-}
+///
+/// Member statuses are served by the same `workshop` domain.
+String workshopMemberStatusLabel(WidgetRef ref, String status) =>
+    workshopStatusLabel(ref, status);
 
-String _relatedStatusLabel(UiMessageStrings strings, String status) {
-  final normalized = normalizeWorkshopStatus(status);
-  if (normalized.isEmpty) return '—';
-
-  final key = _relatedStatusKeys[normalized];
-  if (key != null) return strings.tKey(key);
-
-  return _humanizeWorkshopStatus(status);
-}
-
-String _humanizeWorkshopStatus(String status) {
-  final words = status
-      .trim()
-      .replaceAll(RegExp(r'[_-]+'), ' ')
-      .split(RegExp(r'\s+'))
-      .where((word) => word.isNotEmpty);
-  if (words.isEmpty) return '—';
-
-  return words
-      .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
-      .join(' ');
-}
+/// Kept for callers that need the canonical comparison form.
+String normalizeWorkshopStatus(String status) => normalizeStatusCode(status);

@@ -1,6 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 
 import 'report_copy.dart';
 import 'report_data.dart';
@@ -9,10 +12,7 @@ import 'report_pills.dart';
 /// Key findings block. Each row is a real snapshot item: label, result,
 /// severity and the inspector's note. Nothing is summarised or re-worded.
 class ReportKeyFindings extends StatelessWidget {
-  const ReportKeyFindings({
-    required this.items,
-    super.key,
-  });
+  const ReportKeyFindings({required this.items, super.key});
 
   final List<Map<String, dynamic>> items;
 
@@ -20,13 +20,13 @@ class ReportKeyFindings extends StatelessWidget {
   Widget build(BuildContext context) {
     final spacing = context.spacing;
     final copy = context.reportCopy;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ReportEyebrow(label: l10n.keyFindings),
+        ReportEyebrow(label: t(WorkshopAdminKeys.keyFindings)),
         SizedBox(height: spacing.sm),
         if (items.isEmpty)
           _Note(text: copy.noKeyFindings)
@@ -46,10 +46,7 @@ class ReportKeyFindings extends StatelessWidget {
 
 /// Findings grouped by the snapshot's own categories and order.
 class ReportCategoryFindings extends StatelessWidget {
-  const ReportCategoryFindings({
-    required this.categories,
-    super.key,
-  });
+  const ReportCategoryFindings({required this.categories, super.key});
 
   final List<Map<String, dynamic>> categories;
 
@@ -128,20 +125,18 @@ class _CategoryBlock extends StatelessWidget {
   }
 }
 
-class _FindingRow extends StatelessWidget {
-  const _FindingRow({
-    required this.item,
-    required this.strong,
-  });
+class _FindingRow extends ConsumerWidget {
+  const _FindingRow({required this.item, required this.strong});
 
   final Map<String, dynamic> item;
   final bool strong;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final results = ref.watch(enumsProvider('result')).value;
+    final severities = ref.watch(enumsProvider('severity')).value;
 
     final label = ReportData.localized(item, 'label');
     final localizedResult = ReportData.localized(item, 'result');
@@ -150,14 +145,14 @@ class _FindingRow extends StatelessWidget {
         ? localizedResult
         : resultCode.isEmpty
         ? ''
-        : resultLabel(l10n, resultCode);
+        : referenceStatusText(results, resultCode);
     final severityCode = ReportData.text(item['severityCode']).toUpperCase();
     final localizedSeverity = ReportData.localized(item, 'severity');
     final severity = localizedSeverity.isNotEmpty
         ? localizedSeverity
         : severityCode.isEmpty
         ? ''
-        : severityLabel(l10n, severityCode);
+        : referenceStatusText(severities, severityCode);
     final note = ReportData.text(item['note']);
 
     return Semantics(
@@ -186,7 +181,7 @@ class _FindingRow extends StatelessWidget {
               if (severity.isNotEmpty)
                 ReportStatusPill(
                   label: severity,
-                  tone: severityTone(severityCode),
+                  tone: referenceStatusTone(severities, severityCode),
                 ),
             ],
           ),

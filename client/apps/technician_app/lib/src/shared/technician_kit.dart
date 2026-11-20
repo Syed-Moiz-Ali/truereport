@@ -69,11 +69,9 @@ class F2bStatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      padding: padding ??
-          const EdgeInsetsDirectional.symmetric(
-            horizontal: 10,
-            vertical: 4,
-          ),
+      padding:
+          padding ??
+          const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(Fx.pillRadius),
@@ -113,9 +111,7 @@ class F2bStatusPill extends StatelessWidget {
 class F2bFocusFrame extends StatefulWidget {
   const F2bFocusFrame({
     required this.child,
-    this.borderRadius = const BorderRadius.all(
-      Radius.circular(Fx.pillRadius),
-    ),
+    this.borderRadius = const BorderRadius.all(Radius.circular(Fx.pillRadius)),
     this.padding = EdgeInsets.zero,
     super.key,
   });
@@ -149,9 +145,7 @@ class _F2bFocusFrameState extends State<F2bFocusFrame> {
             padding: widget.padding,
             decoration: BoxDecoration(
               borderRadius: widget.borderRadius,
-              border: show
-                  ? Border.all(color: Fx.deepGreen, width: 2)
-                  : null,
+              border: show ? Border.all(color: Fx.deepGreen, width: 2) : null,
             ),
             child: widget.child,
           );
@@ -217,9 +211,7 @@ class _F2bIconButtonState extends State<F2bIconButton> {
           color: widget.background,
           shape: BoxShape.circle,
           boxShadow: widget.shadow,
-          border: _focused
-              ? Border.all(color: Fx.deepGreen, width: 2)
-              : null,
+          border: _focused ? Border.all(color: Fx.deepGreen, width: 2) : null,
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -407,21 +399,15 @@ class _SegmentOptionState extends State<_SegmentOption> {
                 textAlign: TextAlign.center,
                 style: widget.selected
                     ? (widget.selectedTextStyle ??
-                        Fx.text(
-                          12,
-                          16,
-                          FontWeight.w700,
-                          0.24,
-                          color: Fx.ink,
-                        ))
+                          Fx.text(12, 16, FontWeight.w700, 0.24, color: Fx.ink))
                     : (widget.unselectedTextStyle ??
-                        Fx.text(
-                          12,
-                          16,
-                          FontWeight.w600,
-                          0.24,
-                          color: Fx.muted,
-                        )),
+                          Fx.text(
+                            12,
+                            16,
+                            FontWeight.w600,
+                            0.24,
+                            color: Fx.muted,
+                          )),
               ),
             ),
             if (expand > 0)
@@ -707,7 +693,8 @@ class _F2bEvidenceTileState extends State<F2bEvidenceTile> {
           behavior: HitTestBehavior.opaque,
           child: Container(
             height: 167,
-            decoration: widget.decoration ??
+            decoration:
+                widget.decoration ??
                 BoxDecoration(
                   color: filled ? Fx.container : Fx.white,
                   borderRadius: BorderRadius.circular(Fx.tileRadius),
@@ -722,79 +709,80 @@ class _F2bEvidenceTileState extends State<F2bEvidenceTile> {
                           fit: BoxFit.cover,
                         ),
                 ),
-            child: widget.child ??
+            child:
+                widget.child ??
                 (filled
                     ? Align(
-                    alignment: AlignmentDirectional.bottomStart,
-                    child: Padding(
-                      padding: const EdgeInsets.all(_M.gapSmall),
-                      child: F2bStatusPill(
-                        label: widget.label,
-                        background: Fx.whiteE5,
-                        foreground: Fx.ink,
-                        dot: Fx.emerald,
-                      ),
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: const BoxDecoration(
-                          color: Fx.tintEmerald,
-                          shape: BoxShape.circle,
-                        ),
-                        child: widget.busy
-                            ? const Padding(
-                                padding: EdgeInsets.all(_M.padMid),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Fx.emerald,
-                                ),
-                              )
-                            : const Center(
-                                child: FxIcon(
-                                  id: '1_8115',
-                                  size: 25,
-                                  color: Fx.emerald,
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: _M.gapMid,
-                        ),
-                        child: Text(
-                          widget.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: Fx.text(
-                            14,
-                            18,
-                            FontWeight.w700,
-                            -0.35,
-                            color: Fx.ink,
+                        alignment: AlignmentDirectional.bottomStart,
+                        child: Padding(
+                          padding: const EdgeInsets.all(_M.gapSmall),
+                          child: F2bStatusPill(
+                            label: widget.label,
+                            background: Fx.whiteE5,
+                            foreground: Fx.ink,
+                            dot: Fx.emerald,
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: _M.gapMid,
-                        ),
-                        child: Text(
-                          widget.caption,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: Fx.caption.copyWith(color: Fx.muted),
-                        ),
-                      ),
-                    ],
-                  )),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: const BoxDecoration(
+                              color: Fx.tintEmerald,
+                              shape: BoxShape.circle,
+                            ),
+                            child: widget.busy
+                                ? const Padding(
+                                    padding: EdgeInsets.all(_M.padMid),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Fx.emerald,
+                                    ),
+                                  )
+                                : const Center(
+                                    child: FxIcon(
+                                      id: '1_8115',
+                                      size: 25,
+                                      color: Fx.emerald,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: _M.gapMid,
+                            ),
+                            child: Text(
+                              widget.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: Fx.text(
+                                14,
+                                18,
+                                FontWeight.w700,
+                                -0.35,
+                                color: Fx.ink,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: _M.gapMid,
+                            ),
+                            child: Text(
+                              widget.caption,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: Fx.caption.copyWith(color: Fx.muted),
+                            ),
+                          ),
+                        ],
+                      )),
           ),
         ),
       ),

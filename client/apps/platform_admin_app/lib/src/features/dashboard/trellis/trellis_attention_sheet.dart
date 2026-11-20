@@ -87,10 +87,12 @@ Future<void> showTrellisAttentionSheet({
                         for (final entry in entries)
                           _SheetRow(
                             entry: entry,
-                            onTap: () {
-                              Navigator.of(sheetContext).pop();
-                              onOpen(entry.route);
-                            },
+                            onTap: entry.canOpen
+                                ? () {
+                                    Navigator.of(sheetContext).pop();
+                                    onOpen(entry.route);
+                                  }
+                                : null,
                           ),
                       const SizedBox(height: 16),
                       Align(
@@ -123,7 +125,7 @@ class _SheetRow extends StatelessWidget {
   const _SheetRow({required this.entry, required this.onTap});
 
   final DashboardAttention entry;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -165,14 +167,27 @@ class _SheetRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.chevron_left_rounded
-                    : Icons.chevron_right_rounded,
-                size: 17,
-                color: PtTheme.muted,
-              ),
+              if (entry.actionLabel.trim().isNotEmpty) ...[
+                const SizedBox(width: 10),
+                Text(
+                  entry.actionLabel,
+                  style: Trellis.text(
+                    11.5,
+                    weight: FontWeight.w700,
+                    color: PtTheme.deepGreen,
+                  ),
+                ),
+              ],
+              if (entry.canOpen) ...[
+                const SizedBox(width: 6),
+                Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded,
+                  size: 17,
+                  color: PtTheme.muted,
+                ),
+              ],
             ],
           ),
         ),

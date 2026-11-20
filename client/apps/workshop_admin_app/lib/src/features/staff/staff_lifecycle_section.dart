@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
@@ -55,7 +55,7 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
   }
 
   Future<void> _confirm() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -74,12 +74,16 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
       widget.onClose();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(l10n.contentSaved)));
+        ..showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.contentSaved))),
+        );
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
+          ..showSnackBar(
+            SnackBar(content: Text(t(WorkshopAdminKeys.actionFailed))),
+          );
       }
     } finally {
       if (mounted) {
@@ -93,7 +97,7 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
     if (!widget.open) {
       return const SizedBox.shrink();
     }
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     final tone = _isDisabled ? ws.accentSoft : ws.dangerSoft;
@@ -112,19 +116,23 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _isDisabled ? l10n.reactivate : l10n.deactivate,
+              _isDisabled
+                  ? t(WorkshopAdminKeys.reactivate)
+                  : t(WorkshopAdminKeys.deactivate),
               style: ws.sectionTitle.copyWith(color: ws.ink),
             ),
             const SizedBox(height: 10),
             WorkshopTextField(
               key: const Key('staff-lifecycle-reason'),
               controller: _reason,
-              label: _isDisabled ? l10n.reason : l10n.deactivateReason,
-              hint: l10n.reason,
+              label: _isDisabled
+                  ? t(WorkshopAdminKeys.reason)
+                  : t(WorkshopAdminKeys.deactivateReason),
+              hint: t(WorkshopAdminKeys.reason),
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _confirm(),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? l10n.requiredField
+                  ? t(WorkshopAdminKeys.requiredField)
                   : null,
             ),
             const SizedBox(height: 10),
@@ -132,13 +140,15 @@ class _StaffLifecycleSectionState extends State<StaffLifecycleSection> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TemplatePillButton(
-                  label: l10n.cancel,
+                  label: t(WorkshopAdminKeys.cancel),
                   variant: TemplatePillVariant.ghost,
                   onPressed: _busy ? null : widget.onClose,
                 ),
                 const SizedBox(width: 10),
                 TemplatePillButton(
-                  label: _isDisabled ? l10n.reactivate : l10n.deactivate,
+                  label: _isDisabled
+                      ? t(WorkshopAdminKeys.reactivate)
+                      : t(WorkshopAdminKeys.deactivate),
                   variant: _isDisabled
                       ? TemplatePillVariant.outline
                       : TemplatePillVariant.danger,

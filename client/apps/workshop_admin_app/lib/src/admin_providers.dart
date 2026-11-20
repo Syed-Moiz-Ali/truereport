@@ -2,7 +2,7 @@ import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:auth/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 final adminApiProvider = Provider<AdminApi>((ref) {
   return HttpAdminApi(

@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/shared/technician_intl.dart';
 
@@ -179,12 +179,14 @@ class _SubNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.technicianSyncTitle;
-    final subtitle = online ? l10n.technicianAllSynced : l10n.offlineBanner;
+    final t = UiStrings.of(context);
+    final title = t(TechnicianKeys.technicianSyncTitle);
+    final subtitle = online
+        ? t(TechnicianKeys.technicianAllSynced)
+        : t(TechnicianKeys.offlineBanner);
     final signalLabel = online
-        ? l10n.technicianOnlineSync.replaceAll('\\n', ' ')
-        : l10n.technicianOfflineSync.replaceAll('\\n', ' ');
+        ? t(TechnicianKeys.technicianOnlineSync).replaceAll('\\n', ' ')
+        : t(TechnicianKeys.technicianOfflineSync).replaceAll('\\n', ' ');
 
     return SizedBox(
       width: cardWidth,
@@ -319,12 +321,16 @@ class _OfflineMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = online ? l10n.technicianAllSynced : l10n.offlineBanner;
+    final t = UiStrings.of(context);
+    final title = online
+        ? t(TechnicianKeys.technicianAllSynced)
+        : t(TechnicianKeys.offlineBanner);
     final chipText = online
-        ? l10n.technicianOnlineSync.replaceAll('\\n', ' ')
-        : l10n.technicianOfflineSync.replaceAll('\\n', ' ');
-    final bodyText = online ? l10n.technicianAllSynced : l10n.offlineBanner;
+        ? t(TechnicianKeys.technicianOnlineSync).replaceAll('\\n', ' ')
+        : t(TechnicianKeys.technicianOfflineSync).replaceAll('\\n', ' ');
+    final bodyText = online
+        ? t(TechnicianKeys.technicianAllSynced)
+        : t(TechnicianKeys.offlineBanner);
 
     return Container(
       width: cardWidth,
@@ -482,15 +488,15 @@ class _StatsMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final localeName = Localizations.localeOf(context).toString();
     final count1 = formatCountLocalized(operations.length, localeName);
-    final unit1 = l10n.itemsSelected;
+    final unit1 = t(TechnicianKeys.itemsSelected);
     final count2 = formatCountLocalized(pendingCount, localeName);
-    final title2 = l10n.technicianInspection;
+    final title2 = t(TechnicianKeys.technicianInspection);
     final sub2 = online
-        ? l10n.technicianOnlineSync
-        : l10n.technicianOfflineSync;
+        ? t(TechnicianKeys.technicianOnlineSync)
+        : t(TechnicianKeys.technicianOfflineSync);
 
     return Container(
       width: cardWidth,
@@ -545,7 +551,7 @@ class _StatCardOne extends StatelessWidget {
                   child: SizedBox(
                     height: 14,
                     child: Text(
-                      AppLocalizations.of(context).syncBufferedCache,
+                      UiStrings.of(context)(TechnicianKeys.syncBufferedCache),
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.clip,
@@ -659,7 +665,7 @@ class _StatCardTwo extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.only(top: 0.87),
                       child: Text(
-                        AppLocalizations.of(context).syncPendingBatch,
+                        UiStrings.of(context)(TechnicianKeys.syncPendingBatch),
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,
@@ -812,11 +818,11 @@ class _QueueHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.syncQueue;
+    final t = UiStrings.of(context);
+    final title = t(TechnicianKeys.syncQueue);
     final status = online
-        ? l10n.technicianOnlineSync
-        : l10n.technicianOfflineSync;
+        ? t(TechnicianKeys.technicianOnlineSync)
+        : t(TechnicianKeys.technicianOfflineSync);
 
     return Container(
       width: cardWidth,
@@ -866,12 +872,13 @@ class _ActiveCard extends StatelessWidget {
 
   final double cardWidth;
 
-  String _opTitle(AppLocalizations l10n, SyncOperation op) {
+  String _opTitle(UiStrings t, SyncOperation op) {
+    // gate-allow: behaviour - local queue type -> progress copy, not a served status.
     switch (op.type) {
-      case 'SAVE_ANSWER':
-        return l10n.saveAnswer;
-      case 'EVIDENCE_PHOTO':
-        return l10n.evidencePending;
+      case 'SAVE_ANSWER': // gate-allow: behaviour
+        return t(TechnicianKeys.saveAnswer);
+      case 'EVIDENCE_PHOTO': // gate-allow: behaviour
+        return t(TechnicianKeys.evidencePending);
       default:
         return op.type;
     }
@@ -879,21 +886,25 @@ class _ActiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final op = operations.isNotEmpty ? operations.first : null;
-    final title = (op != null ? _opTitle(l10n, op) : l10n.noResults);
-    final subtitle = (op != null ? l10n.syncJobRef(op.jobId) : '');
-    final statusChip = (online ? l10n.technicianOnlineSync : l10n.syncWaiting);
+    final title = (op != null ? _opTitle(t, op) : t(TechnicianKeys.noResults));
+    final subtitle = (op != null
+        ? t(TechnicianKeys.syncJobRef, {'jobId': op.jobId})
+        : '');
+    final statusChip = (online
+        ? t(TechnicianKeys.technicianOnlineSync)
+        : t(TechnicianKeys.syncWaiting));
     final progressText = (operations.isNotEmpty
-        ? l10n.syncItemsCount(operations.length)
+        ? t(TechnicianKeys.syncItemsCount, {'count': operations.length})
         : '0%');
     final remainingText = (operations.length > 1
-        ? l10n.syncRemainingCount(operations.length - 1)
-        : l10n.syncRemainingCount(0));
-    final speed = (online ? l10n.syncConnected : '0.0 KB/s');
+        ? t(TechnicianKeys.syncRemainingCount, {'count': operations.length - 1})
+        : t(TechnicianKeys.syncRemainingCount, {'count': 0}));
+    final speed = (online ? t(TechnicianKeys.syncConnected) : '0.0 KB/s');
     final pendingJobsText = (operations.length > 1
-        ? l10n.syncInLine(operations.length - 1)
-        : l10n.syncInLine(0));
+        ? t(TechnicianKeys.syncInLine, {'count': operations.length - 1})
+        : t(TechnicianKeys.syncInLine, {'count': 0}));
 
     return Container(
       key: const ValueKey('queue'),
@@ -1135,7 +1146,9 @@ class _Metrics extends StatelessWidget {
                         width: 85.97,
                         height: 14,
                         child: Text(
-                          AppLocalizations.of(context).syncTransferSpeed,
+                          UiStrings.of(context)(
+                            TechnicianKeys.syncTransferSpeed,
+                          ),
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.clip,
@@ -1180,7 +1193,7 @@ class _Metrics extends StatelessWidget {
                         width: 75.48,
                         height: 14,
                         child: Text(
-                          AppLocalizations.of(context).syncPendingJobs,
+                          UiStrings.of(context)(TechnicianKeys.syncPendingJobs),
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.clip,
@@ -1243,11 +1256,13 @@ class _QueuedRowTwo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final op = operations.length > 1 ? operations[1] : null;
-    final title = op != null ? op.type : l10n.technicianInspection;
-    final subtitle = op != null ? '${l10n.jobsTab} #${op.jobId}' : '';
-    final status = l10n.statusAssigned;
+    final title = op != null ? op.type : t(TechnicianKeys.technicianInspection);
+    final subtitle = op != null
+        ? '${t(TechnicianKeys.jobsTab)} #${op.jobId}'
+        : '';
+    final status = t(TechnicianKeys.statusAssigned);
     const size = '18.4 MB';
 
     return Container(
@@ -1375,11 +1390,13 @@ class _QueuedRowThree extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final op = operations.length > 2 ? operations[2] : null;
-    final title = op != null ? op.type : l10n.attachments;
-    final subtitle = op != null ? '${l10n.jobsTab} #${op.jobId}' : '';
-    final status = l10n.statusAssigned;
+    final title = op != null ? op.type : t(TechnicianKeys.attachments);
+    final subtitle = op != null
+        ? '${t(TechnicianKeys.jobsTab)} #${op.jobId}'
+        : '';
+    final status = t(TechnicianKeys.statusAssigned);
     const size = '6.2 MB';
 
     return Container(
@@ -1515,9 +1532,9 @@ class _RetryMargin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final label = l10n.syncNow;
-    final hint = l10n.technicianPendingSync;
+    final t = UiStrings.of(context);
+    final label = t(TechnicianKeys.syncNow);
+    final hint = t(TechnicianKeys.technicianPendingSync);
 
     return Container(
       width: cardWidth,
@@ -1565,8 +1582,8 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final title = l10n.technicianSyncTitle;
+    final t = UiStrings.of(context);
+    final title = t(TechnicianKeys.technicianSyncTitle);
 
     return Container(
       key: const ValueKey('header'),
@@ -1625,7 +1642,7 @@ class _Header extends StatelessWidget {
                 const Spacer(),
                 Semantics(
                   button: true,
-                  label: l10n.technicianProfileTitle,
+                  label: t(TechnicianKeys.technicianProfileTitle),
                   child: GestureDetector(
                     onTap: onProfile,
                     behavior: HitTestBehavior.opaque,
@@ -1662,7 +1679,7 @@ class _Nav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       key: const ValueKey('dock'),
       height: 80,
@@ -1684,7 +1701,7 @@ class _Nav extends StatelessWidget {
                 iconId: '1_8791',
                 iconW: 18.33,
                 iconH: 20.17,
-                label: l10n.technicianJobIntake,
+                label: t(TechnicianKeys.technicianJobIntake),
                 selected: false,
                 onTap: onBack,
               ),
@@ -1693,7 +1710,7 @@ class _Nav extends StatelessWidget {
                 iconId: '1_8796',
                 iconW: 16.5,
                 iconH: 14.67,
-                label: l10n.statusFinalized,
+                label: t(TechnicianKeys.statusFinalized),
                 selected: false,
               ),
               const SizedBox(width: 23.5),
@@ -1701,7 +1718,7 @@ class _Nav extends StatelessWidget {
                 iconId: '1_8801',
                 iconW: 14.67,
                 iconH: 14.67,
-                label: l10n.technicianSyncTitle,
+                label: t(TechnicianKeys.technicianSyncTitle),
                 selected: true,
               ),
               const SizedBox(width: 23.5),
@@ -1709,7 +1726,7 @@ class _Nav extends StatelessWidget {
                 iconId: '1_8806',
                 iconW: 18.2,
                 iconH: 15.58,
-                label: l10n.technicianProfileTitle,
+                label: t(TechnicianKeys.technicianProfileTitle),
                 selected: false,
               ),
             ],

@@ -5,9 +5,10 @@ import 'dart:ui' as ui;
 import 'package:core/core.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:technician_app/src/inspection_models.dart';
+import 'package:technician_app/src/reference_ui.dart';
 import 'package:uuid/uuid.dart';
 
 /// Stable category icon mapping. The server sends an `iconCode`; widgets must
@@ -34,54 +35,65 @@ IconData categoryIconFor(String? iconCode) {
   };
 }
 
-String evidenceTypeLabel(AppLocalizations l10n, String type) => switch (type) {
-  'PHOTO' => l10n.technicianPhoto,
-  'VIDEO' => l10n.technicianVideo,
-  'DOCUMENT' => l10n.technicianDocument,
-  _ => type,
-};
+String evidenceTypeLabel(Iterable<ReferenceRecord>? records, String type) =>
+    referenceStatusCodeLabel(records, type);
 
 class EvidenceRequirement {
   const EvidenceRequirement({
     required this.minPhotos,
     required this.minVideos,
-    required this.requiresDocument,
+    required this.requiredEvidenceType,
     required this.minNotesChars,
   });
 
   final int minPhotos;
   final int minVideos;
-  final bool requiresDocument;
+  final String? requiredEvidenceType;
   final int minNotesChars;
 
+  bool get requiresDocument => requiredEvidenceType == 'DOCUMENT';
+
+  /// Mirrors the server `requirements()` exactly: a default of 1 photo and
+  /// 1 video, raised by every matching rule, never lowered by one.
   static EvidenceRequirement forResult(ChecklistItem item, String? resultCode) {
     var photos = resultCode == 'DEFECT_FOUND' ? 2 : 1;
     var videos = 1;
-    var document = false;
     var notes = 0;
-    EvidenceRule? match;
+    String? requiredType;
     for (final rule in item.evidenceRules) {
-      if (rule.resultCode == resultCode) {
-        match = rule;
-        break;
+      if (rule.resultCode != resultCode) {
+        continue;
       }
-    }
-    if (match != null) {
-      photos = match.minPhotos;
-      videos = match.minVideos;
-      notes = match.minNotesChars;
-      document = match.requiredEvidenceType == 'DOCUMENT';
-    } else {
-      for (final rule in item.evidenceRules) {
-        notes = notes > rule.minNotesChars ? notes : rule.minNotesChars;
+      if (rule.minPhotos > photos) {
+        photos = rule.minPhotos;
       }
+      if (rule.minVideos > videos) {
+        videos = rule.minVideos;
+      }
+      notes = rule.minNotesChars;
+      requiredType = rule.requiredEvidenceType;
     }
     return EvidenceRequirement(
       minPhotos: photos,
       minVideos: videos,
-      requiresDocument: document,
+      requiredEvidenceType: requiredType,
       minNotesChars: notes,
     );
+  }
+
+  /// Count already captured for the configured required type.
+  int countFor(
+    String type, {
+    required int photos,
+    required int videos,
+    required int documents,
+  }) {
+    return switch (type) {
+      'PHOTO' => photos,
+      'VIDEO' => videos,
+      'DOCUMENT' => documents,
+      _ => 0,
+    };
   }
 }
 
@@ -105,7 +117,8 @@ MeasurementBand? worstBandForValues(
       continue;
     }
     if (worst == null ||
-        resultSeverityRank(band.resultCode) > resultSeverityRank(worst.resultCode)) {
+        resultSeverityRank(band.resultCode) >
+            resultSeverityRank(worst.resultCode)) {
       worst = band;
     }
   }
@@ -123,10 +136,18 @@ ScoreBand? scoreBandForResult(ChecklistItem item, String? resultCode) {
 
 bool isNetworkFailure(Object failure) {
   if (failure is AppFailure) {
+    if (failure.code == 'CANCELLED') {
+      return false;
+    }
+    // An HTTP response (even a 5xx) is not a transport failure; retrying is
+    // a different decision from queuing offline.
+    if (failure.statusCode != null) {
+      return false;
+    }
     if (failure.messageKey == 'error.network' || failure.code == 'NETWORK') {
       return true;
     }
-    return failure.statusCode == null;
+    return true;
   }
   final name = failure.runtimeType.toString().toLowerCase();
   return name.contains('socket') || name.contains('clientexception');
@@ -150,7 +171,10 @@ Future<({int width, int height})?> decodeImageSize(List<int> bytes) async {
   }
 }
 
-String mimeForPath(String? path, {String fallback = 'application/octet-stream'}) {
+String mimeForPath(
+  String? path, {
+  String fallback = 'application/octet-stream',
+}) {
   final lower = (path ?? '').toLowerCase();
   if (lower.endsWith('.png')) {
     return 'image/png';

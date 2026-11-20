@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
 
@@ -23,7 +23,7 @@ class TemplateRouteTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final narrow = MediaQuery.sizeOf(context).width < 520;
@@ -43,7 +43,7 @@ class TemplateRouteTopBar extends StatelessWidget {
             children: [
               WorkshopIconButton(
                 icon: isRtl ? Icons.arrow_forward : Icons.arrow_back,
-                semanticLabel: l10n.commonBack,
+                semanticLabel: t(WorkshopAdminKeys.commonBack),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
               const SizedBox(width: 10),
@@ -61,7 +61,7 @@ class TemplateRouteTopBar extends StatelessWidget {
               ],
               if (!readOnly && !narrow)
                 TemplatePillButton(
-                  label: l10n.saveDraft,
+                  label: t(WorkshopAdminKeys.saveDraft),
                   icon: Icons.save_outlined,
                   variant: TemplatePillVariant.ghost,
                   compact: true,
@@ -88,13 +88,13 @@ class TemplateRouteStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final steps = [
-      l10n.details,
-      l10n.builderSequenceTitle,
-      l10n.publishTemplate,
+      t(WorkshopAdminKeys.details),
+      t(WorkshopAdminKeys.builderSequenceTitle),
+      t(WorkshopAdminKeys.publishTemplate),
     ];
     return Container(
       color: ws.surface,
@@ -195,7 +195,7 @@ class TemplateRouteFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final narrow = width < 520;
@@ -215,7 +215,7 @@ class TemplateRouteFooter extends StatelessWidget {
             children: [
               if (narrow)
                 TemplatePillButton(
-                  label: l10n.saveDraft,
+                  label: t(WorkshopAdminKeys.saveDraft),
                   variant: TemplatePillVariant.ghost,
                   compact: true,
                   loading: busy,
@@ -223,14 +223,16 @@ class TemplateRouteFooter extends StatelessWidget {
                 )
               else if (step > 0)
                 TemplatePillButton(
-                  label: l10n.commonBack,
+                  label: t(WorkshopAdminKeys.commonBack),
                   icon: Icons.arrow_back,
                   variant: TemplatePillVariant.ghost,
                   onPressed: onBack,
                 ),
               const Spacer(),
               TemplatePillButton(
-                label: step == 0 ? l10n.commonNext : l10n.publishTemplate,
+                label: step == 0
+                    ? t(WorkshopAdminKeys.commonNext)
+                    : t(WorkshopAdminKeys.publishTemplate),
                 icon: step == 0 ? null : Icons.arrow_forward,
                 variant: step == 0
                     ? TemplatePillVariant.filled
@@ -257,7 +259,7 @@ class TemplateRouteLockedPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     return Container(
       padding: const EdgeInsets.all(24),
@@ -275,16 +277,19 @@ class TemplateRouteLockedPanel extends StatelessWidget {
               Icon(Icons.lock_outline, size: 18, color: ws.muted),
               const SizedBox(width: 8),
               Text(
-                l10n.readOnlyVersion,
+                t(WorkshopAdminKeys.readOnlyVersion),
                 style: ws.cardTitle.copyWith(color: ws.ink),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(l10n.createDraft, style: ws.body.copyWith(color: ws.muted)),
+          Text(
+            t(WorkshopAdminKeys.createDraft),
+            style: ws.body.copyWith(color: ws.muted),
+          ),
           const SizedBox(height: 16),
           TemplatePillButton(
-            label: l10n.createDraft,
+            label: t(WorkshopAdminKeys.createDraft),
             icon: Icons.add,
             onPressed: busy ? null : onCreateDraft,
           ),

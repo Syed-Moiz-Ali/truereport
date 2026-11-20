@@ -4,6 +4,6 @@ export 'src/role_home.dart';
 export 'src/session_store.dart';
 export 'src/signin/signin_bay_view.dart';
 export 'src/signin/signin_copy.dart';
-export 'src/signin/signin_localizations.dart';
+export 'src/signin/signin_keys.dart';
 export 'src/signin/signin_primitives.dart';
 export 'src/signin/signin_submit_button.dart';

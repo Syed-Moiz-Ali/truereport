@@ -1,9 +1,9 @@
 import 'package:auth/auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/inspection_models.dart';
-import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/offline_store.dart';
 import 'package:technician_app/src/offline/sync_service.dart';
@@ -21,7 +21,7 @@ const String technicianUiMessageClient = UiMessageClients.technician;
 
 /// Thin wiring: turns the shared `ApiClient` into the shared fetcher.
 ///
-/// All language state lives in `packages/l10n`; this app owns no language
+/// All language state lives in `packages/t`; this app owns no language
 /// provider, list or selector of its own.
 final technicianUiMessageFetcherProvider = Provider<UiMessageFetcher>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -45,10 +45,6 @@ final connectivityProvider = StreamProvider<bool>((ref) {
   );
 });
 
-final pendingSyncCountProvider = FutureProvider.autoDispose<int>((ref) {
-  return ref.watch(offlineStoreProvider).pendingCount();
-});
-
 final pendingOperationsProvider =
     FutureProvider.autoDispose<List<SyncOperation>>((ref) {
       return ref.watch(offlineStoreProvider).pendingOperations();
@@ -61,89 +57,35 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   );
 });
 
-final technicianJobsProvider = FutureProvider.autoDispose<List<TechnicianJob>>((
-  ref,
-) async {
-  final store = ref.watch(offlineStoreProvider);
-  try {
-    final jobs = await ref.watch(technicianApiProvider).jobs();
-    await store.saveJobs(jobs);
-    return jobs;
-  } on Object {
-    final cached = await store.loadJobs();
-    if (cached != null && cached.isNotEmpty) {
-      return cached;
-    }
-    rethrow;
-  }
-});
-
-final technicianJobProvider = FutureProvider.autoDispose
-    .family<TechnicianJob, String>((ref, id) async {
-      final store = ref.watch(offlineStoreProvider);
-      try {
-        final job = await ref.watch(technicianApiProvider).job(id);
-        await store.saveJob(job);
-        return job;
-      } on Object {
-        final cached = await store.loadJob(id);
-        if (cached != null) {
-          return cached;
-        }
-        rethrow;
-      }
-    });
-
-final technicianTemplateVersionsProvider =
-    FutureProvider.autoDispose<List<TemplateVersionOption>>((ref) {
-      return ref.watch(technicianApiProvider).templateVersions();
-    });
-
-final inspectionChecklistProvider = FutureProvider.autoDispose
-    .family<InspectionChecklist, String>((ref, id) async {
-      final store = ref.watch(offlineStoreProvider);
-      try {
-        final checklist = await ref.watch(technicianApiProvider).checklist(id);
-        await store.saveChecklist(checklist);
-        return checklist;
-      } on Object {
-        final cached = await store.loadChecklist(id);
-        if (cached != null) {
-          return cached;
-        }
-        rethrow;
-      }
-    });
-
-final inspectionReviewProvider = FutureProvider.autoDispose
-    .family<ReviewResult, String>((ref, id) {
-      return ref.watch(technicianApiProvider).review(id);
-    });
-
-final technicianReportProvider = FutureProvider.autoDispose
-    .family<TechnicianReportStatus, String>((ref, jobId) {
-      return ref.watch(technicianApiProvider).reportStatus(jobId);
-    });
-
-final technicianDeliveriesProvider = FutureProvider.autoDispose
-    .family<List<TechnicianDelivery>, String>((ref, jobId) {
-      return ref.watch(technicianApiProvider).deliveries(jobId);
-    });
-
 // ------------------------------------------------- clean technician API
 typedef TechnicianJobsQuery = ({int page, int size, String? status});
 
 typedef TechnicianEvidenceQuery = ({String jobId, String itemCode});
 
 final technicianJobPageProvider = FutureProvider.autoDispose
-    .family<JobSummaryPage, TechnicianJobsQuery>((ref, query) {
-      return ref
-          .watch(technicianApiProvider)
-          .technicianJobs(
-            page: query.page,
-            size: query.size,
-            status: query.status,
-          );
+    .family<JobSummaryPage, TechnicianJobsQuery>((ref, query) async {
+      final store = ref.watch(offlineStoreProvider);
+      final key = '${query.page}:${query.size}:${query.status ?? ''}';
+      try {
+        final page = await ref
+            .watch(technicianApiProvider)
+            .technicianJobs(
+              page: query.page,
+              size: query.size,
+              status: query.status,
+            );
+        await store.saveCleanJobsPage(key, page);
+        return page;
+      } on Object catch (error) {
+        if (!isNetworkFailure(error)) {
+          rethrow;
+        }
+        final cached = await store.loadCleanJobsPage(key);
+        if (cached != null) {
+          return cached;
+        }
+        rethrow;
+      }
     });
 
 final technicianJobSummaryProvider = FutureProvider.autoDispose
@@ -152,8 +94,24 @@ final technicianJobSummaryProvider = FutureProvider.autoDispose
     });
 
 final technicianChecklistProvider = FutureProvider.autoDispose
-    .family<Checklist, String>((ref, jobId) {
-      return ref.watch(technicianApiProvider).cleanChecklist(jobId);
+    .family<Checklist, String>((ref, jobId) async {
+      final store = ref.watch(offlineStoreProvider);
+      try {
+        final checklist = await ref
+            .watch(technicianApiProvider)
+            .cleanChecklist(jobId);
+        await store.saveCleanChecklist(checklist);
+        return checklist;
+      } on Object catch (error) {
+        if (!isNetworkFailure(error)) {
+          rethrow;
+        }
+        final cached = await store.loadCleanChecklist(jobId);
+        if (cached != null) {
+          return cached;
+        }
+        rethrow;
+      }
     });
 
 final technicianSummaryProvider = FutureProvider.autoDispose
@@ -167,10 +125,58 @@ final technicianReviewProvider = FutureProvider.autoDispose
     });
 
 final technicianEvidenceListProvider = FutureProvider.autoDispose
-    .family<List<Evidence>, TechnicianEvidenceQuery>((ref, query) {
-      return ref
-          .watch(technicianApiProvider)
-          .evidenceList(query.jobId, query.itemCode);
+    .family<List<Evidence>, TechnicianEvidenceQuery>((ref, query) async {
+      final store = ref.watch(offlineStoreProvider);
+      List<Evidence> server;
+      try {
+        server = await ref
+            .watch(technicianApiProvider)
+            .evidenceList(query.jobId, query.itemCode);
+        await store.saveCleanEvidence(query.jobId, query.itemCode, server);
+      } on Object catch (error) {
+        if (!isNetworkFailure(error)) {
+          rethrow;
+        }
+        server =
+            await store.loadCleanEvidence(query.jobId, query.itemCode) ??
+            const <Evidence>[];
+      }
+      final local = await store.evidenceForItem(query.jobId, query.itemCode);
+      final queued = local
+          .where((value) => value.state != 'RECEIVED')
+          .map(
+            (value) => Evidence(
+              id: 'local-${value.id}',
+              jobId: value.jobId,
+              itemCode: value.itemId,
+              type: value.type,
+              status: 'PENDING',
+              mime: value.mimeType,
+              bytes: value.bytes.length,
+              sha256: value.sha256,
+              capturedAt: value.createdAt.toUtc().toIso8601String(),
+              captureSource: value.captureSource,
+              deviceId: value.deviceId,
+              width: value.width,
+              height: value.height,
+              durationMs: value.durationMs,
+              captionEn: value.captionEn,
+              captionAr: value.captionAr,
+              posterAvailable: value.posterBase64 != null,
+              qualityStatus: null,
+              contentUrl: null,
+              createdAt: value.createdAt.toUtc().toIso8601String(),
+            ),
+          )
+          .toList(growable: false);
+      final seen = server
+          .map((value) => value.sha256)
+          .whereType<String>()
+          .toSet();
+      return <Evidence>[
+        ...server,
+        ...queued.where((value) => !seen.contains(value.sha256)),
+      ];
     });
 
 final syncQueueStatusProvider = FutureProvider.autoDispose<SyncQueueStatus>((

@@ -2,7 +2,9 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/wizard/wizard_choice_group.dart';
 
@@ -35,22 +37,23 @@ class WizardTechnicianStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final staff = ref.watch(staffProvider);
+    final consentStatuses = ref.watch(statusesProvider('consent')).value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(l10n.jobsWhenTitle, style: context.ws.bodyStrong),
+        Text(t(WorkshopAdminKeys.jobsWhenTitle), style: context.ws.bodyStrong),
         SizedBox(height: spacing.sm),
         WorkshopOptionCard<String>(
           key: const Key('jobs-wizard-start-now'),
           value: 'now',
           groupValue: scheduledAt == null ? 'now' : 'later',
           onChanged: (_) => onStartImmediately(),
-          title: l10n.jobsStartNow,
-          caption: l10n.jobsStartNowBody,
+          title: t(WorkshopAdminKeys.jobsStartNow),
+          caption: t(WorkshopAdminKeys.jobsStartNowBody),
           leading: const Icon(Icons.bolt_outlined),
         ),
         SizedBox(height: spacing.sm),
@@ -59,9 +62,9 @@ class WizardTechnicianStep extends ConsumerWidget {
           value: 'later',
           groupValue: scheduledAt == null ? 'now' : 'later',
           onChanged: (_) => onPickSchedule(),
-          title: l10n.jobsScheduleLater,
+          title: t(WorkshopAdminKeys.jobsScheduleLater),
           caption: scheduledAt == null
-              ? l10n.jobsScheduleLaterBody
+              ? t(WorkshopAdminKeys.jobsScheduleLaterBody)
               : DateFormat.yMd(Localizations.localeOf(context).toString())
                     .add_Hm()
                     .format(scheduledAt!),
@@ -75,26 +78,29 @@ class WizardTechnicianStep extends ConsumerWidget {
               key: const Key('jobs-wizard-clear-schedule'),
               onPressed: onStartImmediately,
               icon: const Icon(Icons.close, size: 16),
-              label: Text(l10n.jobsClearSchedule),
+              label: Text(t(WorkshopAdminKeys.jobsClearSchedule)),
             ),
           ),
         ],
         SizedBox(height: spacing.lg),
-        Text(l10n.jobsSelectTechnician, style: context.ws.bodyStrong),
+        Text(
+          t(WorkshopAdminKeys.jobsSelectTechnician),
+          style: context.ws.bodyStrong,
+        ),
         SizedBox(height: spacing.sm),
         WorkshopOptionCard<String>(
           key: const Key('jobs-technician-later'),
           value: '',
           groupValue: selectedId ?? '',
           onChanged: (_) => onSelected(null),
-          title: l10n.jobsAssignLater,
-          caption: l10n.scheduleJobSubtitle,
+          title: t(WorkshopAdminKeys.jobsAssignLater),
+          caption: t(WorkshopAdminKeys.scheduleJobSubtitle),
         ),
         SizedBox(height: spacing.sm),
         staff.when(
           loading: () => const WorkshopSkeleton(lines: 2),
           error: (error, _) => WorkshopInlineNote(
-            text: l10n.commonLoadFailed,
+            text: t(WorkshopAdminKeys.commonLoadFailed),
             icon: Icons.error_outline,
           ),
           data: (members) {
@@ -102,7 +108,9 @@ class WizardTechnicianStep extends ConsumerWidget {
                 .where((member) => member.role == 'TECHNICIAN')
                 .toList(growable: false);
             if (technicians.isEmpty) {
-              return WorkshopInlineNote(text: l10n.jobsSelectTechnician);
+              return WorkshopInlineNote(
+                text: t(WorkshopAdminKeys.jobsSelectTechnician),
+              );
             }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,25 +133,29 @@ class WizardTechnicianStep extends ConsumerWidget {
         ),
         SizedBox(height: spacing.md),
         WizardChoiceGroup(
-          label: l10n.jobsFieldPreferredLanguage,
+          label: t(WorkshopAdminKeys.jobsFieldPreferredLanguage),
           values: const ['en'],
           selected: preferredLanguage,
           onChanged: onPreferredLanguage,
           keyPrefix: 'jobs-wizard-language',
-          labelFor: (value) => l10n.languageEnglish,
+          labelFor: (value) => t(WorkshopAdminKeys.languageEnglish),
         ),
         SizedBox(height: spacing.lg),
-        Text(l10n.consentPublicLink, style: context.ws.bodyStrong),
+        Text(
+          t(WorkshopAdminKeys.consentPublicLink),
+          style: context.ws.bodyStrong,
+        ),
         SizedBox(height: spacing.sm),
         WorkshopOptionCard<bool>(
           key: const Key('jobs-wizard-consent'),
           value: true,
-          groupValue: consentGranted ? true : null,
+          groupValue: consentGranted,
           onChanged: (_) => onConsentChanged(!consentGranted),
-          title: l10n.consentPublicLink,
-          caption: consentGranted
-              ? l10n.jobsConsentGranted
-              : l10n.consentNotGranted,
+          title: t(WorkshopAdminKeys.consentPublicLink),
+          caption: referenceStatusText(
+            consentStatuses,
+            consentStatusCode(consentGranted),
+          ),
           leading: const Icon(Icons.verified_user_outlined),
         ),
       ],

@@ -7,6 +7,8 @@ import com.truereport.jobs.PlatformJobStore.JobRow;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.outbox.OutboxService;
 import com.truereport.shared.storage.ObjectStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.Map;
 @Service
 public class PlatformJobDocumentService {
 
+    private static final Logger log = LoggerFactory.getLogger(PlatformJobDocumentService.class);
     private static final List<String> LANGUAGES = List.of("en");
 
     private final PlatformJobStore store;
@@ -87,6 +90,7 @@ public class PlatformJobDocumentService {
     }
 
     private void generateOne(JobRow job, DocumentRow document, DocumentTypeRow type) {
+        String storageKey = null;
         try {
             String language = "en";
             List<String> lines = new ArrayList<>();
@@ -104,7 +108,7 @@ public class PlatformJobDocumentService {
             lines.add("Status: " + job.status());
             String title = type.nameEn();
             byte[] bytes = pdf.render(title, lines);
-            String storageKey = "platform-reports/" + job.id() + "/" + document.reportVersionId()
+            storageKey = "platform-reports/" + job.id() + "/" + document.reportVersionId()
                     + "/" + document.documentTypeCode() + "-" + language + ".pdf";
             storage.put(storageKey, bytes, "application/pdf");
             store.markDocumentReady(document.id(), storageKey, "application/pdf", bytes.length);
@@ -112,6 +116,8 @@ public class PlatformJobDocumentService {
                     Map.of("jobId", job.id(), "documentId", document.id(),
                             "language", language, "documentType", document.documentTypeCode()));
         } catch (RuntimeException exception) {
+            log.error("Could not generate document {} (key {}) for job {}: {}",
+                    document.id(), storageKey, job.id(), exception.getMessage(), exception);
             store.markDocumentFailed(document.id(), exception.getMessage());
             outbox.publish("REPORT_DOCUMENT", document.id(), "REPORT_DOCUMENT_FAILED",
                     Map.of("jobId", job.id(), "documentId", document.id(),

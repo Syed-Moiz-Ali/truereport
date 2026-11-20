@@ -14,6 +14,8 @@ import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
 import 'features/master_library/categories_screen.dart';
 import 'features/master_library/option_sets_screen.dart';
+import 'features/reference/reference_admin_screens.dart';
+import 'features/reference/reference_transitions_screen.dart';
 import 'features/governance/config_health_screen.dart';
 import 'features/settings/platform_settings_screen.dart';
 import 'features/workshops/workshop_detail_screen.dart';
@@ -92,6 +94,26 @@ List<RouteBase> _buildRoutes() {
     GoRoute(
       path: '/checklist/health',
       builder: (context, state) => const ConfigHealthScreen(),
+    ),
+    GoRoute(
+      path: '/configuration',
+      redirect: (_, _) => '/configuration/statuses',
+    ),
+    GoRoute(
+      path: '/configuration/statuses',
+      builder: (context, state) => const ReferenceStatusesScreen(),
+    ),
+    GoRoute(
+      path: '/configuration/enums',
+      builder: (context, state) => const ReferenceEnumsScreen(),
+    ),
+    GoRoute(
+      path: '/configuration/dropdowns',
+      builder: (context, state) => const ReferenceDropdownsScreen(),
+    ),
+    GoRoute(
+      path: '/configuration/transitions',
+      builder: (context, state) => const ReferenceTransitionsScreen(),
     ),
     GoRoute(path: '/reports', redirect: (_, _) => '/reports/document-types'),
     GoRoute(

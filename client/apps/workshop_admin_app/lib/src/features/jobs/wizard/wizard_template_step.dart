@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -19,21 +19,21 @@ class WizardTemplateStep extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final templates = ref.watch(availableTemplatesProvider);
     return templates.when(
       loading: () => const WorkshopSkeleton(lines: 3),
       error: (error, _) => WorkshopErrorState(
-        title: l10n.error,
-        body: l10n.commonLoadFailed,
-        retryLabel: l10n.retryAction,
+        title: t(WorkshopAdminKeys.error),
+        body: t(WorkshopAdminKeys.commonLoadFailed),
+        retryLabel: t(WorkshopAdminKeys.retryAction),
         onRetry: () => ref.invalidate(availableTemplatesProvider),
       ),
       data: (items) {
         if (items.isEmpty) {
           return WorkshopEmptyState(
-            title: l10n.jobsTemplatesEmpty,
+            title: t(WorkshopAdminKeys.jobsTemplatesEmpty),
             icon: Icons.dashboard_customize_outlined,
           );
         }
@@ -41,7 +41,10 @@ class WizardTemplateStep extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(l10n.jobsTemplatesAvailable, style: context.ws.bodyStrong),
+            Text(
+              t(WorkshopAdminKeys.jobsTemplatesAvailable),
+              style: context.ws.bodyStrong,
+            ),
             SizedBox(height: spacing.sm),
             for (final template in items) ...[
               WorkshopOptionCard<String>(
@@ -52,7 +55,9 @@ class WizardTemplateStep extends ConsumerWidget {
                 title:
                     '${localizedText(context, en: template.nameEn, ar: template.nameAr)}'
                     ' · v${formatNumber(context, template.versionNo)}',
-                caption: l10n.technicianItemsCount(template.itemCount),
+                caption: t(WorkshopAdminKeys.technicianItemsCount, {
+                  'count': template.itemCount,
+                }),
               ),
               SizedBox(height: spacing.sm),
             ],

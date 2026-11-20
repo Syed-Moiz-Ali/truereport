@@ -2,6 +2,7 @@ package com.truereport.reports;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.shared.text.CustomerNames;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class ReportSnapshotBuilder {
         int notCheckedCount = 0;
         int couldNotVerify = 0;
         int completed = 0;
+        int safetyCriticalCount = 0;
 
         for (JsonNode entry : root.path("items")) {
             JsonNode rules = entry.path("item");
@@ -50,6 +52,11 @@ public class ReportSnapshotBuilder {
             if (result.equals("NOT_APPLICABLE")) {
                 notApplicable++;
                 continue;
+            }
+            boolean safetyCritical = rules.path("safetyCritical").asBoolean(false);
+            if (result.equals("DEFECT_FOUND")
+                    && (safetyCritical || "SAFETY_CRITICAL".equals(text(assessment, "severityCode")))) {
+                safetyCriticalCount++;
             }
             List<String> evidenceIds = new ArrayList<>();
             for (JsonNode evidence : entry.path("evidence")) {
@@ -110,6 +117,16 @@ public class ReportSnapshotBuilder {
         int applicable = total - notApplicable;
         ReportSnapshot.Coverage coverage = new ReportSnapshot.Coverage(
                 total, applicable, completed, notApplicable, notCheckedCount, couldNotVerify);
+        int passedCount = (int) items.stream()
+                .filter(item -> item.resultCode().equals("NO_ISSUE_OBSERVED"))
+                .count();
+        ReportSnapshot.Summary summary = new ReportSnapshot.Summary(
+                keyFindings.size(), safetyCriticalCount, passedCount,
+                coveragePercent(coverage));
+        Integer score = root.path("score").isNumber() ? root.path("score").asInt() : null;
+        String gradeCode = textOrNull(root, "gradeCode");
+        boolean safetyCapApplied = root.path("safetyCapApplied").asBoolean(false);
+        String safetyCapReason = textOrNull(root, "safetyCapReason");
 
         return new ReportSnapshot(
                 text(root, "reference").isBlank() ? "REPORT" : text(root, "reference"),
@@ -128,7 +145,14 @@ public class ReportSnapshotBuilder {
                         finalizedAt),
                 new ReportSnapshot.Workshop(text(root, "workshopName"), text(root, "workshopBranch")),
                 new ReportSnapshot.Technician(text(root, "technicianName")),
+                text(root, "customerName") == null ? null
+                        : CustomerNames.mask(text(root, "customerName")),
                 coverage,
+                summary,
+                score,
+                gradeCode,
+                safetyCapApplied,
+                safetyCapReason,
                 keyFindings,
                 List.copyOf(categories),
                 List.copyOf(notChecked),
@@ -146,6 +170,13 @@ public class ReportSnapshotBuilder {
             case "MINOR" -> 3;
             default -> 4;
         };
+    }
+
+    private double coveragePercent(ReportSnapshot.Coverage coverage) {
+        if (coverage == null || coverage.applicable() <= 0) {
+            return 0.0;
+        }
+        return Math.round(coverage.completed() * 1000.0 / coverage.applicable()) / 10.0;
     }
 
     private String sanitize(String value, JsonNode root) {
@@ -177,5 +208,10 @@ public class ReportSnapshotBuilder {
     private String text(JsonNode node, String field) {
         JsonNode value = node.path(field);
         return value.isMissingNode() || value.isNull() ? "" : value.asText("");
+    }
+
+    private String textOrNull(JsonNode node, String field) {
+        String value = text(node, field);
+        return value.isBlank() ? null : value;
     }
 }

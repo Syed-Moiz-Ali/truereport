@@ -3,11 +3,13 @@ package com.truereport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.truereport.jobs.PlatformJobStore;
 import com.truereport.shared.uuid.UuidV7;
+import com.truereport.uimessages.PlatformUiMessageCatalog;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,9 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
     @Autowired
     PlatformJobStore store;
+
+    @Autowired
+    PlatformUiMessageCatalog uiMessages;
 
     @Test
     void jobCreateListDetailUpdateAssignCancelAndTenantScoping() throws Exception {
@@ -278,6 +283,191 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
     }
 
     @Test
+    void allowedActionsFollowTransitionsAndGuards() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login technician = login("tech.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = createJob(adminA, seed, "Allowed actions", null).get("id").asText();
+
+        postJson(adminA, JOBS + "/" + jobId + "/assign",
+                "{\"technicianId\":\"" + fixture.techA().getId() + "\"}");
+        List<String> assigned = actionCodes(
+                getJson(adminA, JOBS + "/" + jobId).get("allowedActions"));
+        assertThat(assigned).containsExactly("ASSIGN", "CONSENT", "CANCEL");
+
+        markPendingReview(jobId);
+        insertResults(jobId, seed, "ATTENTION_RECOMMENDED", 70, 1, 1,
+                "NO_ISSUE_OBSERVED", 96, 1, 1);
+        JsonNode review = getJson(adminA, JOBS + "/" + jobId + "/review");
+        List<String> pending = actionCodes(review.get("allowedActions"));
+        assertThat(pending).containsExactly("CONSENT", "APPROVE", "REJECT");
+        assertThat(actionCodes(getJson(adminA, JOBS + "/" + jobId + "/publish-checklist")
+                .get("allowedActions"))).containsExactly("CONSENT", "APPROVE", "REJECT");
+
+        postJson(adminA, JOBS + "/" + jobId + "/approve", "{\"reason\":\"Reviewed\"}");
+        assertThat(actionCodes(getJson(adminA, JOBS + "/" + jobId).get("allowedActions")))
+                .containsExactly("CONSENT", "PUBLISH");
+
+        postJson(adminA, JOBS + "/" + jobId + "/publish", "{\"pdfDownloadEnabled\":false}");
+        List<String> published = actionCodes(
+                getJson(adminA, JOBS + "/" + jobId).get("allowedActions"));
+        assertThat(published).containsExactly("UNPUBLISH", "ROTATE_TOKEN", "REVOKE");
+
+        Map<String, String> catalog = uiMessages.namespace("workshop_admin", "en").values();
+        for (String labelKey : List.of("jobsAssignTechnician", "consentPublicLink",
+                "cancelJob", "jobsApprove", "jobsReject", "jobsPublishNow",
+                "jobsUnpublish", "jobsRotateToken", "jobsRevoke")) {
+            assertThat(catalog).containsKey(labelKey);
+        }
+
+        String cancelled = createJob(adminA, seed, "No actions", null).get("id").asText();
+        jdbc.update("UPDATE platform_jobs SET status = 'CANCELLED' WHERE id = ?", cancelled);
+        assertThat(actionCodes(getJson(adminA, JOBS + "/" + cancelled)
+                .get("allowedActions"))).isEmpty();
+        mockMvc.perform(get(JOBS + "/" + jobId)
+                        .header("Authorization", "Bearer " + technician.accessToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void reportSnapshotSummaryMatchesReviewNumbers() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = createJob(adminA, seed, "Summary job", null).get("id").asText();
+        markPendingReview(jobId);
+        insertResults(jobId, seed, "ATTENTION_RECOMMENDED", 70, 1, 1,
+                "NO_ISSUE_OBSERVED", 96, 1, 1);
+
+        JsonNode review = getJson(adminA, JOBS + "/" + jobId + "/review");
+        postJson(adminA, JOBS + "/" + jobId + "/approve", "{\"reason\":\"Reviewed\"}");
+
+        JsonNode report = getJson(adminA, JOBS + "/" + jobId + "/report");
+        JsonNode summary = report.path("content").path("summary");
+        assertThat(summary.isObject()).isTrue();
+        assertThat(summary.path("findingsCount").asInt()).isEqualTo(1);
+        assertThat(summary.path("safetyCriticalCount").asInt()).isZero();
+        assertThat(summary.path("passedCount").asInt()).isEqualTo(1);
+        double expectedCoverage = Math.round(
+                review.path("itemsAssessed").asDouble() * 1000.0
+                        / review.path("itemsTotal").asInt()) / 10.0;
+        assertThat(summary.path("coveragePercent").asDouble()).isEqualTo(expectedCoverage);
+    }
+
+    @Test
+    void safetyCriticalDefectComputesCapReasonAndReportSummary() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = createJob(adminA, seed, "Safety cap", null).get("id").asText();
+        markPendingReview(jobId);
+        insertResults(jobId, seed, "DEFECT_FOUND", 40, 2, 1,
+                "NO_ISSUE_OBSERVED", 96, 1, 1);
+
+        JsonNode approved = postJson(adminA, JOBS + "/" + jobId + "/approve",
+                "{\"reason\":\"Reviewed\",\"safetyCapReason\":\"Safety-critical brake defect\"}");
+        assertThat(approved.get("safetyCapApplied").asBoolean()).isTrue();
+        assertThat(approved.get("safetyCapReason").asText())
+                .isEqualTo("Safety-critical brake defect");
+
+        JsonNode content = getJson(adminA, JOBS + "/" + jobId + "/report").path("content");
+        assertThat(content.path("summary").path("safetyCriticalCount").asInt()).isEqualTo(1);
+        assertThat(content.path("safetyCapApplied").asBoolean()).isTrue();
+        assertThat(content.path("safetyCapReason").asText())
+                .isEqualTo("Safety-critical brake defect");
+    }
+
+    @Test
+    void availableTemplatesIncludePlatformMasterTemplates() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+
+        JsonNode available = getJson(adminA, "/api/v1/workshop/template-versions/available");
+        boolean found = false;
+        for (JsonNode row : available) {
+            if (seed.versionId().equals(row.get("versionId").asText())) {
+                found = true;
+            }
+        }
+        assertThat(found).as("platform master template remains in the available list").isTrue();
+    }
+
+    @Test
+    void cleanPublishPersistsPdfDownloadAndServesPdf() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = approvedJob(adminA, seed, "Pdf enabled");
+
+        JsonNode published = postJson(adminA, JOBS + "/" + jobId + "/publish",
+                "{\"pdfDownloadEnabled\":true}");
+        assertThat(published.get("pdfDownloadEnabled").asBoolean()).isTrue();
+        String token = published.get("token").asText();
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isTrue();
+
+        var pdf = mockMvc.perform(get("/r/" + token + "/pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_PDF_VALUE))
+                .andReturn();
+        assertThat(new String(pdf.getResponse().getContentAsByteArray(), 0, 4,
+                StandardCharsets.US_ASCII)).isEqualTo("%PDF");
+    }
+
+    @Test
+    void cleanPublishDefaultsPdfDownloadToTrue() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = approvedJob(adminA, seed, "Pdf default");
+
+        JsonNode published = postJson(adminA, JOBS + "/" + jobId + "/publish", "{}");
+        assertThat(published.get("pdfDownloadEnabled").asBoolean()).isTrue();
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isTrue();
+    }
+
+    @Test
+    void cleanRepublishUpdatesPdfDownloadFlag() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = approvedJob(adminA, seed, "Pdf republish");
+
+        postJson(adminA, JOBS + "/" + jobId + "/publish", "{\"pdfDownloadEnabled\":false}");
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isFalse();
+
+        JsonNode republished = postJson(adminA, JOBS + "/" + jobId + "/publish",
+                "{\"pdfDownloadEnabled\":true}");
+        assertThat(republished.get("pdfDownloadEnabled").asBoolean()).isTrue();
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isTrue();
+    }
+
+    @Test
+    void cleanPdfDownloadCanBeToggledAndUnknownJobIs404() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = approvedJob(adminA, seed, "Pdf toggle");
+
+        postJson(adminA, JOBS + "/" + jobId + "/publish", "{\"pdfDownloadEnabled\":true}");
+
+        JsonNode disabled = putJson(adminA,
+                JOBS + "/" + jobId + "/report/pdf-download", "{\"enabled\":false}");
+        assertThat(disabled.get("pdfDownloadEnabled").asBoolean()).isFalse();
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isFalse();
+
+        JsonNode enabled = putJson(adminA,
+                JOBS + "/" + jobId + "/report/pdf-download", "{\"enabled\":true}");
+        assertThat(enabled.get("pdfDownloadEnabled").asBoolean()).isTrue();
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/public-link")
+                .get("pdfDownloadEnabled").asBoolean()).isTrue();
+
+        mockMvc.perform(put(JOBS + "/" + UUID.randomUUID() + "/report/pdf-download")
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"enabled\":true}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void publishTokenQrDocumentsUnpublishRevokeRotateAndContent() throws Exception {
         Login adminA = login("admin.a@test.local");
         Seed seed = seedTemplate(true);
@@ -293,6 +483,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
         JsonNode storedLink = getJson(adminA, JOBS + "/" + jobId + "/public-link");
         assertThat(storedLink.get("token").asText()).isEqualTo(firstToken);
+
+        var publicPage = mockMvc.perform(get("/r/" + firstToken))
+                .andExpect(status().isOk()).andReturn();
+        assertThat(publicPage.getResponse().getContentAsString()).contains("JOB-");
 
         mockMvc.perform(get(JOBS + "/" + jobId + "/qr")
                         .header("Authorization", "Bearer " + adminA.accessToken()))
@@ -375,11 +569,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
         var result = mockMvc.perform(get(JOBS + "/" + UUID.randomUUID())
                         .header("Authorization", "Bearer " + adminA.accessToken())
-                        .header("Accept-Language", "ar"))
+                        .header("Accept-Language", "es"))
                 .andExpect(status().isNotFound())
                 .andReturn();
         JsonNode problem = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertThat(problem.has("messageAr")).isFalse();
         assertThat(problem.get("detail").asText()).isNotBlank();
     }
 
@@ -411,8 +604,13 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
                 technicianId == null ? "" : ",\"assignedTechnicianId\":\"" + technicianId + "\"");
     }
 
-    private String approvedJob(Login login, Seed seed, String customer) throws Exception {
-        String jobId = createJob(login, seed, customer, null).get("id").asText();
+    private static List<String> actionCodes(JsonNode actions) {
+        List<String> codes = new ArrayList<>();
+        actions.forEach(action -> codes.add(action.get("code").asText()));
+        return codes;
+    }
+
+    private String approvedJob(Login login, Seed seed, String customer) throws Exception {        String jobId = createJob(login, seed, customer, null).get("id").asText();
         markPendingReview(jobId);
         insertResults(jobId, seed, "ATTENTION_RECOMMENDED", 70, 1, 1,
                 "NO_ISSUE_OBSERVED", 96, 1, 1);

@@ -34,11 +34,14 @@ public class ItemConfigRepository {
 
     public List<EvidenceRuleDto> evidenceRules(String versionId) {
         return jdbc.query("""
-                SELECT result_code, min_photos, min_videos, min_notes_chars, required_evidence_type
+                SELECT result_code, min_photos, min_videos, min_notes_chars, required_evidence_type,
+                       min_duration_seconds, max_duration_seconds
                 FROM platform_evidence_rules WHERE item_version_id = ? ORDER BY result_code
                 """, (rs, i) -> new EvidenceRuleDto(
                 rs.getString("result_code"), rs.getInt("min_photos"), rs.getInt("min_videos"),
-                rs.getInt("min_notes_chars"), rs.getString("required_evidence_type")), versionId);
+                rs.getInt("min_notes_chars"), rs.getString("required_evidence_type"),
+                rs.getObject("min_duration_seconds", Integer.class),
+                rs.getObject("max_duration_seconds", Integer.class)), versionId);
     }
 
     public void replaceEvidenceRules(String versionId, List<EvidenceRuleDto> rules) {
@@ -47,10 +50,12 @@ public class ItemConfigRepository {
             jdbc.update("""
                     INSERT INTO platform_evidence_rules
                         (id, item_version_id, result_code, min_photos, min_videos, min_notes_chars,
-                         required_evidence_type, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                         required_evidence_type, min_duration_seconds, max_duration_seconds,
+                         created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     """, UuidV7.generate().toString(), versionId, rule.resultCode(), rule.minPhotos(),
-                    rule.minVideos(), rule.minNotesChars(), rule.requiredEvidenceType());
+                    rule.minVideos(), rule.minNotesChars(), rule.requiredEvidenceType(),
+                    rule.minDurationSeconds(), rule.maxDurationSeconds());
         }
     }
 

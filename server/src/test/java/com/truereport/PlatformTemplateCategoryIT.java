@@ -33,8 +33,8 @@ class PlatformTemplateCategoryIT extends IntegrationTestBase {
         String secondVersion = versionId(platform, secondItem);
 
         JsonNode template = postJson(platform, "/api/v1/platform/master/templates", """
-                {"code":"TPL-GROUP-01","nameEn":"Grouped template","nameAr":"قالب مجمع",
-                 "descriptionEn":"Grouped","descriptionAr":"مجمع"}
+                {"code":"TPL-GROUP-01","nameEn":"Grouped template","nameAr":"Test text",
+                 "descriptionEn":"Grouped","descriptionAr":"Test text"}
                 """);
         String templateId = template.get("id").asText();
         String versionId = template.get("versions").get(0).get("id").asText();
@@ -95,8 +95,8 @@ class PlatformTemplateCategoryIT extends IntegrationTestBase {
                 firstItems.get(0).get("id").asText());
 
         JsonNode template = postJson(platform, "/api/v1/platform/master/templates", """
-                {"code":"TPL-EMPTY-01","nameEn":"Empty category template","nameAr":"قالب فارغ",
-                 "descriptionEn":"Empty","descriptionAr":"فارغ"}
+                {"code":"TPL-EMPTY-01","nameEn":"Empty category template","nameAr":"Test text",
+                 "descriptionEn":"Empty","descriptionAr":"Test text"}
                 """);
         String templateId = template.get("id").asText();
         String versionId = template.get("versions").get(0).get("id").asText();

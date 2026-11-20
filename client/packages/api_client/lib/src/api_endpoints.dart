@@ -105,6 +105,11 @@ class ApiEndpoints {
   String get workshopNotifications => '$_root/workshop/notifications';
   String readWorkshopNotification(String id) =>
       '$_root/workshop/notifications/$id/read';
+
+  /// Legacy `inspection_jobs` archive only.
+  ///
+  /// TODO(phase6): backend `/workshop/legacy/jobs` has no clean equivalent;
+  /// it lists unmigrated `inspection_jobs` rows for the read-only archive.
   String get workshopJobs => '$_root/workshop/legacy/jobs';
   String workshopReport(String jobId) => '$_root/workshop/jobs/$jobId/report';
   String workshopReportRetry(String jobId) =>
@@ -121,47 +126,6 @@ class ApiEndpoints {
       '$_root/workshop/jobs/$jobId/deliveries';
   String workshopJobDeliveryRetry(String jobId, String deliveryId) =>
       '$_root/workshop/jobs/$jobId/deliveries/$deliveryId/retry';
-  String technicianReport(String jobId) =>
-      '$_root/technician/legacy/jobs/$jobId/report';
-  String technicianJobDeliveries(String jobId) =>
-      '$_root/technician/legacy/jobs/$jobId/deliveries';
-  String get technicianJobs => '$_root/technician/legacy/jobs';
-  String technicianJob(String id) => '$_root/technician/legacy/jobs/$id';
-  String get technicianTemplateVersions =>
-      '$_root/technician/legacy/templates/versions';
-  String technicianChecklist(String id) =>
-      '$_root/technician/legacy/jobs/$id/checklist';
-  String technicianStart(String id) =>
-      '$_root/technician/legacy/jobs/$id/start';
-  String technicianCustomer(String id) =>
-      '$_root/technician/legacy/jobs/$id/customer';
-  String technicianVehicle(String id) =>
-      '$_root/technician/legacy/jobs/$id/vehicle';
-  String technicianConsent(String id) =>
-      '$_root/technician/legacy/jobs/$id/consent';
-  String technicianEquipment(String id) =>
-      '$_root/technician/legacy/jobs/$id/equipment';
-  String technicianAssessment(String jobId, String itemId) =>
-      '$_root/technician/legacy/jobs/$jobId/items/$itemId/assessment';
-  String technicianReview(String id) =>
-      '$_root/technician/legacy/jobs/$id/review';
-  String technicianReady(String id) =>
-      '$_root/technician/legacy/jobs/$id/ready';
-  String technicianFinalize(String id) =>
-      '$_root/technician/legacy/jobs/$id/finalize';
-  String technicianEvidenceInit(String jobId, String itemId) =>
-      '$_root/technician/legacy/jobs/$jobId/items/$itemId/evidence/init';
-  String technicianEvidenceComplete(
-    String jobId,
-    String itemId,
-    String evidenceId,
-  ) =>
-      '$_root/technician/legacy/jobs/$jobId/items/$itemId/evidence/$evidenceId/complete';
-  String technicianEvidence(String jobId, String itemId) =>
-      '$_root/technician/legacy/jobs/$jobId/items/$itemId/evidence';
-  String technicianGuideImage(String jobId, String itemId) =>
-      '$_root/technician/legacy/jobs/$jobId/items/$itemId/guide-image';
-
   // ------------------------------------------------- clean technician API
   String get technicianCleanJobs => '$_root/technician/jobs';
   String technicianCleanJob(String id) => '$_root/technician/jobs/$id';

@@ -1,9 +1,12 @@
 package com.truereport.localization;
 
+import com.truereport.localization.api.OverviewDtos.AlertActionDto;
 import com.truereport.localization.api.OverviewDtos.AlertDto;
 import com.truereport.localization.api.OverviewDtos.ChecklistSummaryDto;
 import com.truereport.localization.api.OverviewDtos.JobsSummaryDto;
 import com.truereport.localization.api.OverviewDtos.LanguagesSummaryDto;
+import com.truereport.localization.api.OverviewDtos.LocalizedAlertDto;
+import com.truereport.localization.api.OverviewDtos.MetricCardDto;
 import com.truereport.localization.api.OverviewDtos.OverviewDto;
 import com.truereport.localization.api.OverviewDtos.RecentActivityDto;
 import com.truereport.localization.api.OverviewDtos.ReportsSummaryDto;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -68,9 +72,13 @@ public class PlatformOverviewService {
                 count("SELECT COUNT(*) FROM platform_languages WHERE status = 'LIVE'"),
                 count("SELECT COUNT(*) FROM platform_languages WHERE status = 'TRANSLATING'"));
         List<RecentActivityDto> recent = recentActivity();
-        List<AlertDto> alerts = alerts(healthy, languages);
+        AlertFacts facts = alertFacts(healthy);
+        List<AlertDto> alerts = alerts(facts);
+        List<LocalizedAlertDto> localizedAlerts = localizedAlerts(facts);
+        List<MetricCardDto> metricCards = metricCards(workshopSummary, staff, jobs, reports,
+                checklist, languages);
         return new OverviewDto(workshopSummary, staff, jobs, reports, checklist,
-                languages, recent, alerts);
+                languages, recent, alerts, metricCards, localizedAlerts);
     }
 
     private int count(String sql) {
@@ -107,9 +115,30 @@ public class PlatformOverviewService {
         }
     }
 
-    private List<AlertDto> alerts(boolean healthy, LanguagesSummaryDto languages) {
+    private record AlertFacts(boolean checklistIncomplete, List<String> languageCodes,
+                              int failedDocuments, int unpublishedReports) {
+    }
+
+    private AlertFacts alertFacts(boolean healthy) {
+        List<String> languageCodes = List.of();
+        try {
+            languageCodes = jdbc.queryForList("""
+                    SELECT code FROM platform_languages
+                    WHERE status IN ('DRAFT', 'TRANSLATING', 'REVIEW') ORDER BY code
+                    """, String.class);
+        } catch (RuntimeException ignored) {
+        }
+        int failedDocuments = count(
+                "SELECT COUNT(*) FROM platform_report_documents WHERE status = 'FAILED'");
+        int unpublished = count(
+                "SELECT COUNT(*) FROM platform_jobs WHERE publication_status = 'PUBLISHED'"
+                        + " AND id NOT IN (SELECT job_id FROM platform_public_links WHERE status = 'ACTIVE')");
+        return new AlertFacts(!healthy, languageCodes, failedDocuments, unpublished);
+    }
+
+    private List<AlertDto> alerts(AlertFacts facts) {
         List<AlertDto> alerts = new ArrayList<>();
-        if (!healthy) {
+        if (facts.checklistIncomplete()) {
             alerts.add(new AlertDto(
                     "warning",
                     "Checklist configuration needs attention",
@@ -120,55 +149,99 @@ public class PlatformOverviewService {
                     Map.of()
             ));
         }
-        try {
-            List<Map<String, Object>> incomplete = jdbc.queryForList("""
-                    SELECT code FROM platform_languages
-                    WHERE status IN ('DRAFT', 'TRANSLATING', 'REVIEW') ORDER BY code
-                    """);
-            if (!incomplete.isEmpty()) {
-                List<String> codes = incomplete.stream()
-                        .map(row -> string(row.get("code"))).toList();
-                String joined = String.join(", ", codes);
-                alerts.add(new AlertDto(
-                        "info",
-                        "Languages waiting for translation",
-                        "Incomplete translations for: " + joined + ".",
-                        "/settings/languages",
-                        "dashboard.alert.languages.title",
-                        "dashboard.alert.languages.body",
-                        Map.of("languages", joined)
-                ));
-            }
-        } catch (RuntimeException ignored) {
+        if (!facts.languageCodes().isEmpty()) {
+            String joined = String.join(", ", facts.languageCodes());
+            alerts.add(new AlertDto(
+                    "info",
+                    "Languages waiting for translation",
+                    "Incomplete translations for: " + joined + ".",
+                    "/settings/languages",
+                    "dashboard.alert.languages.title",
+                    "dashboard.alert.languages.body",
+                    Map.of("languages", joined)
+            ));
         }
-        int failedDocuments = count(
-                "SELECT COUNT(*) FROM platform_report_documents WHERE status = 'FAILED'");
-        if (failedDocuments > 0) {
+        if (facts.failedDocuments() > 0) {
             alerts.add(new AlertDto(
                     "error",
                     "Report generation failures",
-                    failedDocuments + " report document(s) failed to generate and need retry.",
+                    facts.failedDocuments() + " report document(s) failed to generate and need retry.",
                     "/reports",
                     "dashboard.alert.reportsFailed.title",
                     "dashboard.alert.reportsFailed.body",
-                    Map.of("count", failedDocuments)
+                    Map.of("count", facts.failedDocuments())
             ));
         }
-        int unpublished = count(
-                "SELECT COUNT(*) FROM platform_jobs WHERE publication_status = 'PUBLISHED'"
-                        + " AND id NOT IN (SELECT job_id FROM platform_public_links WHERE status = 'ACTIVE')");
-        if (unpublished > 0) {
+        if (facts.unpublishedReports() > 0) {
             alerts.add(new AlertDto(
                     "warning",
                     "Unpublished reports",
-                    unpublished + " published job(s) have no active public link.",
+                    facts.unpublishedReports() + " published job(s) have no active public link.",
                     "/reports",
                     "dashboard.alert.reportsUnpublished.title",
                     "dashboard.alert.reportsUnpublished.body",
-                    Map.of("count", unpublished)
+                    Map.of("count", facts.unpublishedReports())
             ));
         }
         return alerts;
+    }
+
+    private List<LocalizedAlertDto> localizedAlerts(AlertFacts facts) {
+        List<LocalizedAlertDto> result = new ArrayList<>();
+        if (facts.checklistIncomplete()) {
+            result.add(new LocalizedAlertDto("checklistIncomplete", "warning", 10,
+                    "dashboard.alert.checklist.title", "dashboard.alert.checklist.body",
+                    Map.of(),
+                    new AlertActionDto("dashboard.alert.checklist.action", "/checklist/health")));
+        }
+        if (!facts.languageCodes().isEmpty()) {
+            result.add(new LocalizedAlertDto("languagesIncomplete", "info", 20,
+                    "dashboard.alert.languages.title", "dashboard.alert.languages.body",
+                    Map.of("languages", String.join(", ", facts.languageCodes())),
+                    new AlertActionDto("dashboard.alert.languages.action", "/settings/languages")));
+        }
+        if (facts.failedDocuments() > 0) {
+            result.add(new LocalizedAlertDto("reportFailures", "danger", 30,
+                    "dashboard.alert.reportsFailed.title", "dashboard.alert.reportsFailed.body",
+                    Map.of("count", Integer.toString(facts.failedDocuments())),
+                    new AlertActionDto("dashboard.alert.reportsFailed.action", "/reports")));
+        }
+        if (facts.unpublishedReports() > 0) {
+            result.add(new LocalizedAlertDto("unpublishedReports", "warning", 40,
+                    "dashboard.alert.reportsUnpublished.title",
+                    "dashboard.alert.reportsUnpublished.body",
+                    Map.of("count", Integer.toString(facts.unpublishedReports())),
+                    new AlertActionDto("dashboard.alert.reportsUnpublished.action", "/reports")));
+        }
+        return result;
+    }
+
+    private List<MetricCardDto> metricCards(WorkshopsSummaryDto workshops, StaffSummaryDto staff,
+                                            JobsSummaryDto jobs, ReportsSummaryDto reports,
+                                            ChecklistSummaryDto checklist,
+                                            LanguagesSummaryDto languages) {
+        return List.of(
+                new MetricCardDto("activeWorkshops", "dashActiveWorkshops",
+                        number(workshops.active()), "dashActiveWorkshopsCaption", "neutral", 10),
+                new MetricCardDto("technicians", "dashTechnicians",
+                        number(staff.technicians()), "dashTechniciansCaption", "info", 20),
+                new MetricCardDto("activeJobs", "dashActiveJobs",
+                        number(jobs.active()), "dashActiveJobsCaption", "info", 30),
+                new MetricCardDto("pendingReviews", "dashPendingReviews",
+                        number(jobs.pendingReview()), "dashPendingReviewsCaption", "warning", 40),
+                new MetricCardDto("publishedReports", "dashPublishedReports",
+                        number(reports.published()), "dashPublishedReportsCaption", "success", 50),
+                new MetricCardDto("checklistHealth", "dashChecklistHealth",
+                        number(checklist.issues()),
+                        "dashChecklistHealthCaption",
+                        checklist.issues() == 0 ? "success" : "warning", 60),
+                new MetricCardDto("languagesLive", "dashLanguagesLive",
+                        number(languages.live()), "dashLanguagesLiveCaption", "info", 70));
+    }
+
+    /** Server-side display formatting: no client grouping or rounding. */
+    private static String number(int value) {
+        return String.format(Locale.ROOT, "%,d", value);
     }
 
     private static String string(Object value) {

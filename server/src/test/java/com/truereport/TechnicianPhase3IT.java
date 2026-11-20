@@ -1,26 +1,41 @@
 package com.truereport;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.truereport.jobs.CleanEvidencePublicationService;
+import com.truereport.shared.error.ApiException;
 import com.truereport.shared.uuid.UuidV7;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class TechnicianPhase3IT extends IntegrationTestBase {
 
@@ -29,6 +44,12 @@ class TechnicianPhase3IT extends IntegrationTestBase {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    CleanEvidencePublicationService evidencePublication;
+
+    @Autowired
+    PlatformTransactionManager transactionManager;
 
     @Test
     void technicianOnlySeesJobsAssignedToThemInTheirWorkshop() throws Exception {
@@ -208,7 +229,7 @@ class TechnicianPhase3IT extends IntegrationTestBase {
         JsonNode completedPhoto = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
                 + seed.itemCodeA() + "/evidence/" + photoId + "/complete")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"captionEn\":\"Front pad\",\"captionAr\":\"وسادة أمامية\"}"), 200);
+                .content("{\"captionEn\":\"Front pad\",\"captionAr\":\"Test text\"}"), 200);
         assertThat(completedPhoto.get("status").asText()).isEqualTo("VERIFIED");
         assertThat(completedPhoto.get("capturedAt").asText()).isNotBlank();
 
@@ -238,13 +259,43 @@ class TechnicianPhase3IT extends IntegrationTestBase {
                 + "/evidence/" + documentAsset.get("id").asText() + "/complete")
                 .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
 
-        assertThat(call(techA, get(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
-                + "/evidence"), 200).size()).isEqualTo(3);
-
+        byte[] filePhoto = bytes(1300, 4);
+        JsonNode filePhotoAsset = initEvidence(techA, jobId, seed.itemCodeA(), "PHOTO",
+                "image/jpeg", filePhoto, "FILE", 800, 600, null);
+        String filePhotoId = filePhotoAsset.get("id").asText();
+        assertThat(filePhotoAsset.get("captureSource").asText()).isEqualTo("FILE");
+        call(techA, put(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
+                + "/evidence/" + filePhotoId + "/content")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(filePhoto), 200);
         call(techA, post(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
-                + "/evidence/init").contentType(MediaType.APPLICATION_JSON)
-                .content(evidenceInitBody("PHOTO", "image/jpeg", photo, "FILE", 800, 600,
-                        null)), 422);
+                + "/evidence/" + filePhotoId + "/complete")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
+
+        byte[] fileVideo = bytes(2300, 5);
+        JsonNode fileVideoAsset = initEvidence(techA, jobId, seed.itemCodeA(), "VIDEO",
+                "video/mp4", fileVideo, "FILE", 1280, 720, 20000L);
+        String fileVideoId = fileVideoAsset.get("id").asText();
+        assertThat(fileVideoAsset.get("captureSource").asText()).isEqualTo("FILE");
+        call(techA, put(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
+                + "/evidence/" + fileVideoId + "/content")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fileVideo), 200);
+        call(techA, post(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
+                + "/evidence/" + fileVideoId + "/complete")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
+
+        JsonNode evidence = call(techA, get(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence"), 200);
+        assertThat(evidence.size()).isEqualTo(5);
+        assertThat(evidenceSource(evidence, filePhotoId)).isEqualTo("FILE");
+        assertThat(evidenceSource(evidence, fileVideoId)).isEqualTo("FILE");
+
+        JsonNode invalidSource = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("PHOTO", "image/jpeg", bytes(1400, 6),
+                        "BLUETOOTH", 800, 600, null)), 422);
+        assertThat(invalidSource.get("errors").toString()).contains("SOURCE_INVALID");
+
         JsonNode duplicate = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
                 + seed.itemCodeA() + "/evidence/init")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -255,7 +306,174 @@ class TechnicianPhase3IT extends IntegrationTestBase {
         call(techA, delete(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
                 + "/evidence/" + documentAsset.get("id").asText()), 204);
         assertThat(call(techA, get(TECH + "/jobs/" + jobId + "/items/" + seed.itemCodeA()
-                + "/evidence"), 200).size()).isEqualTo(2);
+                + "/evidence"), 200).size()).isEqualTo(4);
+    }
+
+    @Test
+    void fileEvidenceEnforcesTheSameValidationRules() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+
+        JsonNode lowResolution = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("PHOTO", "image/jpeg", bytes(1600, 7),
+                        "FILE", 639, 480, null)), 422);
+        assertThat(lowResolution.get("errors").toString()).contains("RESOLUTION_TOO_LOW");
+
+        JsonNode badMime = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("PHOTO", "image/png", bytes(1601, 8),
+                        "FILE", 800, 600, null)), 422);
+        assertThat(badMime.get("errors").toString()).contains("MIME_NOT_ALLOWED");
+
+        JsonNode shortVideo = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("VIDEO", "video/mp4", bytes(2600, 9),
+                        "FILE", 1280, 720, 14000L)), 422);
+        assertThat(shortVideo.get("errors").toString()).contains("DURATION_INVALID");
+
+        byte[] accepted = bytes(1700, 10);
+        JsonNode acceptedPhoto = initEvidence(techA, jobId, seed.itemCodeA(), "PHOTO",
+                "image/jpeg", accepted, "FILE", 800, 600, null);
+        assertThat(acceptedPhoto.get("captureSource").asText()).isEqualTo("FILE");
+
+        JsonNode duplicate = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("PHOTO", "image/jpeg", accepted, "FILE",
+                        800, 600, null)), 409);
+        assertThat(duplicate.get("code").asText()).isEqualTo("DUPLICATE_EVIDENCE");
+
+        JsonNode invalidSource = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(evidenceInitBody("PHOTO", "image/jpeg", bytes(1701, 11),
+                        "SCANNER", 800, 600, null)), 422);
+        assertThat(invalidSource.get("errors").toString()).contains("SOURCE_INVALID");
+    }
+
+    @Test
+    void publishedJobListsPhotoAndVideoEvidenceOnPublicReport() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+
+        assessAndUpload(techA, jobId, seed.itemCodeA(), 20,
+                assessmentBody(0, "NO_ISSUE_OBSERVED", 100,
+                        measurements("MEASUREMENT", "MM", "FL", "6.0", "FR", "6.0")));
+        assessAndUpload(techA, jobId, seed.itemCodeB(), 21,
+                issueBody(0, "NO_ISSUE_OBSERVED", 100, "FRONT_LEFT", "PAD", null, ""));
+
+        call(techA, post(TECH + "/jobs/" + jobId + "/signature")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"signerName":"Technician A","deviceId":"device-1",
+                         "method":"DRAWN","signatureBase64":"%s"}
+                        """.formatted(Base64.getEncoder().encodeToString(
+                        "signature".getBytes(StandardCharsets.UTF_8)))), 200);
+        call(techA, post(TECH + "/jobs/" + jobId + "/complete")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
+        call(adminA, post(JOBS + "/" + jobId + "/approve")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"Reviewed\"}"), 200);
+        JsonNode link = call(adminA, post(JOBS + "/" + jobId + "/publish")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"pdfDownloadEnabled\":false}"), 200);
+        String token = link.get("token").asText();
+
+        var page = mockMvc.perform(get("/r/" + token))
+                .andExpect(status().isOk()).andReturn();
+        String html = page.getResponse().getContentAsString();
+        assertThat(count(html, "data-video=\"/r/" + token + "/video/"))
+                .as("published videos on the public report").isEqualTo(2);
+        assertThat(count(html, "data-img=\"/r/" + token + "/photo/"))
+                .as("published photos on the public report").isGreaterThanOrEqualTo(2);
+
+        Matcher matcher = Pattern.compile("data-video=\"([^\"]+)\"").matcher(html);
+        assertThat(matcher.find()).isTrue();
+        mockMvc.perform(get(matcher.group(1)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "video/mp4"));
+
+        Matcher photoMatcher = Pattern.compile("data-img=\"([^\"]+)\"").matcher(html);
+        assertThat(photoMatcher.find()).isTrue();
+        mockMvc.perform(get(photoMatcher.group(1)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/jpeg"));
+    }
+
+    @Test
+    void storageFailureBlocksPublishAndLeavesNoActiveLink() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+
+        assessAndUpload(techA, jobId, seed.itemCodeA(), 20,
+                assessmentBody(0, "NO_ISSUE_OBSERVED", 100,
+                        measurements("MEASUREMENT", "MM", "FL", "6.0", "FR", "6.0")));
+        assessAndUpload(techA, jobId, seed.itemCodeB(), 21,
+                issueBody(0, "NO_ISSUE_OBSERVED", 100, "FRONT_LEFT", "PAD", null, ""));
+        call(techA, post(TECH + "/jobs/" + jobId + "/signature")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"signerName":"Technician A","deviceId":"device-1",
+                         "method":"DRAWN","signatureBase64":"%s"}
+                        """.formatted(Base64.getEncoder().encodeToString(
+                        "signature".getBytes(StandardCharsets.UTF_8)))), 200);
+        call(techA, post(TECH + "/jobs/" + jobId + "/complete")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
+        call(adminA, post(JOBS + "/" + jobId + "/approve")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"reason\":\"Reviewed\"}"), 200);
+
+        jdbc.update("""
+                UPDATE platform_evidence_assets
+                SET storage_key = 'missing-evidence/publish-failure'
+                WHERE job_id = ? AND type = 'PHOTO'
+                """, jobId);
+
+        JsonNode error = call(adminA, post(JOBS + "/" + jobId + "/publish")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"pdfDownloadEnabled\":false}"), 500);
+        assertThat(error.get("code").asText()).isEqualTo("EVIDENCE_PUBLICATION_FAILED");
+
+        // A publish that cannot store its evidence must not be committable. The
+        // link, job status, history, and audit writes already executed inside the
+        // same transaction, so the transaction must be rollback-only from here on.
+        TransactionStatus status = transactionManager.getTransaction(
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_MANDATORY));
+        assertThat(status.isRollbackOnly())
+                .as("publish transaction must be rollback-only after evidence failure")
+                .isTrue();
+        assertThat(status.isNewTransaction()).isFalse();
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_evidence_assets
+                WHERE job_id = ? AND normalized_key IS NOT NULL
+                """, Integer.class, jobId)).isZero();
+    }
+
+    @Test
+    void storageFailureDuringEvidencePublicationIsSurfaced() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+        seedEvidence(jobId, seed.itemCodeA(), seed.itemVersionA(), "PHOTO", 1,
+                "missing-evidence/does-not-exist");
+
+        assertThatThrownBy(() -> evidencePublication.prepare(jobId))
+                .isInstanceOf(ApiException.class)
+                .hasMessageContaining("Could not publish evidence");
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_evidence_assets
+                WHERE job_id = ? AND normalized_key IS NOT NULL
+                """, Integer.class, jobId)).isZero();
     }
 
     @Test
@@ -358,10 +576,9 @@ class TechnicianPhase3IT extends IntegrationTestBase {
 
         String blockedJob = createJob(adminA, seed);
         JsonNode problem = call(techA, post(TECH + "/jobs/" + blockedJob + "/complete")
-                .contentType(MediaType.APPLICATION_JSON).header("Accept-Language", "ar")
+                .contentType(MediaType.APPLICATION_JSON).header("Accept-Language", "es")
                 .content("{}"), 422);
         assertThat(problem.get("code").asText()).isEqualTo("COMPLETION_BLOCKED");
-        assertThat(problem.has("messageAr")).isFalse();
 
         JsonNode englishNotFound = call(techA, get(TECH + "/jobs/" + UUID.randomUUID())
                 .header("Accept-Language", "en"), 404);
@@ -449,19 +666,19 @@ class TechnicianPhase3IT extends IntegrationTestBase {
         insertEvidenceRule(versionA, "DEFECT_FOUND", 2, 1, 0, null);
         insertEvidenceRule(versionB, "ATTENTION_RECOMMENDED", 1, 1, 10, "DOCUMENT");
 
-        String locSet = insertOptionSet("LOC-" + suffix, "Location", "الموقع");
-        insertOptionValue(locSet, "FRONT_LEFT", "Front Left", "أمامي أيسر", 1);
-        insertOptionValue(locSet, "FRONT_RIGHT", "Front Right", "أمامي أيمن", 2);
-        String compSet = insertOptionSet("COMP-" + suffix, "Component", "الجزء");
-        insertOptionValue(compSet, "PAD", "Brake Pad", "قماش الفرامل", 1);
-        String issueSet = insertOptionSet("ISSUE-" + suffix, "Issue Type", "نوع العطل");
-        insertOptionValue(issueSet, "WORN", "Worn", "متآكل", 1);
+        String locSet = insertOptionSet("LOC-" + suffix, "Location", "Test text");
+        insertOptionValue(locSet, "FRONT_LEFT", "Front Left", "Test text", 1);
+        insertOptionValue(locSet, "FRONT_RIGHT", "Front Right", "Test text", 2);
+        String compSet = insertOptionSet("COMP-" + suffix, "Component", "Test text");
+        insertOptionValue(compSet, "PAD", "Brake Pad", "Test text", 1);
+        String issueSet = insertOptionSet("ISSUE-" + suffix, "Issue Type", "Test text");
+        insertOptionValue(issueSet, "WORN", "Worn", "Test text", 1);
 
-        insertIssueField(versionB, "LOCATION", "Location", "الموقع", "SELECT", locSet,
+        insertIssueField(versionB, "LOCATION", "Location", "Test text", "SELECT", locSet,
                 true, null, null, null, 0, null, null, false, false, 1);
-        insertIssueField(versionB, "COMPONENT", "Component", "الجزء", "SELECT", compSet,
+        insertIssueField(versionB, "COMPONENT", "Component", "Test text", "SELECT", compSet,
                 true, null, null, null, 0, "LOCATION", "FRONT_LEFT", false, false, 2);
-        insertIssueField(versionB, "ISSUE_TYPE", "Issue Type", "نوع العطل", "SELECT",
+        insertIssueField(versionB, "ISSUE_TYPE", "Issue Type", "Test text", "SELECT",
                 issueSet, false, "[\"ATTENTION_RECOMMENDED\",\"DEFECT_FOUND\"]", null, null,
                 0, null, null, false, false, 3);
 
@@ -635,6 +852,11 @@ class TechnicianPhase3IT extends IntegrationTestBase {
 
     private void seedEvidence(String jobId, String itemCode, String itemVersionId, String type,
                               int count) {
+        seedEvidence(jobId, itemCode, itemVersionId, type, count, null);
+    }
+
+    private void seedEvidence(String jobId, String itemCode, String itemVersionId, String type,
+                              int count, String storageKey) {
         for (int i = 0; i < count; i++) {
             String sha = UUID.randomUUID().toString().replace("-", "")
                     + UUID.randomUUID().toString().replace("-", "");
@@ -655,7 +877,8 @@ class TechnicianPhase3IT extends IntegrationTestBase {
                             NULL, NULL, 'PASS', NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP,
                             CURRENT_TIMESTAMP, 0)
                     """, UuidV7.generate().toString(), jobId, itemVersionId, itemCode, type,
-                    "test-evidence/" + jobId + "/" + UuidV7.generate(), mime, sha,
+                    storageKey == null ? "test-evidence/" + jobId + "/" + UuidV7.generate()
+                            : storageKey, mime, sha,
                     "VIDEO".equals(type) ? 20000L : null);
         }
     }
@@ -762,6 +985,47 @@ class TechnicianPhase3IT extends IntegrationTestBase {
                 """.formatted(idempotencyKey, seed.itemCodeA(), baseVersion);
     }
 
+    private void assessAndUpload(Login login, String jobId, String itemCode, int seed,
+                                 String assessmentBody) throws Exception {
+        uploadEvidence(login, jobId, itemCode, "PHOTO", "image/jpeg", photoBytes(seed),
+                800, 600, null);
+        uploadEvidence(login, jobId, itemCode, "VIDEO", "video/mp4", bytes(1024, seed),
+                1280, 720, 20000L);
+        putAssessment(login, jobId, itemCode, assessmentBody, 200);
+    }
+
+    private JsonNode uploadEvidence(Login login, String jobId, String itemCode, String type,
+                                    String mime, byte[] bytes, Integer width, Integer height,
+                                    Long durationMs) throws Exception {
+        JsonNode asset = initEvidence(login, jobId, itemCode, type, mime, bytes, "FILE",
+                width, height, durationMs);
+        String evidenceId = asset.get("id").asText();
+        call(login, put(TECH + "/jobs/" + jobId + "/items/" + itemCode
+                + "/evidence/" + evidenceId + "/content")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(bytes), 200);
+        return call(login, post(TECH + "/jobs/" + jobId + "/items/" + itemCode
+                + "/evidence/" + evidenceId + "/complete")
+                .contentType(MediaType.APPLICATION_JSON).content("{}"), 200);
+    }
+
+    private static byte[] photoBytes(int seed) throws Exception {
+        BufferedImage image = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+        image.setRGB(0, 0, (seed * 104729) & 0xFFFFFF);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", out);
+        return out.toByteArray();
+    }
+
+    private static int count(String text, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(needle, index)) >= 0) {
+            count++;
+            index += needle.length();
+        }
+        return count;
+    }
+
     private JsonNode initEvidence(Login login, String jobId, String itemCode, String type,
                                   String mime, byte[] bytes, String source, Integer width,
                                   Integer height, Long durationMs) throws Exception {
@@ -781,6 +1045,15 @@ class TechnicianPhase3IT extends IntegrationTestBase {
                 width == null ? "" : ",\"width\":" + width,
                 height == null ? "" : ",\"height\":" + height,
                 durationMs == null ? "" : ",\"durationMs\":" + durationMs);
+    }
+
+    private static String evidenceSource(JsonNode evidence, String evidenceId) {
+        for (JsonNode row : evidence) {
+            if (evidenceId.equals(row.get("id").asText())) {
+                return row.get("captureSource").asText();
+            }
+        }
+        return null;
     }
 
     private JsonNode findItem(JsonNode checklist, String itemCode) {

@@ -1,41 +1,41 @@
 import 'package:core/core.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Maps a mutation/load failure to a distinct, honest sentence.
 ///
 /// Codes are matched before message text (inventory §6.1 rule 9). There is no
 /// dedicated ARB key for `APPROVER_IS_TECHNICIAN`, so it shares the reload copy
 /// it needs; the missing key is recorded in the J1a report.
-String jobErrorCopy(AppLocalizations l10n, Object error) {
+String jobErrorCopy(UiStrings t, Object error) {
   final code = _failureCode(error);
   final status = _failureStatus(error);
   if (status == 403 || code == 'FORBIDDEN') {
-    return l10n.jobsForbidden;
+    return t(WorkshopAdminKeys.jobsForbidden);
   }
   if (status == 404 || code == 'JOB_NOT_FOUND') {
-    return l10n.jobsNotFound;
+    return t(WorkshopAdminKeys.jobsNotFound);
   }
   switch (code) {
     case 'APPROVER_IS_TECHNICIAN':
-      return l10n.jobsApproverIsTechnician;
+      return t(WorkshopAdminKeys.jobsApproverIsTechnician);
     case 'JOB_NOT_ASSIGNABLE':
-      return l10n.jobsNotAssignable;
+      return t(WorkshopAdminKeys.jobsNotAssignable);
     case 'JOB_ALREADY_ASSIGNED':
-      return l10n.jobsAlreadyAssigned;
+      return t(WorkshopAdminKeys.jobsAlreadyAssigned);
     case 'JOB_NOT_CANCELLABLE':
-      return l10n.jobsNotCancellable;
+      return t(WorkshopAdminKeys.jobsNotCancellable);
     case 'JOB_ALREADY_CANCELLED':
-      return l10n.jobsAlreadyCancelled;
+      return t(WorkshopAdminKeys.jobsAlreadyCancelled);
     case 'JOB_NOT_EDITABLE':
-      return l10n.jobsNotEditable;
+      return t(WorkshopAdminKeys.jobsNotEditable);
     case 'JOB_VERSION_CONFLICT' || 'VERSION_CONFLICT':
-      return l10n.jobsConflictReload;
+      return t(WorkshopAdminKeys.jobsConflictReload);
     case 'CONSENT_REQUIRED' || 'JOB_NOT_APPROVED':
-      return l10n.jobsPublicationBlockedBody;
+      return t(WorkshopAdminKeys.jobsPublicationBlockedBody);
     case 'CANCEL_REASON_REQUIRED' || 'REJECT_REASON_REQUIRED':
-      return l10n.commonReasonRequired;
+      return t(WorkshopAdminKeys.commonReasonRequired);
     default:
-      return l10n.commonActionFailed;
+      return t(WorkshopAdminKeys.commonActionFailed);
   }
 }
 

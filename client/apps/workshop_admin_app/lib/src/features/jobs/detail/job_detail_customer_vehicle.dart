@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
@@ -14,10 +14,10 @@ class JobDetailCustomerVehicle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     final odometer = job.odometerValue == null
-        ? l10n.commonNotAvailable
+        ? t(WorkshopAdminKeys.commonNotAvailable)
         : '${formatNumber(context, job.odometerValue!)} '
                   '${job.odometerUnit ?? ''}'
               .trim();
@@ -26,7 +26,9 @@ class JobDetailCustomerVehicle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        WorkshopSectionHeader(title: l10n.jobDetailCustomerVehicle),
+        WorkshopSectionHeader(
+          title: t(WorkshopAdminKeys.jobDetailCustomerVehicle),
+        ),
         SizedBox(height: spacing.sm),
         WorkshopCard(
           child: JobFactGrid(
@@ -34,52 +36,67 @@ class JobDetailCustomerVehicle extends StatelessWidget {
             // 1024 (Gate 6 F11). Two columns fit from 360 px up.
             minColumns: 2,
             facts: [
-              JobFact(label: l10n.customerName, value: job.customerName),
               JobFact(
-                label: l10n.customerPhone,
-                value: job.customerPhone ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.customerName),
+                value: job.customerName,
+              ),
+              JobFact(
+                label: t(WorkshopAdminKeys.customerPhone),
+                value:
+                    job.customerPhone ??
+                    t(WorkshopAdminKeys.commonNotAvailable),
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.customerEmail,
-                value: job.customerEmail ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.customerEmail),
+                value:
+                    job.customerEmail ??
+                    t(WorkshopAdminKeys.commonNotAvailable),
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.vehicleYear,
-                value: job.vehicleYear?.toString() ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.vehicleYear),
+                value:
+                    job.vehicleYear?.toString() ??
+                    t(WorkshopAdminKeys.commonNotAvailable),
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.vehiclePlate,
-                value: job.vehiclePlate ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.vehiclePlate),
+                value:
+                    job.vehiclePlate ?? t(WorkshopAdminKeys.commonNotAvailable),
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.vehicleVin,
-                value: job.vehicleVin ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.vehicleVin),
+                value:
+                    job.vehicleVin ?? t(WorkshopAdminKeys.commonNotAvailable),
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.jobsFieldOdometer,
+                label: t(WorkshopAdminKeys.jobsFieldOdometer),
                 value: odometer,
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
-                label: l10n.jobsFieldTransmission,
-                value: job.transmission ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.jobsFieldTransmission),
+                value:
+                    job.transmission ?? t(WorkshopAdminKeys.commonNotAvailable),
               ),
               JobFact(
-                label: l10n.jobsFieldFuelType,
-                value: job.fuelType ?? l10n.commonNotAvailable,
+                label: t(WorkshopAdminKeys.jobsFieldFuelType),
+                value: job.fuelType ?? t(WorkshopAdminKeys.commonNotAvailable),
               ),
               if (preferred == 'en')
                 JobFact(
-                  label: l10n.jobsFieldPreferredLanguage,
-                  value: l10n.languageEnglish,
+                  label: t(WorkshopAdminKeys.jobsFieldPreferredLanguage),
+                  value: t(WorkshopAdminKeys.languageEnglish),
                 ),
               if (job.cancelReason != null)
-                JobFact(label: l10n.jobsCancelReason, value: job.cancelReason!),
+                JobFact(
+                  label: t(WorkshopAdminKeys.jobsCancelReason),
+                  value: job.cancelReason!,
+                ),
             ],
           ),
         ),

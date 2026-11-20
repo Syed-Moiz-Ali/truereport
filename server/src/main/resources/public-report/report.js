@@ -53,8 +53,8 @@ function openPartDialog(el) {
   if (titleEl) titleEl.textContent = title;
   if (catEl) catEl.textContent = cat;
 
-  var isFail = (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' || passFail.indexOf('FAIL') !== -1 || passFail.indexOf('فاشل') !== -1);
-  var isAttn = (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION' || passFail.indexOf('ATTENTION') !== -1 || passFail.indexOf('تنبيه') !== -1);
+  var isFail = (statusCode === 'DEFECT_FOUND' || statusCode === 'DEFECT' || passFail.indexOf('FAIL') !== -1);
+  var isAttn = (statusCode === 'ATTENTION_RECOMMENDED' || statusCode === 'ATTENTION' || passFail.indexOf('ATTENTION') !== -1);
 
   if (passFailBadgeEl) {
     if (isFail) {

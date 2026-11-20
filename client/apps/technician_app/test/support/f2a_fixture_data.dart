@@ -234,4 +234,3 @@ InspectionChecklist productChecklist() {
     total: 40,
   );
 }
-

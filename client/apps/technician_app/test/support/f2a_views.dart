@@ -1,7 +1,8 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart'
     hide EmptyJobsView;
 import 'package:technician_app/src/features/jobs/empty_jobs_view.dart';
@@ -14,7 +15,8 @@ import 'package:technician_app/src/features/inspection/exterior_wireframe_view.d
 import 'package:technician_app/src/features/jobs/job_intake_view.dart';
 
 import 'f2a_fixture_data.dart';
-import 'figma_l10n_override.dart';
+import 'ui_strings_harness.dart';
+import 'test_reference_overrides.dart';
 
 const f2aScreenIds = <String>[
   'login',
@@ -181,19 +183,23 @@ Widget f2aHost({
   double textScale = 1,
   bool figmaStrings = false,
 }) {
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    locale: locale,
-    supportedLocales: AppLocalizations.supportedLocales,
-    localizationsDelegates: figmaStrings
-        ? figmaLocalizationsDelegates
-        : AppLocalizations.localizationsDelegates,
-    theme: theme,
-    builder: (context, appChild) => MediaQuery(
-      data: MediaQuery.of(context)
-          .copyWith(textScaler: TextScaler.linear(textScale)),
-      child: appChild ?? const SizedBox.shrink(),
+  return ProviderScope(
+    overrides: testReferenceStatusOverrides(),
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: const <Locale>[Locale('en')],
+      localizationsDelegates: testLocalizationsDelegates,
+      theme: theme,
+      builder: (context, appChild) => UiStringsScope(
+        strings: figmaStrings ? figmaStringsBundle() : baseStrings(),
+        child: MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(textScale)),
+          child: appChild ?? const SizedBox.shrink(),
+        ),
+      ),
+      home: child,
     ),
-    home: child,
   );
 }

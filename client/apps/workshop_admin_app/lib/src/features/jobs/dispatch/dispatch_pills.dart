@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 
 /// The jobs module uses the same pill control language as templates: full
@@ -10,28 +12,25 @@ typedef JobPillButton = TemplatePillButton;
 typedef JobPillChip = TemplatePillChip;
 typedef JobPillVariant = TemplatePillVariant;
 
-/// Lifecycle badge for a clean job.
-class JobStatusPill extends StatelessWidget {
+/// Compact lifecycle pill used in table rows and page bars.
+///
+/// Label and tone come from `statusesProvider('job')`; no local status table.
+class JobStatusPill extends ConsumerWidget {
   const JobStatusPill({required this.status, super.key});
 
   final String status;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
-    final (Color bg, Color fg) = switch (status) {
-      'PUBLISHED' => (ws.successSoft, ws.success),
-      'APPROVED' => (ws.successSoft, ws.success),
-      'PENDING_REVIEW' => (ws.warningSoft, ws.warning),
-      'IN_PROGRESS' => (ws.accentSoft, ws.accent),
-      'ASSIGNED' => (ws.canvas, ws.ink),
-      'SCHEDULED' => (ws.canvas, ws.ink),
-      'CANCELLED' || 'REJECTED' => (ws.dangerSoft, ws.danger),
-      _ => (ws.canvas, ws.muted),
-    };
+    final records = ref.watch(statusesProvider('job')).value;
+    final text = referenceStatusText(records, status);
+    final (fg, bg) = workshopPillColors(
+      referenceStatusTone(records, status),
+      ws,
+    );
     return Semantics(
-      label: jobStatusLabel(l10n, status),
+      label: text,
       child: Container(
         height: 24,
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
@@ -48,30 +47,13 @@ class JobStatusPill extends StatelessWidget {
               decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
             ),
             const SizedBox(width: 6),
-            Text(
-              jobStatusLabel(l10n, status),
-              style: ws.eyebrow.copyWith(color: fg, fontSize: 10),
-            ),
+            Text(text, style: ws.eyebrow.copyWith(color: fg, fontSize: 10)),
           ],
         ),
       ),
     );
   }
 }
-
-String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
-  'DRAFT' => l10n.draft,
-  'SCHEDULED' => l10n.statusScheduled,
-  'ASSIGNED' => l10n.statusAssigned,
-  'IN_PROGRESS' => l10n.statusInProgress,
-  'PENDING_REVIEW' => l10n.jobsStatusPendingReview,
-  'APPROVED' => l10n.jobsStatusApproved,
-  'PUBLISHED' => l10n.jobsStatusPublished,
-  'REJECTED' => l10n.jobsStatusRejected,
-  'CANCELLED' => l10n.statusCancelled,
-  'FINALIZED' => l10n.statusFinalized,
-  _ => status,
-};
 
 /// The lifecycle as a pill rail: past stages tinted, current stage inked,
 /// later stages muted. Mirrors the server order, no invented stages.
@@ -80,7 +62,7 @@ String jobStatusLabel(AppLocalizations l10n, String status) => switch (status) {
 /// scrolling sideways, so the current stage can never sit off-screen. The
 /// connectors only exist in the single-row rail; a wrapped row would otherwise
 /// trail a line into empty space.
-class JobStageRail extends StatelessWidget {
+class JobStageRail extends ConsumerWidget {
   const JobStageRail({required this.status, super.key});
 
   final String status;
@@ -96,9 +78,9 @@ class JobStageRail extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final records = ref.watch(statusesProvider('job')).value;
     final current = stages.indexOf(status);
 
     Widget stage(int i) => Container(
@@ -115,7 +97,7 @@ class JobStageRail extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          jobStatusLabel(l10n, stages[i]),
+          referenceStatusText(records, stages[i]),
           style: ws.meta.copyWith(
             fontSize: 11.5,
             color: i < current

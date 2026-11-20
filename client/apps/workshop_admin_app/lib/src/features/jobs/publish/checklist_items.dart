@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -13,14 +13,14 @@ class ChecklistItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
-    final header = WorkshopSectionHeader(title: l10n.checklist);
+    final header = WorkshopSectionHeader(title: t(WorkshopAdminKeys.checklist));
     final body = items.isEmpty
         ? WorkshopCard(
             child: Text(
-              l10n.jobsChecklistNotReady,
+              t(WorkshopAdminKeys.jobsChecklistNotReady),
               style: ws.body.copyWith(color: ws.muted),
             ),
           )
@@ -55,7 +55,7 @@ class _ChecklistRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final spacing = context.spacing;
     return Padding(
@@ -66,8 +66,8 @@ class _ChecklistRow extends StatelessWidget {
           WorkshopStatusBadge(
             key: Key('jobs-checklist-${item.code}'),
             label: item.passed
-                ? l10n.jobsChecklistPassed
-                : l10n.jobsChecklistFailed,
+                ? t(WorkshopAdminKeys.jobsChecklistPassed)
+                : t(WorkshopAdminKeys.jobsChecklistFailed),
             tone: item.passed
                 ? WorkshopStatusTone.success
                 : WorkshopStatusTone.danger,

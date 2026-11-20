@@ -1,73 +1,45 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 import '../../platform_config_models.dart';
+import '../../platform_providers.dart';
+import '../../reference_status_lookup.dart';
 
-/// Mapping of known health check codes to strongly typed localization keys.
-const Map<String, UiMessageKey> _knownCheckTitleKeys = {
-  'TRANSLATIONS': PlatformAdminKeys.checklistHealthCheckTranslations,
-  'MEASUREMENT_BANDS': PlatformAdminKeys.checklistHealthCheckMeasurementBands,
-  'RETIRED_OPTIONS': PlatformAdminKeys.checklistHealthCheckRetiredOptions,
-  'SAFETY_EVIDENCE': PlatformAdminKeys.checklistHealthCheckSafetyEvidence,
-  'TEMPLATE_ITEMS': PlatformAdminKeys.checklistHealthCheckTemplateItems,
-  'NUMERIC_MEASUREMENTS':
-      PlatformAdminKeys.checklistHealthCheckNumericMeasurements,
-};
-
-/// Returns a human-friendly plain-language title for a health check.
+/// Served plain-language title for a health check (`labelKey`).
 ///
-/// Falls back to a localized generic title or humanized code if unknown.
+/// Falls back to the humanized code only when the backend key is absent or not
+/// in the active bundle. There is no client check-code table.
 String healthCheckTitle(UiMessageStrings strings, HealthCheck check) {
-  final normalized = check.code.trim().toUpperCase();
-  final key = _knownCheckTitleKeys[normalized];
-  if (key != null) {
-    return strings.tKey(key);
-  }
-  // If unknown, humanize the code rather than showing raw uppercase snake_case
-  final words = normalized.replaceAll(RegExp(r'[\s_-]+'), ' ').split(' ');
-  final humanized = words
-      .map((w) {
-        if (w.isEmpty) return '';
-        return w[0].toUpperCase() + w.substring(1).toLowerCase();
-      })
-      .join(' ');
+  final resolved = strings.resolveFlatKey(check.labelKey);
+  if (resolved != null && resolved.trim().isNotEmpty) return resolved;
+  final humanized = humanizeStatusCode(check.code);
   return humanized.isNotEmpty
       ? humanized
       : strings.tKey(PlatformAdminKeys.checklistHealthCheckGeneric);
 }
 
-/// Returns a localized display label for health check severity.
-///
-/// E.g.
-/// - OK / HEALTHY -> Healthy / سليم
-/// - WARNING -> Warning / تحذير
-/// - ERROR / UNHEALTHY -> Error / خطأ
-String healthSeverityLabel(
-  UiMessageStrings strings,
-  String severity, {
-  bool isOk = false,
-}) {
-  if (isOk) {
-    return strings.tKey(PlatformAdminKeys.checklistHealthSeverityBadgeHealthy);
-  }
-  final normalized = severity.trim().toUpperCase();
-  switch (normalized) {
-    case 'OK':
-    case 'HEALTHY':
-      return strings.tKey(
-        PlatformAdminKeys.checklistHealthSeverityBadgeHealthy,
-      );
-    case 'WARNING':
-      return strings.tKey(
-        PlatformAdminKeys.checklistHealthSeverityBadgeWarning,
-      );
-    case 'ERROR':
-    case 'UNHEALTHY':
-    default:
-      return strings.tKey(PlatformAdminKeys.checklistHealthSeverityBadgeError);
-  }
+/// Served description for a health check (`descriptionKey`); empty when absent.
+String healthCheckDescription(UiMessageStrings strings, HealthCheck check) {
+  final resolved = strings.resolveFlatKey(check.descriptionKey);
+  return resolved?.trim() ?? '';
 }
 
-/// Returns plain-language affected items count text (e.g. "3 affected" / "3 متأثر").
+/// Served label for a health check severity.
+///
+/// Uses `statusesProvider('health')` so severity vocabulary stays backend-owned.
+String healthSeverityLabel(WidgetRef ref, String severity) {
+  final strings = ref.watch(uiStringsProvider);
+  final record = referenceRecordForStatus(
+    ref.watch(statusesProvider('health')).value,
+    severity,
+  );
+  final label = referenceStatusLabelFrom(strings, record);
+  if (label != null) return label;
+  final humanized = humanizeStatusCode(severity);
+  return humanized.isNotEmpty ? humanized : severity;
+}
+
 /// Returns the single active-language health message.
 ///
 /// A backend `messageKey` wins when it resolves through the UI catalog.

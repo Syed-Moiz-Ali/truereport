@@ -259,7 +259,7 @@ class _StaffGroup extends StatelessWidget {
   }
 }
 
-class _StaffRow extends StatelessWidget {
+class _StaffRow extends ConsumerWidget {
   const _StaffRow({
     required this.strings,
     required this.account,
@@ -273,7 +273,7 @@ class _StaffRow extends StatelessWidget {
   final VoidCallback onToggle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isActive = account.status.toUpperCase() == 'ACTIVE';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 9),
@@ -334,7 +334,7 @@ class _StaffRow extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             AtlasPill(
-              label: workshopMemberStatusLabel(strings, account.status),
+              label: workshopMemberStatusLabel(ref, account.status),
               tone: workshopTone(account.status),
             ),
             const SizedBox(width: 6),

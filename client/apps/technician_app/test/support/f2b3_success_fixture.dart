@@ -44,12 +44,7 @@ class F2b3SuccessFixture extends StatelessWidget {
       height: height,
       child: ColoredBox(
         color: Fx.white,
-        child: Column(
-          children: [
-            _Container(),
-            SizedBox(height: 64),
-          ],
-        ),
+        child: Column(children: [_Container(), SizedBox(height: 64)]),
       ),
     );
   }
@@ -71,11 +66,7 @@ class _Container extends StatelessWidget {
         _M.gapLarge,
       ),
       child: const Column(
-        children: [
-          _ContextRow(),
-          _CoreMargin(),
-          _CtaMargin(),
-        ],
+        children: [_ContextRow(), _CoreMargin(), _CtaMargin()],
       ),
     );
   }
@@ -144,21 +135,14 @@ class _ContextRow extends StatelessWidget {
             ),
             decoration: const BoxDecoration(
               color: Fx.container,
-              borderRadius:
-                  BorderRadius.all(Radius.circular(Fx.pillRadius)),
+              borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
             ),
             child: Text(
               'Locked & Signed',
               maxLines: 1,
               softWrap: false,
               overflow: TextOverflow.clip,
-              style: Fx.text(
-                11,
-                14,
-                FontWeight.w600,
-                0.44,
-                color: Fx.muted,
-              ),
+              style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
             ),
           ),
         ],
@@ -263,11 +247,7 @@ class _BadgeMargin extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const FxIcon(
-              id: '1_8995',
-              size: 54.25,
-              color: Fx.emerald,
-            ),
+            child: const FxIcon(id: '1_8995', size: 54.25, color: Fx.emerald),
           ),
         ),
         // 1:8996 ripple: two stacked 16 emerald rects == one circle.
@@ -451,8 +431,7 @@ class _ChannelRow extends StatelessWidget {
             ),
             decoration: const BoxDecoration(
               color: Fx.container,
-              borderRadius:
-                  BorderRadius.all(Radius.circular(Fx.pillRadius)),
+              borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -587,13 +566,7 @@ class _MetaCell extends StatelessWidget {
               maxLines: 1,
               softWrap: false,
               overflow: TextOverflow.clip,
-              style: Fx.text(
-                11,
-                14,
-                FontWeight.w600,
-                0.44,
-                color: Fx.muted,
-              ),
+              style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.muted),
             ),
           ),
           const SizedBox(height: 2),
@@ -639,11 +612,7 @@ class _CtaMargin extends StatelessWidget {
           key: ValueKey('f2b3-cta'),
           label: F2bFigmaStrings.backToJobs,
           onPressed: _noop,
-          icon: FxIcon(
-            id: '1_9005',
-            size: 13.33,
-            color: Fx.white,
-          ),
+          icon: FxIcon(id: '1_9005', size: 13.33, color: Fx.white),
         ),
       ),
     );

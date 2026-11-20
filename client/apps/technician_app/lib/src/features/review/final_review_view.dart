@@ -2,7 +2,9 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/shared/technician_intl.dart';
 import 'package:technician_app/src/shared/technician_kit.dart';
@@ -13,7 +15,7 @@ import 'package:technician_app/src/ui_helpers.dart';
 /// Displays blocked items requiring mandatory resolution before client sign-off.
 /// In product mode, binds to real [ReviewResult] items, localized strings,
 /// and computed coverage metrics.
-class FinalReviewView extends StatelessWidget {
+class FinalReviewView extends ConsumerWidget {
   const FinalReviewView({
     required this.job,
     required this.review,
@@ -36,8 +38,10 @@ class FinalReviewView extends StatelessWidget {
   bool get _canContinue => review.ready && review.blocking.isEmpty && !busy;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final severityRecords = ref.watch(enumsProvider('severity')).value;
     final localeName = Localizations.localeOf(context).toString();
     final percent = review.total == 0
         ? 0
@@ -52,11 +56,17 @@ class FinalReviewView extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 40),
               children: [
-                _buildOverviewCard(context, l10n, localeName),
-                _buildAttentionBanner(l10n, localeName),
-                _buildMissingItemsStack(context, l10n, localeName),
-                _buildMetadataCard(l10n, localeName, percent),
-                _buildBottomAction(l10n),
+                _buildOverviewCard(context, t, localeName),
+                _buildAttentionBanner(t, localeName),
+                _buildMissingItemsStack(
+                  context,
+                  t,
+                  localeName,
+                  resultRecords,
+                  severityRecords,
+                ),
+                _buildMetadataCard(t, localeName, percent),
+                _buildBottomAction(t),
               ],
             ),
           ),
@@ -66,7 +76,7 @@ class FinalReviewView extends StatelessWidget {
             end: 0,
             child: F2bFocusFrame(
               borderRadius: BorderRadius.zero,
-              child: _buildHeader(context, l10n),
+              child: _buildHeader(context, t),
             ),
           ),
         ],
@@ -74,8 +84,10 @@ class FinalReviewView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
-    final title = job.templateName.isEmpty ? l10n.checklist : job.templateName;
+  Widget _buildHeader(BuildContext context, UiStrings t) {
+    final title = job.templateName.isEmpty
+        ? t(TechnicianKeys.checklist)
+        : job.templateName;
 
     return Container(
       key: const ValueKey('header'),
@@ -177,12 +189,12 @@ class FinalReviewView extends StatelessWidget {
 
   Widget _buildOverviewCard(
     BuildContext context,
-    AppLocalizations l10n,
+    UiStrings t,
     String localeName,
   ) {
     final issueCount = review.blocking.length;
     final pillText =
-        '${formatCountLocalized(issueCount, localeName)} ${l10n.missingItems}';
+        '${formatCountLocalized(issueCount, localeName)} ${t(TechnicianKeys.missingItems)}';
 
     return Container(
       key: const ValueKey('overview'),
@@ -199,7 +211,7 @@ class FinalReviewView extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    l10n.finalReviewStep,
+                    t(TechnicianKeys.finalReviewStep),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.text(
@@ -232,7 +244,7 @@ class FinalReviewView extends StatelessWidget {
           Padding(
             padding: const EdgeInsetsDirectional.only(top: 4),
             child: Text(
-              l10n.reviewAndFinalize,
+              t(TechnicianKeys.reviewAndFinalize),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Fx.display26.copyWith(color: Fx.ink, letterSpacing: -0.65),
@@ -240,7 +252,7 @@ class FinalReviewView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            l10n.finalizeIrreversible,
+            t(TechnicianKeys.finalizeIrreversible),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: Fx.body14.copyWith(color: Fx.muted, letterSpacing: -0.07),
@@ -251,10 +263,10 @@ class FinalReviewView extends StatelessWidget {
     );
   }
 
-  Widget _buildAttentionBanner(AppLocalizations l10n, String localeName) {
+  Widget _buildAttentionBanner(UiStrings t, String localeName) {
     final count = review.blocking.length;
     final title =
-        '${formatCountLocalized(count, localeName)} ${l10n.missingItems}';
+        '${formatCountLocalized(count, localeName)} ${t(TechnicianKeys.missingItems)}';
 
     return Container(
       constraints: const BoxConstraints(minHeight: 184),
@@ -302,7 +314,7 @@ class FinalReviewView extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        l10n.finalizeIrreversible,
+                        t(TechnicianKeys.finalizeIrreversible),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -337,7 +349,7 @@ class FinalReviewView extends StatelessWidget {
                                   end: 11.17,
                                 ),
                                 child: Text(
-                                  l10n.photoRequired,
+                                  t(TechnicianKeys.photoRequired),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: Fx.text(
@@ -389,10 +401,12 @@ class FinalReviewView extends StatelessWidget {
 
   Widget _buildMissingItemsStack(
     BuildContext context,
-    AppLocalizations l10n,
+    UiStrings t,
     String localeName,
+    Iterable<ReferenceRecord>? resultRecords,
+    Iterable<ReferenceRecord>? severityRecords,
   ) {
-    final items = _productItems(l10n);
+    final items = _productItems(t, resultRecords, severityRecords);
 
     return Container(
       constraints: const BoxConstraints(minHeight: 354),
@@ -410,7 +424,7 @@ class FinalReviewView extends StatelessWidget {
                   height: 16,
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
                   child: Text(
-                    l10n.missingItems.toUpperCase(),
+                    t(TechnicianKeys.missingItems).toUpperCase(),
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.clip,
@@ -622,11 +636,7 @@ class FinalReviewView extends StatelessWidget {
     );
   }
 
-  Widget _buildMetadataCard(
-    AppLocalizations l10n,
-    String localeName,
-    int percent,
-  ) {
+  Widget _buildMetadataCard(UiStrings t, String localeName, int percent) {
     return Container(
       constraints: const BoxConstraints(minHeight: 116),
       child: Column(
@@ -670,7 +680,7 @@ class FinalReviewView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${formatCountLocalized(review.completed, localeName)} ${l10n.completedItems}',
+                              '${formatCountLocalized(review.completed, localeName)} ${t(TechnicianKeys.completedItems)}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: Fx.text(
@@ -682,7 +692,7 @@ class FinalReviewView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${formatCountPairLocalized(review.completed, review.total, localeName)} ${l10n.coverage}',
+                              '${formatCountPairLocalized(review.completed, review.total, localeName)} ${t(TechnicianKeys.coverage)}',
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: Fx.text(
@@ -702,7 +712,7 @@ class FinalReviewView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 10.75),
                   child: Text(
-                    '${formatPercentLocalized(percent, localeName)}\n${l10n.coverage}',
+                    '${formatPercentLocalized(percent, localeName)}\n${t(TechnicianKeys.coverage)}',
                     maxLines: 2,
                     textAlign: TextAlign.end,
                     style: Fx.text(
@@ -723,7 +733,7 @@ class FinalReviewView extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomAction(AppLocalizations l10n) {
+  Widget _buildBottomAction(UiStrings t) {
     return Container(
       constraints: const BoxConstraints(minHeight: 112),
       child: Column(
@@ -762,7 +772,7 @@ class FinalReviewView extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          l10n.reviewAndFinalize,
+                          t(TechnicianKeys.reviewAndFinalize),
                           maxLines: 1,
                           overflow: TextOverflow.clip,
                           textAlign: TextAlign.center,
@@ -783,7 +793,7 @@ class FinalReviewView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            l10n.finalizeIrreversible,
+            t(TechnicianKeys.finalizeIrreversible),
             maxLines: 2,
             textAlign: TextAlign.center,
             style: Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
@@ -793,11 +803,15 @@ class FinalReviewView extends StatelessWidget {
     );
   }
 
-  List<_ReviewCardData> _productItems(AppLocalizations l10n) {
+  List<_ReviewCardData> _productItems(
+    UiStrings t,
+    Iterable<ReferenceRecord>? resultRecords,
+    Iterable<ReferenceRecord>? severityRecords,
+  ) {
     return review.blocking
         .map((issue) {
-          final title = _issueTitle(l10n, issue);
-          final detail = _issueDetail(l10n, issue);
+          final title = _issueTitle(t, issue);
+          final detail = _issueDetail(t, issue, resultRecords, severityRecords);
           final itemId = issue.inspectionItemId ?? '';
           final isBrake = itemId.contains('brake');
           final isTread = itemId.contains('tread');
@@ -808,7 +822,7 @@ class FinalReviewView extends StatelessWidget {
           var actionIconId = '1_8406';
           var actionIconSize = 18.33;
           var chevronId = '1_8408';
-          var chipLabel = l10n.missingItems;
+          var chipLabel = t(TechnicianKeys.missingItems);
           var chipBg = F2b.rosePale;
           var chipTextColor = Fx.dangerRed;
 
@@ -818,7 +832,7 @@ class FinalReviewView extends StatelessWidget {
             actionIconId = '1_8406';
             actionIconSize = 18.33;
             chevronId = '1_8408';
-            chipLabel = l10n.technicianVinChassis;
+            chipLabel = t(TechnicianKeys.technicianVinChassis);
             chipBg = Colors.transparent;
             chipTextColor = Fx.muted;
           } else if (isTread) {
@@ -827,7 +841,7 @@ class FinalReviewView extends StatelessWidget {
             actionIconId = '1_8425';
             actionIconSize = 16.67;
             chevronId = '1_8427';
-            chipLabel = l10n.technicianPerspectiveFront;
+            chipLabel = t(TechnicianKeys.technicianPerspectiveFront);
             chipBg = Colors.transparent;
             chipTextColor = Fx.muted;
           } else if (isSig) {
@@ -836,7 +850,7 @@ class FinalReviewView extends StatelessWidget {
             actionIconId = '1_8444';
             actionIconSize = 16.67;
             chevronId = '1_8446';
-            chipLabel = l10n.consentRequired;
+            chipLabel = t(TechnicianKeys.consentRequired);
             chipBg = F2b.rosePale;
             chipTextColor = Fx.dangerRed;
           }
@@ -905,32 +919,38 @@ class _ReviewCardData {
   final VoidCallback onTap;
 }
 
-String _requirementLabel(AppLocalizations l10n, String code) {
+String _requirementLabel(UiStrings t, String code) {
+  // gate-allow: behaviour - blocker code -> guidance copy, not a taxonomy label.
   switch (code) {
-    case 'ITEM_UNANSWERED':
-      return l10n.assessmentRequired;
-    case 'REASON_REQUIRED':
-      return l10n.reason;
-    case 'SEVERITY_REQUIRED':
-      return l10n.severity;
-    case 'NOTE_REQUIRED':
-      return l10n.note;
-    case 'EVIDENCE_REQUIRED':
-      return l10n.photoRequired;
+    case 'ITEM_UNANSWERED': // gate-allow: behaviour
+      return t(TechnicianKeys.assessmentRequired);
+    case 'REASON_REQUIRED': // gate-allow: behaviour
+      return t(TechnicianKeys.reason);
+    case 'SEVERITY_REQUIRED': // gate-allow: behaviour
+      return t(TechnicianKeys.severity);
+    case 'NOTE_REQUIRED': // gate-allow: behaviour
+      return t(TechnicianKeys.note);
+    case 'EVIDENCE_REQUIRED': // gate-allow: behaviour
+      return t(TechnicianKeys.photoRequired);
     default:
-      return l10n.missingItems;
+      return t(TechnicianKeys.missingItems);
   }
 }
 
-String _issueTitle(AppLocalizations l10n, ReviewIssue issue) {
+String _issueTitle(UiStrings t, ReviewIssue issue) {
   final label = issue.label?.trim() ?? '';
   if (label.isNotEmpty) return label;
-  return _requirementLabel(l10n, issue.code);
+  return _requirementLabel(t, issue.code);
 }
 
-String _issueDetail(AppLocalizations l10n, ReviewIssue issue) {
+String _issueDetail(
+  UiStrings t,
+  ReviewIssue issue,
+  Iterable<ReferenceRecord>? resultRecords,
+  Iterable<ReferenceRecord>? severityRecords,
+) {
   final detail = issue.detail?.trim() ?? '';
-  if (detail.isEmpty) return _requirementLabel(l10n, issue.code);
+  if (detail.isEmpty) return _requirementLabel(t, issue.code);
   const results = <String>{
     'NO_ISSUE_OBSERVED',
     'ATTENTION_RECOMMENDED',
@@ -940,7 +960,11 @@ String _issueDetail(AppLocalizations l10n, ReviewIssue issue) {
     'COULD_NOT_VERIFY',
   };
   const severities = <String>{'MINOR', 'MODERATE', 'MAJOR', 'SAFETY_CRITICAL'};
-  if (results.contains(detail)) return resultLabel(l10n, detail);
-  if (severities.contains(detail)) return severityLabel(l10n, detail);
-  return _requirementLabel(l10n, issue.code);
+  if (results.contains(detail)) {
+    return resultLabel(resultRecords, detail);
+  }
+  if (severities.contains(detail)) {
+    return severityLabel(severityRecords, detail);
+  }
+  return _requirementLabel(t, issue.code);
 }

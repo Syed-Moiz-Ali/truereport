@@ -107,14 +107,14 @@ List<AtlasSegment> _segments(
         status: status,
         label: labels[status]!,
         count: count?.call(status) ?? counts[status]!,
-        color: dashboardStatusTint(status, ws),
+        color: dashboardStatusTint(WorkshopStatusTone.accent, ws),
       ),
     if (count != null)
       AtlasSegment(
         status: '__other__',
         label: labels['__other__']!,
         count: count('__other__') ?? 0,
-        color: dashboardStatusTint('__other__', ws),
+        color: dashboardStatusTint(WorkshopStatusTone.neutral, ws),
         isRemainder: true,
       ),
   ];

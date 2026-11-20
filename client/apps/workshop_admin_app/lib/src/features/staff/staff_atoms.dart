@@ -1,8 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:l10n/l10n.dart';
-import 'package:workshop_admin_app/src/labels.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 
 /// One to two letter monogram in a squircle.
 ///
@@ -65,43 +66,38 @@ class StaffMonogram extends StatelessWidget {
   }
 }
 
-/// Staff are created with credentials here — there is no invitation flow — so
-/// the module names only two account states. Anything else falls back to a
-/// neutral "not started" instead of inventing an invitation stage.
-String staffStatusLabel(BuildContext context, String status) {
-  final l10n = AppLocalizations.of(context);
-  return switch (status) {
-    'ACTIVE' => l10n.filterActive,
-    'DISABLED' => l10n.disabled,
-    _ => l10n.notStarted,
-  };
+/// Served account state from the `workshop` status taxonomy.
+String staffStatusLabel(WidgetRef ref, String status) =>
+    referenceStatusText(ref.watch(statusesProvider('workshop')).value, status);
+
+/// Served role label from `enumsProvider('role')`.
+String staffRoleLabel(WidgetRef ref, String role) =>
+    referenceStatusText(ref.watch(enumsProvider('role')).value, role);
+
+Color staffStatusColor(WorkshopTokens ws, WorkshopStatusTone tone) {
+  final (fg, _) = workshopPillColors(tone, ws);
+  return fg;
 }
-
-String staffRoleLabel(BuildContext context, String role) =>
-    memberRoleLabel(AppLocalizations.of(context), role);
-
-Color staffStatusTone(WorkshopTokens ws, String status) => switch (status) {
-  'ACTIVE' => ws.success,
-  'DISABLED' => ws.danger,
-  _ => ws.muted,
-};
 
 /// Account state: dot + label, never colour alone.
 ///
 /// [pill] draws the same content in the 24 px pill the jobs and templates
 /// modules use for lifecycle state; set it off inside dense rows where a plain
 /// dot + label reads faster.
-class StaffStatusDot extends StatelessWidget {
+class StaffStatusDot extends ConsumerWidget {
   const StaffStatusDot({required this.status, this.pill = false, super.key});
 
   final String status;
   final bool pill;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final ws = context.ws;
-    final label = staffStatusLabel(context, status);
-    final color = staffStatusTone(ws, status);
+    final records = ref.watch(statusesProvider('workshop')).value;
+    final label = referenceStatusText(records, status);
+    final tone = referenceStatusTone(records, status);
+    final color = staffStatusColor(ws, tone);
+    final (_, background) = workshopPillColors(tone, ws);
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -132,11 +128,7 @@ class StaffStatusDot extends StatelessWidget {
         height: 24,
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: switch (status) {
-            'ACTIVE' => ws.successSoft,
-            'DISABLED' => ws.dangerSoft,
-            _ => ws.canvas,
-          },
+          color: background,
           borderRadius: BorderRadius.circular(ws.touchTarget),
         ),
         child: content,

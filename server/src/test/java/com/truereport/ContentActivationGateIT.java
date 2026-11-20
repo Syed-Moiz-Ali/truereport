@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Disabled("English-only product: bilingual translation gate is not applicable")
 class ContentActivationGateIT extends IntegrationTestBase {
 
-    private static final String LANGUAGE = "ar";
+    private static final String LANGUAGE = "es";
 
     @Autowired
     TranslationGate translationGate;
@@ -173,8 +173,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
 
         JsonNode unpublishedTranslation = putJson(platform,
                 "/api/v1/platform/i18n/translations", """
-                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"ar",
-                 "text":"ar-template","status":"DRAFT"}
+                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"es",
+                 "text":"es-template","status":"DRAFT"}
                 """.formatted(templateId));
         assertThat(unpublishedTranslation.get("contentStatus").asText())
                 .isEqualTo("DRAFT");
@@ -226,7 +226,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
                 .satisfies(error -> assertThat(((ApiException) error).code())
                         .isEqualTo("TRANSLATION_REQUIRED"));
 
-        approve(platform, "TEMPLATE", templateId, "name", "ar-template");
+        approve(platform, "TEMPLATE", templateId, "name", "es-template");
         approve(platform, "TEMPLATE", templateId, "description", "ar-description");
 
         templateService.publish(first, templateId, versionId);
@@ -241,8 +241,8 @@ class ContentActivationGateIT extends IntegrationTestBase {
 
         JsonNode publishedTranslation = putJson(platform,
                 "/api/v1/platform/i18n/translations", """
-                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"ar",
-                 "text":"ar-template","status":"APPROVED"}
+                {"entityType":"TEMPLATE","entityId":"%s","field":"name","language":"es",
+                 "text":"es-template","status":"APPROVED"}
                 """.formatted(templateId));
         assertThat(publishedTranslation.get("contentStatus").asText())
                 .isEqualTo("ACTIVE");
@@ -318,7 +318,7 @@ class ContentActivationGateIT extends IntegrationTestBase {
     private void approve(Login platform, String entityType, String entityId,
                          String field, String text) throws Exception {
         putJson(platform, "/api/v1/platform/i18n/translations", """
-                {"entityType":"%s","entityId":"%s","field":"%s","language":"ar",
+                {"entityType":"%s","entityId":"%s","field":"%s","language":"es",
                  "text":"%s","status":"APPROVED"}
                 """.formatted(entityType, entityId, field,
                 text.replace("\"", "\\\"")));

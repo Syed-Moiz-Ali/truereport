@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
 import 'package:workshop_admin_app/src/models.dart';
@@ -37,7 +37,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
   }
 
   Future<void> _submit() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -61,7 +61,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = l10n.actionFailed;
+          _error = t(WorkshopAdminKeys.actionFailed);
         });
       }
     }
@@ -69,7 +69,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
 
@@ -98,13 +98,13 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward
                             : Icons.arrow_back,
-                        semanticLabel: l10n.commonBack,
+                        semanticLabel: t(WorkshopAdminKeys.commonBack),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.newTemplate,
+                          t(WorkshopAdminKeys.newTemplate),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: ws.bodyStrong.copyWith(color: ws.ink),
@@ -130,7 +130,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                         children: [
                           const SizedBox(height: 16),
                           Text(
-                            l10n.newTemplate,
+                            t(WorkshopAdminKeys.newTemplate),
                             style: ws.pageTitle.copyWith(
                               fontSize: width < 520 ? 26 : 30,
                               letterSpacing: -0.6,
@@ -139,7 +139,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            l10n.templatesSubtitle,
+                            t(WorkshopAdminKeys.templatesSubtitle),
                             style: ws.meta.copyWith(color: ws.muted),
                           ),
                           const SizedBox(height: 22),
@@ -156,12 +156,12 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                                 WorkshopTextField(
                                   key: const Key('template-create-name'),
                                   controller: _name,
-                                  label: l10n.templateName,
-                                  hint: l10n.templateName,
+                                  label: t(WorkshopAdminKeys.templateName),
+                                  hint: t(WorkshopAdminKeys.templateName),
                                   textInputAction: TextInputAction.next,
                                   validator: (value) =>
                                       (value == null || value.trim().isEmpty)
-                                      ? l10n.requiredField
+                                      ? t(WorkshopAdminKeys.requiredField)
                                       : null,
                                 ),
                                 const SizedBox(height: 14),
@@ -169,13 +169,13 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                                   builder: (context, c) {
                                     final service = WorkshopTextField(
                                       controller: _serviceType,
-                                      label: l10n.serviceType,
-                                      hint: l10n.serviceType,
+                                      label: t(WorkshopAdminKeys.serviceType),
+                                      hint: t(WorkshopAdminKeys.serviceType),
                                     );
                                     final vehicle = WorkshopTextField(
                                       controller: _vehicleType,
-                                      label: l10n.vehicleType,
-                                      hint: l10n.vehicleType,
+                                      label: t(WorkshopAdminKeys.vehicleType),
+                                      hint: t(WorkshopAdminKeys.vehicleType),
                                     );
                                     if (c.maxWidth < 520) {
                                       return Column(
@@ -202,8 +202,12 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                                 const SizedBox(height: 14),
                                 WorkshopTextField(
                                   controller: _description,
-                                  label: l10n.templateDescription,
-                                  hint: l10n.templateDescription,
+                                  label: t(
+                                    WorkshopAdminKeys.templateDescription,
+                                  ),
+                                  hint: t(
+                                    WorkshopAdminKeys.templateDescription,
+                                  ),
                                   textInputAction: TextInputAction.done,
                                   onFieldSubmitted: (_) => _submit(),
                                 ),
@@ -241,7 +245,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TemplatePillButton(
-                        label: l10n.cancel,
+                        label: t(WorkshopAdminKeys.cancel),
                         variant: TemplatePillVariant.ghost,
                         onPressed: _busy
                             ? null
@@ -249,7 +253,7 @@ class _TemplateCreatePageState extends ConsumerState<TemplateCreatePage> {
                       ),
                       const SizedBox(width: 10),
                       TemplatePillButton(
-                        label: l10n.create,
+                        label: t(WorkshopAdminKeys.create),
                         icon: Icons.add,
                         loading: _busy,
                         onPressed: _busy ? null : _submit,

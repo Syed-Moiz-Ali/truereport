@@ -3,7 +3,6 @@ import 'package:auth/auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 String _str(dynamic value) => value == null ? '' : value.toString();
 
 int _int(dynamic value) {
@@ -351,7 +350,6 @@ class TranslationApi {
     );
     return TranslationItem.fromJson(_map(data));
   }
-
 }
 
 final translationApiProvider = Provider<TranslationApi>(

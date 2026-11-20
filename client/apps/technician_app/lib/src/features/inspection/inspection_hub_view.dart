@@ -2,12 +2,13 @@ import 'dart:ui' as ui;
 
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/features/jobs/assigned_jobs_view.dart';
-import 'package:technician_app/src/ui_helpers.dart';
+import 'package:technician_app/src/reference_ui.dart';
 
-class InspectionHubView extends StatelessWidget {
+class InspectionHubView extends ConsumerWidget {
   const InspectionHubView({
     required this.job,
     required this.checklist,
@@ -38,8 +39,8 @@ class InspectionHubView extends StatelessWidget {
   final ui.Image? vehicleImage;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final categories = _categories(checklist.items);
     final noIssue = _countResult(checklist.items, 'NO_ISSUE_OBSERVED');
     final attention = _countResult(checklist.items, 'ATTENTION_RECOMMENDED');
@@ -51,7 +52,7 @@ class InspectionHubView extends StatelessWidget {
     return AppScaffold(
       backgroundColor: Fx.white,
       appBar: FxHeader(
-        title: l10n.technicianInspectionHub,
+        title: t(TechnicianKeys.technicianInspectionHub),
         titleStyle: Fx.text(22, 28, FontWeight.w700, -0.55),
         horizontalPadding: _M.gutter,
         leading: Padding(
@@ -80,7 +81,8 @@ class InspectionHubView extends StatelessWidget {
             size: 32,
             onPressed: onProfile,
             semanticLabel:
-                job.assignedTechnicianName ?? l10n.technicianProfileTitle,
+                job.assignedTechnicianName ??
+                t(TechnicianKeys.technicianProfileTitle),
           ),
         ],
       ),
@@ -106,30 +108,30 @@ class InspectionHubView extends StatelessWidget {
         },
         items: [
           FxDockItem(
-            label: l10n.technicianJobsTitle,
+            label: t(TechnicianKeys.technicianJobsTitle),
             iconId: '1_7878',
-            semanticLabel: l10n.technicianJobsTitle,
+            semanticLabel: t(TechnicianKeys.technicianJobsTitle),
             iconWidth: 18.33,
             iconHeight: 20.17,
           ),
           FxDockItem(
-            label: l10n.statusFinalized,
+            label: t(TechnicianKeys.statusFinalized),
             iconId: '1_7883',
-            semanticLabel: l10n.statusFinalized,
+            semanticLabel: t(TechnicianKeys.statusFinalized),
             iconWidth: 16.5,
             iconHeight: 14.67,
           ),
           FxDockItem(
-            label: l10n.technicianSyncTitle,
+            label: t(TechnicianKeys.technicianSyncTitle),
             iconId: '1_7888',
-            semanticLabel: l10n.technicianSyncTitle,
+            semanticLabel: t(TechnicianKeys.technicianSyncTitle),
             iconWidth: 14.67,
             iconHeight: 14.67,
           ),
           FxDockItem(
-            label: l10n.technicianProfileTitle,
+            label: t(TechnicianKeys.technicianProfileTitle),
             iconId: '1_7893',
-            semanticLabel: l10n.technicianProfileTitle,
+            semanticLabel: t(TechnicianKeys.technicianProfileTitle),
             iconWidth: 18.2,
             iconHeight: 15.58,
           ),
@@ -155,10 +157,7 @@ class InspectionHubView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: FxPill(
-                        label: technicianStatusLabel(
-                          l10n,
-                          job.status,
-                        ).toUpperCase(),
+                        label: jobStatusLabel(ref, job.status).toUpperCase(),
                         background: Fx.container,
                         foreground: Fx.ink,
                         height: _M.statusPillHeight,
@@ -210,7 +209,7 @@ class InspectionHubView extends StatelessWidget {
                 padding: EdgeInsets.all(context.spacing.gutter),
                 radius: _M.cardRadius,
                 child: Text(
-                  l10n.noResults,
+                  t(TechnicianKeys.noResults),
                   style: Fx.body14.copyWith(color: Fx.muted),
                 ),
               )
@@ -236,10 +235,12 @@ class InspectionHubView extends StatelessWidget {
                               child: FxCoverageRing(
                                 done: checklist.completed,
                                 total: total,
-                                label: l10n.technicianChecksDoneLabel,
-                                semanticLabel: l10n.technicianCoverageSemantics(
-                                  checklist.completed,
-                                  total,
+                                label: t(
+                                  TechnicianKeys.technicianChecksDoneLabel,
+                                ),
+                                semanticLabel: t(
+                                  TechnicianKeys.technicianCoverageSemantics,
+                                  {'done': checklist.completed, 'total': total},
                                 ),
                               ),
                             ),
@@ -251,12 +252,14 @@ class InspectionHubView extends StatelessWidget {
                           children: [
                             Flexible(
                               child: FxPill(
-                                label: l10n.technicianNoIssueCount(noIssue),
+                                label: t(
+                                  TechnicianKeys.technicianNoIssueCount,
+                                  {'count': noIssue},
+                                ),
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
-                                padding:
-                                    const EdgeInsetsDirectional.symmetric(
+                                padding: const EdgeInsetsDirectional.symmetric(
                                   horizontal: 12,
                                   vertical: 6,
                                 ),
@@ -273,12 +276,14 @@ class InspectionHubView extends StatelessWidget {
                             const SizedBox(width: _M.g8),
                             Flexible(
                               child: FxPill(
-                                label: l10n.technicianAttentionCount(attention),
+                                label: t(
+                                  TechnicianKeys.technicianAttentionCount,
+                                  {'count': attention},
+                                ),
                                 background: Fx.container,
                                 foreground: Fx.ink,
                                 height: _M.statPillHeight,
-                                padding:
-                                    const EdgeInsetsDirectional.symmetric(
+                                padding: const EdgeInsetsDirectional.symmetric(
                                   horizontal: 12,
                                   vertical: 6,
                                 ),
@@ -302,9 +307,7 @@ class InspectionHubView extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: _M.vehicleBlock),
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  bottom: 24,
-                ),
+                padding: const EdgeInsetsDirectional.only(bottom: 24),
                 child: _VehicleStrip(
                   job: job,
                   image: vehicleImage,
@@ -324,7 +327,7 @@ class InspectionHubView extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          l10n.technicianInspectionModules,
+                          t(TechnicianKeys.technicianInspectionModules),
                           style: Fx.text(
                             16,
                             22,
@@ -335,7 +338,9 @@ class InspectionHubView extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        l10n.technicianCategoriesCount(categories.length),
+                        t(TechnicianKeys.technicianCategoriesCount, {
+                          'count': categories.length,
+                        }),
                         style: Fx.text(
                           12,
                           16,
@@ -357,8 +362,8 @@ class InspectionHubView extends StatelessWidget {
                 padding: EdgeInsetsDirectional.only(top: context.spacing.sm),
                 child: FxButton(
                   label: next == null
-                      ? l10n.technicianContinueChecklist
-                      : '${l10n.technicianContinueChecklist} · ${next.label}',
+                      ? t(TechnicianKeys.technicianContinueChecklist)
+                      : '${t(TechnicianKeys.technicianContinueChecklist)} · ${next.label}',
                   onPressed: onContinue,
                   icon: const FxIcon(
                     id: '1_7861',
@@ -493,19 +498,20 @@ class _ModuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final isFlexible = textScale > 1.05 ||
+    final isFlexible =
+        textScale > 1.05 ||
         Directionality.of(context) == TextDirection.rtl ||
         MediaQuery.sizeOf(context).width < 380;
 
     final done = category.total > 0 && category.done >= category.total;
     final inProgress = category.done > 0 && !done;
     final state = done
-        ? l10n.technicianModuleDone
+        ? t(TechnicianKeys.technicianModuleDone)
         : inProgress
-            ? l10n.technicianModuleInProgress
-            : l10n.technicianModuleNotStarted;
+        ? t(TechnicianKeys.technicianModuleInProgress)
+        : t(TechnicianKeys.technicianModuleNotStarted);
 
     final (iconW, iconH) = _iconDimensionsForCategory(category.label);
     final iconColor = (done || inProgress) ? Fx.ink : Fx.muted;
@@ -536,7 +542,13 @@ class _ModuleCard extends StatelessWidget {
                   decoration: const BoxDecoration(
                     color: Fx.emerald,
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Color(0x4710B981), offset: Offset(0, 8), blurRadius: 24)],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x4710B981),
+                        offset: Offset(0, 8),
+                        blurRadius: 24,
+                      ),
+                    ],
                   ),
                   child: const Center(
                     child: FxIcon(
@@ -596,13 +608,18 @@ class _ModuleCard extends StatelessWidget {
             ),
             const SizedBox(height: _M.g4),
             ConstrainedBox(
-              constraints: BoxConstraints(minHeight: done ? 14 : _M.moduleFooter),
+              constraints: BoxConstraints(
+                minHeight: done ? 14 : _M.moduleFooter,
+              ),
               child: Row(
                 children: [
                   if (done) ...[
                     Expanded(
                       child: Text(
-                        l10n.technicianChecksCount(category.done, category.total),
+                        t(TechnicianKeys.technicianChecksCount, {
+                          'done': category.done,
+                          'total': category.total,
+                        }),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -618,7 +635,7 @@ class _ModuleCard extends StatelessWidget {
                   ] else if (inProgress) ...[
                     Expanded(
                       child: Text(
-                        l10n.technicianModuleInProgress,
+                        t(TechnicianKeys.technicianModuleInProgress),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -634,7 +651,10 @@ class _ModuleCard extends StatelessWidget {
                   ] else ...[
                     Expanded(
                       child: Text(
-                        l10n.technicianChecksCount(category.done, category.total),
+                        t(TechnicianKeys.technicianChecksCount, {
+                          'done': category.done,
+                          'total': category.total,
+                        }),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Fx.text(
@@ -647,7 +667,7 @@ class _ModuleCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      l10n.technicianModuleNotStarted,
+                      t(TechnicianKeys.technicianModuleNotStarted),
                       style: Fx.text(
                         11,
                         14,
@@ -676,10 +696,7 @@ class _ModuleCard extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: _M.moduleInner),
               child: cardContent,
             )
-          : SizedBox(
-              height: _M.moduleInner,
-              child: cardContent,
-            ),
+          : SizedBox(height: _M.moduleInner, child: cardContent),
     );
   }
 }
@@ -722,7 +739,7 @@ class _VehicleStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final odometer = formatOdometer(job.odometerValue, job.odometerUnit);
     final title = '${job.vehicleMake} ${job.vehicleModel}'.trim();
     final subtitle = [
@@ -764,7 +781,9 @@ class _VehicleStrip extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      title.isEmpty ? l10n.technicianUnknownVehicle : title,
+                      title.isEmpty
+                          ? t(TechnicianKeys.technicianUnknownVehicle)
+                          : title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Fx.title16.copyWith(color: Fx.ink),

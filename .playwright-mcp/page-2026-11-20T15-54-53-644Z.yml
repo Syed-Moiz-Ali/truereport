@@ -1,0 +1,66 @@
+- generic [active] [ref=f3e4]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "Back" [ref=f3e5]
+          - generic [ref=f3e6]: C-55017
+          - generic [ref=f3e7]: Lexus LX 600 2024
+          - generic [ref=f3e8]: 0 / 30 items assessed 0/30
+          - generic:
+            - group:
+              - generic [ref=f3e10]:
+                - textbox "Score override Score" [disabled] [ref=f3e11]
+                - generic [ref=f3e12]:
+                  - textbox [ref=f3e13]
+                  - generic [ref=f3e14]: Allowed range 85–100
+              - group "Issue details Choose from the configured options. Issue Type * Location * Severity *":
+                - button "Worn Worn" [ref=f3e16]
+                - button "Cracked Cracked" [ref=f3e17]
+                - button "Leaking Leaking" [ref=f3e18]
+                - button "Bent Bent" [ref=f3e19]
+                - button "Loose Loose" [ref=f3e20]
+                - button "Corroded Corroded" [ref=f3e21]
+                - button "Missing Missing" [ref=f3e22]
+                - button "Noisy Noisy" [ref=f3e23]
+                - button "Contaminated Contaminated" [ref=f3e24]
+                - button "Damaged Damaged" [ref=f3e25]
+                - button "Seized Seized" [ref=f3e26]
+                - button "Misaligned Misaligned" [ref=f3e27]
+                - button "Worn out Worn out" [ref=f3e28]
+                - button "Active DTC Active DTC" [ref=f3e29]
+                - button "Historical DTC Historical DTC" [ref=f3e30]
+                - button "No fault No fault" [ref=f3e31]
+                - button "Live Set 1794471507926 Live Set 1794471507926" [ref=f3e32]
+                - button "Front Left Front Left" [ref=f3e33]
+                - button "Front Right Front Right" [ref=f3e34]
+                - button "Rear Left Rear Left" [ref=f3e35]
+                - button "Rear Right Rear Right" [ref=f3e36]
+                - button "Front Front" [ref=f3e37]
+                - button "Rear Rear" [ref=f3e38]
+                - button "Left Left" [ref=f3e39]
+                - button "Right Right" [ref=f3e40]
+                - button "Underbody Underbody" [ref=f3e41]
+                - button "Engine Bay Engine Bay" [ref=f3e42]
+                - button "Cabin Cabin" [ref=f3e43]
+                - button "Exterior Exterior" [ref=f3e44]
+                - button "Wheel Arch Wheel Arch" [ref=f3e45]
+                - button "Minor Minor" [ref=f3e46]
+                - button "Moderate Moderate" [ref=f3e47]
+                - button "Major Major" [ref=f3e48]
+                - button "Safety critical Safety critical" [ref=f3e49]
+              - group "Evidence Evidence checklist More evidence is required for this result. This photo or video was already added. Photos":
+                - generic [ref=f3e51]: Failed
+                - generic [ref=f3e52]: 1 / 1 photos
+                - generic [ref=f3e53]: 0 / 1 videos
+                - button "Take photo":
+                  - button "Take photo" [ref=f3e54]
+                - button "Record video":
+                  - button "Record video" [ref=f3e55]
+                - button "Add document":
+                  - button "Add document" [ref=f3e56]
+                - generic [ref=f3e57]: Pending
+                - button "Delete evidence":
+                  - button [ref=f3e58]
+              - button "Save item" [disabled]:
+                - button "Save item" [disabled] [ref=f3e60]

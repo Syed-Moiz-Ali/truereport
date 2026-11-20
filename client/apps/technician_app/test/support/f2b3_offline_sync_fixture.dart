@@ -108,11 +108,7 @@ class _SubNav extends StatelessWidget {
                     boxShadow: Fx.cardShadow,
                   ),
                   alignment: Alignment.center,
-                  child: const FxIcon(
-                    id: '1_8640',
-                    size: 13.33,
-                    color: Fx.ink,
-                  ),
+                  child: const FxIcon(id: '1_8640', size: 13.33, color: Fx.ink),
                 ),
                 const SizedBox(width: 12),
                 // 1:8641 titles 181.57x60.
@@ -160,9 +156,7 @@ class _SubNav extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
             decoration: const BoxDecoration(
               color: Fx.surfaceHigh,
-              borderRadius: BorderRadius.all(
-                Radius.circular(Fx.pillRadius),
-              ),
+              borderRadius: BorderRadius.all(Radius.circular(Fx.pillRadius)),
               boxShadow: Fx.pillShadow,
             ),
             child: Row(
@@ -172,11 +166,7 @@ class _SubNav extends StatelessWidget {
                   width: 14.67,
                   height: 13.2,
                   child: Center(
-                    child: FxIcon(
-                      id: '1_8648',
-                      size: 14.67,
-                      color: Fx.muted,
-                    ),
+                    child: FxIcon(id: '1_8648', size: 14.67, color: Fx.muted),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -228,11 +218,7 @@ class _OfflineMargin extends StatelessWidget {
             // 1:8653 margin 12x14 pad top 2 → dot 12x12.
             const Padding(
               padding: EdgeInsets.only(top: 2),
-              child: SizedBox(
-                width: 12,
-                height: 12,
-                child: _OfflineDot(),
-              ),
+              child: SizedBox(width: 12, height: 12, child: _OfflineDot()),
             ),
             const SizedBox(width: 16),
             // 1:8657 content 282x132.19 gap 3.19.
@@ -242,15 +228,15 @@ class _OfflineMargin extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    SizedBox(
-                      width: 282,
-                      height: 44,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 200.66,
-                            height: 44,
+                  SizedBox(
+                    width: 282,
+                    height: 44,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 200.66,
+                          height: 44,
                           child: Padding(
                             padding: const EdgeInsets.only(right: 8.16),
                             child: Text(
@@ -366,11 +352,7 @@ class _StatsMargin extends StatelessWidget {
         height: 145.75,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _StatCardOne(),
-            SizedBox(width: 12),
-            _StatCardTwo(),
-          ],
+          children: [_StatCardOne(), SizedBox(width: 12), _StatCardTwo()],
         ),
       ),
     );
@@ -771,11 +753,7 @@ class _ActiveCard extends StatelessWidget {
                   child: Stack(
                     children: [
                       _Track(),
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: _Fill(),
-                      ),
+                      Positioned(left: 0, top: 0, child: _Fill()),
                     ],
                   ),
                 ),
@@ -1299,11 +1277,7 @@ class _RetryMargin extends StatelessWidget {
               key: const ValueKey('f2b3-retry'),
               label: 'Retry Sync Now',
               onPressed: () {},
-              icon: const FxIcon(
-                id: '1_8770',
-                size: 13.33,
-                color: Fx.white,
-              ),
+              icon: const FxIcon(id: '1_8770', size: 13.33, color: Fx.white),
               trailingIcon: false,
             ),
             const SizedBox(height: 12),
@@ -1402,11 +1376,7 @@ class _Header extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: const FxIcon(
-                    id: '1_8786',
-                    size: 12,
-                    color: Fx.white,
-                  ),
+                  child: const FxIcon(id: '1_8786', size: 12, color: Fx.white),
                 ),
               ],
             ),

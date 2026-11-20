@@ -7,7 +7,7 @@ import 'package:workshop_admin_app/src/features/dashboard/widgets/dashboard_stat
 /// A row after the page has translated it (labels, tone, verbs, callbacks).
 ///
 /// Keeping this dumb is deliberate: the group widget never sees a model, a
-/// provider or an `AppLocalizations`, so it can be gallery-tested in isolation.
+/// provider or an `UiStrings`, so it can be gallery-tested in isolation.
 @immutable
 class DashboardRowData {
   const DashboardRowData({

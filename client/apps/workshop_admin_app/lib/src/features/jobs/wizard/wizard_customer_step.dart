@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 /// Step 1: the customer the job is opened for. Phone is required; email is
 /// optional but must look like an address when present (validated on Next).
@@ -18,7 +18,7 @@ class WizardCustomerStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final spacing = context.spacing;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -27,8 +27,8 @@ class WizardCustomerStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-customer-name'),
           controller: name,
-          label: l10n.customerName,
-          hint: l10n.fullNameHint,
+          label: t(WorkshopAdminKeys.customerName),
+          hint: t(WorkshopAdminKeys.fullNameHint),
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.name],
@@ -38,8 +38,8 @@ class WizardCustomerStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-customer-phone'),
           controller: phone,
-          label: l10n.customerPhone,
-          hint: l10n.contactPhone,
+          label: t(WorkshopAdminKeys.customerPhone),
+          hint: t(WorkshopAdminKeys.contactPhone),
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.telephoneNumber],
@@ -49,8 +49,8 @@ class WizardCustomerStep extends StatelessWidget {
         WorkshopTextField(
           key: const Key('jobs-wizard-customer-email'),
           controller: email,
-          label: l10n.customerEmail,
-          hint: l10n.email,
+          label: t(WorkshopAdminKeys.customerEmail),
+          hint: t(WorkshopAdminKeys.email),
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],

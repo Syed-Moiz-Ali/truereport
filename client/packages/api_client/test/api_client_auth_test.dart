@@ -21,6 +21,7 @@ class _ScriptedAdapter implements HttpClientAdapter {
 
   final FutureOr<ResponseBody> Function(RequestOptions options) respond;
   final List<RequestOptions> requests = <RequestOptions>[];
+  final List<String?> authHeaders = <String?>[];
 
   @override
   Future<ResponseBody> fetch(
@@ -29,6 +30,7 @@ class _ScriptedAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
+    authHeaders.add(options.headers['Authorization'] as String?);
     return respond(options);
   }
 
@@ -101,8 +103,8 @@ void main() {
     expect((data as Map<String, dynamic>)['ok'], isTrue);
     expect(refreshes, 1);
     expect(adapter.requests.length, 2);
-    expect(adapter.requests[0].headers['Authorization'], 'Bearer stale-token');
-    expect(adapter.requests[1].headers['Authorization'], 'Bearer fresh-token');
+    expect(adapter.authHeaders[0], 'Bearer stale-token');
+    expect(adapter.authHeaders[1], 'Bearer fresh-token');
     expect(client.accessToken, 'fresh-token');
   });
 

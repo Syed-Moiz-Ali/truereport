@@ -1,11 +1,13 @@
-﻿import 'package:auth/auth.dart';
+import 'package:auth/auth.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 
 import '../../inspection_models.dart';
+import '../../reference_ui.dart';
 import '../../technician_providers.dart';
 import '../profile/profile_sheet.dart';
 import 'queue/jobs_queue_format.dart';
@@ -99,7 +101,9 @@ class _TechnicianJobsCleanPageState
   }
 
   Future<void> _openFilters() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
+    final statuses =
+        ref.read(statusesProvider('job')).value ?? const <ReferenceRecord>[];
     await showAppBottomSheet<void>(
       context,
       child: Padding(
@@ -108,44 +112,34 @@ class _TechnicianJobsCleanPageState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.technicianFilter, style: queueSection(context)),
+            Text(
+              t(TechnicianKeys.technicianFilter),
+              style: queueSection(context),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 QueueChip(
-                  label: l10n.filterAll,
+                  label: t(TechnicianKeys.filterAll),
                   selected: _status.isEmpty,
                   onPressed: () {
                     Navigator.of(context).pop();
                     _setStatus('');
                   },
                 ),
-                QueueChip(
-                  label: l10n.statusAssigned,
-                  selected: _status == 'ASSIGNED',
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _setStatus('ASSIGNED');
-                  },
-                ),
-                QueueChip(
-                  label: l10n.statusInProgress,
-                  selected: _status == 'IN_PROGRESS',
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _setStatus('IN_PROGRESS');
-                  },
-                ),
-                QueueChip(
-                  label: l10n.technicianReview,
-                  selected: _status == 'PENDING_REVIEW',
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _setStatus('PENDING_REVIEW');
-                  },
-                ),
+                for (final record in statuses.where(
+                  (value) => value.selectable,
+                ))
+                  QueueChip(
+                    label: referenceStatusCodeLabel(statuses, record.code),
+                    selected: _status == record.code,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _setStatus(record.code);
+                    },
+                  ),
               ],
             ),
           ],
@@ -156,15 +150,25 @@ class _TechnicianJobsCleanPageState
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final locale = Localizations.localeOf(context).toString();
+    ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
+      if (next.value == true && previous?.value != true) {
+        ref.read(syncServiceProvider).syncAll().then((_) {
+          ref.invalidate(syncQueueStatusProvider);
+          ref.invalidate(pendingOperationsProvider);
+          ref.invalidate(technicianJobPageProvider);
+        });
+      }
+    });
     final size = MediaQuery.sizeOf(context);
     final wide = size.width >= 760;
     final pageAsync = ref.watch(technicianJobPageProvider(_query));
     final sync = ref.watch(syncQueueStatusProvider).asData?.value;
+    ref.watch(statusesProvider('job'));
     final online = ref.watch(connectivityProvider).value ?? true;
     final session = ref.watch(authControllerProvider).value;
-    final name = session?.user.displayName ?? l10n.roleTechnician;
+    final name = session?.user.displayName ?? t(TechnicianKeys.roleTechnician);
     final waiting = (sync?.pending ?? 0) + (sync?.failed ?? 0);
     final conflicts = sync?.conflicts ?? 0;
     final today = queueTodayKey();
@@ -179,9 +183,9 @@ class _TechnicianJobsCleanPageState
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: TechnicianDock(
-            jobsLabel: l10n.technicianJobsTitle,
-            syncLabel: l10n.technicianSyncTitle,
-            profileLabel: l10n.technicianProfileTitle,
+            jobsLabel: t(TechnicianKeys.technicianJobsTitle),
+            syncLabel: t(TechnicianKeys.technicianSyncTitle),
+            profileLabel: t(TechnicianKeys.technicianProfileTitle),
             selectedIndex: 0,
             onSelected: (index) {
               if (index == 1) {
@@ -202,8 +206,8 @@ class _TechnicianJobsCleanPageState
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 12, 8),
                 child: _TopBar(
-                  title: l10n.technicianJobQueue,
-                  subtitle: queueDayLabel(_selectedDay, l10n, locale),
+                  title: t(TechnicianKeys.technicianJobQueue),
+                  subtitle: queueDayLabel(_selectedDay, t, locale),
                   searchOpen: _searchOpen,
                   onSearch: _toggleSearch,
                   onProfile: () => showTechnicianProfile(context, ref),
@@ -221,7 +225,7 @@ class _TechnicianJobsCleanPageState
                   child: QueueSearchField(
                     controller: _search,
                     autofocus: true,
-                    hint: l10n.technicianJobSearchHint,
+                    hint: t(TechnicianKeys.technicianJobSearchHint),
                     onChanged: (_) => setState(() {}),
                     onClear: () {
                       _search.clear();
@@ -247,7 +251,7 @@ class _TechnicianJobsCleanPageState
                   const SizedBox(width: 8),
                   _FilterIcon(
                     active: _status.isNotEmpty,
-                    label: l10n.technicianFilter,
+                    label: t(TechnicianKeys.technicianFilter),
                     onPressed: _openFilters,
                   ),
                 ],
@@ -281,7 +285,7 @@ class _TechnicianJobsCleanPageState
                                 online: online,
                                 waiting: waiting,
                                 conflicts: conflicts,
-                                l10n: l10n,
+                                t: t,
                                 today: today,
                               ),
                             ),
@@ -297,7 +301,7 @@ class _TechnicianJobsCleanPageState
                     online: online,
                     waiting: waiting,
                     conflicts: conflicts,
-                    l10n: l10n,
+                    t: t,
                     today: today,
                   ),
           ),
@@ -313,7 +317,7 @@ class _TechnicianJobsCleanPageState
     required bool online,
     required int waiting,
     required int conflicts,
-    required AppLocalizations l10n,
+    required UiStrings t,
     required DateTime today,
   }) {
     return RefreshIndicator(
@@ -341,7 +345,7 @@ class _TechnicianJobsCleanPageState
                 if (!online) ...[
                   QueueNote(
                     icon: Icons.cloud_off_rounded,
-                    label: l10n.offlineBanner,
+                    label: t(TechnicianKeys.offlineBanner),
                     tone: StatusTone.warning,
                   ),
                   const SizedBox(height: 12),
@@ -365,9 +369,9 @@ class _TechnicianJobsCleanPageState
                         const QueueSkeleton(key: ValueKey('queue-loading')),
                     error: (error, _) => QueueErrorPanel(
                       key: const ValueKey('queue-error'),
-                      title: l10n.error,
-                      body: l10n.genericError,
-                      retryLabel: l10n.retryAction,
+                      title: t(TechnicianKeys.error),
+                      body: t(TechnicianKeys.genericError),
+                      retryLabel: t(TechnicianKeys.retryAction),
                       onRetry: () => _refresh(),
                     ),
                     data: (page) {
@@ -378,10 +382,10 @@ class _TechnicianJobsCleanPageState
                       if (page.items.isEmpty) {
                         return QueueEmptyPanel(
                           key: const ValueKey('queue-empty'),
-                          title: l10n.technicianAllCaughtUp,
-                          body: l10n.technicianJobListEmpty,
+                          title: t(TechnicianKeys.technicianAllCaughtUp),
+                          body: t(TechnicianKeys.technicianJobListEmpty),
                           action: QueueButton(
-                            label: l10n.technicianRefresh,
+                            label: t(TechnicianKeys.technicianRefresh),
                             variant: QueueButtonVariant.soft,
                             icon: Icons.refresh_rounded,
                             onPressed: _refresh,
@@ -392,10 +396,10 @@ class _TechnicianJobsCleanPageState
                         return QueueEmptyPanel(
                           key: const ValueKey('queue-no-results'),
                           showRoute: false,
-                          title: l10n.noResults,
-                          body: l10n.technicianNoSearchResults,
+                          title: t(TechnicianKeys.noResults),
+                          body: t(TechnicianKeys.technicianNoSearchResults),
                           action: QueueButton(
-                            label: l10n.technicianClear,
+                            label: t(TechnicianKeys.technicianClear),
                             variant: QueueButtonVariant.soft,
                             onPressed: () {
                               _search.clear();
@@ -411,8 +415,8 @@ class _TechnicianJobsCleanPageState
                             'queue-day-${_selectedDay.toIso8601String()}',
                           ),
                           showRoute: false,
-                          title: l10n.technicianNoJobsThisDay,
-                          body: l10n.technicianPickAnotherDay,
+                          title: t(TechnicianKeys.technicianNoJobsThisDay),
+                          body: t(TechnicianKeys.technicianPickAnotherDay),
                         );
                       }
                       return _Agenda(
@@ -421,7 +425,7 @@ class _TechnicianJobsCleanPageState
                           '${_status.isEmpty ? 'all' : _status}',
                         ),
                         jobs: jobs,
-                        l10n: l10n,
+                        t: t,
                         page: page,
                         onOpen: (job) => context.push('/jobs/${job.id}'),
                         onPage: _setPage,
@@ -550,13 +554,13 @@ class _TopBar extends StatelessWidget {
         const SizedBox(width: 8),
         _CircleIcon(
           icon: searchOpen ? Icons.close_rounded : Icons.search_rounded,
-          label: AppLocalizations.of(context).search,
+          label: UiStrings.of(context)(TechnicianKeys.search),
           onPressed: onSearch,
         ),
         const SizedBox(width: 6),
         Semantics(
           button: true,
-          label: AppLocalizations.of(context).technicianProfileTitle,
+          label: UiStrings.of(context)(TechnicianKeys.technicianProfileTitle),
           child: GestureDetector(
             onTap: onProfile,
             child: SizedBox(
@@ -701,7 +705,7 @@ class _FilterIcon extends StatelessWidget {
 class _Agenda extends StatelessWidget {
   const _Agenda({
     required this.jobs,
-    required this.l10n,
+    required this.t,
     required this.page,
     required this.onOpen,
     required this.onPage,
@@ -709,7 +713,7 @@ class _Agenda extends StatelessWidget {
   });
 
   final List<JobSummary> jobs;
-  final AppLocalizations l10n;
+  final UiStrings t;
   final JobSummaryPage page;
   final ValueChanged<JobSummary> onOpen;
   final ValueChanged<int> onPage;
@@ -731,7 +735,9 @@ class _Agenda extends StatelessWidget {
           Row(
             children: [
               Text(
-                l10n.technicianJobsCount(rest.length).toUpperCase(),
+                t(TechnicianKeys.technicianJobsCount, {
+                  'count': rest.length,
+                }).toUpperCase(),
                 style: queueEyebrow(context),
               ),
               const SizedBox(width: 10),
@@ -749,7 +755,7 @@ class _Agenda extends StatelessWidget {
           Padding(
             padding: const EdgeInsetsDirectional.only(top: 4),
             child: Text(
-              l10n.technicianQueueCurrent,
+              t(TechnicianKeys.technicianQueueCurrent),
               style: queueBody(context, color: context.colors.onSurfaceVariant),
             ),
           ),
@@ -801,7 +807,7 @@ class _SyncStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 10),
       decoration: BoxDecoration(
@@ -824,13 +830,15 @@ class _SyncStrip extends StatelessWidget {
           Expanded(
             child: Text(
               conflicts > 0
-                  ? l10n.technicianSyncConflictsCount(conflicts)
-                  : '${l10n.technicianSyncPending} $waiting',
+                  ? t(TechnicianKeys.technicianSyncConflictsCount, {
+                      'count': conflicts,
+                    })
+                  : '${t(TechnicianKeys.technicianSyncPending)} $waiting',
               style: queueMeta(context).copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           QueueButton(
-            label: l10n.syncNow,
+            label: t(TechnicianKeys.syncNow),
             variant: QueueButtonVariant.ghost,
             onPressed: onSync,
           ),
@@ -848,22 +856,25 @@ class _Pager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Row(
       children: [
         Text(
-          l10n.technicianPageOf(page.page + 1, page.totalPages),
+          t(TechnicianKeys.technicianPageOf, {
+            'page': page.page + 1,
+            'totalPages': page.totalPages,
+          }),
           style: queueMeta(context, color: context.colors.onSurfaceVariant),
         ),
         const Spacer(),
         QueueButton(
-          label: l10n.technicianPreviousPage,
+          label: t(TechnicianKeys.technicianPreviousPage),
           variant: QueueButtonVariant.ghost,
           onPressed: page.page <= 0 ? null : () => onPage(page.page - 1),
         ),
         const SizedBox(width: 8),
         QueueButton(
-          label: l10n.technicianNextPage,
+          label: t(TechnicianKeys.technicianNextPage),
           variant: QueueButtonVariant.soft,
           onPressed: page.page + 1 >= page.totalPages
               ? null

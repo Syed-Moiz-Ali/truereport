@@ -2,18 +2,44 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/clean_conflict_panel.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
+import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/technician_providers.dart';
-import 'package:technician_app/src/ui_helpers.dart';
 import 'package:uuid/uuid.dart';
 
 final technicianConflictsProvider = FutureProvider.autoDispose
     .family<List<SyncConflictRecord>, String>((ref, jobId) {
       return ref.watch(offlineStoreProvider).openConflicts(jobId: jobId);
     });
+
+/// Pure completion gate: a summary blocker or an open conflict always wins.
+@visibleForTesting
+bool technicianCanComplete({
+  required bool completing,
+  required List<Blocker> blockers,
+  required int conflicts,
+  required int itemsTotal,
+}) => !completing && blockers.isEmpty && conflicts == 0 && itemsTotal > 0;
+
+/// Where a blocker sends the technician. Kept pure so the gating contract is
+/// pinned without booting a router.
+@visibleForTesting
+String? technicianBlockerRoute(String jobId, Blocker blocker) {
+  if (blocker.code == 'SIGNATURE_MISSING') {
+    return '/jobs/$jobId/signature';
+  }
+  if (blocker.code == 'SYNC_CONFLICT') {
+    return '/sync';
+  }
+  final itemCode = blocker.itemCode;
+  if (itemCode == null || itemCode.isEmpty) {
+    return null;
+  }
+  return '/jobs/$jobId/items/${Uri.encodeComponent(itemCode)}';
+}
 
 /// The handover dossier: grade stamp, blockers and warnings, one sign-off bar.
 class TechnicianSummaryPage extends ConsumerStatefulWidget {
@@ -34,7 +60,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final summaryAsync = ref.watch(technicianSummaryProvider(widget.jobId));
     final reviewAsync = ref.watch(technicianReviewProvider(widget.jobId));
     final conflictsAsync = ref.watch(technicianConflictsProvider(widget.jobId));
@@ -42,7 +68,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
       backgroundColor: context.colors.surfaceContainerLow,
       body: Column(
         children: [
-          _SummaryBar(title: l10n.technicianSummaryTitle),
+          _SummaryBar(title: t(TechnicianKeys.technicianSummaryTitle)),
           Expanded(
             child: summaryAsync.when(
               loading: () => const Padding(
@@ -52,11 +78,11 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
               error: (error, _) => Padding(
                 padding: const EdgeInsetsDirectional.all(20),
                 child: ErrorState(
-                  title: l10n.error,
-                  body: l10n.genericError,
+                  title: t(TechnicianKeys.error),
+                  body: t(TechnicianKeys.genericError),
                   onRetry: () =>
                       ref.invalidate(technicianSummaryProvider(widget.jobId)),
-                  retryLabel: l10n.retryAction,
+                  retryLabel: t(TechnicianKeys.retryAction),
                 ),
               ),
               data: (summary) {
@@ -74,11 +100,12 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
                   review?.warnings ?? const [],
                   const [],
                 );
-                final canComplete =
-                    !_completing &&
-                    blockers.isEmpty &&
-                    conflicts.isEmpty &&
-                    summary.itemsTotal > 0;
+                final canComplete = technicianCanComplete(
+                  completing: _completing,
+                  blockers: blockers,
+                  conflicts: conflicts.length,
+                  itemsTotal: summary.itemsTotal,
+                );
                 return Column(
                   children: [
                     Expanded(
@@ -95,7 +122,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _ScoreHero(summary: summary, l10n: l10n),
+                                _ScoreHero(summary: summary, t: t),
                                 if (_error != null) ...[
                                   const SizedBox(height: 12),
                                   _Banner(
@@ -107,24 +134,31 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
                                   const SizedBox(height: 12),
                                   _Banner(
                                     message:
-                                        '${l10n.technicianSafetyCap}: '
+                                        '${t(TechnicianKeys.technicianSafetyCap)}: '
                                         '${summary.safetyCapReason ?? ''}',
                                     tone: StatusTone.warning,
                                   ),
                                 ],
                                 const SizedBox(height: 18),
                                 _IssueSection(
-                                  title: l10n.technicianBlockers,
+                                  title: t(TechnicianKeys.technicianBlockers),
                                   blockers: blockers,
-                                  emptyLabel: l10n.technicianNoIssues,
+                                  emptyLabel: t(
+                                    TechnicianKeys.technicianNoIssues,
+                                  ),
                                   tone: StatusTone.danger,
                                   emptyTone: StatusTone.success,
+                                  onOpen: _openBlocker,
                                 ),
                                 const SizedBox(height: 12),
                                 _IssueSection(
-                                  title: l10n.technicianWarningsTitle,
+                                  title: t(
+                                    TechnicianKeys.technicianWarningsTitle,
+                                  ),
                                   blockers: warnings,
-                                  emptyLabel: l10n.technicianNoIssues,
+                                  emptyLabel: t(
+                                    TechnicianKeys.technicianNoIssues,
+                                  ),
                                   tone: StatusTone.warning,
                                   emptyTone: StatusTone.success,
                                 ),
@@ -153,8 +187,10 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
                       ),
                     ),
                     _ActionBar(
-                      signatureLabel: l10n.technicianSignature,
-                      completeLabel: l10n.technicianCompleteInspection,
+                      signatureLabel: t(TechnicianKeys.technicianSignature),
+                      completeLabel: t(
+                        TechnicianKeys.technicianCompleteInspection,
+                      ),
                       completing: _completing,
                       canComplete: canComplete,
                       onSignature: _openSignature,
@@ -189,7 +225,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
   }
 
   Future<void> _reloadConflict(ConflictViewData conflict) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final id = conflict.id;
     if (id != null) {
       await ref.read(offlineStoreProvider).resolveConflict(id);
@@ -200,17 +236,46 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
     ref.invalidate(technicianReviewProvider(widget.jobId));
     if (mounted) {
       setState(() => _reloadedConflict = true);
-      showAppSnackBar(context, message: l10n.technicianConflictReloaded);
+      showAppSnackBar(
+        context,
+        message: t(TechnicianKeys.technicianConflictReloaded),
+      );
     }
   }
 
+  Future<void> _openBlocker(Blocker blocker) async {
+    final route = technicianBlockerRoute(widget.jobId, blocker);
+    if (route == null) {
+      return;
+    }
+    await context.push(route);
+    if (!mounted) {
+      return;
+    }
+    ref.invalidate(technicianSummaryProvider(widget.jobId));
+    ref.invalidate(technicianReviewProvider(widget.jobId));
+    ref.invalidate(technicianChecklistProvider(widget.jobId));
+  }
+
   Future<void> _complete() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() {
       _completing = true;
       _error = null;
     });
     try {
+      final fresh = await ref.read(technicianApiProvider).summary(widget.jobId);
+      if (!mounted) {
+        return;
+      }
+      if (fresh.blockers.isNotEmpty) {
+        setState(() {
+          _completing = false;
+          _completeBlockers = fresh.blockers;
+          _error = t(TechnicianKeys.technicianCompleteBlocked);
+        });
+        return;
+      }
       final result = await ref
           .read(technicianApiProvider)
           .completeJob(
@@ -227,7 +292,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
         setState(() {
           _completing = false;
           _completeBlockers = result.blockers;
-          _error = l10n.technicianConflictExists;
+          _error = t(TechnicianKeys.technicianCompleteBlocked);
         });
         return;
       }
@@ -237,13 +302,31 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
       ref.invalidate(technicianJobPageProvider);
       setState(() => _completing = false);
       context.go('/jobs/${widget.jobId}/completed');
-    } on Object {
+    } on Object catch (error) {
       if (!mounted) {
+        return;
+      }
+      final fields = ApiFieldError.fromFailure(error);
+      if (fields.isNotEmpty) {
+        setState(() {
+          _completing = false;
+          _completeBlockers = fields
+              .map(
+                (value) => Blocker(
+                  code: value.code,
+                  itemCode: value.field == value.code ? null : value.field,
+                  messageEn: value.messageEn,
+                  messageAr: value.messageAr,
+                ),
+              )
+              .toList(growable: false);
+          _error = t(TechnicianKeys.technicianCompleteBlocked);
+        });
         return;
       }
       setState(() {
         _completing = false;
-        _error = l10n.commonActionFailed;
+        _error = t(TechnicianKeys.commonActionFailed);
       });
     }
   }
@@ -296,16 +379,16 @@ class _SummaryBar extends StatelessWidget {
   }
 }
 
-class _ScoreHero extends StatelessWidget {
-  const _ScoreHero({required this.summary, required this.l10n});
+class _ScoreHero extends ConsumerWidget {
+  const _ScoreHero({required this.summary, required this.t});
 
   final Summary summary;
-  final AppLocalizations l10n;
+  final UiStrings t;
 
   @override
-  Widget build(BuildContext context) {
-    final score = summary.score?.toString() ?? l10n.notAvailable;
-    final grade = summary.gradeCode ?? l10n.notAvailable;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final score = summary.score?.toString() ?? t(TechnicianKeys.notAvailable);
+    final grade = summary.gradeCode ?? t(TechnicianKeys.notAvailable);
     return Container(
       padding: const EdgeInsetsDirectional.all(20),
       decoration: BoxDecoration(
@@ -321,7 +404,7 @@ class _ScoreHero extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      l10n.technicianDraftScore.toUpperCase(),
+                      t(TechnicianKeys.technicianDraftScore).toUpperCase(),
                       style: context.texts.labelSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.9,
@@ -346,14 +429,14 @@ class _ScoreHero extends StatelessWidget {
                             height: 6,
                             decoration: BoxDecoration(
                               color: context.statusColors
-                                  .forTone(technicianStatusTone(summary.status))
+                                  .forTone(jobStatusTone(ref, summary.status))
                                   .foreground,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            technicianStatusLabel(l10n, summary.status),
+                            jobStatusLabel(ref, summary.status),
                             style: context.texts.labelSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -377,10 +460,10 @@ class _ScoreHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  l10n.technicianItemsAssessed(
-                    summary.itemsAssessed,
-                    summary.itemsTotal,
-                  ),
+                  t(TechnicianKeys.technicianItemsAssessed, {
+                    'done': summary.itemsAssessed,
+                    'total': summary.itemsTotal,
+                  }),
                   style: context.texts.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.72),
                   ),
@@ -412,7 +495,7 @@ class _ScoreHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l10n.technicianGrade.toUpperCase(),
+                  t(TechnicianKeys.technicianGrade).toUpperCase(),
                   style: context.texts.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.7,
@@ -435,6 +518,7 @@ class _IssueSection extends StatelessWidget {
     required this.emptyLabel,
     required this.tone,
     required this.emptyTone,
+    this.onOpen,
   });
 
   final String title;
@@ -442,6 +526,7 @@ class _IssueSection extends StatelessWidget {
   final String emptyLabel;
   final StatusTone tone;
   final StatusTone emptyTone;
+  final ValueChanged<Blocker>? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -512,18 +597,38 @@ class _IssueSection extends StatelessWidget {
                 ),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.info_outline, size: 16, color: pair.foreground),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        blockers[index].messageFor(language),
-                        style: context.texts.bodyMedium,
-                      ),
+                child: InkWell(
+                  onTap: onOpen == null ? null : () => onOpen!(blockers[index]),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Semantics(
+                    button: onOpen != null,
+                    label: blockers[index].messageFor(language),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: pair.foreground,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            blockers[index].messageFor(language),
+                            style: context.texts.bodyMedium,
+                          ),
+                        ),
+                        if (onOpen != null) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 18,
+                            color: pair.foreground,
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],

@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_chrome.dart';
 import 'package:workshop_admin_app/src/features/jobs/notification_center.dart';
 
@@ -13,7 +13,7 @@ class WorkshopNotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     return Scaffold(
       backgroundColor: context.ws.canvas,
       body: SafeArea(
@@ -21,7 +21,7 @@ class WorkshopNotificationsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            JobTitleBar(title: l10n.jobsNotificationsTitle),
+            JobTitleBar(title: t(WorkshopAdminKeys.jobsNotificationsTitle)),
             const Expanded(child: NotificationCenterTab()),
           ],
         ),

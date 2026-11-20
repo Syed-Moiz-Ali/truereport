@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/templates/template_catalog_panel.dart';
@@ -65,7 +65,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final detail = ref.watch(templateDetailProvider(widget.templateId));
@@ -81,7 +81,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
           child: Column(
             children: [
               TemplateRouteTopBar(
-                title: l10n.templateBuilder,
+                title: t(WorkshopAdminKeys.templateBuilder),
                 template: null,
                 readOnly: true,
                 busy: false,
@@ -106,7 +106,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
           child: Column(
             children: [
               TemplateRouteTopBar(
-                title: l10n.templateBuilder,
+                title: t(WorkshopAdminKeys.templateBuilder),
                 template: null,
                 readOnly: true,
                 busy: false,
@@ -116,9 +116,9 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
                 child: SingleChildScrollView(
                   padding: ws.pagePadding(width),
                   child: WorkshopErrorState(
-                    title: l10n.error,
-                    body: l10n.genericError,
-                    retryLabel: l10n.retryAction,
+                    title: t(WorkshopAdminKeys.error),
+                    body: t(WorkshopAdminKeys.genericError),
+                    retryLabel: t(WorkshopAdminKeys.retryAction),
                     onRetry: () {
                       ref.invalidate(templateDetailProvider(widget.templateId));
                       ref.invalidate(workshopCategoriesProvider);
@@ -324,16 +324,16 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _saveDraftWithFeedback() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _busy = true);
     try {
       await _saveDraft();
       if (mounted) {
-        _notify(l10n.contentSaved);
+        _notify(t(WorkshopAdminKeys.contentSaved));
       }
     } on Object {
       if (mounted) {
-        _notify(l10n.actionFailed);
+        _notify(t(WorkshopAdminKeys.actionFailed));
       }
     } finally {
       if (mounted) {
@@ -368,7 +368,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _publish() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (!(_formKey.currentState?.validate() ?? true)) {
       setState(() => _step = 0);
       return;
@@ -381,11 +381,11 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       ref.invalidate(templatesProvider);
       _initialized = false;
       if (mounted) {
-        _notify(l10n.templatePublished);
+        _notify(t(WorkshopAdminKeys.templatePublished));
       }
     } on Object {
       if (mounted) {
-        _notify(l10n.actionFailed);
+        _notify(t(WorkshopAdminKeys.actionFailed));
       }
     } finally {
       if (mounted) {
@@ -395,7 +395,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _createDraft() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _busy = true);
     try {
       await ref.read(adminApiProvider).createTemplateDraft(widget.templateId);
@@ -403,7 +403,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       _initialized = false;
     } on Object {
       if (mounted) {
-        _notify(l10n.actionFailed);
+        _notify(t(WorkshopAdminKeys.actionFailed));
       }
     } finally {
       if (mounted) {
@@ -413,13 +413,13 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _retire() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
-      title: l10n.retire,
-      message: l10n.confirm,
-      confirmLabel: l10n.retire,
-      cancelLabel: l10n.cancel,
+      title: t(WorkshopAdminKeys.retire),
+      message: t(WorkshopAdminKeys.confirm),
+      confirmLabel: t(WorkshopAdminKeys.retire),
+      cancelLabel: t(WorkshopAdminKeys.cancel),
     );
     if (!confirmed || !mounted) {
       return;
@@ -435,7 +435,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       }
     } on Object {
       if (mounted) {
-        _notify(l10n.actionFailed);
+        _notify(t(WorkshopAdminKeys.actionFailed));
       }
     } finally {
       if (mounted) {
@@ -445,7 +445,7 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
   }
 
   Future<void> _preview() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     await showAppBottomSheet<void>(
       context,
@@ -453,10 +453,16 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(l10n.preview, style: ws.cardTitle.copyWith(color: ws.ink)),
+          Text(
+            t(WorkshopAdminKeys.preview),
+            style: ws.cardTitle.copyWith(color: ws.ink),
+          ),
           const SizedBox(height: 12),
           if (_selected.isEmpty)
-            Text(l10n.noItems, style: ws.body.copyWith(color: ws.muted))
+            Text(
+              t(WorkshopAdminKeys.noItems),
+              style: ws.body.copyWith(color: ws.muted),
+            )
           else
             for (var i = 0; i < _selected.length; i++)
               Padding(

@@ -1,15 +1,15 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/features/jobs/detail/job_detail_assignment.dart';
 import 'package:workshop_admin_app/src/features/jobs/detail/job_detail_customer_vehicle.dart';
 import 'package:workshop_admin_app/src/features/jobs/detail/job_detail_inspection.dart';
 import 'package:workshop_admin_app/src/features/jobs/detail/job_detail_review_publication.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_action_buttons.dart';
+import 'package:workshop_admin_app/src/features/jobs/shared/job_action_set.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/queue/jobs_queue_actions.dart';
-import 'package:workshop_admin_app/src/features/jobs/shared/job_actions.dart';
-import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -35,13 +35,11 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final jobAsync = ref.watch(cleanJobProvider(widget.jobId));
     final job = jobAsync.value;
-    final actions = job == null
-        ? null
-        : jobActionsFor(status: job.status, consentGranted: job.consentGranted);
+    final actions = job == null ? null : effectiveDetailActions(job);
     final queueActions = JobsQueueActions(
       context: context,
       ref: ref,
@@ -74,13 +72,14 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
                         icon: Directionality.of(context) == TextDirection.rtl
                             ? Icons.arrow_forward
                             : Icons.arrow_back,
-                        semanticLabel: l10n.commonBack,
+                        semanticLabel: t(WorkshopAdminKeys.commonBack),
                         onPressed: () => Navigator.of(context).maybePop(),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          job?.reference ?? l10n.jobsDetailTitle,
+                          job?.reference ??
+                              t(WorkshopAdminKeys.jobsDetailTitle),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: ws.bodyStrong.copyWith(color: ws.ink),
@@ -98,9 +97,9 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
                     const Center(child: WorkshopSkeleton(lines: 8, card: true)),
                 error: (error, _) => Center(
                   child: WorkshopErrorState(
-                    title: l10n.error,
-                    body: l10n.commonLoadFailed,
-                    retryLabel: l10n.retryAction,
+                    title: t(WorkshopAdminKeys.error),
+                    body: t(WorkshopAdminKeys.commonLoadFailed),
+                    retryLabel: t(WorkshopAdminKeys.retryAction),
                     onRetry: () => _refresh(),
                   ),
                 ),
@@ -117,9 +116,16 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
                           _identity(context, value),
                           const SizedBox(height: 18),
                           JobStageRail(status: value.status),
-                          if (actions != null) ...[
+                          if (actions != null && actions.isNotEmpty) ...[
                             const SizedBox(height: 14),
-                            _actionPills(value, actions, queueActions),
+                            JobActionButtons(
+                              actions: actions,
+                              consentGranted: value.consentGranted,
+                              onGrantConsent: () =>
+                                  queueActions.grantConsent(value),
+                              onAction: (action) =>
+                                  queueActions.onServerAction(value, action),
+                            ),
                           ],
                           const SizedBox(height: 16),
                           _body(context, value),
@@ -139,7 +145,7 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
 
   Widget _identity(BuildContext context, CleanJob job) {
     final ws = context.ws;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final vehicle = [
       job.vehicleMake,
       job.vehicleModel,
@@ -166,7 +172,7 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
             if ((job.vehiclePlate ?? '').isNotEmpty)
               Text(job.vehiclePlate!, style: ws.meta.copyWith(color: ws.ink)),
             Text(
-              job.assignedTechnicianName ?? l10n.unassigned,
+              job.assignedTechnicianName ?? t(WorkshopAdminKeys.unassigned),
               style: ws.meta.copyWith(color: ws.muted),
             ),
           ],
@@ -174,92 +180,6 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
       ],
     );
   }
-
-  Widget _actionPills(
-    CleanJob job,
-    JobActions actions,
-    JobsQueueActions queueActions,
-  ) {
-    final l10n = AppLocalizations.of(context);
-    final pills = <Widget>[];
-    // The record must never offer "open job": it would push itself again.
-    if (actions.hasPrimary && actions.primary != JobPrimaryAction.openJob) {
-      pills.add(
-        JobPillButton(
-          label: _primaryLabel(l10n, actions.primary),
-          icon: _primaryIcon(actions.primary),
-          onPressed: () => queueActions.onAction(job, actions.primary),
-        ),
-      );
-    }
-    if (actions.canAssign) {
-      pills.add(
-        JobPillButton(
-          label: l10n.jobsAssignTechnician,
-          icon: Icons.person_add_alt_1_outlined,
-          variant: JobPillVariant.outline,
-          onPressed: () => queueActions.assign(job),
-        ),
-      );
-    }
-    if (!job.consentGranted &&
-        job.status != 'CANCELLED' &&
-        job.status != 'PUBLISHED') {
-      pills.add(
-        JobPillButton(
-          label: l10n.consentGranted,
-          icon: Icons.verified_user_outlined,
-          variant: JobPillVariant.outline,
-          onPressed: () async {
-            try {
-              await ref
-                  .read(adminApiProvider)
-                  .updateJobConsent(
-                    job.id,
-                    consentGranted: true,
-                    version: job.version,
-                  );
-              _refresh();
-            } catch (_) {
-              if (mounted) {
-                setState(() => _banner = l10n.error);
-              }
-            }
-          },
-        ),
-      );
-    }
-    if (actions.canCancel) {
-      pills.add(
-        JobPillButton(
-          label: l10n.cancelJob,
-          variant: JobPillVariant.ghost,
-          onPressed: () => queueActions.cancel(job),
-        ),
-      );
-    }
-    if (pills.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Wrap(spacing: 10, runSpacing: 10, children: pills);
-  }
-
-  String _primaryLabel(AppLocalizations l10n, JobPrimaryAction primary) =>
-      switch (primary) {
-        JobPrimaryAction.assign => l10n.jobsAssignTechnician,
-        JobPrimaryAction.reviewApprove => l10n.jobsOpenReview,
-        JobPrimaryAction.publishChecklist => l10n.jobsOpenPublishChecklist,
-        JobPrimaryAction.publicLink => l10n.jobsViewPublicLink,
-        _ => l10n.jobsOpenJob,
-      };
-
-  IconData _primaryIcon(JobPrimaryAction primary) => switch (primary) {
-    JobPrimaryAction.assign => Icons.person_add_alt_1_outlined,
-    JobPrimaryAction.reviewApprove => Icons.rate_review_outlined,
-    JobPrimaryAction.publishChecklist => Icons.playlist_add_check,
-    JobPrimaryAction.publicLink => Icons.link,
-    _ => Icons.open_in_new,
-  };
 
   Widget _body(BuildContext context, CleanJob job) {
     final ws = context.ws;

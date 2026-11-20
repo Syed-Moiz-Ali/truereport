@@ -4,13 +4,17 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
+
+import 'support/ui_strings_harness.dart';
 
 Widget _wrap(Widget child, Locale locale) {
   return MaterialApp(
     locale: locale,
-    supportedLocales: AppLocalizations.supportedLocales,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: const <Locale>[Locale('en')],
+    localizationsDelegates: testLocalizationsDelegates,
+    builder: (context, child) =>
+        uiStringsScope(child: child ?? const SizedBox.shrink()),
     theme: buildAppTheme(),
     home: child,
   );
@@ -57,22 +61,26 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final l10n = AppLocalizations.of(
-        tester.element(find.byType(WorkshopLoginPage)),
-      );
+      final t = UiStrings.of(tester.element(find.byType(WorkshopLoginPage)));
       // The portal label appears exactly once on the door: the mark's
       // sub-label is suppressed at split widths because the accent eyebrow
       // already says it (printing both read as a mistake).
-      expect(find.text(l10n.signInPortalLabel.toUpperCase()), findsOneWidget);
+      expect(
+        find.text(t(WorkshopAdminKeys.signInPortalLabel).toUpperCase()),
+        findsOneWidget,
+      );
       // The committed signature is the labelled example job on the inspection
       // surface (docs/ui_brief.md, direction B). It replaced the old brand
       // line, which this test used to pin; the line is no longer rendered.
-      expect(find.text(l10n.signInExampleLabel.toUpperCase()), findsOneWidget);
+      expect(
+        find.text(t(WorkshopAdminKeys.signInExampleLabel).toUpperCase()),
+        findsOneWidget,
+      );
       // The photo hero replaced the ink inspection surface; the labelled
       // example job and its tick spine remain as the committed signature.
       expect(find.byType(WorkshopTickSpine), findsOneWidget);
-      expect(find.text(l10n.signInTitle), findsWidgets);
-      expect(find.text(l10n.signInHelp), findsOneWidget);
+      expect(find.text(t(WorkshopAdminKeys.signInTitle)), findsWidgets);
+      expect(find.text(t(WorkshopAdminKeys.signInHelp)), findsOneWidget);
       expect(find.byKey(const Key('sign-in-email')), findsOneWidget);
       expect(find.byKey(const Key('sign-in-password')), findsOneWidget);
       expect(find.byKey(const Key('sign-in-submit')), findsOneWidget);

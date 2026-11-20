@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "description": "Browser E2E harness for the TrueReport Flutter web apps and public report",
   "scripts": {
+    "gate:literals": "node tools/gate_no_literals.js",
+    "gate:taxonomy": "node tools/gate_no_status_switch.js",
+    "gate": "node tools/gate_all.js",
     "e2e:list": "playwright test --list",
     "e2e": "playwright test",
     "e2e:platform": "playwright test --project=platform-admin",

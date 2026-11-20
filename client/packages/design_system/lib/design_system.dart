@@ -1,4 +1,5 @@
 export 'src/components.dart';
+export 'src/components/reference_widgets.dart';
 export 'src/components/workshop_grid_painter.dart';
 export 'src/figma_spec.dart';
 export 'src/fonts.dart';

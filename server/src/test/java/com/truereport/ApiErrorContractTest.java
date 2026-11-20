@@ -127,14 +127,14 @@ class ApiErrorContractTest {
         assertThat(properties.get("messageKey")).isEqualTo("error.translation.required");
         assertThat(response.getBody().getDetail()).isNotBlank();
         assertThat(properties).containsKey("traceId");
-        assertThat(properties).doesNotContainKeys("messageEn", "messageAr");
+        assertThat(properties).doesNotContainKey("messageEn");
 
         @SuppressWarnings("unchecked")
         List<Map<String, String>> errors =
                 (List<Map<String, String>>) properties.get("errors");
         assertThat(errors).hasSize(1);
         assertThat(errors.get(0).get("messageKey")).isEqualTo("error.translation.required");
-        assertThat(errors.get(0)).doesNotContainKeys("messageEn", "messageAr");
+        assertThat(errors.get(0)).doesNotContainKey("messageEn");
     }
 
     @Test
@@ -152,11 +152,11 @@ class ApiErrorContractTest {
                 .isEqualTo("error.validation.failed");
         assertThat(response.getBody().getDetail()).isNotBlank();
         assertThat(response.getBody().getProperties())
-                .doesNotContainKeys("messageEn", "messageAr");
+                .doesNotContainKey("messageEn");
         @SuppressWarnings("unchecked")
         List<Map<String, String>> fields =
                 (List<Map<String, String>>) response.getBody().getProperties().get("fieldErrors");
-        assertThat(fields.get(0)).doesNotContainKeys("messageEn", "messageAr");
+        assertThat(fields.get(0)).doesNotContainKey("messageEn");
     }
 
     @Test
@@ -171,7 +171,7 @@ class ApiErrorContractTest {
         assertThat(properties.get("code")).isEqualTo("INVALID_CREDENTIALS");
         assertThat(properties.get("messageKey")).isEqualTo("error.auth.invalidCredentials");
         assertThat(response.getBody().getDetail()).isNotBlank();
-        assertThat(properties).doesNotContainKeys("messageEn", "messageAr");
+        assertThat(properties).doesNotContainKey("messageEn");
     }
 
     @Test
@@ -187,11 +187,11 @@ class ApiErrorContractTest {
                 exception, platformAdminClientRequest("/api/v1/auth/login"));
 
         assertThat(response.getBody().getProperties())
-                .doesNotContainKeys("messageEn", "messageAr");
+                .doesNotContainKey("messageEn");
         @SuppressWarnings("unchecked")
         List<Map<String, String>> fields =
                 (List<Map<String, String>>) response.getBody().getProperties().get("fieldErrors");
-        assertThat(fields.get(0)).doesNotContainKeys("messageEn", "messageAr");
+        assertThat(fields.get(0)).doesNotContainKey("messageEn");
     }
 
     @Test
@@ -204,7 +204,6 @@ class ApiErrorContractTest {
         ResponseEntity<ProblemDetail> response = handler.handleApi(exception, request);
 
         assertThat(response.getBody().getProperties())
-                .containsKey("messageEn")
-                .doesNotContainKey("messageAr");
+                .containsKey("messageEn");
     }
 }

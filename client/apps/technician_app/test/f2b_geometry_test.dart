@@ -156,11 +156,7 @@ void main() {
             box(20, 388, 183.17, 32),
             width: false,
           );
-          check(
-            'segmented',
-            find.byType(F2bSegmented),
-            box(20, 462, 350, 52),
-          );
+          check('segmented', find.byType(F2bSegmented), box(20, 462, 350, 52));
           check(
             'evidence tile 1',
             find.byType(F2bEvidenceTile).at(0),
@@ -213,11 +209,7 @@ void main() {
             find.byKey(const ValueKey('photo-annotation-draw')),
             box(40, 653.5, 95.33, 80),
           );
-          check(
-            'save',
-            find.byType(FxButton).last,
-            box(40, 753.5, 310, 56),
-          );
+          check('save', find.byType(FxButton).last, box(40, 753.5, 310, 56));
           checkStyle(
             'title',
             find.text('Damage Markup Studio'),
@@ -287,11 +279,7 @@ void main() {
             box(102, 154, 129.61, 24),
             width: false,
           );
-          check(
-            'cta',
-            find.byType(FxButton).last,
-            box(20, 1004, 350, 56),
-          );
+          check('cta', find.byType(FxButton).last, box(20, 1004, 350, 56));
           checkStyle(
             'zone style',
             find.text('INSPECTION ZONE 04'),
@@ -441,7 +429,11 @@ void main() {
             tracking: 0.35,
           );
         case 'offline-sync':
-          check('header', find.byKey(const ValueKey('header')), box(0, 0, 390, 64));
+          check(
+            'header',
+            find.byKey(const ValueKey('header')),
+            box(0, 0, 390, 64),
+          );
           check(
             'title',
             find.text('Sync Status'),

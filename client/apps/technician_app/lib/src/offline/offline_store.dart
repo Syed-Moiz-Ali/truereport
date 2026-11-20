@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:technician_app/src/inspection_models.dart';
-import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/offline/offline_database.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:uuid/uuid.dart';
@@ -95,6 +94,17 @@ class OfflineStore {
       'created_at INTEGER NOT NULL, '
       'updated_at INTEGER NOT NULL)',
     );
+    // Phase 6: the legacy routes are gone, so their queued work can never be
+    // replayed. Drop those entries and any orphaned legacy capture.
+    await db.customStatement(
+      "DELETE FROM sync_operations WHERE operation_type IN "
+      "('assessment','evidence','customer','vehicle','consent')",
+    );
+    await db.customStatement(
+      "DELETE FROM evidence_blobs WHERE state != 'RECEIVED' AND NOT EXISTS ("
+      "SELECT 1 FROM sync_operations WHERE sync_operations.id = "
+      "'evidence-' || evidence_blobs.evidence_id)",
+    );
   }
 
   Future<void> _ensureColumns(String table, Map<String, String> columns) async {
@@ -114,162 +124,66 @@ class OfflineStore {
 
   Future<void> close() => db.close();
 
-  Future<void> saveJobs(List<TechnicianJob> jobs) async {
-    await _put('jobs', jsonEncode(jobs.map((job) => job.toJson()).toList()));
+  // ------------------------------------------------------- clean API cache
+  //
+  // Caching the clean payload JSON is what lets a technician open a job and
+  // keep capturing with no connectivity.
+
+  Future<void> saveCleanChecklist(Checklist checklist) async {
+    await _put('clean_checklist:${checklist.job.id}', jsonEncode(checklist));
   }
 
-  Future<List<TechnicianJob>?> loadJobs() async {
-    final raw = await _get('jobs');
+  Future<Checklist?> loadCleanChecklist(String jobId) async {
+    final raw = await _get('clean_checklist:$jobId');
+    return raw == null
+        ? null
+        : Checklist.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  Future<void> saveCleanJobsPage(String key, JobSummaryPage page) async {
+    await _put('clean_jobs:$key', jsonEncode(page));
+  }
+
+  Future<JobSummaryPage?> loadCleanJobsPage(String key) async {
+    final raw = await _get('clean_jobs:$key');
+    return raw == null
+        ? null
+        : JobSummaryPage.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  Future<void> saveCleanEvidence(
+    String jobId,
+    String itemCode,
+    List<Evidence> evidence,
+  ) async {
+    await _put(
+      'clean_evidence:$jobId:$itemCode',
+      jsonEncode(evidence.map((value) => value.toJson()).toList()),
+    );
+  }
+
+  Future<List<Evidence>?> loadCleanEvidence(
+    String jobId,
+    String itemCode,
+  ) async {
+    final raw = await _get('clean_evidence:$jobId:$itemCode');
     if (raw == null) {
       return null;
     }
     final decoded = jsonDecode(raw) as List<dynamic>;
     return decoded
-        .map((item) => TechnicianJob.fromJson(item as Map<String, dynamic>))
+        .map((value) => Evidence.fromJson(value as Map<String, dynamic>))
         .toList(growable: false);
   }
 
-  Future<void> saveJob(TechnicianJob job) async {
-    await _put('job:${job.id}', jsonEncode(job.toJson()));
-  }
-
-  Future<TechnicianJob?> loadJob(String jobId) async {
-    final raw = await _get('job:$jobId');
-    return raw == null
-        ? null
-        : TechnicianJob.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-  }
-
-  Future<void> saveChecklist(InspectionChecklist checklist) async {
-    await _put('checklist:${checklist.job.id}', jsonEncode(checklist.toJson()));
-    await saveJob(checklist.job);
-  }
-
-  Future<InspectionChecklist?> loadChecklist(String jobId) async {
-    final raw = await _get('checklist:$jobId');
-    return raw == null
-        ? null
-        : InspectionChecklist.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-  }
-
-  Future<void> cacheGuideImage(
-    String jobId,
-    String itemId,
-    String contentType,
-    Uint8List bytes,
-  ) async {
+  /// Removes evidence that never reached the server.
+  Future<void> deleteLocalEvidence(String evidenceId) async {
     await _ensure();
     await db.customStatement(
-      'INSERT OR REPLACE INTO guide_blobs '
-      '(job_id, item_id, content_type, bytes) VALUES (?, ?, ?, ?)',
-      [jobId, itemId, contentType, bytes],
+      'DELETE FROM evidence_blobs WHERE evidence_id = ?',
+      [evidenceId],
     );
-  }
-
-  Future<({String contentType, Uint8List bytes})?> loadGuideImage(
-    String jobId,
-    String itemId,
-  ) async {
-    await _ensure();
-    final rows = await db
-        .customSelect(
-          'SELECT content_type, bytes FROM guide_blobs '
-          'WHERE job_id = ? AND item_id = ?',
-          variables: [Variable.withString(jobId), Variable.withString(itemId)],
-        )
-        .get();
-    if (rows.isEmpty) {
-      return null;
-    }
-    return (
-      contentType: rows.first.data['content_type'] as String,
-      bytes: _blob(rows.first.data['bytes']),
-    );
-  }
-
-  Future<void> saveAssessmentLocally({
-    required String jobId,
-    required String itemId,
-    required Map<String, dynamic> body,
-    required Map<String, dynamic> assessment,
-  }) async {
-    await _updateCachedItem(
-      jobId,
-      itemId,
-      assessment: assessment,
-      syncState: 'LOCAL_ONLY',
-    );
-    await _queue(
-      id: 'assessment-$jobId-$itemId',
-      jobId: jobId,
-      type: 'assessment',
-      payload: {'jobId': jobId, 'itemId': itemId, 'body': body},
-    );
-  }
-
-  Future<void> markAssessmentReceived({
-    required String jobId,
-    required String itemId,
-    required Map<String, dynamic> assessment,
-  }) async {
-    await _updateCachedItem(
-      jobId,
-      itemId,
-      assessment: assessment,
-      syncState: 'RECEIVED',
-    );
-    await removeOperation('assessment-$jobId-$itemId');
-  }
-
-  Future<void> markAssessmentConflict(String jobId, String itemId) async {
-    await _updateCachedItem(
-      jobId,
-      itemId,
-      assessment: null,
-      syncState: 'CONFLICT',
-    );
-  }
-
-  Future<void> saveCustomerLocally({
-    required String jobId,
-    required Map<String, dynamic> body,
-  }) async {
-    await _updateCachedJob(jobId, {
-      'customerName': body['customerName'],
-      'customerPhone': body['customerPhone'],
-      'customerEmail': body['customerEmail'],
-    });
-    await _queue(
-      id: 'customer-$jobId',
-      jobId: jobId,
-      type: 'customer',
-      payload: {'jobId': jobId, 'body': body},
-    );
-  }
-
-  Future<void> saveVehicleLocally({
-    required String jobId,
-    required Map<String, dynamic> body,
-  }) async {
-    await _updateCachedJob(jobId, body);
-    await _queue(
-      id: 'vehicle-$jobId',
-      jobId: jobId,
-      type: 'vehicle',
-      payload: {'jobId': jobId, 'body': body},
-    );
-  }
-
-  Future<void> saveConsentLocally({
-    required String jobId,
-    required Map<String, dynamic> body,
-  }) async {
-    await _queue(
-      id: 'consent-$jobId-${DateTime.now().microsecondsSinceEpoch}',
-      jobId: jobId,
-      type: 'consent',
-      payload: {'jobId': jobId, 'body': body},
-    );
+    await removeOperation('evidence-$evidenceId');
   }
 
   Future<LocalEvidence> queueEvidence({
@@ -287,6 +201,7 @@ class OfflineStore {
     String? deviceId,
     int? width,
     int? height,
+    String? capturedAt,
     bool clean = false,
   }) async {
     await _ensure();
@@ -338,7 +253,7 @@ class OfflineStore {
         'deviceId': deviceId,
         'width': width,
         'height': height,
-        'createdAt': now.toUtc().toIso8601String(),
+        'createdAt': capturedAt ?? now.toUtc().toIso8601String(),
       },
     );
     return LocalEvidence(
@@ -411,14 +326,6 @@ class OfflineStore {
       ['RECEIVED', evidenceId],
     );
     await removeOperation('evidence-$evidenceId');
-  }
-
-  Future<void> markEvidenceConflict(String evidenceId) async {
-    await _ensure();
-    await db.customStatement(
-      'UPDATE evidence_blobs SET state = ? WHERE evidence_id = ?',
-      ['CONFLICT', evidenceId],
-    );
   }
 
   Future<void> saveCleanAssessmentLocally({
@@ -543,31 +450,6 @@ class OfflineStore {
       assessment: null,
       syncState: 'CONFLICT',
     );
-  }
-
-  Future<Map<String, dynamic>?> loadDynamicAssessment(
-    String jobId,
-    String itemCode,
-  ) async {
-    await _ensure();
-    final rows = await db
-        .customSelect(
-          'SELECT data_json FROM dynamic_assessments '
-          'WHERE job_id = ? AND item_code = ?',
-          variables: [
-            Variable.withString(jobId),
-            Variable.withString(itemCode),
-          ],
-        )
-        .get();
-    if (rows.isEmpty) {
-      return null;
-    }
-    final raw = rows.first.data['data_json'] as String?;
-    if (raw == null || raw.isEmpty) {
-      return null;
-    }
-    return jsonDecode(raw) as Map<String, dynamic>;
   }
 
   Future<void> recordSyncConflict({
@@ -730,49 +612,13 @@ class OfflineStore {
     );
   }
 
-  Future<void> _updateCachedJob(
-    String jobId,
-    Map<String, dynamic> values,
-  ) async {
-    final raw = await _get('job:$jobId');
-    if (raw == null) {
-      return;
-    }
-    final job = jsonDecode(raw) as Map<String, dynamic>;
-    job.addAll(values);
-    await _put('job:$jobId', jsonEncode(job));
-  }
-
-  Future<void> _updateCachedItem(
-    String jobId,
-    String itemId, {
-    required Map<String, dynamic>? assessment,
-    required String syncState,
-  }) async {
-    final raw = await _get('checklist:$jobId');
-    if (raw == null) {
-      return;
-    }
-    final checklist = jsonDecode(raw) as Map<String, dynamic>;
-    final items = checklist['items'] as List<dynamic>? ?? <dynamic>[];
-    for (final value in items) {
-      final item = value as Map<String, dynamic>;
-      if (item['inspectionItemId'] == itemId) {
-        item['assessment'] = assessment;
-        item['syncState'] = syncState;
-        break;
-      }
-    }
-    await _put('checklist:$jobId', jsonEncode(checklist));
-  }
-
   Future<void> _updateCachedChecklistItem(
     String jobId,
     String itemCode, {
     required Map<String, dynamic>? assessment,
     required String syncState,
   }) async {
-    final raw = await _get('checklist:$jobId');
+    final raw = await _get('clean_checklist:$jobId');
     if (raw == null) {
       return;
     }
@@ -787,7 +633,7 @@ class OfflineStore {
         break;
       }
     }
-    await _put('checklist:$jobId', jsonEncode(checklist));
+    await _put('clean_checklist:$jobId', jsonEncode(checklist));
   }
 
   Future<void> _put(String key, String value) async {

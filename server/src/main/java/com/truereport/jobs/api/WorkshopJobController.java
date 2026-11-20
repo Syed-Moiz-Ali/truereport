@@ -17,6 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Read-only archive bridge for unmigrated {@code inspection_jobs} rows. The
+ * workshop archive screen still reads these records; every other workshop job
+ * path uses the clean platform job tables.
+ */
+// TODO(phase6): replaced once inspection_jobs rows are migrated or dropped.
 @RestController
 @RequestMapping("/api/v1/workshop/legacy/jobs")
 @PreAuthorize("hasRole('WORKSHOP_ADMIN')")

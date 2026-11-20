@@ -6,13 +6,15 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/dashboard/dashboard_tab.dart';
 import 'package:workshop_admin_app/src/features/home/workshop_admin_home.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_detail_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
+
+import 'support/ui_strings_harness.dart';
 
 /// Behaviour contract for the rebuilt dashboard (direction B "The floor").
 ///
@@ -145,8 +147,8 @@ void main() {
         container: container,
         child: MaterialApp(
           locale: locale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: const <Locale>[Locale('en')],
+          localizationsDelegates: testLocalizationsDelegates,
           theme: AppTheme.light,
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
@@ -172,14 +174,15 @@ void main() {
     await pumpHome(tester);
     expect(tester.takeException(), isNull);
 
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
 
     // The hero total comes from the counts endpoint.
     expect(find.text('24'), findsWidgets);
-    expect(find.text(l10n.dashFloorLabel), findsOneWidget);
-    expect(find.text(l10n.dashDecisionWaiting(4)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashFloorLabel)), findsOneWidget);
+    expect(
+      find.text(t(WorkshopAdminKeys.dashDecisionWaiting, {'count': 4})),
+      findsOneWidget,
+    );
 
     // All nine labelled buckets exist, each with its own count.
     for (final status in const [
@@ -200,7 +203,7 @@ void main() {
       );
     }
     // No remainder when the buckets already sum to the total.
-    expect(find.text(l10n.dashSegmentOther), findsNothing);
+    expect(find.text(t(WorkshopAdminKeys.dashSegmentOther)), findsNothing);
   });
 
   testWidgets('an unaccounted total renders an explicit Other tail', (
@@ -226,14 +229,12 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
     expect(
       find.byKey(const Key('dashboard-segment-__other__')),
       findsOneWidget,
     );
-    expect(find.text(l10n.dashSegmentOther), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashSegmentOther)), findsOneWidget);
     expect(find.text('26'), findsWidgets);
   });
 
@@ -253,12 +254,10 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
 
-    expect(find.text(l10n.commonLoadFailed), findsOneWidget);
-    expect(find.text(l10n.retryAction), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.commonLoadFailed)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.retryAction)), findsOneWidget);
     // No numeral and no atlas, because the counts endpoint failed.
     expect(find.text('24'), findsNothing);
     expect(find.byKey(const Key('dashboard-atlas')), findsNothing);
@@ -277,11 +276,9 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
     // The failing group shows a bounded error…
-    expect(find.text(l10n.commonLoadFailed), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.commonLoadFailed)), findsOneWidget);
     // …while the other two still list their rows.
     expect(find.text('Mercedes G 63'), findsOneWidget);
     expect(find.text('Porsche Macan'), findsOneWidget);
@@ -313,14 +310,12 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
-    expect(find.text(l10n.dashFloorEmpty), findsOneWidget);
-    expect(find.text(l10n.dashFloorEmptyBody), findsOneWidget);
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
+    expect(find.text(t(WorkshopAdminKeys.dashFloorEmpty)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashFloorEmptyBody)), findsOneWidget);
     expect(find.byKey(const Key('dashboard-atlas')), findsNothing);
     // One primary action, still available.
-    expect(find.text(l10n.newJob), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.newJob)), findsOneWidget);
   });
 
   // ---------------------------------------------------------------------------
@@ -339,13 +334,11 @@ void main() {
 
   testWidgets('the page exposes exactly one primary action', (tester) async {
     await pumpHome(tester);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
     // "New job" appears once on the page (the shell has its own account menu,
     // not a create action).
-    expect(find.text(l10n.newJob), findsOneWidget);
-    expect(find.text(l10n.dashReviewVerb), findsWidgets);
+    expect(find.text(t(WorkshopAdminKeys.newJob)), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.dashReviewVerb)), findsWidgets);
   });
 
   testWidgets('no legacy mutation controls exist on the dashboard', (
@@ -365,12 +358,10 @@ void main() {
     tester,
   ) async {
     await pumpHome(tester);
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
+    final t = UiStrings.of(tester.element(find.byType(WorkshopAdminHomePage)));
     // The identity strip names the workshop; with no session it falls back to
     // the generic workshop title rather than showing an empty strip.
-    expect(find.text(l10n.workshopAdminTitle), findsOneWidget);
+    expect(find.text(t(WorkshopAdminKeys.workshopAdminTitle)), findsOneWidget);
   });
 
   testWidgets('with a session the shell names the workshop once', (
@@ -426,13 +417,22 @@ void main() {
         api: _FakeCleanApi(counts: counts24, fixtures: const []),
       );
       expect(tester.takeException(), isNull);
-      final l10n = AppLocalizations.of(
+      final t = UiStrings.of(
         tester.element(find.byType(WorkshopAdminHomePage)),
       );
-      expect(find.text(l10n.dashGroupCountPending(4)), findsNothing);
-      expect(find.text(l10n.dashGroupCountInBay(5)), findsNothing);
-      expect(find.text(l10n.dashGroupCountReady(2)), findsNothing);
-      expect(find.text(l10n.dashGroupEmpty), findsNWidgets(3));
+      expect(
+        find.text(t(WorkshopAdminKeys.dashGroupCountPending, {'count': 4})),
+        findsNothing,
+      );
+      expect(
+        find.text(t(WorkshopAdminKeys.dashGroupCountInBay, {'count': 5})),
+        findsNothing,
+      );
+      expect(
+        find.text(t(WorkshopAdminKeys.dashGroupCountReady, {'count': 2})),
+        findsNothing,
+      );
+      expect(find.text(t(WorkshopAdminKeys.dashGroupEmpty)), findsNWidgets(3));
       // The counts themselves are still true and still on the page.
       expect(find.text('24'), findsWidgets);
     },

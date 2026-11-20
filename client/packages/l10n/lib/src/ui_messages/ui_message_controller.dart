@@ -478,6 +478,21 @@ class UiMessageStrings {
         catalogs[defaultLanguage]?[namespace]?[key];
   }
 
+  /// Resolves a flat backend key (for example a reference `labelKey`) through
+  /// the active catalog, then the default catalog. Returns null when absent.
+  String? resolveFlatKey(String key) {
+    if (key.isEmpty) return null;
+    for (final language in <String>[activeLanguage, defaultLanguage]) {
+      final namespaces = catalogs[language];
+      if (namespaces == null) continue;
+      for (final catalog in namespaces.values) {
+        final value = catalog[key];
+        if (value != null && value.isNotEmpty) return value;
+      }
+    }
+    return null;
+  }
+
   /// Chooses the English message when a legacy bilingual pair is supplied.
   ///
   /// Arabic is no longer a supported locale, so the English side always wins;

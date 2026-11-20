@@ -48,6 +48,14 @@ public final class WorkshopJobDtos {
     ) {
     }
 
+    public record AllowedActionDto(
+            String code,
+            String labelKey,
+            String tone,
+            boolean dangerous,
+            boolean requiresConsent) {
+    }
+
     public record JobDto(
             String id,
             String reference,
@@ -90,7 +98,8 @@ public final class WorkshopJobDtos {
             boolean signaturePresent,
             String createdAt,
             String updatedAt,
-            int version
+            int version,
+            List<AllowedActionDto> allowedActions
     ) {
     }
 
@@ -209,7 +218,8 @@ public final class WorkshopJobDtos {
             Integer scorePreview,
             String gradePreview,
             String safetyCapPreview,
-            List<ReviewFindingDto> findings
+            List<ReviewFindingDto> findings,
+            List<AllowedActionDto> allowedActions
     ) {
     }
 
@@ -232,7 +242,8 @@ public final class WorkshopJobDtos {
             String safetyCapReason,
             boolean consentGranted,
             boolean signaturePresent,
-            boolean documentsReady
+            boolean documentsReady,
+            List<AllowedActionDto> allowedActions
     ) {
     }
 

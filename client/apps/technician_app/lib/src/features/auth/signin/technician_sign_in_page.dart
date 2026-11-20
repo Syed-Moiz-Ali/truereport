@@ -3,7 +3,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'technician_sign_in_view.dart';
 
@@ -130,7 +130,7 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
 
   String? _validateRequired(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return AppLocalizations.of(context).requiredField;
+      return UiStrings.of(context)(TechnicianKeys.requiredField);
     }
     return null;
   }
@@ -142,7 +142,7 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
     }
     return Validators.email(value) == null
         ? null
-        : AppLocalizations.of(context).invalidEmail;
+        : UiStrings.of(context)(TechnicianKeys.invalidEmail);
   }
 
   /// The server accepts a 6-digit TOTP or its 11-character recovery code
@@ -151,20 +151,22 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
   String? _validateCode(String? value) {
     final text = (value ?? '').trim();
     if (text.isEmpty) {
-      return AppLocalizations.of(context).requiredField;
+      return UiStrings.of(context)(TechnicianKeys.requiredField);
     }
     final totp = RegExp(r'^\d{6}$').hasMatch(text);
     final recovery = RegExp(r'^[A-Za-z0-9]{5}-[A-Za-z0-9]{5}$').hasMatch(text);
-    return totp || recovery ? null : AppLocalizations.of(context).requiredField;
+    return totp || recovery
+        ? null
+        : UiStrings.of(context)(TechnicianKeys.requiredField);
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final errorText = switch (_errorKey) {
-      'invalidCredentials' => l10n.invalidCredentials,
-      'networkError' => l10n.networkError,
-      'genericError' => l10n.genericError,
+      'invalidCredentials' => t(TechnicianKeys.invalidCredentials),
+      'networkError' => t(TechnicianKeys.networkError),
+      'genericError' => t(TechnicianKeys.genericError),
       _ => null,
     };
 

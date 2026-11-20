@@ -1,7 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/ui_strings.dart';
+import 'package:reference_data/reference_data.dart';
 
+import '../../../reference_ui.dart';
 import 'jobs_queue_format.dart';
 import 'jobs_queue_primitives.dart';
 import 'jobs_queue_style.dart';
@@ -142,7 +145,7 @@ class _DayCell extends StatelessWidget {
 }
 
 /// Tablet rail: the same week, filters and sync, without a second hero.
-class QueueWeekRail extends StatelessWidget {
+class QueueWeekRail extends ConsumerWidget {
   const QueueWeekRail({
     required this.days,
     required this.selected,
@@ -167,11 +170,13 @@ class QueueWeekRail extends StatelessWidget {
   final VoidCallback onSync;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = UiStrings.of(context);
     final locale = Localizations.localeOf(context).toString();
     final colors = context.colors;
     final waiting = pending;
+    final statuses =
+        ref.watch(statusesProvider('job')).value ?? const <ReferenceRecord>[];
     return Container(
       width: 196,
       decoration: BoxDecoration(
@@ -185,7 +190,10 @@ class QueueWeekRail extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.technicianThisWeek, style: queueEyebrow(context)),
+            Text(
+              t(TechnicianKeys.technicianThisWeek),
+              style: queueEyebrow(context),
+            ),
             const SizedBox(height: 8),
             for (final day in days)
               _RailDay(
@@ -197,30 +205,21 @@ class QueueWeekRail extends StatelessWidget {
               ),
             const SizedBox(height: 20),
             Text(
-              l10n.technicianFilter.toUpperCase(),
+              t(TechnicianKeys.technicianFilter).toUpperCase(),
               style: queueEyebrow(context),
             ),
             const SizedBox(height: 6),
             _RailFilter(
-              label: l10n.filterAll,
+              label: t(TechnicianKeys.filterAll),
               selected: status.isEmpty,
               onTap: () => onStatus(''),
             ),
-            _RailFilter(
-              label: l10n.statusAssigned,
-              selected: status == 'ASSIGNED',
-              onTap: () => onStatus('ASSIGNED'),
-            ),
-            _RailFilter(
-              label: l10n.statusInProgress,
-              selected: status == 'IN_PROGRESS',
-              onTap: () => onStatus('IN_PROGRESS'),
-            ),
-            _RailFilter(
-              label: l10n.technicianReview,
-              selected: status == 'PENDING_REVIEW',
-              onTap: () => onStatus('PENDING_REVIEW'),
-            ),
+            for (final record in statuses.where((value) => value.selectable))
+              _RailFilter(
+                label: referenceStatusCodeLabel(statuses, record.code),
+                selected: status == record.code,
+                onTap: () => onStatus(record.code),
+              ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsetsDirectional.all(12),
@@ -246,10 +245,12 @@ class QueueWeekRail extends StatelessWidget {
                       Expanded(
                         child: Text(
                           waiting == 0 && conflicts == 0
-                              ? l10n.technicianAllSynced
+                              ? t(TechnicianKeys.technicianAllSynced)
                               : conflicts > 0
-                              ? l10n.technicianSyncConflictsCount(conflicts)
-                              : '${l10n.technicianSyncPending} $waiting',
+                              ? t(TechnicianKeys.technicianSyncConflictsCount, {
+                                  'count': conflicts,
+                                })
+                              : '${t(TechnicianKeys.technicianSyncPending)} $waiting',
                           style: queueMeta(context)
                               .copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -258,7 +259,7 @@ class QueueWeekRail extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   QueueButton(
-                    label: l10n.syncNow,
+                    label: t(TechnicianKeys.syncNow),
                     variant: QueueButtonVariant.soft,
                     icon: Icons.sync_rounded,
                     expand: true,

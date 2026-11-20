@@ -36,6 +36,8 @@ dependencies:
     path: ../../packages/domain
   l10n:
     path: ../../packages/l10n
+  reference_data:
+    path: ../../packages/reference_data
 
 dev_dependencies:
   flutter_test:

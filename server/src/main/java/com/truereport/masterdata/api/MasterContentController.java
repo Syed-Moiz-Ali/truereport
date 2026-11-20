@@ -171,10 +171,9 @@ public class MasterContentController {
     public ResponseEntity<GuideImageDto> uploadGuideImage(JwtAuthenticationToken authentication,
                                                           @RequestParam("file") MultipartFile file,
                                                           @RequestParam(required = false) String altEn,
-                                                          @RequestParam(required = false) String altAr,
                                                           @RequestParam(required = false) String licenceNote) {
         return ResponseEntity.status(201).body(service.uploadGuideImage(
-                currentUserService.require(authentication), file, altEn, altAr, licenceNote));
+                currentUserService.require(authentication), file, altEn, licenceNote));
     }
 
     @GetMapping("/guide-images/{id}/content")

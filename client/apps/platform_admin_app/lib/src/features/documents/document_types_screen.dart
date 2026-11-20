@@ -12,9 +12,11 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../../reference_status_lookup.dart';
 import '../checklist/checklist_status.dart';
 
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 class DocumentTypesScreen extends ConsumerWidget {
   const DocumentTypesScreen({super.key});
@@ -238,18 +240,11 @@ class DocumentTypesSection extends ConsumerWidget {
   }
 }
 
-String _statusLabel(dynamic strings, String status) {
-  switch (status) {
-    case 'ACTIVE':
-      return strings.tKey(CommonKeys.statusActive);
-    case 'DRAFT':
-      return strings.tKey(PlatformAdminKeys.statusContentDraft);
-    case 'RETIRED':
-      return strings.tKey(CommonKeys.statusRetired);
-    default:
-      return status;
-  }
-}
+String _statusLabel(
+  UiMessageStrings strings,
+  Iterable<ReferenceRecord>? records,
+  String status,
+) => referenceCodeLabel(strings, records, status);
 
 /// Source-language (default) name for a document type.
 String _documentTypeName(ReportDocumentType type) {
@@ -325,6 +320,9 @@ class _DocumentTypesTable extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
+    final statusRecords = ref
+        .watch(statusesProvider(documentTypeStatusDomain))
+        .value;
     return PlatformSectionCard(
       padding: EdgeInsets.zero,
       child: SingleChildScrollView(
@@ -379,7 +377,11 @@ class _DocumentTypesTable extends ConsumerWidget {
                   ),
                   DataCell(
                     PlatformStatusChip(
-                      status: _statusLabel(strings, items[index].status),
+                      status: _statusLabel(
+                        strings,
+                        statusRecords,
+                        items[index].status,
+                      ),
                     ),
                   ),
                   DataCell(
@@ -472,6 +474,9 @@ class _DocumentTypeCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
+    final statusRecords = ref
+        .watch(statusesProvider(documentTypeStatusDomain))
+        .value;
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +490,9 @@ class _DocumentTypeCard extends ConsumerWidget {
                 label: strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode),
                 value: item.code,
               ),
-              PlatformStatusChip(status: _statusLabel(strings, item.status)),
+              PlatformStatusChip(
+                status: _statusLabel(strings, statusRecords, item.status),
+              ),
               if (item.required)
                 PlatformStatusChip(
                   status: strings.tKey(CommonKeys.validationRequired),
@@ -706,7 +713,9 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
                             onChanged: (_) => setState(() {}),
                             label:
                                 '${strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode)} *',
-                            hint: strings.tKey(PlatformAdminKeys.documentsHintTypeCode),
+                            hint: strings.tKey(
+                              PlatformAdminKeys.documentsHintTypeCode,
+                            ),
                             helperText: strings.tKey(
                               PlatformAdminKeys.reportsFormFieldCodeHelper,
                             ),
@@ -725,7 +734,9 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
                             onChanged: (_) => setState(() {}),
                             label:
                                 '${strings.tKey(PlatformAdminKeys.fieldItemLabelEn)} *',
-                            hint: strings.tKey(PlatformAdminKeys.documentsHintName),
+                            hint: strings.tKey(
+                              PlatformAdminKeys.documentsHintName,
+                            ),
                             helperText: strings.tKey(
                               PlatformAdminKeys.reportsFormFieldNameHelper,
                             ),
@@ -923,7 +934,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
                           ),
                           _FormReviewRow(
                             label: strings.tKey(CommonKeys.tableStatus),
-                            value: checklistStatusLabel(strings, reviewStatus),
+                            value: checklistStatusLabel(ref, reviewStatus),
                           ),
                           _FormReviewRow(
                             label: strings.tKey(

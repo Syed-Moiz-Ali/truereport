@@ -11,6 +11,15 @@ public class UuidBinaryConverter implements AttributeConverter<UUID, byte[]> {
 
     @Override
     public byte[] convertToDatabaseColumn(UUID attribute) {
+        return toBytes(attribute);
+    }
+
+    @Override
+    public UUID convertToEntityAttribute(byte[] dbData) {
+        return fromBytes(dbData);
+    }
+
+    public static byte[] toBytes(UUID attribute) {
         if (attribute == null) {
             return null;
         }
@@ -20,8 +29,7 @@ public class UuidBinaryConverter implements AttributeConverter<UUID, byte[]> {
                 .array();
     }
 
-    @Override
-    public UUID convertToEntityAttribute(byte[] dbData) {
+    public static UUID fromBytes(byte[] dbData) {
         if (dbData == null) {
             return null;
         }

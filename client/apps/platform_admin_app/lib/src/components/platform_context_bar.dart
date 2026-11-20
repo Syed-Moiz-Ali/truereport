@@ -44,35 +44,33 @@ class PlatformContextBar extends StatelessWidget {
         final child = actions.isEmpty
             ? breadcrumb
             : (compact
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      breadcrumb,
-                      const SizedBox(height: 8),
-                      Wrap(spacing: 8, runSpacing: 8, children: actions),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(child: breadcrumb),
-                      const SizedBox(width: 16),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.end,
-                        children: actions,
-                      ),
-                    ],
-                  ));
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        breadcrumb,
+                        const SizedBox(height: 8),
+                        Wrap(spacing: 8, runSpacing: 8, children: actions),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(child: breadcrumb),
+                        const SizedBox(width: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.end,
+                          children: actions,
+                        ),
+                      ],
+                    ));
 
         return Container(
           width: double.infinity,
           decoration: const BoxDecoration(
             color: PtTheme.white,
-            border: Border(
-              bottom: BorderSide(color: PtTheme.border, width: 1),
-            ),
+            border: Border(bottom: BorderSide(color: PtTheme.border, width: 1)),
           ),
           padding: EdgeInsetsDirectional.fromSTEB(
             compact ? 14 : 24,
@@ -100,10 +98,11 @@ class _Breadcrumbs extends ConsumerWidget {
     }
 
     final strings = ref.watch(uiStringsProvider);
-    final hasBack = onBack != null ||
+    final hasBack =
+        onBack != null ||
         (items.length > 1 && items[items.length - 2].onTap != null);
-    final effectiveBack = onBack ??
-        (items.length > 1 ? items[items.length - 2].onTap : null);
+    final effectiveBack =
+        onBack ?? (items.length > 1 ? items[items.length - 2].onTap : null);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -187,11 +186,7 @@ class _Crumb extends StatelessWidget {
     );
 
     if (item.onTap == null || isLast) {
-      return Semantics(
-        header: isLast,
-        label: item.label,
-        child: label,
-      );
+      return Semantics(header: isLast, label: item.label, child: label);
     }
 
     return InkWell(

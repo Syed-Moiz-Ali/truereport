@@ -5,7 +5,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'report_actions.dart';
 import 'report_chrome.dart';
@@ -30,12 +30,12 @@ class _ReportPageState extends ConsumerState<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final report = ref.watch(reportProvider(widget.jobId));
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final data = report.asData?.value;
     final reference = (data?.reportNumber ?? '').trim().isEmpty
-        ? l10n.report
+        ? t(WorkshopAdminKeys.report)
         : data!.reportNumber;
 
     return Scaffold(
@@ -57,7 +57,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
               top: false,
               child: report.when(
                 loading: () => _loading(context),
-                error: (error, _) => _error(context, l10n),
+                error: (error, _) => _error(context, t),
                 data: (value) => _body(context, value),
               ),
             ),
@@ -81,7 +81,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     );
   }
 
-  Widget _error(BuildContext context, AppLocalizations l10n) {
+  Widget _error(BuildContext context, UiStrings t) {
     final spacing = context.spacing;
     return _scroll(
       context,
@@ -96,16 +96,16 @@ class _ReportPageState extends ConsumerState<ReportPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 WorkshopErrorState(
-                  title: l10n.error,
-                  body: l10n.reportUnavailable,
-                  retryLabel: l10n.retryAction,
+                  title: t(WorkshopAdminKeys.error),
+                  body: t(WorkshopAdminKeys.reportUnavailable),
+                  retryLabel: t(WorkshopAdminKeys.retryAction),
                   onRetry: () => ref.invalidate(reportProvider(widget.jobId)),
                 ),
                 SizedBox(height: spacing.md),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: ReportActionButton(
-                    label: l10n.commonBack,
+                    label: t(WorkshopAdminKeys.commonBack),
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: Directionality.of(context) == TextDirection.rtl
                         ? Icons.arrow_forward
@@ -178,7 +178,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   Future<void> _send() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     var channel = 'WHATSAPP';
     var language = 'en';
     final confirmed = await showAppBottomSheet<bool>(
@@ -189,12 +189,15 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SectionHeader(title: l10n.sendReportTitle),
-              Text(l10n.deliveryChannel, style: context.texts.bodySmall),
+              SectionHeader(title: t(WorkshopAdminKeys.sendReportTitle)),
+              Text(
+                t(WorkshopAdminKeys.deliveryChannel),
+                style: context.texts.bodySmall,
+              ),
               for (final option in [
-                ('WHATSAPP', l10n.channelWhatsapp),
-                ('SMS', l10n.channelSms),
-                ('EMAIL', l10n.channelEmail),
+                ('WHATSAPP', t(WorkshopAdminKeys.channelWhatsapp)),
+                ('SMS', t(WorkshopAdminKeys.channelSms)),
+                ('EMAIL', t(WorkshopAdminKeys.channelEmail)),
               ])
                 Padding(
                   padding: EdgeInsetsDirectional.only(
@@ -207,8 +210,14 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                   ),
                 ),
               SizedBox(height: context.spacing.sm),
-              Text(l10n.deliveryLanguage, style: context.texts.bodySmall),
-              for (final option in [('en', l10n.english), ('ar', l10n.arabic)])
+              Text(
+                t(WorkshopAdminKeys.deliveryLanguage),
+                style: context.texts.bodySmall,
+              ),
+              for (final option in [
+                ('en', t(WorkshopAdminKeys.english)),
+                ('ar', t(WorkshopAdminKeys.arabic)),
+              ])
                 Padding(
                   padding: EdgeInsetsDirectional.only(
                     bottom: context.spacing.xs,
@@ -221,7 +230,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 ),
               SizedBox(height: context.spacing.lg),
               AppButton(
-                label: l10n.sendReport,
+                label: t(WorkshopAdminKeys.sendReport),
                 onPressed: () => Navigator.of(context).pop(true),
                 icon: Icons.send_outlined,
                 expand: true,
@@ -245,14 +254,15 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           );
       ref.invalidate(reportDeliveriesProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.deliveryQueued)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.deliveryQueued))),
+        );
       }
     });
   }
 
   Future<void> _retryDelivery(ReportDelivery item) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await _run(() async {
       await ref
           .read(adminApiProvider)
@@ -263,8 +273,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           );
       ref.invalidate(reportDeliveriesProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.deliveryQueued)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.deliveryQueued))),
+        );
       }
     });
   }
@@ -273,19 +284,20 @@ class _ReportPageState extends ConsumerState<ReportPage> {
       'admin-$prefix-${DateTime.now().microsecondsSinceEpoch}';
 
   Future<void> _retry() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await _run(() async {
       await ref.read(adminApiProvider).retryReport(widget.jobId);
       ref.invalidate(reportProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.reportStatus)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.reportStatus))),
+        );
       }
     });
   }
 
   Future<void> _activate() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await _run(() async {
       final result = await ref
           .read(adminApiProvider)
@@ -293,14 +305,15 @@ class _ReportPageState extends ConsumerState<ReportPage> {
       setState(() => _publicUrl = result.publicUrl);
       ref.invalidate(reportProvider(widget.jobId));
       if (mounted && result.publicUrl != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.copyLink)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(t(WorkshopAdminKeys.copyLink))));
       }
     });
   }
 
   Future<void> _revoke() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     var reason = 'PRIVACY';
     final note = TextEditingController();
     final confirmed = await showAppBottomSheet<bool>(
@@ -311,7 +324,7 @@ class _ReportPageState extends ConsumerState<ReportPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SectionHeader(title: l10n.deactivateLink),
+              SectionHeader(title: t(WorkshopAdminKeys.deactivateLink)),
               for (final code in const [
                 'PRIVACY',
                 'SECURITY',
@@ -329,10 +342,13 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                     onTap: () => setState(() => reason = code),
                   ),
                 ),
-              AppTextField(controller: note, label: l10n.deactivateReason),
+              AppTextField(
+                controller: note,
+                label: t(WorkshopAdminKeys.deactivateReason),
+              ),
               SizedBox(height: context.spacing.lg),
               AppButton(
-                label: l10n.deactivate,
+                label: t(WorkshopAdminKeys.deactivate),
                 onPressed: () => Navigator.of(context).pop(true),
                 icon: Icons.link_off,
                 expand: true,
@@ -353,8 +369,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
           .revokeReportLink(widget.jobId, reason, noteText);
       ref.invalidate(reportProvider(widget.jobId));
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.linkRevoked)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.linkRevoked))),
+        );
       }
     });
   }
@@ -367,39 +384,43 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   }
 
   Future<void> _downloadPdf() async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     await _run(() async {
       final bytes = await ref.read(adminApiProvider).reportPdf(widget.jobId);
       final path = await saveReportPdf(bytes);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${l10n.pdfBytesSaved}: $path')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${t(WorkshopAdminKeys.pdfBytesSaved)}: $path'),
+          ),
+        );
       }
     });
   }
 
   Future<void> _copy(String? url) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     if (url == null || url.isEmpty) {
       return;
     }
     await Clipboard.setData(ClipboardData(text: url));
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(t(WorkshopAdminKeys.linkCopied))));
     }
   }
 
   Future<void> _run(Future<void> Function() action) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _busy = true);
     try {
       await action();
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.actionFailed)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.actionFailed))),
+        );
       }
     } finally {
       if (mounted) {

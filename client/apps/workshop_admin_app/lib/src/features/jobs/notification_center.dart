@@ -1,7 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
@@ -27,7 +27,7 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final notifications = ref.watch(notificationsProvider(_unreadOnly));
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(notificationsProvider(_unreadOnly)),
@@ -40,18 +40,18 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               JobPillChip(
-                label: l10n.filterAll,
+                label: t(WorkshopAdminKeys.filterAll),
                 selected: !_unreadOnly,
                 onTap: () => setState(() => _unreadOnly = false),
               ),
               JobPillChip(
                 key: const Key('jobs-unread-only'),
-                label: l10n.jobsNotificationsUnreadOnly,
+                label: t(WorkshopAdminKeys.jobsNotificationsUnreadOnly),
                 selected: _unreadOnly,
                 onTap: () => setState(() => _unreadOnly = true),
               ),
               JobPillButton(
-                label: l10n.refresh,
+                label: t(WorkshopAdminKeys.refresh),
                 icon: Icons.refresh,
                 variant: JobPillVariant.outline,
                 compact: true,
@@ -64,14 +64,16 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
           notifications.when(
             loading: () => const WorkshopSkeleton(card: true, lines: 5),
             error: (error, _) => WorkshopErrorState(
-              title: l10n.error,
-              body: l10n.commonLoadFailed,
-              retryLabel: l10n.retryAction,
+              title: t(WorkshopAdminKeys.error),
+              body: t(WorkshopAdminKeys.commonLoadFailed),
+              retryLabel: t(WorkshopAdminKeys.retryAction),
               onRetry: () => ref.invalidate(notificationsProvider(_unreadOnly)),
             ),
             data: (items) {
               if (items.isEmpty) {
-                return _EmptySurface(title: l10n.jobsNotificationsEmpty);
+                return _EmptySurface(
+                  title: t(WorkshopAdminKeys.jobsNotificationsEmpty),
+                );
               }
               return _NotificationSurface(
                 items: items,
@@ -87,7 +89,7 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
   }
 
   Future<void> _markRead(WorkshopNotification item) async {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     setState(() => _marking.add(item.id));
     try {
       await ref.read(adminApiProvider).readNotification(item.id);
@@ -95,13 +97,16 @@ class _NotificationCenterTabState extends ConsumerState<NotificationCenterTab> {
       ref.invalidate(notificationsProvider(true));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.jobsNotificationsMarkedRead)),
+          SnackBar(
+            content: Text(t(WorkshopAdminKeys.jobsNotificationsMarkedRead)),
+          ),
         );
       }
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.commonActionFailed)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t(WorkshopAdminKeys.commonActionFailed))),
+        );
       }
     } finally {
       if (mounted) {
@@ -164,7 +169,7 @@ class _NotificationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final ws = context.ws;
     final unread = !item.isRead;
     final payload = item.payloadJson ?? '';
@@ -174,7 +179,7 @@ class _NotificationRow extends StatelessWidget {
         final action = unread
             ? JobPillButton(
                 key: Key('jobs-mark-read-${item.id}'),
-                label: l10n.jobsNotificationsMarkRead,
+                label: t(WorkshopAdminKeys.jobsNotificationsMarkRead),
                 icon: Icons.done_all,
                 variant: JobPillVariant.outline,
                 compact: true,
@@ -229,8 +234,8 @@ class _NotificationRow extends StatelessWidget {
                   const SizedBox(width: 10),
                   WorkshopStatusBadge(
                     label: unread
-                        ? l10n.jobsNotificationsUnread
-                        : l10n.jobsNotificationsRead,
+                        ? t(WorkshopAdminKeys.jobsNotificationsUnread)
+                        : t(WorkshopAdminKeys.jobsNotificationsRead),
                     tone: unread
                         ? WorkshopStatusTone.warning
                         : WorkshopStatusTone.neutral,

@@ -1,6 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 class ConsentView extends StatelessWidget {
   const ConsentView({
@@ -28,9 +28,9 @@ class ConsentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final canSave = (selectedType != null && selectedStatus != null && !saving);
-    final pageTitle = title ?? l10n.consent;
+    final pageTitle = title ?? t(TechnicianKeys.consent);
 
     return AppScaffold(
       backgroundColor: Fx.white,
@@ -50,11 +50,7 @@ class ConsentView extends StatelessWidget {
               width: 44,
               height: 44,
               child: Center(
-                child: FxIcon(
-                  id: '1_7637',
-                  size: 20,
-                  color: Fx.ink,
-                ),
+                child: FxIcon(id: '1_7637', size: 20, color: Fx.ink),
               ),
             ),
           ),
@@ -65,7 +61,7 @@ class ConsentView extends StatelessWidget {
             initials: '',
             iconId: '1_7642',
             onPressed: onProfile,
-            semanticLabel: l10n.technicianProfileTitle,
+            semanticLabel: t(TechnicianKeys.technicianProfileTitle),
           ),
         ],
       ),
@@ -109,7 +105,7 @@ class ConsentView extends StatelessWidget {
                         const SizedBox(width: _M.g8),
                         Expanded(
                           child: Text(
-                            l10n.technicianConsentStep,
+                            t(TechnicianKeys.technicianConsentStep),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: Fx.text(
@@ -125,12 +121,12 @@ class ConsentView extends StatelessWidget {
                     ),
                     const SizedBox(height: _M.g8),
                     Text(
-                      l10n.consent,
+                      t(TechnicianKeys.consent),
                       style: Fx.display26.copyWith(color: Fx.ink),
                     ),
                     const SizedBox(height: _M.g4),
                     Text(
-                      l10n.technicianConsentIntro,
+                      t(TechnicianKeys.technicianConsentIntro),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Fx.body14.copyWith(color: Fx.muted),
@@ -142,8 +138,8 @@ class ConsentView extends StatelessWidget {
             _ConsentCard(
               key: const Key('consent-type-public-link'),
               iconId: '1_7551',
-              title: l10n.consentPublicLink,
-              body: l10n.technicianConsentPublicLinkBody,
+              title: t(TechnicianKeys.consentPublicLink),
+              body: t(TechnicianKeys.technicianConsentPublicLinkBody),
               selected: selectedType == 'PUBLIC_LINK',
               granted: selectedType == 'PUBLIC_LINK' && selectedStatus == true,
               onTap: () => onTypeChanged('PUBLIC_LINK'),
@@ -156,8 +152,8 @@ class ConsentView extends StatelessWidget {
             _ConsentCard(
               key: const Key('consent-type-processing'),
               iconId: '1_7563',
-              title: l10n.consentProcessing,
-              body: l10n.technicianConsentProcessingBody,
+              title: t(TechnicianKeys.consentProcessing),
+              body: t(TechnicianKeys.technicianConsentProcessingBody),
               selected: selectedType == 'PROCESSING',
               granted: selectedType == 'PROCESSING' && selectedStatus == true,
               onTap: () => onTypeChanged('PROCESSING'),
@@ -169,8 +165,8 @@ class ConsentView extends StatelessWidget {
             const SizedBox(height: _M.cardGap),
             _ConsentCard(
               iconId: '1_7575',
-              title: l10n.technicianDataStorage,
-              body: l10n.technicianUnavailable,
+              title: t(TechnicianKeys.technicianDataStorage),
+              body: t(TechnicianKeys.technicianUnavailable),
               selected: false,
               granted: false,
               enabled: false,
@@ -183,19 +179,13 @@ class ConsentView extends StatelessWidget {
               onStatusChanged: onStatusChanged,
             ),
             const SizedBox(height: _M.gutter),
-            _SignerCard(
-              selectedStatus: selectedStatus,
-            ),
+            _SignerCard(selectedStatus: selectedStatus),
             const SizedBox(height: _M.g32),
             FxButton(
               key: const Key('consent-save'),
-              label: l10n.technicianConsentSave,
+              label: t(TechnicianKeys.technicianConsentSave),
               onPressed: canSave ? onSave : null,
-              icon: const FxIcon(
-                id: '1_7629',
-                size: 16.67,
-                color: Fx.white,
-              ),
+              icon: const FxIcon(id: '1_7629', size: 16.67, color: Fx.white),
               trailingIcon: false,
             ),
           ],
@@ -230,7 +220,8 @@ class _ConsentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final isFlexible = textScale > 1.05 || Directionality.of(context) == TextDirection.rtl;
+    final isFlexible =
+        textScale > 1.05 || Directionality.of(context) == TextDirection.rtl;
     return Semantics(
       selected: selected,
       button: onTap != null,
@@ -355,7 +346,7 @@ class _DecisionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final isLargeText = textScale > 1.1;
     return Column(
@@ -363,18 +354,22 @@ class _DecisionSection extends StatelessWidget {
       children: [
         if (isLargeText)
           Padding(
-            padding: const EdgeInsetsDirectional.only(bottom: 8, start: 4, end: 4),
+            padding: const EdgeInsetsDirectional.only(
+              bottom: 8,
+              start: 4,
+              end: 4,
+            ),
             child: Wrap(
               spacing: _M.g6,
               runSpacing: 4,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  l10n.technicianConsentDecision,
+                  t(TechnicianKeys.technicianConsentDecision),
                   style: Fx.text(14, 18, FontWeight.w700, -0.14, color: Fx.ink),
                 ),
                 FxPill(
-                  label: l10n.consentRequired,
+                  label: t(TechnicianKeys.consentRequired),
                   background: Fx.tintEmerald,
                   foreground: Fx.emerald,
                   height: _M.requiredHeight,
@@ -382,7 +377,13 @@ class _DecisionSection extends StatelessWidget {
                     horizontal: 8,
                     vertical: 2,
                   ),
-                  style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.emerald),
+                  style: Fx.text(
+                    11,
+                    14,
+                    FontWeight.w600,
+                    0.44,
+                    color: Fx.emerald,
+                  ),
                 ),
               ],
             ),
@@ -391,20 +392,30 @@ class _DecisionSection extends StatelessWidget {
           SizedBox(
             height: _M.decisionHeader,
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(bottom: 12, start: 4, end: 4),
+              padding: const EdgeInsetsDirectional.only(
+                bottom: 12,
+                start: 4,
+                end: 4,
+              ),
               child: Row(
                 children: [
                   Flexible(
                     child: Text(
-                      l10n.technicianConsentDecision,
+                      t(TechnicianKeys.technicianConsentDecision),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Fx.text(14, 18, FontWeight.w700, -0.14, color: Fx.ink),
+                      style: Fx.text(
+                        14,
+                        18,
+                        FontWeight.w700,
+                        -0.14,
+                        color: Fx.ink,
+                      ),
                     ),
                   ),
                   const SizedBox(width: _M.g6),
                   FxPill(
-                    label: l10n.consentRequired,
+                    label: t(TechnicianKeys.consentRequired),
                     background: Fx.tintEmerald,
                     foreground: Fx.emerald,
                     height: _M.requiredHeight,
@@ -412,12 +423,18 @@ class _DecisionSection extends StatelessWidget {
                       horizontal: 8,
                       vertical: 2,
                     ),
-                    style: Fx.text(11, 14, FontWeight.w600, 0.44, color: Fx.emerald),
+                    style: Fx.text(
+                      11,
+                      14,
+                      FontWeight.w600,
+                      0.44,
+                      color: Fx.emerald,
+                    ),
                   ),
                   const SizedBox(width: _M.g8),
                   Expanded(
                     child: Text(
-                      l10n.technicianConsentHint,
+                      t(TechnicianKeys.technicianConsentHint),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
@@ -445,7 +462,7 @@ class _DecisionSection extends StatelessWidget {
                     Expanded(
                       child: AppSelectableText(
                         key: const Key('consent-granted'),
-                        label: l10n.consentGranted,
+                        label: t(TechnicianKeys.consentGranted),
                         selected: selectedStatus == true,
                         onTap: () => onStatusChanged(true),
                       ),
@@ -454,7 +471,7 @@ class _DecisionSection extends StatelessWidget {
                     Expanded(
                       child: AppSelectableText(
                         key: const Key('consent-refused'),
-                        label: l10n.consentRefused,
+                        label: t(TechnicianKeys.consentRefused),
                         selected: selectedStatus == false,
                         onTap: () => onStatusChanged(false),
                       ),
@@ -463,7 +480,7 @@ class _DecisionSection extends StatelessWidget {
                 ),
                 const SizedBox(height: _M.g16),
                 Text(
-                  l10n.technicianNoSignature,
+                  t(TechnicianKeys.technicianNoSignature),
                   style: Fx.caption.copyWith(color: Fx.ink),
                 ),
               ],
@@ -478,11 +495,14 @@ class _DecisionSection extends StatelessWidget {
               runSpacing: 4,
               children: [
                 Text(
-                  '${l10n.technicianTimestamp}: ${l10n.technicianConsentNotRecorded}',
+                  '${t(TechnicianKeys.technicianTimestamp)}: ${t(TechnicianKeys.technicianConsentNotRecorded)}',
                   style: Fx.body13.copyWith(color: Fx.muted),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -494,8 +514,14 @@ class _DecisionSection extends StatelessWidget {
                       ),
                       const SizedBox(width: _M.g4),
                       Text(
-                        l10n.technicianClear,
-                        style: Fx.text(12, 16, FontWeight.w600, 0.24, color: Fx.muted),
+                        t(TechnicianKeys.technicianClear),
+                        style: Fx.text(
+                          12,
+                          16,
+                          FontWeight.w600,
+                          0.24,
+                          color: Fx.muted,
+                        ),
                       ),
                     ],
                   ),
@@ -507,17 +533,24 @@ class _DecisionSection extends StatelessWidget {
           SizedBox(
             height: _M.timestampRow,
             child: Padding(
-              padding: const EdgeInsetsDirectional.only(top: 10, start: 4, end: 4),
+              padding: const EdgeInsetsDirectional.only(
+                top: 10,
+                start: 4,
+                end: 4,
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      '${l10n.technicianTimestamp}: ${l10n.technicianConsentNotRecorded}',
+                      '${t(TechnicianKeys.technicianTimestamp)}: ${t(TechnicianKeys.technicianConsentNotRecorded)}',
                       style: Fx.body13.copyWith(color: Fx.muted),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -529,8 +562,14 @@ class _DecisionSection extends StatelessWidget {
                         ),
                         const SizedBox(width: _M.g4),
                         Text(
-                          l10n.technicianClear,
-                          style: Fx.text(12, 16, FontWeight.w600, 0.24, color: Fx.muted),
+                          t(TechnicianKeys.technicianClear),
+                          style: Fx.text(
+                            12,
+                            16,
+                            FontWeight.w600,
+                            0.24,
+                            color: Fx.muted,
+                          ),
                         ),
                       ],
                     ),
@@ -551,15 +590,16 @@ class _SignerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final isFlexible = textScale > 1.05 || Directionality.of(context) == TextDirection.rtl;
-    final title = l10n.technicianAuthorizedRepresentative;
+    final isFlexible =
+        textScale > 1.05 || Directionality.of(context) == TextDirection.rtl;
+    final title = t(TechnicianKeys.technicianAuthorizedRepresentative);
     final subtitle = selectedStatus == null
-        ? l10n.technicianConsentNotRecorded
+        ? t(TechnicianKeys.technicianConsentNotRecorded)
         : selectedStatus == true
-        ? l10n.consentGranted
-        : l10n.consentRefused;
+        ? t(TechnicianKeys.consentGranted)
+        : t(TechnicianKeys.consentRefused);
     return FxCard(
       radius: _M.cardRadius,
       padding: const EdgeInsets.all(16),
@@ -578,7 +618,13 @@ class _SignerCard extends StatelessWidget {
               child: Text(
                 fxInitials(title),
                 textDirection: TextDirection.ltr,
-                style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.darkInk),
+                style: Fx.text(
+                  16,
+                  22,
+                  FontWeight.w700,
+                  -0.16,
+                  color: Fx.darkInk,
+                ),
               ),
             ),
             const SizedBox(width: _M.g12),
@@ -591,7 +637,13 @@ class _SignerCard extends StatelessWidget {
                     title,
                     maxLines: isFlexible ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Fx.text(16, 22, FontWeight.w700, -0.16, color: Fx.ink),
+                    style: Fx.text(
+                      16,
+                      22,
+                      FontWeight.w700,
+                      -0.16,
+                      color: Fx.ink,
+                    ),
                   ),
                   Text(
                     subtitle,

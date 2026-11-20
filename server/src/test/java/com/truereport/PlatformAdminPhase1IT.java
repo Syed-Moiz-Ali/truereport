@@ -66,7 +66,7 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                 .andExpect(jsonPath("$.code").value("CATEGORY_IN_USE"));
 
         JsonNode created = postJson(platform, "/api/v1/platform/master/categories", """
-                {"code":"CAT-UNUSED","nameEn":"Unused category","nameAr":"تصنيف غير مستخدم",
+                {"code":"CAT-UNUSED","nameEn":"Unused category","nameAr":"Test text",
                  "sortOrder":8}
                 """);
         assertThat(created.get("weightPercentage")).isNull();
@@ -112,20 +112,20 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                 {"bands":[
                   {"fieldCode":"MEASUREMENT","unitCode":"MM","direction":"HIGHER_IS_BETTER",
                    "minValue":0,"maxValue":2.999,"resultCode":"DEFECT_FOUND","defaultScore":0,
-                   "labelEn":"Below minimum","labelAr":"أقل من الحد الأدنى","sortOrder":1},
+                   "labelEn":"Below minimum","labelAr":"Test text","sortOrder":1},
                   {"fieldCode":"MEASUREMENT","unitCode":"MM","direction":"HIGHER_IS_BETTER",
                    "minValue":3.0,"maxValue":5.499,"resultCode":"ATTENTION_RECOMMENDED","defaultScore":70,
-                   "labelEn":"Worn","labelAr":"متآكل","sortOrder":2},
+                   "labelEn":"Worn","labelAr":"Test text","sortOrder":2},
                   {"fieldCode":"MEASUREMENT","unitCode":"MM","direction":"HIGHER_IS_BETTER",
                    "minValue":5.5,"maxValue":99,"resultCode":"NO_ISSUE_OBSERVED","defaultScore":100,
-                   "labelEn":"Within spec","labelAr":"ضمن المواصفات","sortOrder":3}
+                   "labelEn":"Within spec","labelAr":"Test text","sortOrder":3}
                 ]}
                 """);
 
         putJson(platform, "/api/v1/platform/master/items/" + itemId
                 + "/versions/" + versionId + "/issue-fields", """
                 {"fields":[
-                  {"fieldCode":"ISSUE_TYPE","labelEn":"Issue Type","labelAr":"نوع العطل",
+                  {"fieldCode":"ISSUE_TYPE","labelEn":"Issue Type","labelAr":"Test text",
                    "inputType":"SELECT","optionSetCode":"ISSUE_TYPE","required":true,
                    "requiredForStatuses":["ATTENTION_RECOMMENDED","DEFECT_FOUND"],"sortOrder":1}
                 ]}
@@ -206,8 +206,8 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
         String versionB = versionId(platform, itemB);
 
         JsonNode template = postJson(platform, "/api/v1/platform/master/templates", """
-                {"code":"TPL-TEST-01","nameEn":"Test template","nameAr":"قالب اختبار",
-                 "descriptionEn":"Test","descriptionAr":"اختبار"}
+                {"code":"TPL-TEST-01","nameEn":"Test template","nameAr":"Test text",
+                 "descriptionEn":"Test","descriptionAr":"Test text"}
                 """);
         String templateId = template.get("id").asText();
         String templateVersionId = template.get("versions").get(0).get("id").asText();
@@ -292,7 +292,7 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
         assertThat(documentTypes.size()).isEqualTo(5);
 
         postJson(platform, "/api/v1/platform/document-types", """
-                {"code":"EXTRA_REPORT","nameEn":"Extra report","nameAr":"تقرير إضافي",
+                {"code":"EXTRA_REPORT","nameEn":"Extra report","nameAr":"Test text",
                  "required":false,"sortOrder":9}
                 """);
 

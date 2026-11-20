@@ -1,10 +1,11 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
-import 'package:l10n/l10n.dart';
+import 'package:l10n/ui_strings.dart';
 
 import 'signin_example.dart';
 import 'signin_mark.dart';
 import 'signin_primitives.dart';
+import 'signin_keys.dart';
 
 /// The identity band: the ink surface collapsed, not dropped.
 ///
@@ -31,7 +32,7 @@ class SigninIdentityBand extends StatelessWidget {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final l10n = AppLocalizations.of(context);
+    final t = UiStrings.of(context);
     final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
     final largeText = textScale >= 1.5;
 
@@ -59,7 +60,7 @@ class SigninIdentityBand extends StatelessWidget {
             ),
             SizedBox(height: spacing.md),
             Text(
-              l10n.signInExampleLabel.toUpperCase(),
+              t(SignInKeys.signInExampleLabel).toUpperCase(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: ws.eyebrow.copyWith(

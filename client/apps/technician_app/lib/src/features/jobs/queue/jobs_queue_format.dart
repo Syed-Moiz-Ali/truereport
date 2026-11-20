@@ -1,5 +1,5 @@
-﻿import 'package:intl/intl.dart';
-import 'package:l10n/l10n.dart';
+import 'package:intl/intl.dart';
+import 'package:l10n/ui_strings.dart';
 
 import '../../../inspection_models.dart';
 import '../../../shared/technician_intl.dart';
@@ -61,17 +61,19 @@ String queueDayNumber(DateTime day) => _format('d', 'en').format(day);
 
 String queueDayLabel(
   DateTime? day,
-  AppLocalizations l10n,
+  UiStrings t,
   String locale, {
   DateTime? now,
 }) {
   if (day == null) {
-    return l10n.technicianQueued;
+    return t(TechnicianKeys.technicianQueued);
   }
   final todayKey = queueTodayKey(now);
   final difference = day.difference(todayKey).inDays;
   if (difference == 0) {
-    return l10n.dashboardToday(queueDateFormat(day, locale, weekday: false));
+    return t(TechnicianKeys.dashboardToday, {
+      'date': queueDateFormat(day, locale, weekday: false),
+    });
   }
   return queueDateFormat(day, locale);
 }

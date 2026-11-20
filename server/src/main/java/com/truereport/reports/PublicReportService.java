@@ -1,6 +1,10 @@
 package com.truereport.reports;
 
+import com.truereport.jobs.InspectionJob;
+import com.truereport.jobs.InspectionJobRepository;
 import com.truereport.shared.storage.ObjectStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +16,8 @@ import java.util.UUID;
 
 @Service
 public class PublicReportService {
+
+    private static final Logger log = LoggerFactory.getLogger(PublicReportService.class);
 
     public enum Status {
         ACTIVE, TEMPORARY, UNAVAILABLE
@@ -28,7 +34,7 @@ public class PublicReportService {
     }
 
     public record Resolved(PublicShareLink link, Report report, ReportVersion version,
-                           Map<String, Object> page) {
+                           Map<String, Object> page, String customerName) {
     }
 
     public record Photo(byte[] bytes, String mime) {
@@ -45,6 +51,7 @@ public class PublicReportService {
     private final ReportTokenService tokenService;
     private final ReportPdfService pdfService;
     private final CleanPublicReportReader cleanReports;
+    private final InspectionJobRepository inspectionJobs;
 
     public PublicReportService(PublicShareLinkRepository links,
                                ReportRepository reports,
@@ -56,7 +63,8 @@ public class PublicReportService {
                                ObjectStorage storage,
                                ReportTokenService tokenService,
                                ReportPdfService pdfService,
-                               CleanPublicReportReader cleanReports) {
+                               CleanPublicReportReader cleanReports,
+                               InspectionJobRepository inspectionJobs) {
         this.links = links;
         this.reports = reports;
         this.versions = versions;
@@ -68,6 +76,7 @@ public class PublicReportService {
         this.tokenService = tokenService;
         this.pdfService = pdfService;
         this.cleanReports = cleanReports;
+        this.inspectionJobs = inspectionJobs;
     }
 
     @Transactional(readOnly = true)
@@ -95,9 +104,13 @@ public class PublicReportService {
         try {
             List<EvidenceDerivative> publicDerivatives =
                     derivatives.findByReportVersionIdOrderByCreatedAtAsc(version.getId());
+            String customerName = report.getJobId() == null ? null
+                    : inspectionJobs.findById(report.getJobId())
+                            .map(InspectionJob::getCustomerName).orElse(null);
             Map<String, Object> page = viewMapper.publicPage(version, publicDerivatives,
-                    "en", active.isPdfDownloadEnabled(), token);
-            return new Resolution(Status.ACTIVE, new Resolved(active, report, version, page));
+                    "en", active.isPdfDownloadEnabled(), token, customerName);
+            return new Resolution(Status.ACTIVE,
+                    new Resolved(active, report, version, page, customerName));
         } catch (Exception exception) {
             return Resolution.unavailable();
         }
@@ -140,10 +153,10 @@ public class PublicReportService {
             List<EvidenceDerivative> publicEvidence = cleanReports.publicEvidence(
                     row.jobId(), UUID.fromString(row.reportVersionId()), workshopId);
             Map<String, Object> page = viewMapper.publicPage(version, publicEvidence, language,
-                    row.pdfDownloadEnabled(), token);
+                    row.pdfDownloadEnabled(), token, row.customerName());
             return new Resolution(Status.ACTIVE,
                     new Resolved(PublicShareLink.cleanActive(row.pdfDownloadEnabled()), null,
-                            version, page));
+                            version, page, row.customerName()));
         } catch (Exception exception) {
             return Resolution.unavailable();
         }
@@ -167,7 +180,7 @@ public class PublicReportService {
         if (resolution.status() != Status.ACTIVE) {
             return Optional.empty();
         }
-        if (resolution.resolved().version().getId() == null) {
+        if (resolution.resolved().report() == null) {
             return cleanReports.photo(token, derivativeId)
                     .map(photo -> new Photo(photo.bytes(), photo.mime()));
         }
@@ -178,6 +191,16 @@ public class PublicReportService {
         }
         byte[] bytes = storage.get(derivative.getStorageKey());
         return Optional.of(new Photo(bytes, derivative.getMime()));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Photo> video(String token, UUID derivativeId) {
+        Resolution resolution = resolve(token, "en");
+        if (resolution.status() != Status.ACTIVE || resolution.resolved().report() != null) {
+            return Optional.empty();
+        }
+        return cleanReports.video(token, derivativeId)
+                .map(video -> new Photo(video.bytes(), video.mime()));
     }
 
     @Transactional(readOnly = true)
@@ -199,7 +222,7 @@ public class PublicReportService {
         //    button always works for clean reports and local/dev environments.
         try {
             List<EvidenceDerivative> publicDerivatives;
-            if (versionId == null) {
+            if (resolution.resolved().report() == null) {
                 Optional<CleanPublicReportReader.Row> row = cleanReports.findByToken(token);
                 publicDerivatives = row.isEmpty() ? List.of()
                         : cleanReports.publicEvidence(row.get().jobId(),
@@ -208,11 +231,12 @@ public class PublicReportService {
             } else {
                 publicDerivatives = derivatives.findByReportVersionIdOrderByCreatedAtAsc(versionId);
             }
-            byte[] pdf = pdfService.render(resolution.resolved().version(), publicDerivatives);
+            byte[] pdf = pdfService.render(resolution.resolved().version(), publicDerivatives,
+                    resolution.resolved().customerName());
             return Optional.of(pdf);
         } catch (Exception e) {
-            // Log and fall through; caller will get a 404.
-            System.err.println("[TrueReport] On-demand PDF render failed: " + e.getMessage());
+            log.warn("On-demand public report PDF render failed for version {}: {}",
+                    resolution.resolved().version().getId(), e.getMessage(), e);
             return Optional.empty();
         }
     }

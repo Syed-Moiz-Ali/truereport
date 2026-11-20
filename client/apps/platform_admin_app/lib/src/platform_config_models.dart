@@ -13,6 +13,14 @@ int _int(dynamic value) {
   return 0;
 }
 
+int? _nullableInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 String _str(dynamic value) => value == null ? '' : value.toString();
 
 List<String> _strings(dynamic value) =>
@@ -73,9 +81,7 @@ class PlatformCategory {
     this.name = '',
     this.translations = const {},
     String? nameEn,
-    String? nameAr,
     String? labelEn,
-    String? labelAr,
   }) : _legacyName = nameEn ?? labelEn ?? '';
 
   final String id;
@@ -97,11 +103,7 @@ class PlatformCategory {
   /// Legacy getters kept for screens outside the dynamic-language rollout.
   String get nameEn => name.isNotEmpty ? name : _legacyName;
 
-  String get nameAr => translations['name']?['ar'] ?? name;
-
   String get labelEn => nameEn;
-
-  String get labelAr => nameAr;
 
   String get displayName => nameEn.isNotEmpty ? nameEn : code;
 
@@ -123,7 +125,6 @@ class PlatformCategory {
         active: json['active'] as bool? ?? _str(json['status']) == 'ACTIVE',
         itemCount: _int(json['itemCount']),
         translations: _translationMap(json['translations']),
-        nameAr: _legacy(json['nameAr'], json['labelAr']),
       );
 
   Map<String, dynamic> toRequestJson() => {
@@ -142,7 +143,6 @@ class PlatformItem {
     required this.code,
     required this.categoryId,
     required this.categoryLabelEn,
-    required this.categoryLabelAr,
     required this.status,
     required this.currentVersion,
     required this.sampleData,
@@ -160,23 +160,16 @@ class PlatformItem {
     this.standardSpec = '',
     this.translations = const {},
     String? labelEn,
-    String? labelAr,
     String? standardSpecEn,
-    String? standardSpecAr,
     String? instructionEn,
-    String? instructionAr,
   }) : _legacyLabel = labelEn ?? '',
-       _legacyLabelAr = labelAr ?? '',
        _legacyStandardSpec = standardSpecEn ?? '',
-       _legacyStandardSpecAr = standardSpecAr ?? '',
-       _legacyInstruction = instructionEn ?? '',
-       _legacyInstructionAr = instructionAr ?? '';
+       _legacyInstruction = instructionEn ?? '';
 
   final String id;
   final String code;
   final String categoryId;
   final String categoryLabelEn;
-  final String categoryLabelAr;
   final String status;
   final int? currentVersion;
 
@@ -201,34 +194,17 @@ class PlatformItem {
   final Map<String, Map<String, String>> translations;
 
   final String _legacyLabel;
-  final String _legacyLabelAr;
   final String _legacyStandardSpec;
-  final String _legacyStandardSpecAr;
   final String _legacyInstruction;
-  final String _legacyInstructionAr;
 
   // Legacy getters only for screens that have not migrated to source fields.
   String get labelEn => label.isNotEmpty ? label : _legacyLabel;
 
-  String get labelAr =>
-      translations['label']?['ar'] ??
-      (_legacyLabelAr.isNotEmpty ? _legacyLabelAr : labelEn);
-
   String get standardSpecEn =>
       standardSpec.isNotEmpty ? standardSpec : _legacyStandardSpec;
 
-  String get standardSpecAr =>
-      translations['standardSpec']?['ar'] ??
-      (_legacyStandardSpecAr.isNotEmpty
-          ? _legacyStandardSpecAr
-          : standardSpecEn);
-
   String get instructionEn =>
       instruction.isNotEmpty ? instruction : _legacyInstruction;
-
-  String get instructionAr =>
-      translations['instruction']?['ar'] ??
-      (_legacyInstructionAr.isNotEmpty ? _legacyInstructionAr : instructionEn);
 
   String labelFor(String language) =>
       _valueFor(translations, 'label', language, labelEn);
@@ -247,7 +223,6 @@ class PlatformItem {
           : _str(json['code']),
       categoryId: _str(json['categoryId']),
       categoryLabelEn: _str(json['categoryLabelEn']),
-      categoryLabelAr: _str(json['categoryLabelAr']),
       status: _str(json['status']),
       currentVersion: json['currentVersion'] == null
           ? null
@@ -313,9 +288,7 @@ class PlatformItemVersion {
     this.instruction = '',
     this.standardSpec = '',
     this.labelEn = '',
-    this.labelAr = '',
     this.instructionEn = '',
-    this.instructionAr = '',
   });
 
   final String id;
@@ -340,9 +313,7 @@ class PlatformItemVersion {
   final String standardSpec;
 
   final String labelEn;
-  final String labelAr;
   final String instructionEn;
-  final String instructionAr;
 
   String labelFor(String language) =>
       _valueFor(fieldTranslations, 'label', language, labelEn);
@@ -361,9 +332,7 @@ class PlatformItemVersion {
 
   factory PlatformItemVersion.fromJson(Map<String, dynamic> json) {
     final labelEn = _str(json['labelEn']);
-    final labelAr = _str(json['labelAr']);
     final instructionEn = _str(json['instructionEn']);
-    final instructionAr = _str(json['instructionAr']);
     final sourceLabel = _str(json['label']).isNotEmpty
         ? _str(json['label'])
         : labelEn;
@@ -432,9 +401,7 @@ class PlatformItemVersion {
       instruction: sourceInstruction,
       standardSpec: sourceStandardSpec,
       labelEn: sourceLabel,
-      labelAr: labelAr,
       instructionEn: sourceInstruction,
-      instructionAr: instructionAr,
     );
   }
 }
@@ -483,9 +450,7 @@ class ItemMetadata {
     required this.guideImageId,
     this.standardSpec = '',
     String? standardSpecEn,
-    String? standardSpecAr,
-  }) : _legacyStandardSpec = standardSpecEn ?? '',
-       _legacyStandardSpecAr = standardSpecAr ?? '';
+  }) : _legacyStandardSpec = standardSpecEn ?? '';
 
   final String itemId;
   final String measurementUnit;
@@ -502,12 +467,9 @@ class ItemMetadata {
   final String guideImageId;
 
   final String _legacyStandardSpec;
-  final String _legacyStandardSpecAr;
 
   String get standardSpecEn =>
       standardSpec.isNotEmpty ? standardSpec : _legacyStandardSpec;
-
-  String get standardSpecAr => _legacyStandardSpecAr;
 
   factory ItemMetadata.fromJson(Map<String, dynamic> json) => ItemMetadata(
     itemId: _str(json['itemId']),
@@ -524,7 +486,6 @@ class ItemMetadata {
     allowFreeTextNote: json['allowFreeTextNote'] as bool? ?? false,
     sortOrder: _int(json['sortOrder']),
     guideImageId: _str(json['guideImageId']),
-    standardSpecAr: _str(json['standardSpecAr']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -532,7 +493,6 @@ class ItemMetadata {
     'sensorTool': sensorTool,
     'standardSpec': standardSpec,
     'standardSpecEn': standardSpecEn,
-    'standardSpecAr': standardSpecAr,
     'safetyCritical': safetyCritical,
     'multiPoint': multiPoint,
     'maxTyreAgeYears': maxTyreAgeYears,
@@ -540,6 +500,26 @@ class ItemMetadata {
     'sortOrder': sortOrder,
     'guideImageId': guideImageId,
   };
+}
+
+/// Optional positive seconds from a text field; null when empty or invalid.
+int? evidenceDurationSeconds(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return null;
+  final parsed = int.tryParse(trimmed);
+  return parsed != null && parsed > 0 ? parsed : null;
+}
+
+/// True when a non-empty duration is not positive, or when both are set and
+/// the minimum is not strictly less than the maximum.
+bool evidenceDurationsInvalid(String minRaw, String maxRaw) {
+  final minText = minRaw.trim();
+  final maxText = maxRaw.trim();
+  final min = evidenceDurationSeconds(minText);
+  final max = evidenceDurationSeconds(maxText);
+  if (minText.isNotEmpty && min == null) return true;
+  if (maxText.isNotEmpty && max == null) return true;
+  return min != null && max != null && min >= max;
 }
 
 @immutable
@@ -550,6 +530,8 @@ class EvidenceRule {
     required this.minVideos,
     required this.minNotesChars,
     required this.requiredEvidenceType,
+    this.minDurationSeconds,
+    this.maxDurationSeconds,
   });
 
   final String resultCode;
@@ -558,12 +540,18 @@ class EvidenceRule {
   final int minNotesChars;
   final String requiredEvidenceType;
 
+  /// Optional video duration window, in seconds. Null means unbounded.
+  final int? minDurationSeconds;
+  final int? maxDurationSeconds;
+
   factory EvidenceRule.fromJson(Map<String, dynamic> json) => EvidenceRule(
     resultCode: _str(json['resultCode']),
     minPhotos: _int(json['minPhotos']),
     minVideos: _int(json['minVideos']),
     minNotesChars: _int(json['minNotesChars']),
     requiredEvidenceType: _str(json['requiredEvidenceType']),
+    minDurationSeconds: _nullableInt(json['minDurationSeconds']),
+    maxDurationSeconds: _nullableInt(json['maxDurationSeconds']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -574,6 +562,8 @@ class EvidenceRule {
     'requiredEvidenceType': requiredEvidenceType.isEmpty
         ? null
         : requiredEvidenceType,
+    'minDurationSeconds': minDurationSeconds,
+    'maxDurationSeconds': maxDurationSeconds,
   };
 }
 
@@ -590,9 +580,7 @@ class MeasurementBand {
     this.label = '',
     this.translations = const {},
     String? labelEn,
-    String? labelAr,
-  }) : _legacyLabel = labelEn ?? '',
-       _legacyLabelAr = labelAr ?? '';
+  }) : _legacyLabel = labelEn ?? '';
 
   final String fieldCode;
   final String unitCode;
@@ -608,13 +596,8 @@ class MeasurementBand {
   final Map<String, Map<String, String>> translations;
 
   final String _legacyLabel;
-  final String _legacyLabelAr;
 
   String get labelEn => label.isNotEmpty ? label : _legacyLabel;
-
-  String get labelAr =>
-      translations['label']?['ar'] ??
-      (_legacyLabelAr.isNotEmpty ? _legacyLabelAr : labelEn);
 
   String labelFor(String language) =>
       _valueFor(translations, 'label', language, labelEn);
@@ -630,7 +613,6 @@ class MeasurementBand {
         label: _legacy(json['label'], json['labelEn']),
         sortOrder: _int(json['sortOrder']),
         translations: _translationMap(json['translations']),
-        labelAr: _legacy(json['labelAr']),
       );
 
   Map<String, dynamic> toJson() => {
@@ -642,7 +624,6 @@ class MeasurementBand {
     'resultCode': resultCode,
     'label': labelEn,
     'labelEn': labelEn,
-    'labelAr': labelAr,
     'sortOrder': sortOrder,
   };
 }
@@ -669,9 +650,7 @@ class IssueField {
     this.label = '',
     this.translations = const {},
     String? labelEn,
-    String? labelAr,
-  }) : _legacyLabel = labelEn ?? '',
-       _legacyLabelAr = labelAr ?? '';
+  }) : _legacyLabel = labelEn ?? '';
 
   final String? id;
   final String fieldCode;
@@ -696,13 +675,8 @@ class IssueField {
   final List<String> allowedValues;
 
   final String _legacyLabel;
-  final String _legacyLabelAr;
 
   String get labelEn => label.isNotEmpty ? label : _legacyLabel;
-
-  String get labelAr =>
-      translations['label']?['ar'] ??
-      (_legacyLabelAr.isNotEmpty ? _legacyLabelAr : labelEn);
 
   String labelFor(String language) =>
       _valueFor(translations, 'label', language, labelEn);
@@ -726,7 +700,6 @@ class IssueField {
     sortOrder: _int(json['sortOrder']),
     allowedValues: _strings(json['allowedValues']),
     translations: _translationMap(json['translations']),
-    labelAr: _legacy(json['labelAr']),
   );
 
   Map<String, dynamic> toJson() => {
@@ -734,7 +707,6 @@ class IssueField {
     'fieldCode': fieldCode,
     'label': labelEn,
     'labelEn': labelEn,
-    'labelAr': labelAr,
     'inputType': inputType,
     'optionSetCode': optionSetCode.isEmpty ? null : optionSetCode,
     'unitSetCode': unitSetCode.isEmpty ? null : unitSetCode,
@@ -797,9 +769,7 @@ class OptionValue {
     this.label = '',
     this.translations = const {},
     String? labelEn,
-    String? labelAr,
-  }) : _legacyLabel = labelEn ?? '',
-       _legacyLabelAr = labelAr ?? '';
+  }) : _legacyLabel = labelEn ?? '';
 
   final String id;
   final String code;
@@ -813,13 +783,8 @@ class OptionValue {
   final Map<String, Map<String, String>> translations;
 
   final String _legacyLabel;
-  final String _legacyLabelAr;
 
   String get labelEn => label.isNotEmpty ? label : _legacyLabel;
-
-  String get labelAr =>
-      translations['label']?['ar'] ??
-      (_legacyLabelAr.isNotEmpty ? _legacyLabelAr : labelEn);
 
   String labelFor(String language) =>
       _valueFor(translations, 'label', language, labelEn);
@@ -832,7 +797,6 @@ class OptionValue {
     sortOrder: _int(json['sortOrder']),
     metadataJson: _str(json['metadataJson']),
     translations: _translationMap(json['translations']),
-    labelAr: _legacy(json['labelAr']),
   );
 }
 
@@ -847,9 +811,7 @@ class OptionSet {
     this.name = '',
     this.translations = const {},
     String? nameEn,
-    String? nameAr,
-  }) : _legacyName = nameEn ?? '',
-       _legacyNameAr = nameAr ?? '';
+  }) : _legacyName = nameEn ?? '';
 
   final String id;
   final String code;
@@ -863,13 +825,8 @@ class OptionSet {
   final Map<String, Map<String, String>> translations;
 
   final String _legacyName;
-  final String _legacyNameAr;
 
   String get nameEn => name.isNotEmpty ? name : _legacyName;
-
-  String get nameAr =>
-      translations['name']?['ar'] ??
-      (_legacyNameAr.isNotEmpty ? _legacyNameAr : nameEn);
 
   String nameFor(String language) {
     final direct = translations['name']?[language];
@@ -887,7 +844,6 @@ class OptionSet {
         .map((e) => OptionValue.fromJson(e as Map<String, dynamic>))
         .toList(growable: false),
     translations: _translationMap(json['translations']),
-    nameAr: _legacy(json['nameAr']),
   );
 }
 
@@ -902,9 +858,7 @@ class ReportDocumentType {
     this.name = '',
     this.translations = const {},
     String? nameEn,
-    String? nameAr,
-  }) : _legacyName = nameEn ?? '',
-       _legacyNameAr = nameAr ?? '';
+  }) : _legacyName = nameEn ?? '';
 
   final String id;
   final String code;
@@ -918,13 +872,8 @@ class ReportDocumentType {
   final Map<String, Map<String, String>> translations;
 
   final String _legacyName;
-  final String _legacyNameAr;
 
   String get nameEn => name.isNotEmpty ? name : _legacyName;
-
-  String get nameAr =>
-      translations['name']?['ar'] ??
-      (_legacyNameAr.isNotEmpty ? _legacyNameAr : nameEn);
 
   factory ReportDocumentType.fromJson(Map<String, dynamic> json) =>
       ReportDocumentType(
@@ -935,7 +884,6 @@ class ReportDocumentType {
         required: json['required'] as bool? ?? false,
         sortOrder: _int(json['sortOrder']),
         translations: _translationMap(json['translations']),
-        nameAr: _legacy(json['nameAr']),
       );
 }
 
@@ -968,6 +916,10 @@ class HealthCheck {
     required this.affected,
     required this.references,
     this.messageKey = '',
+    this.labelKey = '',
+    this.descriptionKey = '',
+    this.tone = '',
+    this.status = '',
   });
 
   final String code;
@@ -977,6 +929,14 @@ class HealthCheck {
   final String messageKey;
   final int affected;
   final List<String> references;
+
+  /// Backend-owned label/description keys and tone token.
+  final String labelKey;
+  final String descriptionKey;
+  final String tone;
+
+  /// Backend status token (OK / WARNING / ERROR); mirrors [severity].
+  final String status;
 
   bool get ok => severity == 'OK';
 
@@ -988,6 +948,10 @@ class HealthCheck {
     messageKey: _str(json['messageKey']),
     affected: _int(json['affected']),
     references: _strings(json['references']),
+    labelKey: _str(json['labelKey']),
+    descriptionKey: _str(json['descriptionKey']),
+    tone: _str(json['tone']),
+    status: _str(json['status']),
   );
 }
 
@@ -1559,6 +1523,81 @@ class OverviewAlert {
   );
 }
 
+/// One server-formatted KPI card from `/platform/overview`.
+///
+/// [value] is already formatted by the server (grouping included); the client
+/// must not recompute or re-round it.
+@immutable
+class OverviewMetricCard {
+  const OverviewMetricCard({
+    required this.code,
+    required this.labelKey,
+    required this.value,
+    this.captionKey = '',
+    this.tone = 'neutral',
+    this.order = 0,
+  });
+
+  final String code;
+  final String labelKey;
+  final String value;
+  final String captionKey;
+  final String tone;
+  final int order;
+
+  factory OverviewMetricCard.fromJson(Map<String, dynamic> json) =>
+      OverviewMetricCard(
+        code: _str(json['code']),
+        labelKey: _str(json['labelKey']),
+        value: _str(json['value']),
+        captionKey: _str(json['captionKey']),
+        tone: _str(json['tone']),
+        order: _int(json['order']),
+      );
+}
+
+/// One backend-localized dashboard alert.
+@immutable
+class OverviewLocalizedAlert {
+  const OverviewLocalizedAlert({
+    required this.code,
+    required this.severity,
+    this.order = 0,
+    this.titleKey = '',
+    this.bodyKey = '',
+    this.args = const <String, String>{},
+    this.actionLabelKey = '',
+    this.actionRoute = '',
+  });
+
+  final String code;
+  final String severity;
+  final int order;
+  final String titleKey;
+  final String bodyKey;
+  final Map<String, String> args;
+  final String actionLabelKey;
+  final String actionRoute;
+
+  factory OverviewLocalizedAlert.fromJson(Map<String, dynamic> json) {
+    final action = _safeMap(json['action']);
+    final rawArgs = _safeMap(json['args']);
+    return OverviewLocalizedAlert(
+      code: _str(json['code']),
+      severity: _str(json['severity']),
+      order: _int(json['order']),
+      titleKey: _str(json['titleKey']),
+      bodyKey: _str(json['bodyKey']),
+      args: <String, String>{
+        for (final entry in rawArgs.entries)
+          entry.key: entry.value == null ? '' : '${entry.value}',
+      },
+      actionLabelKey: _str(action['labelKey']),
+      actionRoute: _str(action['route']),
+    );
+  }
+}
+
 /// Read-only dashboard aggregation. All fields optional with 0/empty
 /// fallbacks; no scoring or weight fields.
 @immutable
@@ -1572,6 +1611,8 @@ class OverviewSummary {
     required this.languages,
     required this.recentActivity,
     required this.alerts,
+    this.metricCards = const <OverviewMetricCard>[],
+    this.localizedAlerts = const <OverviewLocalizedAlert>[],
   });
 
   final OverviewWorkshops workshops;
@@ -1582,6 +1623,12 @@ class OverviewSummary {
   final OverviewLanguages languages;
   final List<OverviewActivityEntry> recentActivity;
   final List<OverviewAlert> alerts;
+
+  /// Server-formatted KPI cards, already ordered by the backend.
+  final List<OverviewMetricCard> metricCards;
+
+  /// Backend-localized alerts (title/body/action keys + args).
+  final List<OverviewLocalizedAlert> localizedAlerts;
 
   static const OverviewSummary empty = OverviewSummary(
     workshops: OverviewWorkshops(total: 0, active: 0),
@@ -1619,6 +1666,14 @@ class OverviewSummary {
                 .toList(growable: false),
         alerts: _safeList(json['alerts'])
             .map((item) => OverviewAlert.fromJson(_safeMap(item)))
+            .toList(growable: false),
+        metricCards: _safeList(json['metricCards'])
+            .map((item) => OverviewMetricCard.fromJson(_safeMap(item)))
+            .where((card) => card.code.isNotEmpty || card.value.isNotEmpty)
+            .toList(growable: false),
+        localizedAlerts: _safeList(json['localizedAlerts'])
+            .map((item) => OverviewLocalizedAlert.fromJson(_safeMap(item)))
+            .where((alert) => alert.titleKey.isNotEmpty)
             .toList(growable: false),
       );
 }

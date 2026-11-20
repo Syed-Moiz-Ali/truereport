@@ -31,6 +31,8 @@ dependencies:
     path: ../../packages/domain
   l10n:
     path: ../../packages/l10n
+  reference_data:
+    path: ../../packages/reference_data
   offline_sync:
     path: ../../packages/offline_sync
   uuid: 4.6.0
