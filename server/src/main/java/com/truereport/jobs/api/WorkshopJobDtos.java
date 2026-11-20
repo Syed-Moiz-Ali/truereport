@@ -163,6 +163,12 @@ public final class WorkshopJobDtos {
     ) {
     }
 
+    public record JobConsentRequest(
+            Boolean consentGranted,
+            String reason
+    ) {
+    }
+
     public record CancelJobRequest(
             String reason,
             Integer version

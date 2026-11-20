@@ -130,10 +130,10 @@ class ReportIT extends IntegrationTestBase {
         assertThat(html).contains("noindex", "no-referrer");
         assertThat(html).doesNotContain("fonts.googleapis", "cdnjs", "http://", "https://");
 
-        MvcResult arabic = mockMvc.perform(get("/r/" + token).param("lang", "ar"))
+        MvcResult englishOnly = mockMvc.perform(get("/r/" + token).param("lang", "ar"))
                 .andExpect(status().isOk()).andReturn();
-        assertThat(arabic.getResponse().getContentAsString())
-                .contains("dir=\"rtl\"", "تقرير فحص مركبة");
+        assertThat(englishOnly.getResponse().getContentAsString())
+                .contains("dir=\"ltr\"");
 
         mockMvc.perform(get("/r/" + token + "/pdf")).andExpect(status().isNotFound());
 

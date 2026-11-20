@@ -149,7 +149,6 @@ public class ApiExceptionHandler {
         mapped.put("messageKey", "error.field.invalid");
         if (!platformAdmin) {
             mapped.put("messageEn", messageEn);
-            mapped.put("messageAr", messageAr);
         }
         return mapped;
     }
@@ -165,7 +164,6 @@ public class ApiExceptionHandler {
         detail.setProperty("messageKey", messageKey);
         if (!isPlatformAdmin(request)) {
             detail.setProperty("messageEn", messageEn);
-            detail.setProperty("messageAr", messageAr);
         }
         detail.setProperty("traceId", MDC.get(RequestIdFilter.MDC_KEY));
         return detail;

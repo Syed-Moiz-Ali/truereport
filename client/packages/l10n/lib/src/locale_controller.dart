@@ -10,13 +10,12 @@ class LocaleController extends Notifier<Locale> {
   @override
   Locale build() => const Locale('en');
 
+  /// English-only product: any requested locale is clamped to English.
   void setLocale(Locale locale) {
-    state = locale;
+    state = const Locale('en');
   }
 
   void toggle() {
-    state = state.languageCode == 'ar'
-        ? const Locale('en')
-        : const Locale('ar');
+    state = const Locale('en');
   }
 }

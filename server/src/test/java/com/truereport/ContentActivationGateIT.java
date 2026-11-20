@@ -5,6 +5,7 @@ import com.truereport.localization.TranslationGate;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.templates.config.PlatformTemplateService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Disabled("English-only product: bilingual translation gate is not applicable")
 class ContentActivationGateIT extends IntegrationTestBase {
 
     private static final String LANGUAGE = "ar";

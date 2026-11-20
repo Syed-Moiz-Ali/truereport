@@ -2,7 +2,6 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../signin_tokens.dart';
-import 'signin_language_switch.dart';
 
 /// The 56/72 px command strip: product name at the start, language at the end.
 class SignInCommandStrip extends StatelessWidget {
@@ -51,15 +50,8 @@ class SignInCommandStrip extends StatelessWidget {
             isArabic ? 0 : -0.2,
             color: onImage ? Fx.white : scheme.onSurface,
           );
-    final language = SignInLanguageSwitch(
-      isArabic: isArabic,
-      onChanged: onLanguageChanged,
-      englishLabel: englishLabel,
-      arabicLabel: arabicLabel,
-      englishKey: englishKey,
-      arabicKey: arabicKey,
-      onImage: onImage,
-    );
+    // English-only product: the language switcher is not rendered.
+    const Widget language = SizedBox.shrink();
     final titleText = Text(
       title,
       maxLines: 1,
@@ -82,9 +74,9 @@ class SignInCommandStrip extends StatelessWidget {
                 children: [
                   titleText,
                   const SizedBox(height: 4),
-                  Align(
+                  const Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: language,
+                    child: SizedBox.shrink(),
                   ),
                 ],
               )

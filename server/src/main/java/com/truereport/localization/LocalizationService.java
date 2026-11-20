@@ -44,14 +44,10 @@ public class LocalizationService {
     public List<LanguageDto> activeLanguages() {
         // User-facing surfaces expose only languages that the manifest sync
         // marked LIVE and active.
-        List<LanguageDto> live = new ArrayList<>(languages.findLive());
-        String fallback = languages.defaultCode();
-        if (fallback != null && live.stream().noneMatch(l -> l.code().equals(fallback))) {
-            languages.find(fallback)
-                    .filter(candidate -> "LIVE".equals(candidate.status()) && candidate.active())
-                    .ifPresent(live::add);
-        }
-        return live;
+        // English-only product: never expose another language to a client.
+        return languages.findLive().stream()
+                .filter(language -> "en".equalsIgnoreCase(language.code()))
+                .toList();
     }
 
     /**
@@ -61,23 +57,17 @@ public class LocalizationService {
      */
     @Transactional(readOnly = true)
     public List<LanguageDto> allLanguages() {
-        Set<String> manifestCodes = catalog.manifest().languages().stream()
-                .map(language -> language.code().toLowerCase(Locale.ROOT))
-                .collect(Collectors.toSet());
+        // English-only product: the platform registry exposes only English.
         return languages.findLive().stream()
-                .filter(language -> manifestCodes.contains(language.code().toLowerCase(Locale.ROOT)))
+                .filter(language -> "en".equalsIgnoreCase(language.code()))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public MeLanguageDto me(String userId) {
-        String fallback = languages.defaultCode() == null ? "en" : languages.defaultCode();
-        String language = languages.preferredLanguage(userId).orElse(fallback);
-        LanguageDto dto = languages.find(language).orElse(null);
-        if (dto == null || !dto.active() || !"LIVE".equals(dto.status())) {
-            language = fallback;
-            dto = languages.find(language).orElse(null);
-        }
+        String fallback = "en";
+        String language = "en";
+        LanguageDto dto = languages.find("en").orElse(null);
         String direction = dto == null ? "ltr" : dto.direction();
         return new MeLanguageDto(language, direction, fallback);
     }
@@ -87,7 +77,10 @@ public class LocalizationService {
         if (code == null || code.isBlank()) {
             throw validation("language", "LANGUAGE_REQUIRED", "error.validation.failed");
         }
-        LanguageDto language = languages.find(code.trim().toLowerCase(Locale.ROOT))
+        if (!"en".equalsIgnoreCase(code.trim())) {
+            throw validation("language", "LANGUAGE_INACTIVE", "error.locale.invalid");
+        }
+        LanguageDto language = languages.find("en")
                 .orElseThrow(() -> validation("language", "LANGUAGE_UNKNOWN",
                         "error.locale.invalid"));
         if (!language.active() || !"LIVE".equals(language.status())) {

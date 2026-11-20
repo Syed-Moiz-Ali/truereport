@@ -354,11 +354,11 @@ public class DefaultChecklistSeeder {
         boolean numeric = item.unit() != null;
         boolean multiPoint = item.multiPoint();
         fields.add(field(null, "ISSUE_TYPE", "Issue Type", "Ù†ÙˆØ¹ Ø§Ù„Ø¹Ø·Ù„",
-                "SELECT", "ISSUE_TYPE", null, true,
+                "SELECT", "ISSUE_TYPE", null, false,
                 List.of("ATTENTION_RECOMMENDED", "DEFECT_FOUND"), null, null, 0, null, null,
                 false, false, 1, List.of()));
         fields.add(field(null, "LOCATION", "Location", "Ø§Ù„Ù…ÙˆÙ‚Ø¹",
-                multiPoint ? "MULTI_SELECT" : "SELECT", "LOCATION", null, true,
+                multiPoint ? "MULTI_SELECT" : "SELECT", "LOCATION", null, false,
                 List.of("ATTENTION_RECOMMENDED", "DEFECT_FOUND"), null, null, 0, null, null,
                 multiPoint, false, 2, locationSubset(item)));
         if ("OBD-SCN-01".equals(item.code())) {
@@ -382,15 +382,15 @@ public class DefaultChecklistSeeder {
                     List.of(item.unit())));
         }
         fields.add(field(null, "SEVERITY", "Severity", "Ø§Ù„Ø®Ø·ÙˆØ±Ø©",
-                "SELECT", "SEVERITY", null, true,
+                "SELECT", "SEVERITY", null, false,
                 List.of("ATTENTION_RECOMMENDED", "DEFECT_FOUND"), null, null, 0,
                 null, null, false, false, 5, List.of()));
         fields.add(field(null, "ACTION", "Recommended Action", "Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ø§Ù„Ù…ÙˆØµÙ‰ Ø¨Ù‡",
-                "SELECT", "ACTION", null, true,
+                "SELECT", "ACTION", null, false,
                 List.of("ATTENTION_RECOMMENDED", "DEFECT_FOUND"), null, null, 0,
                 "SEVERITY", "MODERATE", false, false, 6, List.of()));
         fields.add(field(null, "URGENCY", "Urgency", "Ø§Ù„Ø£ÙˆÙ„ÙˆÙŠØ©",
-                "SELECT", "URGENCY", null, true,
+                "SELECT", "URGENCY", null, false,
                 List.of("ATTENTION_RECOMMENDED", "DEFECT_FOUND"), null, null, 0,
                 "SEVERITY", "MODERATE", false, false, 7, List.of()));
         itemConfig.replaceIssueFields(versionId, fields);

@@ -9,6 +9,7 @@ import 'package:workshop_admin_app/src/features/jobs/detail/job_detail_review_pu
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/queue/jobs_queue_actions.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_actions.dart';
+import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -198,6 +199,29 @@ class _DispatchJobDetailState extends ConsumerState<DispatchJobDetail> {
           icon: Icons.person_add_alt_1_outlined,
           variant: JobPillVariant.outline,
           onPressed: () => queueActions.assign(job),
+        ),
+      );
+    }
+    if (!job.consentGranted &&
+        job.status != 'CANCELLED' &&
+        job.status != 'PUBLISHED') {
+      pills.add(
+        JobPillButton(
+          label: l10n.consentGranted,
+          icon: Icons.verified_user_outlined,
+          variant: JobPillVariant.outline,
+          onPressed: () async {
+            try {
+              await ref
+                  .read(adminApiProvider)
+                  .updateJobConsent(job.id, consentGranted: true);
+              _refresh();
+            } catch (_) {
+              if (mounted) {
+                setState(() => _banner = l10n.error);
+              }
+            }
+          },
         ),
       );
     }

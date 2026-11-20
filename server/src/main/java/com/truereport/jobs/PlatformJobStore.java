@@ -68,6 +68,13 @@ public class PlatformJobStore {
             String reason) {
     }
 
+    public record ReportItemRow(
+            String itemCode, String itemVersionId, String resultCode, String severityCode,
+            String notesEn, String notesAr, String reasonCode, Integer score,
+            String labelEn, String labelAr, String instructionEn, String instructionAr,
+            String categoryEn, String categoryAr, int sortOrder) {
+    }
+
     public record EvidenceRuleRow(int minPhotos, int minVideos, String requiredEvidenceType) {
     }
 
@@ -398,6 +405,70 @@ public class PlatformJobStore {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, UuidV7.generate().toString(), jobId, itemVersionId, resultCode, score,
                 photos, videos, signaturePresent, now(), issueValuesJson, now(), now());
+    }
+
+    /** Everything the public report needs from the pinned checklist + assessment. */
+    public List<ReportItemRow> reportItems(String jobId) {
+        return jdbc.query("""
+                SELECT a.item_code, a.item_version_id, a.result_code, a.severity_code,
+                       a.notes_en, a.notes_ar, a.reason_code, a.score,
+                       v.label AS label_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
+                       v.instruction AS instruction_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
+                          AND pt.field_name = 'instruction' AND pt.lang = 'ar') AS instruction_ar,
+                       c.name AS category_en,
+                       (SELECT body FROM platform_translations pt
+                        WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
+                          AND pt.field_name = 'name' AND pt.lang = 'ar') AS category_ar,
+                       c.sort_order AS category_sort, i.sort_order AS item_sort
+                FROM platform_assessments a
+                JOIN platform_item_versions v ON v.id = a.item_version_id
+                JOIN platform_items i ON i.id = v.item_id
+                JOIN platform_categories c ON c.id = i.category_id
+                WHERE a.job_id = ?
+                ORDER BY c.sort_order, i.sort_order, a.item_code
+                """, (rs, i) -> new ReportItemRow(
+                rs.getString("item_code"), rs.getString("item_version_id"),
+                rs.getString("result_code"), rs.getString("severity_code"),
+                rs.getString("notes_en"), rs.getString("notes_ar"),
+                rs.getString("reason_code"), nullableInt(rs, "score"),
+                rs.getString("label_en"), rs.getString("label_ar"),
+                rs.getString("instruction_en"), rs.getString("instruction_ar"),
+                rs.getString("category_en"), rs.getString("category_ar"),
+                rs.getInt("category_sort")), jobId);
+    }
+
+    public record MeasurementRow(
+            String fieldCode, String valueIndex, java.math.BigDecimal numericValue,
+            String unitCode, String resultCode, Integer score) {
+    }
+
+    public List<MeasurementRow> reportMeasurements(String jobId, String itemCode) {
+        return jdbc.query("""
+                SELECT m.field_code, m.value_index, m.numeric_value, m.unit_code,
+                       m.derived_result_code, m.derived_score
+                FROM platform_assessment_measurements m
+                JOIN platform_assessments a ON a.id = m.assessment_id
+                WHERE a.job_id = ? AND a.item_code = ?
+                ORDER BY m.field_code, m.value_index
+                """, (rs, i) -> new MeasurementRow(
+                rs.getString("field_code"), rs.getString("value_index"),
+                rs.getBigDecimal("numeric_value"), rs.getString("unit_code"),
+                rs.getString("derived_result_code"), nullableInt(rs, "derived_score")),
+                jobId, itemCode);
+    }
+
+    public List<String> reportEvidenceIds(String jobId, String itemCode) {
+        return jdbc.query("""
+                SELECT id FROM platform_evidence_assets
+                WHERE job_id = ? AND item_code = ? AND status IN ('UPLOADED', 'VERIFIED')
+                  AND deleted_at IS NULL
+                ORDER BY captured_at, id
+                """, (rs, i) -> rs.getString("id"), jobId, itemCode);
     }
 
     public Optional<EvidenceRuleRow> evidenceRule(String itemVersionId, String resultCode) {

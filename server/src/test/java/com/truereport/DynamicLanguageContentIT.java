@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@org.junit.jupiter.api.Disabled("English-only product: bilingual overlays are removed")
 class DynamicLanguageContentIT extends IntegrationTestBase {
 
     @Autowired

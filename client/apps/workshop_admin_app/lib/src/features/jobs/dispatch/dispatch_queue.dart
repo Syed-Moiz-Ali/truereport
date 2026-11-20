@@ -116,10 +116,10 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 420),
                       child: WorkshopSearchField(
-                      key: const Key('jobs-search'),
-                      controller: _search,
-                      hint: l10n.search,
-                      semanticLabel: l10n.search,
+                        key: const Key('jobs-search'),
+                        controller: _search,
+                        hint: l10n.search,
+                        semanticLabel: l10n.search,
                         onChanged: _onSearch,
                       ),
                     ),
@@ -292,6 +292,7 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
       if ((job.vehiclePlate ?? '').isNotEmpty) job.vehiclePlate!,
     ].join(' - ');
     return _HoverRow(
+      key: Key('job-${job.id}'),
       onTap: () => actions.openDetail(job),
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(18, 13, 18, 13),
@@ -447,7 +448,7 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
 }
 
 class _HoverRow extends StatefulWidget {
-  const _HoverRow({required this.child, required this.onTap});
+  const _HoverRow({super.key, required this.child, required this.onTap});
   final Widget child;
   final VoidCallback onTap;
 

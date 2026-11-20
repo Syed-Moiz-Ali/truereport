@@ -16,7 +16,6 @@ class TechnicianProfilePage extends ConsumerWidget {
     final role = l10n.roleTechnician;
     final name = session?.user.displayName ?? role;
     final email = session?.user.email;
-    final locale = ref.watch(localeProvider);
 
     return AppScaffold(
       backgroundColor: colors.surfaceContainerLow,
@@ -139,34 +138,6 @@ class TechnicianProfilePage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 22),
-                      Container(
-                        padding: const EdgeInsetsDirectional.all(14),
-                        decoration: BoxDecoration(
-                          color: colors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: colors.outlineVariant),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              l10n.technicianLanguage,
-                              style: context.texts.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _LanguagePill(
-                              englishLabel: l10n.languageEnglish,
-                              arabicLabel: l10n.languageArabic,
-                              isArabic: locale.languageCode == 'ar',
-                              onChanged: (isArabic) => ref
-                                  .read(localeProvider.notifier)
-                                  .setLocale(Locale(isArabic ? 'ar' : 'en')),
-                            ),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 24),
                       Container(height: 1, color: colors.outlineVariant),
                       const SizedBox(height: 16),
@@ -258,92 +229,6 @@ class _SignOutButtonState extends State<_SignOutButton> {
                 const SizedBox(width: 8),
                 Icon(Icons.logout_rounded, size: 18, color: danger.foreground),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LanguagePill extends StatelessWidget {
-  const _LanguagePill({
-    required this.englishLabel,
-    required this.arabicLabel,
-    required this.isArabic,
-    required this.onChanged,
-  });
-
-  final String englishLabel;
-  final String arabicLabel;
-  final bool isArabic;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      height: 46,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        children: [
-          _LanguageSeg(
-            label: englishLabel,
-            selected: !isArabic,
-            onTap: () => onChanged(false),
-          ),
-          _LanguageSeg(
-            label: arabicLabel,
-            selected: isArabic,
-            onTap: () => onChanged(true),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LanguageSeg extends StatelessWidget {
-  const _LanguageSeg({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: label,
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: context.motionDuration(const Duration(milliseconds: 150)),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? colors.surface : Colors.transparent,
-              borderRadius: BorderRadius.circular(999),
-              border: selected
-                  ? Border.all(color: colors.outlineVariant)
-                  : null,
-            ),
-            child: Text(
-              label,
-              style: context.texts.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: selected ? colors.onSurface : colors.onSurfaceVariant,
-              ),
             ),
           ),
         ),

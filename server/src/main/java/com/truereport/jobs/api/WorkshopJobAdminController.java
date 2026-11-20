@@ -8,6 +8,7 @@ import com.truereport.jobs.api.WorkshopJobDtos.AssignmentDto;
 import com.truereport.jobs.api.WorkshopJobDtos.AvailableTemplateDto;
 import com.truereport.jobs.api.WorkshopJobDtos.CancelJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.CreateJobRequest;
+import com.truereport.jobs.api.WorkshopJobDtos.JobConsentRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.JobDto;
 import com.truereport.jobs.api.WorkshopJobDtos.JobPageDto;
 import com.truereport.jobs.api.WorkshopJobDtos.JobStatusCountsDto;
@@ -112,6 +113,12 @@ public class WorkshopJobAdminController {
     public JobDto assign(JwtAuthenticationToken authentication, @PathVariable String id,
                          @RequestBody AssignTechnicianRequest request) {
         return service.assign(currentUserService.require(authentication), id, request);
+    }
+
+    @PutMapping("/jobs/{id}/consent")
+    public JobDto consent(JwtAuthenticationToken authentication, @PathVariable String id,
+                          @RequestBody JobConsentRequest request) {
+        return service.updateConsent(currentUserService.require(authentication), id, request);
     }
 
     @PostMapping("/jobs/{id}/cancel")

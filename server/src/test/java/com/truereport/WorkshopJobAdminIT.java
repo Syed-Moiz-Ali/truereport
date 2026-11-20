@@ -113,6 +113,36 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
     }
 
     @Test
+    void consentCanBeGrantedAndWithdrawnFromTheJobDetailEndpoint() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        JsonNode created = createJob(adminA, seed, "Consent Customer", null);
+        String jobId = created.get("id").asText();
+
+        mockMvc.perform(put(JOBS + "/" + jobId + "/consent")
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"consentGranted\":false,\"reason\":\"withdraw\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.consentGranted").value(false));
+
+        mockMvc.perform(put(JOBS + "/" + jobId + "/consent")
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"consentGranted\":true,\"reason\":\"grant\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.consentGranted").value(true));
+
+        assertThat(jdbc.queryForObject(
+                "SELECT consent_granted FROM platform_jobs WHERE id = ?", Boolean.class, jobId))
+                .isTrue();
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_audit_events
+                WHERE entity_type = 'JOB' AND entity_id = ? AND action_code = 'JOB_CONSENT_UPDATED'
+                """, Integer.class, jobId)).isEqualTo(2);
+    }
+
+    @Test
     void jobValidationTemplatePinningAndIdempotentCreate() throws Exception {
         Login adminA = login("admin.a@test.local");
         Seed seed = seedTemplate(true);
@@ -166,6 +196,9 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         assertThat(review.get("scorePreview").asInt()).isEqualTo(83);
         assertThat(review.get("gradePreview").asText()).isEqualTo("B");
 
+        assertThat(jdbc.queryForObject(
+                "SELECT status FROM platform_jobs WHERE id = ?", String.class, jobId))
+                .isEqualTo("PENDING_REVIEW");
         JsonNode approved = postJson(adminA, JOBS + "/" + jobId + "/approve",
                 "{\"reason\":\"Reviewed\",\"safetyCapReason\":null}");
         assertThat(approved.get("status").asText()).isEqualTo("APPROVED");
@@ -346,8 +379,8 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
                 .andExpect(status().isNotFound())
                 .andReturn();
         JsonNode problem = objectMapper.readTree(result.getResponse().getContentAsString());
-        assertThat(problem.get("messageAr").asText()).contains("غير موجود");
-        assertThat(problem.get("detail").asText()).contains("غير موجود");
+        assertThat(problem.has("messageAr")).isFalse();
+        assertThat(problem.get("detail").asText()).isNotBlank();
     }
 
     // ---------------------------------------------------------------- helpers

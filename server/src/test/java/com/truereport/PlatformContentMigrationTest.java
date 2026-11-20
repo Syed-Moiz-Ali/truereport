@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@org.junit.jupiter.api.Disabled("English-only product: Arabic content migration is removed")
 class PlatformContentMigrationTest {
 
     private static final UuidBinaryConverter BIN = new UuidBinaryConverter();

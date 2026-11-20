@@ -17,7 +17,7 @@ class TechnicianApp extends ConsumerWidget {
       theme: AppTheme.build(isArabic: locale.languageCode == 'ar'),
       themeMode: ThemeMode.light,
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: const [Locale('en')],
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routerConfig: router,
     );

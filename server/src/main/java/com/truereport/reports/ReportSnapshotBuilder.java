@@ -55,12 +55,25 @@ public class ReportSnapshotBuilder {
             for (JsonNode evidence : entry.path("evidence")) {
                 evidenceIds.add(text(evidence, "evidenceId"));
             }
+            List<ReportSnapshot.Measurement> measurements = new ArrayList<>();
+            for (JsonNode measurement : assessment.path("measurements")) {
+                measurements.add(new ReportSnapshot.Measurement(
+                        text(measurement, "fieldCode"),
+                        text(measurement, "valueIndex"),
+                        measurement.path("numericValue").isNumber()
+                                ? measurement.path("numericValue").decimalValue() : null,
+                        text(measurement, "unitCode"),
+                        text(measurement, "resultCode"),
+                        measurement.path("score").isNumber()
+                                ? measurement.path("score").asInt() : null));
+            }
             ReportSnapshot.ItemSnapshot item = new ReportSnapshot.ItemSnapshot(
                     text(rules, "stableCode"), labelEn, labelAr,
                     text(rules, "instructionEn"), text(rules, "instructionAr"),
                     result, text(assessment, "severityCode"), sanitize(text(assessment, "note"), root),
                     text(assessment, "noteLanguage"), text(assessment, "reasonCode"),
-                    sanitize(text(assessment, "reasonText"), root), List.copyOf(evidenceIds));
+                    sanitize(text(assessment, "reasonText"), root), List.copyOf(evidenceIds),
+                    List.copyOf(measurements));
             items.add(item);
             if (result.equals("NOT_CHECKED")) {
                 notCheckedCount++;
@@ -108,7 +121,8 @@ public class ReportSnapshotBuilder {
                         root.path("vehicleYear").isNumber() ? root.path("vehicleYear").asInt() : null,
                         maskVin(text(root, "vehicleVin")),
                         root.path("odometerValue").isNumber() ? root.path("odometerValue").asInt() : null,
-                        text(root, "odometerUnit"), text(root, "vehicleType")),
+                        text(root, "odometerUnit"), text(root, "vehicleType"),
+                        text(root, "transmission"), text(root, "fuelType")),
                 new ReportSnapshot.Inspection(text(root, "scope"),
                         root.path("templateVersionNo").isNumber() ? root.path("templateVersionNo").asInt() : null,
                         finalizedAt),

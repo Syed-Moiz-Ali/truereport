@@ -76,11 +76,7 @@ class ShellIdentityStrip extends StatelessWidget {
                   style: ws.meta.copyWith(color: ws.muted),
                 ),
               ),
-              ShellLanguageControl(
-                label: languageLabel,
-                onTap: onToggleLanguage,
-              ),
-              SizedBox(width: spacing.sm),
+              // English-only product: no language switcher in the shell.
               if (notificationsAction != null) ...[
                 notificationsAction!,
                 SizedBox(width: spacing.sm),

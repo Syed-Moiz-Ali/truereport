@@ -393,7 +393,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scheduleJobSubtitle =>
-      'Create the job in this workshop — assign a technician afterwards';
+      'Create the job in this workshop - assign a technician afterwards';
+
+  @override
+  String get jobsWhenTitle => 'When should this job run?';
+
+  @override
+  String get jobsStartNow => 'Start immediately';
+
+  @override
+  String get jobsStartNowBody => 'Creates the job now with no scheduled time.';
+
+  @override
+  String get jobsScheduleLater => 'Schedule for later';
+
+  @override
+  String get jobsScheduleLaterBody =>
+      'Creates a scheduled job for the chosen date and time.';
+
+  @override
+  String get jobsPickDateTime => 'Pick date & time';
+
+  @override
+  String get jobsClearSchedule => 'Clear schedule';
+
+  @override
+  String get jobsScheduleRequired =>
+      'Pick a date and time or choose Start immediately.';
 
   @override
   String get assignTechnicianTitle => 'Assign technician';

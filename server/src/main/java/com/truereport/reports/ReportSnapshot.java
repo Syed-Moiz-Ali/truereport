@@ -27,7 +27,9 @@ public record ReportSnapshot(
             String vinMasked,
             Integer odometerValue,
             String odometerUnit,
-            String vehicleType
+            String vehicleType,
+            String transmission,
+            String fuelType
     ) {
     }
 
@@ -54,6 +56,16 @@ public record ReportSnapshot(
     ) {
     }
 
+    public record Measurement(
+            String fieldCode,
+            String valueIndex,
+            java.math.BigDecimal numericValue,
+            String unitCode,
+            String resultCode,
+            Integer score
+    ) {
+    }
+
     public record ItemSnapshot(
             String stableCode,
             String labelEn,
@@ -66,11 +78,19 @@ public record ReportSnapshot(
             String noteLanguage,
             String reasonCode,
             String reasonText,
-            List<String> evidenceIds
+            List<String> evidenceIds,
+            List<Measurement> measurements
     ) {
+        public ItemSnapshot {
+            evidenceIds = evidenceIds == null ? List.of() : evidenceIds;
+            measurements = measurements == null ? List.of() : measurements;
+        }
     }
 
     public record Category(String labelEn, String labelAr, List<ItemSnapshot> items) {
+        public Category {
+            items = items == null ? List.of() : items;
+        }
     }
 
     public record NotChecked(String labelEn, String labelAr, String resultCode, String reason) {

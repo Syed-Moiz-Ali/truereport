@@ -58,6 +58,14 @@ public class PublicShareLink extends BaseEntity {
         this.reportVersionId = reportVersionId;
     }
 
+    /** Transient view of an active clean-table link (never persisted). */
+    public static PublicShareLink cleanActive(boolean pdfDownloadEnabled) {
+        PublicShareLink link = new PublicShareLink();
+        link.status = "ACTIVE";
+        link.pdfDownloadEnabled = pdfDownloadEnabled;
+        return link;
+    }
+
     @PrePersist
     void ensureId() {
         if (id == null) {

@@ -42,6 +42,9 @@ Thumbs.db
 
 # Spike outputs are kept, but generated caches are not
 spikes/**/node_modules/
+node_modules/
+test-results/
+playwright-report/
 spikes/**/target/
 spikes/**/.dart_tool/
 spikes/**/build/

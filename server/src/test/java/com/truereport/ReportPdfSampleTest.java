@@ -75,12 +75,16 @@ class ReportPdfSampleTest {
                     "ar",
                     "",
                     i % 3 == 0 ? "Visible wear or damage recorded." : "",
-                    List.of(evidenceIds.get(i))));
+                    List.of(evidenceIds.get(i)),
+                    List.of(new ReportSnapshot.Measurement("MEASUREMENT", null,
+                            new java.math.BigDecimal("6.5"), "MM",
+                            "NO_ISSUE_OBSERVED", 100))));
         }
         ReportSnapshot snapshot = new ReportSnapshot(
                 "SAMPLE-REPORT-001", 1, "2026-11-04T10:30:00",
                 "2026-11-04T10:30:00",
-                new ReportSnapshot.Vehicle("Toyota", "Land Cruiser", 2022, "••••3456", 82902, "KM", "CAR"),
+                new ReportSnapshot.Vehicle("Toyota", "Land Cruiser", 2022, "••••3456", 82902, "KM",
+                        "CAR", "AUTOMATIC", "PETROL"),
                 new ReportSnapshot.Inspection("Full visual inspection", 3, "2026-11-04T10:30:00"),
                 new ReportSnapshot.Workshop("Dubai Technical Inspection", "Al Quoz"),
                 new ReportSnapshot.Technician("Ahmed Al Mansouri"),

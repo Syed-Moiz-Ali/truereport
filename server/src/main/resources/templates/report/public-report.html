@@ -29,10 +29,7 @@
     </div>
     <div class="header-actions">
       <nav class="language-switch" th:attr="aria-label=${r.labels.language}">
-        <a class="button button-ghost" th:if="${r.lang == 'ar'}" th:href="@{/r/{token}(token=${token},lang='en')}"
-           th:text="${r.labels.english}"></a>
-        <a class="button button-ghost" th:if="${r.lang != 'ar'}" th:href="@{/r/{token}(token=${token},lang='ar')}"
-           th:text="${r.labels.arabic}"></a>
+        <!-- English-only product: no language switch. -->
       </nav>
       <a class="button button-primary header-download-btn" th:if="${r.pdfDownloadEnabled}"
          th:href="@{/r/{token}/pdf(token=${token})}">
@@ -523,7 +520,7 @@
               <button type="button"
                       class="btn btn-outline zone-inspect-dialog-btn"
                       data-action="open-part-dialog"
-                      th:attr="data-title=${zone.title}, data-category=${r.labels.bodyCondition}, data-status=${zone.statusLabel}, data-status-code=${zone.status}, data-pass-fail=${zone.isDamaged ? 'ATTENTION' : 'PASS'}, data-score=82, data-score-text='82/100', data-measured=${zone.paintThickness} + ' • 42mm scratch', data-standard=${r.labels.cleanCondition}, data-diagnostic-sensor='Elcometer 456 Paint Gauge & Optical Lens', data-note=${zone.note}, data-img=${zone.imageUrl}, data-video=${zone.videoUrl}, data-video-caption=${zone.videoCaption}">
+                      th:attr="data-title=${zone.title}, data-category=${r.labels.bodyCondition}, data-status=${zone.statusLabel}, data-status-code=${zone.status}, data-pass-fail=${zone.isDamaged ? 'ATTENTION' : 'PASS'}, data-score=${zone.score}, data-score-text=${zone.score} + '/100', data-measured=${zone.paintThickness}, data-standard=${r.labels.cleanCondition}, data-diagnostic-sensor='', data-note=${zone.note}, data-img=${zone.imageUrl}, data-video=${zone.videoUrl}, data-video-caption=${zone.videoCaption}">
                 <span aria-hidden="true" th:text="'▶'"></span>
                 <span th:text="${r.labels.inspectZoneProof}"></span>
               </button>

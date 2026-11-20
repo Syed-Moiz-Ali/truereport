@@ -10,6 +10,7 @@ import com.truereport.jobs.PlatformJobStore.GradeBoundaryRow;
 import com.truereport.jobs.PlatformJobStore.JobRow;
 import com.truereport.jobs.PlatformJobStore.LinkRow;
 import com.truereport.jobs.PlatformJobStore.NotificationRow;
+import com.truereport.jobs.PlatformJobStore.ReportItemRow;
 import com.truereport.jobs.PlatformJobStore.ReportVersionRow;
 import com.truereport.jobs.PlatformJobStore.ResultRow;
 import com.truereport.jobs.PlatformJobStore.ScoringRuleRow;
@@ -22,6 +23,7 @@ import com.truereport.jobs.api.WorkshopJobDtos.AvailableTemplateDto;
 import com.truereport.jobs.api.WorkshopJobDtos.CancelJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.ChecklistItemDto;
 import com.truereport.jobs.api.WorkshopJobDtos.CreateJobRequest;
+import com.truereport.jobs.api.WorkshopJobDtos.JobConsentRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.JobDto;
 import com.truereport.jobs.api.WorkshopJobDtos.JobPageDto;
 import com.truereport.jobs.api.WorkshopJobDtos.JobStatusCountsDto;
@@ -43,8 +45,10 @@ import com.truereport.shared.idempotency.IdempotencyService;
 import com.truereport.shared.outbox.OutboxService;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.uuid.UuidV7;
+import com.truereport.tenancy.Workshop;
 import com.truereport.tenancy.WorkshopMembership;
 import com.truereport.tenancy.WorkshopMembershipRepository;
+import com.truereport.tenancy.WorkshopRepository;
 import com.truereport.tenancy.WorkshopRole;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -86,11 +90,13 @@ public class WorkshopJobAdminService {
 
     private final PlatformJobStore store;
     private final WorkshopMembershipRepository memberships;
+    private final WorkshopRepository workshops;
     private final UserRepository users;
     private final FieldAuditService audit;
     private final OutboxService outbox;
     private final IdempotencyService idempotency;
     private final PlatformJobDocumentService documents;
+    private final CleanEvidencePublicationService publicEvidence;
     private final PlatformJobTokenService tokens;
     private final PlatformQrService qr;
     private final ObjectMapper objectMapper;
@@ -98,11 +104,13 @@ public class WorkshopJobAdminService {
 
     public WorkshopJobAdminService(PlatformJobStore store,
                                       WorkshopMembershipRepository memberships,
+                                      WorkshopRepository workshops,
                                       UserRepository users,
                                       FieldAuditService audit,
                                       OutboxService outbox,
                                       IdempotencyService idempotency,
                                       PlatformJobDocumentService documents,
+                                      CleanEvidencePublicationService publicEvidence,
                                       PlatformJobTokenService tokens,
                                       PlatformQrService qr,
                                       ObjectMapper objectMapper,
@@ -110,11 +118,13 @@ public class WorkshopJobAdminService {
                                       String publicBaseUrl) {
         this.store = store;
         this.memberships = memberships;
+        this.workshops = workshops;
         this.users = users;
         this.audit = audit;
         this.outbox = outbox;
         this.idempotency = idempotency;
         this.documents = documents;
+        this.publicEvidence = publicEvidence;
         this.tokens = tokens;
         this.qr = qr;
         this.objectMapper = objectMapper;
@@ -336,6 +346,33 @@ public class WorkshopJobAdminService {
     }
 
     @Transactional
+    public JobDto updateConsent(CurrentUser caller, String jobId, JobConsentRequest request) {
+        String workshopId = requireWorkshop(caller);
+        JobRow job = requireJob(workshopId, jobId);
+        if ("PUBLISHED".equals(job.status()) || "CANCELLED".equals(job.status())) {
+            throw new ApiException(HttpStatus.CONFLICT, "JOB_CONSENT_NOT_EDITABLE",
+                    "error.job.statusInvalid",
+                    "Consent cannot be changed for a published or cancelled job");
+        }
+        if (request == null || request.consentGranted() == null) {
+            throw ApiException.validation("CONSENT_INVALID", "Consent is invalid",
+                    List.of(field("consentGranted", "REQUIRED")));
+        }
+        boolean granted = request.consentGranted();
+        int updated = store.setConsent(jobId, job.version(), granted);
+        if (updated == 0) {
+            throw ApiException.versionConflict("The job was modified by someone else");
+        }
+        String reason = trimToNull(request.reason());
+        store.insertHistory(jobId, job.status(), job.status(), caller.userId().toString(),
+                "Consent " + (granted ? "granted" : "withdrawn"));
+        audit.record(caller, "JOB_CONSENT_UPDATED", "JOB", jobId,
+                Map.of("consentGranted", job.consentGranted()),
+                Map.of("consentGranted", granted), reason, null);
+        return jobDto(requireJob(workshopId, jobId));
+    }
+
+    @Transactional
     public JobDto cancel(CurrentUser caller, String jobId, CancelJobRequest request) {
         String workshopId = requireWorkshop(caller);
         JobRow job = requireJob(workshopId, jobId);
@@ -550,6 +587,7 @@ public class WorkshopJobAdminService {
                 "jobId", jobId, "reportVersionId", version.id()));
         notify(workshopId, job.createdBy(), "JOB_PUBLISHED",
                 Map.of("jobId", jobId, "reference", job.reference()));
+        publicEvidence.prepare(jobId);
         documents.generateForVersion(job, version.id());
         PublicLinkDto dto = linkDto(job, store.activeLink(jobId).orElseThrow(), true);
         storeIdempotent(actorId, endpoint, idempotencyKey, 200, dto);
@@ -940,13 +978,24 @@ public class WorkshopJobAdminService {
     private String gradeFor(int score) {
         Optional<ScoringRuleRow> rule = store.activeScoringRule();
         if (rule.isEmpty()) {
-            return null;
+            return defaultGrade(score);
         }
         return store.gradeBoundaries(rule.get().id()).stream()
                 .filter(boundary -> score >= boundary.minScore() && score <= boundary.maxScore())
                 .min(Comparator.comparingInt(GradeBoundaryRow::sortOrder))
                 .map(GradeBoundaryRow::gradeCode)
-                .orElse(null);
+                .orElseGet(() -> defaultGrade(score));
+    }
+
+    /** Approved default thresholds used when no scoring rule is configured. */
+    private String defaultGrade(int score) {
+        if (score >= 90) {
+            return "A";
+        }
+        if (score >= 80) {
+            return "B";
+        }
+        return score >= 65 ? "C" : "D";
     }
 
     private static int gradeRank(String grade) {
@@ -1029,30 +1078,143 @@ public class WorkshopJobAdminService {
         return "/api/v1/workshop/jobs/" + jobId + "/qr";
     }
 
+    /**
+     * Build the normalized {@code ReportSnapshot} shape that
+     * {@code ReportViewMapper.publicPage} deserializes. The previous version
+     * stored a job/findings summary, which produced an empty or failing public
+     * report. Only allowlisted display data is stored; VIN is masked and customer
+     * contact fields are not written.
+     */
     private String snapshot(JobRow job, Evaluation evaluation, ScoreResult score) {
+        List<ReportItemRow> rows = store.reportItems(job.id());
+        Map<String, List<ReportItemRow>> grouped = new LinkedHashMap<>();
+        for (ReportItemRow row : rows) {
+            grouped.computeIfAbsent(row.categoryEn(), ignored -> new ArrayList<>()).add(row);
+        }
+        List<Map<String, Object>> categories = new ArrayList<>();
+        List<Map<String, Object>> keyFindings = new ArrayList<>();
+        for (Map.Entry<String, List<ReportItemRow>> entry : grouped.entrySet()) {
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (ReportItemRow row : entry.getValue()) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("stableCode", row.itemCode());
+                item.put("labelEn", row.labelEn());
+                item.put("labelAr", row.labelAr());
+                item.put("instructionEn", row.instructionEn());
+                item.put("instructionAr", row.instructionAr());
+                item.put("resultCode", row.resultCode());
+                item.put("severityCode", row.severityCode());
+                item.put("note", row.notesEn() == null ? "" : row.notesEn());
+                item.put("noteLanguage", "en");
+                item.put("reasonCode", row.reasonCode() == null ? "" : row.reasonCode());
+                item.put("reasonText", row.reasonCode() == null ? "" : row.reasonCode());
+                item.put("evidenceIds", store.reportEvidenceIds(job.id(), row.itemCode()));
+                item.put("measurements", store.reportMeasurements(job.id(), row.itemCode())
+                        .stream().map(measurement -> {
+                            Map<String, Object> value = new LinkedHashMap<>();
+                            value.put("fieldCode", measurement.fieldCode());
+                            value.put("valueIndex", measurement.valueIndex());
+                            value.put("numericValue", measurement.numericValue());
+                            value.put("unitCode", measurement.unitCode());
+                            value.put("resultCode", measurement.resultCode());
+                            value.put("score", measurement.score());
+                            return value;
+                        }).toList());
+                items.add(item);
+                if ("DEFECT_FOUND".equals(row.resultCode())
+                        || "ATTENTION_RECOMMENDED".equals(row.resultCode())) {
+                    keyFindings.add(item);
+                }
+            }
+            Map<String, Object> category = new LinkedHashMap<>();
+            category.put("labelEn", entry.getKey());
+            category.put("labelAr", entry.getValue().get(0).categoryAr());
+            category.put("items", items);
+            categories.add(category);
+        }
+        keyFindings.sort(Comparator.comparingInt(item ->
+                severityRank((String) item.get("severityCode"))));
+
+        Map<String, Object> vehicle = new LinkedHashMap<>();
+        vehicle.put("make", job.vehicleMake());
+        vehicle.put("model", job.vehicleModel());
+        vehicle.put("year", job.vehicleYear());
+        vehicle.put("vinMasked", maskVin(job.vehicleVin()));
+        vehicle.put("odometerValue", job.odometerValue());
+        vehicle.put("odometerUnit", job.odometerUnit());
+        vehicle.put("vehicleType", null);
+        vehicle.put("transmission", job.transmission());
+        vehicle.put("fuelType", job.fuelType());
+
+        Map<String, Object> inspection = new LinkedHashMap<>();
+        inspection.put("scope", "Inspection");
+        inspection.put("templateVersionNo", store.templateVersion(job.templateVersionId())
+                .map(TemplateVersionRow::versionNo).orElse(null));
+        inspection.put("dateTime", str(job.completedAt()));
+
+        String workshopName = null;
+        String workshopBranch = null;
+        try {
+            Workshop workshop = workshops.findById(UUID.fromString(job.workshopId())).orElse(null);
+            if (workshop != null) {
+                workshopName = workshop.getName();
+                workshopBranch = workshop.getBranchName();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Legacy/non-UUID workshop id: leave the display fields blank.
+        }
+
+        Map<String, Object> workshopMap = new LinkedHashMap<>();
+        workshopMap.put("name", workshopName);
+        workshopMap.put("branch", workshopBranch);
+
+        Map<String, Object> technician = new LinkedHashMap<>();
+        technician.put("displayName", displayName(job.assignedTechnicianId()));
+
+        Map<String, Object> coverage = new LinkedHashMap<>();
+        coverage.put("total", rows.size());
+        coverage.put("applicable", rows.size());
+        coverage.put("completed", rows.size());
+        coverage.put("notApplicable", 0);
+        coverage.put("notChecked", 0);
+        coverage.put("couldNotVerify", 0);
+
         Map<String, Object> snapshot = new LinkedHashMap<>();
-        snapshot.put("jobId", job.id());
-        snapshot.put("reference", job.reference());
-        snapshot.put("workshopId", job.workshopId());
-        snapshot.put("templateVersionId", job.templateVersionId());
-        snapshot.put("customerName", job.customerName());
-        snapshot.put("vehicleVin", job.vehicleVin());
-        snapshot.put("vehicleMake", job.vehicleMake());
-        snapshot.put("vehicleModel", job.vehicleModel());
-        snapshot.put("vehicleYear", job.vehicleYear());
-        snapshot.put("preferredLanguage", job.preferredLanguage());
-        snapshot.put("score", score.score());
-        snapshot.put("gradeCode", score.grade());
-        snapshot.put("safetyCapApplied", score.capApplied());
-        snapshot.put("safetyCapReason", score.capReason());
-        snapshot.put("itemsAssessed", evaluation.assessed());
-        snapshot.put("itemsTotal", evaluation.total());
-        snapshot.put("findings", store.results(job.id()).stream().map(result -> Map.of(
-                "itemVersionId", result.itemVersionId(),
-                "resultCode", result.resultCode(),
-                "score", result.score() == null ? 0 : result.score())).toList());
-        snapshot.put("createdAt", LocalDateTime.now(ZoneOffset.UTC).toString());
+        snapshot.put("reportNumber", job.reference());
+        snapshot.put("reportVersion", 1);
+        snapshot.put("finalizedAt", str(job.completedAt()));
+        snapshot.put("publishedAt", "");
+        snapshot.put("vehicle", vehicle);
+        snapshot.put("inspection", inspection);
+        snapshot.put("workshop", workshopMap);
+        snapshot.put("technician", technician);
+        snapshot.put("coverage", coverage);
+        snapshot.put("keyFindings", keyFindings);
+        snapshot.put("categories", categories);
+        snapshot.put("notChecked", List.of());
+        snapshot.put("limitations", List.of());
+        snapshot.put("disclaimer", "");
+        snapshot.put("verificationHash",
+                sha256(job.id() + "|" + job.reference() + "|" + score.score()));
         return json(snapshot);
+    }
+
+    private static int severityRank(String severity) {
+        return switch (severity == null ? "" : severity) {
+            case "SAFETY_CRITICAL" -> 0;
+            case "MAJOR" -> 1;
+            case "MODERATE" -> 2;
+            case "MINOR" -> 3;
+            default -> 4;
+        };
+    }
+
+    private static String maskVin(String vin) {
+        if (vin == null || vin.isBlank()) {
+            return "";
+        }
+        String clean = vin.trim();
+        return clean.length() <= 4 ? "****" : "****" + clean.substring(clean.length() - 4);
     }
 
     private void notify(String workshopId, String userId, String type, Map<String, ?> payload) {

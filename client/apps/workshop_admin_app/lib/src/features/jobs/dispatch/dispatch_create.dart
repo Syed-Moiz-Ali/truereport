@@ -267,8 +267,37 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
           preferredLanguage: _form.preferredLanguage,
           onPreferredLanguage: (value) =>
               setState(() => _form.preferredLanguage = value),
+          scheduledAt: _form.scheduledAt,
+          onPickSchedule: _pickSchedule,
+          onStartImmediately: () => setState(_form.startImmediately),
         );
     }
+  }
+
+  Future<void> _pickSchedule() async {
+    final now = DateTime.now();
+    final initial = _form.scheduledAt ?? now.add(const Duration(hours: 1));
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) {
+      return;
+    }
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (time == null || !mounted) {
+      return;
+    }
+    setState(
+      () => _form.scheduleAt(
+        DateTime(date.year, date.month, date.day, time.hour, time.minute),
+      ),
+    );
   }
 
   Widget _stepper(BuildContext context, List<String> labels) {

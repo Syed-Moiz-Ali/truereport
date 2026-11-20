@@ -863,8 +863,56 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleJobSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Create the job in this workshop — assign a technician afterwards'**
+  /// **'Create the job in this workshop - assign a technician afterwards'**
   String get scheduleJobSubtitle;
+
+  /// No description provided for @jobsWhenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When should this job run?'**
+  String get jobsWhenTitle;
+
+  /// No description provided for @jobsStartNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Start immediately'**
+  String get jobsStartNow;
+
+  /// No description provided for @jobsStartNowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates the job now with no scheduled time.'**
+  String get jobsStartNowBody;
+
+  /// No description provided for @jobsScheduleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule for later'**
+  String get jobsScheduleLater;
+
+  /// No description provided for @jobsScheduleLaterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates a scheduled job for the chosen date and time.'**
+  String get jobsScheduleLaterBody;
+
+  /// No description provided for @jobsPickDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick date & time'**
+  String get jobsPickDateTime;
+
+  /// No description provided for @jobsClearSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear schedule'**
+  String get jobsClearSchedule;
+
+  /// No description provided for @jobsScheduleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date and time or choose Start immediately.'**
+  String get jobsScheduleRequired;
 
   /// No description provided for @assignTechnicianTitle.
   ///

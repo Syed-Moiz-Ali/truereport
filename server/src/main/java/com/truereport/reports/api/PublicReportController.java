@@ -31,7 +31,8 @@ public class PublicReportController {
 
     @GetMapping({"/r/unavailable", "/report/unavailable"})
     public ModelAndView unavailable(@RequestParam(defaultValue = "en") String lang) {
-        String language = "ar".equals(lang) ? "ar" : "en";
+        // English-only product: any lang parameter is ignored.
+        String language = "en";
         Map<String, Object> model = new LinkedHashMap<>();
         model.put("labels", ReportMessages.labels(language));
         model.put("lang", language);
@@ -43,7 +44,8 @@ public class PublicReportController {
     public ModelAndView page(@PathVariable String token,
                              @RequestParam(defaultValue = "en") String lang,
                              HttpServletResponse response) {
-        String language = "ar".equals(lang) ? "ar" : "en";
+        // English-only product: any lang parameter is ignored.
+        String language = "en";
         PublicReportService.Resolution resolution = service.resolve(token, language);
         response.setStatus(PublicReportService.statusFor(resolution.status()).value());
         Map<String, Object> model = new LinkedHashMap<>();

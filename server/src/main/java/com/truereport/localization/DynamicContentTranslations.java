@@ -148,6 +148,11 @@ public class DynamicContentTranslations {
                 continue;
             }
             for (Map.Entry<String, String> languageEntry : fieldEntry.getValue().entrySet()) {
+                // English-only product: ignore non-English overlays before the
+                // language registry lookup (Arabic is no longer registered).
+                if (!"en".equalsIgnoreCase(languageEntry.getKey())) {
+                    continue;
+                }
                 String language = requireLanguage(languageEntry.getKey());
                 if (language.equals(defaultCode)) {
                     continue;

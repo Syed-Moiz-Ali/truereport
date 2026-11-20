@@ -227,6 +227,12 @@ abstract class AdminApi {
 
   Future<CleanJob> cancelCleanJob(String jobId, String reason, {int? version});
 
+  Future<CleanJob> updateJobConsent(
+    String jobId, {
+    required bool consentGranted,
+    String? reason,
+  });
+
   Future<List<JobAssignment>> jobAssignments(String jobId);
 
   Future<JobReview> jobReview(String jobId);
@@ -1097,6 +1103,19 @@ class HttpAdminApi implements AdminApi {
     final data = await _api.postDynamic(
       _endpoints.cancelCleanWorkshopJob(jobId),
       body: {'reason': reason, 'version': version},
+    );
+    return CleanJob.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CleanJob> updateJobConsent(
+    String jobId, {
+    required bool consentGranted,
+    String? reason,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.workshopJobConsent(jobId),
+      body: {'consentGranted': consentGranted, 'reason': reason},
     );
     return CleanJob.fromJson(data as Map<String, dynamic>);
   }

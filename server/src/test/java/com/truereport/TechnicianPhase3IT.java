@@ -361,11 +361,11 @@ class TechnicianPhase3IT extends IntegrationTestBase {
                 .contentType(MediaType.APPLICATION_JSON).header("Accept-Language", "ar")
                 .content("{}"), 422);
         assertThat(problem.get("code").asText()).isEqualTo("COMPLETION_BLOCKED");
-        assertThat(problem.get("messageAr").asText()).isNotBlank();
+        assertThat(problem.has("messageAr")).isFalse();
 
-        JsonNode arabicNotFound = call(techA, get(TECH + "/jobs/" + UUID.randomUUID())
-                .header("Accept-Language", "ar"), 404);
-        assertThat(arabicNotFound.get("messageAr").asText()).contains("غير موجود");
+        JsonNode englishNotFound = call(techA, get(TECH + "/jobs/" + UUID.randomUUID())
+                .header("Accept-Language", "en"), 404);
+        assertThat(englishNotFound.get("code").asText()).isEqualTo("JOB_NOT_FOUND");
     }
 
     @Test

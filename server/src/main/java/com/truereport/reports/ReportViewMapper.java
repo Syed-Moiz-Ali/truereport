@@ -28,6 +28,12 @@ public class ReportViewMapper {
 
     public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
                                           String language, boolean pdfDownloadEnabled) throws Exception {
+        return publicPage(version, derivatives, language, pdfDownloadEnabled, null);
+    }
+
+    public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
+                                          String language, boolean pdfDownloadEnabled,
+                                          String token) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
                 .filter(d -> d.getPurpose().equals("PUBLIC_FULL"))
@@ -68,9 +74,13 @@ public class ReportViewMapper {
         root.put("passRate", passRate);
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), language));
-        root.put("visualInspections", visualInspections(snapshot, byEvidence, language));
-        root.put("inspectionSystems", inspectionSystems(language));
-        List<Map<String, Object>> catList = categories(snapshot.categories(), byEvidence, language);
+        // The previous demo sections were hardcoded stock photos, tyre/brake
+        // values and paint readings unrelated to this job. They stay disabled
+        // until they are derived from real assessments/evidence.
+        root.put("visualInspections", List.of());
+        root.put("inspectionSystems", List.of());
+        List<Map<String, Object>> catList = categories(snapshot.categories(), byEvidence, language,
+                false, token);
         root.put("categories", catList);
         int goodCats = 0;
         int attentionCats = 0;
@@ -102,18 +112,18 @@ public class ReportViewMapper {
         catSummary.put("servicesText", ar ? (passCatAr + " • " + attnCatAr)
                                           : (passCatEn + " • " + attnCatEn));
         root.put("categoriesSummary", catSummary);
-        root.put("tyreAssemblies", tyreAssemblies(language));
-        root.put("damageZones", damageZones(language));
-        root.put("inspectorSummary", inspectorSummary(language));
-        root.put("inspectionVideos", inspectionVideos(language));
-        List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language);
+        root.put("tyreAssemblies", tyreAssemblies(snapshot, byEvidence, token));
+        root.put("damageZones", damageZones(snapshot, byEvidence, token));
+        root.put("inspectorSummary", List.of());
+        root.put("inspectionVideos", List.of());
+        List<Map<String, Object>> showcase = vehicleShowcase(snapshot, byEvidence, language, token);
         root.put("vehicleShowcase", showcase);
         root.put("showcaseExterior", showcase.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
         root.put("showcaseInterior", showcase.stream().filter(i -> "interior".equals(i.get("category"))).toList());
         root.put("showcaseMechanical", showcase.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
         root.put("showcaseImperfections", showcase.stream().filter(i -> "imperfections".equals(i.get("category"))).toList());
         root.put("showcaseUnderbody", showcase.stream().filter(i -> "underbody".equals(i.get("category"))).toList());
-        root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language));
+        root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language, false, token));
         root.put("notChecked", notChecked(snapshot.notChecked(), language));
         root.put("limitations", limitations(ar));
         root.put("disclaimer", disclaimer(ar));
@@ -158,8 +168,9 @@ public class ReportViewMapper {
         root.put("passRate", passRate);
         root.put("totalEvaluated", evaluated);
         root.put("coverage", coverage(snapshot.coverage(), "en"));
-        root.put("visualInspections", visualInspections(snapshot, byEvidence, "en"));
-        root.put("inspectionSystems", inspectionSystems("en"));
+        // Same honesty rule as the public page: no stock/fabricated sections in print.
+        root.put("visualInspections", List.of());
+        root.put("inspectionSystems", List.of());
         List<Map<String, Object>> catListEn = categories(snapshot.categories(), byEvidence, true);
         root.put("categories", catListEn);
         int goodCatsEn = 0;
@@ -187,17 +198,16 @@ public class ReportViewMapper {
         catSummaryEn.put("checklistSummaryText", passCatPrint + " • " + attnCatPrint);
         catSummaryEn.put("servicesText", passCatPrint + " • " + attnCatPrint);
         root.put("categoriesSummary", catSummaryEn);
-        root.put("tyreAssemblies", tyreAssemblies("en"));
-        root.put("damageZones", damageZones("en"));
-        root.put("inspectorSummary", inspectorSummary("en"));
-        root.put("inspectionVideos", inspectionVideos("en"));
-        List<Map<String, Object>> showcaseEn = vehicleShowcase(snapshot, byEvidence, "en");
-        root.put("vehicleShowcase", showcaseEn);
-        root.put("showcaseExterior", showcaseEn.stream().filter(i -> "exterior".equals(i.get("category"))).toList());
-        root.put("showcaseInterior", showcaseEn.stream().filter(i -> "interior".equals(i.get("category"))).toList());
-        root.put("showcaseMechanical", showcaseEn.stream().filter(i -> "mechanical".equals(i.get("category"))).toList());
-        root.put("showcaseImperfections", showcaseEn.stream().filter(i -> "imperfections".equals(i.get("category"))).toList());
-        root.put("showcaseUnderbody", showcaseEn.stream().filter(i -> "underbody".equals(i.get("category"))).toList());
+        root.put("tyreAssemblies", List.of());
+        root.put("damageZones", List.of());
+        root.put("inspectorSummary", List.of());
+        root.put("inspectionVideos", List.of());
+        root.put("vehicleShowcase", List.of());
+        root.put("showcaseExterior", List.of());
+        root.put("showcaseInterior", List.of());
+        root.put("showcaseMechanical", List.of());
+        root.put("showcaseImperfections", List.of());
+        root.put("showcaseUnderbody", List.of());
         root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
         root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
         root.put("limitationsEn", limitations(false));
@@ -223,22 +233,24 @@ public class ReportViewMapper {
                 String.format(Locale.ROOT, "%,d %s", vehicle.odometerValue(),
                         vehicle.odometerUnit() == null ? "" : vehicle.odometerUnit()));
         map.put("vehicleType", vehicle.vehicleType());
-        map.put("gearbox", ar ? "أوتوماتيك (8 سرعات)" : "Automatic (8-Speed)");
-        map.put("fuelType", ar ? "بنزين / هايبرد" : "Gasoline / Hybrid");
-        map.put("drivetrain", ar ? "دفع أمامي FWD" : "FWD Front-Wheel Drive");
-        map.put("specsOrigin", ar ? "مواصفات خليجية GCC" : "GCC Specs");
-        map.put("conditionBadge", ar ? "مستعمل معتمد" : "Certified Pre-Owned");
-        map.put("engineSize", ar ? "2.5 لتر 4-سلندر" : "2.5 L 4-Cylinder Dynamic Force");
-        map.put("horsepower", ar ? "208 حصان" : "208 BHP");
-        map.put("cylinders", ar ? "4 أسطوانات خطية" : "4-Cyl In-line");
-        map.put("exteriorColor", ar ? "فضي ميتاليك" : "Precious Silver Metallic");
-        map.put("interiorTrim", ar ? "جلد أسود فاخر" : "Premium Black Leatherette");
-        map.put("wheels", ar ? "جنوط ألمنيوم 18 إنش مكحلة" : "18\" Diamond-Cut Alloy");
-        map.put("steeringSide", ar ? "مقود جهة اليسار (LHD)" : "Left Hand Drive (LHD)");
-        map.put("keysCount", ar ? "2 مفتاح ذكي" : "2 Smart Keys");
-        map.put("emirate", ar ? "دبي، الإمارات العربية المتحدة" : "Dubai, United Arab Emirates");
-        map.put("clientName", ar ? "عميل خاص" : "Private Client");
-        map.put("inspectionCenter", ar ? "مركز البرشاء التشخيصي المعتمد" : "Al-Barsha Diagnostic Hub");
+        // Only values captured on the job are rendered. Fields the product has
+        // not captured are left blank rather than filled with demo facts.
+        map.put("gearbox", blankIfNull(vehicle.transmission()));
+        map.put("fuelType", blankIfNull(vehicle.fuelType()));
+        map.put("drivetrain", "");
+        map.put("specsOrigin", "");
+        map.put("conditionBadge", "");
+        map.put("engineSize", "");
+        map.put("horsepower", "");
+        map.put("cylinders", "");
+        map.put("exteriorColor", "");
+        map.put("interiorTrim", "");
+        map.put("wheels", "");
+        map.put("steeringSide", "");
+        map.put("keysCount", "");
+        map.put("emirate", "");
+        map.put("clientName", "");
+        map.put("inspectionCenter", "");
         return map;
     }
 
@@ -278,18 +290,25 @@ public class ReportViewMapper {
     private List<Map<String, Object>> categories(List<ReportSnapshot.Category> categories,
                                                  Map<UUID, EvidenceDerivative> derivatives,
                                                  String language) {
-        return categories(categories, derivatives, language, false);
+        return categories(categories, derivatives, language, false, null);
     }
 
     private List<Map<String, Object>> categories(List<ReportSnapshot.Category> categories,
                                                  Map<UUID, EvidenceDerivative> derivatives,
                                                  boolean bilingual) {
-        return categories(categories, derivatives, "en", bilingual);
+        return categories(categories, derivatives, "en", bilingual, null);
     }
 
     private List<Map<String, Object>> categories(List<ReportSnapshot.Category> categories,
                                                  Map<UUID, EvidenceDerivative> derivatives,
                                                  String language, boolean bilingual) {
+        return categories(categories, derivatives, language, bilingual, null);
+    }
+
+    private List<Map<String, Object>> categories(List<ReportSnapshot.Category> categories,
+                                                 Map<UUID, EvidenceDerivative> derivatives,
+                                                 String language, boolean bilingual,
+                                                 String token) {
         boolean ar = "ar".equals(language);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ReportSnapshot.Category category : categories) {
@@ -297,7 +316,8 @@ public class ReportViewMapper {
             map.put("label", "ar".equals(language) ? category.labelAr() : category.labelEn());
             map.put("labelEn", category.labelEn());
             map.put("labelAr", category.labelAr());
-            List<Map<String, Object>> itemList = items(category.items(), derivatives, language, bilingual);
+            List<Map<String, Object>> itemList = items(category.items(), derivatives, language,
+                    bilingual, token);
             map.put("items", itemList);
             int catPassed = 0;
             int catAttention = 0;
@@ -331,12 +351,19 @@ public class ReportViewMapper {
     private List<Map<String, Object>> items(List<ReportSnapshot.ItemSnapshot> items,
                                             Map<UUID, EvidenceDerivative> derivatives,
                                             String language) {
-        return items(items, derivatives, language, false);
+        return items(items, derivatives, language, false, null);
     }
 
     private List<Map<String, Object>> items(List<ReportSnapshot.ItemSnapshot> items,
                                             Map<UUID, EvidenceDerivative> derivatives,
                                             String language, boolean bilingual) {
+        return items(items, derivatives, language, bilingual, null);
+    }
+
+    private List<Map<String, Object>> items(List<ReportSnapshot.ItemSnapshot> items,
+                                            Map<UUID, EvidenceDerivative> derivatives,
+                                            String language, boolean bilingual,
+                                            String token) {
         boolean ar = "ar".equals(language);
         List<Map<String, Object>> result = new ArrayList<>();
         for (ReportSnapshot.ItemSnapshot item : items) {
@@ -372,21 +399,30 @@ public class ReportViewMapper {
             map.put("scoreText", score + "/100");
             map.put("scoreGrade", score >= 90 ? "A" : (score >= 70 ? "B" : "D"));
 
-            // Diagnostic measurement
-            String metric = diagnosticMetricForCode(item.stableCode(), item.resultCode(), ar);
-            map.put("diagnosticMetric", metric);
-            map.put("measuredSpec", metric);
-            map.put("standardSpec", standardSpecForCode(item.stableCode(), ar));
+            String measuredSpec = measurementSummary(item);
+            map.put("diagnosticMetric", measuredSpec);
+            map.put("measuredSpec", measuredSpec);
+            map.put("standardSpec", "");
+            map.put("hasVideo", false);
+            map.put("videoUrl", null);
+            map.put("videoDuration", null);
+            map.put("videoCaption", "");
 
-            // Part photo & Video Proof
-            String photoUrl = partPhotoForCode(item.stableCode());
-            map.put("partPhoto", photoUrl);
-            map.put("hasVideo", true);
-            map.put("videoUrl", "/report/assets/video/inspection-clip.mp4");
-            map.put("videoDuration", "0:15 HD");
-            map.put("videoCaption", ar ? "فيديو الفحص المعتمد عالي الدقة (0:15)" : "Certified 1080p Inspection Video Proof (0:15)");
-
-            map.put("photos", photos(item.evidenceIds(), derivatives, language, bilingual));
+            List<Map<String, Object>> itemPhotos =
+                    photos(item.evidenceIds(), derivatives, language, bilingual);
+            map.put("photos", itemPhotos);
+            map.put("partPhoto", itemPhotos.isEmpty() ? null
+                    : photoUrl(token, itemPhotos.get(0).get("id")));
+            map.put("measurements", item.measurements().stream().map(measurement -> {
+                Map<String, Object> value = new LinkedHashMap<>();
+                value.put("fieldCode", measurement.fieldCode());
+                value.put("valueIndex", measurement.valueIndex());
+                value.put("numericValue", measurement.numericValue());
+                value.put("unitCode", measurement.unitCode());
+                value.put("resultCode", measurement.resultCode());
+                value.put("score", measurement.score());
+                return value;
+            }).toList());
             map.put("bilingual", bilingual);
             result.add(map);
         }
@@ -449,6 +485,201 @@ public class ReportViewMapper {
 
     private String disclaimer(boolean ar) {
         return ReportMessages.disclaimer(ar ? "ar" : "en");
+    }
+
+    private String blankIfNull(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String photoUrl(String token, Object derivativeId) {
+        if (token == null || derivativeId == null) {
+            return null;
+        }
+        return "/r/" + token + "/photo/" + derivativeId;
+    }
+
+    private Map<UUID, EvidenceDerivative> byEvidence(List<EvidenceDerivative> derivatives) {
+        Map<UUID, EvidenceDerivative> map = new LinkedHashMap<>();
+        for (EvidenceDerivative derivative : derivatives) {
+            if ("PUBLIC_FULL".equals(derivative.getPurpose())) {
+                map.putIfAbsent(derivative.getEvidenceAssetId(), derivative);
+            }
+        }
+        return map;
+    }
+
+    private String firstPhotoUrl(ReportSnapshot.ItemSnapshot item,
+                                 Map<UUID, EvidenceDerivative> byEvidence, String token) {
+        for (String raw : item.evidenceIds()) {
+            try {
+                EvidenceDerivative derivative = byEvidence.get(UUID.fromString(raw));
+                if (derivative != null) {
+                    return photoUrl(token, derivative.getId());
+                }
+            } catch (RuntimeException ignored) {
+                // Skip malformed evidence ids.
+            }
+        }
+        return null;
+    }
+
+    private String measurementSummary(ReportSnapshot.ItemSnapshot item) {
+        if (item.measurements().isEmpty()) {
+            return "";
+        }
+        return item.measurements().stream()
+                .map(value -> {
+                    String label = value.valueIndex() == null || value.valueIndex().isBlank()
+                            ? value.fieldCode() : value.valueIndex();
+                    return label + ": " + value.numericValue()
+                            + (value.unitCode() == null ? "" : " " + value.unitCode());
+                })
+                .collect(Collectors.joining(" • "));
+    }
+
+    private List<Map<String, Object>> vehicleShowcase(ReportSnapshot snapshot,
+                                                      Map<UUID, EvidenceDerivative> byEvidence,
+                                                      String language, String token) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ReportSnapshot.Category category : snapshot.categories()) {
+            for (ReportSnapshot.ItemSnapshot item : category.items()) {
+                for (String raw : item.evidenceIds()) {
+                    UUID evidenceId;
+                    try {
+                        evidenceId = UUID.fromString(raw);
+                    } catch (RuntimeException ignored) {
+                        continue;
+                    }
+                    EvidenceDerivative derivative = byEvidence.get(evidenceId);
+                    if (derivative == null) {
+                        continue;
+                    }
+                    Map<String, Object> photo = new LinkedHashMap<>();
+                    photo.put("id", "photo-" + derivative.getId());
+                    photo.put("category", showcaseCategory(category.labelEn()));
+                    photo.put("categoryLabel", category.labelEn());
+                    photo.put("title", item.labelEn());
+                    photo.put("details", measurementSummary(item));
+                    photo.put("condition", ReportMessages.result(language, item.resultCode()));
+                    photo.put("imageUrl", photoUrl(token, derivative.getId()));
+                    photo.put("inspectNote", item.note());
+                    result.add(photo);
+                }
+            }
+        }
+        return result;
+    }
+
+    private String showcaseCategory(String category) {
+        String value = category == null ? "" : category.toLowerCase(Locale.ROOT);
+        if (value.contains("interior") || value.contains("cabin")) return "interior";
+        if (value.contains("underbody") || value.contains("chassis")) return "underbody";
+        if (value.contains("body") || value.contains("paint") || value.contains("exterior")) {
+            return "exterior";
+        }
+        return "mechanical";
+    }
+
+    private List<Map<String, Object>> tyreAssemblies(ReportSnapshot snapshot,
+                                                     Map<UUID, EvidenceDerivative> byEvidence,
+                                                     String token) {
+        String[] positions = {"FL", "FR", "RL", "RR"};
+        String[] labels = {"Front Left", "Front Right", "Rear Left", "Rear Right"};
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ReportSnapshot.Category category : snapshot.categories()) {
+            for (ReportSnapshot.ItemSnapshot item : category.items()) {
+                if (!item.stableCode().toUpperCase(Locale.ROOT).contains("TYRE")) {
+                    continue;
+                }
+                for (int i = 0; i < positions.length; i++) {
+                    String positionCode = positions[i];
+                    ReportSnapshot.Measurement measurement = item.measurements().stream()
+                            .filter(value -> positionCode.equalsIgnoreCase(value.valueIndex()))
+                            .findFirst().orElse(null);
+                    if (measurement == null) {
+                        continue;
+                    }
+                    int score = measurement.score() == null
+                            ? ("NO_ISSUE_OBSERVED".equals(item.resultCode()) ? 100
+                            : ("ATTENTION_RECOMMENDED".equals(item.resultCode()) ? 70 : 40))
+                            : measurement.score();
+                    Map<String, Object> tyre = new LinkedHashMap<>();
+                    tyre.put("id", "tyre-" + positions[i].toLowerCase(Locale.ROOT));
+                    tyre.put("posCode", positions[i]);
+                    tyre.put("position", labels[i]);
+                    tyre.put("title", item.labelEn() + " " + labels[i]);
+                    tyre.put("category", category.labelEn());
+                    tyre.put("status", tyreStatus(item.resultCode()));
+                    tyre.put("statusLabel", ReportMessages.result("en", item.resultCode()));
+                    tyre.put("statusClass", "NO_ISSUE_OBSERVED".equals(item.resultCode())
+                            ? "badge-pass" : "badge-attention");
+                    tyre.put("score", score);
+                    tyre.put("scoreText", score + "/100");
+                    String value = measurement.numericValue() == null ? ""
+                            : measurement.numericValue().stripTrailingZeros().toPlainString();
+                    tyre.put("treadDepth", value + (measurement.unitCode() == null
+                            ? "" : " " + measurement.unitCode()));
+                    tyre.put("pressure", "");
+                    tyre.put("brakePad", "");
+                    tyre.put("measuredSpec", measurementSummary(item));
+                    tyre.put("standardSpec", "");
+                    tyre.put("diagnosticSensor", "");
+                    tyre.put("technicianNote", item.note());
+                    tyre.put("imageUrl", firstPhotoUrl(item, byEvidence, token));
+                    tyre.put("videoUrl", null);
+                    tyre.put("videoCaption", "");
+                    result.add(tyre);
+                }
+            }
+        }
+        return result;
+    }
+
+    private String tyreStatus(String resultCode) {
+        if ("ATTENTION_RECOMMENDED".equals(resultCode)) return "ATTENTION";
+        if ("DEFECT_FOUND".equals(resultCode)) return "DEFECT_FOUND";
+        return "PASSED";
+    }
+
+    private List<Map<String, Object>> damageZones(ReportSnapshot snapshot,
+                                                  Map<UUID, EvidenceDerivative> byEvidence,
+                                                  String token) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ReportSnapshot.Category category : snapshot.categories()) {
+            String label = category.labelEn() == null ? "" : category.labelEn().toLowerCase(Locale.ROOT);
+            boolean body = label.contains("body") || label.contains("paint")
+                    || label.contains("exterior") || label.contains("tyre")
+                    || label.contains("brake");
+            if (!body) {
+                continue;
+            }
+            for (ReportSnapshot.ItemSnapshot item : category.items()) {
+                if ("NO_ISSUE_OBSERVED".equals(item.resultCode())) {
+                    continue;
+                }
+                Map<String, Object> zone = new LinkedHashMap<>();
+                zone.put("id", item.stableCode());
+                zone.put("code", item.stableCode());
+                zone.put("title", item.labelEn());
+                zone.put("isDamaged", true);
+                zone.put("status", item.resultCode());
+                zone.put("statusLabel", ReportMessages.result("en", item.resultCode()));
+                zone.put("statusClass", "DEFECT_FOUND".equals(item.resultCode())
+                        ? "badge-defect" : "badge-attention");
+                zone.put("paintThickness", item.measurements().isEmpty() ? ""
+                        : item.measurements().get(0).numericValue()
+                        + (item.measurements().get(0).unitCode() == null ? ""
+                        : " " + item.measurements().get(0).unitCode()));
+                zone.put("note", item.note().isBlank() ? item.reasonText() : item.note());
+                zone.put("score", "DEFECT_FOUND".equals(item.resultCode()) ? 40
+                        : ("ATTENTION_RECOMMENDED".equals(item.resultCode()) ? 70 : 100));
+                zone.put("imageUrl", firstPhotoUrl(item, byEvidence, token));
+                zone.put("videoUrl", null);
+                zone.put("videoCaption", "");
+                result.add(zone);
+            }
+        }
+        return result;
     }
 
     private String formatDate(String value, String language) {

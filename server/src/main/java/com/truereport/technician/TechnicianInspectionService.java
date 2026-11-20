@@ -998,7 +998,15 @@ public class TechnicianInspectionService {
             }
         } else if (suggestedScore != null && score == null) {
             score = suggestedScore;
-        } else if (score != null && (score < 0 || score > 100)) {
+        } else if (score == null) {
+            // Items without score bands or measurements still need a score for
+            // the category/overall calculation. These are the approved defaults
+            // used by the report (100 pass / 70 attention / 40 defect).
+            score = defaultScore(result);
+            if (suggestedScore == null) {
+                suggestedScore = score;
+            }
+        } else if (score < 0 || score > 100) {
             issues.add(issue("score", "SCORE_OUT_OF_BAND", "error.technician.scoreOutOfBand"));
         }
 
@@ -1061,8 +1069,12 @@ public class TechnicianInspectionService {
         for (IssueFieldDef definition : config.issueFields()) {
             IssueFieldRow field = definition.row();
             List<IssueValueDto> values = provided.getOrDefault(field.fieldCode(), List.of());
-            boolean required = field.required()
-                    || stringList(field.requiredForStatusesJson()).contains(result);
+            // A field with an explicit result-status list is conditional: it is required
+            // only for those results. `required=true` alone means required for every result.
+            List<String> requiredFor = stringList(field.requiredForStatusesJson());
+            boolean required = requiredFor.isEmpty()
+                    ? field.required()
+                    : requiredFor.contains(result);
             if (required && values.isEmpty()) {
                 issues.add(issue(field.fieldCode(), "REQUIRED", "error.technician.requiredField"));
                 continue;
@@ -1281,18 +1293,45 @@ public class TechnicianInspectionService {
     private String gradeFor(int score) {
         Optional<ScoringRuleRow> rule = store.activeScoringRule();
         if (rule.isEmpty()) {
-            return null;
+            return defaultGrade(score);
         }
         return store.gradeBoundaries(rule.get().id()).stream()
                 .filter(boundary -> score >= boundary.minScore() && score <= boundary.maxScore())
                 .min(Comparator.comparingInt(GradeBoundaryRow::sortOrder))
                 .map(GradeBoundaryRow::gradeCode)
-                .orElse(null);
+                .orElseGet(() -> defaultGrade(score));
+    }
+
+    /**
+     * The approved product thresholds (A >= 90, B >= 80, C >= 65, D < 65) apply
+     * when the platform has not configured a scoring rule. A fresh install seeds
+     * the checklist but no rule, and completion must still be possible.
+     */
+    private String defaultGrade(int score) {
+        if (score >= 90) {
+            return "A";
+        }
+        if (score >= 80) {
+            return "B";
+        }
+        return score >= 65 ? "C" : "D";
     }
 
     private static int gradeRank(String grade) {
         int index = GRADE_ORDER.indexOf(grade);
         return index < 0 ? GRADE_ORDER.size() : index;
+    }
+
+    private static Integer defaultScore(String result) {
+        if (result == null) {
+            return null;
+        }
+        return switch (result) {
+            case "NO_ISSUE_OBSERVED" -> 100;
+            case "ATTENTION_RECOMMENDED" -> 70;
+            case "DEFECT_FOUND" -> 40;
+            default -> null;
+        };
     }
 
     private static int rank(String result) {

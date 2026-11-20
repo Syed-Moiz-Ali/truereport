@@ -56,7 +56,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         customer(technician, jobId, "Customer Finalize", "+971500000000", "finalize@test.local");
         vehicle(technician, jobId, "Toyota", "Camry", 2022, "TESTVIN00000000001", "A12345", 82902, "KM");
         consent(technician, jobId, "PROCESSING", "GRANTED");
-        assess(technician, jobId, itemId, "DEFECT_FOUND", "MODERATE", "نص عربي", "ar", null, null);
+        assess(technician, jobId, itemId, "DEFECT_FOUND", "MODERATE", "نص عربي", "en", null, null);
         JsonNode review = getJson(technician, "/api/v1/technician/legacy/jobs/" + jobId + "/review");
         assertThat(review.get("ready").asBoolean()).isTrue();
         assertThat(review.get("blocking").size()).isZero();
@@ -129,12 +129,12 @@ class TechnicianInspectionIT extends IntegrationTestBase {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("NOTE_REQUIRED"));
         assessment(technician, jobId, itemId, assessmentBody("NO_ISSUE_OBSERVED", null,
-                "ملاحظة عربية", 1, "ar"))
+                "ملاحظة عربية", 1, "en"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assessment.note").value("ملاحظة عربية"))
-                .andExpect(jsonPath("$.assessment.noteLanguage").value("ar"));
+                .andExpect(jsonPath("$.assessment.noteLanguage").value("en"));
         assessment(technician, jobId, itemId, assessmentBody("NO_ISSUE_OBSERVED", null,
-                "Русский текст", 2, "ru", 0))
+                "Русский текст", 2, "en", 0))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assessment.note").value("Русский текст"));
         assessment(technician, jobId, itemId, assessmentBody("NO_ISSUE_OBSERVED", null,
@@ -201,8 +201,6 @@ class TechnicianInspectionIT extends IntegrationTestBase {
                 .filter(value -> value.status().equals("DRAFT")).findFirst().orElseThrow().id();
         masterContent.updateTranslation(platformActor(), first.itemId(), masterDraftVersion, "en",
                 new TranslationRequest("Changed after start", "Changed instruction"));
-        masterContent.updateTranslation(platformActor(), first.itemId(), masterDraftVersion, "ar",
-                new TranslationRequest("تغيير بعد البدء", "تعليمات محدثة"));
         masterContent.publish(platformActor(), first.itemId(), masterDraftVersion);
         // Master/template changes after start must not change this pinned checklist.
         String v2 = createTemplateDraftAndPublish(adminA, templateId);
@@ -430,7 +428,7 @@ class TechnicianInspectionIT extends IntegrationTestBase {
         assertThat(item.get("equipmentId").asText()).isEqualTo(expected.id().toString());
         assertThat(item.get("code").asText()).isEqualTo(expected.code());
         assertThat(item.get("labelEn").asText()).isEqualTo(expected.labelEn());
-        assertThat(item.get("labelAr").asText()).isEqualTo(expected.labelAr());
+        assertThat(item.get("labelEn").asText()).isEqualTo(expected.labelEn());
         assertThat(item.get("status").asText()).isEqualTo(expected.status());
         assertThat(item.get("sortOrder").asInt()).isEqualTo(expected.sortOrder());
     }

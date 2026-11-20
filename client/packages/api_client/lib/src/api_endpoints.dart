@@ -79,6 +79,7 @@ class ApiEndpoints {
   String get workshopCleanJobs => '$_root/workshop/jobs';
   String get workshopCleanJobCounts => '$_root/workshop/jobs/counts';
   String workshopCleanJob(String id) => '$_root/workshop/jobs/$id';
+  String workshopJobConsent(String id) => '$_root/workshop/jobs/$id/consent';
   String assignCleanWorkshopJob(String id) => '$_root/workshop/jobs/$id/assign';
   String cancelCleanWorkshopJob(String id) => '$_root/workshop/jobs/$id/cancel';
   String workshopCleanJobAssignments(String id) =>

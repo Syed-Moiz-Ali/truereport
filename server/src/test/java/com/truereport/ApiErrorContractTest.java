@@ -204,6 +204,7 @@ class ApiErrorContractTest {
         ResponseEntity<ProblemDetail> response = handler.handleApi(exception, request);
 
         assertThat(response.getBody().getProperties())
-                .containsKeys("messageEn", "messageAr");
+                .containsKey("messageEn")
+                .doesNotContainKey("messageAr");
     }
 }

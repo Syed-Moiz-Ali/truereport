@@ -44,6 +44,7 @@ public class PublicReportService {
     private final ObjectStorage storage;
     private final ReportTokenService tokenService;
     private final ReportPdfService pdfService;
+    private final CleanPublicReportReader cleanReports;
 
     public PublicReportService(PublicShareLinkRepository links,
                                ReportRepository reports,
@@ -54,7 +55,8 @@ public class PublicReportService {
                                ReportViewMapper viewMapper,
                                ObjectStorage storage,
                                ReportTokenService tokenService,
-                               ReportPdfService pdfService) {
+                               ReportPdfService pdfService,
+                               CleanPublicReportReader cleanReports) {
         this.links = links;
         this.reports = reports;
         this.versions = versions;
@@ -65,6 +67,7 @@ public class PublicReportService {
         this.storage = storage;
         this.tokenService = tokenService;
         this.pdfService = pdfService;
+        this.cleanReports = cleanReports;
     }
 
     @Transactional(readOnly = true)
@@ -74,16 +77,16 @@ public class PublicReportService {
         }
         Optional<PublicShareLink> link = links.findByTokenHash(tokenService.hash(token));
         if (link.isEmpty() || !link.get().getStatus().equals("ACTIVE")) {
-            return Resolution.unavailable();
+            return resolveClean(token, language);
         }
         PublicShareLink active = link.get();
         ReportVersion version = versions.findById(active.getReportVersionId()).orElse(null);
         if (version == null) {
-            return Resolution.unavailable();
+            return resolveClean(token, language);
         }
         Report report = reports.findById(version.getReportId()).orElse(null);
         if (report == null) {
-            return Resolution.unavailable();
+            return resolveClean(token, language);
         }
         ReportGenerationJob generation = jobs.findByReportVersionId(version.getId()).orElse(null);
         if (generation == null || !generation.getStatus().equals("READY")) {
@@ -93,11 +96,69 @@ public class PublicReportService {
             List<EvidenceDerivative> publicDerivatives =
                     derivatives.findByReportVersionIdOrderByCreatedAtAsc(version.getId());
             Map<String, Object> page = viewMapper.publicPage(version, publicDerivatives,
-                    "ar".equals(language) ? "ar" : "en", active.isPdfDownloadEnabled());
+                    "ar".equals(language) ? "ar" : "en", active.isPdfDownloadEnabled(), token);
             return new Resolution(Status.ACTIVE, new Resolved(active, report, version, page));
         } catch (Exception exception) {
             return Resolution.unavailable();
         }
+    }
+
+    /**
+     * Clean report path: platform_public_links -> platform_report_versions.
+     * There is no separate generation job; an ACTIVE link with a stored version
+     * is renderable immediately.
+     */
+    private Resolution resolveClean(String token, String language) {
+        Optional<CleanPublicReportReader.Row> found = cleanReports.findByToken(token);
+        if (found.isEmpty()) {
+            return Resolution.unavailable();
+        }
+        CleanPublicReportReader.Row row = found.get();
+        if (!"ACTIVE".equals(row.status())) {
+            return "PENDING".equals(row.status()) ? Resolution.temporary() : Resolution.unavailable();
+        }
+        try {
+            UUID workshopId;
+            try {
+                workshopId = UUID.fromString(row.workshopId());
+            } catch (RuntimeException ignored) {
+                workshopId = UUID.nameUUIDFromBytes(row.workshopId().getBytes());
+            }
+            byte[] hash = row.snapshotHash() == null ? new byte[0] : hexToBytes(row.snapshotHash());
+            java.time.LocalDateTime finalized = row.finalizedAt() != null
+                    ? row.finalizedAt()
+                    : (row.publishedAt() != null ? row.publishedAt() : java.time.LocalDateTime.now());
+            ReportVersion version = new ReportVersion(
+                    UUID.nameUUIDFromBytes(("report:" + row.reportVersionId()).getBytes()),
+                    workshopId,
+                    row.versionNo(),
+                    row.reportNumber(),
+                    hash,
+                    row.snapshotJson(),
+                    hash,
+                    finalized);
+            List<EvidenceDerivative> publicEvidence = cleanReports.publicEvidence(
+                    row.jobId(), UUID.fromString(row.reportVersionId()), workshopId);
+            Map<String, Object> page = viewMapper.publicPage(version, publicEvidence, language,
+                    row.pdfDownloadEnabled(), token);
+            return new Resolution(Status.ACTIVE,
+                    new Resolved(PublicShareLink.cleanActive(row.pdfDownloadEnabled()), null,
+                            version, page));
+        } catch (Exception exception) {
+            return Resolution.unavailable();
+        }
+    }
+
+    private static byte[] hexToBytes(String hex) {
+        if (hex == null || hex.isBlank()) {
+            return new byte[0];
+        }
+        int length = hex.length();
+        byte[] bytes = new byte[length / 2];
+        for (int i = 0; i < length; i += 2) {
+            bytes[i / 2] = (byte) Integer.parseInt(hex.substring(i, i + 2), 16);
+        }
+        return bytes;
     }
 
     @Transactional(readOnly = true)
@@ -105,6 +166,10 @@ public class PublicReportService {
         Resolution resolution = resolve(token, "en");
         if (resolution.status() != Status.ACTIVE) {
             return Optional.empty();
+        }
+        if (resolution.resolved().version().getId() == null) {
+            return cleanReports.photo(token, derivativeId)
+                    .map(photo -> new Photo(photo.bytes(), photo.mime()));
         }
         EvidenceDerivative derivative = derivatives.findByIdAndReportVersionId(
                 derivativeId, resolution.resolved().version().getId()).orElse(null);
@@ -121,19 +186,28 @@ public class PublicReportService {
         if (resolution.status() != Status.ACTIVE || !resolution.resolved().link().isPdfDownloadEnabled()) {
             return Optional.empty();
         }
-        // 1. Try to serve a pre-generated PDF artifact (the happy path in production).
-        ReportArtifact artifact = artifacts.findByReportVersionIdAndKind(
-                resolution.resolved().version().getId(), "PDF").orElse(null);
-        if (artifact != null) {
-            return Optional.of(storage.get(artifact.getStorageKey()));
+        UUID versionId = resolution.resolved().version().getId();
+        // 1. Try to serve a pre-generated PDF artifact (legacy happy path).
+        if (versionId != null) {
+            ReportArtifact artifact = artifacts.findByReportVersionIdAndKind(versionId, "PDF")
+                    .orElse(null);
+            if (artifact != null) {
+                return Optional.of(storage.get(artifact.getStorageKey()));
+            }
         }
         // 2. No stored artifact — render on-demand using Chromium so the download
-        //    button always works in local/dev environments where the background
-        //    generation worker never ran or object-storage is not configured.
+        //    button always works for clean reports and local/dev environments.
         try {
-            List<EvidenceDerivative> publicDerivatives =
-                    derivatives.findByReportVersionIdOrderByCreatedAtAsc(
-                            resolution.resolved().version().getId());
+            List<EvidenceDerivative> publicDerivatives;
+            if (versionId == null) {
+                Optional<CleanPublicReportReader.Row> row = cleanReports.findByToken(token);
+                publicDerivatives = row.isEmpty() ? List.of()
+                        : cleanReports.publicEvidence(row.get().jobId(),
+                        UUID.fromString(row.get().reportVersionId()),
+                        UUID.fromString(row.get().workshopId()));
+            } else {
+                publicDerivatives = derivatives.findByReportVersionIdOrderByCreatedAtAsc(versionId);
+            }
             byte[] pdf = pdfService.render(resolution.resolved().version(), publicDerivatives);
             return Optional.of(pdf);
         } catch (Exception e) {

@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:l10n/l10n.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 
@@ -6,8 +7,9 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 /// page needs: per-step validation and the request body.
 ///
 /// Kept out of the composition so the page stays a layout/state shell. The
-/// request always carries `consentGranted: false` and never a `scheduledAt`
-/// (G-J11, CR-5).
+/// request carries `consentGranted: false` (consent is recorded later from the
+/// job detail) and an optional `scheduledAt`: null starts immediately, a value
+/// creates a SCHEDULED job.
 class WizardFormState {
   static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -27,6 +29,17 @@ class WizardFormState {
   String preferredLanguage = 'en';
   String? templateVersionId;
   String? technicianId;
+
+  /// Null means "start immediately"; a value creates a SCHEDULED job.
+  DateTime? scheduledAt;
+
+  void scheduleAt(DateTime value) => scheduledAt = value;
+
+  void startImmediately() => scheduledAt = null;
+
+  String? get scheduledAtIso => scheduledAt == null
+      ? null
+      : DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(scheduledAt!);
 
   void dispose() {
     for (final controller in [
@@ -67,6 +80,10 @@ class WizardFormState {
       }
     } else if (step == 2 && templateVersionId == null) {
       return l10n.requiredField;
+    } else if (step == 3 &&
+        scheduledAt != null &&
+        scheduledAt!.isBefore(DateTime.now())) {
+      return l10n.jobsScheduleRequired;
     }
     return null;
   }
@@ -86,6 +103,7 @@ class WizardFormState {
     transmission: transmission,
     fuelType: fuelType,
     preferredLanguage: preferredLanguage,
+    scheduledAt: scheduledAtIso,
     assignedTechnicianId: technicianId,
     consentGranted: false,
   );

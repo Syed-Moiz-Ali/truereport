@@ -51,6 +51,15 @@ public class EvidenceDerivative extends BaseEntity {
     protected EvidenceDerivative() {
     }
 
+    /** Transient adapter for clean evidence, where the asset id doubles as the public id. */
+    public EvidenceDerivative(UUID id, UUID workshopId, UUID reportVersionId, UUID evidenceAssetId,
+                              String purpose, String storageKey, byte[] contentHash,
+                              String mime, long bytes, Integer width, Integer height) {
+        this(workshopId, reportVersionId, evidenceAssetId, purpose, storageKey, contentHash,
+                mime, bytes, width, height);
+        this.id = id;
+    }
+
     public EvidenceDerivative(UUID workshopId, UUID reportVersionId, UUID evidenceAssetId,
                               String purpose, String storageKey, byte[] contentHash,
                               String mime, long bytes, Integer width, Integer height) {

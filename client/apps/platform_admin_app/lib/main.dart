@@ -30,22 +30,17 @@ class PlatformAdminApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(platformLocaleProvider);
     final router = ref.watch(platformRouterProvider);
-    final manifest = ref.watch(platformUiManifestProvider);
-    final defaultLanguage = ref.watch(platformUiDefaultLanguageProvider);
     final title = ref.watch(platformAppTitleProvider);
-    ref.read(apiClientProvider).acceptLanguage = locale.languageCode;
+    ref.read(apiClientProvider).acceptLanguage = 'en';
     ref.read(apiClientProvider).clientName = 'platform_admin';
 
     return MaterialApp.router(
       onGenerateTitle: (_) => title,
       debugShowCheckedModeBanner: false,
       theme: _platformTheme(),
-      locale: locale,
-      supportedLocales: platformSupportedLocales(manifest),
-      localeResolutionCallback: (device, supported) =>
-          resolvePlatformLocale(device, supported, defaultLanguage),
+      locale: const Locale('en'),
+      supportedLocales: const [Locale('en')],
       localizationsDelegates: const [
         ...signInBayLocalizationsDelegates,
         GlobalMaterialLocalizations.delegate,
