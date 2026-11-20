@@ -186,7 +186,6 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
       },
       validatePassword: _required,
       validateCode: _validateCode,
-      onToggleLanguage: () {},
       languageControl: (onAccent) => _LanguageMenu(
         languages: languages,
         selectedCode: selectedCode,

@@ -28,12 +28,11 @@ class SignInMetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final style = Fx.text(
       11,
       16,
       FontWeight.w600,
-      isArabic ? 0 : 0.2,
+      0.2,
       color: scheme.onSurfaceVariant,
     );
 

@@ -136,19 +136,9 @@ abstract final class ReportData {
         .toList(growable: false);
   }
 
-  /// Picks the Arabic value when the page is Arabic and one is present.
-  /// Report snapshots carry both locales in `labelEn`/`labelAr` shape.
-  static String localized(
-    Map<String, dynamic> item,
-    String prefix,
-    bool isArabic,
-  ) {
-    final english = text(item['${prefix}En']);
-    final arabic = text(item['${prefix}Ar']);
-    if (isArabic && arabic.isNotEmpty) {
-      return arabic;
-    }
-    return english;
+  /// Returns the English value from a bilingual snapshot entry.
+  static String localized(Map<String, dynamic> item, String prefix) {
+    return text(item['${prefix}En']);
   }
 
   static ReportSummary summarize(ReportAdmin report) {

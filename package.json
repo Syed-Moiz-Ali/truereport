@@ -8,6 +8,7 @@
     "e2e": "playwright test",
     "e2e:platform": "playwright test --project=platform-admin",
     "e2e:workshop": "playwright test --project=workshop-admin",
+    "e2e:language": "playwright test --project=workshop-admin tests/e2e/modules/language_dynamic.flow.spec.ts",
     "e2e:technician": "playwright test --project=technician",
     "e2e:public": "playwright test --project=public-report"
   },

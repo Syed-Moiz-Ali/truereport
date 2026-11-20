@@ -1,4 +1,5 @@
 import 'package:workshop_admin_app/src/admin_router.dart';
+import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/api_language_sync.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -14,15 +15,23 @@ class AdminApp extends ConsumerWidget {
     // the active locale (see api_language_sync.dart).
     ref.watch(apiLanguageSyncProvider);
     final locale = ref.watch(localeProvider);
+    // English text stays backend-owned: generated getters read this map.
+    setRemoteEnglish(
+      ref.watch(uiMessageMessagesProvider(adminUiMessageClient)),
+    );
     final router = ref.watch(adminRouterProvider);
     return MaterialApp.router(
-      title: 'TrueReport Admin',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitleAdmin,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.build(isArabic: locale.languageCode == 'ar'),
+      theme: AppTheme.build(),
       themeMode: ThemeMode.light,
       locale: locale,
-      supportedLocales: const [Locale('en')],
+      supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) => UiMessageBootstrap(
+        client: adminUiMessageClient,
+        child: child ?? const SizedBox.shrink(),
+      ),
       routerConfig: router,
     );
   }

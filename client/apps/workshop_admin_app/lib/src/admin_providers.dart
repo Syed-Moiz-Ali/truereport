@@ -2,12 +2,30 @@ import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:auth/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:l10n/l10n.dart';
 
 final adminApiProvider = Provider<AdminApi>((ref) {
   return HttpAdminApi(
     ref.watch(apiClientProvider),
     ref.watch(apiEndpointsProvider),
   );
+});
+
+/// The client slice of the one shared UI-message system.
+const String adminUiMessageClient = UiMessageClients.workshopAdmin;
+
+/// Thin wiring: turns the shared `ApiClient` into the shared fetcher.
+///
+/// All language state lives in `packages/l10n`; this app owns no language
+/// provider, list or selector of its own.
+final adminUiMessageFetcherProvider = Provider<UiMessageFetcher>((ref) {
+  final client = ref.watch(apiClientProvider);
+  return (String path, Map<String, String> query) async {
+    final data = await client.getDynamic(path, query: query);
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    throw const FormatException('UI message payload is not an object');
+  };
 });
 
 /// Release guard (Step 2a): the Figma showcase views under `screens/f3a`

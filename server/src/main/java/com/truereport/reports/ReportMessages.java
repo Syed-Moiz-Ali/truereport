@@ -10,9 +10,8 @@ import java.util.ResourceBundle;
 /**
  * User-facing report/PDF/public-page text.
  *
- * <p>All wording lives in per-language bundles ({@code i18n/report_en.properties},
- * {@code i18n/report_ar.properties}). No literal user-facing text may be added here;
- * add a key to both bundles instead.
+ * <p>All wording lives in the English bundle ({@code i18n/report_en.properties}).
+ * No literal user-facing text may be added here; add a key to the bundle instead.
  */
 public final class ReportMessages {
 
@@ -25,7 +24,7 @@ public final class ReportMessages {
             "inspection", "workshop", "technician", "reportId", "version", "finalized", "published",
             "scope", "template", "odometer", "findings", "category", "result", "severity", "note",
             "reason", "notChecked", "couldNotVerify", "limitations", "photos", "noPhotos",
-            "reportHash", "downloadPdf", "language", "english", "arabic", "notCertified",
+            "reportHash", "downloadPdf", "language", "english", "notCertified",
             "evidenceCaption", "originalNote", "noTranslation", "reportDetails", "page",
             "unavailableTitle", "unavailableBody", "temporaryTitle", "temporaryBody",
             "revocationNotice", "vin", "check", "notApplicable", "notCompleted",
@@ -122,7 +121,9 @@ public final class ReportMessages {
     }
 
     static Locale locale(String language) {
-        return "ar".equals(language) ? new Locale("ar") : Locale.ENGLISH;
+        // Report, PDF and delivery bundles are English-only. The parameter is
+        // kept so callers continue to pass a language through the generic path.
+        return Locale.ENGLISH;
     }
 
     static ResourceBundle bundle(String language) {

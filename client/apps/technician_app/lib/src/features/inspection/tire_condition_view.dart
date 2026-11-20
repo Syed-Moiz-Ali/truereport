@@ -27,7 +27,7 @@ class TireConditionView extends StatefulWidget {
 
 class _TireConditionViewState extends State<TireConditionView> {
   String _selectedTire = 'RLT';
-  String _selectedCondition = 'As New';
+  String _selectedCondition = 'asNew';
   double _treadDepth = 7.2;
 
   void _selectTire(String code) {
@@ -151,7 +151,7 @@ class _TireConditionViewState extends State<TireConditionView> {
           children: <Widget>[
             Flexible(
               child: Text(
-                'INSPECTION SEQUENCE',
+                l10n?.tireInspectionSequence ?? '',
                 overflow: TextOverflow.ellipsis,
                 style: Fx.text(
                   11,
@@ -164,7 +164,7 @@ class _TireConditionViewState extends State<TireConditionView> {
             ),
             const SizedBox(width: 8),
             Text(
-              '6 of 8 Completed',
+              l10n?.tireProgressCompleted(6, 8) ?? '',
               style: Fx.text(
                 11,
                 14,
@@ -199,7 +199,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         const SizedBox(height: 12),
         // Heading 2 (y: 116 to 180)
         Text(
-          'Step 6: Set condition for\neach tyre',
+          l10n?.tireStepTitle(6) ?? '',
           style: Fx.text(
             26,
             32,
@@ -211,7 +211,7 @@ class _TireConditionViewState extends State<TireConditionView> {
         const SizedBox(height: 4),
         // Subtitle (y: 184 to 220)
         Text(
-          'Tap any wheel position on the chassis to log physical\nwear.',
+          l10n?.tireTapWheelHint ?? '',
           style: Fx.text(
             13,
             18,
@@ -332,7 +332,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'Active Zone',
+                        l10n.tireActiveZone,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,
@@ -531,7 +531,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'RLT — Rear Left Tyre',
+                      'RLT — ${l10n.tireRearLeftTyre}',
                       style: Fx.text(
                         16,
                         22,
@@ -541,7 +541,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                       ),
                     ),
                     Text(
-                      'Axle 2 • Michelin Pilot Sport 4S',
+                      '${l10n.tireAxleLabel(2)} • Michelin Pilot Sport 4S',
                       style: Fx.text(
                         13,
                         18,
@@ -578,7 +578,7 @@ class _TireConditionViewState extends State<TireConditionView> {
           const SizedBox(height: 20),
           // Physical wear assessment (y: 640 to 656)
           Text(
-            'Physical Wear Assessment',
+            l10n.tirePhysicalWearAssessment,
             style: Fx.text(
               12,
               16,
@@ -594,14 +594,14 @@ class _TireConditionViewState extends State<TireConditionView> {
               // As New button
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedCondition = 'As New'),
+                  onTap: () => setState(() => _selectedCondition = 'asNew'),
                   child: Container(
                     constraints: const BoxConstraints(minHeight: 93),
                     decoration: BoxDecoration(
-                      color: _selectedCondition == 'As New'
+                      color: _selectedCondition == 'asNew'
                           ? const Color(0xFF10B981)
                           : const Color(0xFFF4F3F8),
-                      boxShadow: _selectedCondition == 'As New'
+                      boxShadow: _selectedCondition == 'asNew'
                           ? const <BoxShadow>[
                               BoxShadow(
                                 color: Color(0x4010B981),
@@ -618,32 +618,32 @@ class _TireConditionViewState extends State<TireConditionView> {
                           id: '1_8557',
                           width: 22,
                           height: 20,
-                          color: _selectedCondition == 'As New'
+                          color: _selectedCondition == 'asNew'
                               ? Colors.white
                               : const Color(0xFF5E5D69),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'As New',
+                          l10n.tireAsNew,
                           style: Fx.text(
                             14,
                             18,
                             FontWeight.w700,
                             -0.14,
-                            color: _selectedCondition == 'As New'
+                            color: _selectedCondition == 'asNew'
                                 ? Colors.white
                                 : const Color(0xFF1A1B1F),
                           ),
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          'OEM Standard (>6mm)',
+                          l10n.tireOemStandard,
                           style: Fx.text(
                             11,
                             16.5,
                             FontWeight.w400,
                             0,
-                            color: _selectedCondition == 'As New'
+                            color: _selectedCondition == 'asNew'
                                 ? Colors.white
                                 : const Color(0xFF5E5D69),
                           ),
@@ -657,14 +657,14 @@ class _TireConditionViewState extends State<TireConditionView> {
               // Part Worn button
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedCondition = 'Part Worn'),
+                  onTap: () => setState(() => _selectedCondition = 'partWorn'),
                   child: Container(
                     constraints: const BoxConstraints(minHeight: 93),
                     decoration: BoxDecoration(
-                      color: _selectedCondition == 'Part Worn'
+                      color: _selectedCondition == 'partWorn'
                           ? const Color(0xFF10B981)
                           : const Color(0xFFF4F3F8),
-                      boxShadow: _selectedCondition == 'Part Worn'
+                      boxShadow: _selectedCondition == 'partWorn'
                           ? const <BoxShadow>[
                               BoxShadow(
                                 color: Color(0x4010B981),
@@ -680,32 +680,32 @@ class _TireConditionViewState extends State<TireConditionView> {
                         FxIcon(
                           id: '1_8566',
                           size: 20,
-                          color: _selectedCondition == 'Part Worn'
+                          color: _selectedCondition == 'partWorn'
                               ? Colors.white
                               : const Color(0xFF5E5D69),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Part Worn',
+                          l10n.tirePartWorn,
                           style: Fx.text(
                             14,
                             18,
                             FontWeight.w700,
                             -0.14,
-                            color: _selectedCondition == 'Part Worn'
+                            color: _selectedCondition == 'partWorn'
                                 ? Colors.white
                                 : const Color(0xFF1A1B1F),
                           ),
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          'Usable Wear (3-6mm)',
+                          l10n.tireUsableWear,
                           style: Fx.text(
                             11,
                             16.5,
                             FontWeight.w400,
                             0,
-                            color: _selectedCondition == 'Part Worn'
+                            color: _selectedCondition == 'partWorn'
                                 ? Colors.white
                                 : const Color(0xFF5E5D69),
                           ),
@@ -724,7 +724,7 @@ class _TireConditionViewState extends State<TireConditionView> {
             children: <Widget>[
               Flexible(
                 child: Text(
-                  'Measured Groove Depth',
+                  l10n.tireMeasuredGrooveDepth,
                   overflow: TextOverflow.ellipsis,
                   style: Fx.text(
                     12,
@@ -737,7 +737,7 @@ class _TireConditionViewState extends State<TireConditionView> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Legal Minimum: 1.6 mm',
+                l10n.tireLegalMinimum('1.6'),
                 style: Fx.text(
                   11,
                   14,
@@ -786,7 +786,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Tread Depth\n(mm)',
+                  l10n.tireTreadDepth,
                   style: Fx.text(
                     14,
                     20,
@@ -908,7 +908,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              'Cold Pressure',
+                              l10n.tireColdPressure,
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
@@ -921,7 +921,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               ),
                             ),
                             Text(
-                              '34.5 (Norm)',
+                              '34.5 ${l10n.tireNorm}',
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,
@@ -977,7 +977,7 @@ class _TireConditionViewState extends State<TireConditionView> {
                               ),
                             ),
                             Text(
-                              'No Gouges / Flaws',
+                              l10n.tireNoGouges,
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.ellipsis,

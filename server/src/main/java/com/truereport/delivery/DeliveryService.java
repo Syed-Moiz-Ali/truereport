@@ -45,7 +45,7 @@ import java.util.HexFormat;
 public class DeliveryService {
 
     private static final Set<String> CHANNELS = Set.of("WHATSAPP", "SMS", "EMAIL");
-    private static final Set<String> LANGUAGES = Set.of("en", "ar");
+    private static final Set<String> LANGUAGES = Set.of("en");
     private static final Set<String> FAILURE_STATUSES = Set.of("FAILED", "RETRY_PENDING", "DEAD_LETTER");
 
     private final DeliveryRequestRepository requests;

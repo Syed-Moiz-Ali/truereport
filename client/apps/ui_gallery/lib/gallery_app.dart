@@ -20,7 +20,7 @@ class GalleryApp extends StatefulWidget {
 class _GalleryAppState extends State<GalleryApp> {
   static const List<double> _widths = <double>[390, 600, 900, 1280];
 
-  Locale _locale = const Locale('en');
+  final Locale _locale = const Locale('en');
   double _textScale = 1;
   AppColorStrategy _strategy = AppColorStrategy.emeraldFill;
   AppArabicFont _arabicFont = AppArabicFont.notoSansArabic;
@@ -30,9 +30,6 @@ class _GalleryAppState extends State<GalleryApp> {
   void initState() {
     super.initState();
     final query = Uri.base.queryParameters;
-    if (query['lang'] == 'ar') {
-      _locale = const Locale('ar');
-    }
     // Light-only (C0 Workstream B): the '?theme=dark' query param was removed.
     final scale = double.tryParse(query['scale'] ?? '');
     if (scale == 1 || scale == 1.5 || scale == 2) {
@@ -53,18 +50,9 @@ class _GalleryAppState extends State<GalleryApp> {
     }
   }
 
-  bool get _isArabic => _locale.languageCode == 'ar';
-
   // Light-only (C0 Workstream B): no brightness state; the gallery is light.
-  ThemeData get _theme => AppTheme.build(
-    colorStrategy: _strategy,
-    arabicFont: _arabicFont,
-    isArabic: _isArabic,
-  );
-
-  void _selectLocale(bool arabic) {
-    setState(() => _locale = Locale(arabic ? 'ar' : 'en'));
-  }
+  ThemeData get _theme =>
+      AppTheme.build(colorStrategy: _strategy, arabicFont: _arabicFont);
 
   void _selectTextScale(double scale) {
     setState(() => _textScale = scale);
@@ -94,7 +82,7 @@ class _GalleryAppState extends State<GalleryApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) {
         return Directionality(
-          textDirection: _isArabic ? TextDirection.rtl : TextDirection.ltr,
+          textDirection: TextDirection.ltr,
           child: MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: TextScaler.linear(_textScale)),
@@ -168,7 +156,6 @@ class _GalleryControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final spacing = context.spacing;
     return Container(
       width: double.infinity,
@@ -178,21 +165,6 @@ class _GalleryControls extends StatelessWidget {
         spacing: spacing.md,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ControlGroup(
-            label: 'Locale',
-            children: [
-              _Choice(
-                label: l10n.languageEnglish,
-                selected: !state._isArabic,
-                onSelected: () => state._selectLocale(false),
-              ),
-              _Choice(
-                label: l10n.languageArabic,
-                selected: state._isArabic,
-                onSelected: () => state._selectLocale(true),
-              ),
-            ],
-          ),
           // Light-only (C0 Workstream B): theme toggle removed.
           _ControlGroup(
             label: 'Text scale',
@@ -340,20 +312,19 @@ class _GallerySections extends StatelessWidget {
         if (FixtureGuard.enabled) ...[
           const GallerySection(
             title: 'Figma-exact variants (test-only)',
-            subtitle:
-                'Figma node bounding boxes, Figma copy, measured by the harness.',
+            subtitle: 'Figma node bounding boxes, Figma copy, measured by the harness.',
             child: FidelityShowcase(),
           ),
           const GallerySection(
             title: 'Primary button options (A2 re-opened)',
-            subtitle:
-                'Four options on the real Figma button in EN and AR at 1.0x and 2.0x.',
+            subtitle: 'Four options on the real Figma button in EN and AR at 1.0x and 2.0x.',
             child: PrimaryButtonOptionsShowcase(),
           ),
         ],
         const GallerySection(
           title: 'Token swatches',
-          subtitle: 'Every semantic colour in light, emeraldFill and deepGreenFill.',
+          subtitle:
+              'Every semantic colour in light, emeraldFill and deepGreenFill.',
           child: TokenSwatchesShowcase(),
         ),
         const GallerySection(
@@ -404,8 +375,7 @@ class _GallerySections extends StatelessWidget {
         if (FixtureGuard.enabled)
           const GallerySection(
             title: 'Technician dock decision (P7)',
-            subtitle:
-                'Product 3-item dock and the Figma 4-item layout, shown for owner review only.',
+            subtitle: 'Product 3-item dock and the Figma 4-item layout, shown for owner review only.',
             child: TechnicianDockComparison(),
           ),
         const GallerySection(
@@ -483,7 +453,6 @@ class _StrategyPanel extends StatelessWidget {
     final theme = AppTheme.build(
       colorStrategy: strategy,
       arabicFont: state._arabicFont,
-      isArabic: state._isArabic,
     );
     return Theme(
       data: theme,
@@ -539,4 +508,3 @@ class _StrategyPanel extends StatelessWidget {
     );
   }
 }
-

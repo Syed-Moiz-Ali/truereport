@@ -46,7 +46,7 @@ class StaticLanguageSyncTest {
 
     @Test
     void insertsOnlyManifestLanguageAndKeepsSharedRows() {
-        insertSharedArabicRow();
+        insertSharedSpanishRow();
         when(catalog.manifest()).thenReturn(englishOnlyManifest());
 
         new StaticLanguageSync(jdbc, catalog).sync();
@@ -66,8 +66,8 @@ class StaticLanguageSyncTest {
                 Integer.class)).isEqualTo(1);
 
         // Shared rows for other apps must survive a Platform Admin reset.
-        assertThat(status("ar")).isEqualTo("LIVE");
-        assertThat(active("ar")).isTrue();
+        assertThat(status("es")).isEqualTo("LIVE");
+        assertThat(active("es")).isTrue();
     }
 
     @Test
@@ -94,12 +94,12 @@ class StaticLanguageSyncTest {
         assertThat(english.get("status")).isEqualTo("LIVE");
     }
 
-    private void insertSharedArabicRow() {
+    private void insertSharedSpanishRow() {
         jdbc.update("""
                 INSERT INTO platform_languages
                     (code, native_name, direction, active, is_default, sort_order,
                      status, created_at, updated_at, version)
-                VALUES ('ar', 'Arabic', 'rtl', TRUE, FALSE, 2, 'LIVE',
+                VALUES ('es', 'Español', 'ltr', TRUE, FALSE, 2, 'LIVE',
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """);
     }

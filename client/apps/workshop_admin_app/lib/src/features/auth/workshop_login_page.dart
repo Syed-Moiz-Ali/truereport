@@ -107,11 +107,6 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
         : AppLocalizations.of(context).invalidEmail;
   }
 
-  void _toggleLanguage() {
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    ref.read(localeProvider.notifier).setLocale(Locale(isArabic ? 'en' : 'ar'));
-  }
-
   String? _errorText(AppLocalizations l10n) {
     return switch (_errorKey) {
       'invalidCredentials' => l10n.invalidCredentials,
@@ -155,8 +150,6 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       validateEmail: _validateEmail,
       validatePassword: _required,
       validateCode: (_) => null,
-      onToggleLanguage: _toggleLanguage,
     );
   }
 }
-

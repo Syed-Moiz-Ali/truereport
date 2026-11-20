@@ -625,9 +625,6 @@ public class InspectionService {
             return "und";
         }
         int first = note.codePointAt(0);
-        if (first >= 0x0600 && first <= 0x06FF) {
-            return "ar";
-        }
         if (first >= 0x0400 && first <= 0x04FF) {
             return "ru";
         }

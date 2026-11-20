@@ -14,13 +14,14 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Mirrors the static language manifest into {@code platform_languages}.
+ * Mirrors the languages advertised for Platform Admin into {@code platform_languages}.
  *
  * <p>The database registry backs dynamic content translations, readiness and
- * user preferences. Every Platform Admin manifest language is inserted if
- * missing and refreshed if present. Shared rows for other apps are retained
- * even when they are not in the Platform Admin manifest. Platform Admin never
- * edits the registry directly.</p>
+ * user preferences. Every language registered in {@code i18n/languages.json}
+ * with a {@code i18n/platform_admin/<code>.json} file is inserted if missing and
+ * refreshed if present. Shared rows for other apps are retained even when they
+ * are not advertised for Platform Admin. Platform Admin never edits the registry
+ * directly.</p>
  */
 @Service
 public class StaticLanguageSync {

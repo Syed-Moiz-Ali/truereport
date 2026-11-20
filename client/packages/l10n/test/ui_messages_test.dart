@@ -86,7 +86,7 @@ class FakeFetcher {
     }
     try {
       await Future<void>.delayed(const Duration(milliseconds: 5));
-      if (path == UiMessageApi.manifestPath) {
+      if (path == UiMessageApi.manifestPathFor('platform_admin')) {
         if (failManifest) throw StateError('manifest failed');
         return manifest;
       }
@@ -127,7 +127,7 @@ class CountingStore implements UiMessageStore {
 ProviderContainer makeContainer(FakeFetcher fetcher, UiMessageStore store) {
   return ProviderContainer(
     overrides: [
-      uiMessageApiProvider.overrideWithValue(UiMessageApi(fetcher.call)),
+      uiMessageFetcherProvider.overrideWithValue(fetcher.call),
       uiMessageStoreProvider.overrideWithValue(store),
     ],
   );

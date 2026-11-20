@@ -85,7 +85,7 @@ public class WorkshopJobAdminService {
             "DRAFT", "SCHEDULED", "ASSIGNED", "IN_PROGRESS");
     private static final Set<String> ASSIGNABLE_STATUSES = Set.of(
             "DRAFT", "SCHEDULED", "ASSIGNED", "IN_PROGRESS");
-    private static final Set<String> LANGUAGES = Set.of("en", "ar");
+    private static final Set<String> LANGUAGES = Set.of("en");
     private static final List<String> GRADE_ORDER = List.of("A", "B", "C", "D");
 
     private final PlatformJobStore store;
@@ -1099,9 +1099,7 @@ public class WorkshopJobAdminService {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("stableCode", row.itemCode());
                 item.put("labelEn", row.labelEn());
-                item.put("labelAr", row.labelAr());
                 item.put("instructionEn", row.instructionEn());
-                item.put("instructionAr", row.instructionAr());
                 item.put("resultCode", row.resultCode());
                 item.put("severityCode", row.severityCode());
                 item.put("note", row.notesEn() == null ? "" : row.notesEn());
@@ -1128,7 +1126,6 @@ public class WorkshopJobAdminService {
             }
             Map<String, Object> category = new LinkedHashMap<>();
             category.put("labelEn", entry.getKey());
-            category.put("labelAr", entry.getValue().get(0).categoryAr());
             category.put("items", items);
             categories.add(category);
         }

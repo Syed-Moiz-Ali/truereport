@@ -811,7 +811,7 @@ class _EvidenceBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final countText =
-        '${photos.length} of ${item.minPhotos > 0 ? item.minPhotos : 1} Required';
+        l10n.defectEvidenceRequired(photos.length, item.minPhotos > 0 ? item.minPhotos : 1);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 185),

@@ -71,11 +71,11 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
                  "customerEmail":"a2@test.local","vehicleVin":"1HGCM82633A004352",
                  "vehicleMake":"Toyota","vehicleModel":"Corolla","vehicleYear":2023,
                  "vehiclePlate":"B54321","odometerValue":13000,"odometerUnit":"KM",
-                 "transmission":"AUTOMATIC","fuelType":"PETROL","preferredLanguage":"ar",
+                 "transmission":"AUTOMATIC","fuelType":"PETROL","preferredLanguage":"en",
                  "version":%d}
                 """.formatted(created.get("version").asInt()));
         assertThat(updated.get("customerName").asText()).isEqualTo("Customer A2");
-        assertThat(updated.get("preferredLanguage").asText()).isEqualTo("ar");
+        assertThat(updated.get("preferredLanguage").asText()).isEqualTo("en");
 
         mockMvc.perform(put(JOBS + "/" + jobId)
                         .header("Authorization", "Bearer " + adminA.accessToken())
@@ -303,10 +303,10 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         assertThat(rotated.get("token").asText()).isNotEqualTo(firstToken);
 
         JsonNode documents = getJson(adminA, JOBS + "/" + jobId + "/documents");
-        assertThat(documents.size()).isEqualTo(4);
+        assertThat(documents.size()).isEqualTo(2);
         for (JsonNode document : documents) {
             assertThat(document.get("status").asText()).isEqualTo("READY");
-            assertThat(document.get("language").asText()).isIn("en", "ar");
+            assertThat(document.get("language").asText()).isEqualTo("en");
             assertThat(document.get("bytes").asInt()).isGreaterThan(0);
         }
         assertThat(jdbc.queryForObject("""
@@ -329,7 +329,7 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
 
         JsonNode retried = postJson(adminA, JOBS + "/" + jobId
                 + "/documents/" + documents.get(0).get("documentTypeCode").asText() + "/retry", "{}");
-        assertThat(retried.size()).isEqualTo(2);
+        assertThat(retried.size()).isEqualTo(1);
         assertThat(retried.get(0).get("status").asText()).isEqualTo("READY");
 
         JsonNode unpublished = postJson(adminA, JOBS + "/" + jobId + "/unpublish",
@@ -341,7 +341,7 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         JsonNode republished = postJson(adminA, JOBS + "/" + jobId + "/publish",
                 "{\"pdfDownloadEnabled\":false}");
         assertThat(republished.get("token").asText()).isNotBlank();
-        assertThat(getJson(adminA, JOBS + "/" + jobId + "/documents").size()).isEqualTo(4);
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/documents").size()).isEqualTo(2);
 
         JsonNode revoked = postJson(adminA, JOBS + "/" + jobId + "/revoke",
                 "{\"reason\":\"Legal hold\"}");

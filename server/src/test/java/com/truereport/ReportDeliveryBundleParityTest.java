@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Phase C0 Workstream C (server i18n): EN/AR message bundles must stay in parity and
- * report/PDF/delivery templates must not contain literal user-facing text.
+ * Server i18n: the report and delivery bundles are English-only and must stay
+ * complete, while templates must not contain literal user-facing text.
  */
 class ReportDeliveryBundleParityTest {
 
@@ -40,9 +40,8 @@ class ReportDeliveryBundleParityTest {
     private static final Pattern TEXT_NODE =
             Pattern.compile("(?s)<([a-zA-Z][^>]*)>([^<>]*)<");
 
-    private static ResourceBundle bundle(String baseName, String language) {
-        Locale locale = "ar".equals(language) ? new Locale("ar") : Locale.ENGLISH;
-        return ResourceBundle.getBundle(baseName, locale);
+    private static ResourceBundle bundle(String baseName) {
+        return ResourceBundle.getBundle(baseName, Locale.ENGLISH);
     }
 
     private static Set<String> keys(ResourceBundle bundle) {
@@ -60,83 +59,64 @@ class ReportDeliveryBundleParityTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"i18n.report", "i18n.delivery"})
-    void bundleKeysMatchEnVsAr(String baseName) {
-        assertThat(keys(bundle(baseName, "ar")))
-                .as("AR bundle keys must equal EN bundle keys for " + baseName)
-                .isEqualTo(keys(bundle(baseName, "en")));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"i18n.report", "i18n.delivery"})
     void bundleValuesAreNotBlank(String baseName) {
-        for (String language : List.of("en", "ar")) {
-            ResourceBundle bundle = bundle(baseName, language);
-            for (String key : keys(bundle)) {
-                assertThat(bundle.getString(key).strip())
-                        .as("%s[%s] must not be blank", baseName, key)
-                        .isNotBlank();
-            }
+        ResourceBundle bundle = bundle(baseName);
+        for (String key : keys(bundle)) {
+            assertThat(bundle.getString(key).strip())
+                    .as("%s[%s] must not be blank", baseName, key)
+                    .isNotBlank();
         }
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"i18n.report", "i18n.delivery"})
-    void bundlePlaceholdersMatchEnVsAr(String baseName) {
-        ResourceBundle en = bundle(baseName, "en");
-        for (String key : keys(en)) {
-            assertThat(placeholders(bundle(baseName, "ar").getString(key)))
-                    .as("placeholders for %s must match EN vs AR", key)
-                    .isEqualTo(placeholders(en.getString(key)));
-        }
+    void englishBundlesHaveNoOtherLocaleVariants(String baseName) {
+        // Arabic bundles were removed; only the English bundle may ship.
+        assertThat(getClass().getResourceAsStream("/" + baseName.replace('.', '/') + "_ar.properties"))
+                .isNull();
     }
 
     @Test
-    void reportLabelsCoverEveryLabelKeyInBothLanguages() {
-        for (String language : List.of("en", "ar")) {
-            Map<String, Object> labels = ReportMessages.labels(language);
-            ResourceBundle bundle = bundle("i18n.report", language);
-            for (String key : ReportMessages.LABEL_KEYS) {
-                assertThat(bundle.containsKey(key)).as("bundle key %s", key).isTrue();
-                assertThat(labels.get(key))
-                        .as("label %s [%s]", key, language)
-                        .isEqualTo(bundle.getString(key));
-            }
-            assertThat(labels.keySet()).containsExactlyInAnyOrderElementsOf(ReportMessages.LABEL_KEYS);
+    void reportLabelsCoverEveryLabelKey() {
+        Map<String, Object> labels = ReportMessages.labels("en");
+        ResourceBundle bundle = bundle("i18n.report");
+        for (String key : ReportMessages.LABEL_KEYS) {
+            assertThat(bundle.containsKey(key)).as("bundle key %s", key).isTrue();
+            assertThat(labels.get(key)).as("label %s", key).isEqualTo(bundle.getString(key));
         }
+        assertThat(labels.keySet()).containsExactlyInAnyOrderElementsOf(ReportMessages.LABEL_KEYS);
     }
 
     @Test
     void reportResultAndSeverityAreTranslated() {
         for (String code : REPORT_RESULT_CODES) {
             assertThat(ReportMessages.result("en", code)).isNotBlank().isNotEqualTo(code);
-            assertThat(ReportMessages.result("ar", code)).isNotBlank().isNotEqualTo(code);
         }
         for (String code : REPORT_SEVERITY_CODES) {
             assertThat(ReportMessages.severity("en", code)).isNotBlank();
-            assertThat(ReportMessages.severity("ar", code)).isNotBlank();
         }
         assertThat(ReportMessages.result("en", "UNKNOWN_CODE")).isEqualTo("UNKNOWN_CODE");
         assertThat(ReportMessages.severity("en", "UNKNOWN_CODE")).isEmpty();
         assertThat(ReportMessages.limitations("en")).hasSize(4).doesNotContainNull();
-        assertThat(ReportMessages.limitations("ar")).hasSize(4).doesNotContainNull();
         assertThat(ReportMessages.disclaimer("en")).isNotBlank();
-        assertThat(ReportMessages.disclaimer("ar")).isNotBlank();
         assertThat(ReportMessages.photoAlt("en")).isNotBlank();
-        assertThat(ReportMessages.photoAlt("ar")).isNotBlank();
     }
 
     @Test
-    void deliveryMessagesUsePlaceholdersInBothLanguages() {
-        DeliveryMessages.Message linkEn = DeliveryMessages.forLink("en", "TR-42", "https://x/r/tok");
-        assertThat(linkEn.subject()).isNotBlank();
-        assertThat(linkEn.body()).contains("TR-42", "https://x/r/tok");
-        DeliveryMessages.Message linkAr = DeliveryMessages.forLink("ar", "TR-42", "https://x/r/tok");
-        assertThat(linkAr.subject()).isNotBlank();
-        assertThat(linkAr.body()).contains("TR-42", "https://x/r/tok");
-        DeliveryMessages.Message emailEn = DeliveryMessages.forEmail("en", "TR-42");
-        assertThat(emailEn.body()).contains("TR-42", "attached PDF");
-        DeliveryMessages.Message emailAr = DeliveryMessages.forEmail("ar", "TR-42");
-        assertThat(emailAr.body()).contains("TR-42");
+    void legacyLanguageArgumentsStillResolveToEnglish() {
+        assertThat(ReportMessages.labels("ar"))
+                .containsExactlyInAnyOrderEntriesOf(ReportMessages.labels("en"));
+        assertThat(DeliveryMessages.forEmail("ar", "TR-42").body())
+                .isEqualTo(DeliveryMessages.forEmail("en", "TR-42").body());
+    }
+
+    @Test
+    void deliveryMessagesUsePlaceholders() {
+        DeliveryMessages.Message link = DeliveryMessages.forLink("en", "TR-42", "https://x/r/tok");
+        assertThat(link.subject()).isNotBlank();
+        assertThat(link.body()).contains("TR-42", "https://x/r/tok");
+        DeliveryMessages.Message email = DeliveryMessages.forEmail("en", "TR-42");
+        assertThat(email.body()).contains("TR-42", "attached PDF");
     }
 
     @Test
@@ -156,7 +136,6 @@ class ReportDeliveryBundleParityTest {
                 String attributes = matcher.group(1);
                 String text = matcher.group(2).strip();
                 if (attributes.contains("th:")) {
-                    // Inner text is a render-time fallback; Thymeleaf replaces it.
                     continue;
                 }
                 if (text.isEmpty() || !text.matches("(?s).*\\p{L}.*")) {

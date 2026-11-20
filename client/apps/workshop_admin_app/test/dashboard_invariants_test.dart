@@ -361,27 +361,6 @@ void main() {
   // Locale, direction, session
   // ---------------------------------------------------------------------------
 
-  testWidgets('Arabic renders RTL with Arabic group titles', (tester) async {
-    await pumpHome(
-      tester,
-      locale: const Locale('ar'),
-      size: const Size(390, 844),
-    );
-    expect(tester.takeException(), isNull);
-    expect(
-      Directionality.of(tester.element(find.byType(WorkshopAdminHomePage))),
-      TextDirection.rtl,
-    );
-    final l10n = AppLocalizations.of(
-      tester.element(find.byType(WorkshopAdminHomePage)),
-    );
-    expect(find.text(l10n.dashGroupWaiting), findsOneWidget);
-    expect(find.text(l10n.dashGroupInBay), findsOneWidget);
-    expect(find.text(l10n.dashGroupReady), findsOneWidget);
-    // The numeral is LTR-pinned.
-    expect(find.text('24'), findsWidgets);
-  });
-
   testWidgets('without a session the shell falls back to the role title', (
     tester,
   ) async {
@@ -405,7 +384,7 @@ void main() {
   // Layout matrix — no overflow at any width or scale
   // ---------------------------------------------------------------------------
 
-  for (final locale in const [Locale('en'), Locale('ar')]) {
+  for (final locale in const [Locale('en')]) {
     for (final scale in const [1.0, 1.5, 2.0]) {
       for (final entry in const {
         'phone-360': Size(360, 800),

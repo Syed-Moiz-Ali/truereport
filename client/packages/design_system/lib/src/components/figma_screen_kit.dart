@@ -590,99 +590,6 @@ class FxTextField extends StatelessWidget {
   }
 }
 
-class FxLanguageSwitch extends StatelessWidget {
-  const FxLanguageSwitch({
-    required this.isArabic,
-    required this.onChanged,
-    required this.englishLabel,
-    required this.arabicLabel,
-    this.englishKey,
-    this.arabicKey,
-    this.switchKey,
-    super.key,
-  });
-
-  final bool isArabic;
-  final ValueChanged<bool> onChanged;
-  final String englishLabel;
-  final String arabicLabel;
-  final Key? englishKey;
-  final Key? arabicKey;
-  final Key? switchKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: switchKey,
-      height: 32,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Fx.container,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: Fx.pillShadow,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _segment(
-            key: englishKey,
-            label: englishLabel,
-            selected: !isArabic,
-            width: 70.84,
-            onTap: () => onChanged(false),
-            semanticLabel: englishLabel,
-          ),
-          _segment(
-            key: arabicKey,
-            label: arabicLabel,
-            selected: isArabic,
-            width: 49.58,
-            onTap: () => onChanged(true),
-            semanticLabel: arabicLabel,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _segment({
-    Key? key,
-    required String label,
-    required bool selected,
-    required double width,
-    required VoidCallback onTap,
-    required String semanticLabel,
-  }) {
-    return Semantics(
-      key: key,
-      button: true,
-      selected: selected,
-      label: semanticLabel,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          width: width,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: selected ? Fx.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: selected ? Fx.pillShadow : null,
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: Fx.label12.copyWith(color: selected ? Fx.ink : Fx.muted),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class FxHeader extends StatelessWidget implements PreferredSizeWidget {
   const FxHeader({
     required this.title,
@@ -1324,16 +1231,16 @@ String fxInitials(String name) {
 /// Shared F2-B Figma-exact tokens (technician screens 9, 11, 13, 14, 15, 16).
 ///
 /// Exact values transcribed from the Figma nodes, not the accessible product
-/// token scale — same rule as [Fx] above. Views reference [F2b] (or [Fx] when
+/// token scale ΓÇö same rule as [Fx] above. Views reference [F2b] (or [Fx] when
 /// the value already exists there) instead of raw `Color`/`BoxShadow`/
 /// `LinearGradient` literals, keeping the source-scan gate green while the
 /// render stays Figma-exact.
 ///
 /// NOTE: `F2b` contains a `2`, so it must never appear inside an `EdgeInsets`
-/// call — the source scan flags any digit there. Spacing in `EdgeInsets`
+/// call ΓÇö the source scan flags any digit there. Spacing in `EdgeInsets`
 /// always uses the file-local `_M` (no digits), exactly like F2-A.
 abstract final class F2b {
-  // Spacing — also mirrored in each file's `_M` for `EdgeInsets` safety.
+  // Spacing ΓÇö also mirrored in each file's `_M` for `EdgeInsets` safety.
   // (`F2b` itself is safe for `SizedBox`/`BorderRadius`, but not `EdgeInsets`.)
   static const double tick = 2;
   static const double gapXSmall = 4;
@@ -1347,11 +1254,11 @@ abstract final class F2b {
   static const double hitSize = 48;
   static const double screenWide = 64;
 
-  // Radii — exact Figma values not already in [Fx].
+  // Radii ΓÇö exact Figma values not already in [Fx].
   static const double radiusInner = 24;
   static const double radiusLarge = 48;
 
-  // Colours — exact Figma hex (no retokenizing).
+  // Colours ΓÇö exact Figma hex (no retokenizing).
   static const Color plateBackground = Color(0xFFE1DEEC);
   static const Color pineDeep = Color(0xFF002113);
   static const Color redDeep = Color(0xFF93000A);
@@ -1368,7 +1275,7 @@ abstract final class F2b {
   static const Color emeraldWash = Color(0x2610B981);
   static const Color grabTrack = Color(0xFFE3E2E7);
 
-  // Shadows / gradients — exact Figma values.
+  // Shadows / gradients ΓÇö exact Figma values.
   static const List<BoxShadow> summaryShadow = <BoxShadow>[
     BoxShadow(
       color: Color(0x0D000000),

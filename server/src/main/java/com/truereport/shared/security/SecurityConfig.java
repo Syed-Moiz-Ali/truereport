@@ -93,6 +93,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/i18n/languages").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/manifest").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/bundle").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/*/bundle").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/i18n/ui-messages/*/manifest").permitAll()
                         .requestMatchers("/api/v1/platform/**").hasRole("PLATFORM_ADMIN")
                         .requestMatchers("/api/v1/workshop/**").hasRole("WORKSHOP_ADMIN")
                         .requestMatchers("/api/v1/technician/**").hasRole("TECHNICIAN")

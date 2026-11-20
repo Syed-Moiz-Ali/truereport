@@ -167,7 +167,7 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
         width >= 1000 ? cardPaddingDesktop : cardPadding,
       );
 
-  static WorkshopTokens standard(TextTheme textTheme, {bool isArabic = false}) {
+  static WorkshopTokens standard(TextTheme textTheme) {
     // [TextStyle.height] is a line-height *multiplier*, not a pixel value.
     TextStyle style(
       TextStyle? base,
@@ -180,7 +180,7 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
         fontSize: size,
         height: lineHeight / size,
         fontWeight: weight,
-        letterSpacing: isArabic ? 0 : tracking,
+        letterSpacing: tracking,
       );
     }
 

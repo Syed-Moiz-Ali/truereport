@@ -26,17 +26,6 @@ class RoleHomeScaffold extends StatelessWidget {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
-          AppButton(
-            label: locale.languageCode == 'ar'
-                ? l10n.languageEnglish
-                : l10n.languageArabic,
-            onPressed: () => onLanguageChanged(
-              locale.languageCode == 'ar'
-                  ? const Locale('en')
-                  : const Locale('ar'),
-            ),
-            variant: AppButtonVariant.text,
-          ),
           IconButton(
             tooltip: l10n.signOut,
             onPressed: onSignOut,

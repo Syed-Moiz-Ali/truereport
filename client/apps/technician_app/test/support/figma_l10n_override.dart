@@ -59,7 +59,8 @@ abstract final class FigmaTestStrings {
   // Consent.
   static const consentSteps = 'STEP 4 OF 4 \u2022 FINAL SIGN-OFF';
   static const authorizations = 'Authorizations';
-  static const consentIntro = 'Review compliance permissions and provide\ncustomer digital sign-off.';
+  static const consentIntro =
+      'Review compliance permissions and provide\ncustomer digital sign-off.';
   static const allowPdf = 'Allow PDF sharing';
   static const allowPdfBody = 'Send detailed diagnostic report via email';
   static const roadTest = 'Customer road test consent';
@@ -126,11 +127,6 @@ class FigmaTestLocalizations extends AppLocalizationsEn {
 
   @override
   String get technicianSecurityLine => FigmaTestStrings.isoSecurity;
-
-  // The Figma mock's language switch shows "Ø¹Ø±Ø¨ÙŠ"; product copy uses the
-  // localized "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©" (l10n.languageArabic).
-  @override
-  String get languageArabic => 'Ø¹Ø±Ø¨ÙŠ';
 
   @override
   String technicianShiftToday(int count) => FigmaTestStrings.shiftAndBay;

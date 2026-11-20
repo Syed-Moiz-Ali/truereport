@@ -5,7 +5,6 @@ import 'package:l10n/l10n.dart';
 import 'signin_copy.dart';
 import 'signin_example.dart';
 import 'signin_form.dart';
-import 'signin_language_toggle.dart';
 import 'signin_mark.dart';
 import 'signin_primitives.dart';
 
@@ -32,7 +31,6 @@ class SignInBayView extends StatelessWidget {
     required this.validateEmail,
     required this.validatePassword,
     required this.validateCode,
-    required this.onToggleLanguage,
     this.challenge = false,
     this.emailEnabled = true,
     this.autofocusEmail,
@@ -53,7 +51,6 @@ class SignInBayView extends StatelessWidget {
   final FormFieldValidator<String> validateEmail;
   final FormFieldValidator<String> validatePassword;
   final FormFieldValidator<String> validateCode;
-  final VoidCallback onToggleLanguage;
   final bool challenge;
   final bool emailEnabled;
   final bool? autofocusEmail;
@@ -188,9 +185,8 @@ class SignInBayView extends StatelessWidget {
   }
 
   Widget _language(BuildContext context, {required bool onImage}) {
-    final control =
-        languageControl?.call(true) ??
-        SigninLanguageToggle(onAccent: true, onPressed: onToggleLanguage);
+    final control = languageControl?.call(true);
+    if (control == null) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -259,7 +255,6 @@ class _BayPhoto extends StatelessWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final l10n = AppLocalizations.of(context);
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final progress = l10n.signInExampleProgress(
       exampleDone,
       exampleTotal,
@@ -346,7 +341,7 @@ class _BayPhoto extends StatelessWidget {
                         copy.title,
                         style: ws.heroNumber.copyWith(
                           color: ws.onAccent,
-                          letterSpacing: isArabic ? 0 : -1.2,
+                          letterSpacing: -1.2,
                           shadows: shadow,
                         ),
                       ),

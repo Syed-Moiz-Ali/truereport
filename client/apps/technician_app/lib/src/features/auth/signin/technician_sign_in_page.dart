@@ -33,7 +33,6 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
   String? _challengeToken;
   String? _errorKey;
   bool _submitting = false;
-  bool _hasSubmitted = false;
 
   @override
   void dispose() {
@@ -52,7 +51,6 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
     if (_submitting) {
       return;
     }
-    _hasSubmitted = true;
     if (!(_formKey.currentState?.validate() ?? false)) {
       _focusFirstInvalid();
       return;
@@ -160,23 +158,9 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
     return totp || recovery ? null : AppLocalizations.of(context).requiredField;
   }
 
-  void _changeLocale(bool isArabic) {
-    ref.read(localeProvider.notifier).setLocale(Locale(isArabic ? 'ar' : 'en'));
-    // A previously shown validation message must re-render in the new locale;
-    // the FormField caches the string returned by the validator.
-    if (_hasSubmitted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _formKey.currentState?.validate();
-        }
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final locale = ref.watch(localeProvider);
     final errorText = switch (_errorKey) {
       'invalidCredentials' => l10n.invalidCredentials,
       'networkError' => l10n.networkError,
@@ -189,8 +173,6 @@ class _TechnicianSignInPageState extends ConsumerState<TechnicianSignInPage> {
       passwordController: _password,
       codeController: _code,
       formKey: _formKey,
-      isArabic: locale.languageCode == 'ar',
-      onLocaleChanged: _changeLocale,
       onSubmit: _submit,
       onValidateEmail: _validateEmail,
       onValidateRequired: _validateRequired,

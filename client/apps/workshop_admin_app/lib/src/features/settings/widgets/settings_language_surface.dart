@@ -1,33 +1,36 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
+import '../../../admin_providers.dart';
 import 'settings_geometry.dart';
 import 'settings_primitives.dart';
 
 /// The only live preference on this screen: the interface language.
 ///
-/// Two large options, each showing the language in its own script and its
-/// locale code. Selection applies immediately through [onChanged]; there is no
-/// save button and no confirmation dialog.
-class SettingsLanguageSurface extends StatelessWidget {
+/// Large options, each showing the language in its own script and its locale
+/// code. The list comes straight from the shared backend manifest and the tap
+/// applies the language immediately; there is no save button, no confirmation
+/// dialog and no app-local language list.
+class SettingsLanguageSurface extends ConsumerWidget {
   const SettingsLanguageSurface({
-    required this.isArabic,
-    required this.onChanged,
+    this.client = adminUiMessageClient,
     super.key,
   });
 
-  final bool isArabic;
-
-  /// Called with `true` when Arabic is chosen, `false` for English.
-  final ValueChanged<bool> onChanged;
+  final String client;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final ws = context.ws;
-    final english = const Locale('en').languageCode.toUpperCase();
-    final arabic = const Locale('ar').languageCode.toUpperCase();
+    final selection = ref.watch(languageSelectionProvider(client));
+    final languages =
+        selection.manifest?.languages ?? const <UiMessageLanguage>[];
+
+    // One language means nothing to choose: stay out of the way.
+    if (languages.length < 2) return const SizedBox.shrink();
 
     return SettingsSurface(
       child: Column(
@@ -39,33 +42,35 @@ class SettingsLanguageSurface extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final options = <Widget>[
-                SettingsLanguageOption(
-                  key: const Key('settings-language-en'),
-                  label: l10n.languageEnglish,
-                  code: english,
-                  selected: !isArabic,
-                  onTap: () => onChanged(false),
-                ),
-                SettingsLanguageOption(
-                  key: const Key('settings-language-ar'),
-                  label: l10n.languageArabic,
-                  code: arabic,
-                  selected: isArabic,
-                  onTap: () => onChanged(true),
-                ),
+                for (final language in languages)
+                  SettingsLanguageOption(
+                    key: Key('settings-language-${language.code}'),
+                    label: language.displayName,
+                    code: language.code.toUpperCase(),
+                    selected: selection.activeLanguage == language.code,
+                    onTap: () => ref
+                        .read(languageSelectionProvider(client).notifier)
+                        .useLanguage(language.code),
+                  ),
               ];
               if (constraints.maxWidth < 280) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
-                  children: [options[0], const SizedBox(height: 8), options[1]],
+                  children: [
+                    for (var i = 0; i < options.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      options[i],
+                    ],
+                  ],
                 );
               }
-              return Row(
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
                 children: [
-                  Expanded(child: options[0]),
-                  const SizedBox(width: 12),
-                  Expanded(child: options[1]),
+                  for (final option in options)
+                    SizedBox(width: 200, child: option),
                 ],
               );
             },

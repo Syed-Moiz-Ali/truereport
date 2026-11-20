@@ -604,13 +604,9 @@ public class MasterContentService {
             issues.add(com.truereport.shared.error.FieldIssue.of(
                     field + "En", "TRANSLATION_REQUIRED", "error.translation.required"));
         }
-        if (!notBlank(ar)) {
-            issues.add(com.truereport.shared.error.FieldIssue.of(
-                    field + "Ar", "TRANSLATION_REQUIRED", "error.translation.required"));
-        }
         if (!issues.isEmpty()) {
             throw ApiException.validation("TRANSLATION_REQUIRED",
-                    "English and Arabic are required", issues);
+                    "An English value is required", issues);
         }
     }
 

@@ -10,75 +10,63 @@ import 'package:l10n/l10n.dart';
 /// English inside an Arabic page. Moving them into the l10n package is the
 /// follow-up (see the build report).
 class ReportCopy {
-  const ReportCopy(this.l10n, {required this.isArabic});
+  const ReportCopy(this.l10n);
 
   final AppLocalizations l10n;
-  final bool isArabic;
 
-  String _pick(String en, String ar) => isArabic ? ar : en;
+  String get eyebrow => l10n.reportEyebrow;
 
-  String get eyebrow => _pick('TRUEREPORT · INSPECTION', 'ترو ريبورت · فحص');
-
-  String get title => _pick('Vehicle inspection report', 'تقرير فحص المركبة');
+  String get title => l10n.reportTitle;
 
   String get reportFallback => l10n.report;
 
-  String get distribution => _pick('Distribution', 'التوزيع');
+  String get distribution => l10n.reportDistribution;
 
-  String get delivered => _pick('delivered', 'تم التسليم');
+  String get delivered => l10n.reportDelivered;
 
-  String get checks => _pick('Checks', 'الفحوصات');
+  String get checks => l10n.reportChecks;
 
-  String get safety => _pick('Safety', 'السلامة');
+  String get safety => l10n.reportSafety;
 
-  String get coverageNote =>
-      _pick('completed of applicable', 'مكتملة من أصل قابل للفحص');
+  String get coverageNote => l10n.reportCoverageNote;
 
   String get coverageLabel => l10n.coverage;
 
-  String get scoreLabel => _pick('Score', 'الدرجة');
+  String get scoreLabel => l10n.reportScoreLabel;
 
-  String get scoreScale => _pick('out of 100', 'من 100');
+  String get scoreScale => l10n.reportScoreScale;
 
-  String get safetyCapLabel =>
-      _pick('Safety cap applied', 'تم تطبيق حد السلامة');
+  String get safetyCapLabel => l10n.reportSafetyCapApplied;
 
-  String get noSafetyCritical =>
-      _pick('No safety-critical finding', 'لا توجد ملاحظات حرجة للسلامة');
+  String get noSafetyCritical => l10n.reportNoSafetyCritical;
 
-  String get findingsByCategory =>
-      _pick('Findings by category', 'الملاحظات حسب الفئة');
+  String get findingsByCategory => l10n.reportFindingsByCategory;
 
-  String get noKeyFindings => _pick(
-    'No key findings were recorded for this inspection.',
-    'لم تُسجّل ملاحظات رئيسية لهذا الفحص.',
-  );
+  String get noKeyFindings => l10n.reportNoKeyFindings;
 
-  String get noCategoryFindings =>
-      _pick('No category findings were recorded.', 'لم تُسجّل ملاحظات فئوية.');
+  String get noCategoryFindings => l10n.reportNoCategoryFindings;
 
-  String get noLinkYet => _pick('No link created yet', 'لم يُنشأ رابط بعد');
+  String get noLinkYet => l10n.reportNoLinkYet;
 
-  String get customer => _pick('Customer', 'العميل');
+  String get customer => l10n.reportCustomer;
 
-  String get inUse => _pick('On', 'مفعّل');
+  String get inUse => l10n.reportInUse;
 
-  String get notInUse => _pick('Off', 'معطّل');
+  String get notInUse => l10n.reportNotInUse;
 
-  String get scope => _pick('Scope', 'النطاق');
+  String get scope => l10n.reportScope;
 
-  String get inspectedBy => _pick('Inspected by', 'فحص بواسطة');
+  String get inspectedBy => l10n.reportInspectedBy;
 
-  String get workshop => _pick('Workshop', 'الورشة');
+  String get workshop => l10n.reportWorkshop;
 
-  String get vin => _pick('VIN', 'رقم الهيكل');
+  String get vin => l10n.reportVin;
 
   String get severity => l10n.severity;
 }
 
 extension ReportCopyContext on BuildContext {
-  ReportCopy get reportCopy =>
-      ReportCopy(AppLocalizations.of(this), isArabic: isArabic);
+  ReportCopy get reportCopy => ReportCopy(AppLocalizations.of(this));
 }
 
 /// READY / FAILED / PENDING badge copy. Preserved from the previous screen.

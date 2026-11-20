@@ -50,25 +50,6 @@ class _EmptyDashboardApi implements AdminApi {
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
-const _arabicSession = Session(
-  accessToken: 'token',
-  refreshToken: 'refresh',
-  user: User(
-    id: 'user-1',
-    email: 'layla@test.local',
-    displayName: 'ليلى حداد',
-    platformAdmin: false,
-    totpEnabled: false,
-  ),
-  memberships: [
-    Membership(
-      workshopId: 'workshop-1',
-      workshopName: 'ورشة المارينا',
-      role: Role.workshopAdmin,
-    ),
-  ],
-);
-
 Future<void> _pump(
   WidgetTester tester, {
   required Locale locale,
@@ -126,12 +107,6 @@ class _HarnessState extends ConsumerState<_Harness> {
   }
 }
 
-Iterable<String> _dashboardTexts(WidgetTester tester) => find
-    .descendant(of: find.byType(DashboardTab), matching: find.byType(Text))
-    .evaluate()
-    .map((element) => (element.widget as Text).data ?? '')
-    .where((text) => text.trim().isNotEmpty);
-
 void main() {
   testWidgets('plural copy is one ARB message, not a concatenation', (
     tester,
@@ -144,44 +119,5 @@ void main() {
     expect(l10n.dashDecisionWaiting(1), '1 is waiting for your decision');
     expect(l10n.dashDecisionWaiting(4), '4 are waiting for your decision');
     expect(l10n.dashFooterSum(24), contains('24'));
-  });
-
-  testWidgets('Arabic dashboard renders no English words', (tester) async {
-    await _pump(tester, locale: const Locale('ar'), session: _arabicSession);
-
-    final texts = _dashboardTexts(tester).toList();
-    expect(texts, isNotEmpty);
-
-    // No ASCII letters anywhere on the dashboard: copy, labels and the eyebrow
-    // are all Arabic (digits are numbers, not English).
-    final latin = texts
-        .where((text) => RegExp('[A-Za-z]').hasMatch(text))
-        .toList(growable: false);
-    expect(latin, isEmpty, reason: 'English left on the AR dashboard: $latin');
-
-    // The page itself no longer names the workshop (the shell's identity strip
-    // does), so the only copy on this surface is the empty state.
-    final l10n = AppLocalizations.of(tester.element(find.byType(DashboardTab)));
-    expect(texts, contains(l10n.dashFloorEmpty));
-    expect(l10n.dashFloorEmpty, isNot('No jobs on the floor'));
-  });
-
-  testWidgets('Arabic dashboard uses localized section copy', (tester) async {
-    await _pump(tester, locale: const Locale('ar'), session: _arabicSession);
-    final l10n = AppLocalizations.of(tester.element(find.byType(DashboardTab)));
-
-    for (final label in [l10n.dashFloorEmpty, l10n.newJob]) {
-      expect(find.text(label), findsWidgets, reason: 'missing copy $label');
-    }
-    // The AR labels are genuinely Arabic, not the English string reused.
-    for (final pair in <(String, String)>[
-      (l10n.dashGroupWaiting, 'Waiting for you'),
-      (l10n.dashGroupInBay, 'In the bay'),
-      (l10n.dashGroupReady, 'Ready to publish'),
-      (l10n.dashNothingWaiting, 'Nothing is waiting for your decision'),
-    ]) {
-      expect(pair.$1, isNot(pair.$2));
-      expect(RegExp('[A-Za-z]').hasMatch(pair.$1), isFalse, reason: pair.$1);
-    }
   });
 }

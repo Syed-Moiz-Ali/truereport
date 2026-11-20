@@ -1,27 +1,134 @@
 import 'dart:convert';
 import 'dart:io';
 
-const Map<String, String> technicalTokenAllowlist = {
-  'CoreOS': 'product brand name, never translated',
-  'GRID V4.2 ONLINE': 'versioned system status capsule, ops identifier',
-  'Production Cluster EU-West': 'environment identifier, ops-owned',
-  'ED25519-SHA512': 'crypto algorithm token, must stay verbatim',
-  '{}': 'JSON object placeholder in metadata hint',
-  '/': 'breadcrumb separator punctuation',
-  '-': 'empty-value dash placeholder',
-  '\u2014': 'empty-option em-dash placeholder',
-  'LTR': 'direction code value identifier (display kept as code)',
-  'RTL': 'direction code value identifier (display kept as code)',
-  'support@truereport.test': 'contact identifier, identical across languages',
+/// Generates the typed UI-message key files from the backend catalogs.
+///
+/// Run from anywhere: `dart run tool/generate_ui_keys.dart`.
+///
+/// Each catalog directory maps to one namespace:
+///   common/en.json         -> CommonKeys
+///   platform_admin/en.json -> PlatformAdminKeys
+///   workshop_admin/en.json -> WorkshopAdminKeys
+///   technician/en.json     -> TechnicianKeys
+///
+/// A parity test re-derives the same names from the catalogs and fails when a
+/// generated file drifts.
+const List<UiKeyCatalog> uiKeyCatalogs = <UiKeyCatalog>[
+  UiKeyCatalog(
+    directory: 'common',
+    namespace: 'common',
+    className: 'CommonKeys',
+    constructor: 'common',
+  ),
+  UiKeyCatalog(
+    directory: 'platform_admin',
+    namespace: 'platform_admin',
+    className: 'PlatformAdminKeys',
+    constructor: 'platformAdmin',
+  ),
+  UiKeyCatalog(
+    directory: 'workshop_admin',
+    namespace: 'workshop_admin',
+    className: 'WorkshopAdminKeys',
+    constructor: 'workshopAdmin',
+  ),
+  UiKeyCatalog(
+    directory: 'technician',
+    namespace: 'technician',
+    className: 'TechnicianKeys',
+    constructor: 'technician',
+  ),
+];
+
+const Set<String> _dartKeywords = <String>{
+  'abstract',
+  'as',
+  'assert',
+  'async',
+  'await',
+  'base',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'covariant',
+  'default',
+  'deferred',
+  'do',
+  'dynamic',
+  'else',
+  'enum',
+  'export',
+  'extends',
+  'extension',
+  'external',
+  'factory',
+  'false',
+  'final',
+  'finally',
+  'for',
+  'Function',
+  'get',
+  'hide',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'interface',
+  'is',
+  'late',
+  'library',
+  'mixin',
+  'new',
+  'null',
+  'on',
+  'operator',
+  'part',
+  'required',
+  'rethrow',
+  'return',
+  'sealed',
+  'set',
+  'show',
+  'static',
+  'super',
+  'switch',
+  'sync',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'type',
+  'typedef',
+  'var',
+  'void',
+  'when',
+  'while',
+  'with',
+  'yield',
 };
 
-String toCamel(String dotted) {
-  final parts = dotted.split('.');
+/// `addStaff.helper.temporaryPassword` -> `addStaffHelperTemporaryPassword`
+String toCamel(String key) {
+  final parts = key
+      .split(RegExp(r'[^A-Za-z0-9]+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.isEmpty) return 'kEmpty';
   final buffer = StringBuffer(_lowerFirst(parts.first));
   for (var i = 1; i < parts.length; i++) {
     buffer.write(_upperFirst(parts[i]));
   }
-  return buffer.toString();
+  var name = buffer.toString();
+  if (name.isEmpty) name = 'kEmpty';
+  final first = name.codeUnitAt(0);
+  final startsDigit = first >= 0x30 && first <= 0x39;
+  if (startsDigit || _dartKeywords.contains(name)) {
+    name = 'k${_upperFirst(name)}';
+  }
+  return name;
 }
 
 String _lowerFirst(String s) =>
@@ -30,90 +137,112 @@ String _lowerFirst(String s) =>
 String _upperFirst(String s) =>
     s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-String _ctorForNamespace(String namespace) {
-  switch (namespace) {
-    case 'common':
-      return 'UiMessageKey.common';
-    case 'platform_admin':
-      return 'UiMessageKey.platformAdmin';
-    default:
-      throw StateError('Unsupported namespace "$namespace".');
+String _snake(String key) {
+  final raw = key
+      .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  var name = raw.isEmpty ? 'kEmpty' : raw;
+  final first = name.codeUnitAt(0);
+  final startsDigit = first >= 0x30 && first <= 0x39;
+  if (startsDigit || _dartKeywords.contains(name)) {
+    name = 'k${_upperFirst(name)}';
+  }
+  return name;
+}
+
+/// Deterministic, collision-free constant name for [key].
+String uniqueKeyConstant(String key, Map<String, String> seen) {
+  final base = toCamel(key);
+  if (!seen.containsKey(base) || seen[base] == key) return base;
+  final snake = _snake(key);
+  if (!seen.containsKey(snake) || seen[snake] == key) return snake;
+  var suffix = 2;
+  while (true) {
+    final candidate = '${snake}_$suffix';
+    if (!seen.containsKey(candidate) || seen[candidate] == key) {
+      return candidate;
+    }
+    suffix += 1;
   }
 }
 
-String _entry(String camel, String namespace, String key) {
-  final single =
-      "  static const $camel = ${_ctorForNamespace(namespace)}('$key');";
+String _entry(String camel, String constructor, String key) {
+  final single = "  static const $camel = UiMessageKey.$constructor('$key');";
   if (single.length <= 80) return single;
-  return "  static const $camel = ${_ctorForNamespace(namespace)}(\n    '$key',\n  );";
+  return "  static const $camel = UiMessageKey.$constructor(\n    '$key',\n  );";
 }
 
 void main() {
   final toolDir = File(Platform.script.toFilePath()).parent;
-  final catalogFile = File(
-    '${toolDir.path}${Platform.pathSeparator}..${Platform.pathSeparator}..${Platform.pathSeparator}..${Platform.pathSeparator}..${Platform.pathSeparator}server${Platform.pathSeparator}src${Platform.pathSeparator}main${Platform.pathSeparator}resources${Platform.pathSeparator}i18n${Platform.pathSeparator}platform_admin${Platform.pathSeparator}en.json',
-  ).absolute;
+  final repoRoot = toolDir.parent.parent.parent.parent;
+  final catalogRoot = Directory(
+    '${repoRoot.path}${Platform.pathSeparator}server'
+    '${Platform.pathSeparator}src${Platform.pathSeparator}main'
+    '${Platform.pathSeparator}resources${Platform.pathSeparator}i18n',
+  );
   final outDir = Directory(
-    '${toolDir.path}${Platform.pathSeparator}..${Platform.pathSeparator}lib${Platform.pathSeparator}src${Platform.pathSeparator}ui_messages${Platform.pathSeparator}keys',
+    '${toolDir.path}${Platform.pathSeparator}..${Platform.pathSeparator}lib'
+    '${Platform.pathSeparator}src${Platform.pathSeparator}ui_messages'
+    '${Platform.pathSeparator}keys',
   ).absolute;
-  final raw =
-      jsonDecode(catalogFile.readAsStringSync()) as Map<String, dynamic>;
-  final mappings = <Map<String, String>>[];
-  for (final qualified in raw.keys) {
-    final dot = qualified.indexOf('.');
-    if (dot <= 0 || dot == qualified.length - 1) {
-      throw StateError('Catalog key "$qualified" must be namespace-qualified.');
-    }
-    final namespace = qualified.substring(0, dot);
-    if (!const {'common', 'platform_admin'}.contains(namespace)) {
-      throw StateError('Unsupported namespace "$namespace" for "$qualified".');
-    }
-    mappings.add(<String, String>{
-      'namespace': namespace,
-      'key': qualified.substring(dot + 1),
-    });
-  }
-  mappings.sort((a, b) {
-    final ns = a['namespace']!.compareTo(b['namespace']!);
-    if (ns != 0) return ns;
-    return a['key']!.compareTo(b['key']!);
-  });
-  final byNamespace = <String, List<Map<String, String>>>{};
-  for (final m in mappings) {
-    byNamespace.putIfAbsent(m['namespace']!, () => []).add(m);
-  }
-  const classNames = {
-    'common': 'CommonKeys',
-    'platform_admin': 'PlatformAdminKeys',
-  };
-  final seen = <String, String>{};
-  for (final entry in byNamespace.entries) {
-    final className = classNames[entry.key];
-    if (className == null) {
-      throw StateError('No key class defined for namespace "${entry.key}".');
-    }
-    final buffer = StringBuffer()
-      ..writeln("import '../ui_message_key.dart';")
-      ..writeln()
-      ..writeln('abstract final class $className {');
-    for (final m in entry.value) {
-      final camel = toCamel(m['key']!);
-      final qualified = '${m['namespace']}.${m['key']}';
-      final prev = seen[camel];
-      if (prev != null && prev != qualified) {
-        throw StateError(
-          'Key name collision: "$camel" for "$qualified" and "$prev".',
-        );
+
+  for (final catalog in uiKeyCatalogs) {
+    final file = File(
+      '${catalogRoot.path}${Platform.pathSeparator}${catalog.directory}'
+      '${Platform.pathSeparator}en.json',
+    );
+    final keys = <String>[];
+    if (file.existsSync()) {
+      final raw = jsonDecode(file.readAsStringSync());
+      if (raw is Map) {
+        keys.addAll(raw.keys.whereType<String>());
       }
-      seen[camel] = qualified;
-      buffer.writeln(_entry(camel, m['namespace']!, m['key']!));
+    }
+    keys.sort();
+
+    final buffer = StringBuffer()
+      ..writeln(
+        '// GENERATED by tool/generate_ui_keys.dart - do not edit by hand.',
+      )
+      ..writeln(
+        '// Source: server/src/main/resources/i18n/'
+        '${catalog.directory}/en.json',
+      )
+      ..writeln()
+      ..writeln();
+    if (keys.isNotEmpty) {
+      buffer
+        ..writeln("import '../ui_message_key.dart';")
+        ..writeln();
+    }
+    buffer.writeln('abstract final class ${catalog.className} {');
+    final seen = <String, String>{};
+    for (final key in keys) {
+      final camel = uniqueKeyConstant(key, seen);
+      seen[camel] = key;
+      buffer.writeln(_entry(camel, catalog.constructor, key));
     }
     buffer.writeln('}');
+
     final outFile = File(
-      '${outDir.path}${Platform.pathSeparator}${entry.key}_keys.dart',
+      '${outDir.path}${Platform.pathSeparator}${catalog.directory}_keys.dart',
     );
     outFile.createSync(recursive: true);
     outFile.writeAsStringSync(buffer.toString());
-    stdout.writeln('wrote ${outFile.path} (${entry.value.length} keys)');
+    stdout.writeln('wrote ${outFile.path} (${keys.length} keys)');
   }
+}
+
+class UiKeyCatalog {
+  const UiKeyCatalog({
+    required this.directory,
+    required this.namespace,
+    required this.className,
+    required this.constructor,
+  });
+
+  final String directory;
+  final String namespace;
+  final String className;
+  final String constructor;
 }

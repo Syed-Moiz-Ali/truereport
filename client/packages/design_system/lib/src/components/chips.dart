@@ -373,36 +373,6 @@ class _SegmentButtonState<T> extends State<_SegmentButton<T>> {
   }
 }
 
-class AppLanguageSwitch extends StatelessWidget {
-  const AppLanguageSwitch({
-    required this.englishLabel,
-    required this.arabicLabel,
-    required this.isArabic,
-    required this.onChanged,
-    this.semanticLabel,
-    super.key,
-  });
-
-  final String englishLabel;
-  final String arabicLabel;
-  final bool isArabic;
-  final ValueChanged<bool> onChanged;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSegmentedControl<bool>(
-      selected: isArabic,
-      onChanged: onChanged,
-      semanticLabel: semanticLabel,
-      segments: [
-        AppSegment<bool>(value: false, label: englishLabel),
-        AppSegment<bool>(value: true, label: arabicLabel),
-      ],
-    );
-  }
-}
-
 IconData _iconForTone(StatusTone tone) => switch (tone) {
   StatusTone.neutral => Icons.circle_outlined,
   StatusTone.info => Icons.info_outline,

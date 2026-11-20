@@ -1,0 +1,1752 @@
+{
+  "defaultLanguage": "en",
+  "keys": {
+    "appTitle": {},
+    "signInTitle": {},
+    "signInSubtitle": {},
+    "emailLabel": {},
+    "passwordLabel": {},
+    "signInButton": {},
+    "twoFactorLabel": {},
+    "verifyButton": {},
+    "languageEnglish": {},
+    "roleTechnician": {},
+    "roleWorkshopAdmin": {},
+    "rolePlatformAdmin": {},
+    "homeTitle": {},
+    "homeBody": {},
+    "signOut": {},
+    "invalidCredentials": {},
+    "networkError": {},
+    "genericError": {},
+    "offlineBanner": {},
+    "requiredField": {},
+    "invalidEmail": {},
+    "platformAdminTitle": {},
+    "hierarchyTab": {},
+    "masterContentTab": {},
+    "auditTab": {},
+    "search": {},
+    "filterAll": {},
+    "filterActive": {},
+    "disabled": {},
+    "pending": {},
+    "workshops": {},
+    "admins": {},
+    "technicians": {},
+    "pendingInvitations": {},
+    "members": {},
+    "invite": {},
+    "create": {},
+    "disable": {},
+    "reactivate": {},
+    "transfer": {},
+    "reason": {},
+    "cancel": {},
+    "save": {},
+    "publish": {},
+    "retire": {},
+    "versions": {},
+    "category": {},
+    "categories": {},
+    "items": {},
+    "newCategory": {},
+    "newItem": {},
+    "noResults": {},
+    "loading": {},
+    "error": {},
+    "email": {},
+    "displayName": {},
+    "temporaryPassword": {},
+    "role": {},
+    "workshop": {},
+    "actions": {},
+    "status": {},
+    "close": {},
+    "auditHistory": {},
+    "occurredAt": {},
+    "action": {},
+    "entity": {},
+    "categoryNameEn": {},
+    "categoryNameAr": {},
+    "slug": {},
+    "labelEn": {},
+    "labelAr": {},
+    "instructionEn": {},
+    "instructionAr": {},
+    "stableCode": {},
+    "resultOptions": {},
+    "severityPolicy": {},
+    "applicability": {},
+    "noteRequirement": {},
+    "evidenceRequirement": {},
+    "minPhotos": {},
+    "equipment": {},
+    "reasons": {},
+    "guideImage": {},
+    "sampleData": {},
+    "draft": {},
+    "published": {},
+    "retired": {},
+    "createDraft": {},
+    "saveDraft": {},
+    "select": {},
+    "uploadGuideImage": {},
+    "guideImageAltEn": {},
+    "guideImageAltAr": {},
+    "licenceNote": {},
+    "english": {},
+    "arabic": {},
+    "russian": {},
+    "chinese": {},
+    "confirm": {},
+    "invitationToken": {},
+    "copy": {},
+    "delete": {},
+    "edit": {},
+    "notAvailable": {},
+    "details": {},
+    "itemCount": {},
+    "accountCreated": {},
+    "invitationCreated": {},
+    "contentSaved": {},
+    "versionPublished": {},
+    "itemRetired": {},
+    "retireItem": {},
+    "rejected": {},
+    "actionFailed": {},
+    "workshopAdminTitle": {},
+    "jobsTab": {},
+    "staffTab": {},
+    "templatesTab": {},
+    "dashboardTab": {},
+    "dashboardSubtitle": {},
+    "dashboardStatActive": {},
+    "dashboardStatNewScheduled": {},
+    "dashboardStatFinalizedToday": {},
+    "dashboardRecentJobs": {},
+    "queueTitle": {},
+    "scheduleJobTitle": {},
+    "scheduleJobSubtitle": {},
+    "jobsWhenTitle": {},
+    "jobsStartNow": {},
+    "jobsStartNowBody": {},
+    "jobsScheduleLater": {},
+    "jobsScheduleLaterBody": {},
+    "jobsPickDateTime": {},
+    "jobsClearSchedule": {},
+    "jobsScheduleRequired": {},
+    "assignTechnicianTitle": {},
+    "assignTechnicianSubtitle": {},
+    "assignReasonOptional": {},
+    "workshopStaffTitle": {},
+    "staffFilterTechnicians": {},
+    "staffFilterAdmins": {},
+    "staffResetPassword": {},
+    "createTechnicianTitle": {},
+    "createTechnicianSubtitle": {},
+    "showPassword": {},
+    "hidePassword": {},
+    "emailAlreadyInUse": {},
+    "templateListTitle": {},
+    "templateTotalCheckpoints": {},
+    "templatesUpdatedOn": {
+      "placeholders": {
+        "date": {
+          "type": "String"
+        }
+      }
+    },
+    "templateViewGrid": {},
+    "templateViewList": {},
+    "builderMasterItems": {},
+    "builderSequenceTitle": {},
+    "builderDropHint": {},
+    "newJob": {},
+    "jobSearch": {},
+    "statusScheduled": {},
+    "statusAssigned": {},
+    "statusInProgress": {},
+    "statusReadyToFinalize": {},
+    "statusFinalized": {},
+    "statusCancelled": {},
+    "assign": {},
+    "reassign": {},
+    "cancelJob": {},
+    "jobCreated": {},
+    "jobAssigned": {},
+    "jobCancelled": {},
+    "customerName": {},
+    "customerPhone": {},
+    "customerEmail": {},
+    "vehicleMake": {},
+    "vehicleModel": {},
+    "vehicleYear": {},
+    "vehicleVin": {},
+    "vehiclePlate": {},
+    "scope": {},
+    "scheduledAt": {},
+    "template": {},
+    "selectTemplate": {},
+    "staffReadOnly": {},
+    "staffReadOnlyBody": {},
+    "templates": {},
+    "newTemplate": {},
+    "templateName": {},
+    "templateDescription": {},
+    "serviceType": {},
+    "vehicleType": {},
+    "addItems": {},
+    "selectedItems": {},
+    "preview": {},
+    "previewEn": {},
+    "previewAr": {},
+    "publishTemplate": {},
+    "versionHistory": {},
+    "lockedByPlatform": {},
+    "noItems": {},
+    "add": {},
+    "remove": {},
+    "moveUp": {},
+    "moveDown": {},
+    "templatePublished": {},
+    "jobAssignedTo": {},
+    "unassigned": {},
+    "noTechnicians": {},
+    "searchItems": {},
+    "allCategories": {},
+    "masterVersion": {},
+    "readOnlyVersion": {},
+    "itemsSelected": {},
+    "templateDetails": {},
+    "jobDetails": {},
+    "assignedJobs": {},
+    "noAssignedJobs": {},
+    "walkInJob": {},
+    "startInspection": {},
+    "resumeInspection": {},
+    "customerInformation": {},
+    "vehicleIdentification": {},
+    "consent": {},
+    "checklist": {},
+    "reviewAndFinalize": {},
+    "approveAndGenerateReport": {},
+    "finalizedReadOnly": {},
+    "evidenceNotAvailable": {},
+    "result": {},
+    "severity": {},
+    "note": {},
+    "notChecked": {},
+    "couldNotVerify": {},
+    "noIssueObserved": {},
+    "defectFound": {},
+    "attentionRecommended": {},
+    "notApplicable": {},
+    "minor": {},
+    "moderate": {},
+    "major": {},
+    "safetyCritical": {},
+    "saveAnswer": {},
+    "progress": {},
+    "completedItems": {},
+    "missingItems": {},
+    "itemSaved": {},
+    "inspectionStarted": {},
+    "readyToFinalize": {},
+    "finalizeConfirm": {},
+    "finalizeIrreversible": {},
+    "finalizedSuccessfully": {},
+    "walkInCreated": {},
+    "customerSaved": {},
+    "vehicleSaved": {},
+    "consentRecorded": {},
+    "assessmentRequired": {},
+    "keyboardHelp": {},
+    "start": {},
+    "next": {},
+    "previous": {},
+    "notStarted": {},
+    "evidencePending": {},
+    "consentProcessing": {},
+    "consentPublicLink": {},
+    "consentGranted": {},
+    "consentRefused": {},
+    "consentWithdrawn": {},
+    "consentRequired": {},
+    "finalize": {},
+    "markReady": {},
+    "inspectionScope": {},
+    "odometer": {},
+    "odometerUnit": {},
+    "walkIn": {},
+    "technicianHomeTitle": {},
+    "syncQueue": {},
+    "syncNow": {},
+    "savedOnPhone": {},
+    "receivedByServer": {},
+    "addPhoto": {},
+    "photoSourceCamera": {},
+    "photoSourceGallery": {},
+    "photoSaved": {},
+    "photoRequired": {},
+    "noPendingSync": {},
+    "syncComplete": {},
+    "guideImageUnavailable": {},
+    "attachments": {},
+    "report": {},
+    "reportStatus": {},
+    "generating": {},
+    "reportReady": {},
+    "reportFailed": {},
+    "retryReport": {},
+    "retryAction": {},
+    "createLink": {},
+    "copyLink": {},
+    "deactivateLink": {},
+    "linkActive": {},
+    "linkRevoked": {},
+    "linkPendingConsent": {},
+    "publicLink": {},
+    "pdfDownload": {},
+    "downloadPdf": {},
+    "consentNotGranted": {},
+    "reportUnavailable": {},
+    "linkCopied": {},
+    "deactivateReason": {},
+    "deactivate": {},
+    "reportVersionLabel": {},
+    "snapshotHash": {},
+    "viewReport": {},
+    "pdfBytesSaved": {},
+    "finalized": {},
+    "coverage": {},
+    "vehicle": {},
+    "keyFindings": {},
+    "findings": {},
+    "delivery": {},
+    "deliveryHistory": {},
+    "sendReport": {},
+    "sendReportTitle": {},
+    "deliveryChannel": {},
+    "deliveryLanguage": {},
+    "deliveryStatus": {},
+    "deliveryRecipient": {},
+    "deliveryAttempts": {},
+    "deliveryNextAttempt": {},
+    "deliveryError": {},
+    "retryDelivery": {},
+    "deliveryQueued": {},
+    "deliverySent": {},
+    "noDeliveries": {},
+    "channelWhatsapp": {},
+    "channelSms": {},
+    "channelEmail": {},
+    "deliveryConsentHint": {},
+    "deliveryPdfAttached": {},
+    "deliveryLink": {},
+    "technicianWelcomeBack": {},
+    "technicianJobsInQueue": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianAssignedToday": {},
+    "technicianPendingCheck": {},
+    "technicianJobsTitle": {},
+    "technicianSyncTitle": {},
+    "technicianProfileTitle": {},
+    "technicianProfileSubtitle": {},
+    "technicianLanguage": {},
+    "technicianAllCaughtUp": {},
+    "technicianNoJobsBody": {},
+    "technicianRefreshQueue": {},
+    "technicianQueueRefreshed": {},
+    "technicianJobIntake": {},
+    "technicianVehicleInfo": {},
+    "technicianCustomerInfo": {},
+    "technicianMake": {},
+    "technicianModel": {},
+    "technicianYear": {},
+    "technicianOdometer": {},
+    "technicianVin": {},
+    "technicianPlate": {},
+    "technicianPhone": {},
+    "technicianEmail": {},
+    "technicianTemplate": {},
+    "technicianScope": {},
+    "technicianNotProvided": {},
+    "technicianCopyVin": {},
+    "technicianVinCopied": {},
+    "technicianConsentIntro": {},
+    "technicianConsentProcessingBody": {},
+    "technicianConsentPublicLinkBody": {},
+    "technicianConsentSave": {},
+    "technicianConsentNotRecorded": {},
+    "technicianChecksDone": {},
+    "technicianInspectionHub": {},
+    "technicianInspectionInProgress": {},
+    "technicianInspectionModules": {},
+    "technicianCategoriesCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianChecksCount": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianModuleDone": {},
+    "technicianModuleInProgress": {},
+    "technicianModuleNotStarted": {},
+    "technicianNoIssueCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianAttentionCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianDefectsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianContinueChecklist": {},
+    "technicianCoverageSemantics": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianVehicleSilhouette": {},
+    "technicianUnknownVehicle": {},
+    "technicianStartHint": {},
+    "technicianSignInTagline": {},
+    "technicianAccountNote": {},
+    "technicianLanguagePrompt": {},
+    "technicianSignedInAs": {},
+    "technicianPendingSync": {},
+    "technicianAllSynced": {},
+    "technicianEquipmentIdsOnly": {},
+    "technicianOfTotal": {
+      "placeholders": {
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianInspectionQueue": {},
+    "technicianLiveSync": {},
+    "technicianOnlineSync": {},
+    "technicianOfflineSync": {},
+    "technicianShiftToday": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianShiftActive": {},
+    "technicianQueueEmpty": {},
+    "technicianJobsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianTodaySummary": {},
+    "technicianCompletedToday": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianQueueCurrent": {},
+    "technicianCoverageOnly": {},
+    "technicianPasswordHelp": {},
+    "technicianEmailHint": {},
+    "technicianPasswordHint": {},
+    "technicianNeedTechnicianAccess": {},
+    "technicianContactAdmin": {},
+    "technicianSecureDelivery": {},
+    "technicianRequiredEquipment": {},
+    "technicianPreInspectionSetup": {},
+    "technicianEquipmentVerified": {
+      "placeholders": {
+        "verified": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEquipmentIntro": {},
+    "technicianEquipmentStandards": {},
+    "technicianEquipmentNameUnavailable": {},
+    "technicianHubTitle": {},
+    "technicianChecksDoneLabel": {},
+    "technicianQueued": {},
+    "technicianNoConditionScore": {},
+    "technicianVinChassis": {},
+    "technicianCustomerChip": {},
+    "technicianCall": {},
+    "technicianMessage": {},
+    "technicianServicePackage": {},
+    "technicianJobDetailsReady": {},
+    "technicianInspection": {},
+    "technicianConsentStep": {},
+    "technicianConsentDecision": {},
+    "technicianNoSignature": {},
+    "technicianAuthorizedRepresentative": {},
+    "technicianConsentHint": {},
+    "technicianDataStorage": {},
+    "technicianUnavailable": {},
+    "technicianTimestamp": {},
+    "technicianClear": {},
+    "technicianSecurityLine": {},
+    "technicianEquipmentStandardsBody": {},
+    "technicianProceed": {},
+    "technicianItemsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "welcomeBack": {},
+    "rememberMe": {},
+    "forgotPassword": {},
+    "dontHaveAccount": {},
+    "signUp": {},
+    "alreadyHaveAccount": {},
+    "createAccount": {},
+    "signUpSubtitle": {},
+    "fullNameLabel": {},
+    "fullNameHint": {},
+    "confirmPasswordLabel": {},
+    "confirmPasswordHint": {},
+    "passwordMismatch": {},
+    "passwordStrength": {},
+    "passwordStrengthWeak": {},
+    "passwordStrengthFair": {},
+    "passwordStrengthGood": {},
+    "passwordStrengthStrong": {},
+    "termsAgreement": {},
+    "termsRequired": {},
+    "signUpButton": {},
+    "featureBadge": {},
+    "featureHeadline": {},
+    "featureSubhead": {},
+    "statInspectionCount": {},
+    "statInspectionLabel": {},
+    "statAccuracy": {},
+    "statAccuracyLabel": {},
+    "statSyncSpeed": {},
+    "statSyncLabel": {},
+    "technicianExteriorInspection": {},
+    "technicianDetectedCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianExteriorStep2": {},
+    "technicianExteriorHint": {},
+    "technicianAnglePerspective": {},
+    "technicianTapToRotate": {},
+    "technicianPerspectiveFront": {},
+    "technicianPerspectiveDriver": {},
+    "technicianPerspectivePassenger": {},
+    "technicianPerspectiveRear": {},
+    "technicianConfirmExteriorMarkup": {},
+    "technicianNoDamageOnPanel": {},
+    "technicianDriverSideView": {},
+    "technicianWalkaroundInspection": {},
+    "technicianDraw": {},
+    "technicianUndo": {},
+    "technicianCrop": {},
+    "technicianSavePhoto": {},
+    "technicianVinEnding": {},
+    "technicianItemsChecked": {},
+    "technicianPdfSize": {},
+    "technicianBackToJobList": {},
+    "technicianTireFl": {},
+    "technicianTireFr": {},
+    "technicianTireRr": {},
+    "technicianSaveAction": {},
+    "adminFeatureTelemetry": {},
+    "adminFeatureSop": {},
+    "adminFeatureAudit": {},
+    "adminFeatureHierarchy": {},
+    "adminFeatureCatalog": {},
+    "adminFeatureLedger": {},
+    "masterLibrary": {},
+    "dataCatalogues": {},
+    "auditLog": {},
+    "settings": {},
+    "vehicleMakes": {},
+    "defectSeverities": {},
+    "notCheckedReasons": {},
+    "fuelPowertrainTypes": {},
+    "fluidSpecifications": {},
+    "done": {},
+    "totalJobs": {},
+    "workshopAdminName": {},
+    "contactPhone": {},
+    "technicianDispatchClearance": {},
+    "diagnosticOverrideAuthority": {},
+    "telemetryIngestionKey": {},
+    "registerWorkshop": {},
+    "detailsAndSettings": {},
+    "registerAndProvision": {},
+    "preferencesReset": {},
+    "preferencesSaved": {},
+    "enableArabicRtl": {},
+    "enableArabicRtlDesc": {},
+    "enableSpanish": {},
+    "enableSpanishDesc": {},
+    "enableFrench": {},
+    "enableFrenchDesc": {},
+    "enforce2fa": {},
+    "enforce2faDesc": {},
+    "ipWhitelist": {},
+    "ipWhitelistDesc": {},
+    "subsystem": {},
+    "measurementMetric": {},
+    "masterCheckpointSaved": {},
+    "fifteenMinutes": {},
+    "thirtyMinutes": {},
+    "oneHour": {},
+    "fourHours": {},
+    "navTemplates": {},
+    "navScoring": {},
+    "navDocumentTypes": {},
+    "navLanguages": {},
+    "navConfigHealth": {},
+    "navConfigurationSection": {},
+    "navChecklist": {},
+    "navReports": {},
+    "checklistTitle": {},
+    "checklistHelper": {},
+    "checklistTabTemplates": {},
+    "checklistTabIssueOptions": {},
+    "checklistTabHealth": {},
+    "templateHelper": {},
+    "reportsTitle": {},
+    "reportDocuments": {},
+    "languagesCoverage": {},
+    "checklistHealth": {},
+    "reviewHealth": {},
+    "masterLibraryTitle": {},
+    "masterLibrarySubtitle": {},
+    "seedDefaultChecklist": {},
+    "seedConfirm": {},
+    "seedSuccess": {
+      "placeholders": {
+        "created": {
+          "type": "int"
+        },
+        "skipped": {
+          "type": "int"
+        }
+      }
+    },
+    "seedFailed": {},
+    "categoriesTab": {},
+    "itemsTab": {},
+    "optionSetsTab": {},
+    "categoryManagement": {},
+    "addCategory": {},
+    "editCategory": {},
+    "categoryCode": {},
+    "categoryWeight": {},
+    "categoryOrder": {},
+    "weightTotal": {},
+    "weightsValid": {},
+    "weightsInvalid": {},
+    "retireCategory": {},
+    "retireConfirm": {},
+    "reorder": {},
+    "active": {},
+    "itemEditor": {},
+    "basics": {},
+    "englishContent": {},
+    "arabicContent": {},
+    "scoreBands": {},
+    "evidenceRules": {},
+    "issueFields": {},
+    "measurementBands": {},
+    "itemCode": {},
+    "measurementUnit": {},
+    "sensorTool": {},
+    "standardSpecEn": {},
+    "standardSpecAr": {},
+    "multiPoint": {},
+    "maxTyreAge": {},
+    "allowFreeText": {},
+    "minVideos": {},
+    "minNotes": {},
+    "requiredEvidenceType": {},
+    "minValue": {},
+    "maxValue": {},
+    "criteriaEn": {},
+    "criteriaAr": {},
+    "fieldCode": {},
+    "inputType": {},
+    "optionSet": {},
+    "required": {},
+    "dependsOn": {},
+    "allowMultiple": {},
+    "allowedValues": {},
+    "requiredForStatuses": {},
+    "decimalPlaces": {},
+    "publishItem": {},
+    "itemPublished": {},
+    "versionImmutable": {},
+    "addItem": {},
+    "addOptionSet": {},
+    "itemCreated": {},
+    "createTemplate": {},
+    "templateCode": {},
+    "templateNameEn": {},
+    "templateNameAr": {},
+    "templateDescriptionEn": {},
+    "templateDescriptionAr": {},
+    "templateBuilder": {},
+    "weightPreview": {},
+    "normalizedWeight": {},
+    "approveTemplate": {},
+    "rejectTemplate": {},
+    "pendingApproval": {},
+    "scoringRules": {},
+    "categoryWeightMode": {},
+    "safetyCap": {},
+    "capGrade": {},
+    "gradeBoundaries": {},
+    "grade": {},
+    "addGrade": {},
+    "coverageValid": {},
+    "coverageInvalid": {},
+    "proposeChange": {},
+    "approveChange": {},
+    "documentTypes": {},
+    "addDocumentType": {},
+    "documentTypeCode": {},
+    "languageRegistry": {},
+    "addLanguage": {},
+    "languageCode": {},
+    "nativeName": {},
+    "direction": {},
+    "defaultLanguage": {},
+    "translationCoverage": {},
+    "missingTranslations": {},
+    "configHealth": {},
+    "healthy": {},
+    "unhealthy": {},
+    "refresh": {},
+    "impactAnalysis": {},
+    "affectedTemplates": {},
+    "affectedItems": {},
+    "affectedJobs": {},
+    "blocked": {},
+    "notBlocked": {},
+    "configReleases": {},
+    "createRelease": {},
+    "renameTemplate": {},
+    "releaseEntityType": {},
+    "releaseEntityId": {},
+    "releaseNotes": {},
+    "releaseSubmit": {},
+    "releaseApprove": {},
+    "releasePublish": {},
+    "releaseDeprecate": {},
+    "noData": {},
+    "retry": {},
+    "jobsBoardTab": {},
+    "jobsNotificationsTab": {},
+    "jobsNotificationsTitle": {},
+    "jobsNotificationsUnreadOnly": {},
+    "jobsNotificationsEmpty": {},
+    "jobsNotificationsMarkRead": {},
+    "jobsNotificationsMarkedRead": {},
+    "jobsNotificationsUnread": {},
+    "jobsNotificationsRead": {},
+    "jobsCountsTitle": {},
+    "jobsCountDraft": {},
+    "jobsCountScheduled": {},
+    "jobsCountAssigned": {},
+    "jobsCountInProgress": {},
+    "jobsCountPendingReview": {},
+    "jobsCountApproved": {},
+    "jobsCountPublished": {},
+    "jobsCountRejected": {},
+    "jobsCountCancelled": {},
+    "jobsCountTotal": {},
+    "jobsStatusPendingReview": {},
+    "jobsStatusApproved": {},
+    "jobsStatusPublished": {},
+    "jobsStatusRejected": {},
+    "commonPage": {},
+    "commonOf": {},
+    "commonPrevious": {},
+    "commonNext": {},
+    "jobsEmpty": {},
+    "jobsCreateTitle": {},
+    "jobsCreateStepCustomer": {},
+    "jobsCreateStepVehicle": {},
+    "jobsCreateStepTemplate": {},
+    "jobsCreateStepTechnician": {},
+    "commonBack": {},
+    "jobsCreateCta": {},
+    "jobsFieldOdometer": {},
+    "jobsFieldOdometerUnit": {},
+    "jobsFieldTransmission": {},
+    "jobsFieldFuelType": {},
+    "jobsFieldPreferredLanguage": {},
+    "jobsTemplatesAvailable": {},
+    "jobsTemplatesEmpty": {},
+    "jobsSelectTechnician": {},
+    "jobsAssignLater": {},
+    "jobsCreated": {},
+    "commonServerRejected": {},
+    "jobsValidationVin": {},
+    "jobsValidationPhoneRequired": {},
+    "jobsValidationEmailInvalid": {},
+    "jobsDetailTitle": {},
+    "jobsSummary": {},
+    "jobsAssignmentsTitle": {},
+    "jobsAssignmentsEmpty": {},
+    "jobsReviewTitle": {},
+    "jobsReviewStatus": {},
+    "jobsPublicationStatus": {},
+    "jobsItemsAssessed": {},
+    "jobsScorePreview": {},
+    "jobsGradePreview": {},
+    "jobsSafetyCapPreview": {},
+    "jobsScore": {},
+    "jobsEvidencePhotos": {},
+    "jobsEvidenceVideos": {},
+    "jobsSignaturePresent": {},
+    "jobsSignatureMissing": {},
+    "jobsCompletedAt": {},
+    "jobsIssueValues": {},
+    "jobsNoFindings": {},
+    "jobsOpenReview": {},
+    "jobsApprove": {},
+    "jobsReject": {},
+    "jobsApproveTitle": {},
+    "jobsApproveSubtitle": {},
+    "jobsSafetyCritical": {},
+    "jobsSafetyCapReason": {},
+    "jobsApproved": {},
+    "jobsRejected": {},
+    "jobsRejectReason": {},
+    "jobsRejectHint": {},
+    "jobsApproveReasonOptional": {},
+    "jobsOpenPublishChecklist": {},
+    "jobsPublishChecklist": {},
+    "jobsChecklistReady": {},
+    "jobsChecklistNotReady": {},
+    "jobsChecklistPassed": {},
+    "jobsChecklistFailed": {},
+    "jobsConsentGranted": {},
+    "jobsConsentMissing": {},
+    "jobsDocumentsReady": {},
+    "jobsDocumentsNotReady": {},
+    "jobsSafetyCapApplied": {},
+    "jobsSafetyCapNotApplied": {},
+    "jobsGrade": {},
+    "jobsPublishNow": {},
+    "jobsPublished": {},
+    "jobsPublishFailed": {},
+    "jobsPublicLinkTitle": {},
+    "jobsPublicUrl": {},
+    "jobsPublicToken": {},
+    "jobsShare": {},
+    "jobsQrTitle": {},
+    "jobsQrUnavailable": {},
+    "jobsUnpublish": {},
+    "jobsRevoke": {},
+    "jobsRotateToken": {},
+    "jobsUnpublishReason": {},
+    "jobsRevokeReason": {},
+    "jobsTokenRotated": {},
+    "jobsLinkUnpublished": {},
+    "jobsActivatedAt": {},
+    "jobsRevokedAt": {},
+    "jobsRevocationReason": {},
+    "jobsShareText": {},
+    "jobsDocumentsTitle": {},
+    "jobsDocumentType": {},
+    "jobsDocumentLanguage": {},
+    "jobsDocumentStatus": {},
+    "jobsDocumentSize": {},
+    "jobsDocumentGeneratedAt": {},
+    "jobsDocumentError": {},
+    "jobsRetryDocument": {},
+    "jobsDocumentRetried": {},
+    "jobsDocumentsEmpty": {},
+    "commonDownload": {},
+    "commonActionFailed": {},
+    "commonLoadFailed": {},
+    "commonReasonRequired": {},
+    "commonConfirm": {},
+    "jobsNotificationPayload": {},
+    "jobsNotificationNoPayload": {},
+    "commonType": {},
+    "commonCreatedAt": {},
+    "jobsReference": {},
+    "jobsJobScore": {},
+    "jobsJobGrade": {},
+    "jobsAssignedTechnician": {},
+    "jobsUnit": {},
+    "jobsViewChecklist": {},
+    "jobsViewDocuments": {},
+    "jobsViewPublicLink": {},
+    "jobsCancelReason": {},
+    "jobsAssignTechnician": {},
+    "jobsAssignmentReason": {},
+    "commonYes": {},
+    "commonNo": {},
+    "commonNotAvailable": {},
+    "jobsOpenJobBoard": {},
+    "technicianJobSearch": {},
+    "technicianJobSearchHint": {},
+    "technicianNextUp": {},
+    "technicianNoJobsThisDay": {},
+    "technicianPickAnotherDay": {},
+    "technicianFilter": {},
+    "technicianThisWeek": {},
+    "technicianResultNoIssue": {},
+    "technicianResultAttention": {},
+    "technicianResultDefect": {},
+    "technicianAllStatuses": {},
+    "technicianRefresh": {},
+    "technicianNextPage": {},
+    "technicianPreviousPage": {},
+    "technicianPageOf": {
+      "placeholders": {
+        "page": {
+          "type": "int"
+        },
+        "totalPages": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianJobQueue": {},
+    "technicianSyncPending": {},
+    "technicianOfflineQueued": {},
+    "technicianJobListEmpty": {},
+    "technicianNoSearchResults": {},
+    "technicianVehicle": {},
+    "technicianCustomer": {},
+    "technicianScheduledAt": {},
+    "technicianStartedAt": {},
+    "technicianAssessmentState": {},
+    "technicianCategory": {},
+    "technicianInstructions": {},
+    "technicianStandardSpec": {},
+    "technicianMeasurement": {},
+    "technicianMeasurementByPosition": {},
+    "technicianUnit": {},
+    "technicianTool": {},
+    "technicianSafetyCritical": {},
+    "technicianMultiPoint": {},
+    "technicianResult": {},
+    "technicianSelectResult": {},
+    "technicianSuggestedResult": {},
+    "technicianScore": {},
+    "technicianScoreOverride": {},
+    "technicianScoreHint": {
+      "placeholders": {
+        "min": {
+          "type": "int"
+        },
+        "max": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianScoreOutOfRange": {
+      "placeholders": {
+        "min": {
+          "type": "int"
+        },
+        "max": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianIssueDetails": {},
+    "technicianIssueDetailsHint": {},
+    "technicianIssueFieldRequired": {},
+    "technicianMeasurementRequired": {},
+    "technicianRequired": {},
+    "technicianOptional": {},
+    "technicianSeverity": {},
+    "technicianNotes": {},
+    "technicianNotesHint": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEvidence": {},
+    "technicianEvidenceCounts": {},
+    "technicianEvidencePhotoCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        },
+        "required": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEvidenceVideoCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        },
+        "required": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEvidenceDocumentCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        },
+        "required": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianEvidenceRequired": {},
+    "technicianEvidenceSatisfied": {},
+    "technicianCapturePhoto": {},
+    "technicianCaptureVideo": {},
+    "technicianCaptureDocument": {},
+    "technicianPhoto": {},
+    "technicianVideo": {},
+    "technicianDocument": {},
+    "technicianCaptionsEn": {},
+    "technicianCaptionsAr": {},
+    "technicianCapturePoster": {},
+    "technicianCapture": {},
+    "technicianSaveEvidence": {},
+    "technicianEvidenceUploading": {
+      "placeholders": {
+        "type": {
+          "type": "String"
+        }
+      }
+    },
+    "technicianUploadProgress": {},
+    "technicianEvidenceFailed": {},
+    "technicianRetryUpload": {},
+    "technicianDeleteEvidence": {},
+    "technicianVideoTooLong": {},
+    "technicianVideoTooShort": {},
+    "technicianFileTooLarge": {},
+    "technicianChooseDocument": {},
+    "technicianAssessmentProgress": {},
+    "technicianPinnedTemplate": {},
+    "technicianReview": {},
+    "technicianDraftScore": {},
+    "technicianGrade": {},
+    "technicianSafetyCap": {},
+    "technicianItemsAssessed": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianBlockers": {},
+    "technicianWarnings": {},
+    "technicianWarningsTitle": {},
+    "technicianConflicts": {},
+    "technicianSyncConflictTitle": {},
+    "technicianConflictExists": {},
+    "technicianServerPayload": {},
+    "technicianClientPayload": {},
+    "technicianReloadServer": {},
+    "technicianConflictReloaded": {},
+    "technicianNoConflicts": {},
+    "technicianSummaryTitle": {},
+    "technicianOpenSummary": {},
+    "technicianComplete": {},
+    "technicianCompleteInspection": {},
+    "technicianSignature": {},
+    "technicianSignatureTitle": {},
+    "technicianSignatureHint": {},
+    "technicianClearSignature": {},
+    "technicianSignerName": {},
+    "technicianSignatureRequired": {},
+    "technicianSignatureSuccess": {},
+    "technicianCompletedPendingReview": {},
+    "technicianPendingReviewStatus": {},
+    "technicianJobCompleted": {},
+    "technicianBackToJobs": {},
+    "technicianSaveItem": {},
+    "technicianSaveAssessment": {},
+    "technicianItemSaved": {},
+    "technicianAssessmentSaved": {},
+    "technicianNetworkRetry": {},
+    "technicianSyncReplay": {},
+    "technicianSyncApplied": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianSyncConflictsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianSyncNothing": {},
+    "technicianSyncOnline": {},
+    "technicianSyncOffline": {},
+    "technicianSyncChangesOnPhone": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianSyncSavedHint": {},
+    "technicianSyncQueuedChanges": {},
+    "technicianSyncReplayNow": {},
+    "technicianSyncStateFailed": {},
+    "technicianSyncStateSyncing": {},
+    "technicianSyncStateConflict": {},
+    "technicianSyncAllSafe": {},
+    "technicianSyncServerChanges": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianSyncReviewConflicts": {},
+    "technicianSyncConflictHint": {},
+    "technicianSyncAttempts": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "technicianSyncLastError": {},
+    "technicianConflictPhone": {},
+    "technicianConflictServer": {},
+    "technicianConflictUseServer": {},
+    "technicianConflictPhoneHint": {},
+    "technicianConflictRevalidate": {},
+    "technicianConflictCompare": {},
+    "technicianConflictOnlyPhone": {},
+    "technicianConflictOnlyServer": {},
+    "technicianConflictUnavailable": {},
+    "technicianConflictPhoneRev": {},
+    "technicianConflictServerRev": {},
+    "technicianConflictJob": {
+      "placeholders": {
+        "jobId": {
+          "type": "String"
+        }
+      }
+    },
+    "technicianOpAssessment": {},
+    "technicianOpEvidence": {},
+    "technicianOpCustomer": {},
+    "technicianOpVehicle": {},
+    "technicianOpConsent": {},
+    "technicianNoItems": {},
+    "technicianNoCategories": {},
+    "technicianNoIssues": {},
+    "platformSearchHint": {},
+    "platformSearchHintCompact": {},
+    "platformNotifications": {},
+    "platformNotificationsTitle": {},
+    "platformNotificationsEmpty": {},
+    "platformNotificationsEmptyBody": {},
+    "platformHelp": {},
+    "platformHelpTitle": {},
+    "platformHelpBody": {},
+    "platformHelpContact": {},
+    "platformHelpDocs": {},
+    "platformProfile": {},
+    "platformAccount": {},
+    "platformLanguage": {},
+    "platformSwitchToArabic": {},
+    "platformSwitchToEnglish": {},
+    "platformHierarchyRoot": {},
+    "platformActiveWorkshops": {},
+    "navDashboard": {},
+    "dashboardTitle": {},
+    "dashboardKpis": {},
+    "dashTotalWorkshops": {},
+    "dashActiveWorkshops": {},
+    "dashTechnicians": {},
+    "dashActiveJobs": {},
+    "dashPendingReviews": {},
+    "dashPublishedReports": {},
+    "dashChecklistHealth": {},
+    "dashLanguagesLive": {},
+    "dashJobsByStatus": {},
+    "dashReportsByMonth": {},
+    "dashRecentActivity": {},
+    "dashAlerts": {},
+    "dashQuickActions": {},
+    "dashViewAll": {},
+    "dashEmpty": {},
+    "dashNoAlerts": {},
+    "dashTranslationIncomplete": {
+      "placeholders": {
+        "language": {
+          "type": "String"
+        }
+      }
+    },
+    "wsSubtitle": {},
+    "wsAdd": {},
+    "wsSearchHint": {},
+    "wsEdit": {},
+    "wsDeactivate": {},
+    "wsReactivate": {},
+    "wsDeactivateConfirm": {},
+    "wsName": {},
+    "wsBranch": {},
+    "wsContactEmail": {},
+    "wsOverview": {},
+    "wsStaff": {},
+    "wsWorkshopTemplates": {},
+    "wsActivity": {},
+    "wsCapacity": {},
+    "wsContact": {},
+    "wsCreatedOn": {},
+    "wsAddStaff": {},
+    "wsEmpty": {},
+    "wsEmptyBody": {},
+    "wsResultCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "chkItemsTitle": {},
+    "chkCategoryFilter": {},
+    "chkAllCategories": {},
+    "chkSearchCategories": {},
+    "chkEvidence": {},
+    "chkUpdated": {},
+    "chkResultCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "stepBasics": {},
+    "stepContent": {},
+    "stepIssueOptions": {},
+    "stepEvidence": {},
+    "stepMeasurement": {},
+    "stepReview": {},
+    "stepBasicsHelp": {},
+    "stepContentHelp": {},
+    "stepIssueHelp": {},
+    "stepEvidenceHelp": {},
+    "stepMeasureHelp": {},
+    "stepReviewHelp": {},
+    "stepCounter": {
+      "placeholders": {
+        "current": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "itemAdvanced": {},
+    "itemSaveDraft": {},
+    "tmplCreate": {},
+    "tmplBuilderTitle": {},
+    "tmplStepDetails": {},
+    "tmplStepCategories": {},
+    "tmplStepReview": {},
+    "tmplAddCategory": {},
+    "tmplAddItem": {},
+    "tmplSearchCategories": {},
+    "tmplSearchItems": {},
+    "tmplEmptyCategory": {},
+    "tmplDuplicate": {},
+    "tmplProgressCategories": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "tmplProgressItems": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "optHelper": {},
+    "optSearchSets": {},
+    "optSearchValues": {},
+    "optAddValue": {},
+    "optValues": {},
+    "optInlineHint": {},
+    "optUsedBy": {},
+    "langStatusDraft": {},
+    "langStatusTranslating": {},
+    "langStatusReview": {},
+    "langStatusLive": {},
+    "langStatusRetired": {},
+    "langCompleteTranslations": {},
+    "langPublish": {},
+    "langPublishBlocked": {},
+    "queueMissing": {},
+    "queueDraft": {},
+    "queueReviewed": {},
+    "queueApproved": {},
+    "queueTotal": {},
+    "queueEntityType": {},
+    "queueSearchHint": {},
+    "queueMissingOnly": {},
+    "queueEditTitle": {},
+    "queueSaveAll": {},
+    "queueApproveSelected": {},
+    "queueDefaultText": {},
+    "queueTranslation": {},
+    "queuePublishLanguage": {},
+    "queueEmpty": {},
+    "queueEmptyBody": {},
+    "queueExport": {},
+    "reportLabels": {},
+    "dashboardGreeting": {
+      "placeholders": {
+        "name": {
+          "type": "String"
+        }
+      }
+    },
+    "dashboardToday": {
+      "placeholders": {
+        "date": {
+          "type": "String"
+        }
+      }
+    },
+    "dashboardNextUp": {},
+    "dashboardNoUpcoming": {},
+    "dashboardNoUpcomingBody": {},
+    "dashboardViewAll": {},
+    "dashboardPipeline": {},
+    "dashboardNoRecentJobs": {},
+    "dashFloorTotal": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "dashDecisionWaiting": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "dashFloorLabel": {
+      "placeholders": {}
+    },
+    "dashFloorLabelOne": {
+      "placeholders": {}
+    },
+    "dashNothingWaiting": {
+      "placeholders": {}
+    },
+    "dashFloorEmpty": {
+      "placeholders": {}
+    },
+    "dashFloorEmptyBody": {
+      "placeholders": {}
+    },
+    "dashGroupWaiting": {
+      "placeholders": {}
+    },
+    "dashGroupInBay": {
+      "placeholders": {}
+    },
+    "dashGroupReady": {
+      "placeholders": {}
+    },
+    "dashGroupEmpty": {
+      "placeholders": {}
+    },
+    "dashSegmentOther": {
+      "placeholders": {}
+    },
+    "dashAtlasLabel": {
+      "placeholders": {}
+    },
+    "dashFooterSum": {
+      "placeholders": {
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "dashReviewVerb": {
+      "placeholders": {}
+    },
+    "dashPublishVerb": {
+      "placeholders": {}
+    },
+    "dashOpenVerb": {
+      "placeholders": {}
+    },
+    "dashGroupCountPending": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "dashGroupCountInBay": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "dashGroupCountReady": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "jobDetailCustomerVehicle": {},
+    "jobDetailInspection": {},
+    "jobDetailAssignment": {},
+    "jobDetailReviewPublication": {},
+    "jobDetailMoreActions": {},
+    "jobsEmptyQueueTitle": {},
+    "jobsEmptyQueueBody": {},
+    "jobsListColumnVehicle": {},
+    "jobsListColumnJob": {},
+    "jobsListColumnCustomer": {},
+    "jobsListColumnScheduled": {},
+    "jobsListColumnInspection": {},
+    "jobsListColumnTechnician": {},
+    "settingsWorkshop": {},
+    "settingsAccount": {},
+    "settingsPreferences": {},
+    "settingsLanguage": {},
+    "settingsSession": {},
+    "settingsSignOutBody": {},
+    "templatesEmptyTitle": {},
+    "templatesEmptyBody": {},
+    "reportNotReadyTitle": {},
+    "reportNotReadyBody": {},
+    "reportBackToJob": {},
+    "signInBrandLine": {},
+    "signInPortalLabel": {},
+    "signinCheckFields": {},
+    "signInHelp": {},
+    "signinEmailHint": {},
+    "signinPasswordHint": {},
+    "twoFactorRequired": {
+      "placeholders": {}
+    },
+    "signInExampleLabel": {},
+    "signInExampleChecklist": {},
+    "signInExampleProgress": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        },
+        "percent": {
+          "type": "int"
+        }
+      }
+    },
+    "signInExampleStarted": {
+      "placeholders": {
+        "minutes": {
+          "type": "int"
+        }
+      }
+    },
+    "roleLeadTechnician": {},
+    "signingIn": {
+      "placeholders": {}
+    },
+    "jobsQueueSubtitle": {},
+    "notPublished": {},
+    "templateItemsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "staffSubtitle": {},
+    "templatesSubtitle": {},
+    "jobBoardSubtitle": {},
+    "settingsSubtitle": {},
+    "navMore": {},
+    "navMain": {
+      "placeholders": {}
+    },
+    "copied": {},
+    "commandPaletteTitle": {},
+    "commandPaletteHint": {},
+    "commandPaletteNoResults": {},
+    "commandGroupNavigation": {},
+    "commandGroupActions": {},
+    "commandGroupJobs": {},
+    "commandSearchPlaceholder": {},
+    "jobsWorkshopTotals": {
+      "placeholders": {}
+    },
+    "jobsSortNote": {
+      "placeholders": {}
+    },
+    "jobsShownRange": {
+      "placeholders": {
+        "from": {
+          "type": "int"
+        },
+        "to": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "jobsPagePrev": {},
+    "jobsPageNext": {},
+    "jobsSelectJob": {},
+    "jobsNoSelection": {},
+    "jobsNoJobsInView": {},
+    "jobsClearFilters": {},
+    "jobsConflictReload": {},
+    "jobsPublicationBlocked": {},
+    "jobsPublicationBlockedBody": {},
+    "jobsArchiveTitle": {},
+    "jobsArchiveBanner": {},
+    "jobsArchiveOpen": {},
+    "jobsArchiveEmpty": {},
+    "jobsNextReview": {},
+    "jobsNextAssign": {},
+    "jobsNextOpen": {},
+    "jobsNextPublish": {},
+    "jobsNextLink": {},
+    "jobsNextTrack": {},
+    "jobsStatusUnknown": {},
+    "jobsForbidden": {},
+    "jobsNotFound": {},
+    "jobsNoVersion": {},
+    "jobsApproverIsTechnician": {},
+    "jobsNotAssignable": {},
+    "jobsAlreadyAssigned": {},
+    "jobsNotCancellable": {},
+    "jobsAlreadyCancelled": {},
+    "jobsNotEditable": {},
+    "jobsTechnician": {},
+    "jobsCustomer": {},
+    "jobsMileage": {},
+    "jobsScheduled": {},
+    "jobsConsentNotRecorded": {},
+    "jobsOpenJob": {},
+    "jobsClientLink": {},
+    "jobsTemplate": {},
+    "jobsVehicle": {},
+    "jobsEmptyFirstUseTitle": {},
+    "jobsEmptyFirstUseBody": {},
+    "jobsQueueEyebrow": {},
+    "jobsSortScheduledAsc": {},
+    "jobsConsentUnavailableNote": {},
+    "jobsDocsGeneratedAfterPublish": {},
+    "tireInspectionSequence": {},
+    "tireProgressCompleted": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "total": {
+          "type": "int"
+        }
+      }
+    },
+    "tireStepTitle": {
+      "placeholders": {
+        "step": {
+          "type": "int"
+        }
+      }
+    },
+    "tireTapWheelHint": {},
+    "tireActiveZone": {},
+    "tireRearLeftTyre": {},
+    "tireAxleLabel": {
+      "placeholders": {
+        "axle": {
+          "type": "int"
+        }
+      }
+    },
+    "tirePhysicalWearAssessment": {},
+    "tireAsNew": {},
+    "tirePartWorn": {},
+    "tireOemStandard": {},
+    "tireUsableWear": {},
+    "tireMeasuredGrooveDepth": {},
+    "tireLegalMinimum": {
+      "placeholders": {
+        "depth": {
+          "type": "String"
+        }
+      }
+    },
+    "tireTreadDepth": {},
+    "tireColdPressure": {},
+    "tireNorm": {},
+    "tireNoGouges": {},
+    "syncBufferedCache": {},
+    "syncPendingBatch": {},
+    "syncConnected": {},
+    "syncWaiting": {},
+    "syncJobRef": {
+      "placeholders": {
+        "jobId": {
+          "type": "String"
+        }
+      }
+    },
+    "syncItemsCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "syncRemainingCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "syncInLine": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "syncTransferSpeed": {},
+    "syncPendingJobs": {},
+    "annotationMarkupActive": {},
+    "annotationTools": {},
+    "annotationDrawHint": {},
+    "annotationDefectCount": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "jobsHighPriority": {},
+    "defectEvidenceRequired": {
+      "placeholders": {
+        "done": {
+          "type": "int"
+        },
+        "required": {
+          "type": "int"
+        }
+      }
+    },
+    "successWebPortal": {},
+    "queueCurrentSynced": {},
+    "finalReviewStep": {},
+    "reportEyebrow": {},
+    "reportTitle": {},
+    "reportDistribution": {},
+    "reportDelivered": {},
+    "reportChecks": {},
+    "reportSafety": {},
+    "reportCoverageNote": {},
+    "reportScoreLabel": {},
+    "reportScoreScale": {},
+    "reportSafetyCapApplied": {},
+    "reportNoSafetyCritical": {},
+    "reportFindingsByCategory": {},
+    "reportNoKeyFindings": {},
+    "reportNoCategoryFindings": {},
+    "reportNoLinkYet": {},
+    "reportCustomer": {},
+    "reportInUse": {},
+    "reportNotInUse": {},
+    "reportScope": {},
+    "reportInspectedBy": {},
+    "reportWorkshop": {},
+    "reportVin": {},
+    "pdfDownloadUnsupported": {},
+    "statusReady": {},
+    "successSynced": {},
+    "appTitleAdmin": {},
+    "appTitleTechnician": {}
+  }
+}

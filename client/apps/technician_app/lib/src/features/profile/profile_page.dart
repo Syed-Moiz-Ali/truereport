@@ -3,6 +3,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
+import 'package:technician_app/src/technician_providers.dart';
 
 /// Full-screen technician profile: identity badge, language, sign out.
 class TechnicianProfilePage extends ConsumerWidget {
@@ -138,6 +139,18 @@ class TechnicianProfilePage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 22),
+                      Text(
+                        l10n.settingsLanguage,
+                        style: context.texts.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const BackendLanguageSelector(
+                        client: technicianUiMessageClient,
+                        keyPrefix: 'profile-language',
+                        compact: true,
+                      ),
                       const SizedBox(height: 24),
                       Container(height: 1, color: colors.outlineVariant),
                       const SizedBox(height: 16),

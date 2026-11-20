@@ -50,9 +50,6 @@ body {
   color: var(--on-surface);
   background: var(--surface);
 }
-[lang="ar"],[dir="rtl"] {
-  font-family: "Noto Sans Arabic","IBM Plex Sans Arabic","Plus Jakarta Sans",sans-serif;
-}
 h1,h2,h3,h4,h5 { font-weight: 700; line-height: 1.15; }
 p { line-height: 1.5; }
 .ltr { direction: ltr; unicode-bidi: isolate; }
@@ -1246,7 +1243,6 @@ table.checklist tr:nth-child(even) td {
       <div class="finding-top">
         <div>
           <div class="finding-label" th:text="${item.labelEn}">Brake Pad Friction Lining</div>
-          <div class="finding-label-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">بطانات الفرامل</div>
         </div>
         <div class="finding-badges">
           <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'badge-fail' : 'badge-attn'}"
@@ -1293,7 +1289,6 @@ table.checklist tr:nth-child(even) td {
          class="cat-overview-card avoid-break"
          th:classappend="${cat.defectCount > 0 ? 'cat-status-fail' : (cat.attentionCount > 0 ? 'cat-status-attn' : 'cat-status-good')}">
       <div class="cat-overview-label" th:text="${cat.labelEn}">Category</div>
-      <div class="cat-overview-label-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
       <div class="cat-score-row">
         <span class="cat-score-num"
               th:classappend="${cat.defectCount > 0 ? 'cat-score-fail' : (cat.attentionCount > 0 ? 'cat-score-attn' : 'cat-score-good')}"
@@ -1356,7 +1351,6 @@ table.checklist tr:nth-child(even) td {
     <div class="cat-section-header">
       <div>
         <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
-        <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
       </div>
       <div class="cat-section-meta">
         <span class="cat-section-score"
@@ -1381,7 +1375,6 @@ table.checklist tr:nth-child(even) td {
         <tr th:each="item : ${cat.items}">
           <td>
             <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
-            <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
           </td>
           <td class="chk-status-cell">
             <span class="status-circle"
@@ -1435,7 +1428,6 @@ table.checklist tr:nth-child(even) td {
       <div class="cat-section-header">
         <div>
           <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
-          <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
         </div>
         <div class="cat-section-meta">
           <span class="cat-section-score"
@@ -1460,7 +1452,6 @@ table.checklist tr:nth-child(even) td {
           <tr th:each="item : ${cat.items}">
             <td>
               <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
-              <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
             </td>
             <td class="chk-status-cell">
               <span class="status-circle"
@@ -1512,7 +1503,6 @@ table.checklist tr:nth-child(even) td {
       <div class="cat-section-header">
         <div>
           <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
-          <div class="cat-section-name-ar" th:if="${cat.labelAr != null and cat.labelAr != ''}" th:text="${cat.labelAr}">الفئة</div>
         </div>
         <div class="cat-section-meta">
           <span class="cat-section-score"
@@ -1537,7 +1527,6 @@ table.checklist tr:nth-child(even) td {
           <tr th:each="item : ${cat.items}">
             <td>
               <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
-              <div class="chk-name-ar" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">اسم البند</div>
             </td>
             <td class="chk-status-cell">
               <span class="status-circle"
@@ -1695,7 +1684,6 @@ table.checklist tr:nth-child(even) td {
         <tr th:each="item : ${r.notChecked}">
           <td>
             <span class="bold" th:text="${item.labelEn}">Item</span>
-            <div class="small muted" th:if="${item.labelAr != null and item.labelAr != ''}" th:text="${item.labelAr}">البند</div>
           </td>
           <td><span class="badge badge-neutral" th:text="${item.resultEn}">Not Checked</span></td>
           <td class="small muted" th:text="${item.reason}">—</td>
@@ -1824,25 +1812,6 @@ table.checklist tr:nth-child(even) td {
       </div>
     </div>
 
-    <div class="verification-card" style="margin-bottom:0;direction:rtl;text-align:right;" lang="ar">
-      <div class="detail-card-title" th:text="${r.ar.vehicle ?: 'ملخص التقرير'}">ملخص التقرير</div>
-      <div class="detail-row">
-        <span class="detail-label" th:text="${r.ar.vin ?: 'رقم الهيكل'}">رقم الهيكل</span>
-        <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G****</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label" th:text="${r.ar.workshop ?: 'الورشة'}">الورشة</span>
-        <span class="detail-value" th:text="${r.workshop.name}">الورشة</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label" th:text="${r.ar.technician ?: 'الفني'}">الفني</span>
-        <span class="detail-value" th:text="${r.technician.displayName}">الفني</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label" th:text="${r.ar.finalized ?: 'تاريخ الإصدار'}">تاريخ الإصدار</span>
-        <span class="detail-value" th:text="${r.finalizedAt}">نوفمبر 2024</span>
-      </div>
-    </div>
   </div>
 
   <!-- Limitations -->

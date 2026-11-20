@@ -175,11 +175,10 @@ class TypographyShowcase extends StatelessWidget {
 
   static const String _englishSample =
       'The quick brown fox inspects 13 vehicles.';
-  static const String _arabicSample = 'الثعلب البني السريع يفحص ١٣ مركبة.';
 
   @override
   Widget build(BuildContext context) {
-    final sample = context.isArabic ? _arabicSample : _englishSample;
+    const sample = _englishSample;
     final entries = <_TypeEntry>[
       _TypeEntry('display', context.texts.displayLarge),
       _TypeEntry('headlineXl', context.texts.headlineLarge),
@@ -453,7 +452,7 @@ class _ArabicFontPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.build(arabicFont: font, isArabic: true);
+    final theme = AppTheme.build(arabicFont: font);
     return Theme(
       data: theme,
       child: Builder(

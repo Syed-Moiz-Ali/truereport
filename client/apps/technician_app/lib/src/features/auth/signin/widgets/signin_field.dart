@@ -72,10 +72,7 @@ class _SignInFieldState extends State<SignInField> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-    final labelStyle = isArabic
-        ? Fx.text(12, 16, FontWeight.w600, 0, color: scheme.onSurfaceVariant)
-        : Fx.label12Wide.copyWith(color: scheme.onSurfaceVariant);
+    final labelStyle = Fx.label12Wide.copyWith(color: scheme.onSurfaceVariant);
 
     return FormField<String>(
       validator: (_) => widget.validator(widget.controller.text),
@@ -148,21 +145,13 @@ class _SignInFieldState extends State<SignInField> {
                             },
                             // Identifiers and codes stay LTR in both locales.
                             textDirection: TextDirection.ltr,
-                            style: isArabic
-                                ? Fx.text(
-                                    16,
-                                    24,
-                                    FontWeight.w500,
-                                    0,
-                                    color: scheme.onSurface,
-                                  )
-                                : Fx.text(
-                                    16,
-                                    24,
-                                    FontWeight.w500,
-                                    -0.16,
-                                    color: scheme.onSurface,
-                                  ),
+                            style: Fx.text(
+                              16,
+                              24,
+                              FontWeight.w500,
+                              -0.16,
+                              color: scheme.onSurface,
+                            ),
                             cursorColor: scheme.primary,
                             decoration: InputDecoration(
                               isDense: true,

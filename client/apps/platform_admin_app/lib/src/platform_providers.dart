@@ -40,14 +40,14 @@ ProviderScope platformUiMessageScope({
   return ProviderScope(
     overrides: [
       uiMessageStoreProvider.overrideWithValue(store),
-      uiMessageApiProvider.overrideWith((ref) {
+      uiMessageFetcherProvider.overrideWith((ref) {
         final client = ref.watch(apiClientProvider);
-        return UiMessageApi((path, query) async {
+        return (String path, Map<String, String> query) async {
           final data = await client.getDynamic(path, query: query);
           if (data is Map<String, dynamic>) return data;
           if (data is Map) return Map<String, dynamic>.from(data);
           throw const FormatException('UI message payload is not an object');
-        });
+        };
       }),
     ],
     child: child,

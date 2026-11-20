@@ -421,6 +421,7 @@ class _DeliveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return FxCard(
       key: const ValueKey('delivery'),
       padding: const EdgeInsets.all(_M.gutter),
@@ -441,14 +442,14 @@ class _DeliveryCard extends StatelessWidget {
             const SizedBox(height: 16),
             Container(width: cardWidth - 40, height: 1, color: Fx.divider),
             const SizedBox(height: 16),
-            const _ChannelRow(
+            _ChannelRow(
               iconId: '1_8965',
               iconSize: 18.33,
-              channel: 'Web Portal',
+              channel: l10n.successWebPortal,
               channelWidth: 87.13,
               leftWidth: 135.13,
               chipWidth: 85.73,
-              status: 'Synced',
+              status: l10n.successSynced,
             ),
           ],
         ),

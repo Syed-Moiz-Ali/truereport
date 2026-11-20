@@ -14,8 +14,8 @@ String technicianStatusLabel(AppLocalizations l10n, String status) =>
       'PUBLISHED' => l10n.jobsStatusPublished,
       'REJECTED' => l10n.jobsStatusRejected,
       'CANCELLED' => l10n.statusCancelled,
-      'READY' || 'Ready' => 'Ready',
-      'HIGH_PRIORITY' || 'High Priority' => 'High Priority',
+      'READY' || 'Ready' => l10n.statusReady,
+      'HIGH_PRIORITY' || 'High Priority' => l10n.jobsHighPriority,
       _ => l10n.notAvailable,
     };
 

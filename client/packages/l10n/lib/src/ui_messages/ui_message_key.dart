@@ -5,6 +5,10 @@ final class UiMessageKey {
 
   const UiMessageKey.platformAdmin(this.key) : namespace = 'platform_admin';
 
+  const UiMessageKey.workshopAdmin(this.key) : namespace = 'workshop_admin';
+
+  const UiMessageKey.technician(this.key) : namespace = 'technician';
+
   final String namespace;
 
   final String key;

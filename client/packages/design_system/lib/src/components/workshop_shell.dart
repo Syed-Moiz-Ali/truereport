@@ -33,10 +33,10 @@ class WorkshopAppShell extends StatelessWidget {
     required this.languageLabel,
     required this.child,
     this.moreLabel = 'More',
-    this.signOutLabel = 'Sign out',
+    this.signOutLabel = '',
     this.settingsLabel = 'Settings',
     this.notificationsAction,
-    this.navigationLabel = 'Main navigation',
+    this.navigationLabel = '',
     super.key,
   });
 

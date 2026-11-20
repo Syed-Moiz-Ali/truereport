@@ -17,8 +17,6 @@ class TechnicianSignInView extends StatefulWidget {
     required this.passwordController,
     required this.codeController,
     required this.formKey,
-    required this.isArabic,
-    required this.onLocaleChanged,
     required this.onSubmit,
     required this.onValidateEmail,
     required this.onValidateRequired,
@@ -36,8 +34,6 @@ class TechnicianSignInView extends StatefulWidget {
   final TextEditingController passwordController;
   final TextEditingController codeController;
   final GlobalKey<FormState> formKey;
-  final bool isArabic;
-  final ValueChanged<bool> onLocaleChanged;
   final VoidCallback onSubmit;
   final FormFieldValidator<String> onValidateEmail;
   final FormFieldValidator<String> onValidateRequired;
@@ -85,14 +81,8 @@ class _TechnicianSignInViewState extends State<TechnicianSignInView> {
               title: l10n.appTitle,
               statement: l10n.signInSubtitle,
               tagline: l10n.technicianSignInTagline,
-              englishLabel: l10n.languageEnglish,
-              arabicLabel: l10n.languageArabic,
-              isArabic: widget.isArabic,
               wide: wide,
               gutter: gutter,
-              onLanguageChanged: widget.onLocaleChanged,
-              englishKey: const Key('sign-in-language-en'),
-              arabicKey: const Key('sign-in-language-ar'),
             );
             final dock = SignInDock(
               emailController: widget.emailController,

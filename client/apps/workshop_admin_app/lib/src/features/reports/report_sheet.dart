@@ -239,7 +239,6 @@ class _ReadyBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spacing = context.spacing;
-    final isArabic = context.isArabic;
     final facts = <_Fact>[
       _Fact(
         value: summary.vehicleLine,
@@ -275,14 +274,11 @@ class _ReadyBody extends StatelessWidget {
         SizedBox(height: spacing.xl),
         const WorkshopDivider(),
         SizedBox(height: spacing.lg),
-        ReportKeyFindings(items: summary.keyFindings, isArabic: isArabic),
+        ReportKeyFindings(items: summary.keyFindings),
         SizedBox(height: spacing.xl),
         const WorkshopDivider(),
         SizedBox(height: spacing.lg),
-        ReportCategoryFindings(
-          categories: summary.categories,
-          isArabic: isArabic,
-        ),
+        ReportCategoryFindings(categories: summary.categories),
       ],
     );
   }

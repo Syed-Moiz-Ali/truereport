@@ -138,6 +138,5 @@ IconData jobDocumentStatusIcon(String status) => switch (status) {
 String _languageLabel(AppLocalizations l10n, String language) =>
     switch (language) {
       'en' => l10n.languageEnglish,
-      'ar' => l10n.languageArabic,
       _ => l10n.commonNotAvailable,
     };

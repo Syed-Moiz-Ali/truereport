@@ -1,0 +1,31 @@
+- generic [active] [ref=e4] [cursor=pointer]:
+  - generic:
+    - generic:
+      - textbox "name@workshop.com": admin.a@truereport.testTruereport#Local123
+      - textbox "Enter your password"
+      - button "Submit"
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=e7]: TrueReport
+          - generic [ref=e8]: TR
+          - generic [ref=e9]: WORKSHOP ADMIN
+          - generic [ref=e10]: Sign in
+          - generic [ref=e11]: Use your workshop account.
+          - generic [ref=e12]: EXAMPLE JOB
+          - generic [ref=e13]: 2023 Chevrolet Camaro ZL1
+          - generic [ref=e14]: Inspection checklist
+          - generic:
+            - generic [ref=e15]:
+              - textbox "Email" [disabled] [ref=e16]
+              - textbox [ref=e27]
+            - generic [ref=e19]:
+              - textbox "Password" [disabled] [ref=e20]
+              - generic [ref=e21]:
+                - textbox "Enter your password" [invalid] [ref=e22]
+                - button "Show password" [ref=e23]
+                - generic [ref=e28]: This field is required.
+            - button "Sign in" [ref=e24]
+            - generic [ref=e25]: Contact your platform administrator for access.
+          - generic [ref=e26]: 18 of 24 items · 75%

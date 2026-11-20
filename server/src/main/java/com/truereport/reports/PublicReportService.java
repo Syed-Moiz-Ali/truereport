@@ -96,7 +96,7 @@ public class PublicReportService {
             List<EvidenceDerivative> publicDerivatives =
                     derivatives.findByReportVersionIdOrderByCreatedAtAsc(version.getId());
             Map<String, Object> page = viewMapper.publicPage(version, publicDerivatives,
-                    "ar".equals(language) ? "ar" : "en", active.isPdfDownloadEnabled(), token);
+                    "en", active.isPdfDownloadEnabled(), token);
             return new Resolution(Status.ACTIVE, new Resolved(active, report, version, page));
         } catch (Exception exception) {
             return Resolution.unavailable();

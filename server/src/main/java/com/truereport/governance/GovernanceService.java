@@ -159,10 +159,10 @@ public class GovernanceService {
                         .map(name -> entry.getKey() + "." + name))
                 .limit(50).toList();
         return new HealthCheckDto("TRANSLATIONS", missing == 0 ? "OK" : "ERROR",
-                missing == 0 ? "English and Arabic content is complete"
+                missing == 0 ? "English content is complete"
                         : missing + " translation(s) missing",
-                missing == 0 ? "المحتوى الإنجليزي والعربي مكتمل"
-                        : "عدد الترجمات الناقصة " + missing,
+                missing == 0 ? "English content is complete"
+                        : missing + " translation(s) missing",
                 missing, references);
     }
 

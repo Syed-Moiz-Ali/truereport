@@ -9,24 +9,58 @@ import 'ui_message_cache.dart';
 import 'ui_message_key.dart';
 import 'ui_message_manifest.dart';
 
+/// Persistence for the selected language and downloaded catalogs.
+///
+/// Defaults to in-memory; apps may override it with a durable store.
 final uiMessageStoreProvider = Provider<UiMessageStore>((ref) {
   return InMemoryUiMessageStore();
+});
+
+/// The HTTP transport used to fetch manifest/bundle payloads.
+///
+/// Apps override this once with a fetcher backed by their `ApiClient`.
+final uiMessageFetcherProvider = Provider<UiMessageFetcher>((ref) {
+  throw UnsupportedError(
+    'uiMessageFetcherProvider must be overridden with a real fetcher',
+  );
+});
+
+/// One API bound to a client: `/api/v1/i18n/ui-messages/{client}/...`.
+final uiMessageApiProvider = Provider.family<UiMessageApi, String>((
+  ref,
+  client,
+) {
+  return UiMessageApi.forClient(client, ref.watch(uiMessageFetcherProvider));
 });
 
 final uiMessageCacheProvider = Provider<UiMessageCache>((ref) {
   return UiMessageCache(ref.watch(uiMessageStoreProvider));
 });
 
-final uiMessageApiProvider = Provider<UiMessageApi>((ref) {
-  throw UnsupportedError(
-    'uiMessageApiProvider must be overridden with a real UiMessageApi',
-  );
-});
-
-final uiMessageControllerProvider =
-    NotifierProvider<UiMessageController, UiMessageState>(
+/// THE language selection provider. Keyed by client so every app shares the
+/// same implementation and only the client name differs.
+final languageSelectionProvider =
+    NotifierProvider.family<UiMessageController, UiMessageState, String>(
       UiMessageController.new,
     );
+
+/// Platform Admin's binding of the shared provider.
+final uiMessageControllerProvider = languageSelectionProvider(
+  UiMessageClients.platformAdmin,
+);
+
+/// Flat, English-filled messages for the active language of [client].
+///
+/// ARB-backed apps feed this into `setRemoteEnglish` so generated getters keep
+/// working while the text stays backend-owned.
+final uiMessageMessagesProvider = Provider.family<Map<String, String>, String>((
+  ref,
+  client,
+) {
+  final selection = ref.watch(languageSelectionProvider(client));
+  if (!selection.ready) return const <String, String>{};
+  return ref.read(languageSelectionProvider(client).notifier).mergedMessages();
+});
 
 class UiMessageState {
   const UiMessageState({
@@ -76,7 +110,12 @@ class UiMessageState {
 }
 
 class UiMessageController extends Notifier<UiMessageState> {
+  UiMessageController(this.client);
+
   static const int downloadConcurrency = 3;
+
+  /// One of `UiMessageClients.all`.
+  final String client;
 
   bool _bootstrapStarted = false;
 
@@ -85,7 +124,12 @@ class UiMessageController extends Notifier<UiMessageState> {
 
   UiMessageCache get _cache => ref.read(uiMessageCacheProvider);
 
-  UiMessageApi get _api => ref.read(uiMessageApiProvider);
+  UiMessageApi get _api => ref.read(uiMessageApiProvider(client));
+
+  /// Client namespace first, then shared `common`: a bare key prefers the
+  /// client-specific value.
+  List<String> get _namespaces =>
+      UiMessageClients.namespacesFor(client).reversed.toList(growable: false);
 
   Future<void> bootstrap() async {
     if (_bootstrapStarted) {
@@ -95,9 +139,13 @@ class UiMessageController extends Notifier<UiMessageState> {
     _bootstrapStarted = true;
     state = state.copyWith(booting: true, clearBootError: true);
     await _cache.restore();
+    final preferred = await _cache.restoreSelectedLanguage();
     final restored = _cache.manifest;
     if (restored != null && !_cache.isEmpty) {
-      final active = _resolveActive(restored, state.activeLanguage);
+      final active = _resolveActive(
+        restored,
+        preferred ?? state.activeLanguage,
+      );
       state = state.copyWith(
         manifest: restored,
         activeLanguage: active,
@@ -111,7 +159,10 @@ class UiMessageController extends Notifier<UiMessageState> {
       final manifest = await _api.manifest();
       await _cache.saveManifest(manifest);
       await _syncLanguages(manifest, onlyStale: true);
-      final active = _resolveActive(manifest, state.activeLanguage);
+      final active = _resolveActive(
+        manifest,
+        preferred ?? state.activeLanguage,
+      );
       final usable = _usableLanguage(manifest, active);
       if (usable == null) {
         throw StateError('No usable UI message catalog');
@@ -175,6 +226,7 @@ class UiMessageController extends Notifier<UiMessageState> {
         activeLanguage: code,
         revision: state.revision + 1,
       );
+      await _cache.saveSelectedLanguage(code);
       if (manifest != null) {
         final expected = manifest.expectedVersions(code);
         if (expected.isEmpty || !_cache.isFresh(code, expected)) {
@@ -190,6 +242,7 @@ class UiMessageController extends Notifier<UiMessageState> {
         activeLanguage: code,
         revision: state.revision + 1,
       );
+      await _cache.saveSelectedLanguage(code);
       return true;
     }
     _warnMissing('language "$code" failed to load');
@@ -247,6 +300,32 @@ class UiMessageController extends Notifier<UiMessageState> {
     defaultLanguage: state.defaultLanguage,
   );
 
+  /// Flat messages for the active language, English-filled per key.
+  ///
+  /// Keys from `common` are applied first so the client namespace wins on a
+  /// collision, matching the backend's `messages` contract.
+  Map<String, String> mergedMessages() {
+    final active = state.activeLanguage;
+    final fallback = state.defaultLanguage;
+    final namespaces = UiMessageClients.namespacesFor(client);
+    final merged = <String, String>{};
+    for (final language in <String>[fallback, active]) {
+      for (final namespace in namespaces) {
+        final snapshot = _cache.snapshot(language)[namespace];
+        if (snapshot == null) continue;
+        merged.addAll(snapshot);
+      }
+    }
+    // Keep values that only exist in non-standard namespaces.
+    for (final language in <String>[fallback, active]) {
+      for (final entry in _cache.snapshot(language).entries) {
+        if (namespaces.contains(entry.key)) continue;
+        merged.addAll(entry.value);
+      }
+    }
+    return merged;
+  }
+
   Map<String, Map<String, Map<String, String>>> _snapshotCatalogs() {
     final result = <String, Map<String, Map<String, String>>>{};
     for (final language in _cache.cachedLanguages) {
@@ -261,7 +340,7 @@ class UiMessageController extends Notifier<UiMessageState> {
     if (namespaced != null) {
       return _cache.lookup(language, namespaced.$1, namespaced.$2);
     }
-    for (final namespace in UiMessageApi.namespaces) {
+    for (final namespace in _namespaces) {
       final value = _cache.lookup(language, namespace, key);
       if (value != null) return value;
     }
@@ -276,7 +355,7 @@ class UiMessageController extends Notifier<UiMessageState> {
     final dot = key.indexOf('.');
     if (dot <= 0) return null;
     final head = key.substring(0, dot);
-    if (head == 'platform_admin' || head == 'common') {
+    if (UiMessageClients.isKnown(head) || head == 'common') {
       return (head, key.substring(dot + 1));
     }
     return null;
@@ -388,15 +467,13 @@ class UiMessageStrings {
         catalogs[defaultLanguage]?[namespace]?[key];
   }
 
-  /// Chooses one of two legacy bilingual messages for the active language.
+  /// Chooses the English message when a legacy bilingual pair is supplied.
+  ///
+  /// Arabic is no longer a supported locale, so the English side always wins;
+  /// the signature is kept so existing call sites keep compiling.
   String pickBilingual({required String en, required String ar}) {
-    final language = activeLanguage.toLowerCase();
-    final rtl =
-        language == 'ar' ||
-        language.startsWith('ar-') ||
-        language.startsWith('ar_');
-    if (rtl) return ar.isNotEmpty ? ar : en;
-    return en.isNotEmpty ? en : ar;
+    if (en.isNotEmpty) return en;
+    return ar;
   }
 
   String? _resolveKey(UiMessageKey key, String language) {

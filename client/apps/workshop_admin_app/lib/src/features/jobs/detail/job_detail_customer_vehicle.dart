@@ -73,12 +73,10 @@ class JobDetailCustomerVehicle extends StatelessWidget {
                 label: l10n.jobsFieldFuelType,
                 value: job.fuelType ?? l10n.commonNotAvailable,
               ),
-              if (preferred == 'ar' || preferred == 'en')
+              if (preferred == 'en')
                 JobFact(
                   label: l10n.jobsFieldPreferredLanguage,
-                  value: preferred == 'ar'
-                      ? l10n.languageArabic
-                      : l10n.languageEnglish,
+                  value: l10n.languageEnglish,
                 ),
               if (job.cancelReason != null)
                 JobFact(label: l10n.jobsCancelReason, value: job.cancelReason!),

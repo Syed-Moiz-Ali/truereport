@@ -66,7 +66,7 @@ springdoc:
 
 truereport:
   i18n:
-    ui-messages-dir: ${UI_MESSAGES_DIR:src/main/resources/i18n/platform_admin}
+    ui-messages-dir: ${UI_MESSAGES_DIR:src/main/resources/i18n}
   jwt:
     issuer: truereport
     audience: truereport-api

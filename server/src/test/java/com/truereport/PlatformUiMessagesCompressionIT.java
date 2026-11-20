@@ -21,12 +21,12 @@ class PlatformUiMessagesCompressionIT {
     int port;
 
     @Test
-    void bundleUsesWeakEtagAndGzipCompression() throws Exception {
+    void bundleIsGzippedAndNotCached() throws Exception {
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
         String url = "http://localhost:" + port
-                + "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common";
+                + "/api/v1/i18n/ui-messages/workshop_admin/bundle?lang=es";
         HttpResponse<byte[]> response = client.send(
                 HttpRequest.newBuilder()
                         .uri(URI.create(url))
@@ -38,19 +38,8 @@ class PlatformUiMessagesCompressionIT {
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.headers().firstValue("Content-Encoding")).hasValue("gzip");
-        String etag = response.headers().firstValue("ETag").orElseThrow();
-        assertThat(etag).startsWith("W/");
+        assertThat(response.headers().firstValue("Cache-Control")).hasValue("no-store");
+        assertThat(response.headers().firstValue("ETag")).isEmpty();
         assertThat(response.body().length).isGreaterThan(0);
-
-        HttpResponse<Void> notModified = client.send(
-                HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .header("Accept-Encoding", "gzip")
-                        .header("If-None-Match", etag)
-                        .timeout(Duration.ofSeconds(20))
-                        .GET()
-                        .build(),
-                HttpResponse.BodyHandlers.discarding());
-        assertThat(notModified.statusCode()).isEqualTo(304);
     }
 }

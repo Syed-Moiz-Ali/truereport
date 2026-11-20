@@ -36,7 +36,7 @@ public class PublicReportController {
         Map<String, Object> model = new LinkedHashMap<>();
         model.put("labels", ReportMessages.labels(language));
         model.put("lang", language);
-        model.put("dir", language.equals("ar") ? "rtl" : "ltr");
+        model.put("dir", "ltr");
         return new ModelAndView("report/unavailable", model);
     }
 
@@ -51,7 +51,7 @@ public class PublicReportController {
         Map<String, Object> model = new LinkedHashMap<>();
         model.put("labels", ReportMessages.labels(language));
         model.put("lang", language);
-        model.put("dir", language.equals("ar") ? "rtl" : "ltr");
+        model.put("dir", "ltr");
         if (resolution.status() == PublicReportService.Status.ACTIVE) {
             model.put("r", resolution.resolved().page());
             model.put("token", token);

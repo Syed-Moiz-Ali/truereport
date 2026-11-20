@@ -134,8 +134,6 @@ public class DefaultChecklistSeeder {
                     (id, code, name, status, sort_order, created_at, updated_at, version)
                 VALUES (?, ?, ?, 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """, id, definition.code(), definition.nameEn(), definition.sortOrder());
-        translations.saveOverlays("OPTION_SET", id, translation("name", definition.nameAr()),
-                "APPROVED");
         return true;
     }
 
@@ -159,8 +157,6 @@ public class DefaultChecklistSeeder {
                              metadata_json, created_at, updated_at, version)
                         VALUES (?, ?, ?, ?, 'ACTIVE', ?, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                         """, valueId, setId, value.code(), value.en(), order);
-                translations.saveOverlays("OPTION_VALUE", valueId, translation("label", value.ar()),
-                        "APPROVED");
                 created++;
             }
             order++;
@@ -178,8 +174,6 @@ public class DefaultChecklistSeeder {
                      created_at, updated_at, version)
                 VALUES (?, ?, ?, 'ACTIVE', ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """, id.toString(), category.code(), category.nameEn(), category.sortOrder());
-        translations.saveOverlays("CATEGORY", id.toString(),
-                translation("name", category.nameAr()), "APPROVED");
         return id;
     }
 
@@ -216,11 +210,6 @@ public class DefaultChecklistSeeder {
                 item.instructionEn(), item.specEn(), item.unit(), item.tool(),
                 item.safetyCritical(), item.multiPoint(), item.maxTyreAgeYears(),
                 json(RESULTS), now, now, now);
-        Map<String, Map<String, String>> overlays = new LinkedHashMap<>();
-        putTranslation(overlays, "label", item.nameAr());
-        putTranslation(overlays, "instruction", item.instructionAr());
-        putTranslation(overlays, "standardSpec", item.specAr());
-        translations.saveOverlays("ITEM", versionId.toString(), overlays, "APPROVED");
         jdbc.update("""
                 UPDATE platform_items SET status = 'PUBLISHED', current_published_version_id = ?,
                     updated_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = ?
@@ -346,7 +335,7 @@ public class DefaultChecklistSeeder {
                                     String max, String result, int score, String en, String ar,
                                     int order) {
         return new MeasurementBandDto(field, unit, direction, new BigDecimal(min),
-                new BigDecimal(max), result, score, en, order, translation("label", ar), en, ar);
+                new BigDecimal(max), result, score, en, order, Map.of(), en, ar);
     }
 
     private void seedIssueFields(ItemSeed item, String versionId) {
@@ -403,25 +392,9 @@ public class DefaultChecklistSeeder {
                                 boolean freeText, int sortOrder, List<String> allowed) {
         return new IssueFieldDto(id, fieldCode, label, inputType, optionSet, unitSet, required,
                 statuses, min, max, decimals, dependsField, dependsValue, multiple, freeText,
-                sortOrder, allowed, translation("label", labelAr), label, labelAr);
+                sortOrder, allowed, Map.of(), label, labelAr);
     }
 
-    private Map<String, Map<String, String>> translation(String field, String ar) {
-        if (ar == null || ar.isBlank()) {
-            return Map.of();
-        }
-        Map<String, String> values = new LinkedHashMap<>();
-        values.put("ar", ar.trim());
-        Map<String, Map<String, String>> result = new LinkedHashMap<>();
-        result.put(field, values);
-        return result;
-    }
-
-    private void putTranslation(Map<String, Map<String, String>> target, String field, String ar) {
-        if (ar != null && !ar.isBlank()) {
-            target.computeIfAbsent(field, ignored -> new LinkedHashMap<>()).put("ar", ar.trim());
-        }
-    }
     private List<String> locationSubset(ItemSeed item) {
         if ("BRK-PAD-01".equals(item.code()) || "TYRE-SET-01".equals(item.code())) {
             return List.of("FRONT_LEFT", "FRONT_RIGHT", "REAR_LEFT", "REAR_RIGHT");
@@ -451,8 +424,6 @@ public class DefaultChecklistSeeder {
                      created_at, updated_at, version)
                 VALUES (?, ?, ?, 'ACTIVE', TRUE, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """, id, type.code(), type.nameEn(), type.sortOrder());
-        translations.saveOverlays("DOCUMENT_TYPE", id, translation("name", type.nameAr()),
-                "APPROVED");
         return true;
     }
 
@@ -475,12 +446,6 @@ public class DefaultChecklistSeeder {
                         'Full 6-category, 30-item inspection package.',
                         'ACTIVE', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """, templateId);
-        Map<String, Map<String, String>> templateOverlays = new LinkedHashMap<>();
-        putTranslation(templateOverlays, "name",
-                "فحص شامل 30 نقطة وفق معايير المحيط الخليجي");
-        putTranslation(templateOverlays, "description",
-                "حزمة فحص كاملة من 6 فئات و30 عنصرًا.");
-        translations.saveOverlays("TEMPLATE", templateId, templateOverlays, "APPROVED");
         jdbc.update("""
                 INSERT INTO platform_template_versions
                     (id, template_id, version_no, status, published_at, published_by,
@@ -545,9 +510,6 @@ public class DefaultChecklistSeeder {
             return "Inspect " + nameEn + " and record the condition with evidence.";
         }
 
-        String instructionAr() {
-            return "Ø§ÙØ­Øµ " + nameAr + " ÙˆØ³Ø¬Ù‘Ù„ Ø§Ù„Ø­Ø§Ù„Ø© Ù…Ø¹ Ø§Ù„Ø£Ø¯Ù„Ø©.";
-        }
     }
 
     private record OptionSetDefinition(String code, String nameEn, String nameAr, int sortOrder,

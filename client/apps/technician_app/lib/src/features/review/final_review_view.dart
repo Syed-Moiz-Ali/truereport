@@ -75,8 +75,7 @@ class FinalReviewView extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
-    final title =
-        job.templateName.isEmpty ? l10n.checklist : job.templateName;
+    final title = job.templateName.isEmpty ? l10n.checklist : job.templateName;
 
     return Container(
       key: const ValueKey('header'),
@@ -121,8 +120,7 @@ class FinalReviewView extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Padding(
-                          padding:
-                              const EdgeInsetsDirectional.only(start: 4),
+                          padding: const EdgeInsetsDirectional.only(start: 4),
                           child: Text(
                             title,
                             maxLines: 1,
@@ -201,7 +199,7 @@ class FinalReviewView extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    'STEP 4 OF 4 \u2022 VALIDATION',
+                    l10n.finalReviewStep,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Fx.text(
@@ -237,10 +235,7 @@ class FinalReviewView extends StatelessWidget {
               l10n.reviewAndFinalize,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Fx.display26.copyWith(
-                color: Fx.ink,
-                letterSpacing: -0.65,
-              ),
+              style: Fx.display26.copyWith(color: Fx.ink, letterSpacing: -0.65),
             ),
           ),
           const SizedBox(height: 4),
@@ -248,10 +243,7 @@ class FinalReviewView extends StatelessWidget {
             l10n.finalizeIrreversible,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Fx.body14.copyWith(
-              color: Fx.muted,
-              letterSpacing: -0.07,
-            ),
+            style: Fx.body14.copyWith(color: Fx.muted, letterSpacing: -0.07),
           ),
           const SizedBox(height: 24),
         ],
@@ -290,11 +282,7 @@ class FinalReviewView extends StatelessWidget {
                     boxShadow: Fx.pillShadow,
                   ),
                   child: const Center(
-                    child: FxIcon(
-                      id: '1_8367',
-                      size: 22,
-                      color: Fx.dangerRed,
-                    ),
+                    child: FxIcon(id: '1_8367', size: 22, color: Fx.dangerRed),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -392,13 +380,7 @@ class FinalReviewView extends StatelessWidget {
           child: Text(
             numeral,
             textDirection: TextDirection.ltr,
-            style: Fx.text(
-              11,
-              16.5,
-              FontWeight.w700,
-              0,
-              color: F2b.redMaroon,
-            ),
+            style: Fx.text(11, 16.5, FontWeight.w700, 0, color: F2b.redMaroon),
           ),
         ),
       ),
@@ -426,8 +408,7 @@ class FinalReviewView extends StatelessWidget {
               children: [
                 Container(
                   height: 16,
-                  padding:
-                      const EdgeInsetsDirectional.symmetric(horizontal: 4),
+                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
                   child: Text(
                     l10n.missingItems.toUpperCase(),
                     maxLines: 1,
@@ -515,8 +496,9 @@ class FinalReviewView extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: data.chipBg,
-                                borderRadius:
-                                    BorderRadius.circular(Fx.pillRadius),
+                                borderRadius: BorderRadius.circular(
+                                  Fx.pillRadius,
+                                ),
                               ),
                               child: Text(
                                 data.chipLabel,
@@ -556,8 +538,9 @@ class FinalReviewView extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: data.chipBg,
-                                borderRadius:
-                                    BorderRadius.circular(Fx.pillRadius),
+                                borderRadius: BorderRadius.circular(
+                                  Fx.pillRadius,
+                                ),
                               ),
                               child: Text(
                                 data.chipLabel,
@@ -773,9 +756,7 @@ class FinalReviewView extends StatelessWidget {
                             child: FxIcon(
                               id: '1_8463',
                               size: 17.5,
-                              color: _canContinue
-                                  ? Fx.white
-                                  : F2b.greyLavender,
+                              color: _canContinue ? Fx.white : F2b.greyLavender,
                             ),
                           ),
                         ),
@@ -790,9 +771,7 @@ class FinalReviewView extends StatelessWidget {
                             18,
                             FontWeight.w700,
                             -0.14,
-                            color: _canContinue
-                                ? Fx.white
-                                : F2b.greyLavender,
+                            color: _canContinue ? Fx.white : F2b.greyLavender,
                           ),
                         ),
                       ],
@@ -807,13 +786,7 @@ class FinalReviewView extends StatelessWidget {
             l10n.finalizeIrreversible,
             maxLines: 2,
             textAlign: TextAlign.center,
-            style: Fx.text(
-              13,
-              18,
-              FontWeight.w400,
-              0,
-              color: Fx.muted,
-            ),
+            style: Fx.text(13, 18, FontWeight.w400, 0, color: Fx.muted),
           ),
         ],
       ),
@@ -821,72 +794,74 @@ class FinalReviewView extends StatelessWidget {
   }
 
   List<_ReviewCardData> _productItems(AppLocalizations l10n) {
-    return review.blocking.map((issue) {
-      final title = _issueTitle(l10n, issue);
-      final detail = _issueDetail(l10n, issue);
-      final itemId = issue.inspectionItemId ?? '';
-      final isBrake = itemId.contains('brake');
-      final isTread = itemId.contains('tread');
-      final isSig = itemId.contains('sig');
+    return review.blocking
+        .map((issue) {
+          final title = _issueTitle(l10n, issue);
+          final detail = _issueDetail(l10n, issue);
+          final itemId = issue.inspectionItemId ?? '';
+          final isBrake = itemId.contains('brake');
+          final isTread = itemId.contains('tread');
+          final isSig = itemId.contains('sig');
 
-      var iconId = '1_8394';
-      var iconSize = 18.0;
-      var actionIconId = '1_8406';
-      var actionIconSize = 18.33;
-      var chevronId = '1_8408';
-      var chipLabel = l10n.missingItems;
-      var chipBg = F2b.rosePale;
-      var chipTextColor = Fx.dangerRed;
+          var iconId = '1_8394';
+          var iconSize = 18.0;
+          var actionIconId = '1_8406';
+          var actionIconSize = 18.33;
+          var chevronId = '1_8408';
+          var chipLabel = l10n.missingItems;
+          var chipBg = F2b.rosePale;
+          var chipTextColor = Fx.dangerRed;
 
-      if (isBrake) {
-        iconId = '1_8394';
-        iconSize = 18;
-        actionIconId = '1_8406';
-        actionIconSize = 18.33;
-        chevronId = '1_8408';
-        chipLabel = l10n.technicianVinChassis;
-        chipBg = Colors.transparent;
-        chipTextColor = Fx.muted;
-      } else if (isTread) {
-        iconId = '1_8413';
-        iconSize = 22;
-        actionIconId = '1_8425';
-        actionIconSize = 16.67;
-        chevronId = '1_8427';
-        chipLabel = l10n.technicianPerspectiveFront;
-        chipBg = Colors.transparent;
-        chipTextColor = Fx.muted;
-      } else if (isSig) {
-        iconId = '1_8432';
-        iconSize = 19;
-        actionIconId = '1_8444';
-        actionIconSize = 16.67;
-        chevronId = '1_8446';
-        chipLabel = l10n.consentRequired;
-        chipBg = F2b.rosePale;
-        chipTextColor = Fx.dangerRed;
-      }
+          if (isBrake) {
+            iconId = '1_8394';
+            iconSize = 18;
+            actionIconId = '1_8406';
+            actionIconSize = 18.33;
+            chevronId = '1_8408';
+            chipLabel = l10n.technicianVinChassis;
+            chipBg = Colors.transparent;
+            chipTextColor = Fx.muted;
+          } else if (isTread) {
+            iconId = '1_8413';
+            iconSize = 22;
+            actionIconId = '1_8425';
+            actionIconSize = 16.67;
+            chevronId = '1_8427';
+            chipLabel = l10n.technicianPerspectiveFront;
+            chipBg = Colors.transparent;
+            chipTextColor = Fx.muted;
+          } else if (isSig) {
+            iconId = '1_8432';
+            iconSize = 19;
+            actionIconId = '1_8444';
+            actionIconSize = 16.67;
+            chevronId = '1_8446';
+            chipLabel = l10n.consentRequired;
+            chipBg = F2b.rosePale;
+            chipTextColor = Fx.dangerRed;
+          }
 
-      return _ReviewCardData(
-        iconId: iconId,
-        iconSize: iconSize,
-        title: title,
-        titleWidth: 85,
-        titleRightPad: 0,
-        chipLabel: chipLabel,
-        chipWidth: 70,
-        chipBg: chipBg,
-        chipTextColor: chipTextColor,
-        detail: detail,
-        detailWidth: 165,
-        titleRowWidth: 165,
-        leftWidth: 230,
-        actionIconId: actionIconId,
-        actionIconSize: actionIconSize,
-        chevronId: chevronId,
-        onTap: () => onOpenIssue(issue),
-      );
-    }).toList(growable: false);
+          return _ReviewCardData(
+            iconId: iconId,
+            iconSize: iconSize,
+            title: title,
+            titleWidth: 85,
+            titleRightPad: 0,
+            chipLabel: chipLabel,
+            chipWidth: 70,
+            chipBg: chipBg,
+            chipTextColor: chipTextColor,
+            detail: detail,
+            detailWidth: 165,
+            titleRowWidth: 165,
+            leftWidth: 230,
+            actionIconId: actionIconId,
+            actionIconSize: actionIconSize,
+            chevronId: chevronId,
+            onTap: () => onOpenIssue(issue),
+          );
+        })
+        .toList(growable: false);
   }
 }
 

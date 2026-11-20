@@ -78,33 +78,7 @@ class _SegmentedShowcaseState extends State<SegmentedShowcase> {
           ),
         ),
         SizedBox(height: context.spacing.lg),
-        const GalleryTile(
-          label: 'Language switch',
-          child: _LanguageSwitchSample(),
-        ),
       ],
-    );
-  }
-}
-
-class _LanguageSwitchSample extends StatefulWidget {
-  const _LanguageSwitchSample();
-
-  @override
-  State<_LanguageSwitchSample> createState() => _LanguageSwitchSampleState();
-}
-
-class _LanguageSwitchSampleState extends State<_LanguageSwitchSample> {
-  bool _isArabic = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return AppLanguageSwitch(
-      englishLabel: l10n.languageEnglish,
-      arabicLabel: l10n.languageArabic,
-      isArabic: _isArabic,
-      onChanged: (value) => setState(() => _isArabic = value),
     );
   }
 }

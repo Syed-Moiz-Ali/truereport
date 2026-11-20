@@ -11,12 +11,10 @@ import 'report_pills.dart';
 class ReportKeyFindings extends StatelessWidget {
   const ReportKeyFindings({
     required this.items,
-    required this.isArabic,
     super.key,
   });
 
   final List<Map<String, dynamic>> items;
-  final bool isArabic;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +37,7 @@ class ReportKeyFindings extends StatelessWidget {
               const WorkshopDivider(),
               SizedBox(height: spacing.md),
             ],
-            _FindingRow(item: items[index], isArabic: isArabic, strong: true),
+            _FindingRow(item: items[index], strong: true),
           ],
       ],
     );
@@ -50,12 +48,10 @@ class ReportKeyFindings extends StatelessWidget {
 class ReportCategoryFindings extends StatelessWidget {
   const ReportCategoryFindings({
     required this.categories,
-    required this.isArabic,
     super.key,
   });
 
   final List<Map<String, dynamic>> categories;
-  final bool isArabic;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +73,7 @@ class ReportCategoryFindings extends StatelessWidget {
               const WorkshopDivider(),
               SizedBox(height: spacing.md),
             ],
-            _CategoryBlock(category: categories[index], isArabic: isArabic),
+            _CategoryBlock(category: categories[index]),
           ],
       ],
     );
@@ -85,17 +81,16 @@ class ReportCategoryFindings extends StatelessWidget {
 }
 
 class _CategoryBlock extends StatelessWidget {
-  const _CategoryBlock({required this.category, required this.isArabic});
+  const _CategoryBlock({required this.category});
 
   final Map<String, dynamic> category;
-  final bool isArabic;
 
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
     final items = ReportData.maps(category['items']);
-    final label = ReportData.localized(category, 'label', isArabic);
+    final label = ReportData.localized(category, 'label');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -126,7 +121,7 @@ class _CategoryBlock extends StatelessWidget {
         else
           for (var index = 0; index < items.length; index++) ...[
             if (index > 0) SizedBox(height: spacing.sm),
-            _FindingRow(item: items[index], isArabic: isArabic, strong: false),
+            _FindingRow(item: items[index], strong: false),
           ],
       ],
     );
@@ -136,12 +131,10 @@ class _CategoryBlock extends StatelessWidget {
 class _FindingRow extends StatelessWidget {
   const _FindingRow({
     required this.item,
-    required this.isArabic,
     required this.strong,
   });
 
   final Map<String, dynamic> item;
-  final bool isArabic;
   final bool strong;
 
   @override
@@ -150,8 +143,8 @@ class _FindingRow extends StatelessWidget {
     final spacing = context.spacing;
     final l10n = AppLocalizations.of(context);
 
-    final label = ReportData.localized(item, 'label', isArabic);
-    final localizedResult = ReportData.localized(item, 'result', isArabic);
+    final label = ReportData.localized(item, 'label');
+    final localizedResult = ReportData.localized(item, 'result');
     final resultCode = ReportData.text(item['resultCode']);
     final result = localizedResult.isNotEmpty
         ? localizedResult
@@ -159,14 +152,13 @@ class _FindingRow extends StatelessWidget {
         ? ''
         : resultLabel(l10n, resultCode);
     final severityCode = ReportData.text(item['severityCode']).toUpperCase();
-    final localizedSeverity = ReportData.localized(item, 'severity', isArabic);
+    final localizedSeverity = ReportData.localized(item, 'severity');
     final severity = localizedSeverity.isNotEmpty
         ? localizedSeverity
         : severityCode.isEmpty
         ? ''
         : severityLabel(l10n, severityCode);
     final note = ReportData.text(item['note']);
-    final noteIsArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(note);
 
     return Semantics(
       container: true,
@@ -206,10 +198,8 @@ class _FindingRow extends StatelessWidget {
             SizedBox(height: spacing.xs),
             Text(
               note,
-              textDirection: noteIsArabic ? null : TextDirection.ltr,
-              textAlign: noteIsArabic
-                  ? TextAlign.start
-                  : (isArabic ? TextAlign.right : TextAlign.start),
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.start,
               style: ws.meta.copyWith(color: ws.muted),
             ),
           ],

@@ -25,7 +25,6 @@ class WorkshopSettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final session = ref.watch(authControllerProvider).value;
-    final locale = ref.watch(localeProvider);
 
     final displayName = session?.user.displayName.trim() ?? '';
     final email = session?.user.email.trim() ?? '';
@@ -35,7 +34,6 @@ class WorkshopSettingsPage extends ConsumerWidget {
     final accountName = displayName.isEmpty
         ? l10n.roleWorkshopAdmin
         : displayName;
-    final isArabic = locale.languageCode == 'ar';
 
     return WorkshopPageScroll(
       key: const Key('settings-screen'),
@@ -57,12 +55,7 @@ class WorkshopSettingsPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SettingsLanguageSurface(
-                  isArabic: isArabic,
-                  onChanged: (arabic) => ref
-                      .read(localeProvider.notifier)
-                      .setLocale(Locale(arabic ? 'ar' : 'en')),
-                ),
+                const SettingsLanguageSurface(),
                 const SizedBox(height: SettingsGeometry.sectionGap),
                 SettingsSessionSurface(
                   onSignOut: () =>

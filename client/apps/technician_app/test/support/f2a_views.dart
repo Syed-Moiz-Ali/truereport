@@ -47,8 +47,6 @@ Widget f2aScreen(
         passwordController: TextEditingController(),
         codeController: TextEditingController(),
         formKey: GlobalKey<FormState>(),
-        isArabic: false,
-        onLocaleChanged: (_) {},
         onSubmit: () {},
         onValidateEmail: (_) => null,
         onValidateRequired: (_) => null,

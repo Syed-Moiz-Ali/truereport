@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Generates the EN/AR report documents after publish. Generation is attempted
+ * Generates the English report documents after publish. Generation is attempted
  * immediately after the publish transaction and is also recorded in the
  * transactional outbox so a failed artifact can be retried safely.
  */
 @Service
 public class PlatformJobDocumentService {
 
-    private static final List<String> LANGUAGES = List.of("en", "ar");
+    private static final List<String> LANGUAGES = List.of("en");
 
     private final PlatformJobStore store;
     private final ObjectStorage storage;
@@ -88,12 +88,12 @@ public class PlatformJobDocumentService {
 
     private void generateOne(JobRow job, DocumentRow document, DocumentTypeRow type) {
         try {
-            String language = "ar".equals(document.language()) ? "ar" : "en";
+            String language = "en";
             List<String> lines = new ArrayList<>();
             lines.add("TrueReport Inspection Report");
             lines.add("Reference: " + job.reference());
-            lines.add("Document: " + ("ar".equals(language) ? type.nameAr() : type.nameEn()));
-            lines.add("Language: " + ("ar".equals(language) ? "Arabic" : "English"));
+            lines.add("Document: " + type.nameEn());
+            lines.add("Language: English");
             lines.add("Customer: " + job.customerName());
             lines.add("Vehicle: " + job.vehicleYear() + " " + job.vehicleMake() + " "
                     + job.vehicleModel());
@@ -102,7 +102,7 @@ public class PlatformJobDocumentService {
             lines.add("Score: " + (job.score() == null ? "-" : job.score())
                     + "   Grade: " + (job.gradeCode() == null ? "-" : job.gradeCode()));
             lines.add("Status: " + job.status());
-            String title = "ar".equals(language) ? type.nameAr() : type.nameEn();
+            String title = type.nameEn();
             byte[] bytes = pdf.render(title, lines);
             String storageKey = "platform-reports/" + job.id() + "/" + document.reportVersionId()
                     + "/" + document.documentTypeCode() + "-" + language + ".pdf";

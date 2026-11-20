@@ -8,25 +8,24 @@ public final class UiMessageDtos {
     private UiMessageDtos() {
     }
 
-    public record ManifestLanguageDto(String code, String direction, String nativeName,
-                                      Map<String, Integer> versions,
-                                      String path,
-                                      int totalKeys,
-                                      int missingKeys,
-                                      int placeholderMismatch) {
+    public record ManifestLanguageDto(String code, String name, String nativeName,
+                                      String direction, int version) {
     }
 
     public record UiMessageManifestDto(
             String defaultLanguage,
-            Map<String, Integer> namespaces,
+            String client,
+            List<String> namespaces,
             List<ManifestLanguageDto> languages) {
     }
 
     public record UiMessageBundleDto(
             String language,
             String fallbackLanguage,
+            String client,
+            List<String> namespaces,
             Map<String, Integer> versions,
             Map<String, Map<String, String>> catalogs,
-            Map<String, List<String>> missingKeys) {
+            Map<String, String> messages) {
     }
 }

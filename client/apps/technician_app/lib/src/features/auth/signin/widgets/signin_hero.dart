@@ -14,28 +14,16 @@ class SignInHero extends StatelessWidget {
     required this.title,
     required this.statement,
     required this.tagline,
-    required this.englishLabel,
-    required this.arabicLabel,
-    required this.isArabic,
     required this.wide,
     required this.gutter,
-    required this.onLanguageChanged,
-    this.englishKey,
-    this.arabicKey,
     super.key,
   });
 
   final String title;
   final String statement;
   final String tagline;
-  final String englishLabel;
-  final String arabicLabel;
-  final bool isArabic;
   final bool wide;
   final double gutter;
-  final ValueChanged<bool> onLanguageChanged;
-  final Key? englishKey;
-  final Key? arabicKey;
 
   @override
   Widget build(BuildContext context) {
@@ -45,17 +33,17 @@ class SignInHero extends StatelessWidget {
     final statementStyle =
         (wide
                 ? Fx.text(
-                    isArabic ? (compact ? 38 : 56) : (compact ? 36 : 58),
-                    isArabic ? (compact ? 50 : 74) : (compact ? 44 : 62),
+                    compact ? 36 : 58,
+                    compact ? 44 : 62,
                     FontWeight.w800,
-                    isArabic ? 0 : (compact ? -0.8 : -1.6),
+                    compact ? -0.8 : -1.6,
                     color: Fx.white,
                   )
                 : Fx.text(
-                    compact ? 26 : (isArabic ? 30 : 32),
-                    compact ? (isArabic ? 36 : 30) : (isArabic ? 41 : 37),
+                    compact ? 26 : 32,
+                    compact ? 30 : 37,
                     FontWeight.w800,
-                    isArabic ? 0 : -0.8,
+                    -0.8,
                     color: Fx.white,
                   ))
             .copyWith(
@@ -70,9 +58,7 @@ class SignInHero extends StatelessWidget {
     final taglineStyle =
         Fx.text(
           wide ? (compact ? 14 : 16) : 15,
-          isArabic
-              ? (wide ? (compact ? 24 : 28) : 26)
-              : (wide ? (compact ? 20 : 24) : 22),
+          wide ? (compact ? 20 : 24) : 22,
           FontWeight.w400,
           0,
           color: Fx.white.withValues(alpha: 0.86),
@@ -129,15 +115,9 @@ class SignInHero extends StatelessWidget {
             children: [
               SignInCommandStrip(
                 title: title,
-                englishLabel: englishLabel,
-                arabicLabel: arabicLabel,
-                isArabic: isArabic,
                 wide: wide,
                 gutter: gutter,
                 onImage: true,
-                onLanguageChanged: onLanguageChanged,
-                englishKey: englishKey,
-                arabicKey: arabicKey,
               ),
               const Spacer(),
               Padding(
@@ -181,5 +161,3 @@ class SignInHero extends StatelessWidget {
     );
   }
 }
-
-

@@ -706,7 +706,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
                             onChanged: (_) => setState(() {}),
                             label:
                                 '${strings.tKey(PlatformAdminKeys.fieldDocumentTypeCode)} *',
-                            hint: 'e.g. INSPECTION_REPORT',
+                            hint: strings.tKey(PlatformAdminKeys.documentsHintTypeCode),
                             helperText: strings.tKey(
                               PlatformAdminKeys.reportsFormFieldCodeHelper,
                             ),
@@ -725,7 +725,7 @@ class _DocumentTypeDialogState extends ConsumerState<_DocumentTypeDialog> {
                             onChanged: (_) => setState(() {}),
                             label:
                                 '${strings.tKey(PlatformAdminKeys.fieldItemLabelEn)} *',
-                            hint: 'e.g. Periodic Inspection Certificate',
+                            hint: strings.tKey(PlatformAdminKeys.documentsHintName),
                             helperText: strings.tKey(
                               PlatformAdminKeys.reportsFormFieldNameHelper,
                             ),

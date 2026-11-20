@@ -3,32 +3,22 @@ import 'package:flutter/material.dart';
 
 import '../signin_tokens.dart';
 
-/// The 56/72 px command strip: product name at the start, language at the end.
+/// The 56/72 px command strip: product name at the start.
+///
+/// English-only product: no language switcher is rendered.
 class SignInCommandStrip extends StatelessWidget {
   const SignInCommandStrip({
     required this.title,
-    required this.englishLabel,
-    required this.arabicLabel,
-    required this.isArabic,
     required this.wide,
     required this.gutter,
-    required this.onLanguageChanged,
     this.onImage = false,
-    this.englishKey,
-    this.arabicKey,
     super.key,
   });
 
   final String title;
-  final String englishLabel;
-  final String arabicLabel;
-  final bool isArabic;
   final bool wide;
   final double gutter;
-  final ValueChanged<bool> onLanguageChanged;
   final bool onImage;
-  final Key? englishKey;
-  final Key? arabicKey;
 
   @override
   Widget build(BuildContext context) {
@@ -40,18 +30,16 @@ class SignInCommandStrip extends StatelessWidget {
             16,
             22,
             FontWeight.w800,
-            isArabic ? 0 : -0.3,
+            -0.3,
             color: onImage ? Fx.white : scheme.onSurface,
           )
         : Fx.text(
             15,
             20,
             FontWeight.w800,
-            isArabic ? 0 : -0.2,
+            -0.2,
             color: onImage ? Fx.white : scheme.onSurface,
           );
-    // English-only product: the language switcher is not rendered.
-    const Widget language = SizedBox.shrink();
     final titleText = Text(
       title,
       maxLines: 1,
@@ -71,14 +59,7 @@ class SignInCommandStrip extends StatelessWidget {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  titleText,
-                  const SizedBox(height: 4),
-                  const Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: SizedBox.shrink(),
-                  ),
-                ],
+                children: [titleText],
               )
             : Row(
                 children: [
@@ -88,8 +69,6 @@ class SignInCommandStrip extends StatelessWidget {
                       child: titleText,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  language,
                 ],
               ),
       ),

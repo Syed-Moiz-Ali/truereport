@@ -21,7 +21,7 @@ class WorkshopShellDock extends StatelessWidget {
     required this.destinations,
     required this.selectedIndex,
     required this.onSelected,
-    this.navigationLabel = 'Main navigation',
+    this.navigationLabel = '',
     super.key,
   });
 

@@ -59,7 +59,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
     final effectiveTitle = widget.title ?? l10n.technicianInspection;
     final effectiveItemName = widget.itemName ?? l10n.attachments;
     final effectiveFileName = widget.fileName ?? 'PHOTO_01.JPG';
-    final effectiveCallout = widget.defectCallout ?? '1 Defect';
+    final effectiveCallout = widget.defectCallout ?? l10n.annotationDefectCount(1);
     final effectiveMeasurement = widget.defectMeasurement ?? 'Scuff';
 
     return Scaffold(
@@ -226,7 +226,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Markup Active',
+                                AppLocalizations.of(context).annotationMarkupActive,
                                 maxLines: 1,
                                 style: Fx.text(
                                   11,
@@ -500,7 +500,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Annotation Tools',
+                                        AppLocalizations.of(context).annotationTools,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Fx.text(
@@ -512,7 +512,7 @@ class _PhotoAnnotationViewState extends State<PhotoAnnotationView> {
                                         ),
                                       ),
                                       Text(
-                                        'Tap draw to circle surface damages',
+                                        AppLocalizations.of(context).annotationDrawHint,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Fx.text(

@@ -58,6 +58,9 @@ class UiMessageCache {
 
   static const String manifestKey = 'ui_messages_manifest';
 
+  /// Persisted choice of language for the app process.
+  static const String selectedLanguageKey = 'ui_messages_selected_language';
+
   static String bundleKey(String language) => 'ui_messages_$language';
 
   static String catalogKey(String language) =>
@@ -81,6 +84,11 @@ class UiMessageCache {
   bool get isEmpty => _catalogs.isEmpty;
 
   bool hasCatalog(String language) => _catalogs.containsKey(language);
+
+  Future<String?> restoreSelectedLanguage() => _store.read(selectedLanguageKey);
+
+  Future<void> saveSelectedLanguage(String code) =>
+      _store.write(selectedLanguageKey, code);
 
   String? lookup(String language, String namespace, String key) =>
       _catalogs[language]?[namespace]?[key];

@@ -3,9 +3,8 @@ package com.truereport;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,40 +15,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PlatformUiMessagesIT extends IntegrationTestBase {
 
     @Test
-    void manifestLoadsFromStaticManifestAndJsonPaths() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        assertThat(manifest.get("defaultLanguage").asText()).isEqualTo("en");
-        assertThat(manifest.get("namespaces").get("common").asInt()).isGreaterThanOrEqualTo(1);
-        assertThat(manifest.get("namespaces").get("platform_admin").asInt())
-                .isGreaterThanOrEqualTo(1);
+    void legacyManifestDelegatesToPlatformAdmin() throws Exception {
+        JsonNode legacy = getJson("/api/v1/i18n/ui-messages/manifest");
+        JsonNode client = getJson("/api/v1/i18n/ui-messages/platform_admin/manifest");
+
+        assertThat(legacy.get("defaultLanguage").asText()).isEqualTo("en");
+        assertThat(legacy.get("client").asText()).isEqualTo("platform_admin");
+        assertThat(legacy.get("namespaces").toString()).isEqualTo("[\"common\",\"platform_admin\"]");
+        assertThat(legacy).isEqualTo(client);
 
         Set<String> codes = new HashSet<>();
-        for (JsonNode language : manifest.get("languages")) {
+        for (JsonNode language : legacy.get("languages")) {
             codes.add(language.get("code").asText());
-            assertThat(language.get("direction").asText()).isIn("ltr", "rtl");
+            assertThat(language.get("name").asText()).isNotBlank();
             assertThat(language.get("nativeName").asText()).isNotBlank();
-            assertThat(language.get("path").asText())
-                    .startsWith("platform_admin/")
-                    .endsWith(".json");
-            assertThat(language.get("versions").get("common").asInt()).isGreaterThanOrEqualTo(1);
-            assertThat(language.get("versions").get("platform_admin").asInt())
-                    .isGreaterThanOrEqualTo(1);
+            assertThat(language.get("direction").asText()).isIn("ltr", "rtl");
+            assertThat(language.get("version").asInt()).isGreaterThanOrEqualTo(1);
         }
         assertThat(codes).containsExactly("en");
     }
 
     @Test
-    void manifestAndRegistryExposeEnglishOnly() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        assertThat(manifest.get("languages").size()).isEqualTo(1);
-        assertThat(manifest.get("languages").get(0).get("code").asText()).isEqualTo("en");
-
-        JsonNode bundle = getAnonymousJson(
-                "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
-        assertThat(bundle.get("language").asText()).isEqualTo("en");
-        assertThat(bundle.get("catalogs").get("common").get("button.save").asText())
-                .isEqualTo("Save");
-
+    void manifestAndRegistryExposeEnglishOnlyForPlatformAdmin() throws Exception {
         Login platform = login("platform@test.local");
         JsonNode registry = getJson(platform, "/api/v1/platform/i18n/languages");
         assertThat(registry.size()).isEqualTo(1);
@@ -59,127 +46,143 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
 
     @Test
     void manifestSupportsNamespaceFilterAndRejectsUnknown() throws Exception {
-        JsonNode filtered = getAnonymousJson("/api/v1/i18n/ui-messages/manifest?namespaces=common");
+        JsonNode filtered = getJson(
+                "/api/v1/i18n/ui-messages/platform_admin/manifest?namespaces=common");
         assertThat(filtered.get("namespaces").size()).isEqualTo(1);
-        assertThat(filtered.get("namespaces").has("common")).isTrue();
+        assertThat(filtered.get("namespaces").get(0).asText()).isEqualTo("common");
 
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/manifest?namespaces=nope"))
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/platform_admin/manifest?namespaces=nope"))
                 .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
-    void manifestSupportsEtagAndCacheHeaders() throws Exception {
-        var first = mockMvc.perform(get("/api/v1/i18n/ui-messages/manifest"))
+    void responsesAreNeverCached() throws Exception {
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/platform_admin/manifest"))
                 .andExpect(status().isOk())
-                .andExpect(header().exists("ETag"))
-                .andExpect(header().string("Vary", "Origin"))
-                .andReturn();
-        String etag = first.getResponse().getHeader("ETag");
-        assertThat(etag).isNotBlank();
-        assertThat(first.getResponse().getHeader("Cache-Control")).contains("private");
-
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/manifest")
-                        .header("If-None-Match", etag))
-                .andExpect(status().isNotModified());
+                .andExpect(header().string("Cache-Control", "no-store"));
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/platform_admin/bundle?lang=en"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"));
     }
 
     @Test
-    void bundleServesFlatCatalogFromJsonPaths() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        JsonNode bundle = getAnonymousJson(
-                "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
+    void bundleServesNamespacesAndFlatMessages() throws Exception {
+        JsonNode bundle = getJson(
+                "/api/v1/i18n/ui-messages/platform_admin/bundle?lang=en"
+                        + "&namespaces=platform_admin,common");
         assertThat(bundle.get("language").asText()).isEqualTo("en");
         assertThat(bundle.get("fallbackLanguage").asText()).isEqualTo("en");
-        assertThat(bundle.get("versions").get("common").asInt())
-                .isEqualTo(manifest.get("namespaces").get("common").asInt());
-        assertThat(bundle.get("versions").get("platform_admin").asInt())
-                .isEqualTo(manifest.get("namespaces").get("platform_admin").asInt());
+        assertThat(bundle.get("client").asText()).isEqualTo("platform_admin");
         assertThat(bundle.get("catalogs").get("common").get("button.save").asText())
                 .isEqualTo("Save");
         assertThat(bundle.get("catalogs").get("platform_admin").size()).isGreaterThan(100);
-        assertThat(bundle.get("missingKeys").get("common").size()).isZero();
-        assertThat(bundle.get("missingKeys").get("platform_admin").size()).isZero();
-
-        var response = mockMvc.perform(get(
-                        "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common"))
-                .andExpect(status().isOk())
-                .andExpect(header().exists("ETag"))
-                .andReturn();
-        String etag = response.getResponse().getHeader("ETag");
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common")
-                        .header("If-None-Match", etag))
-                .andExpect(status().isNotModified());
+        assertThat(bundle.get("messages").get("button.save").asText()).isEqualTo("Save");
+        assertThat(bundle.get("messages").get("nav.dashboard").asText()).isNotBlank();
+        assertThat(bundle.get("versions").get("common").asInt()).isGreaterThanOrEqualTo(1);
+        assertThat(bundle.get("versions").get("platform_admin").asInt())
+                .isGreaterThanOrEqualTo(1);
     }
 
     @Test
-    void bundleRejectsUnknownLanguageAndRequiresLanguage() throws Exception {
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/bundle?lang=xx"))
+    void legacyBundleMatchesPlatformAdminClientBundle() throws Exception {
+        JsonNode legacy = getJson("/api/v1/i18n/ui-messages/bundle?lang=en"
+                + "&namespaces=platform_admin,common");
+        JsonNode client = getJson("/api/v1/i18n/ui-messages/platform_admin/bundle?lang=en"
+                + "&namespaces=platform_admin,common");
+        assertThat(legacy).isEqualTo(client);
+    }
+
+    @Test
+    void workshopManifestAdvertisesRegisteredLanguagesWithCatalogs() throws Exception {
+        JsonNode manifest = getJson("/api/v1/i18n/ui-messages/workshop_admin/manifest");
+        assertThat(manifest.get("client").asText()).isEqualTo("workshop_admin");
+        assertThat(manifest.get("namespaces").toString())
+                .isEqualTo("[\"common\",\"workshop_admin\"]");
+        assertThat(manifest.get("languages"))
+                .extracting(node -> node.get("code").asText())
+                .containsExactly("en", "es");
+        assertThat(manifest.get("languages").get(1).get("nativeName").asText())
+                .isEqualTo("Español");
+    }
+
+    @Test
+    void workshopBundleMergesCommonAndFallsBackToEnglishPerKey() throws Exception {
+        JsonNode en = getJson("/api/v1/i18n/ui-messages/workshop_admin/bundle?lang=en");
+        JsonNode es = getJson("/api/v1/i18n/ui-messages/workshop_admin/bundle?lang=es");
+
+        assertThat(es.get("language").asText()).isEqualTo("es");
+        assertThat(es.get("fallbackLanguage").asText()).isEqualTo("en");
+        assertThat(es.get("messages").get("signInTitle").asText())
+                .isEqualTo("Iniciar sesión")
+                .isNotEqualTo(en.get("messages").get("signInTitle").asText());
+        // Untranslated keys still resolve to their English value.
+        assertThat(es.get("messages").get("twoFactorLabel").asText())
+                .isEqualTo("Authentication code");
+
+        // Split locked: 59 dotted platform keys in common, 1237 ARB keys per client.
+        assertThat(en.get("catalogs").get("common").size()).isEqualTo(59);
+        assertThat(en.get("catalogs").get("workshop_admin").size()).isEqualTo(1237);
+        assertThat(en.get("messages").size()).isEqualTo(1296);
+        // Catalogs are English-filled per key, so es has the same shape as en.
+        assertThat(es.get("catalogs").get("common").size()).isEqualTo(59);
+        assertThat(es.get("catalogs").get("workshop_admin").size()).isEqualTo(1237);
+        assertThat(es.get("messages").size()).isEqualTo(1296);
+
+        // Client translations live in the client namespace; common is platform-only.
+        assertThat(es.get("catalogs").get("workshop_admin").get("signInTitle").asText())
+                .isEqualTo("Iniciar sesión");
+        assertThat(es.get("catalogs").get("common").has("signInTitle")).isFalse();
+
+        Set<String> englishKeys = new HashSet<>();
+        en.get("messages").fieldNames().forEachRemaining(englishKeys::add);
+        Set<String> spanishKeys = new HashSet<>();
+        es.get("messages").fieldNames().forEachRemaining(spanishKeys::add);
+        assertThat(spanishKeys).containsAll(englishKeys);
+    }
+
+    @Test
+    void unknownClientAndUnavailableLanguageAreNotFound() throws Exception {
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/nope/manifest"))
                 .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/bundle"))
-                .andExpect(status().isUnprocessableEntity());
-        mockMvc.perform(get("/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=nope"))
-                .andExpect(status().isUnprocessableEntity());
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/nope/bundle?lang=en"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/platform_admin/bundle?lang=es"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/i18n/ui-messages/workshop_admin/bundle?lang=xx"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void everyManifestLanguageServesItsOwnJsonCatalog() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        JsonNode en = getAnonymousJson(
-                "/api/v1/i18n/ui-messages/bundle?lang=en&namespaces=platform_admin,common");
-        Set<String> enCommon = keysOf(en.get("catalogs").get("common"));
-        Set<String> enAdmin = keysOf(en.get("catalogs").get("platform_admin"));
+    void aMissingLanguageFallsBackToTheRegistryDefault() throws Exception {
+        JsonNode bundle = getJson("/api/v1/i18n/ui-messages/workshop_admin/bundle");
+        assertThat(bundle.get("language").asText()).isEqualTo("en");
+    }
 
+    @Test
+    void everyAdvertisedLanguageServesItsOwnCatalog() throws Exception {
+        JsonNode manifest = getJson("/api/v1/i18n/ui-messages/technician/manifest");
+        JsonNode en = getJson("/api/v1/i18n/ui-messages/technician/bundle?lang=en");
+        Set<String> englishKeys = keysOf(en.get("messages"));
         for (JsonNode language : manifest.get("languages")) {
             String code = language.get("code").asText();
-            JsonNode bundle = getAnonymousJson(
-                    "/api/v1/i18n/ui-messages/bundle?lang=" + code
-                            + "&namespaces=platform_admin,common");
+            JsonNode bundle = getJson("/api/v1/i18n/ui-messages/technician/bundle?lang=" + code);
             assertThat(bundle.get("language").asText()).isEqualTo(code);
-            assertThat(keysOf(bundle.get("catalogs").get("common"))).isEqualTo(enCommon);
-            assertThat(keysOf(bundle.get("catalogs").get("platform_admin"))).isEqualTo(enAdmin);
+            assertThat(keysOf(bundle.get("messages"))).containsAll(englishKeys);
         }
     }
 
     @Test
-    void manifestEnArPathsAreFlatAndHaveKeyParity() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        Set<String> enKeys = null;
-        for (JsonNode language : manifest.get("languages")) {
-            String code = language.get("code").asText();
-            if (!"en".equals(code) && !"ar".equals(code)) {
-                continue;
-            }
-            String path = language.get("path").asText();
-            assertThat(path).isNotBlank();
+    void englishCatalogsAreFlatAndNonEmpty() throws Exception {
+        for (String path : new String[]{"common/en.json", "platform_admin/en.json",
+                "workshop_admin/en.json", "technician/en.json"}) {
             JsonNode catalog = readResource(path);
-            assertThat(catalog.isObject()).isTrue();
-            Iterator<Map.Entry<String, JsonNode>> fields = catalog.fields();
-            while (fields.hasNext()) {
-                Map.Entry<String, JsonNode> entry = fields.next();
-                assertThat(entry.getValue().isTextual())
-                        .as(code + " key " + entry.getKey())
-                        .isTrue();
-                assertThat(entry.getValue().asText()).isNotBlank();
-            }
-            Set<String> keys = flatKeys(catalog);
-            if (enKeys == null) {
-                enKeys = keys;
-            } else {
-                assertThat(keys).isEqualTo(enKeys);
-            }
+            assertThat(catalog.isObject()).as(path).isTrue();
+            catalog.fields().forEachRemaining(entry -> {
+                assertThat(entry.getValue().isTextual()).as(path + " " + entry.getKey()).isTrue();
+                assertThat(entry.getValue().asText()).as(path + " " + entry.getKey()).isNotBlank();
+            });
         }
-        assertThat(enKeys).isNotNull();
-    }
-
-    @Test
-    void platformAdminHasOnlyTheEnglishCatalog() throws Exception {
-        JsonNode manifest = getAnonymousJson("/api/v1/i18n/ui-messages/manifest");
-        assertThat(manifest.get("languages").size()).isEqualTo(1);
-        assertThat(manifest.get("defaultLanguage").asText()).isEqualTo("en");
-        assertThat(flatKeys(readResource("platform_admin/en.json"))).isNotEmpty();
-        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/ar.json")).isNull();
-        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/zh-Hans.json")).isNull();
-        assertThat(getClass().getResourceAsStream("/i18n/platform_admin/ta.json")).isNull();
+        assertThat(flatKeys(readResource("common/en.json"))).isNotEmpty();
     }
 
     private JsonNode readResource(String path) throws Exception {
@@ -195,17 +198,17 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
         return keys;
     }
 
-    private static Set<String> keysOf(JsonNode catalog) {
+    private static Set<String> keysOf(JsonNode node) {
         Set<String> keys = new HashSet<>();
-        catalog.fieldNames().forEachRemaining(keys::add);
+        node.fieldNames().forEachRemaining(keys::add);
         return keys;
     }
 
-    private JsonNode getAnonymousJson(String path) throws Exception {
+    private JsonNode getJson(String path) throws Exception {
         var result = mockMvc.perform(get(path))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString());
+        return objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
     private JsonNode getJson(Login login, String path) throws Exception {
@@ -213,6 +216,6 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
                         .header("Authorization", "Bearer " + login.accessToken()))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(result.getResponse().getContentAsString());
+        return objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 }

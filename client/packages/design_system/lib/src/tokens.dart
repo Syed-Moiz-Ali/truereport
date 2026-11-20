@@ -740,7 +740,6 @@ abstract final class AppTheme {
     Brightness brightness = Brightness.light,
     AppColorStrategy colorStrategy = AppColorStrategy.emeraldFill,
     AppArabicFont arabicFont = AppArabicFont.notoSansArabic,
-    bool isArabic = false,
   }) {
     assert(
       brightness == Brightness.light,
@@ -795,7 +794,7 @@ abstract final class AppTheme {
     final arabicFamily = arabicFont == AppArabicFont.notoSansArabic
         ? TrFonts.arabicDefault
         : TrFonts.arabicAlternative;
-    final type = isArabic ? const _ArabicTypeScale() : const _LatinTypeScale();
+    const type = _LatinTypeScale();
     TextStyle style(TrTypeStyleToken token) => TextStyle(
       color: c.onSurface,
       fontFamily: TrFonts.latin,
@@ -994,7 +993,7 @@ abstract final class AppTheme {
         statusColors,
         severityColors,
         brand,
-        WorkshopTokens.standard(textTheme, isArabic: isArabic),
+        WorkshopTokens.standard(textTheme),
       ],
     );
   }
@@ -1004,12 +1003,10 @@ ThemeData buildAppTheme({
   Brightness brightness = Brightness.light,
   AppColorStrategy colorStrategy = AppColorStrategy.emeraldFill,
   AppArabicFont arabicFont = AppArabicFont.notoSansArabic,
-  bool isArabic = false,
 }) => AppTheme.build(
   brightness: brightness,
   colorStrategy: colorStrategy,
   arabicFont: arabicFont,
-  isArabic: isArabic,
 );
 
 extension AppThemeContext on BuildContext {
@@ -1041,16 +1038,12 @@ extension AppThemeContext on BuildContext {
 
   TextTheme get texts => Theme.of(this).textTheme;
 
-  bool get isArabic =>
-      Directionality.of(this) == TextDirection.rtl ||
-      Localizations.localeOf(this).languageCode == 'ar';
-
   Duration motionDuration(Duration normal) =>
       ReduceMotion.duration(this, normal);
 
   /// Large primary technician action label (19 px bold, P1).
   TextStyle get largeButtonTextStyle {
-    final token = isArabic ? TrTypeArabic.largeButton : TrType.largeButton;
+    const token = TrType.largeButton;
     return TextStyle(
       color: colors.onSurface,
       fontFamily: TrFonts.latin,
@@ -1126,32 +1119,6 @@ class _LatinTypeScale implements _TypeScale {
   TrTypeStyleToken get labelMd => TrType.labelMd;
   @override
   TrTypeStyleToken get labelSm => TrType.labelSm;
-}
-
-class _ArabicTypeScale implements _TypeScale {
-  const _ArabicTypeScale();
-  @override
-  TrTypeStyleToken get display => TrTypeArabic.display;
-  @override
-  TrTypeStyleToken get headlineXl => TrTypeArabic.headlineXl;
-  @override
-  TrTypeStyleToken get headlineLg => TrTypeArabic.headlineLg;
-  @override
-  TrTypeStyleToken get headlineMd => TrTypeArabic.headlineMd;
-  @override
-  TrTypeStyleToken get titleLg => TrTypeArabic.titleLg;
-  @override
-  TrTypeStyleToken get bodyLg => TrTypeArabic.bodyLg;
-  @override
-  TrTypeStyleToken get bodyMd => TrTypeArabic.bodyMd;
-  @override
-  TrTypeStyleToken get bodySm => TrTypeArabic.bodySm;
-  @override
-  TrTypeStyleToken get labelLg => TrTypeArabic.labelLg;
-  @override
-  TrTypeStyleToken get labelMd => TrTypeArabic.labelMd;
-  @override
-  TrTypeStyleToken get labelSm => TrTypeArabic.labelSm;
 }
 
 FontWeight _fontWeight(int weight) => switch (weight) {

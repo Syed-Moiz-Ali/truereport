@@ -58,7 +58,6 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final locale = ref.watch(localeProvider);
     final session = ref.watch(authControllerProvider).value;
     final displayName = session?.user.displayName.trim() ?? '';
     final email = session?.user.email.trim() ?? '';
@@ -116,9 +115,7 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
         onSettings: () => _select(4),
         onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
         onToggleLanguage: () => ref.read(localeProvider.notifier).toggle(),
-        languageLabel: locale.languageCode == 'ar'
-            ? l10n.languageEnglish
-            : l10n.languageArabic,
+        languageLabel: l10n.languageEnglish,
         moreLabel: l10n.navMore,
         navigationLabel: l10n.navMain,
         signOutLabel: l10n.signOut,

@@ -1,0 +1,28 @@
+- generic [ref=f1e4] [cursor=pointer]:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic [ref=f1e5]: TR
+          - generic [ref=f1e6]: TrueReport
+          - generic [ref=f1e7]: Workshop A
+          - button "Notifications" [ref=f1e8]
+          - button "Workshop Admin A Workshop Admin A" [ref=f1e9]
+          - group:
+            - heading "Ajustes" [level=2] [ref=f1e27]
+            - generic [ref=f1e11]: Taller, cuenta e idioma.
+            - group "WORKSHOP ACCOUNT Workshop Admin A Workshop Admin":
+              - heading "Workshop A" [level=2] [ref=f1e12]
+              - textbox [disabled] [ref=f1e14]
+            - generic [ref=f1e15]: Idioma
+            - button "English" [ref=f1e16]
+            - generic [ref=f1e17]: Session
+            - generic [ref=f1e18]: Sign out of Workshop Admin on this device.
+            - button "Español" [ref=f1e19]
+            - button "Cerrar sesión" [ref=f1e28]
+          - group "Main navigation":
+            - button "Overview" [ref=f1e21]
+            - button "Jobs" [ref=f1e22]
+            - button "Staff" [ref=f1e23]
+            - button "Templates" [ref=f1e24]
+            - button "Settings Settings" [active] [ref=f1e29]

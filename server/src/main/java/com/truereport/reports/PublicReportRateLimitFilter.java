@@ -63,10 +63,8 @@ public class PublicReportRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String neutralPage(HttpServletRequest request) {
-        String language = "ar".equals(request.getParameter("lang")) ? "ar" : "en";
-        java.util.Map<String, Object> labels = ReportMessages.labels(language);
-        String dir = "ar".equals(language) ? "rtl" : "ltr";
-        String html = "<!doctype html><html lang=\"" + language + "\" dir=\"" + dir + "\">"
+        java.util.Map<String, Object> labels = ReportMessages.labels("en");
+        String html = "<!doctype html><html lang=\"en\" dir=\"ltr\">"
                 + "<head><meta charset=\"utf-8\">"
                 + "<meta name=\"robots\" content=\"noindex,nofollow\">"
                 + "<title>" + labels.get("title") + "</title></head>"

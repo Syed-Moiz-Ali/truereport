@@ -290,7 +290,7 @@ class EmptyJobsView extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Queue is current • Synced just now',
+                                l10n.queueCurrentSynced,
                                 style: Fx.text(
                                   11,
                                   14,

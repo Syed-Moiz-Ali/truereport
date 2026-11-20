@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -535,7 +536,7 @@ class _StatCardOne extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
+          SizedBox(
             height: 14,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -544,7 +545,7 @@ class _StatCardOne extends StatelessWidget {
                   child: SizedBox(
                     height: 14,
                     child: Text(
-                      'BUFFERED CACHE',
+                      AppLocalizations.of(context).syncBufferedCache,
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.clip,
@@ -647,7 +648,7 @@ class _StatCardTwo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
+          SizedBox(
             height: 15.75,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -658,7 +659,7 @@ class _StatCardTwo extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.only(top: 0.87),
                       child: Text(
-                        'PENDING BATCH',
+                        AppLocalizations.of(context).syncPendingBatch,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,
@@ -881,18 +882,18 @@ class _ActiveCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final op = operations.isNotEmpty ? operations.first : null;
     final title = (op != null ? _opTitle(l10n, op) : l10n.noResults);
-    final subtitle = (op != null ? 'Job #${op.jobId}' : '');
-    final statusChip = (online ? l10n.technicianOnlineSync : 'Waiting');
+    final subtitle = (op != null ? l10n.syncJobRef(op.jobId) : '');
+    final statusChip = (online ? l10n.technicianOnlineSync : l10n.syncWaiting);
     final progressText = (operations.isNotEmpty
-        ? '${operations.length} items'
+        ? l10n.syncItemsCount(operations.length)
         : '0%');
     final remainingText = (operations.length > 1
-        ? '${operations.length - 1} remaining'
-        : '0 remaining');
-    final speed = (online ? 'Connected' : '0.0 KB/s');
+        ? l10n.syncRemainingCount(operations.length - 1)
+        : l10n.syncRemainingCount(0));
+    final speed = (online ? l10n.syncConnected : '0.0 KB/s');
     final pendingJobsText = (operations.length > 1
-        ? '${operations.length - 1} in Line'
-        : '0 in Line');
+        ? l10n.syncInLine(operations.length - 1)
+        : l10n.syncInLine(0));
 
     return Container(
       key: const ValueKey('queue'),
@@ -1134,7 +1135,7 @@ class _Metrics extends StatelessWidget {
                         width: 85.97,
                         height: 14,
                         child: Text(
-                          'Transfer Speed',
+                          AppLocalizations.of(context).syncTransferSpeed,
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.clip,
@@ -1179,7 +1180,7 @@ class _Metrics extends StatelessWidget {
                         width: 75.48,
                         height: 14,
                         child: Text(
-                          'Pending Jobs',
+                          AppLocalizations.of(context).syncPendingJobs,
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.clip,

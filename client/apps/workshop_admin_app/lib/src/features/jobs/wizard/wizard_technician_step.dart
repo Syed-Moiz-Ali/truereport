@@ -122,12 +122,11 @@ class WizardTechnicianStep extends ConsumerWidget {
         SizedBox(height: spacing.md),
         WizardChoiceGroup(
           label: l10n.jobsFieldPreferredLanguage,
-          values: const ['en', 'ar'],
+          values: const ['en'],
           selected: preferredLanguage,
           onChanged: onPreferredLanguage,
           keyPrefix: 'jobs-wizard-language',
-          labelFor: (value) =>
-              value == 'ar' ? l10n.languageArabic : l10n.languageEnglish,
+          labelFor: (value) => l10n.languageEnglish,
         ),
         SizedBox(height: spacing.lg),
         WorkshopInlineNote(
