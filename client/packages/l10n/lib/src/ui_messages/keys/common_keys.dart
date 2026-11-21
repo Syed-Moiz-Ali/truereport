@@ -27,11 +27,20 @@ abstract final class CommonKeys {
   static const buttonSignOut = UiMessageKey.common('button.signOut');
   static const emptySearch = UiMessageKey.common('empty.search');
   static const emptyTitle = UiMessageKey.common('empty.title');
+  static const errorDeliveryChannelUnavailable = UiMessageKey.common(
+    'error.delivery.channelUnavailable',
+  );
   static const errorGeneric = UiMessageKey.common('error.generic');
   static const errorInvalidCredentials = UiMessageKey.common(
     'error.invalidCredentials',
   );
   static const errorNetwork = UiMessageKey.common('error.network');
+  static const errorTechnicianVehiclePhotoCorrupt = UiMessageKey.common(
+    'error.technician.vehiclePhotoCorrupt',
+  );
+  static const errorTechnicianVehiclePhotoInvalid = UiMessageKey.common(
+    'error.technician.vehiclePhotoInvalid',
+  );
   static const fieldDisplayName = UiMessageKey.common('field.displayName');
   static const fieldEmail = UiMessageKey.common('field.email');
   static const fieldReason = UiMessageKey.common('field.reason');

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { API, APPS, appForProject } from '../apps';
 import { apiLogin, emailFor, passwordFor, uiSignIn } from '../auth';
 import { jobRefVisible, reloadAndBoot } from '../flutter';
-import { auth, seedJob } from '../fixtures/jobs';
+import { auth, seedJob, uploadVehiclePhoto } from '../fixtures/jobs';
 
 test.describe('technician — assigned job and pinned checklist', () => {
   test.beforeEach(async ({ page }, testInfo) => {
@@ -20,6 +20,11 @@ test.describe('technician — assigned job and pinned checklist', () => {
       await apiLogin(request, emailFor(APPS.workshop), passwordFor(APPS.workshop)!)
     ).accessToken;
     const job = await seedJob(request, workshopToken);
+    const technicianToken = (
+      await apiLogin(request, emailFor(APPS.technician), passwordFor(APPS.technician)!)
+    ).accessToken;
+    // The inspection hub requires the report cover photo before the deck.
+    await uploadVehiclePhoto(request, technicianToken, job.id);
 
     // The technician queue identifies a job by the vehicle plate, not the
     // internal JOB- reference (which the app never renders).
@@ -36,9 +41,6 @@ test.describe('technician — assigned job and pinned checklist', () => {
       timeout: 30_000,
     });
 
-    const technicianToken = (
-      await apiLogin(request, emailFor(APPS.technician), passwordFor(APPS.technician)!)
-    ).accessToken;
     const checklist = await request.get(
       `${API}/api/v1/technician/jobs/${job.id}/checklist`,
       { headers: auth(technicianToken) },

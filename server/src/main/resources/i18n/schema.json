@@ -1844,6 +1844,17 @@
           "type": "int"
         }
       }
-    }
+    },
+    "vehiclePhotoAdd": {},
+    "vehiclePhotoBanner": {},
+    "vehiclePhotoBody": {},
+    "vehiclePhotoContinueWithout": {},
+    "vehiclePhotoFailed": {},
+    "vehiclePhotoRetake": {},
+    "vehiclePhotoTitle": {},
+    "vehiclePhotoTooLarge": {},
+    "vehiclePhotoTooSmall": {},
+    "vehiclePhotoUnsupportedType": {},
+    "vehiclePhotoUploading": {}
   }
 }

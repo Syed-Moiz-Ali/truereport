@@ -2354,6 +2354,33 @@ abstract final class TechnicianKeys {
   static const vehicleMake = UiMessageKey.technician('vehicleMake');
   static const vehicleMakes = UiMessageKey.technician('vehicleMakes');
   static const vehicleModel = UiMessageKey.technician('vehicleModel');
+  static const vehiclePhotoAdd = UiMessageKey.technician('vehiclePhotoAdd');
+  static const vehiclePhotoBanner = UiMessageKey.technician(
+    'vehiclePhotoBanner',
+  );
+  static const vehiclePhotoBody = UiMessageKey.technician('vehiclePhotoBody');
+  static const vehiclePhotoContinueWithout = UiMessageKey.technician(
+    'vehiclePhotoContinueWithout',
+  );
+  static const vehiclePhotoFailed = UiMessageKey.technician(
+    'vehiclePhotoFailed',
+  );
+  static const vehiclePhotoRetake = UiMessageKey.technician(
+    'vehiclePhotoRetake',
+  );
+  static const vehiclePhotoTitle = UiMessageKey.technician('vehiclePhotoTitle');
+  static const vehiclePhotoTooLarge = UiMessageKey.technician(
+    'vehiclePhotoTooLarge',
+  );
+  static const vehiclePhotoTooSmall = UiMessageKey.technician(
+    'vehiclePhotoTooSmall',
+  );
+  static const vehiclePhotoUnsupportedType = UiMessageKey.technician(
+    'vehiclePhotoUnsupportedType',
+  );
+  static const vehiclePhotoUploading = UiMessageKey.technician(
+    'vehiclePhotoUploading',
+  );
   static const vehiclePlate = UiMessageKey.technician('vehiclePlate');
   static const vehicleSaved = UiMessageKey.technician('vehicleSaved');
   static const vehicleType = UiMessageKey.technician('vehicleType');

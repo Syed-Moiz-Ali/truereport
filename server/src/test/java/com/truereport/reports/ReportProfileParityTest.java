@@ -30,13 +30,15 @@ class ReportProfileParityTest {
     private static final Pattern TEMPLATE_ROOT =
             Pattern.compile("\\br\\.([A-Za-z_][A-Za-z0-9_]*)");
     private static final Set<String> LAYOUT_ONLY_PATHS = Set.of(
-            "lang", "dir", "isRtl", "pdfDownloadEnabled", "fontCss");
+            "lang", "dir", "isRtl", "pdfDownloadEnabled", "fontCss",
+            "heroPhotoUrl", "heroPhotoDataUri");
     private static final Set<String> PUBLIC_LAYOUT_ONLY_ROOTS = Set.of(
             "categoriesSummary", "inspectionVideos", "showcaseExterior",
             "showcaseInterior", "showcaseMechanical", "labels",
-            "pdfDownloadEnabled", "disclaimer");
+            "pdfDownloadEnabled", "disclaimer", "heroPhotoUrl");
     private static final Set<String> PRINT_LAYOUT_ONLY_ROOTS = Set.of(
-            "en", "finalizedAt", "fontCss", "limitationsEn", "disclaimerEn");
+            "en", "finalizedAt", "fontCss", "limitationsEn", "disclaimerEn",
+            "heroPhotoDataUri");
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ReportSnapshotBuilder snapshotBuilder = new ReportSnapshotBuilder(objectMapper);

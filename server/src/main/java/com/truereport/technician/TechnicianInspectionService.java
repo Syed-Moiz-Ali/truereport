@@ -10,6 +10,7 @@ import com.truereport.shared.idempotency.IdempotencyService;
 import com.truereport.shared.outbox.OutboxService;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.storage.ObjectStorage;
+import com.truereport.shared.time.WallClockTimes;
 import com.truereport.shared.uuid.UuidV7;
 import com.truereport.technician.TechnicianStore.AssessmentRow;
 import com.truereport.technician.TechnicianStore.ChecklistRow;
@@ -68,7 +69,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -571,7 +571,7 @@ public class TechnicianInspectionService {
                     "error.technician.evidenceInvalid"));
         } else if (job.createdAt() != null
                 && (capturedAt.isBefore(job.createdAt().minusHours(24))
-                || capturedAt.isAfter(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(10)))) {
+                || capturedAt.isAfter(WallClockTimes.dubaiNow().plusMinutes(10)))) {
             issues.add(issue("capturedAt", "CAPTURED_AT_OUT_OF_WINDOW",
                     "error.technician.capturedAtWindow"));
         }
@@ -1535,17 +1535,10 @@ public class TechnicianInspectionService {
     }
 
     private static LocalDateTime parseDateTime(String value) {
-        if (isBlank(value)) {
-            return null;
-        }
         try {
-            return LocalDateTime.parse(value.trim());
+            return WallClockTimes.parse(value);
         } catch (DateTimeParseException exception) {
-            try {
-                return OffsetDateTime.parse(value.trim()).toLocalDateTime();
-            } catch (DateTimeParseException nested) {
-                return null;
-            }
+            return null;
         }
     }
 

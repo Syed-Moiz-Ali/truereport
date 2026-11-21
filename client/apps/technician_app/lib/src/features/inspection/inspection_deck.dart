@@ -43,6 +43,8 @@ class InspectionDeck extends StatelessWidget {
     required this.onOpen,
     required this.onSummary,
     required this.onBack,
+    this.banner,
+    this.headerTrailing,
     super.key,
   });
 
@@ -55,6 +57,13 @@ class InspectionDeck extends StatelessWidget {
   final ValueChanged<ChecklistItem> onOpen;
   final VoidCallback onSummary;
   final VoidCallback onBack;
+
+  /// Inline note shown above the deck content (for example the missing-photo
+  /// banner). Never blocks the deck.
+  final Widget? banner;
+
+  /// Compact action shown in the header, before the progress pill.
+  final Widget? headerTrailing;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +107,7 @@ class InspectionDeck extends StatelessWidget {
             32,
           ),
           children: [
+            if (banner != null) ...[banner!, const SizedBox(height: 14)],
             if (!wide) ...[
               _SectionChips(
                 categories: categories,
@@ -155,7 +165,11 @@ class InspectionDeck extends StatelessWidget {
         if (!wide) {
           return Column(
             children: [
-              _TopBar(checklist: checklist, onBack: onBack),
+              _TopBar(
+                checklist: checklist,
+                onBack: onBack,
+                trailing: headerTrailing,
+              ),
               Expanded(child: content),
             ],
           );
@@ -165,7 +179,11 @@ class InspectionDeck extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               children: [
-                _TopBar(checklist: checklist, onBack: onBack),
+                _TopBar(
+                  checklist: checklist,
+                  onBack: onBack,
+                  trailing: headerTrailing,
+                ),
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +214,12 @@ class InspectionDeck extends StatelessWidget {
   Widget _chrome(BuildContext context, UiStrings t, {required Widget child}) {
     return Column(
       children: [
-        _TopBar(checklist: checklist, onBack: onBack),
+        _TopBar(checklist: checklist, onBack: onBack, trailing: headerTrailing),
+        if (banner != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+            child: banner,
+          ),
         Expanded(
           child: Padding(
             padding: const EdgeInsetsDirectional.all(20),
@@ -237,10 +260,11 @@ TextStyle _eyebrow(BuildContext context) => _text(
 );
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.checklist, required this.onBack});
+  const _TopBar({required this.checklist, required this.onBack, this.trailing});
 
   final Checklist checklist;
   final VoidCallback onBack;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -335,6 +359,7 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
+          if (trailing != null) ...[trailing!, const SizedBox(width: 8)],
           _ProgressPill(value: checklist.completed, total: checklist.total),
         ],
       ),

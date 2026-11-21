@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { API, APPS } from '../apps';
 import { apiLogin, emailFor, passwordFor, uiSignIn } from '../auth';
 import { bootFlutterWeb } from '../flutter';
-import { seedJob } from '../fixtures/jobs';
+import { seedJob, uploadVehiclePhoto } from '../fixtures/jobs';
 
 /**
  * X4: Workshop Admin creates and assigns a job; the Technician must observe it
@@ -26,6 +26,10 @@ test.describe('cross-app — workshop job reaches the technician', () => {
     const technicianToken = (
       await apiLogin(request, emailFor(APPS.technician), passwordFor(APPS.technician)!)
     ).accessToken;
+    // The hub now asks for the cover photo before the deck; upload it through
+    // the real contract so the render check exercises the normal state.
+    await uploadVehiclePhoto(request, technicianToken, job.id);
+
     const apiJobs = await request.get(`${API}/api/v1/technician/jobs?size=50`, {
       headers: { Authorization: `Bearer ${technicianToken}` },
     });

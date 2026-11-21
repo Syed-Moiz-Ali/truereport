@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.truereport.jobs.PlatformJobStore;
 import com.truereport.jobs.PlatformJobStore.LinkRow;
 import com.truereport.jobs.PlatformJobTokenService;
+import com.truereport.media.VehiclePhotoStore;
+import com.truereport.reports.PublicReportService;
+import com.truereport.shared.storage.ObjectStorage;
 import com.truereport.shared.uuid.UuidV7;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,11 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +35,8 @@ class PlatformReportActionsIT extends IntegrationTestBase {
 
     private static final String JOBS = "/api/v1/workshop/jobs";
     private static final String ALLOWED_PHONE = "+971500009900";
+    private static final byte[] PNG = Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
 
     @Autowired
     JdbcTemplate jdbc;
@@ -36,6 +46,15 @@ class PlatformReportActionsIT extends IntegrationTestBase {
 
     @Autowired
     PlatformJobTokenService tokens;
+
+    @Autowired
+    VehiclePhotoStore vehiclePhotos;
+
+    @Autowired
+    ObjectStorage storage;
+
+    @Autowired
+    PublicReportService publicReport;
 
     @Test
     void adminPdfRendersWithoutAnArtifactAndReportsLanguage() throws Exception {
@@ -115,6 +134,41 @@ class PlatformReportActionsIT extends IntegrationTestBase {
         assertThat(store.activeLink(fixture.jobId()).orElseThrow().id()).isEqualTo(active.id());
     }
 
+    @Test
+    void publicReportUsesVehiclePhotoAsHeroAndPdf() throws Exception {
+        PlatformJobFixtures.Fixture seeded = fixture("en", true, "PUBLISHED");
+        String photoId = UuidV7.generate().toString();
+        String storageKey = "vehicle-photo/" + seeded.jobId() + "/" + photoId;
+        storage.put(storageKey, PNG, "image/png");
+        vehiclePhotos.insert(photoId, seeded.jobId(), "image/png", PNG.length,
+                sha256(PNG), LocalDateTime.parse("2026-11-22T10:00:00"), "CAMERA",
+                fixture.adminA().getId().toString(), storageKey);
+        vehiclePhotos.markUploaded(photoId);
+        vehiclePhotos.markReady(photoId);
+
+        String heroUrl = "/r/" + seeded.token() + "/vehicle-photo";
+        PublicReportService.Resolution resolution = publicReport.resolve(seeded.token(), "en");
+        assertThat(resolution.status()).isEqualTo(PublicReportService.Status.ACTIVE);
+        assertThat(resolution.resolved().page().get("heroPhotoUrl")).isEqualTo(heroUrl);
+
+        String html = mockMvc.perform(get("/r/" + seeded.token()))
+                .andExpect(status().isOk()).andReturn()
+                .getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(html).contains(heroUrl);
+
+        MvcResult photo = mockMvc.perform(get(heroUrl))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Content-Type", MediaType.IMAGE_PNG_VALUE))
+                .andReturn();
+        assertThat(photo.getResponse().getContentAsByteArray()).isEqualTo(PNG);
+
+        byte[] pdf = mockMvc.perform(get("/r/" + seeded.token() + "/pdf"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(new String(pdf, 0, 5)).isEqualTo("%PDF-");
+    }
+
     private PlatformJobFixtures.Fixture fixture(String language, boolean consent, String status) {
         return PlatformJobFixtures.publishedJob(jdbc, store, tokens,
                 fixture.workshopA().getId(), fixture.adminA().getId(), ALLOWED_PHONE,
@@ -129,5 +183,10 @@ class PlatformReportActionsIT extends IntegrationTestBase {
                         .content(body))
                 .andExpect(status().isOk()).andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString());
+    }
+
+    private static String sha256(byte[] bytes) throws Exception {
+        return HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256").digest(bytes));
     }
 }

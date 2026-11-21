@@ -85,16 +85,19 @@
         </div>
 
         <!-- Integrated Vehicle Studio Banner -->
-        <div class="hero-vehicle-banner" th:if="${!#lists.isEmpty(r.vehicleShowcase)}">
+        <div class="hero-vehicle-banner" th:if="${r.heroPhotoUrl != null or !#lists.isEmpty(r.vehicleShowcase)}">
           <div class="photo-banner-wrapper">
-            <img class="photo-banner-img" th:src="${r.vehicleShowcase[0].imageUrl}" th:alt="${r.vehicle.make} + ' ' + ${r.vehicle.model}">
+            <img class="photo-banner-img"
+                 th:src="${r.heroPhotoUrl != null ? r.heroPhotoUrl : r.vehicleShowcase[0].imageUrl}"
+                 th:alt="${r.vehicle.make} + ' ' + ${r.vehicle.model}">
             <div class="photo-banner-overlay"></div>
             <div class="photo-banner-badges">
               <span class="photo-verified-badge">
                 <span aria-hidden="true" th:text="'✓'"></span>
                 <span th:text="${r.labels.officialInspection}"></span>
               </span>
-              <span class="photo-count-pill" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photos}"></span>
+              <span class="photo-count-pill" th:if="${!#lists.isEmpty(r.vehicleShowcase)}"
+                    th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.labels.photos}"></span>
             </div>
           </div>
           <div class="photo-banner-strip">

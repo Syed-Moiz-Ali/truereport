@@ -150,6 +150,22 @@ p { line-height: 1.5; }
   z-index: 1;
 }
 
+/* Pre-inspection vehicle hero photo */
+.cover-hero {
+  width: 120mm;
+  height: 52mm;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 7mm;
+  border: 1px solid rgba(255,255,255,.18);
+}
+.cover-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Vehicle name */
 .cover-vehicle-name {
   font-size: 32pt;
@@ -1008,6 +1024,10 @@ table.checklist tr:nth-child(even) td {
 
   <!-- Body -->
   <div class="cover-body">
+
+    <div class="cover-hero" th:if="${r.heroPhotoDataUri != null}">
+      <img th:src="${r.heroPhotoDataUri}" th:alt="${r.vehicle.make} + ' ' + ${r.vehicle.model}">
+    </div>
 
     <!-- Vehicle name -->
     <div class="cover-vehicle-name" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Camry</div>

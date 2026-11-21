@@ -110,6 +110,63 @@ void main() {
     );
   });
 
+  group('vehicle cover capture', () {
+    test('a 1280x720 PNG is accepted with image/png', () async {
+      final picker = _FakePicker()
+        ..image = _photo(mime: 'image/png', path: '/tmp/photo.png');
+      final captured = await _service(
+        picker,
+        width: 1280,
+        height: 720,
+      ).captureVehiclePhoto(source: EvidenceSource.file);
+
+      expect(picker.lastImageSource, ImageSource.gallery);
+      expect(captured!.mime, 'image/png');
+      expect(captured.width, 1280);
+      expect(captured.height, 720);
+      expect(captured.type, 'PHOTO');
+      expect(captured.captureSource, 'FILE');
+    });
+
+    test('JPEG, WebP and HEIC still work for the cover', () async {
+      for (final (mime, path) in const <(String, String)>[
+        ('image/jpeg', '/tmp/photo.jpg'),
+        ('image/webp', '/tmp/photo.webp'),
+        ('image/heic', '/tmp/photo.heic'),
+      ]) {
+        final picker = _FakePicker()..image = _photo(mime: mime, path: path);
+        final captured = await _service(
+          picker,
+          width: 1280,
+          height: 720,
+        ).captureVehiclePhoto(source: EvidenceSource.camera);
+
+        expect(captured!.mime, mime);
+        expect(captured.captureSource, 'CAMERA');
+      }
+    });
+
+    test('a 320x240 PNG is rejected for being too small', () async {
+      final picker = _FakePicker()
+        ..image = _photo(mime: 'image/png', path: '/tmp/photo.png');
+
+      await expectLater(
+        _service(
+          picker,
+          width: 320,
+          height: 240,
+        ).captureVehiclePhoto(source: EvidenceSource.file),
+        throwsA(
+          isA<EvidenceCaptureException>().having(
+            (error) => error.failure,
+            'failure',
+            EvidenceValidationFailure.resolutionTooLow,
+          ),
+        ),
+      );
+    });
+  });
+
   group('file-source validation', () {
     test('a PNG photo is rejected for files and camera alike', () async {
       final picker = _FakePicker()

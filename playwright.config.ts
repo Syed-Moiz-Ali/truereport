@@ -27,19 +27,25 @@ export default defineConfig({
     {
       name: 'platform-admin',
       testMatch:
-        /modules\/(auth|platform_admin)\.flow\.spec\.ts|modules\/master_library_visual\.spec\.ts/,
+        /modules\/(auth|platform_admin)\.flow\.spec\.ts|modules\/master_library_visual\.spec\.ts|screens\/platform_screens\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:5301' },
     },
     {
       name: 'workshop-admin',
       testMatch:
-      /modules\/(auth|workshop_jobs|language_dynamic|report_surface)\.flow\.spec\.ts/,
+        /modules\/(auth|workshop_jobs|language_dynamic|report_surface)\.flow\.spec\.ts|screens\/workshop_screens\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:5302' },
     },
     {
       name: 'technician',
-      testMatch: /(modules\/(auth|technician)\.flow\.spec\.ts|cross-app\/.*\.spec\.ts)/,
+      testMatch:
+        /(modules\/(auth|technician|vehicle_photo)\.flow\.spec\.ts|cross-app\/.*\.spec\.ts|screens\/technician_screens\.spec\.ts)/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:5303' },
+    },
+    {
+      name: 'contracts',
+      testMatch: /api\/.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:8080' },
     },
     {
       name: 'public-report',

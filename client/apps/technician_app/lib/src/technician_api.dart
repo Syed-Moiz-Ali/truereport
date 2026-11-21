@@ -1,4 +1,5 @@
 import 'package:api_client/api_client.dart';
+import 'package:core/core.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:uuid/uuid.dart';
 
@@ -72,6 +73,29 @@ abstract class TechnicianApi {
   );
 
   Future<void> deleteEvidence(String jobId, String itemCode, String evidenceId);
+
+  Future<VehiclePhoto?> getVehiclePhoto(String jobId);
+
+  Future<VehiclePhoto> initVehiclePhoto(
+    String jobId,
+    VehiclePhotoInitRequest request, {
+    String? idempotencyKey,
+  });
+
+  Future<VehiclePhoto> uploadVehiclePhotoContent(
+    String jobId,
+    String photoId,
+    List<int> bytes, {
+    required String contentType,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
+  });
+
+  Future<VehiclePhoto> completeVehiclePhoto(String jobId, String photoId);
+
+  Future<List<int>> vehiclePhotoContent(String jobId);
+
+  Future<void> deleteVehiclePhoto(String jobId);
 }
 
 class HttpTechnicianApi implements TechnicianApi {
@@ -256,6 +280,75 @@ class HttpTechnicianApi implements TechnicianApi {
     await _api.deleteDynamic(
       _endpoints.technicianCleanEvidence(jobId, itemCode, evidenceId),
     );
+  }
+
+  @override
+  Future<VehiclePhoto?> getVehiclePhoto(String jobId) async {
+    try {
+      final data = await _api.getDynamic(
+        _endpoints.technicianCleanVehiclePhoto(jobId),
+      );
+      return VehiclePhoto.fromJson(data as Map<String, dynamic>);
+    } on AppFailure catch (error) {
+      if (error.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<VehiclePhoto> initVehiclePhoto(
+    String jobId,
+    VehiclePhotoInitRequest request, {
+    String? idempotencyKey,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianCleanVehiclePhoto(jobId),
+      body: request.toJson(),
+      headers: _idempotencyHeaders(idempotencyKey),
+    );
+    return VehiclePhoto.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<VehiclePhoto> uploadVehiclePhotoContent(
+    String jobId,
+    String photoId,
+    List<int> bytes, {
+    required String contentType,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
+  }) async {
+    final data = await _api.putBytesWithHeaders(
+      _endpoints.technicianCleanVehiclePhotoUpload(jobId, photoId),
+      bytes: bytes,
+      // The endpoint consumes application/octet-stream; the real mime is
+      // declared at init and verified when the upload completes.
+      contentType: 'application/octet-stream',
+      onSendProgress: onSendProgress,
+      cancellation: cancellation,
+    );
+    return VehiclePhoto.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<VehiclePhoto> completeVehiclePhoto(
+    String jobId,
+    String photoId,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.technicianCleanVehiclePhotoComplete(jobId, photoId),
+    );
+    return VehiclePhoto.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<int>> vehiclePhotoContent(String jobId) {
+    return _api.getBytes(_endpoints.technicianCleanVehiclePhotoContent(jobId));
+  }
+
+  @override
+  Future<void> deleteVehiclePhoto(String jobId) async {
+    await _api.deleteDynamic(_endpoints.technicianCleanVehiclePhoto(jobId));
   }
 
   Map<String, String>? _idempotencyHeaders(String? idempotencyKey) {

@@ -25,6 +25,8 @@
   "error.generic": "Something went wrong. Try again.",
   "error.invalidCredentials": "Email or password is incorrect.",
   "error.network": "Cannot reach the server. Check your connection.",
+  "error.technician.vehiclePhotoCorrupt": "The uploaded photo does not match the declared checksum",
+  "error.technician.vehiclePhotoInvalid": "The vehicle photo is invalid",
   "field.displayName": "Display name",
   "field.email": "Email",
   "field.reason": "Reason",

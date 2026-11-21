@@ -213,12 +213,13 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ## Current numbers
 
 ```
-backend                    334 tests · 0 failures · 12 skipped
+backend                    349 tests · 0 failures · 12 skipped
 l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
-ui_gallery 5 · platform_admin 107 · workshop 201 · technician 133
+ui_gallery 5 · platform_admin 107 · workshop 201 · technician 142
 flutter analyze            clean
 npm run gate               0
-playwright e2e             33 tests · 32 passed · 1 skipped (es public report needs a reviewed job)
+playwright e2e             41 tests · 39 passed · 2 skipped (public token env) · 50.2m
+                           with E2E_PUBLIC_REPORT_TOKEN: 40 passed, 1 skipped (es report)
 content es                 388/388 catalogue units · 0 missing · 348 pending review (55 safety)
 ui catalogs es             common 154/154 · workshop 1300/1300 · technician 1332/1332
                            platform_admin 0/984 (English-only by design)
@@ -355,6 +356,52 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
 - Rendering caveat unchanged: a value with a resolvable `labelKey` renders catalog copy, so
   editing its served `label` in the admin does not change the visible text.
 
+### Screen and API sweeps (2026-11-22)
+
+Exhaustive browser/API coverage rather than only the happy paths:
+
+- **API sweep** (`tests/e2e/api/sweep.spec.ts`, `contracts` project): reads the OpenAPI
+  document and calls every GET with role-appropriate tokens and fixture ids. 95 GET endpoints,
+  **0 five-xx** (63×200, 3×400, 25×404, 2×409, 2×422); mutations stay covered by the flow specs
+  and the 349 backend tests.
+- **Platform screen sweep** (`screens/platform_screens.spec.ts`): all 29 deep-linkable routes at
+  1440x900 plus 14 at 768x1024, booting each and failing on a fatal surface or Flutter console
+  exception; a screenshot per screen lands in `test-results/screens/platform/`.
+- **Technician screen sweep**: 9 routes at 390x844 (queue, sync, profile, hub, item, summary,
+  signature, completed, unauthorized) plus the queue at 768.
+- **Workshop shell sweep**: dashboard, jobs, staff (incl. member page), templates (incl. detail),
+  settings, the create wizard steps, a published job, its report and documents; 390 check too.
+- **Vehicle photo flow**: the technician hub blocks on a real 1280x720 upload through
+  init → PUT → complete, and the API then reports `READY` with the PNG bytes.
+
+Final full run (2026-11-22): **41 tests, 39 passed, 2 skipped, 0 failures in 50.2 minutes**
+(the two skips are the token-gated public-report tests; with `E2E_PUBLIC_REPORT_TOKEN` they pass
+and only the Spanish-report fixture remains skipped).
+
+### Vehicle cover photo (2026-11-22)
+
+The report hero had a banner but nothing to show for jobs without item photos. Added a
+job-level cover photo:
+
+- **Schema** `V139 platform_job_media` (one `VEHICLE_HERO` per job) with a FK to `platform_jobs`;
+  datetimes read through `JdbcTime`.
+- **Technician** `POST/GET/DELETE /api/v1/technician/jobs/{jobId}/vehicle-photo` plus
+  `PUT .../{id}/content` and `POST .../{id}/complete`; mime allowlist, 1 byte–8 MB, SHA-256
+  verified (`422 VEHICLE_PHOTO_CORRUPT`), job-state gate (`409`), one photo per job (re-init
+  replaces), assigned technician or creator only.
+- **Technician UI** the inspection hub blocks with a camera/gallery prompt when no photo exists and
+  no item is completed; a Retake thumbnail sits in the header once captured, and the banner is
+  non-blocking for already-started jobs. "Continue without photo" appears only after a failure.
+  The cover path accepts JPEG/PNG/WebP (HEIC/HEIF too), 640x480 minimum, 8 MB maximum and reports
+  the specific reason ("too small", "too large", "wrong type") instead of a generic failure.
+  Item evidence keeps its own stricter mime list.
+- **Report** `%PDF`/HTML hero uses `heroPhotoUrl`, falling back to the first evidence showcase;
+  `GET /r/{token}/vehicle-photo` streams the image for an ACTIVE link, and the print cover embeds
+  it as a data URI.
+- Verified live on a fresh job: init 201 → upload 200 → complete 200 READY, public photo 200
+  `image/png`, public HTML contains the hero URL, PDF 366 KB `%PDF-`. Backend 341 tests,
+  technician 138.
+
 ### Production readiness (2026-11-22)
 
 Four blockers were identified and three are now closed in code/config:
@@ -424,8 +471,8 @@ the product uses `platform_jobs`/`platform_report_versions`/`platform_public_lin
 
 ### Time contract fix (2026-11-21)
 
-The wire rule (documented in `client/apps/workshop_admin_app/lib/src/workshop_clock.dart`; its
-comment cites a `docs/api/contracts.md` quirk 3 that is not in the tree): a timestamp **with** an
+The wire rule (documented in `docs/api/contracts.md` section 3 and implemented by
+`client/apps/workshop_admin_app/lib/src/workshop_clock.dart`): a timestamp **with** an
 offset is a real instant (convert to Asia/Dubai, UTC+4); a timestamp **without** one is already a
 Dubai wall time.
 
@@ -441,6 +488,10 @@ Dubai wall time.
 - E2E fixtures now send a Dubai wall-clock `scheduledAt`, so a seeded job is reachable on the
   technician board at any hour (previously UTC timestamps near midnight landed on the next Dubai
   day and vanished from the queue).
+- **2026-11-22 follow-up** — `shared/time/WallClockTimes` accepts either a naive value or an
+  offset; an offset is converted to Dubai wall time instead of being truncated to UTC. Used by the
+  vehicle-photo `capturedAt`, evidence `capturedAt` (and its out-of-window check) and the workshop
+  schedule parser, so instants such as `…Z` store and render as the same Dubai clock.
 
 ### Visual QA (2026-11-21)
 - Surfaces: merged option sets (Checklist/Statuses/Enums), item editor evidence step, master

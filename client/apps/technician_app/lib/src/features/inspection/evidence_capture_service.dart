@@ -93,6 +93,24 @@ class EvidenceCaptureService {
     return _photoEvidence(file, source);
   }
 
+  /// Captures the one report-cover photo.
+  ///
+  /// Same picker options as [capturePhoto], but the cover-photo rules allow PNG
+  /// and cap at 8 MB. Item evidence rules stay unchanged.
+  Future<CapturedEvidence?> captureVehiclePhoto({
+    required EvidenceSource source,
+  }) async {
+    final file = await _picker.pickImage(
+      source: _imageSource(source),
+      imageQuality: 88,
+      maxWidth: 2400,
+    );
+    if (file == null) {
+      return null;
+    }
+    return _photoEvidence(file, source, vehicleCover: true);
+  }
+
   Future<CapturedEvidence?> recordVideo({
     EvidenceSource source = EvidenceSource.camera,
     bool capturePoster = false,
@@ -164,8 +182,9 @@ class EvidenceCaptureService {
 
   Future<CapturedEvidence> _photoEvidence(
     XFile file,
-    EvidenceSource source,
-  ) async {
+    EvidenceSource source, {
+    bool vehicleCover = false,
+  }) async {
     final bytes = await file.readAsBytes();
     final size = await _imageSizeDecoder(bytes);
     final captured = CapturedEvidence(
@@ -177,7 +196,21 @@ class EvidenceCaptureService {
       width: size?.width,
       height: size?.height,
     );
-    _ensureValid(captured);
+    if (vehicleCover) {
+      final failure = validateVehiclePhotoMetadata(
+        mime: captured.mime,
+        bytes: captured.bytes.length,
+        sha256: sha256Hex(captured.bytes),
+        captureSource: captured.captureSource,
+        width: captured.width,
+        height: captured.height,
+      );
+      if (failure != null) {
+        throw EvidenceCaptureException(failure);
+      }
+    } else {
+      _ensureValid(captured);
+    }
     return captured;
   }
 

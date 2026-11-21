@@ -1,5 +1,7 @@
 import { APIRequestContext, expect } from '@playwright/test';
 import { API, uniqueSuffix } from '../apps';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 export interface Login {
   token: string;
@@ -112,4 +114,48 @@ export async function cancelJobViaApi(
     data: { reason, version: current.version },
   });
   expect(response.ok(), `cancel ${jobId}`).toBeTruthy();
+}
+
+/**
+ * Upload the vehicle cover photo through the real init → PUT → complete flow.
+ * The fixture is 1280x720 because the client rejects photos below 640x480.
+ */
+export async function uploadVehiclePhoto(
+  ctx: APIRequestContext,
+  technicianToken: string,
+  jobId: string,
+): Promise<string> {
+  const bytes = readFileSync('tests/e2e/fixtures/vehicle-photo.png');
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  const headers = auth(technicianToken);
+
+  const init = await ctx.post(`${API}/api/v1/technician/jobs/${jobId}/vehicle-photo`, {
+    headers,
+    data: {
+      mime: 'image/png',
+      bytes: bytes.length,
+      sha256,
+      capturedAt: new Date().toISOString().slice(0, 19),
+      captureSource: 'FILE',
+      deviceId: null,
+    },
+  });
+  expect(init.ok(), `vehicle photo init ${jobId}: ${init.status()} ${await init.text()}`).toBeTruthy();
+  const photo = (await init.json()) as { id: string };
+
+  const upload = await ctx.put(
+    `${API}/api/v1/technician/jobs/${jobId}/vehicle-photo/${photo.id}/content`,
+    {
+      headers: { ...headers, 'Content-Type': 'application/octet-stream' },
+      data: bytes,
+    },
+  );
+  expect(upload.ok(), `vehicle photo upload: ${upload.status()}`).toBeTruthy();
+
+  const complete = await ctx.post(
+    `${API}/api/v1/technician/jobs/${jobId}/vehicle-photo/${photo.id}/complete`,
+    { headers },
+  );
+  expect(complete.ok(), `vehicle photo complete: ${complete.status()}`).toBeTruthy();
+  return photo.id;
 }

@@ -102,4 +102,14 @@ public class PublicReportController {
                         .body(bytes))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping({"/r/{token}/vehicle-photo", "/report/{token}/vehicle-photo"})
+    public ResponseEntity<byte[]> vehiclePhoto(@PathVariable String token) {
+        return service.vehiclePhoto(token)
+                .map(photo -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(photo.mime()))
+                        .cacheControl(CacheControl.noStore())
+                        .body(photo.bytes()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

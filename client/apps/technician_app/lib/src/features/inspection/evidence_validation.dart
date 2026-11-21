@@ -35,6 +35,22 @@ const Set<String> photoMimes = <String>{
   'image/webp',
 };
 
+/// Cover-photo rules for the one report hero; item evidence keeps [photoMimes].
+///
+/// HEIC/HEIF stay allowed because camera captures can still produce them; the
+/// new addition is PNG.
+const Set<String> vehiclePhotoMimes = <String>{
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+};
+
+const int maxVehiclePhotoBytes = 8 * 1024 * 1024;
+const int minVehiclePhotoWidth = 640;
+const int minVehiclePhotoHeight = 480;
+
 const Set<String> videoMimes = <String>{
   'video/mp4',
   'video/webm',
@@ -61,6 +77,44 @@ const int minVideoDurationMs = 15000;
 const int maxVideoDurationMs = 30000;
 
 bool isSha256Hex(String value) => RegExp(r'^[0-9a-f]{64}$').hasMatch(value);
+
+/// Vehicle-cover validation, deliberately separate from item evidence.
+///
+/// PNG is allowed here (the backend accepts it for this resource), the size cap
+/// is 8 MB, and no duplicate check applies because a job has one cover photo.
+EvidenceValidationFailure? validateVehiclePhotoMetadata({
+  required String mime,
+  required int bytes,
+  required String sha256,
+  String? captureSource,
+  int? width,
+  int? height,
+}) {
+  final normalizedMime = mime.trim().toLowerCase();
+  if (!vehiclePhotoMimes.contains(normalizedMime)) {
+    return EvidenceValidationFailure.unsupportedPhotoType;
+  }
+  if (bytes <= 0) {
+    return EvidenceValidationFailure.empty;
+  }
+  if (bytes > maxVehiclePhotoBytes) {
+    return EvidenceValidationFailure.tooLarge;
+  }
+  final source = (captureSource ?? '').trim().toUpperCase();
+  if (source != 'CAMERA' && source != 'FILE') {
+    return EvidenceValidationFailure.cameraRequired;
+  }
+  if (width == null ||
+      height == null ||
+      width < minVehiclePhotoWidth ||
+      height < minVehiclePhotoHeight) {
+    return EvidenceValidationFailure.resolutionTooLow;
+  }
+  if (!isSha256Hex(sha256.trim().toLowerCase())) {
+    return EvidenceValidationFailure.invalidHash;
+  }
+  return null;
+}
 
 /// Returns the first rule the capture violates, or null when it may be uploaded.
 EvidenceValidationFailure? validateEvidenceMetadata({

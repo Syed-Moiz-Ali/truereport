@@ -1331,6 +1331,70 @@ class EvidenceCompleteRequest {
   };
 }
 
+/// One per job: the report cover photo.
+class VehiclePhoto {
+  const VehiclePhoto({
+    required this.id,
+    required this.status,
+    required this.mime,
+    required this.bytes,
+    required this.sha256,
+    required this.capturedAt,
+  });
+
+  final String id;
+  final String status;
+  final String? mime;
+  final int? bytes;
+  final String? sha256;
+  final String? capturedAt;
+
+  factory VehiclePhoto.fromJson(Map<String, dynamic> json) => VehiclePhoto(
+    id: _string(json['id']),
+    status: _string(json['status']),
+    mime: _stringOrNull(json['mime']),
+    bytes: _intOrNull(json['bytes']),
+    sha256: _stringOrNull(json['sha256']),
+    capturedAt: _stringOrNull(json['capturedAt']),
+  );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'status': status,
+    'mime': mime,
+    'bytes': bytes,
+    'sha256': sha256,
+    'capturedAt': capturedAt,
+  };
+}
+
+class VehiclePhotoInitRequest {
+  const VehiclePhotoInitRequest({
+    required this.mime,
+    required this.bytes,
+    required this.sha256,
+    required this.capturedAt,
+    required this.captureSource,
+    this.deviceId,
+  });
+
+  final String mime;
+  final int bytes;
+  final String sha256;
+  final String capturedAt;
+  final String captureSource;
+  final String? deviceId;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'mime': mime,
+    'bytes': bytes,
+    'sha256': sha256,
+    'capturedAt': capturedAt,
+    'captureSource': captureSource,
+    'deviceId': deviceId,
+  };
+}
+
 class SignatureRequest {
   const SignatureRequest({
     required this.signerName,

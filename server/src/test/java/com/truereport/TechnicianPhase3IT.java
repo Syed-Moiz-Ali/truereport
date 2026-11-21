@@ -440,6 +440,29 @@ class TechnicianPhase3IT extends IntegrationTestBase {
     }
 
     @Test
+    void instantCapturedAtStoresDubaiWallTimeAndStaysInWindow() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+
+        byte[] photo = bytes(1250, 21);
+        String body = """
+                {"type":"PHOTO","mime":"image/jpeg","bytes":%d,"sha256":"%s",
+                 "capturedAt":"%s","captureSource":"CAMERA","deviceId":"device-1",
+                 "width":800,"height":600}
+                """.formatted(photo.length, sha256(photo),
+                java.time.OffsetDateTime.now(ZoneOffset.UTC));
+        JsonNode asset = call(techA, post(TECH + "/jobs/" + jobId + "/items/"
+                + seed.itemCodeA() + "/evidence/init")
+                .contentType(MediaType.APPLICATION_JSON).content(body), 201);
+
+        LocalDateTime stored = LocalDateTime.parse(asset.get("capturedAt").asText());
+        LocalDateTime dubaiNow = LocalDateTime.now(ZoneOffset.ofHours(4));
+        assertThat(stored).isBetween(dubaiNow.minusMinutes(2), dubaiNow.plusMinutes(2));
+    }
+
+    @Test
     void fileEvidenceEnforcesTheSameValidationRules() throws Exception {
         Login adminA = login("admin.a@test.local");
         Login techA = login("tech.a@test.local");

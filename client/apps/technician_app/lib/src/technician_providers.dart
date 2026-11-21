@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
+import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/offline_store.dart';
@@ -112,6 +113,25 @@ final technicianChecklistProvider = FutureProvider.autoDispose
         }
         rethrow;
       }
+    });
+
+/// Capture service used by the vehicle-photo gate.
+///
+/// Overridden in tests so the gate never touches a platform image picker.
+final evidenceCaptureServiceProvider = Provider<EvidenceCaptureService>(
+  (ref) => EvidenceCaptureService(),
+);
+
+/// The job's single report-cover photo, or null when the server answers 404.
+final vehiclePhotoProvider = FutureProvider.autoDispose
+    .family<VehiclePhoto?, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).getVehiclePhoto(jobId);
+    });
+
+/// Bytes for the hub thumbnail. Only read when [vehiclePhotoProvider] has one.
+final vehiclePhotoContentProvider = FutureProvider.autoDispose
+    .family<List<int>, String>((ref, jobId) {
+      return ref.watch(technicianApiProvider).vehiclePhotoContent(jobId);
     });
 
 final technicianSummaryProvider = FutureProvider.autoDispose

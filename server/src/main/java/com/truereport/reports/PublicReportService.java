@@ -2,6 +2,7 @@ package com.truereport.reports;
 
 import com.truereport.jobs.InspectionJob;
 import com.truereport.jobs.InspectionJobRepository;
+import com.truereport.media.VehiclePhotoStore;
 import com.truereport.shared.storage.ObjectStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class PublicReportService {
     }
 
     public record Resolved(PublicShareLink link, Report report, ReportVersion version,
-                           Map<String, Object> page, String customerName) {
+                           Map<String, Object> page, String customerName, String jobId) {
     }
 
     public record Photo(byte[] bytes, String mime) {
@@ -52,6 +53,7 @@ public class PublicReportService {
     private final ReportPdfService pdfService;
     private final CleanPublicReportReader cleanReports;
     private final InspectionJobRepository inspectionJobs;
+    private final VehiclePhotoStore vehiclePhotos;
 
     public PublicReportService(PublicShareLinkRepository links,
                                ReportRepository reports,
@@ -64,7 +66,8 @@ public class PublicReportService {
                                ReportTokenService tokenService,
                                ReportPdfService pdfService,
                                CleanPublicReportReader cleanReports,
-                               InspectionJobRepository inspectionJobs) {
+                               InspectionJobRepository inspectionJobs,
+                               VehiclePhotoStore vehiclePhotos) {
         this.links = links;
         this.reports = reports;
         this.versions = versions;
@@ -77,6 +80,7 @@ public class PublicReportService {
         this.pdfService = pdfService;
         this.cleanReports = cleanReports;
         this.inspectionJobs = inspectionJobs;
+        this.vehiclePhotos = vehiclePhotos;
     }
 
     @Transactional(readOnly = true)
@@ -107,10 +111,12 @@ public class PublicReportService {
             String customerName = report.getJobId() == null ? null
                     : inspectionJobs.findById(report.getJobId())
                             .map(InspectionJob::getCustomerName).orElse(null);
+            String jobId = report.getJobId() == null ? null : report.getJobId().toString();
             Map<String, Object> page = viewMapper.publicPage(version, publicDerivatives,
-                    "en", active.isPdfDownloadEnabled(), token, customerName);
+                    "en", active.isPdfDownloadEnabled(), token, customerName,
+                    heroPhotoUrl(token, jobId));
             return new Resolution(Status.ACTIVE,
-                    new Resolved(active, report, version, page, customerName));
+                    new Resolved(active, report, version, page, customerName, jobId));
         } catch (Exception exception) {
             return Resolution.unavailable();
         }
@@ -153,10 +159,11 @@ public class PublicReportService {
             List<EvidenceDerivative> publicEvidence = cleanReports.publicEvidence(
                     row.jobId(), UUID.fromString(row.reportVersionId()), workshopId);
             Map<String, Object> page = viewMapper.publicPage(version, publicEvidence, language,
-                    row.pdfDownloadEnabled(), token, row.customerName());
+                    row.pdfDownloadEnabled(), token, row.customerName(),
+                    heroPhotoUrl(token, row.jobId()));
             return new Resolution(Status.ACTIVE,
                     new Resolved(PublicShareLink.cleanActive(row.pdfDownloadEnabled()), null,
-                            version, page, row.customerName()));
+                            version, page, row.customerName(), row.jobId()));
         } catch (Exception exception) {
             log.warn("Clean public report resolution failed for token {}: {}",
                     token, exception.getMessage(), exception);
@@ -251,14 +258,45 @@ public class PublicReportService {
             } else {
                 publicDerivatives = derivatives.findByReportVersionIdOrderByCreatedAtAsc(versionId);
             }
+            VehiclePhotoStore.Row hero = resolution.resolved().jobId() == null ? null
+                    : vehiclePhotos.findReady(resolution.resolved().jobId()).orElse(null);
+            byte[] heroBytes = hero == null || hero.storageKey() == null
+                    ? null : storage.get(hero.storageKey());
             byte[] pdf = pdfService.render(resolution.resolved().version(), publicDerivatives,
-                    resolution.resolved().customerName());
+                    resolution.resolved().customerName(), heroBytes,
+                    hero == null ? null : hero.mime());
             return Optional.of(pdf);
         } catch (Exception e) {
             log.warn("On-demand public report PDF render failed for version {}: {}",
                     resolution.resolved().version().getId(), e.getMessage(), e);
             return Optional.empty();
         }
+    }
+
+    /** The pre-inspection vehicle photo for an ACTIVE public link. */
+    @Transactional(readOnly = true)
+    public Optional<Photo> vehiclePhoto(String token) {
+        Resolution resolution = resolve(token, "en");
+        if (resolution.status() != Status.ACTIVE) {
+            return Optional.empty();
+        }
+        String jobId = resolution.resolved().jobId();
+        if (jobId == null || jobId.isBlank()) {
+            return Optional.empty();
+        }
+        VehiclePhotoStore.Row row = vehiclePhotos.findReady(jobId).orElse(null);
+        if (row == null || row.storageKey() == null || row.storageKey().isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Photo(storage.get(row.storageKey()), row.mime()));
+    }
+
+    private String heroPhotoUrl(String token, String jobId) {
+        if (jobId == null || jobId.isBlank()) {
+            return null;
+        }
+        return vehiclePhotos.findReady(jobId).isPresent()
+                ? "/r/" + token + "/vehicle-photo" : null;
     }
 
     public static HttpStatus statusFor(Status status) {

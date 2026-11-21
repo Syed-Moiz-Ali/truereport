@@ -48,6 +48,7 @@ import com.truereport.shared.error.FieldIssue;
 import com.truereport.shared.idempotency.IdempotencyService;
 import com.truereport.shared.outbox.OutboxService;
 import com.truereport.shared.security.CurrentUser;
+import com.truereport.shared.time.WallClockTimes;
 import com.truereport.shared.uuid.UuidV7;
 import com.truereport.tenancy.Workshop;
 import com.truereport.tenancy.WorkshopMembership;
@@ -64,7 +65,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -1447,14 +1447,10 @@ public class WorkshopJobAdminService {
             return null;
         }
         try {
-            return LocalDateTime.parse(value.trim());
+            return WallClockTimes.parse(value);
         } catch (DateTimeParseException exception) {
-            try {
-                return OffsetDateTime.parse(value.trim()).toLocalDateTime();
-            } catch (DateTimeParseException nested) {
-                throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "SCHEDULE_INVALID",
-                        "error.job.scheduleInvalid", "Scheduled time is invalid");
-            }
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "SCHEDULE_INVALID",
+                    "error.job.scheduleInvalid", "Scheduled time is invalid");
         }
     }
 

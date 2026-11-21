@@ -163,6 +163,14 @@ class ApiEndpoints {
       '$_root/technician/jobs/$jobId/items/$itemCode/evidence/$evidenceId/complete';
   String technicianCleanEvidenceList(String jobId, String itemCode) =>
       '$_root/technician/jobs/$jobId/items/$itemCode/evidence';
+  String technicianCleanVehiclePhoto(String jobId) =>
+      '$_root/technician/jobs/$jobId/vehicle-photo';
+  String technicianCleanVehiclePhotoContent(String jobId) =>
+      '$_root/technician/jobs/$jobId/vehicle-photo/content';
+  String technicianCleanVehiclePhotoUpload(String jobId, String photoId) =>
+      '$_root/technician/jobs/$jobId/vehicle-photo/$photoId/content';
+  String technicianCleanVehiclePhotoComplete(String jobId, String photoId) =>
+      '$_root/technician/jobs/$jobId/vehicle-photo/$photoId/complete';
 
   String get workshopTemplates => '$_root/workshop/templates';
   String get workshopTemplateVersions => '$_root/workshop/templates/versions';

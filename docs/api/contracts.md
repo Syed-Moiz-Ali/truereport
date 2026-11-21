@@ -103,3 +103,27 @@ only affects local audit stamps.
 Statuses, enums and option values are served by `/api/v1/reference/*` and backed by the merged
 option-set store. Clients resolve `labelKey` from their catalog first, then the served `label`,
 then a humanised code. `selectable=false` values must not appear as choices in pickers.
+
+## 7. Vehicle cover photo
+
+One per job (`platform_job_media`, kind `VEHICLE_HERO`), captured before the inspection starts and
+used as the report hero.
+
+```
+POST  /api/v1/technician/jobs/{jobId}/vehicle-photo         -> 201 {"id","status":"PENDING_UPLOAD","mime","bytes"}
+PUT   /api/v1/technician/jobs/{jobId}/vehicle-photo/{id}/content  (octet-stream) -> 200 UPLOADED
+POST  /api/v1/technician/jobs/{jobId}/vehicle-photo/{id}/complete -> 200 READY
+GET   /api/v1/technician/jobs/{jobId}/vehicle-photo         -> 200 DTO or 404
+GET   /api/v1/technician/jobs/{jobId}/vehicle-photo/content -> image bytes
+DELETE /api/v1/technician/jobs/{jobId}/vehicle-photo        -> 204
+```
+
+- Init body: `mime`, `bytes`, `sha256`, `capturedAt`, `captureSource` (`CAMERA|FILE`), `deviceId`.
+- Mime `image/jpeg|image/png|image/webp`, 1 byte–8 MB; the declared SHA-256 is verified against the
+  upload (`422 VEHICLE_PHOTO_CORRUPT`), other input errors are `422 VEHICLE_PHOTO_INVALID`.
+- Writable only while the job is `ASSIGNED|IN_PROGRESS|PENDING_REVIEW|APPROVED`; otherwise
+  `409 JOB_STATE_INVALID`. Only the assigned technician or the job creator may write.
+- A second init replaces the row and object (one photo per job).
+- Public: `GET /r/{token}/vehicle-photo` streams the image for an ACTIVE link; the report page
+  exposes `heroPhotoUrl` and falls back to the first evidence showcase image when absent. The PDF
+  embeds the same photo as a data URI on the cover.

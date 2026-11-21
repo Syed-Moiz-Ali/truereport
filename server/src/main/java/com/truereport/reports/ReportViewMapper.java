@@ -41,6 +41,19 @@ public class ReportViewMapper {
     public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
                                           String language, boolean pdfDownloadEnabled,
                                           String token, String customerName) throws Exception {
+        return publicPage(version, derivatives, language, pdfDownloadEnabled, token,
+                customerName, null);
+    }
+
+    /**
+     * @param heroPhotoUrl public URL of the pre-inspection vehicle photo, or
+     *                     {@code null} to fall back to item evidence in the
+     *                     template.
+     */
+    public Map<String, Object> publicPage(ReportVersion version, List<EvidenceDerivative> derivatives,
+                                          String language, boolean pdfDownloadEnabled,
+                                          String token, String customerName,
+                                          String heroPhotoUrl) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
         String snapshotLanguage = snapshot.language();
         if (snapshotLanguage != null && !snapshotLanguage.isBlank()) {
@@ -56,6 +69,7 @@ public class ReportViewMapper {
         root.put("isRtl", false);
         root.put("labels", ReportMessages.labels(language));
         root.put("pdfDownloadEnabled", pdfDownloadEnabled);
+        root.put("heroPhotoUrl", heroPhotoUrl);
         root.put("reportNumber", snapshot.reportNumber());
         root.put("displayToken", snapshot.reportNumber());
         root.put("version", snapshot.reportVersion());
@@ -154,6 +168,16 @@ public class ReportViewMapper {
 
     public Map<String, Object> printPage(ReportVersion version, List<EvidenceDerivative> derivatives,
                                          String customerName) throws Exception {
+        return printPage(version, derivatives, customerName, null, null);
+    }
+
+    /**
+     * @param heroPhotoBytes raw vehicle photo bytes embedded into the cover as
+     *                       a data URI, or {@code null} for the unchanged cover.
+     */
+    public Map<String, Object> printPage(ReportVersion version, List<EvidenceDerivative> derivatives,
+                                         String customerName, byte[] heroPhotoBytes,
+                                         String heroMime) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
         String language = snapshotLanguage(snapshot);
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
@@ -165,6 +189,10 @@ public class ReportViewMapper {
         root.put("labels", ReportMessages.labels(language));
         root.put("lang", language);
         root.put("dir", "ltr");
+        root.put("heroPhotoDataUri", heroPhotoBytes == null || heroPhotoBytes.length == 0
+                ? null
+                : "data:" + (heroMime == null || heroMime.isBlank() ? "image/jpeg" : heroMime)
+                        + ";base64," + Base64.getEncoder().encodeToString(heroPhotoBytes));
         root.put("reportNumber", snapshot.reportNumber());
         root.put("displayToken", snapshot.reportNumber());
         root.put("version", snapshot.reportVersion());
