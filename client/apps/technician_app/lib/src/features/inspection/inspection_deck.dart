@@ -251,6 +251,13 @@ class _TopBar extends StatelessWidget {
       job.vehicleModel,
       if (job.vehicleYear != null) '${job.vehicleYear}',
     ].where((value) => value.isNotEmpty).join(' ');
+    final plate = (job.vehiclePlate ?? '').trim();
+    final reference = job.reference.trim();
+    // The plate falls back to the reference, so only show the separate
+    // reference label when the plate is actually present and different.
+    final showReference =
+        reference.isNotEmpty && plate.isNotEmpty && plate != reference;
+    final customer = job.customerName.trim();
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 16, 8),
       child: Row(
@@ -286,22 +293,42 @@ class _TopBar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    _Plate(job.vehiclePlate ?? job.reference),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        job.customerName,
+                    _Plate(plate.isNotEmpty ? plate : reference),
+                    if (showReference)
+                      Text(
+                        reference,
+                        key: const Key('inspection-job-reference'),
                         maxLines: 1,
                         style: _text(
                           context,
-                          12.5,
-                          height: 18,
+                          11.5,
+                          weight: FontWeight.w500,
+                          height: 16,
+                          tracking: 0.3,
+                          tabular: true,
                           color: colors.onSurfaceVariant,
                         ),
                       ),
-                    ),
+                    if (customer.isNotEmpty)
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 180),
+                        child: Text(
+                          customer,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _text(
+                            context,
+                            12.5,
+                            height: 18,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ],

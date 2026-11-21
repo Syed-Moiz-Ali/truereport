@@ -215,7 +215,7 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ```
 backend                    325 tests · 0 failures · 12 skipped
 l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
-ui_gallery 5 · platform_admin 107 · workshop 198 · technician 129
+ui_gallery 5 · platform_admin 107 · workshop 198 · technician 133
 flutter analyze            clean
 npm run gate               0
 playwright e2e             33 tests · 32 passed · 1 skipped (es public report needs a reviewed job)
@@ -388,6 +388,9 @@ the product uses `platform_jobs`/`platform_report_versions`/`platform_public_lin
 - Live proof on `JOB-89211E61`: report `pdfReady=true`, `GET /report/pdf` 200 `%PDF` (372 KB),
   revoke → activate link, `POST /deliveries` EMAIL 201 with `pdfAttached=true`, SMS 201, and a
   Spanish (`es`) SMS delivery 201 → `SENT`. Unknown language `zz` → 422.
+- **Technician reference** — the inspection hub and summary headers now show the internal
+  `JOB-…` reference beside the plate (once, and never duplicated when the plate is absent);
+  queue rows stay plate-first. E2E still identifies the seeded job by plate.
 
 ### Time contract fix (2026-11-21)
 
@@ -480,10 +483,14 @@ Dubai wall time.
    requires a catalog file (`server/src/main/resources/i18n/<client>/<lang>.json`) in a release;
    there is no admin authoring path for UI strings yet (the workspace shows 0/N UI coverage and
    the content backlog separately).
-8. **Technician job reference** — the technician app never renders the internal `JOB-` reference
-   (queue and detail identify a job by vehicle/plate). E2E uses the plate; add the reference to
-   the detail header if staff need it for paperwork.
-9. **Dead doc links** — `WorkshopClock` cites `docs/api/contracts.md` (quirk 3) and
-   `docs/data/inventory.md` (T1), neither of which exists. The time rule itself is now enforced by
-   `workshop_clock.dart`, `technician_intl.dart` and their tests; either restore the docs or drop
-   the references.
+8. **Dead doc links** — `WorkshopClock` cited `docs/api/contracts.md` (quirk 3) and
+   `docs/data/inventory.md` (T1). `docs/api/contracts.md` now exists and documents the time,
+   language, error, idempotency, delivery and taxonomy rules; the code comment now cites only
+   that file.
+9. **Server-generated timestamp zone** — DB `CURRENT_TIMESTAMP` and three
+   `LocalDateTime.now()` calls use the database/JVM zone, while clients render naive values as
+   Dubai wall time. Job scheduling round-trips correctly (fixed 2026-11-21); audit stamps
+   (`createdAt`, history, delivery attempts) are off by the zone difference on a non-Dubai host.
+   Fix by running the MySQL session at `+04:00` (compose `--default-time-zone=+04:00` or Hikari
+   `connection-init-sql`) and generating server stamps in Dubai time. Documented in
+   `docs/api/contracts.md` section 3.

@@ -25,9 +25,14 @@ No on-call rotation or paging provider is configured. This is an explicit pilot 
 ## 2. Deploy
 
 1. Confirm change approval, rollback owner and maintenance window.
-2. Verify `infra/prod.env` is supplied from the secret manager; never commit it.
-3. Confirm TLS certificate/key are mounted at `infra/nginx/tls/`.
-4. Pull/build the pinned server image and start:
+2. **Take a database snapshot before starting the new image** whenever the release contains a
+   destructive migration. As of `V138` these are `V134` (drops `reference_domain`) and `V138`
+   (deletes legacy `delivery_requests`/`delivery_attempts`/`delivery_webhook_events` rows and
+   re-points the delivery FKs at the platform tables). Follow section 5, verify the checksum,
+   record the backup id in the change ticket, and only then continue.
+3. Verify `infra/prod.env` is supplied from the secret manager; never commit it.
+4. Confirm TLS certificate/key are mounted at `infra/nginx/tls/`.
+5. Pull/build the pinned server image and start:
 
 ```powershell
 $env:Path='C:\Users\sanja\AppData\Local\Programs\DockerDesktop\resources\bin;'+$env:Path
@@ -35,9 +40,9 @@ docker compose -f infra/docker-compose.prod.yml up -d --build
 docker compose -f infra/docker-compose.prod.yml ps
 ```
 
-5. Check `/actuator/health` through Nginx, the public report, login and one read-only job.
-6. Watch report failures, delivery dead letters, webhook failures, 5xx and DB health for 30 minutes.
-7. Record image digest, Flyway version, change ticket and operator.
+6. Check `/actuator/health` through Nginx, the public report, login and one read-only job.
+7. Watch report failures, delivery dead letters, webhook failures, 5xx and DB health for 30 minutes.
+8. Record image digest, Flyway version, change ticket and operator.
 
 The server runs as non-root with a read-only root filesystem and writable `/tmp`/cache tmpfs.
 
@@ -67,7 +72,16 @@ Migrations run at server startup with `validate-on-migrate=true`. Verify:
 SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank DESC;
 ```
 
-Current head: **V17** (PII encryption columns/data, TOTP recovery, lockout). V16 drops/recreates the finalized-job and final-snapshot update triggers around the one-time encryption update. Do not rerun the data migration manually.
+Current head: **V138**. The last three:
+- `V136` — drops the `language IN ('en','ar')` check on `platform_report_documents` (metadata only).
+- `V137` — widens `delivery_requests.language`, `platform_report_documents.language` and
+  `platform_jobs.preferred_language` to `VARCHAR(16)` (table rebuild, small tables).
+- `V138` — **destructive**: deletes legacy delivery rows, converts `delivery_requests` id columns
+  to `VARCHAR(36)` and re-points the FKs at `platform_jobs` / `platform_report_versions` /
+  `platform_public_links`. Requires the pre-deploy snapshot from section 2.
+
+`V134` (option-set merge) also drops `reference_domain` and needs the same snapshot. Do not rerun
+a data migration manually; Flyway records each version in `flyway_schema_history`.
 
 ---
 

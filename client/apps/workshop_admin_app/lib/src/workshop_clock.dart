@@ -3,12 +3,12 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 /// The single time policy for every timestamp this app displays.
 ///
-/// The wire is inconsistent (see `docs/api/contracts.md` quirk 3 and T1 in
-/// `docs/data/inventory.md`): a user-picked schedule is stored as a **naive
-/// `LocalDateTime`** (`2026-11-18T10:00`, no offset) while server-generated
-/// instants may arrive with an offset (`2026-11-18T06:00Z`). Treating every
-/// naive value as UTC — what this app used to do — published a job the user
-/// scheduled at 10:00 as 14:00.
+/// The wire rule is documented in `docs/api/contracts.md` section 3: a
+/// user-picked schedule is stored as a **naive `LocalDateTime`**
+/// (`2026-11-18T10:00`, no offset) while machine-generated instants may arrive
+/// with an offset (`2026-11-18T06:00Z`). Treating every naive value as UTC —
+/// what this app used to do — published a job the user scheduled at 10:00 as
+/// 14:00.
 ///
 /// One documented rule, used everywhere:
 ///

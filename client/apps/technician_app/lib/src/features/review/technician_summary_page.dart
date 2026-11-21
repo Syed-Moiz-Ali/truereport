@@ -64,11 +64,19 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
     final summaryAsync = ref.watch(technicianSummaryProvider(widget.jobId));
     final reviewAsync = ref.watch(technicianReviewProvider(widget.jobId));
     final conflictsAsync = ref.watch(technicianConflictsProvider(widget.jobId));
+    final jobReference = ref
+        .watch(technicianJobSummaryProvider(widget.jobId))
+        .asData
+        ?.value
+        .reference;
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: Column(
         children: [
-          _SummaryBar(title: t(TechnicianKeys.technicianSummaryTitle)),
+          _SummaryBar(
+            title: t(TechnicianKeys.technicianSummaryTitle),
+            reference: (jobReference ?? '').trim(),
+          ),
           Expanded(
             child: summaryAsync.when(
               loading: () => const Padding(
@@ -333,12 +341,14 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
 }
 
 class _SummaryBar extends StatelessWidget {
-  const _SummaryBar({required this.title});
+  const _SummaryBar({required this.title, required this.reference});
 
   final String title;
+  final String reference;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Center(
       heightFactor: 1,
       child: ConstrainedBox(
@@ -371,6 +381,24 @@ class _SummaryBar extends StatelessWidget {
                   ),
                 ),
               ),
+              if (reference.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 132),
+                  child: Text(
+                    reference,
+                    key: const Key('summary-job-reference'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: context.texts.labelMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      letterSpacing: 0.3,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
