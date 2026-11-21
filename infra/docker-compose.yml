@@ -6,7 +6,7 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
-      - --default-time-zone=+00:00
+      - --default-time-zone=+04:00
       - --log-bin-trust-function-creators=1
     environment:
       MYSQL_DATABASE: ${DB_NAME:-truereport}
@@ -71,6 +71,8 @@ services:
       context: ../server
       dockerfile: Dockerfile
     environment:
+      # Wall-clock contract (docs/api/contracts.md section 3).
+      TZ: Asia/Dubai
       DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-truereport}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
       DB_USER: ${DB_USER:-truereport}
       DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}

@@ -7,7 +7,7 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
-      - --default-time-zone=+00:00
+      - --default-time-zone=+04:00
       # Required for Flyway trigger creation under binary logging; restrict DB users separately.
       - --log-bin-trust-function-creators=1
     env_file:
@@ -32,6 +32,10 @@ services:
       - ./prod.env
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # Wall-clock contract (docs/api/contracts.md section 3): the JVM and the
+      # database both run at Asia/Dubai so zone-less DATETIME values match what
+      # the clients render. Do not change one without the other.
+      TZ: Asia/Dubai
       DB_URL: jdbc:mysql://mysql:3306/truereport?useSSL=true&requireSSL=true&serverTimezone=UTC&characterEncoding=utf8
       STORAGE_PROVIDER: filesystem
       STORAGE_ROOT: /app/.truereport-storage

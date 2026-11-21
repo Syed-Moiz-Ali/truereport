@@ -38,6 +38,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
     final report = ref.watch(reportProvider(widget.jobId));
+    // Start the capability fetch with the page; `_send` reads its current value
+    // and falls back to EMAIL while it is loading or if it failed.
+    ref.watch(deliveryChannelsProvider);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final data = report.asData?.value;
     final reference = (data?.reportNumber ?? '').trim().isEmpty
@@ -185,7 +188,14 @@ class _ReportPageState extends ConsumerState<ReportPage> {
 
   Future<void> _send() async {
     final t = UiStrings.of(context);
-    var channel = 'WHATSAPP';
+    final serverChannels = ref.read(deliveryChannelsProvider).asData?.value;
+    final channelCodes = <String>[
+      for (final option in serverChannels ?? const <DeliveryChannelOption>[])
+        if (option.available && option.channel.trim().isNotEmpty)
+          option.channel.trim(),
+    ];
+    if (channelCodes.isEmpty) channelCodes.add('EMAIL');
+    var channel = channelCodes.first;
     List<WorkshopLanguage>? registry;
     try {
       registry = await ref.read(workshopLanguagesProvider.future);
@@ -221,19 +231,16 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 t(WorkshopAdminKeys.deliveryChannel),
                 style: context.texts.bodySmall,
               ),
-              for (final option in [
-                ('WHATSAPP', t(WorkshopAdminKeys.channelWhatsapp)),
-                ('SMS', t(WorkshopAdminKeys.channelSms)),
-                ('EMAIL', t(WorkshopAdminKeys.channelEmail)),
-              ])
+              for (final code in channelCodes)
                 Padding(
                   padding: EdgeInsetsDirectional.only(
                     bottom: context.spacing.xs,
                   ),
                   child: AppSelectableText(
-                    label: option.$2,
-                    selected: channel == option.$1,
-                    onTap: () => setSheetState(() => channel = option.$1),
+                    key: Key('report-delivery-channel-${code.toLowerCase()}'),
+                    label: _channelLabel(t, code),
+                    selected: channel == code,
+                    onTap: () => setSheetState(() => channel = code),
                   ),
                 ),
               SizedBox(height: context.spacing.sm),
@@ -452,5 +459,18 @@ class _ReportPageState extends ConsumerState<ReportPage> {
         setState(() => _busy = false);
       }
     }
+  }
+}
+
+String _channelLabel(UiStrings t, String channel) {
+  switch (channel.trim().toUpperCase()) {
+    case 'WHATSAPP':
+      return t(WorkshopAdminKeys.channelWhatsapp);
+    case 'SMS':
+      return t(WorkshopAdminKeys.channelSms);
+    case 'EMAIL':
+      return t(WorkshopAdminKeys.channelEmail);
+    default:
+      return channel.trim().toUpperCase();
   }
 }

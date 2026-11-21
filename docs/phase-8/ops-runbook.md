@@ -25,11 +25,11 @@ No on-call rotation or paging provider is configured. This is an explicit pilot 
 ## 2. Deploy
 
 1. Confirm change approval, rollback owner and maintenance window.
-2. **Take a database snapshot before starting the new image** whenever the release contains a
-   destructive migration. As of `V138` these are `V134` (drops `reference_domain`) and `V138`
-   (deletes legacy `delivery_requests`/`delivery_attempts`/`delivery_webhook_events` rows and
-   re-points the delivery FKs at the platform tables). Follow section 5, verify the checksum,
-   record the backup id in the change ticket, and only then continue.
+2. **Backup before you start.** `scripts/deploy-prod.sh` does this automatically: it refuses a
+   dirty working tree, runs `scripts/backup-mysql.sh`, stops unless the dump verifies, then brings
+   the stack up. If you deploy by hand, run the backup first (section 5) and record the file name
+   and checksum in the change ticket. Mandatory for any release containing `V134` or `V138`
+   (destructive), recommended for all.
 3. Verify `infra/prod.env` is supplied from the secret manager; never commit it.
 4. Confirm TLS certificate/key are mounted at `infra/nginx/tls/`.
 5. Pull/build the pinned server image and start:
@@ -39,6 +39,9 @@ $env:Path='C:\Users\sanja\AppData\Local\Programs\DockerDesktop\resources\bin;'+$
 docker compose -f infra/docker-compose.prod.yml up -d --build
 docker compose -f infra/docker-compose.prod.yml ps
 ```
+
+   Or run the wrapper, which performs the dirty-tree check, the verified backup and this compose
+   step in order: `BACKUP_PASSPHRASE=... ./scripts/deploy-prod.sh` (Git Bash/WSL).
 
 6. Check `/actuator/health` through Nginx, the public report, login and one read-only job.
 7. Watch report failures, delivery dead letters, webhook failures, 5xx and DB health for 30 minutes.
@@ -89,20 +92,35 @@ a data migration manually; Flyway records each version in `flyway_schema_history
 
 ### Backup
 
+The deploy wrapper runs this automatically; run it by hand for drills:
+
 ```bash
-cd infra
 export BACKUP_PASSPHRASE='from-secret-manager'
 ./scripts/backup-mysql.sh
 ```
 
-The script writes an AES-256-CBC/PBKDF2 encrypted dump and SHA-256 checksum. Store the passphrase separately from the backup. Apply the approved C2 retention period.
+It dumps inside the MySQL container (`mysqldump --single-transaction --routines --triggers
+--events`), refuses an empty dump or one without `CREATE TABLE`, encrypts with
+AES-256-CBC/PBKDF2, and writes `infra/backups/truereport-<UTC>.sql.enc` plus a verified
+`.sha256` sidecar. Store the passphrase separately from the backup. Apply the approved C2
+retention period.
 
 Schedule it with a host cron/systemd timer, for example nightly at 02:00 UTC, and alert if the file/checksum is missing. The scheduler is **not configured** in this repository.
 
 ### Restore drill
 
 1. Start a fresh MySQL container with the same image (`mysql:8.4.13`).
-2. Decrypt and restore with `scripts/restore-mysql.sh` or the equivalent approved procedure.
+2. Restore the newest encrypted dump into it:
+
+```bash
+export BACKUP_PASSPHRASE='from-secret-manager'
+MYSQL_CONTAINER=<drill-container> CONFIRM_RESTORE=yes \
+  ./scripts/restore-mysql.sh infra/backups/truereport-<UTC>.sql.enc
+```
+
+   The script verifies the `.sha256` sidecar before importing, refuses a missing passphrase,
+   and requires an explicit container name plus `CONFIRM_RESTORE=yes` so it can never overwrite
+   the live database by accident.
 3. Verify:
    - Flyway history at the expected version;
    - row counts for reports/report versions;

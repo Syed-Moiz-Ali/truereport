@@ -6,6 +6,7 @@ import { expectText } from '../flutter';
 interface PublishedJob {
   id: string;
   reference: string;
+  customerName: string;
   preferredLanguage?: string | null;
 }
 
@@ -40,8 +41,18 @@ test.describe('workshop admin — report and delivery surface', () => {
 
     await uiSignIn(page, APPS.workshop);
     await page.getByRole('button', { name: /^Jobs$/ }).first().click({ force: true });
-    await page.getByText(job.reference, { exact: false }).first().click({ force: true });
-    await expectText(page, job.reference);
+    // The queue is long and the reference wraps inside its cell, so narrow to
+    // the published tab and click the customer name (unique per seeded job).
+    await page
+      .getByRole('button', { name: /^Published\b/i })
+      .first()
+      .click({ force: true });
+    await page.getByText(job.customerName, { exact: false }).first().click({
+      force: true,
+    });
+    await expect(page.getByText(/JOB-[A-Z0-9]+/).first()).toBeVisible({
+      timeout: 20_000,
+    });
 
     // The report/documents actions sit in the Review & publication card, which
     // is below the fold at 1280x720; scroll before reading its semantics.

@@ -21,6 +21,7 @@
   "button.signOut": "Sign out",
   "empty.search": "No results",
   "empty.title": "No data yet",
+  "error.delivery.channelUnavailable": "This delivery channel is not configured",
   "error.generic": "Something went wrong. Try again.",
   "error.invalidCredentials": "Email or password is incorrect.",
   "error.network": "Cannot reach the server. Check your connection.",

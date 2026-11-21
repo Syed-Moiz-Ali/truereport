@@ -55,13 +55,13 @@ field that carries `Z` or `±HH:MM` is a real instant.
 Machine-generated instants (`evidence.capturedAt`, sync timestamps) are sent as UTC
 (`toUtc().toIso8601String()`) and therefore carry `Z`.
 
-**Known residual (not yet fixed):** database-generated columns (`created_at`, `updated_at`,
-history, delivery attempts) use MySQL `CURRENT_TIMESTAMP` in the **database session zone**, and the
-three `LocalDateTime.now()` sites use the JVM zone. Clients display naive values as Dubai wall
-time, so on a non-Dubai database those *server-generated* stamps are off by the zone difference.
-Scheduling is unaffected (it is stored from the request). Fix by running the MySQL session at
-`+04:00` (compose `--default-time-zone=+04:00` or Hikari `connection-init-sql`) and generating
-server stamps in Dubai time; see `docs/PROGRESS.md` open items.
+**Zone policy (enforced in both compose stacks):** MySQL runs with
+`--default-time-zone=+04:00` and the server JVM runs with `TZ=Asia/Dubai`, so
+`CURRENT_TIMESTAMP` columns and `LocalDateTime.now()` are Dubai wall time, matching what the
+clients render. Verified at the component level: MySQL `NOW()` returns UTC+4, and the JVM accepts
+`Asia/Dubai`. Do not change one side without the other, and do not deploy a host MySQL at a
+different session zone. Host-run dev (`server/start-mysql-backend.ps1`) uses the host zone; that
+only affects local audit stamps.
 
 ## 4. Languages
 

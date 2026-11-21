@@ -21,6 +21,11 @@ class FakeAdminApi implements AdminApi {
     this.checklistReady = true,
     this.approveSucceeds = true,
     this.enforceVersions = false,
+    this.deliveryChannelOptions = const <DeliveryChannelOption>[
+      DeliveryChannelOption(channel: 'EMAIL', available: true),
+      DeliveryChannelOption(channel: 'SMS', available: false),
+      DeliveryChannelOption(channel: 'WHATSAPP', available: false),
+    ],
     this.languages = const <WorkshopLanguage>[
       WorkshopLanguage(
         code: 'en',
@@ -244,6 +249,9 @@ class FakeAdminApi implements AdminApi {
 
   /// Registry rows served by [i18nLanguages]; tests override this list.
   final List<WorkshopLanguage> languages;
+
+  /// Capability rows served by [deliveryChannels]; tests override this list.
+  final List<DeliveryChannelOption> deliveryChannelOptions;
 
   /// Mutation audit trail (test-only): what the UI actually sent.
   final List<Map<String, Object?>> assignRequests = [];
@@ -625,6 +633,10 @@ class FakeAdminApi implements AdminApi {
 
   @override
   Future<List<ReportDelivery>> deliveries(String jobId) async => const [];
+
+  @override
+  Future<List<DeliveryChannelOption>> deliveryChannels() async =>
+      List<DeliveryChannelOption>.unmodifiable(deliveryChannelOptions);
 
   @override
   Future<List<WorkshopLanguage>> i18nLanguages() async =>

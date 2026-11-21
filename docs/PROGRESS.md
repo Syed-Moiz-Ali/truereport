@@ -213,9 +213,9 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ## Current numbers
 
 ```
-backend                    325 tests · 0 failures · 12 skipped
+backend                    334 tests · 0 failures · 12 skipped
 l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
-ui_gallery 5 · platform_admin 107 · workshop 198 · technician 133
+ui_gallery 5 · platform_admin 107 · workshop 201 · technician 133
 flutter analyze            clean
 npm run gate               0
 playwright e2e             33 tests · 32 passed · 1 skipped (es public report needs a reviewed job)
@@ -355,6 +355,36 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
 - Rendering caveat unchanged: a value with a resolvable `labelKey` renders catalog copy, so
   editing its served `label` in the admin does not change the visible text.
 
+### Production readiness (2026-11-22)
+
+Four blockers were identified and three are now closed in code/config:
+
+1. **Delivery channels were dishonest — CLOSED.** `DeliveryProviderRegistry` no longer falls back
+   to the fake provider for SMS/WhatsApp. `GET /api/v1/workshop/delivery-channels` reports what is
+   configured; `POST /deliveries` rejects an unconfigured channel with `422 CHANNEL_UNAVAILABLE`
+   before writing a row; the workshop send sheet offers only available channels and defaults to
+   the first (EMAIL today). Wiring a real SMS/WhatsApp provider is now a bean + config change.
+2. **Non-English publishing gate — HUMAN TASK.** Exactly 55 safety-critical rows
+   (`ITEM.instruction` 28, `ITEM.standardSpec` 27) are `PENDING_REVIEW`. They are exported to
+   `docs/i18n/es-safety-critical-review.tsv` with English source, Spanish proposal and empty
+   decision/reviewer columns. Bulk approve exists in the language workspace. Machine output must
+   not be auto-approved (the export already shows errors such as "at most 7 C" rendered as
+   "a la mayoría de 7 C").
+3. **Translation worker could run the fake provider in production — CLOSED.**
+   `TranslationWorkerSafety` + a `@Profile("prod")` startup guard refuse
+   `worker-enabled=true` with provider `fake`; `infra/env/production.env.example` sets
+   `I18N_WORKER_ENABLED=false` and documents the LibreTranslate switch.
+4. **Destructive migrations had no deploy gate — CLOSED.** `scripts/backup-mysql.sh` dumps inside
+   the MySQL container, refuses empty/table-less output, encrypts (AES-256-CBC/PBKDF2) and writes a
+   verified SHA-256 sidecar. `scripts/deploy-prod.sh` refuses a dirty tree, takes and verifies the
+   backup, then runs compose. `scripts/restore-mysql.sh` verifies the checksum and requires an
+   explicit container plus `CONFIRM_RESTORE=yes`. The runbook points at all three.
+
+Also closed: **wall-clock zones**. Both compose stacks now run MySQL with
+`--default-time-zone=+04:00` and the server JVM with `TZ=Asia/Dubai`, so DB-generated and
+JVM-generated stamps match the clients' Dubai rule (component-verified: MySQL `NOW()` = UTC+4,
+JVM accepts `Asia/Dubai`).
+
 ### Report and delivery on the platform model (2026-11-21)
 
 Found by browser QA: every report/delivery action returned 404 for real jobs, because those
@@ -487,10 +517,8 @@ Dubai wall time.
    `docs/data/inventory.md` (T1). `docs/api/contracts.md` now exists and documents the time,
    language, error, idempotency, delivery and taxonomy rules; the code comment now cites only
    that file.
-9. **Server-generated timestamp zone** — DB `CURRENT_TIMESTAMP` and three
-   `LocalDateTime.now()` calls use the database/JVM zone, while clients render naive values as
-   Dubai wall time. Job scheduling round-trips correctly (fixed 2026-11-21); audit stamps
-   (`createdAt`, history, delivery attempts) are off by the zone difference on a non-Dubai host.
-   Fix by running the MySQL session at `+04:00` (compose `--default-time-zone=+04:00` or Hikari
-   `connection-init-sql`) and generating server stamps in Dubai time. Documented in
-   `docs/api/contracts.md` section 3.
+9. **Docker not exercised** — the deploy/backup/restore scripts pass `bash -n` and are wired into
+   the runbook, but no Docker host is available here, so the compose stack, the encrypted
+   round-trip and the restore drill have not been executed in this session. Run
+   `scripts/backup-mysql.sh` → `scripts/restore-mysql.sh` against a drill container before the
+   pilot.

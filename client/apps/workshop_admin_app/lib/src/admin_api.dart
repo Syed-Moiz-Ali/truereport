@@ -180,6 +180,9 @@ abstract class AdminApi {
 
   Future<List<ReportDelivery>> deliveries(String jobId);
 
+  /// Server capability for customer delivery channels.
+  Future<List<DeliveryChannelOption>> deliveryChannels();
+
   /// Live language registry for customer delivery language.
   Future<List<WorkshopLanguage>> i18nLanguages();
 
@@ -960,6 +963,20 @@ class HttpAdminApi implements AdminApi {
     final data = await _api.getDynamic(_endpoints.workshopJobDeliveries(jobId));
     return (data as List<dynamic>)
         .map((item) => ReportDelivery.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<DeliveryChannelOption>> deliveryChannels() async {
+    final data = await _api.getDynamic(
+      _endpoints.absolute('/api/v1/workshop/delivery-channels'),
+    );
+    if (data is! Map) return const <DeliveryChannelOption>[];
+    final channels = data['channels'];
+    if (channels is! List) return const <DeliveryChannelOption>[];
+    return channels
+        .whereType<Map<String, dynamic>>()
+        .map(DeliveryChannelOption.fromJson)
         .toList(growable: false);
   }
 

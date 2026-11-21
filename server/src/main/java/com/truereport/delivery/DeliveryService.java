@@ -111,6 +111,11 @@ public class DeliveryService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CHANNEL_INVALID",
                     "error.delivery.channel", "Unsupported delivery channel");
         }
+        if (!providers.isConfigured(channel)) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CHANNEL_UNAVAILABLE",
+                    "error.delivery.channelUnavailable",
+                    "This delivery channel is not configured");
+        }
         String language = normalizeLanguage(body.language());
         if (language.isEmpty() || !isLiveLanguage(language)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "LANGUAGE_INVALID",

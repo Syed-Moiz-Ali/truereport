@@ -1000,6 +1000,25 @@ class ReportLinkResult {
       );
 }
 
+/// One delivery channel advertised by `GET /workshop/delivery-channels`.
+///
+/// Capability is server-owned: a channel that is not [available] must never be
+/// offered or selected, even though its copy key still exists.
+class DeliveryChannelOption {
+  const DeliveryChannelOption({required this.channel, required this.available});
+
+  final String channel;
+  final bool available;
+
+  factory DeliveryChannelOption.fromJson(Map<String, dynamic> json) {
+    final channel = json['channel'] as String? ?? '';
+    return DeliveryChannelOption(
+      channel: channel.trim().toUpperCase(),
+      available: json['available'] as bool? ?? false,
+    );
+  }
+}
+
 /// One entry of the live language registry (`GET /i18n/languages`).
 ///
 /// Delivery language is the customer's content language, so it follows this

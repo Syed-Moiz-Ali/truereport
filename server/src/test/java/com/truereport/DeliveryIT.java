@@ -119,9 +119,9 @@ class DeliveryIT extends IntegrationTestBase {
         Login admin = login("admin.a@test.local");
         PlatformJobFixtures.Fixture seeded = PlatformJobFixtures.publishedJob(
                 jdbc, store, tokens, fixture.workshopA().getId(), fixture.adminA().getId(),
-                ALLOWED_PHONE, null, "en", false, "PUBLISHED", "{}");
+                ALLOWED_PHONE, ALLOWED_EMAIL, "en", false, "PUBLISHED", "{}");
 
-        send(admin, seeded.jobId(), "SMS", "en")
+        send(admin, seeded.jobId(), "EMAIL", "en")
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("CONSENT_REQUIRED"));
     }
@@ -131,9 +131,9 @@ class DeliveryIT extends IntegrationTestBase {
         Login admin = login("admin.a@test.local");
         PlatformJobFixtures.Fixture seeded = PlatformJobFixtures.publishedJob(
                 jdbc, store, tokens, fixture.workshopA().getId(), fixture.adminA().getId(),
-                ALLOWED_PHONE, null, "en", true, "APPROVED", "{}");
+                ALLOWED_PHONE, ALLOWED_EMAIL, "en", true, "APPROVED", "{}");
 
-        send(admin, seeded.jobId(), "SMS", "en")
+        send(admin, seeded.jobId(), "EMAIL", "en")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("REPORT_NOT_READY"));
     }
@@ -141,8 +141,39 @@ class DeliveryIT extends IntegrationTestBase {
     @Test
     void unknownJobIsNotFound() throws Exception {
         Login admin = login("admin.a@test.local");
-        send(admin, UUID.randomUUID().toString(), "SMS", "en")
+        send(admin, UUID.randomUUID().toString(), "EMAIL", "en")
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void unconfiguredChannelIsRejectedBeforeAnyWrite() throws Exception {
+        Login admin = login("admin.a@test.local");
+        PlatformJobFixtures.Fixture seeded = PlatformJobFixtures.publishedJob(
+                jdbc, store, tokens, fixture.workshopA().getId(), fixture.adminA().getId(),
+                ALLOWED_PHONE, ALLOWED_EMAIL, "en", true, "PUBLISHED", "{}");
+        long before = requests.count();
+
+        send(admin, seeded.jobId(), "SMS", "en")
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CHANNEL_UNAVAILABLE"))
+                .andExpect(jsonPath("$.messageKey")
+                        .value("error.delivery.channelUnavailable"));
+
+        assertThat(requests.count()).isEqualTo(before);
+    }
+
+    @Test
+    void deliveryChannelsReportConfiguredProviders() throws Exception {
+        Login admin = login("admin.a@test.local");
+        mockMvc.perform(get("/api/v1/workshop/delivery-channels")
+                        .header("Authorization", "Bearer " + admin.accessToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.channels[0].channel").value("EMAIL"))
+                .andExpect(jsonPath("$.channels[0].available").value(true))
+                .andExpect(jsonPath("$.channels[1].channel").value("SMS"))
+                .andExpect(jsonPath("$.channels[1].available").value(false))
+                .andExpect(jsonPath("$.channels[2].channel").value("WHATSAPP"))
+                .andExpect(jsonPath("$.channels[2].available").value(false));
     }
 
     @Test
@@ -150,13 +181,13 @@ class DeliveryIT extends IntegrationTestBase {
         Login admin = login("admin.a@test.local");
         PlatformJobFixtures.Fixture seeded = PlatformJobFixtures.publishedJob(
                 jdbc, store, tokens, fixture.workshopA().getId(), fixture.adminA().getId(),
-                ALLOWED_PHONE, null, "en", true, "PUBLISHED", "{}");
+                ALLOWED_PHONE, ALLOWED_EMAIL, "en", true, "PUBLISHED", "{}");
 
         MvcResult result = mockMvc.perform(post(JOBS + "/" + seeded.jobId() + "/deliveries")
                         .header("Authorization", "Bearer " + admin.accessToken())
                         .header("Idempotency-Key", UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"channel\":\"SMS\",\"language\":\"en\"}"))
+                        .content("{\"channel\":\"EMAIL\",\"language\":\"en\"}"))
                 .andExpect(status().isCreated()).andReturn();
         UUID requestId = UUID.fromString(objectMapper.readTree(
                 result.getResponse().getContentAsString()).get("id").asText());

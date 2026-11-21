@@ -168,6 +168,16 @@ final reportDeliveriesProvider = FutureProvider.autoDispose
       return ref.watch(adminApiProvider).deliveries(jobId);
     });
 
+/// Customer delivery channels the server can actually deliver on.
+///
+/// The sheet must never offer a channel the backend cannot send (WhatsApp/SMS
+/// dead-letter without a provider). Failure/loading falls back to EMAIL only.
+final deliveryChannelsProvider = FutureProvider<List<DeliveryChannelOption>>((
+  ref,
+) {
+  return ref.watch(adminApiProvider).deliveryChannels();
+});
+
 /// LIVE content languages from the registry, used for customer delivery.
 ///
 /// The UI-message manifest only lists languages with a static catalog file;
