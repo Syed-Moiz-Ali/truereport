@@ -614,9 +614,9 @@ public class WorkshopJobAdminService {
                     "error.job.consentRequired",
                     "Public-link consent must be granted before publishing");
         }
-        // Reports are English today (PlatformJobDocumentService uses en). The
-        // language gate is wired here so enabling a localized renderer later
-        // automatically enforces reviewed safety-critical copy.
+        // Report language follows the job. The gate is wired here so a localized
+        // render enforces reviewed safety-critical copy; document generation
+        // writes one row per type in that same language.
         String reportLanguage = reportLanguage(job);
         if (!reportLanguage.equals(languageCatalog.defaultLanguage())) {
             reviewGate.assertJobPublish(store.reportItems(job.id()).stream()

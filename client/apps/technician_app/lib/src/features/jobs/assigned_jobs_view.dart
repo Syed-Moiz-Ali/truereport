@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/models.dart';
 import 'package:technician_app/src/reference_ui.dart';
+import 'package:technician_app/src/shared/technician_intl.dart';
 
 String formatOdometer(int? value, String? unit) {
   if (value == null) {
@@ -18,25 +19,23 @@ String formatOdometer(int? value, String? unit) {
 }
 
 String scheduledTimeUtc4(String scheduledAt) {
-  final parsed = DateTime.tryParse(scheduledAt);
-  if (parsed == null) {
+  final wall = parseWallTime(scheduledAt);
+  if (wall == null) {
     return '';
   }
-  final local = parsed.toUtc().add(const Duration(hours: 4));
-  final time = DateFormat.Hm(Intl.getCurrentLocale()).format(local);
+  final time = DateFormat.Hm(Intl.getCurrentLocale()).format(wall);
   return '$time UTC+4';
 }
 
 bool scheduledTodayUtc4(String scheduledAt, DateTime nowUtc) {
-  final parsed = DateTime.tryParse(scheduledAt);
-  if (parsed == null) {
+  final wall = parseWallTime(scheduledAt);
+  if (wall == null) {
     return true;
   }
-  final local = parsed.toUtc().add(const Duration(hours: 4));
-  final today = nowUtc.toUtc().add(const Duration(hours: 4));
-  return local.year == today.year &&
-      local.month == today.month &&
-      local.day == today.day;
+  final today = nowUtc.toUtc().add(technicianDubaiOffset);
+  return wall.year == today.year &&
+      wall.month == today.month &&
+      wall.day == today.day;
 }
 
 class AssignedJobsView extends StatelessWidget {

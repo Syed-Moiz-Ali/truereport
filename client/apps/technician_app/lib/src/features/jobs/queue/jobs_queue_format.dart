@@ -11,8 +11,7 @@ DateTime? queueMoment(JobSummary job) {
   final raw = started != null && started.isNotEmpty
       ? started
       : (job.scheduledAt ?? '');
-  final instant = parseInstantAsUtc(raw);
-  return instant?.add(const Duration(hours: 4));
+  return parseWallTime(raw);
 }
 
 /// Local-midnight key for grouping, or null when the job has no date.
@@ -50,7 +49,7 @@ String queueDateFormat(DateTime day, String locale, {bool weekday = true}) =>
     _format(weekday ? 'EEE d MMM' : 'd MMM', locale).format(day);
 
 DateTime queueTodayKey([DateTime? now]) {
-  final dubai = (now ?? DateTime.now()).toUtc().add(const Duration(hours: 4));
+  final dubai = (now ?? DateTime.now()).toUtc().add(technicianDubaiOffset);
   return DateTime(dubai.year, dubai.month, dubai.day);
 }
 

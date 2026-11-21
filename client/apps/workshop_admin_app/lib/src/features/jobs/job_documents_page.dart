@@ -7,6 +7,8 @@ import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/dispatch/dispatch_pills.dart';
 import 'package:workshop_admin_app/src/features/jobs/documents/document_row.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
+import 'package:workshop_admin_app/src/features/reports/report_language_options.dart';
+import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -37,6 +39,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
     final documents = ref.watch(jobDocumentsProvider(widget.jobId));
+    final languages = ref.watch(workshopLanguagesProvider).asData?.value;
 
     return Scaffold(
       backgroundColor: ws.canvas,
@@ -98,7 +101,7 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                       ),
                       error: (error, _) =>
                           _errorState(context, jobErrorCopy(t, error)),
-                      data: (items) => _content(context, items),
+                      data: (items) => _content(context, items, languages),
                     ),
             ),
           ],
@@ -126,7 +129,11 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
     );
   }
 
-  Widget _content(BuildContext context, List<JobDocument> items) {
+  Widget _content(
+    BuildContext context,
+    List<JobDocument> items,
+    List<WorkshopLanguage>? languages,
+  ) {
     final t = UiStrings.of(context);
     final ws = context.ws;
     final width = MediaQuery.sizeOf(context).width;
@@ -197,6 +204,12 @@ class _DocumentsPageState extends ConsumerState<DocumentsPage> {
                         if (index > 0) Container(height: 1, color: ws.border),
                         DocumentRow(
                           document: items[index],
+                          languageLabel:
+                              resolvedLanguageLabel(
+                                languages,
+                                items[index].language,
+                              ) ??
+                              t(WorkshopAdminKeys.commonNotAvailable),
                           busy: _busy,
                           onRetry: () => _retry(items[index]),
                           onCopy: () => _copy(items[index].downloadUrl!),

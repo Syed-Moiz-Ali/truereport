@@ -41,7 +41,7 @@ class MySqlMigrationIT {
                 .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("135");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("138");
         assertThat(tableExists("audit_events")).isTrue();
         assertThat(tableExists("reference_domain")).isFalse();
         assertThat(tableExists("status_transition")).isTrue();

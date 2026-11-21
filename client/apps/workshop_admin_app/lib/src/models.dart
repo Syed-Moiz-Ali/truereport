@@ -853,6 +853,19 @@ class ReportAdmin {
   final String snapshotHash;
   final Map<String, dynamic>? content;
 
+  /// The job's preferred language captured in the report snapshot.
+  ///
+  /// The server generates the report in the job language and records it as
+  /// `content.language`; a report without one keeps the caller's default.
+  String? get preferredLanguage {
+    final value = content?['language'];
+    if (value is String) {
+      final code = value.trim();
+      if (code.isNotEmpty) return code;
+    }
+    return null;
+  }
+
   factory ReportAdmin.fromJson(Map<String, dynamic> json) => ReportAdmin(
     reportId: json['reportId'] as String? ?? '',
     jobId: json['jobId'] as String? ?? '',
@@ -985,4 +998,49 @@ class ReportLinkResult {
         publicUrl: json['publicUrl'] as String?,
         pdfDownloadEnabled: json['pdfDownloadEnabled'] as bool? ?? false,
       );
+}
+
+/// One entry of the live language registry (`GET /i18n/languages`).
+///
+/// Delivery language is the customer's content language, so it follows this
+/// registry rather than the UI-message manifest, which only lists languages
+/// that already have a static catalog file.
+class WorkshopLanguage {
+  const WorkshopLanguage({
+    required this.code,
+    required this.nativeName,
+    required this.direction,
+    required this.status,
+    required this.active,
+  });
+
+  final String code;
+  final String nativeName;
+  final String direction;
+  final String status;
+  final bool active;
+
+  bool get isLive => status.trim().toUpperCase() == 'LIVE';
+
+  /// Native name first; the upper-case code is the only fallback.
+  String get displayName {
+    final name = nativeName.trim();
+    return name.isNotEmpty ? name : code.trim().toUpperCase();
+  }
+
+  factory WorkshopLanguage.fromJson(Map<String, dynamic> json) {
+    final code = json['code'] as String? ?? '';
+    final nativeName = json['nativeName'] as String? ?? '';
+    final direction = json['direction'] as String? ?? '';
+    final status = json['status'] as String? ?? '';
+    return WorkshopLanguage(
+      code: code.trim(),
+      nativeName: nativeName.trim(),
+      direction: direction.trim().isEmpty
+          ? 'ltr'
+          : direction.trim().toLowerCase(),
+      status: status.trim().isEmpty ? 'LIVE' : status.trim().toUpperCase(),
+      active: json['active'] as bool? ?? true,
+    );
+  }
 }

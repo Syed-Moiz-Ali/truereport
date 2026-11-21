@@ -9,10 +9,14 @@ import com.truereport.inspections.InspectionFinalSnapshotRepository;
 import com.truereport.jobs.InspectionJob;
 import com.truereport.jobs.InspectionJobRepository;
 import com.truereport.jobs.PlatformJobStore;
+import com.truereport.jobs.PlatformJobDocumentService;
+import com.truereport.jobs.PlatformJobTokenService;
 import com.truereport.jobs.PlatformJobStore.DocumentRow;
 import com.truereport.jobs.PlatformJobStore.JobRow;
 import com.truereport.jobs.PlatformJobStore.LinkRow;
 import com.truereport.jobs.PlatformJobStore.ReportVersionRow;
+import com.truereport.jobs.WorkshopJobAdminService;
+import com.truereport.jobs.api.WorkshopJobDtos.PublicLinkDto;
 import com.truereport.reports.api.ReportAdminDto;
 import com.truereport.reports.api.ReportLinkResponse;
 import com.truereport.reports.api.ReportStatusDto;
@@ -30,6 +34,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +58,10 @@ public class ReportService {
     private final ConsentRecordRepository consents;
     private final ReportSnapshotBuilder snapshotBuilder;
     private final ReportTokenService tokenService;
+    private final PlatformJobDocumentService platformDocuments;
+    private final PlatformJobTokenService platformTokens;
+    private final PlatformReportPdfRenderer platformPdf;
+    private final WorkshopJobAdminService workshopJobs;
     private final ObjectStorage storage;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
@@ -70,6 +79,10 @@ public class ReportService {
                          ConsentRecordRepository consents,
                          ReportSnapshotBuilder snapshotBuilder,
                          ReportTokenService tokenService,
+                         PlatformJobDocumentService platformDocuments,
+                         PlatformJobTokenService platformTokens,
+                         PlatformReportPdfRenderer platformPdf,
+                         WorkshopJobAdminService workshopJobs,
                          ObjectStorage storage,
                          AuditService auditService,
                          ObjectMapper objectMapper,
@@ -86,6 +99,10 @@ public class ReportService {
         this.consents = consents;
         this.snapshotBuilder = snapshotBuilder;
         this.tokenService = tokenService;
+        this.platformDocuments = platformDocuments;
+        this.platformTokens = platformTokens;
+        this.platformPdf = platformPdf;
+        this.workshopJobs = workshopJobs;
         this.storage = storage;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
@@ -138,14 +155,11 @@ public class ReportService {
      * {@code summary}.
      */
     private ReportAdminDto platformAdminForJob(CurrentUser caller, UUID jobId) {
-        if (!caller.isWorkshopAdmin() || caller.workshopId() == null) {
-            return null;
-        }
-        String jobKey = jobId.toString();
-        JobRow job = platformJobs.findJob(caller.workshopId().toString(), jobKey).orElse(null);
+        JobRow job = platformJob(caller, jobId);
         if (job == null) {
             return null;
         }
+        String jobKey = job.id();
         ReportVersionRow version = platformJobs.latestReportVersion(jobKey).orElse(null);
         if (version == null) {
             return null;
@@ -157,20 +171,30 @@ public class ReportService {
                 .filter(error -> error != null && !error.isBlank())
                 .findFirst().orElse(null);
         LinkRow link = platformJobs.latestLink(jobKey).orElse(null);
+        LinkRow active = platformJobs.activeLink(jobKey).orElse(null);
         String linkState = link == null
                 ? "PENDING_CONSENT"
                 : ("PENDING".equals(link.status()) ? "PENDING_CONSENT" : link.status());
         String finalizedAt = job.completedAt() != null
                 ? job.completedAt().toString()
                 : version.createdAt().toString();
+        ReportSnapshot content = withLanguage(parseSnapshotJson(version.snapshotJson()),
+                job.preferredLanguage());
         return new ReportAdminDto(
                 uuid(version.id()), jobId, job.reference(), version.versionNo(),
-                generationStatus, generationError, 0, true, false,
+                generationStatus, generationError, 0, true, active != null,
                 link != null && link.pdfDownloadEnabled(), linkState,
                 job.consentGranted() ? "GRANTED" : "MISSING_OR_NOT_GRANTED",
                 null, finalizedAt, version.snapshotHash(),
-                platformJobs.activeLink(jobKey).isPresent() ? 1 : 0,
-                parseSnapshotJson(version.snapshotJson()));
+                active != null ? 1 : 0, content);
+    }
+
+    /** The caller's platform job, or {@code null} when it is not a platform job. */
+    private JobRow platformJob(CurrentUser caller, UUID jobId) {
+        if (!caller.isWorkshopAdmin() || caller.workshopId() == null) {
+            return null;
+        }
+        return platformJobs.findJob(caller.workshopId().toString(), jobId.toString()).orElse(null);
     }
 
     private static String generationStatus(List<DocumentRow> documents) {
@@ -196,6 +220,10 @@ public class ReportService {
 
     @Transactional
     public ReportAdminDto retry(CurrentUser caller, UUID jobId) {
+        JobRow platform = platformJob(caller, jobId);
+        if (platform != null) {
+            return retryPlatform(caller, jobId, platform);
+        }
         ReportContext context = contextForAdmin(caller, jobId);
         ReportGenerationJob job = generationJobs.findByReportVersionId(context.version().getId())
                 .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
@@ -213,8 +241,37 @@ public class ReportService {
         return adminDto(new ReportContext(context.report(), context.version(), job, context.link()));
     }
 
+    /**
+     * Regenerates only the failed document rows for a platform job. Rendering is
+     * synchronous, so the caller gets the refreshed admin DTO in the same request.
+     */
+    private ReportAdminDto retryPlatform(CurrentUser caller, UUID jobId, JobRow job) {
+        ReportVersionRow version = platformJobs.latestReportVersion(job.id())
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
+                        "error.report.notReady", "The report is not ready"));
+        Set<String> failedTypes = new HashSet<>();
+        for (DocumentRow document : platformJobs.documents(version.id())) {
+            if ("FAILED".equals(document.status())) {
+                failedTypes.add(document.documentTypeCode());
+            }
+        }
+        for (String type : failedTypes) {
+            platformDocuments.retry(job, version.id(), type);
+        }
+        ReportAdminDto dto = platformAdminForJob(caller, jobId);
+        if (dto == null) {
+            throw new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
+                    "error.report.notReady", "The report is not ready");
+        }
+        return dto;
+    }
+
     @Transactional
     public ReportLinkResponse activate(CurrentUser caller, UUID jobId) {
+        JobRow platform = platformJob(caller, jobId);
+        if (platform != null) {
+            return activatePlatform(caller, jobId, platform);
+        }
         ReportContext context = contextForAdmin(caller, jobId);
         PublicShareLink link = context.link();
         if (link == null) {
@@ -244,8 +301,48 @@ public class ReportService {
                 link.isPdfDownloadEnabled());
     }
 
+    private ReportLinkResponse activatePlatform(CurrentUser caller, UUID jobId, JobRow job) {
+        LinkRow active = platformJobs.activeLink(job.id()).orElse(null);
+        if (active != null) {
+            return new ReportLinkResponse(active.status(), publicUrl(active),
+                    active.pdfDownloadEnabled());
+        }
+        if (!job.consentGranted()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONSENT_REQUIRED",
+                    "error.consent.required",
+                    "Public-link consent must be granted before activation");
+        }
+        ReportVersionRow version = platformJobs.latestReportVersion(job.id())
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
+                        "error.report.notReady", "The report is not ready"));
+        boolean pdfDownload = platformJobs.latestLink(job.id())
+                .map(LinkRow::pdfDownloadEnabled).orElse(true);
+        String token = platformTokens.newToken();
+        platformJobs.insertLink(job.id(), version.id(), platformTokens.hash(token),
+                platformTokens.encrypt(token), pdfDownload);
+        auditService.record(caller.workshopId(), caller.userId(), caller.role(),
+                "PUBLIC_LINK_ACTIVATED", "JOB", jobId, null, null);
+        return new ReportLinkResponse("ACTIVE", publicBaseUrl + "/r/" + token, pdfDownload);
+    }
+
+    private String publicUrl(LinkRow link) {
+        String token = platformTokens.decrypt(link.tokenEncrypted());
+        return token == null || token.isBlank() ? null : publicBaseUrl + "/r/" + token;
+    }
+
     @Transactional
     public ReportLinkResponse revoke(CurrentUser caller, UUID jobId, RevokeLinkRequest request) {
+        JobRow platform = platformJob(caller, jobId);
+        if (platform != null) {
+            if (!REVOCATION_REASONS.contains(request.reasonCode())) {
+                throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REVOCATION_REASON_INVALID",
+                        "error.revocation.reason", "Revocation reason is invalid");
+            }
+            PublicLinkDto revoked = workshopJobs.revoke(caller, platform.id(),
+                    request.reasonCode());
+            return new ReportLinkResponse(revoked.status(), null,
+                    revoked.pdfDownloadEnabled());
+        }
         ReportContext context = contextForAdmin(caller, jobId);
         PublicShareLink link = context.link();
         if (link == null) {
@@ -320,6 +417,28 @@ public class ReportService {
 
     @Transactional
     public byte[] pdfForAdmin(CurrentUser caller, UUID jobId) {
+        try {
+            return legacyPdfForAdmin(caller, jobId);
+        } catch (ApiException exception) {
+            if (exception.status() != HttpStatus.NOT_FOUND) {
+                throw exception;
+            }
+            JobRow platform = platformJob(caller, jobId);
+            if (platform == null) {
+                throw exception;
+            }
+            LinkRow link = platformJobs.activeLink(platform.id())
+                    .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
+                            "REPORT_NOT_READY", "error.report.notReady",
+                            "The report PDF is not ready"));
+            return platformPdf.render(link)
+                    .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
+                            "REPORT_NOT_READY", "error.report.notReady",
+                            "The report PDF is not ready"));
+        }
+    }
+
+    private byte[] legacyPdfForAdmin(CurrentUser caller, UUID jobId) {
         ReportContext context = contextForAdmin(caller, jobId);
         ReportGenerationJob job = context.generationJob();
         if (job == null || !job.getStatus().equals("READY")) {
@@ -487,6 +606,26 @@ public class ReportService {
             return 0.0;
         }
         return Math.round(coverage.completed() * 1000.0 / coverage.applicable()) / 10.0;
+    }
+
+    /**
+     * Older platform snapshots may omit {@code language}. The admin screen must
+     * still report the job's chosen language rather than a blank value.
+     */
+    private ReportSnapshot withLanguage(ReportSnapshot snapshot, String language) {
+        if (snapshot == null || language == null || language.isBlank()
+                || (snapshot.language() != null && !snapshot.language().isBlank())) {
+            return snapshot;
+        }
+        return new ReportSnapshot(
+                snapshot.reportNumber(), snapshot.reportVersion(), snapshot.finalizedAt(),
+                snapshot.publishedAt(), snapshot.vehicle(), snapshot.inspection(),
+                snapshot.workshop(), snapshot.technician(), snapshot.customerName(),
+                snapshot.coverage(), snapshot.summary(), snapshot.score(), snapshot.gradeCode(),
+                snapshot.safetyCapApplied(), snapshot.safetyCapReason(),
+                snapshot.keyFindings(), snapshot.categories(),
+                snapshot.notChecked(), snapshot.limitations(), snapshot.disclaimer(),
+                snapshot.verificationHash(), language.trim());
     }
 
     private LocalDateTime now() {

@@ -8,10 +8,18 @@ import 'package:intl/intl.dart';
 /// output follows the active locale even where `Intl.defaultLocale` is not
 /// wired to the widget tree.
 ///
-/// Instant semantics match the F2-A helpers (`scheduledTimeUtc4` in
-/// `screens/f2a/assigned_jobs_view.dart`): an ISO string without an explicit
-/// offset is parsed as UTC, then displayed in the Asia/Dubai (UTC+4) wall
-/// clock used across the technician app.
+/// Timestamp semantics match `docs/api/contracts.md` quirk 3 and
+/// `WorkshopClock.wallTime`:
+///
+/// * **with** an offset (`Z`, `+04:00`) it is a real instant; convert it to
+///   Asia/Dubai (UTC+4, no DST).
+/// * **without** an offset it is already a Dubai wall time; do not add four
+///   hours.
+///
+/// Both branches return a [DateTime] whose fields are the Dubai wall clock.
+/// Anything that genuinely needs a UTC instant (evidence `capturedAt`, sync
+/// timestamps that always carry `Z`) must parse it directly; do not reuse
+/// [parseWallTime] for those.
 ///
 /// Digit shaping: the technician app uses Western digits in Arabic (D-040),
 /// matching `intl`'s bare `ar` locale. Arabic UI locales are normalized to `ar`
@@ -33,24 +41,45 @@ String _intlLocale(String? localeName) {
   return name;
 }
 
-/// Parses [raw] as an instant, treating offset-less ISO strings as UTC.
-/// Returns null when the string is empty or unparseable.
-DateTime? parseInstantAsUtc(String raw) {
-  final text = raw.trim();
+/// Asia/Dubai is UTC+4 all year (no daylight saving).
+const Duration technicianDubaiOffset = Duration(hours: 4);
+
+/// Offset suffixes Dart's ISO-8601 parser understands: `Z` or `±HH:MM`
+/// (with or without the colon).
+final RegExp _offsetSuffix = RegExp(r'(?:[Zz]|[+-]\d{2}:?\d{2})$');
+
+/// True when [raw] carries an explicit UTC offset.
+bool timestampHasOffset(String raw) => _offsetSuffix.hasMatch(raw.trim());
+
+/// Dubai wall-clock fields for [raw], or null when empty/unparseable.
+///
+/// Offset values are converted from their real instant; offset-less values
+/// keep their fields unchanged because the server already stores the Dubai
+/// wall time. This is the one helper technician surfaces may use for
+/// scheduled/started timestamps.
+DateTime? parseWallTime(String? raw) {
+  final text = raw?.trim() ?? '';
   if (text.isEmpty) {
     return null;
   }
-  final hasOffset = RegExp(r'([zZ]|[+-]\d{2}:?\d{2})$').hasMatch(text);
-  final normalized = hasOffset ? text : '${text}Z';
-  try {
-    return DateTime.parse(normalized).toUtc();
-  } on FormatException {
+  final parsed = DateTime.tryParse(text);
+  if (parsed == null) {
     return null;
   }
+  if (timestampHasOffset(text)) {
+    return parsed.toUtc().add(technicianDubaiOffset);
+  }
+  return DateTime(
+    parsed.year,
+    parsed.month,
+    parsed.day,
+    parsed.hour,
+    parsed.minute,
+    parsed.second,
+    parsed.millisecond,
+    parsed.microsecond,
+  );
 }
-
-DateTime _dubaiWallClock(DateTime instantUtc) =>
-    instantUtc.toUtc().add(const Duration(hours: 4));
 
 /// Locale-shaped integer (grouping + locale digits, e.g. `34,180` vs `٣٤٬١٨٠`).
 String formatCountLocalized(num value, String? localeName) =>
@@ -90,28 +119,27 @@ DateFormat _dateFormat(
   }
 }
 
-/// Locale-shaped full date+time of an instant in the Dubai wall clock.
+/// Locale-shaped full date+time of a timestamp in the Dubai wall clock.
 String formatInstantDubaiLocalized(String raw, String? localeName) {
-  final parsed = parseInstantAsUtc(raw);
-  if (parsed == null) {
+  final wall = parseWallTime(raw);
+  if (wall == null) {
     return '';
   }
   return _dateFormat(
     (locale) => DateFormat.yMMMd(locale).add_Hm(),
     localeName,
-  ).format(_dubaiWallClock(parsed));
+  ).format(wall);
 }
 
-/// Locale-shaped wall-clock time of an instant in the Dubai wall clock,
-/// mirroring F2-A `scheduledTimeUtc4` but bound to the active locale.
+/// Locale-shaped wall-clock time of a timestamp in the Dubai wall clock.
 String formatTimeDubaiLocalized(String raw, String? localeName) {
-  final parsed = parseInstantAsUtc(raw);
-  if (parsed == null) {
+  final wall = parseWallTime(raw);
+  if (wall == null) {
     return '';
   }
   final time = _dateFormat(
     (locale) => DateFormat.Hm(locale),
     localeName,
-  ).format(_dubaiWallClock(parsed));
+  ).format(wall);
   return '$time UTC+4';
 }

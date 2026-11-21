@@ -50,6 +50,12 @@ export async function seedJob(
   const technician = staffList.find((member) => member.role === 'TECHNICIAN');
 
   const suffix = uniqueSuffix().replace(/[^0-9]/g, '').slice(-6);
+  // The wire contract (docs/api/contracts.md quirk 3): a naive timestamp is a
+  // Dubai wall time. Send Dubai's clock, not UTC, or the technician day board
+  // can place the job on the wrong date near midnight.
+  const dubaiNow = new Date(Date.now() + 4 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 19);
   const payload = {
     templateVersionId: templateList[0].versionId,
     customerName: `Audit Customer ${suffix}`,
@@ -67,9 +73,9 @@ export async function seedJob(
     preferredLanguage: 'en',
     assignedTechnicianId: technician?.userId,
     consentGranted: true,
-    // The technician queue is day-scoped; a job without a schedule is invisible
-    // there. Scheduling it today keeps status ASSIGNED and makes it reachable.
-    scheduledAt: new Date().toISOString().slice(0, 19),
+    // The technician queue is day-scoped in Dubai; a UTC timestamp can land on
+    // tomorrow there. Scheduling at Dubai-now keeps the job reachable today.
+    scheduledAt: dubaiNow,
     ...overrides,
   };
 

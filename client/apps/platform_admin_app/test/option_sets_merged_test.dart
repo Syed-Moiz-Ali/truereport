@@ -320,6 +320,60 @@ void main() {
       expect(find.byKey(const Key('option-value-row-OPEN')), findsOneWidget);
       expect(find.byKey(const Key('option-value-row-CLOSED')), findsOneWidget);
     });
+
+    testWidgets('catalog-managed labels are read-only with a helper', (
+      tester,
+    ) async {
+      final api = _FakeConfigApi(<OptionSet>[
+        _set(
+          code: 'ISSUE_TYPE',
+          name: 'Issue type',
+          kind: OptionSetKind.checklist,
+          values: <OptionValue>[
+            _value('WORN', 'Worn', labelKey: 'optionSets.codeImmutable'),
+          ],
+        ),
+      ]);
+
+      await _pump(tester, api, OptionSetTab.checklist);
+      await tester.tap(find.byKey(const Key('option-value-edit-WORN')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Label is managed by the language catalog.'),
+        findsOneWidget,
+      );
+      final field = tester.widget<TextFormField>(
+        _field('option-value-label-field'),
+      );
+      expect(field.enabled, isFalse);
+    });
+
+    testWidgets('unresolved label keys stay editable', (tester) async {
+      final api = _FakeConfigApi(<OptionSet>[
+        _set(
+          code: 'ISSUE_TYPE',
+          name: 'Issue type',
+          kind: OptionSetKind.checklist,
+          values: <OptionValue>[
+            _value('WORN', 'Worn', labelKey: 'optionSets.notServedYet'),
+          ],
+        ),
+      ]);
+
+      await _pump(tester, api, OptionSetTab.checklist);
+      await tester.tap(find.byKey(const Key('option-value-edit-WORN')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Label is managed by the language catalog.'),
+        findsNothing,
+      );
+      final field = tester.widget<TextFormField>(
+        _field('option-value-label-field'),
+      );
+      expect(field.enabled, isTrue);
+    });
   });
 
   group('legacy taxonomy redirects', () {
@@ -386,6 +440,7 @@ OptionValue _value(
   int order = 0,
   String tone = '',
   String icon = '',
+  String? labelKey,
 }) => OptionValue(
   id: 'value-$code',
   code: code,
@@ -393,6 +448,7 @@ OptionValue _value(
   status: 'ACTIVE',
   sortOrder: order,
   metadataJson: '{}',
+  labelKey: labelKey,
   tone: tone,
   icon: icon,
 );

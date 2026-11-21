@@ -34,6 +34,9 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
     PlatformJobStore store;
 
     @Autowired
+    com.truereport.jobs.PlatformJobDocumentService documentsService;
+
+    @Autowired
     PlatformUiMessageCatalog uiMessages;
 
     @Autowired
@@ -699,6 +702,22 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         JsonNode link = postJson(adminA, JOBS + "/" + jobId + "/publish",
                 "{\"pdfDownloadEnabled\":true}");
         String token = link.get("token").asText();
+
+        JsonNode documents = getJson(adminA, JOBS + "/" + jobId + "/documents");
+        assertThat(documents.size()).isEqualTo(2);
+        for (JsonNode document : documents) {
+            assertThat(document.get("language").asText()).isEqualTo("es");
+            assertThat(document.get("status").asText()).isEqualTo("READY");
+        }
+
+        // Regenerating for the same version reuses the existing (type, language)
+        // rows instead of inserting English duplicates.
+        com.truereport.jobs.PlatformJobStore.JobRow storedJob = store.findJob(
+                fixture.workshopA().getId().toString(), jobId).orElseThrow();
+        String reportVersionId = store.latestReportVersion(jobId)
+                .orElseThrow().id();
+        documentsService.generateForVersion(storedJob, reportVersionId);
+        assertThat(getJson(adminA, JOBS + "/" + jobId + "/documents").size()).isEqualTo(2);
 
         String html = mockMvc.perform(get("/r/" + token))
                 .andExpect(status().isOk()).andReturn().getResponse()

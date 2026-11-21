@@ -211,6 +211,24 @@ public class PublicReportService {
         if (resolution.status() != Status.ACTIVE || !resolution.resolved().link().isPdfDownloadEnabled()) {
             return Optional.empty();
         }
+        return renderPdf(resolution, token);
+    }
+
+    /**
+     * Renders the PDF for an already-authorized caller without applying the
+     * public {@code pdf_download_enabled} flag. Workshop Admin PDF actions and
+     * email attachments use this path; the flag only gates {@code /r/{token}/pdf}.
+     */
+    @Transactional(readOnly = true)
+    public Optional<byte[]> renderForToken(String token) {
+        Resolution resolution = resolve(token, "en");
+        if (resolution.status() != Status.ACTIVE) {
+            return Optional.empty();
+        }
+        return renderPdf(resolution, token);
+    }
+
+    private Optional<byte[]> renderPdf(Resolution resolution, String token) {
         UUID versionId = resolution.resolved().version().getId();
         // 1. Try to serve a pre-generated PDF artifact (legacy happy path).
         if (versionId != null) {

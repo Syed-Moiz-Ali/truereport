@@ -3,6 +3,7 @@ package com.truereport.technician;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.shared.i18n.OptionLabelKeys;
+import com.truereport.shared.jdbc.JdbcTime;
 import com.truereport.shared.security.PiiCipher;
 import com.truereport.shared.uuid.UuidBinaryConverter;
 import com.truereport.shared.uuid.UuidV7;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -1026,8 +1026,7 @@ public class TechnicianStore {
     }
 
     private static LocalDateTime dateTime(ResultSet rs, String column) throws SQLException {
-        Timestamp value = rs.getTimestamp(column);
-        return value == null ? null : value.toLocalDateTime();
+        return JdbcTime.localDateTime(rs, column);
     }
 
     private static Integer nullableInt(ResultSet rs, String column) throws SQLException {

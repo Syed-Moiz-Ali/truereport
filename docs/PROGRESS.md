@@ -213,12 +213,12 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ## Current numbers
 
 ```
-backend                    309 tests · 0 failures · 11 skipped
-l10n 53 · api_client 5 · auth 1 · reference_data 9 · design_system 29
-ui_gallery 5 · platform_admin 105 · workshop 183 · technician 125
+backend                    325 tests · 0 failures · 12 skipped
+l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
+ui_gallery 5 · platform_admin 107 · workshop 198 · technician 129
 flutter analyze            clean
 npm run gate               0
-playwright e2e             32 tests · 0 failures (real builds)
+playwright e2e             33 tests · 32 passed · 1 skipped (es public report needs a reviewed job)
 content es                 388/388 catalogue units · 0 missing · 348 pending review (55 safety)
 ui catalogs es             common 154/154 · workshop 1300/1300 · technician 1332/1332
                            platform_admin 0/984 (English-only by design)
@@ -355,6 +355,60 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
 - Rendering caveat unchanged: a value with a resolvable `labelKey` renders catalog copy, so
   editing its served `label` in the admin does not change the visible text.
 
+### Report and delivery on the platform model (2026-11-21)
+
+Found by browser QA: every report/delivery action returned 404 for real jobs, because those
+paths were still bound to the legacy `inspection_jobs`/`reports`/`report_versions` stack while
+the product uses `platform_jobs`/`platform_report_versions`/`platform_public_links`.
+
+- **Delivery** now resolves the platform job, latest report version and active link; consent is
+  the job's single `consent_granted` flag; recipients come from the encrypted platform columns.
+  EMAIL attaches the report PDF when renderable and falls back to a link-only message; SMS and
+  WhatsApp are link-only. Delivery language accepts **any LIVE registry language**.
+- **Admin report PDF** renders on demand through the same Chromium pipeline as the public PDF
+  (no `report_artifacts` row required); `pdfReady` now reports the truth.
+- **`POST /report/retry`, `POST /report/link`, `POST /report/link/revoke`** have platform
+  branches; `PUT /report/pdf-download` was already correct.
+- **V138** converts `delivery_requests.job_id / report_version_id / public_share_link_id` to
+  `VARCHAR(36)` and re-points the FKs at the platform tables. It deletes pre-existing delivery
+  rows (legacy binary ids cannot satisfy the new FKs) — destructive, needs a DB snapshot.
+- **Report surface is reachable**: job detail → Review & publication now has Report and
+  Documents actions (previously `ReportPage`, `DocumentsPage` and `ReportDistribution` had no
+  caller at all).
+- **Language genericity** (no en/es/ar special cases):
+  - `supportedLocales` comes from the UI manifest, so Material/Cupertino copy follows the
+    languages that actually ship a catalog; it always includes the active language.
+  - Delivery languages, the job-creation language chips, document language labels and the
+    job's preferred-language fact all read `GET /i18n/languages` (registry), not the manifest.
+  - Option labels are editable only when no catalog key resolves.
+  - Adding a LIVE language therefore works for jobs, content, reports and delivery. UI chrome
+    stays English until a catalog file ships — the languages screen shows UI-text coverage and
+    blockers, and publishing a job in an untranslated language returns `409
+    TRANSLATION_REVIEW_REQUIRED` with the exact field list in the existing dialog.
+- Live proof on `JOB-89211E61`: report `pdfReady=true`, `GET /report/pdf` 200 `%PDF` (372 KB),
+  revoke → activate link, `POST /deliveries` EMAIL 201 with `pdfAttached=true`, SMS 201, and a
+  Spanish (`es`) SMS delivery 201 → `SENT`. Unknown language `zz` → 422.
+
+### Time contract fix (2026-11-21)
+
+The wire rule (documented in `client/apps/workshop_admin_app/lib/src/workshop_clock.dart`; its
+comment cites a `docs/api/contracts.md` quirk 3 that is not in the tree): a timestamp **with** an
+offset is a real instant (convert to Asia/Dubai, UTC+4); a timestamp **without** one is already a
+Dubai wall time.
+
+- **Server** read every `DATETIME` with `rs.getTimestamp(...).toLocalDateTime()`, which renders it
+  in the JVM zone: a job created with `scheduledAt=2026-11-21T12:00:00` came back as `17:30` on a
+  `+05:30` host. `PlatformJobStore`, `TechnicianStore`, `TemplateRepository` and
+  `TranslationJobStore` now use `rs.getObject(column, LocalDateTime.class)`, so wall-clock values
+  round-trip unchanged on any host.
+- **Technician app** treated naive values as UTC and added four hours again, so a 22:00 job was
+  filed under tomorrow and every time rendered four hours late. One `parseWallTime` helper now
+  mirrors `WorkshopClock.wallTime`; the queue, day board, row labels and intake view all use it.
+  `parseInstantAsUtc` is deleted rather than left as a trap.
+- E2E fixtures now send a Dubai wall-clock `scheduledAt`, so a seeded job is reachable on the
+  technician board at any hour (previously UTC timestamps near midnight landed on the next Dubai
+  day and vanished from the queue).
+
 ### Visual QA (2026-11-21)
 - Surfaces: merged option sets (Checklist/Statuses/Enums), item editor evidence step, master
   library filters. Real-font captures at 1440/1280/1024/768/390/360, plus RTL layout for the
@@ -376,9 +430,14 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
 - Prerequisite: `flutter build web --release --dart-define=API_BASE_URL=http://localhost:8080`.
   Without it the build points at the dev-tunnel default and every test fails on the first-paint
   error gate ("Refresh").
-- 26 tests: auth (platform/workshop/technician), platform admin (incl. manual translations
-  list → type → save → API shows `AUTHORED / REVIEWED`, and add language → workspace →
-  manual screen → retire), workshop jobs, technician, language catalog, public report.
+- Projects: auth (platform/workshop/technician), platform admin (incl. manual translations
+  list → type → save → API shows `AUTHORED / REVIEWED`, add language → workspace → manual
+  screen → retire, merged option sets, legacy-route redirects, 401 → sign-in), workshop jobs,
+  workshop report surface (job detail → Report → Download PDF enabled → send sheet languages →
+  Documents), technician, language catalog, public report, plus the live visual spec.
+- Report surface spec (`tests/e2e/modules/report_surface.flow.spec.ts`) is the regression
+  guard for the 404s: it fails if the admin PDF is not renderable or the send sheet stops
+  offering the registry languages.
 - Real defects found and fixed:
   - public report category summary was hardcoded English and its separator was
     double-encoded, so Spanish snapshots showed `Categories Passed <mojibake> 1 Category
@@ -390,10 +449,12 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
     `GET /platform/i18n/content/languages` + `contentLanguages()` on the client.
   - workshop and technician apps used the in-memory UI-message store, so a selected
     language reverted to English on reload; both now use the shared-preferences store.
-- Harness fixes: sign-in retry (Flutter drops the first character after focus), consent copy
-  drift (`Public-link consent is not recorded`), seeded jobs now carry today's `scheduledAt`
-  (the technician queue is day-scoped), and a stale per-navigation `localStorage.clear()` that
-  killed the session was removed.
+- Harness fixes: sign-in retry (Flutter drops the first character after focus), consent copy drift
+  (`Public-link consent is not recorded` — the value can sit below the fold where Flutter prunes
+  semantics, so the write path is proven by the action plus the API read-back), seeded jobs now
+  carry today's `scheduledAt` (the technician queue is day-scoped), and a stale
+  per-navigation `localStorage.clear()` that killed the session was removed. Technician queue
+  assertions use `vehiclePlate`: the app never renders the internal `JOB-` reference.
 - Final: `npx playwright test` → **24 passed (15.0m)**, `E2E_PASSWORD` + the Spanish public
   token in `E2E_PUBLIC_REPORT_TOKEN` / `E2E_PUBLIC_REPORT_LANG=es`.
 
@@ -413,3 +474,16 @@ ui catalogs es             common 154/154 · workshop 1300/1300 · technician 13
    generate photo/video derivatives.
 6. **Physical camera capture** — file-source evidence works; real camera/video remains a
    device-only check.
+7. **New-language UI text** — adding a LIVE language immediately covers jobs, content, reports
+   and delivery, and the app manifests only advertise languages that ship a catalog file, so no
+   half-translated chrome appears. Translating the *interface* for a brand-new language still
+   requires a catalog file (`server/src/main/resources/i18n/<client>/<lang>.json`) in a release;
+   there is no admin authoring path for UI strings yet (the workspace shows 0/N UI coverage and
+   the content backlog separately).
+8. **Technician job reference** — the technician app never renders the internal `JOB-` reference
+   (queue and detail identify a job by vehicle/plate). E2E uses the plate; add the reference to
+   the detail header if staff need it for paperwork.
+9. **Dead doc links** — `WorkshopClock` cites `docs/api/contracts.md` (quirk 3) and
+   `docs/data/inventory.md` (T1), neither of which exists. The time rule itself is now enforced by
+   `workshop_clock.dart`, `technician_intl.dart` and their tests; either restore the docs or drop
+   the references.

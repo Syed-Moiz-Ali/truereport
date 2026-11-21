@@ -15,6 +15,7 @@ import 'package:workshop_admin_app/src/workshop_job_models.dart';
 class DocumentRow extends ConsumerWidget {
   const DocumentRow({
     required this.document,
+    required this.languageLabel,
     required this.busy,
     required this.onRetry,
     required this.onCopy,
@@ -22,6 +23,10 @@ class DocumentRow extends ConsumerWidget {
   });
 
   final JobDocument document;
+
+  /// Registry-resolved label for [document]'s language, supplied by the page.
+  final String languageLabel;
+
   final bool busy;
   final VoidCallback onRetry;
   final VoidCallback onCopy;
@@ -67,7 +72,7 @@ class DocumentRow extends ConsumerWidget {
             facts: [
               JobFact(
                 label: t(WorkshopAdminKeys.jobsDocumentLanguage),
-                value: _languageLabel(t, document.language),
+                value: languageLabel,
                 valueDirection: TextDirection.ltr,
               ),
               JobFact(
@@ -119,9 +124,4 @@ IconData jobDocumentStatusIcon(String status) => switch (status) {
   'FAILED' => Icons.error_outline,
   'GENERATING' => Icons.hourglass_top_outlined,
   _ => Icons.schedule_outlined,
-};
-
-String _languageLabel(UiStrings t, String language) => switch (language) {
-  'en' => t(WorkshopAdminKeys.languageEnglish),
-  _ => t(WorkshopAdminKeys.commonNotAvailable),
 };

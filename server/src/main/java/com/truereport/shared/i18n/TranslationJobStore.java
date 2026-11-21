@@ -1,11 +1,11 @@
 package com.truereport.shared.i18n;
 
+import com.truereport.shared.jdbc.JdbcTime;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,7 +131,7 @@ public class TranslationJobStore {
                 UPDATE content_translation_job
                 SET state = 'PENDING', next_attempt_at = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-                """, nextAttemptAt == null ? null : Timestamp.valueOf(nextAttemptAt), id);
+                """, nextAttemptAt, id);
     }
 
     /** A crashed worker leaves RUNNING jobs; return them to PENDING after the timeout. */
@@ -142,7 +142,7 @@ public class TranslationJobStore {
                 SET state = 'PENDING', next_attempt_at = NULL, updated_at = CURRENT_TIMESTAMP,
                     error = 'Recovered after a stale RUNNING lease'
                 WHERE state = 'RUNNING' AND updated_at < ?
-                """, Timestamp.valueOf(cutoff));
+                """, cutoff);
     }
 
     public void markFailed(String id, String error) {        jdbc.update("""
@@ -232,7 +232,6 @@ public class TranslationJobStore {
             rs.getString("id"), rs.getString("entity_type"), rs.getString("entity_id"),
             rs.getString("field_name"), rs.getString("lang"), rs.getString("direction"),
             rs.getString("state"), rs.getInt("attempts"), rs.getString("error"),
-            rs.getTimestamp("next_attempt_at") == null ? null
-                    : rs.getTimestamp("next_attempt_at").toLocalDateTime(),
-            rs.getTimestamp("created_at").toLocalDateTime());
+            JdbcTime.localDateTime(rs, "next_attempt_at"),
+            JdbcTime.localDateTime(rs, "created_at"));
 }

@@ -3,11 +3,8 @@ import 'package:l10n/ui_strings.dart';
 
 /// Screen copy for the certificate layout.
 ///
-/// Every string that already has a shared key reads it from
-/// [UiStrings]; the handful of certificate-specific labels that have no
-/// key yet live here with their Arabic counterpart so the screen never renders
-/// English inside an Arabic page. Moving them into the l10n package is the
-/// follow-up (see the build report).
+/// Every label resolves through the backend catalog, so the screen follows the
+/// active language without a per-language copy table.
 class ReportCopy {
   const ReportCopy(this.t);
 

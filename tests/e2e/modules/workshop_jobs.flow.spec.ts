@@ -43,13 +43,14 @@ test.describe('workshop admin — job visibility and consent write path', () => 
     await page.getByRole('button', { name: /^Jobs$/ }).first().click({ force: true });
     await page.getByText(job.reference, { exact: false }).first().click({ force: true });
 
-    await expect(
-      page.getByText(/Public-link consent is not recorded|Consent missing/i).first(),
-    ).toBeVisible({ timeout: 30_000 });
-    await page
+    // The consent fact value can sit past the fold, where Flutter prunes
+    // semantics, so the write path is proven by the visible action plus the
+    // API read-back rather than by reading offscreen copy.
+    const grant = page
       .getByRole('button', { name: /Public-link consent|Grant consent/i })
-      .first()
-      .click({ force: true });
+      .first();
+    await expect(grant).toBeVisible({ timeout: 30_000 });
+    await grant.click({ force: true });
 
     await expect
       .poll(

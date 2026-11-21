@@ -32,7 +32,8 @@ export default defineConfig({
     },
     {
       name: 'workshop-admin',
-      testMatch: /modules\/(auth|workshop_jobs|language_dynamic)\.flow\.spec\.ts/,
+      testMatch:
+      /modules\/(auth|workshop_jobs|language_dynamic|report_surface)\.flow\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:5302' },
     },
     {

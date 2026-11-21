@@ -167,3 +167,17 @@ final reportDeliveriesProvider = FutureProvider.autoDispose
     .family<List<ReportDelivery>, String>((ref, jobId) {
       return ref.watch(adminApiProvider).deliveries(jobId);
     });
+
+/// LIVE content languages from the registry, used for customer delivery.
+///
+/// The UI-message manifest only lists languages with a static catalog file;
+/// delivery language must follow the registry so a newly live language works
+/// before its UI catalog exists.
+final workshopLanguagesProvider = FutureProvider<List<WorkshopLanguage>>((
+  ref,
+) async {
+  final languages = await ref.watch(adminApiProvider).i18nLanguages();
+  return languages
+      .where((language) => language.active && language.isLive)
+      .toList(growable: false);
+});

@@ -2,6 +2,7 @@ package com.truereport.templates.config;
 
 import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.shared.error.ApiException;
+import com.truereport.shared.jdbc.JdbcTime;
 import com.truereport.shared.uuid.UuidV7;
 import com.truereport.templates.config.PlatformTemplateDtos.ChangeRequestDto;
 import com.truereport.templates.config.PlatformTemplateDtos.TemplateCategoryDto;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -570,8 +571,8 @@ public class TemplateRepository {
     }
 
     private static String timestampString(ResultSet rs, String column) throws SQLException {
-        Timestamp value = rs.getTimestamp(column);
-        return value == null ? null : value.toLocalDateTime().toString();
+        LocalDateTime value = JdbcTime.localDateTime(rs, column);
+        return value == null ? null : value.toString();
     }
 
     private RowMapper<TemplateRow> templateRowMapper() {

@@ -10,12 +10,18 @@ import 'package:l10n/ui_strings.dart';
 import 'report_actions.dart';
 import 'report_chrome.dart';
 import 'report_distribution.dart';
+import 'report_language_options.dart';
 import 'report_sheet.dart';
 
 class ReportPage extends ConsumerStatefulWidget {
-  const ReportPage({required this.jobId, super.key});
+  const ReportPage({required this.jobId, this.preferredLanguage, super.key});
 
   final String jobId;
+
+  /// The job's preferred language when the caller already has it.
+  ///
+  /// Falls back to the language captured in the generated report snapshot.
+  final String? preferredLanguage;
 
   @override
   ConsumerState<ReportPage> createState() => _ReportPageState();
@@ -180,7 +186,28 @@ class _ReportPageState extends ConsumerState<ReportPage> {
   Future<void> _send() async {
     final t = UiStrings.of(context);
     var channel = 'WHATSAPP';
-    var language = 'en';
+    List<WorkshopLanguage>? registry;
+    try {
+      registry = await ref.read(workshopLanguagesProvider.future);
+    } on Object {
+      registry = null;
+    }
+    if (!mounted) return;
+    final report = ref.read(reportProvider(widget.jobId)).asData?.value;
+    final manifest = ref
+        .read(languageSelectionProvider(adminUiMessageClient))
+        .manifest;
+    final preferred =
+        (widget.preferredLanguage ?? report?.preferredLanguage ?? '').trim();
+    final languageOptions = reportLanguageOptions(
+      registry,
+      preferred: preferred,
+      manifest: manifest,
+    );
+    var language = reportDeliveryLanguage(
+      languageOptions,
+      preferred: preferred,
+    );
     final confirmed = await showAppBottomSheet<bool>(
       context,
       child: StatefulBuilder(
@@ -214,18 +241,16 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                 t(WorkshopAdminKeys.deliveryLanguage),
                 style: context.texts.bodySmall,
               ),
-              for (final option in [
-                ('en', t(WorkshopAdminKeys.english)),
-                ('ar', t(WorkshopAdminKeys.arabic)),
-              ])
+              for (final option in languageOptions)
                 Padding(
                   padding: EdgeInsetsDirectional.only(
                     bottom: context.spacing.xs,
                   ),
                   child: AppSelectableText(
-                    label: option.$2,
-                    selected: language == option.$1,
-                    onTap: () => setSheetState(() => language = option.$1),
+                    key: Key('report-delivery-language-${option.code}'),
+                    label: option.label,
+                    selected: language == option.code,
+                    onTap: () => setSheetState(() => language = option.code),
                   ),
                 ),
               SizedBox(height: context.spacing.lg),

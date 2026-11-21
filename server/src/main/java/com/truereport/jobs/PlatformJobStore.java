@@ -2,6 +2,7 @@ package com.truereport.jobs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.truereport.shared.jdbc.JdbcTime;
 import com.truereport.shared.security.PiiCipher;
 import com.truereport.shared.uuid.UuidBinaryConverter;
 import com.truereport.shared.uuid.UuidV7;
@@ -9,7 +10,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -155,11 +155,11 @@ public class PlatformJobStore {
         }
         if (from != null) {
             sql.append(" AND created_at >= ?");
-            args.add(Timestamp.valueOf(from));
+            args.add(from);
         }
         if (to != null) {
             sql.append(" AND created_at <= ?");
-            args.add(Timestamp.valueOf(to));
+            args.add(to);
         }
         sql.append(" ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?");
         args.add(limit);
@@ -189,11 +189,11 @@ public class PlatformJobStore {
         }
         if (from != null) {
             sql.append(" AND created_at >= ?");
-            args.add(Timestamp.valueOf(from));
+            args.add(from);
         }
         if (to != null) {
             sql.append(" AND created_at <= ?");
-            args.add(Timestamp.valueOf(to));
+            args.add(to);
         }
         Long count = jdbc.queryForObject(sql.toString(), Long.class, args.toArray());
         return count == null ? 0 : count;
@@ -787,10 +787,20 @@ public class PlatformJobStore {
         return jdbc.query("""
                 SELECT * FROM platform_report_versions WHERE job_id = ?
                 ORDER BY version_no DESC
-                """, (rs, i) -> new ReportVersionRow(
+                """, (rs, i) -> reportVersion(rs), jobId).stream().findFirst();
+    }
+
+    public Optional<ReportVersionRow> findReportVersion(String reportVersionId) {
+        return jdbc.query("SELECT * FROM platform_report_versions WHERE id = ?",
+                (rs, i) -> reportVersion(rs), reportVersionId).stream().findFirst();
+    }
+
+    private static ReportVersionRow reportVersion(java.sql.ResultSet rs)
+            throws java.sql.SQLException {
+        return new ReportVersionRow(
                 rs.getString("id"), rs.getString("job_id"), rs.getInt("version_no"),
                 rs.getString("snapshot_json"), rs.getString("snapshot_hash"),
-                dateTime(rs, "created_at")), jobId).stream().findFirst();
+                dateTime(rs, "created_at"));
     }
 
     // ---------------------------------------------------------- public links
@@ -807,6 +817,11 @@ public class PlatformJobStore {
                 SELECT * FROM platform_public_links WHERE job_id = ? AND status = 'ACTIVE'
                 ORDER BY created_at DESC
                 """, LINK_MAPPER, jobId).stream().findFirst();
+    }
+
+    public Optional<LinkRow> findLink(String linkId) {
+        return jdbc.query("SELECT * FROM platform_public_links WHERE id = ?",
+                LINK_MAPPER, linkId).stream().findFirst();
     }
 
     public String insertLink(String jobId, String reportVersionId, String tokenHash,
@@ -1005,8 +1020,7 @@ public class PlatformJobStore {
 
     private static LocalDateTime dateTime(java.sql.ResultSet rs, String column)
             throws java.sql.SQLException {
-        Timestamp value = rs.getTimestamp(column);
-        return value == null ? null : value.toLocalDateTime();
+        return JdbcTime.localDateTime(rs, column);
     }
 
     private static Integer nullableInt(java.sql.ResultSet rs, String column)

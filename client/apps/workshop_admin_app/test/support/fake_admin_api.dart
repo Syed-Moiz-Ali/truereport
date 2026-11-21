@@ -21,6 +21,22 @@ class FakeAdminApi implements AdminApi {
     this.checklistReady = true,
     this.approveSucceeds = true,
     this.enforceVersions = false,
+    this.languages = const <WorkshopLanguage>[
+      WorkshopLanguage(
+        code: 'en',
+        nativeName: 'English',
+        direction: 'ltr',
+        status: 'LIVE',
+        active: true,
+      ),
+      WorkshopLanguage(
+        code: 'es',
+        nativeName: 'Español',
+        direction: 'ltr',
+        status: 'LIVE',
+        active: true,
+      ),
+    ],
   }) {
     _jobs = <CleanJob>[
       const CleanJob(
@@ -225,6 +241,9 @@ class FakeAdminApi implements AdminApi {
   /// job, exactly like the server's optimistic-concurrency guard. Defaults to
   /// false so every pre-existing test keeps its original behaviour.
   final bool enforceVersions;
+
+  /// Registry rows served by [i18nLanguages]; tests override this list.
+  final List<WorkshopLanguage> languages;
 
   /// Mutation audit trail (test-only): what the UI actually sent.
   final List<Map<String, Object?>> assignRequests = [];
@@ -606,6 +625,10 @@ class FakeAdminApi implements AdminApi {
 
   @override
   Future<List<ReportDelivery>> deliveries(String jobId) async => const [];
+
+  @override
+  Future<List<WorkshopLanguage>> i18nLanguages() async =>
+      List<WorkshopLanguage>.unmodifiable(languages);
 
   /// Realistic report fixture for the published fixture job (`job-3`) so
   /// report screenshots and widget tests exercise a real preview instead of

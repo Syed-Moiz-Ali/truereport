@@ -2,27 +2,19 @@ package com.truereport.delivery;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.audit.AuditService;
-import com.truereport.inspections.ConsentRecord;
-import com.truereport.inspections.ConsentRecordRepository;
-import com.truereport.jobs.InspectionJob;
-import com.truereport.jobs.InspectionJobRepository;
-import com.truereport.reports.PublicShareLink;
-import com.truereport.reports.PublicShareLinkRepository;
-import com.truereport.reports.Report;
-import com.truereport.reports.ReportArtifact;
-import com.truereport.reports.ReportArtifactRepository;
-import com.truereport.reports.ReportGenerationJob;
-import com.truereport.reports.ReportGenerationJobRepository;
-import com.truereport.reports.ReportRepository;
-import com.truereport.reports.ReportService;
-import com.truereport.reports.ReportVersion;
-import com.truereport.reports.ReportVersionRepository;
 import com.truereport.delivery.api.DeliveryAttemptDto;
 import com.truereport.delivery.api.DeliveryDto;
 import com.truereport.delivery.api.SendDeliveryRequest;
+import com.truereport.jobs.PlatformJobStore;
+import com.truereport.jobs.PlatformJobStore.JobRow;
+import com.truereport.jobs.PlatformJobStore.LinkRow;
+import com.truereport.jobs.PlatformJobStore.ReportVersionRow;
+import com.truereport.jobs.PlatformJobTokenService;
+import com.truereport.localization.LanguageRepository;
+import com.truereport.localization.api.LanguageDtos.LanguageDto;
+import com.truereport.reports.PlatformReportPdfRenderer;
 import com.truereport.shared.error.ApiException;
 import com.truereport.shared.security.CurrentUser;
-import com.truereport.shared.storage.ObjectStorage;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -39,28 +31,27 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.HexFormat;
 
+/**
+ * Report delivery for platform jobs. The legacy {@code inspection_jobs} stack is
+ * no longer a delivery source: jobs, report versions and public links all come
+ * from the clean {@code platform_*} tables, so every workshop job — not only the
+ * legacy reference job — can be delivered.
+ */
 @Service
 public class DeliveryService {
 
     private static final Set<String> CHANNELS = Set.of("WHATSAPP", "SMS", "EMAIL");
-    private static final Set<String> LANGUAGES = Set.of("en");
     private static final Set<String> FAILURE_STATUSES = Set.of("FAILED", "RETRY_PENDING", "DEAD_LETTER");
 
     private final DeliveryRequestRepository requests;
     private final DeliveryAttemptRepository attempts;
     private final DeliveryProviderRegistry providers;
     private final DeliveryRecipientPolicy recipientPolicy;
-    private final InspectionJobRepository jobs;
-    private final ReportRepository reports;
-    private final ReportVersionRepository reportVersions;
-    private final ReportGenerationJobRepository reportJobs;
-    private final ReportArtifactRepository artifacts;
-    private final PublicShareLinkRepository links;
-    private final ConsentRecordRepository consents;
-    private final ReportService reportService;
-    private final ObjectStorage storage;
+    private final PlatformJobStore jobs;
+    private final LanguageRepository languages;
+    private final PlatformJobTokenService tokens;
+    private final PlatformReportPdfRenderer pdfRenderer;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
@@ -68,20 +59,16 @@ public class DeliveryService {
     private final int retryBaseSeconds;
     private final int rateLimitPerHour;
     private final long emailMaxAttachmentBytes;
+    private final String publicBaseUrl;
 
     public DeliveryService(DeliveryRequestRepository requests,
                            DeliveryAttemptRepository attempts,
                            DeliveryProviderRegistry providers,
                            DeliveryRecipientPolicy recipientPolicy,
-                           InspectionJobRepository jobs,
-                           ReportRepository reports,
-                           ReportVersionRepository reportVersions,
-                           ReportGenerationJobRepository reportJobs,
-                           ReportArtifactRepository artifacts,
-                           PublicShareLinkRepository links,
-                           ConsentRecordRepository consents,
-                           ReportService reportService,
-                           ObjectStorage storage,
+                           PlatformJobStore jobs,
+                           LanguageRepository languages,
+                           PlatformJobTokenService tokens,
+                           PlatformReportPdfRenderer pdfRenderer,
                            AuditService auditService,
                            ObjectMapper objectMapper,
                            MeterRegistry meterRegistry,
@@ -89,20 +76,17 @@ public class DeliveryService {
                            @Value("${truereport.delivery.retry-base-seconds:30}") int retryBaseSeconds,
                            @Value("${truereport.delivery.rate-limit-per-hour:10}") int rateLimitPerHour,
                            @Value("${truereport.delivery.email-max-attachment-bytes:10485760}")
-                           long emailMaxAttachmentBytes) {
+                           long emailMaxAttachmentBytes,
+                           @Value("${truereport.report.public-base-url:http://localhost:8080}")
+                           String publicBaseUrl) {
         this.requests = requests;
         this.attempts = attempts;
         this.providers = providers;
         this.recipientPolicy = recipientPolicy;
         this.jobs = jobs;
-        this.reports = reports;
-        this.reportVersions = reportVersions;
-        this.reportJobs = reportJobs;
-        this.artifacts = artifacts;
-        this.links = links;
-        this.consents = consents;
-        this.reportService = reportService;
-        this.storage = storage;
+        this.languages = languages;
+        this.tokens = tokens;
+        this.pdfRenderer = pdfRenderer;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
         this.meterRegistry = meterRegistry;
@@ -110,6 +94,8 @@ public class DeliveryService {
         this.retryBaseSeconds = retryBaseSeconds;
         this.rateLimitPerHour = rateLimitPerHour;
         this.emailMaxAttachmentBytes = emailMaxAttachmentBytes;
+        this.publicBaseUrl = publicBaseUrl.endsWith("/")
+                ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
     }
 
     @Transactional
@@ -125,37 +111,28 @@ public class DeliveryService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CHANNEL_INVALID",
                     "error.delivery.channel", "Unsupported delivery channel");
         }
-        if (!LANGUAGES.contains(body.language())) {
+        String language = normalizeLanguage(body.language());
+        if (language.isEmpty() || !isLiveLanguage(language)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "LANGUAGE_INVALID",
                     "error.delivery.language", "Unsupported report language");
         }
-        InspectionJob job = jobs.findByIdAndWorkshopId(jobId, caller.workshopId())
+        JobRow job = jobs.findJob(caller.workshopId().toString(), jobId.toString())
                 .orElseThrow(ApiException::notFound);
-        if (!job.getStatus().equals("FINALIZED")) {
-            throw new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
-                    "error.report.notReady", "The inspection is not finalized");
-        }
-        Report report = reports.findByJobIdAndWorkshopId(jobId, caller.workshopId())
-                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
-                        "error.report.notReady", "The report is not ready"));
-        ReportVersion version = reportVersions.findFirstByReportIdOrderByVersionNoDesc(
-                report.getId()).orElseThrow(ApiException::notFound);
-        ReportGenerationJob generation = reportJobs.findByReportVersionId(version.getId()).orElse(null);
-        if (generation == null || !generation.getStatus().equals("READY")) {
+        if (!"PUBLISHED".equals(job.status())) {
             throw new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
                     "error.report.notReady", "The report is not ready");
         }
-        String consentType = channel.equals("EMAIL") ? "EMAIL" : channel;
-        ConsentRecord consent = latestConsent(jobId, consentType);
-        if (consent == null || !consent.getStatus().equals("GRANTED")) {
+        ReportVersionRow version = jobs.latestReportVersion(job.id())
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
+                        "error.report.notReady", "The report is not ready"));
+        LinkRow link = jobs.activeLink(job.id())
+                .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT, "REPORT_NOT_READY",
+                        "error.report.notReady", "The public report link is not active"));
+        if (!job.consentGranted()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONSENT_REQUIRED",
-                    "error.delivery.consent", "Channel consent is required");
+                    "error.delivery.consent", "Delivery consent is required");
         }
-        if (!channel.equals("EMAIL") && !consentGranted(jobId, "PUBLIC_LINK")) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONSENT_REQUIRED",
-                    "error.delivery.publicLinkConsent", "Public-link consent is required");
-        }
-        String recipient = channel.equals("EMAIL") ? job.getCustomerEmail() : job.getCustomerPhone();
+        String recipient = channel.equals("EMAIL") ? job.customerEmail() : job.customerPhone();
         if (recipient == null || recipient.isBlank()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "RECIPIENT_MISSING",
                     "error.delivery.recipientMissing", "The recorded customer recipient is missing");
@@ -166,7 +143,7 @@ public class DeliveryService {
                     "Real recipients are disabled; only configured test recipients are allowed");
         }
         byte[] idempotencyHash = hash(idempotencyKey);
-        byte[] requestHash = hash(jobId + "|" + channel + "|" + body.language());
+        byte[] requestHash = hash(job.id() + "|" + channel + "|" + language);
         DeliveryRequestEntity existing = requests.findByWorkshopIdAndIdempotencyKeyHash(
                 caller.workshopId(), idempotencyHash).orElse(null);
         if (existing != null) {
@@ -181,11 +158,13 @@ public class DeliveryService {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "DELIVERY_RATE_LIMITED",
                     "error.delivery.rateLimited", "Delivery rate limit exceeded");
         }
-        DeliveryRequestEntity request = requests.save(new DeliveryRequestEntity(
-                caller.workshopId(), jobId, version.getId(), channel,
+        DeliveryRequestEntity request = new DeliveryRequestEntity(
+                caller.workshopId(), job.id(), version.id(), channel,
                 recipientPolicy.masked(channel, recipient), recipientPolicy.hash(recipient),
-                body.language(), requestHash, idempotencyHash, consentType,
-                caller.userId(), maxAttempts));
+                language, requestHash, idempotencyHash, "PUBLIC_LINK",
+                caller.userId(), maxAttempts);
+        request.setPublicShareLinkId(link.id());
+        requests.save(request);
         audit(caller, request, "DELIVERY_REQUESTED", null);
         return dto(request);
     }
@@ -193,9 +172,10 @@ public class DeliveryService {
     @Transactional(readOnly = true)
     public List<DeliveryDto> forAdmin(CurrentUser caller, UUID jobId) {
         requireAdmin(caller);
-        jobs.findByIdAndWorkshopId(jobId, caller.workshopId()).orElseThrow(ApiException::notFound);
+        jobs.findJob(caller.workshopId().toString(), jobId.toString())
+                .orElseThrow(ApiException::notFound);
         return requests.findByWorkshopIdAndJobIdOrderByCreatedAtDesc(
-                        caller.workshopId(), jobId).stream().map(this::dto).toList();
+                        caller.workshopId(), jobId.toString()).stream().map(this::dto).toList();
     }
 
     @Transactional(readOnly = true)
@@ -203,15 +183,15 @@ public class DeliveryService {
         if (!caller.isTechnician() || caller.workshopId() == null) {
             throw ApiException.notFound();
         }
-        InspectionJob job = jobs.findByIdAndWorkshopId(jobId, caller.workshopId())
+        JobRow job = jobs.findJob(caller.workshopId().toString(), jobId.toString())
                 .orElseThrow(ApiException::notFound);
-        if (!caller.userId().equals(job.getAssignedTechnicianId())
-                && !caller.userId().equals(job.getCreatedBy())) {
+        String callerId = caller.userId().toString();
+        if (!callerId.equals(job.assignedTechnicianId()) && !callerId.equals(job.createdBy())) {
             throw new ApiException(HttpStatus.CONFLICT, "JOB_REASSIGNED",
                     "error.job.reassigned", "The job was reassigned");
         }
         return requests.findByWorkshopIdAndJobIdOrderByCreatedAtDesc(
-                        caller.workshopId(), jobId).stream().map(this::dto).toList();
+                        caller.workshopId(), jobId.toString()).stream().map(this::dto).toList();
     }
 
     @Transactional(readOnly = true)
@@ -232,10 +212,11 @@ public class DeliveryService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "IDEMPOTENCY_KEY_REQUIRED",
                     "error.idempotency.required", "Idempotency-Key is required");
         }
-        jobs.findByIdAndWorkshopId(jobId, caller.workshopId()).orElseThrow(ApiException::notFound);
+        jobs.findJob(caller.workshopId().toString(), jobId.toString())
+                .orElseThrow(ApiException::notFound);
         DeliveryRequestEntity request = requests.findById(requestId)
                 .filter(value -> value.getWorkshopId().equals(caller.workshopId())
-                        && value.getJobId().equals(jobId))
+                        && value.getJobId().equals(jobId.toString()))
                 .orElseThrow(ApiException::notFound);
         byte[] retryHash = hash(idempotencyKey);
         if (request.isRetryKey(retryHash)) {
@@ -265,10 +246,24 @@ public class DeliveryService {
                 || request.getStatus().equals("RETRY_PENDING"))) {
             return;
         }
-        InspectionJob job = jobs.findById(request.getJobId()).orElse(null);
-        ReportVersion version = reportVersions.findById(request.getReportVersionId()).orElse(null);
-        if (job == null || version == null) {
+        JobRow job = jobs.findJob(request.getWorkshopId().toString(), request.getJobId())
+                .orElse(null);
+        ReportVersionRow version = jobs.findReportVersion(request.getReportVersionId())
+                .orElse(null);
+        LinkRow link = request.getPublicShareLinkId() == null ? null
+                : jobs.findLink(request.getPublicShareLinkId()).orElse(null);
+        if (job == null || version == null || link == null || !"ACTIVE".equals(link.status())) {
             fail(request, null, "REPORT_NOT_FOUND", "Report source is missing");
+            return;
+        }
+        String recipient = request.getChannel().equals("EMAIL")
+                ? job.customerEmail() : job.customerPhone();
+        if (recipient == null || recipient.isBlank()) {
+            fail(request, null, "RECIPIENT_MISSING", "The recorded customer recipient is missing");
+            return;
+        }
+        if (!recipientPolicy.allowed(request.getChannel(), recipient)) {
+            fail(request, null, "RECIPIENT_NOT_ALLOWED", "Recipient is no longer allowed");
             return;
         }
         DeliveryProvider provider;
@@ -281,14 +276,14 @@ public class DeliveryService {
         DeliveryAttempt attempt = attempts.save(new DeliveryAttempt(
                 request.getId(), request.getAttempts() + 1, provider.name()));
         try {
-            DeliveryProvider.DeliveryMessage message = buildMessage(request, job, version);
+            DeliveryProvider.DeliveryMessage message = buildMessage(request, job, version, link);
             DeliveryProvider.DeliveryResult result = provider.send(message);
             if (!result.accepted()) {
                 fail(request, attempt, result.errorCode(), result.errorMessage());
                 return;
             }
             attempt.sent(result.providerMessageId());
-            request.markSent(request.getPublicShareLinkId(), message.pdf() != null);
+            request.markSent(link.id(), message.pdf() != null);
             if (result.delivered()) {
                 attempt.delivered();
                 request.markDelivered();
@@ -302,53 +297,37 @@ public class DeliveryService {
     }
 
     private DeliveryProvider.DeliveryMessage buildMessage(DeliveryRequestEntity request,
-                                                          InspectionJob job,
-                                                          ReportVersion version) {
+                                                          JobRow job,
+                                                          ReportVersionRow version,
+                                                          LinkRow link) {
+        String language = request.getLanguage();
+        String reportNumber = job.reference();
+        String recipient = request.getChannel().equals("EMAIL")
+                ? job.customerEmail() : job.customerPhone();
         if (request.getChannel().equals("EMAIL")) {
-            byte[] pdf = reportPdf(version.getId());
-            if (pdf.length > emailMaxAttachmentBytes) {
-                if (!consentGranted(job.getId(), "PUBLIC_LINK")) {
-                    throw new IllegalStateException("PDF_TOO_LARGE");
-                }
-                CreatedLink link = createLink(request, version);
-                request = link.request();
-                DeliveryMessages.Message message = DeliveryMessages.forLink(
-                        request.getLanguage(), version.getReportNumber(), link.url());
-                return new DeliveryProvider.DeliveryMessage("EMAIL", job.getCustomerEmail(),
-                        request.getLanguage(), message.subject(), message.body(),
-                        version.getReportNumber(), null, null);
-            }
-            DeliveryMessages.Message message = DeliveryMessages.forEmail(
-                    request.getLanguage(), version.getReportNumber());
-            return new DeliveryProvider.DeliveryMessage("EMAIL", job.getCustomerEmail(),
-                    request.getLanguage(), message.subject(), message.body(),
-                    version.getReportNumber(), pdf, "inspection-report.pdf");
+            // A render failure or an oversized file must never block delivery:
+            // the email falls back to the public link.
+            byte[] pdf = pdfRenderer.render(link).orElse(null);
+            boolean attach = pdf != null && pdf.length > 0 && pdf.length <= emailMaxAttachmentBytes;
+            DeliveryMessages.Message message = attach
+                    ? DeliveryMessages.forEmail(language, reportNumber)
+                    : DeliveryMessages.forLink(language, reportNumber, publicUrl(link));
+            return new DeliveryProvider.DeliveryMessage("EMAIL", recipient, language,
+                    message.subject(), message.body(), reportNumber,
+                    attach ? pdf : null, attach ? "inspection-report.pdf" : null);
         }
-        CreatedLink link = createLink(request, version);
         DeliveryMessages.Message message = DeliveryMessages.forLink(
-                request.getLanguage(), version.getReportNumber(), link.url());
-        String recipient = job.getCustomerPhone();
-        return new DeliveryProvider.DeliveryMessage(request.getChannel(), recipient,
-                request.getLanguage(), message.subject(), message.body(),
-                version.getReportNumber(), null, null);
+                language, reportNumber, publicUrl(link));
+        return new DeliveryProvider.DeliveryMessage(request.getChannel(), recipient, language,
+                message.subject(), message.body(), reportNumber, null, null);
     }
 
-    private CreatedLink createLink(DeliveryRequestEntity request, ReportVersion version) {
-        if (!consentGranted(request.getJobId(), "PUBLIC_LINK")) {
-            throw new IllegalStateException("PUBLIC_LINK_CONSENT_REQUIRED");
+    private String publicUrl(LinkRow link) {
+        String token = tokens.decrypt(link.tokenEncrypted());
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("PUBLIC_LINK_TOKEN_UNAVAILABLE");
         }
-        ReportService.CreatedLink created = reportService.createDeliveryLink(
-                request.getWorkshopId(), version,
-                new CurrentUser(request.getRequestedBy(), "", "WORKSHOP_ADMIN",
-                        request.getWorkshopId(), null));
-        request.setPublicShareLinkId(created.id());
-        return new CreatedLink(request, created.publicUrl(), created.id());
-    }
-
-    private byte[] reportPdf(UUID reportVersionId) {
-        ReportArtifact artifact = artifacts.findByReportVersionIdAndKind(reportVersionId, "PDF")
-                .orElseThrow(() -> new IllegalStateException("REPORT_PDF_MISSING"));
-        return storage.get(artifact.getStorageKey());
+        return publicBaseUrl + "/r/" + token;
     }
 
     private void fail(DeliveryRequestEntity request, DeliveryAttempt attempt,
@@ -374,8 +353,8 @@ public class DeliveryService {
     private DeliveryDto dto(DeliveryRequestEntity request) {
         String linkState = "PENDING";
         if (request.getPublicShareLinkId() != null) {
-            linkState = links.findById(request.getPublicShareLinkId())
-                    .map(PublicShareLink::getStatus).orElse("MISSING");
+            linkState = jobs.findLink(request.getPublicShareLinkId())
+                    .map(LinkRow::status).orElse("MISSING");
         }
         List<DeliveryAttemptDto> history = attempts
                 .findByDeliveryRequestIdOrderByAttemptNoAsc(request.getId()).stream()
@@ -394,18 +373,18 @@ public class DeliveryService {
                 request.getUpdatedAt() == null ? "" : request.getUpdatedAt().toString(), history);
     }
 
-    private ConsentRecord latestConsent(UUID jobId, String type) {
-        for (ConsentRecord record : consents.findByJobIdOrderByCapturedAtDesc(jobId)) {
-            if (record.getConsentType().equals(type)) {
-                return record;
-            }
-        }
-        return null;
+    private String normalizeLanguage(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private boolean consentGranted(UUID jobId, String type) {
-        ConsentRecord record = latestConsent(jobId, type);
-        return record != null && record.getStatus().equals("GRANTED");
+    /**
+     * Delivery accepts every language the Platform Admin registry has published
+     * as LIVE. A live code without a delivery bundle is valid: the resource
+     * bundle falls back to English per key.
+     */
+    private boolean isLiveLanguage(String code) {
+        LanguageDto language = languages.find(code).orElse(null);
+        return language != null && language.active() && "LIVE".equals(language.status());
     }
 
     private void requireAdmin(CurrentUser caller) {
@@ -437,8 +416,5 @@ public class DeliveryService {
         } catch (Exception exception) {
             return "{}";
         }
-    }
-
-    private record CreatedLink(DeliveryRequestEntity request, String url, UUID linkId) {
     }
 }

@@ -180,6 +180,9 @@ abstract class AdminApi {
 
   Future<List<ReportDelivery>> deliveries(String jobId);
 
+  /// Live language registry for customer delivery language.
+  Future<List<WorkshopLanguage>> i18nLanguages();
+
   Future<ReportDelivery> sendDelivery(
     String jobId, {
     required String channel,
@@ -957,6 +960,15 @@ class HttpAdminApi implements AdminApi {
     final data = await _api.getDynamic(_endpoints.workshopJobDeliveries(jobId));
     return (data as List<dynamic>)
         .map((item) => ReportDelivery.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<WorkshopLanguage>> i18nLanguages() async {
+    final data = await _api.getDynamic(_endpoints.i18nLanguages);
+    return (data as List<dynamic>)
+        .whereType<Map<String, dynamic>>()
+        .map(WorkshopLanguage.fromJson)
         .toList(growable: false);
   }
 

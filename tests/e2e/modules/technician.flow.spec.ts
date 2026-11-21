@@ -21,14 +21,16 @@ test.describe('technician — assigned job and pinned checklist', () => {
     ).accessToken;
     const job = await seedJob(request, workshopToken);
 
+    // The technician queue identifies a job by the vehicle plate, not the
+    // internal JOB- reference (which the app never renders).
     await reloadAndBoot(page);
-    await expect.poll(() => jobRefVisible(page, job.reference), { timeout: 30_000 }).toBe(true);
+    await expect.poll(() => jobRefVisible(page, job.vehiclePlate), { timeout: 30_000 }).toBe(true);
 
-    const card = page.getByLabel(new RegExp(job.reference)).first();
+    const card = page.getByLabel(new RegExp(job.vehiclePlate)).first();
     if ((await card.count()) > 0) {
       await card.click({ force: true });
     } else {
-      await page.getByText(job.reference, { exact: false }).first().click({ force: true });
+      await page.getByText(job.vehiclePlate, { exact: false }).first().click({ force: true });
     }
     await expect(page.getByText(/Engine Oil|Brake|Battery|Checklist/i).first()).toBeVisible({
       timeout: 30_000,
@@ -54,12 +56,14 @@ test.describe('technician — assigned job and pinned checklist', () => {
       headers: auth(token),
     });
     expect(response.ok()).toBeTruthy();
-    const pageBody = (await response.json()) as { items: Array<{ reference: string }> };
+    const pageBody = (await response.json()) as {
+      items: Array<{ reference: string; vehiclePlate: string }>;
+    };
 
     await reloadAndBoot(page);
     if (pageBody.items.length > 0) {
       await expect(
-        page.getByText(pageBody.items[0].reference, { exact: false }).first(),
+        page.getByText(pageBody.items[0].vehiclePlate, { exact: false }).first(),
       ).toBeVisible({ timeout: 30_000 });
     } else {
       await expect(page.getByText(/No jobs|Nothing/i).first()).toBeVisible({ timeout: 30_000 });

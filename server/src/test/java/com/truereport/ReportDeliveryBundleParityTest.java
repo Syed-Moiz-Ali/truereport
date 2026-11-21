@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Server i18n: the report and delivery bundles are English-only and must stay
- * complete, while templates must not contain literal user-facing text.
+ * Server i18n: the English report and delivery bundles are the complete
+ * baseline, extra locale bundles may be partial, and templates must not contain
+ * literal user-facing text.
  */
 class ReportDeliveryBundleParityTest {
 

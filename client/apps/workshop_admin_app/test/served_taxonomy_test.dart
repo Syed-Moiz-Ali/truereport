@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/approve/approve_score.dart';
 import 'package:workshop_admin_app/src/features/reports/report_data.dart';
 import 'package:workshop_admin_app/src/features/reports/report_distribution.dart';
@@ -316,6 +317,17 @@ void main() {
     await tester.pumpWidget(
       _harness(
         <Override>[
+          workshopLanguagesProvider.overrideWith(
+            (ref) async => const <WorkshopLanguage>[
+              WorkshopLanguage(
+                code: 'en',
+                nativeName: 'English',
+                direction: 'ltr',
+                status: 'LIVE',
+                active: true,
+              ),
+            ],
+          ),
           statusesProvider('publication').overrideWith(
             (ref) async => const <ReferenceRecord>[
               ReferenceRecord(

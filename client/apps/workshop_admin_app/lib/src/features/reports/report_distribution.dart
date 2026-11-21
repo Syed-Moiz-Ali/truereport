@@ -1,4 +1,5 @@
 import 'package:workshop_admin_app/src/features/templates/template_pills.dart';
+import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/models.dart';
 import 'package:workshop_admin_app/src/workshop_clock.dart';
 import 'package:design_system/design_system.dart';
@@ -10,6 +11,7 @@ import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dar
 
 import 'report_actions.dart';
 import 'report_copy.dart';
+import 'report_language_options.dart';
 import 'report_pills.dart';
 
 /// Distribution stub: link state, delivery history and the single primary
@@ -327,9 +329,8 @@ class _DeliveryBlock extends ConsumerWidget {
     final spacing = context.spacing;
     final t = UiStrings.of(context);
     final deliveryStatuses = ref.watch(statusesProvider('delivery')).value;
-    final language = item.language == 'ar'
-        ? t(WorkshopAdminKeys.arabic)
-        : t(WorkshopAdminKeys.english);
+    final languages = ref.watch(workshopLanguagesProvider).asData?.value;
+    final language = reportLanguageLabel(languages, item.language);
     final lastError = item.lastErrorMessage?.trim() ?? '';
 
     return LayoutBuilder(

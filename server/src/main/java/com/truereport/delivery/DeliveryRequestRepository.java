@@ -17,9 +17,9 @@ public interface DeliveryRequestRepository extends JpaRepository<DeliveryRequest
             UUID workshopId, byte[] idempotencyKeyHash);
 
     List<DeliveryRequestEntity> findByWorkshopIdAndJobIdOrderByCreatedAtDesc(
-            UUID workshopId, UUID jobId);
+            UUID workshopId, String jobId);
 
-    List<DeliveryRequestEntity> findByJobIdOrderByCreatedAtDesc(UUID jobId);
+    List<DeliveryRequestEntity> findByJobIdOrderByCreatedAtDesc(String jobId);
 
     long countByWorkshopIdAndRecipientHashAndCreatedAtAfter(
             UUID workshopId, byte[] recipientHash, LocalDateTime after);

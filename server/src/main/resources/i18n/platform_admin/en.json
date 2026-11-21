@@ -647,6 +647,7 @@
   "optionSets.list.statuses": "Status sets",
   "optionSets.statuses.helper": "Lifecycle status codes shared by every client. Codes are fixed; labels and order stay editable.",
   "optionSets.transitionsAction": "Transitions",
+  "optionSets.labelManaged": "Label is managed by the language catalog.",
   "page.audit.eyebrow": "TAMPER-PROOF LEDGER",
   "page.audit.subtitle": "Administrative operations and permission changes served by the platform API.",
   "page.audit.title": "Audit Log",

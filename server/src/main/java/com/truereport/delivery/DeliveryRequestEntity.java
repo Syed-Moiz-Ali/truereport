@@ -23,11 +23,11 @@ public class DeliveryRequestEntity extends BaseEntity {
     @Column(name = "workshop_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID workshopId;
 
-    @Column(name = "job_id", columnDefinition = "BINARY(16)", nullable = false)
-    private UUID jobId;
+    @Column(name = "job_id", nullable = false, length = 36)
+    private String jobId;
 
-    @Column(name = "report_version_id", columnDefinition = "BINARY(16)", nullable = false)
-    private UUID reportVersionId;
+    @Column(name = "report_version_id", nullable = false, length = 36)
+    private String reportVersionId;
 
     @Column(name = "channel", nullable = false, length = 20)
     private String channel;
@@ -38,7 +38,7 @@ public class DeliveryRequestEntity extends BaseEntity {
     @Column(name = "recipient_hash", columnDefinition = "BINARY(32)", nullable = false)
     private byte[] recipientHash;
 
-    @Column(name = "language", nullable = false, length = 8)
+    @Column(name = "language", nullable = false, length = 16)
     private String language;
 
     @Column(name = "status", nullable = false, length = 24)
@@ -56,8 +56,8 @@ public class DeliveryRequestEntity extends BaseEntity {
     @Column(name = "requested_by", columnDefinition = "BINARY(16)", nullable = false)
     private UUID requestedBy;
 
-    @Column(name = "public_share_link_id", columnDefinition = "BINARY(16)")
-    private UUID publicShareLinkId;
+    @Column(name = "public_share_link_id", length = 36)
+    private String publicShareLinkId;
 
     @Column(name = "pdf_attached", nullable = false)
     private boolean pdfAttached;
@@ -83,7 +83,7 @@ public class DeliveryRequestEntity extends BaseEntity {
     protected DeliveryRequestEntity() {
     }
 
-    public DeliveryRequestEntity(UUID workshopId, UUID jobId, UUID reportVersionId,
+    public DeliveryRequestEntity(UUID workshopId, String jobId, String reportVersionId,
                                  String channel, String recipientMasked, byte[] recipientHash,
                                  String language, byte[] requestHash, byte[] idempotencyKeyHash,
                                  String consentType, UUID requestedBy, int maxAttempts) {
@@ -116,7 +116,7 @@ public class DeliveryRequestEntity extends BaseEntity {
         lastErrorMessage = null;
     }
 
-    public void markSent(UUID linkId, boolean pdfAttached) {
+    public void markSent(String linkId, boolean pdfAttached) {
         this.status = "SENT";
         this.publicShareLinkId = linkId;
         this.pdfAttached = pdfAttached;
@@ -125,7 +125,7 @@ public class DeliveryRequestEntity extends BaseEntity {
         this.lastErrorMessage = null;
     }
 
-    public void setPublicShareLinkId(UUID publicShareLinkId) {
+    public void setPublicShareLinkId(String publicShareLinkId) {
         this.publicShareLinkId = publicShareLinkId;
     }
 
@@ -185,11 +185,11 @@ public class DeliveryRequestEntity extends BaseEntity {
         return workshopId;
     }
 
-    public UUID getJobId() {
+    public String getJobId() {
         return jobId;
     }
 
-    public UUID getReportVersionId() {
+    public String getReportVersionId() {
         return reportVersionId;
     }
 
@@ -229,7 +229,7 @@ public class DeliveryRequestEntity extends BaseEntity {
         return requestedBy;
     }
 
-    public UUID getPublicShareLinkId() {
+    public String getPublicShareLinkId() {
         return publicShareLinkId;
     }
 

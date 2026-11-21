@@ -15,18 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * Generates the English report documents after publish. Generation is attempted
- * immediately after the publish transaction and is also recorded in the
- * transactional outbox so a failed artifact can be retried safely.
+ * Generates the report documents after publish in the job's preferred language.
+ * Generation is attempted immediately after the publish transaction and is also
+ * recorded in the transactional outbox so a failed artifact can be retried
+ * safely.
  */
 @Service
 public class PlatformJobDocumentService {
 
     private static final Logger log = LoggerFactory.getLogger(PlatformJobDocumentService.class);
-    private static final List<String> LANGUAGES = List.of("en");
+    private static final String DEFAULT_LANGUAGE = "en";
 
     private final PlatformJobStore store;
     private final ObjectStorage storage;
@@ -43,21 +45,22 @@ public class PlatformJobDocumentService {
 
     @Transactional
     public void generateForVersion(JobRow job, String reportVersionId) {
+        String language = jobLanguage(job);
         List<DocumentRow> existing = store.documents(reportVersionId);
         for (DocumentTypeRow type : store.activeDocumentTypes()) {
-            for (String language : LANGUAGES) {
-                DocumentRow row = existing.stream()
-                        .filter(document -> document.documentTypeCode().equals(type.code())
-                                && document.language().equals(language))
-                        .findFirst()
-                        .orElse(null);
-                if (row == null) {
-                    String id = store.insertDocument(reportVersionId, type.code(), language);
-                    row = store.document(id).orElse(null);
-                }
-                if (row != null) {
-                    generateOne(job, row, type);
-                }
+            // One document per type in the job language. Re-publishing finds the
+            // existing row and regenerates it instead of inserting a duplicate.
+            DocumentRow row = existing.stream()
+                    .filter(document -> document.documentTypeCode().equals(type.code())
+                            && language.equals(document.language()))
+                    .findFirst()
+                    .orElse(null);
+            if (row == null) {
+                String id = store.insertDocument(reportVersionId, type.code(), language);
+                row = store.document(id).orElse(null);
+            }
+            if (row != null) {
+                generateOne(job, row, type, language);
             }
         }
     }
@@ -75,7 +78,7 @@ public class PlatformJobDocumentService {
         }
         List<DocumentRow> updated = new ArrayList<>();
         for (DocumentRow row : rows) {
-            generateOne(job, row, type);
+            generateOne(job, row, type, rowLanguage(row));
             store.document(row.id()).ifPresent(updated::add);
         }
         return updated;
@@ -89,15 +92,30 @@ public class PlatformJobDocumentService {
         return storage.get(document.storageKey());
     }
 
-    private void generateOne(JobRow job, DocumentRow document, DocumentTypeRow type) {
+    /** The job's chosen language, defaulting to English when unset. */
+    private static String jobLanguage(JobRow job) {
+        return normalize(job.preferredLanguage());
+    }
+
+    /** Existing rows may predate language tracking; treat them as English. */
+    private static String rowLanguage(DocumentRow row) {
+        return normalize(row.language());
+    }
+
+    private static String normalize(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+        return normalized.isBlank() ? DEFAULT_LANGUAGE : normalized;
+    }
+
+    private void generateOne(JobRow job, DocumentRow document, DocumentTypeRow type,
+                             String language) {
         String storageKey = null;
         try {
-            String language = "en";
             List<String> lines = new ArrayList<>();
             lines.add("TrueReport Inspection Report");
             lines.add("Reference: " + job.reference());
             lines.add("Document: " + type.nameEn());
-            lines.add("Language: English");
+            lines.add("Language: " + language);
             lines.add("Customer: " + job.customerName());
             lines.add("Vehicle: " + job.vehicleYear() + " " + job.vehicleMake() + " "
                     + job.vehicleModel());
@@ -121,7 +139,7 @@ public class PlatformJobDocumentService {
             store.markDocumentFailed(document.id(), exception.getMessage());
             outbox.publish("REPORT_DOCUMENT", document.id(), "REPORT_DOCUMENT_FAILED",
                     Map.of("jobId", job.id(), "documentId", document.id(),
-                            "language", document.language(),
+                            "language", language,
                             "documentType", document.documentTypeCode(),
                             "error", String.valueOf(exception.getMessage())));
         }

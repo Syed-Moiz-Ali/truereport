@@ -322,6 +322,9 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   ]) async {
     final editing = value != null;
     final codeLocked = set.codeLocked || editing;
+    final labelKey = value?.labelKey?.trim() ?? '';
+    final labelManaged =
+        labelKey.isNotEmpty && strings.raw(labelKey).isNotEmpty;
     final code = TextEditingController(text: value?.code ?? '');
     final label = TextEditingController(text: value?.labelEn ?? '');
     final description = TextEditingController();
@@ -360,9 +363,15 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
                 key: const Key('option-value-label-field'),
                 controller: label,
                 label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
-                validator: (v) => (v ?? '').trim().isEmpty
-                    ? strings.tKey(CommonKeys.validationRequiredField)
+                enabled: !labelManaged,
+                helper: labelManaged
+                    ? strings.tKey(PlatformAdminKeys.optionSetsLabelManaged)
                     : null,
+                validator: labelManaged
+                    ? (_) => null
+                    : (v) => (v ?? '').trim().isEmpty
+                          ? strings.tKey(CommonKeys.validationRequiredField)
+                          : null,
               ),
               const SizedBox(height: 12),
               CatalogField(

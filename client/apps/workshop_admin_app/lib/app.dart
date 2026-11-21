@@ -17,6 +17,9 @@ class AdminApp extends ConsumerWidget {
     // the active locale (see api_language_sync.dart).
     ref.watch(apiLanguageSyncProvider);
     final locale = ref.watch(localeProvider);
+    final supportedLocales = ref.watch(
+      supportedLocalesProvider(adminUiMessageClient),
+    );
     final messages = ref.watch(uiMessageMessagesProvider(adminUiMessageClient));
     // Reference `labelKey` lookups still resolve through the shared flat map.
     setRemoteEnglish(messages);
@@ -30,7 +33,7 @@ class AdminApp extends ConsumerWidget {
         theme: AppTheme.build(),
         themeMode: ThemeMode.light,
         locale: locale,
-        supportedLocales: const <Locale>[Locale('en')],
+        supportedLocales: supportedLocales,
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
           GlobalMaterialLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,

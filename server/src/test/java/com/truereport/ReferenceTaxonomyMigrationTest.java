@@ -77,7 +77,7 @@ class ReferenceTaxonomyMigrationTest {
                 .locations("classpath:db/migration", "classpath:db/migration-h2")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("135");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("138");
 
         try (Connection connection = DriverManager.getConnection(URL, "sa", "")) {
             assertThat(tableExists(connection, "reference_domain")).isFalse();

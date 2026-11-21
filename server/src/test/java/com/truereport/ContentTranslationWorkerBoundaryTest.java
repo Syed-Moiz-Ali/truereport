@@ -99,7 +99,7 @@ class ContentTranslationWorkerBoundaryTest {
                 UPDATE content_translation_job
                 SET state = 'RUNNING', attempts = 1, updated_at = ?
                 WHERE entity_type = 'CATEGORY' AND entity_id = ? AND lang = 'fr'
-                """, Timestamp.valueOf(LocalDateTime.now().minusMinutes(10)), categoryId);
+                """, LocalDateTime.now().minusMinutes(10), categoryId);
 
         assertThat(worker.workOnce()).isEqualTo(2);
 

@@ -13,6 +13,9 @@ class TechnicianApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
+    final supportedLocales = ref.watch(
+      supportedLocalesProvider(technicianUiMessageClient),
+    );
     final messages = ref.watch(
       uiMessageMessagesProvider(technicianUiMessageClient),
     );
@@ -29,7 +32,7 @@ class TechnicianApp extends ConsumerWidget {
         theme: AppTheme.build(),
         themeMode: ThemeMode.light,
         locale: locale,
-        supportedLocales: const <Locale>[Locale('en')],
+        supportedLocales: supportedLocales,
         localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
           GlobalMaterialLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,

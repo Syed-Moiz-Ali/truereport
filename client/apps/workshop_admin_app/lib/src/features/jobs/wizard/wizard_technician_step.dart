@@ -7,6 +7,7 @@ import 'package:reference_data/reference_data.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:workshop_admin_app/src/features/jobs/wizard/wizard_choice_group.dart';
+import 'package:workshop_admin_app/src/features/reports/report_language_options.dart';
 
 /// Step 4: technician (or assign later), the customer's preferred language,
 /// and public-link consent. Consent can be recorded at creation; otherwise it
@@ -160,9 +161,10 @@ class WizardTechnicianStep extends ConsumerWidget {
   }
 }
 
-/// The customer's report language, taken from the languages the backend
-/// advertises for this client. Each chip shows the manifest `nativeName`; the
-/// operator's current UI language is the default (see `WizardFormState`).
+/// The customer's report language, taken from the LIVE language registry so a
+/// newly added language is selectable before its UI catalog exists. Each chip
+/// shows the registry `nativeName`; the operator's current UI language is the
+/// default (see `WizardFormState`).
 class _PreferredLanguageChoice extends ConsumerWidget {
   const _PreferredLanguageChoice({
     required this.label,
@@ -176,21 +178,41 @@ class _PreferredLanguageChoice extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final registry = ref.watch(workshopLanguagesProvider).asData?.value;
     final selection = ref.watch(
       languageSelectionProvider(adminUiMessageClient),
     );
-    final languages =
+    final manifestLanguages =
         selection.manifest?.languages ?? const <UiMessageLanguage>[];
-    final codes = languages.isEmpty
-        ? <String>[selected]
-        : languages.map((language) => language.code).toList(growable: false);
-    String labelFor(String code) {
-      for (final language in languages) {
-        if (language.code == code && language.displayName.isNotEmpty) {
-          return language.displayName;
-        }
+
+    final codes = <String>[];
+    if (registry != null && registry.isNotEmpty) {
+      for (final language in registry) {
+        final code = language.code.trim();
+        if (code.isNotEmpty) codes.add(code);
       }
-      return code.toUpperCase();
+    } else {
+      for (final language in manifestLanguages) {
+        final code = language.code.trim();
+        if (code.isNotEmpty) codes.add(code);
+      }
+    }
+
+    final selectedCode = selected.trim();
+    if (selectedCode.isNotEmpty && !codes.contains(selectedCode)) {
+      codes.add(selectedCode);
+    }
+    if (codes.isEmpty) codes.add(selectedCode);
+
+    String labelFor(String code) {
+      if (registry != null && registry.isNotEmpty) {
+        return resolvedLanguageLabel(registry, code) ??
+            code.trim().toUpperCase();
+      }
+      final nativeName =
+          selection.manifest?.languageFor(code)?.nativeName.trim() ?? '';
+      if (nativeName.isNotEmpty) return nativeName;
+      return code.trim().toUpperCase();
     }
 
     return WizardChoiceGroup(

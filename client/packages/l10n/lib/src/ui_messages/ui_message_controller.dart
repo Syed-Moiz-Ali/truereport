@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../locale_controller.dart';
 import 'ui_message_api.dart';
 import 'ui_message_cache.dart';
 import 'ui_message_key.dart';
@@ -60,6 +61,21 @@ final uiMessageMessagesProvider = Provider.family<Map<String, String>, String>((
   final selection = ref.watch(languageSelectionProvider(client));
   if (!selection.ready) return const <String, String>{};
   return ref.read(languageSelectionProvider(client).notifier).mergedMessages();
+});
+
+/// Flutter-supported locales for every language the server advertises.
+///
+/// Built-in Material and Cupertino copy (date pickers, dialogs, tooltips) is
+/// localized per locale, so the list must follow the manifest rather than a
+/// fixed language pair. The active locale is always present, and a manifest
+/// that is still loading (or empty) falls back to English.
+final supportedLocalesProvider = Provider.family<List<Locale>, String>((
+  ref,
+  client,
+) {
+  final selection = ref.watch(languageSelectionProvider(client));
+  final locale = ref.watch(localeProvider);
+  return supportedLocalesFor(selection.manifest, locale);
 });
 
 class UiMessageState {
@@ -493,6 +509,13 @@ class UiMessageStrings {
     return null;
   }
 
+  /// Served text for a flat backend key, or an empty string when the catalogs
+  /// do not carry it yet.
+  ///
+  /// Callers use this to tell a catalog-managed label (which resolves) apart
+  /// from a locally editable fallback (which does not).
+  String raw(String backendKey) => resolveFlatKey(backendKey) ?? '';
+
   /// Chooses the English message when a legacy bilingual pair is supplied.
   ///
   /// Arabic is no longer a supported locale, so the English side always wins;
@@ -528,4 +551,36 @@ Locale localeForLanguage(String code) {
     );
   }
   return Locale(language);
+}
+
+/// Maps a client's advertised languages to the locales Flutter supports.
+///
+/// Every manifest language becomes a [Locale] so the framework's own Material
+/// and Cupertino copy resolves for it. [active] is always included so the
+/// current selection stays valid while a manifest is still loading; when
+/// nothing is advertised the result falls back to `en` only.
+List<Locale> supportedLocalesFor(UiMessageManifest? manifest, Locale active) {
+  final locales = <Locale>[];
+
+  void add(Locale locale) {
+    final duplicate = locales.any(
+      (item) =>
+          item.languageCode == locale.languageCode &&
+          item.scriptCode == locale.scriptCode &&
+          item.countryCode == locale.countryCode,
+    );
+    if (!duplicate) locales.add(locale);
+  }
+
+  for (final language in manifest?.languages ?? const <UiMessageLanguage>[]) {
+    final code = language.code.trim();
+    if (code.isEmpty) continue;
+    add(localeForLanguage(code));
+  }
+  if (locales.isEmpty) add(const Locale('en'));
+
+  final activeCode = active.languageCode.trim();
+  if (activeCode.isNotEmpty) add(Locale(activeCode));
+
+  return List<Locale>.unmodifiable(locales);
 }

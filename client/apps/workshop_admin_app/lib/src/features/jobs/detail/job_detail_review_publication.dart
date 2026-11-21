@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
+import 'package:workshop_admin_app/src/features/jobs/job_documents_page.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_presentation.dart';
 import 'package:workshop_admin_app/src/features/jobs/job_widgets.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/reference_status.dart';
+import 'package:workshop_admin_app/src/features/reports/report_page.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -109,10 +111,64 @@ class JobDetailReviewPublication extends ConsumerWidget {
                   ],
                 ),
               ),
+              SizedBox(height: spacing.lg),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 480;
+                  final actionWidth = wide
+                      ? (constraints.maxWidth - spacing.md) / 2
+                      : constraints.maxWidth;
+                  return Wrap(
+                    spacing: spacing.md,
+                    runSpacing: spacing.sm,
+                    children: [
+                      SizedBox(
+                        width: actionWidth,
+                        child: AppButton(
+                          key: const Key('job-detail-report-action'),
+                          label: t(WorkshopAdminKeys.report),
+                          icon: Icons.receipt_long_outlined,
+                          variant: AppButtonVariant.tonal,
+                          expand: true,
+                          onPressed: () => _openReport(context),
+                        ),
+                      ),
+                      SizedBox(
+                        width: actionWidth,
+                        child: AppButton(
+                          key: const Key('job-detail-documents-action'),
+                          label: t(WorkshopAdminKeys.jobsDocumentsTitle),
+                          icon: Icons.folder_open_outlined,
+                          variant: AppButtonVariant.tonal,
+                          expand: true,
+                          onPressed: () => _openDocuments(context),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  /// The report is a full screen with its own top bar and back action.
+  void _openReport(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            ReportPage(jobId: job.id, preferredLanguage: job.preferredLanguage),
+      ),
+    );
+  }
+
+  /// Generated documents are a full screen with Dispatch chrome.
+  void _openDocuments(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => DocumentsPage(jobId: job.id)),
     );
   }
 }
