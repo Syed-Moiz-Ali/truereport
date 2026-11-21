@@ -98,7 +98,8 @@ public class TechnicianStore {
     }
 
     public record OptionRow(
-            String code, String labelEn, String labelAr, int sortOrder, String labelKey) {
+            String id, String code, String labelEn, String labelAr, int sortOrder,
+            String labelKey) {
     }
 
     public record AssessmentRow(
@@ -628,7 +629,7 @@ public class TechnicianStore {
     public List<OptionRow> options(String issueFieldId, String optionSetId) {
         if (issueFieldId != null) {
             List<OptionRow> subset = jdbc.query("""
-                    SELECT ov.code, ov.label AS label_en,
+                    SELECT ov.id, ov.code, ov.label AS label_en,
                            (SELECT body FROM platform_translations pt
                             WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
                               AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
@@ -647,7 +648,7 @@ public class TechnicianStore {
             return List.of();
         }
         return jdbc.query("""
-                SELECT ov.code, ov.label AS label_en,
+                SELECT ov.id, ov.code, ov.label AS label_en,
                        (SELECT body FROM platform_translations pt
                         WHERE pt.entity_type = 'OPTION_VALUE' AND pt.entity_id = ov.id
                           AND pt.field_name = 'label' AND pt.lang = 'ar') AS label_ar,
@@ -1068,8 +1069,8 @@ public class TechnicianStore {
         if (labelKey == null || labelKey.isBlank()) {
             labelKey = OptionLabelKeys.generate(rs.getString("option_set_code"), code);
         }
-        return new OptionRow(code, rs.getString("label_en"), rs.getString("label_ar"),
-                rs.getInt("sort_order"), labelKey);
+        return new OptionRow(rs.getString("id"), code, rs.getString("label_en"),
+                rs.getString("label_ar"), rs.getInt("sort_order"), labelKey);
     };
 
     private final RowMapper<AssessmentRow> ASSESSMENT_MAPPER = (rs, i) -> new AssessmentRow(

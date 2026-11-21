@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 double _num(dynamic value) {
@@ -22,6 +24,28 @@ int? _nullableInt(dynamic value) {
 }
 
 String _str(dynamic value) => value == null ? '' : value.toString();
+
+/// Tolerant boolean: accepts bool and the strings the server may send.
+bool _bool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final text = _str(value).trim().toLowerCase();
+  return text == 'true' || text == '1' || text == 'yes';
+}
+
+/// Reads a string field from a JSON metadata blob without throwing.
+String _metadataString(String metadataJson, String key) {
+  final raw = metadataJson.trim();
+  if (raw.isEmpty || raw == '{}') return '';
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) return _str(decoded[key]);
+    if (decoded is Map) return _str(decoded[key]);
+  } on FormatException {
+    return '';
+  }
+  return '';
+}
 
 /// Tolerant nullable string: absent, null and empty values become null.
 String? _strOrNull(dynamic value) {
@@ -775,6 +799,8 @@ class OptionValue {
     this.label = '',
     this.translations = const {},
     this.labelKey,
+    this.tone = '',
+    this.icon = '',
     String? labelEn,
   }) : _legacyLabel = labelEn ?? '';
 
@@ -792,6 +818,10 @@ class OptionValue {
   /// Backend UI-message key for the label, or null when the server has none.
   final String? labelKey;
 
+  /// Optional served presentation hints for status-like values.
+  final String tone;
+  final String icon;
+
   final String _legacyLabel;
 
   String get labelEn => label.isNotEmpty ? label : _legacyLabel;
@@ -799,17 +829,47 @@ class OptionValue {
   String labelFor(String language) =>
       _valueFor(translations, 'label', language, labelEn);
 
-  factory OptionValue.fromJson(Map<String, dynamic> json) => OptionValue(
-    id: _str(json['id']),
-    code: _str(json['code']),
-    label: _legacy(json['label'], json['labelEn']),
-    status: _str(json['status']),
-    sortOrder: _int(json['sortOrder']),
-    metadataJson: _str(json['metadataJson']),
-    translations: _translationMap(json['translations']),
-    labelKey: _strOrNull(json['labelKey']),
-  );
+  factory OptionValue.fromJson(Map<String, dynamic> json) {
+    final metadataJson = _str(json['metadataJson']);
+    final tone = _str(json['tone']);
+    final icon = _str(json['icon']);
+    return OptionValue(
+      id: _str(json['id']),
+      code: _str(json['code']),
+      label: _legacy(json['label'], json['labelEn']),
+      status: _str(json['status']),
+      sortOrder: _int(json['sortOrder']),
+      metadataJson: metadataJson,
+      translations: _translationMap(json['translations']),
+      labelKey: _strOrNull(json['labelKey']),
+      tone: tone.isNotEmpty ? tone : _metadataString(metadataJson, 'tone'),
+      icon: icon.isNotEmpty ? icon : _metadataString(metadataJson, 'icon'),
+    );
+  }
 }
+
+/// The taxonomy family a set belongs to.
+enum OptionSetKind {
+  checklist('CHECKLIST'),
+  status('STATUS'),
+  enumeration('ENUM');
+
+  const OptionSetKind(this.wireName);
+
+  final String wireName;
+
+  /// Legacy master option sets carry no kind; they are checklist choices.
+  static OptionSetKind parse(dynamic raw) {
+    final normalized = _str(raw).trim().toUpperCase();
+    for (final kind in values) {
+      if (kind.wireName == normalized) return kind;
+    }
+    return OptionSetKind.checklist;
+  }
+}
+
+/// Enum sets whose codes the backend owns even when the payload omits it.
+const backendDefinedEnumCodes = <String>{'SEVERITY', 'UNIT', 'YES_NO'};
 
 @immutable
 class OptionSet {
@@ -821,6 +881,10 @@ class OptionSet {
     required this.values,
     this.name = '',
     this.translations = const {},
+    this.kind = OptionSetKind.checklist,
+    this.domainKey = '',
+    this.codeLocked = false,
+    this.valuesCount = 0,
     String? nameEn,
   }) : _legacyName = nameEn ?? '';
 
@@ -835,6 +899,18 @@ class OptionSet {
   final List<OptionValue> values;
   final Map<String, Map<String, String>> translations;
 
+  /// Taxonomy family served by the merged option-set endpoint.
+  final OptionSetKind kind;
+
+  /// Legacy reference domain served for this set, when migrated.
+  final String domainKey;
+
+  /// True when the backend fixes value codes (no add, no retire).
+  final bool codeLocked;
+
+  /// Number of values reported by the catalogue summary.
+  final int valuesCount;
+
   final String _legacyName;
 
   String get nameEn => name.isNotEmpty ? name : _legacyName;
@@ -844,6 +920,21 @@ class OptionSet {
     if (direct != null && direct.trim().isNotEmpty) return direct;
     return nameEn;
   }
+
+  /// Membership in the Checklist tab: editable choices only.
+  bool get isChecklistCatalog => kind == OptionSetKind.checklist && !codeLocked;
+
+  /// Membership in the Statuses tab.
+  bool get isStatusCatalog => kind == OptionSetKind.status;
+
+  /// Membership in the Enums tab, including the locked legacy enum sets.
+  bool get isEnumCatalog =>
+      kind == OptionSetKind.enumeration ||
+      (codeLocked && backendDefinedEnumCodes.contains(code));
+
+  /// Best-known value count (embedded rows win when the API sends them).
+  int get effectiveValuesCount =>
+      values.isNotEmpty ? values.length : valuesCount;
 
   factory OptionSet.fromJson(Map<String, dynamic> json) => OptionSet(
     id: _str(json['id']),
@@ -855,6 +946,10 @@ class OptionSet {
         .map((e) => OptionValue.fromJson(e as Map<String, dynamic>))
         .toList(growable: false),
     translations: _translationMap(json['translations']),
+    kind: OptionSetKind.parse(json['setKind']),
+    domainKey: _str(json['domainKey']),
+    codeLocked: _bool(json['codeLocked']),
+    valuesCount: _int(json['valuesCount']),
   );
 }
 

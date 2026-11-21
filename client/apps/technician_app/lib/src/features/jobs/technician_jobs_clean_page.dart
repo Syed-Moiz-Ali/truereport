@@ -768,6 +768,10 @@ class _Agenda extends StatelessWidget {
   }
 
   JobSummary? _nextUp(List<JobSummary> items) {
+    // Flow priority, not display order: the served JOB_STATUS.order starts at
+    // DRAFT 1 / SCHEDULED 2, which would rank scheduled work above active
+    // work. Only the technician's actionable statuses compete for the band.
+    // gate-allow: codes
     int rank(JobSummary job) => switch (job.status) {
       'IN_PROGRESS' => 0,
       'ASSIGNED' || 'SCHEDULED' => 1,

@@ -1,4 +1,10 @@
-import { APIRequestContext, Page, request as pwRequest, expect } from '@playwright/test';
+import {
+  APIRequestContext,
+  Locator,
+  Page,
+  request as pwRequest,
+  expect,
+} from '@playwright/test';
 import { API, AppConfig } from './apps';
 import { bootFlutterWeb } from './flutter';
 
@@ -37,6 +43,18 @@ export async function apiContext(): Promise<APIRequestContext> {
   return pwRequest.newContext({ baseURL: API });
 }
 
+/**
+ * Flutter web semantics inputs live in the engine, so the DOM value is not a
+ * reliable read-back. Click, give the focus transition a moment, then type.
+ * The caller retries the whole sign-in when a character is dropped.
+ */
+async function fillField(page: Page, field: Locator, value: string): Promise<void> {
+  await expect(field).toBeVisible({ timeout: 30_000 });
+  await field.click({ force: true });
+  await page.waitForTimeout(250);
+  await page.keyboard.type(value, { delay: 20 });
+}
+
 export async function uiSignIn(page: Page, app: AppConfig): Promise<void> {
   const password = passwordFor(app);
   if (!password) {
@@ -44,25 +62,31 @@ export async function uiSignIn(page: Page, app: AppConfig): Promise<void> {
       `Missing ${app.passwordEnv} (or E2E_PASSWORD). The harness never stores passwords.`,
     );
   }
-  await bootFlutterWeb(page, `${app.baseURL}${app.signInPath}`);
-  // Flutter semantics vary per app: platform/workshop use "Email" and
-  // "Password", technician uses "Email\nEmail" and "Password\nPassword".
-  const email = page.getByLabel(/email/i).first();
-  await expect(email).toBeVisible({ timeout: 30_000 });
-  await email.click({ force: true });
-  await page.keyboard.type(emailFor(app));
-  const passwordField = page.getByLabel(/password/i).first();
-  await expect(passwordField).toBeVisible({ timeout: 15_000 });
-  await passwordField.click({ force: true });
-  await page.keyboard.type(password);
-  const signIn = page
-    .getByRole('button', { name: /sign in/i })
-    .filter({ hasNotText: /show|hide/i })
-    .first();
-  await expect(signIn).toBeEnabled({ timeout: 15_000 });
-  await signIn.click({ force: true });
-  await expect(page).toHaveURL(new RegExp(`${app.homePath.replace('/', '\\/')}`), {
-    timeout: 45_000,
-  });
-  await bootFlutterWeb(page);
+  const home = new RegExp(app.homePath.replace('/', '\\/'));
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await bootFlutterWeb(page, `${app.baseURL}${app.signInPath}`);
+
+    // Flutter semantics vary per app: platform/workshop use "Email" and
+    // "Password", technician uses "Email\nEmail" and "Password\nPassword".
+    await fillField(page, page.getByLabel(/email/i).first(), emailFor(app));
+    await fillField(page, page.getByLabel(/password/i).first(), password);
+
+    const signIn = page
+      .getByRole('button', { name: /sign in/i })
+      .filter({ hasNotText: /show|hide/i })
+      .first();
+    await expect(signIn).toBeEnabled({ timeout: 15_000 });
+    await signIn.click({ force: true });
+
+    try {
+      await expect(page).toHaveURL(home, { timeout: 45_000 });
+      await bootFlutterWeb(page);
+      return;
+    } catch (error) {
+      if (attempt === 1) throw error;
+      // A dropped character in the first pass is the known flake; reload cleanly.
+      await page.waitForTimeout(1_000);
+    }
+  }
 }

@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Static taxonomy seeded into {@code reference_domain} and
- * {@code status_transition}. Every {@code labelKey} must already exist in the
- * English catalogs; {@code ReferenceTaxonomyGuardTest} enforces both that and
- * that every enum constant has a seeded row.
+ * Static taxonomy seeded into the option-set store and {@code status_transition}.
+ * Every {@code labelKey} must already exist in the English catalogs;
+ * {@code ReferenceTaxonomyGuardTest} enforces both that and that every enum
+ * constant has a seeded value.
  */
 public final class ReferenceTaxonomy {
 
@@ -120,6 +120,21 @@ public final class ReferenceTaxonomy {
             List<String> visibleFor) {
     }
 
+    /**
+     * Backend-defined option set. STATUS and ENUM sets are code-locked; the
+     * legacy SEVERITY/UNIT/YES_NO catalogue sets are also locked but keep
+     * {@code set_kind='CHECKLIST'} because issue fields reference them as
+     * option/unit sets.
+     */
+    public record SetSeed(
+            String code,
+            String domainKey,
+            String kind,
+            boolean codeLocked,
+            String name,
+            int sortOrder) {
+    }
+
     public record TransitionSeed(
             String entity,
             String fromCode,
@@ -128,7 +143,10 @@ public final class ReferenceTaxonomy {
     }
 
     public static final List<DomainSeed> DOMAINS = buildDomains();
+    public static final List<SetSeed> SETS = buildSets();
     public static final List<TransitionSeed> TRANSITIONS = buildTransitions();
+    private static final Map<String, SetSeed> SETS_BY_DOMAIN = buildSetsByDomain();
+    private static final Map<String, SetSeed> SETS_BY_CODE = buildSetsByCode();
 
     private ReferenceTaxonomy() {
     }
@@ -280,9 +298,10 @@ public final class ReferenceTaxonomy {
         rows.add(enumRow(RESULT, ResultCode.NO_ISSUE_OBSERVED, "noIssueObserved", "success", ALL));
         rows.add(enumRow(RESULT, ResultCode.ATTENTION_RECOMMENDED, "attentionRecommended", "warning", ALL));
         rows.add(enumRow(RESULT, ResultCode.DEFECT_FOUND, "defectFound", "danger", ALL));
-        rows.add(enumRow(RESULT, ResultCode.NOT_CHECKED, "notChecked", "neutral", ALL));
-        rows.add(enumRow(RESULT, ResultCode.NOT_APPLICABLE, "notApplicable", "neutral", ALL));
-        rows.add(enumRow(RESULT, ResultCode.COULD_NOT_VERIFY, "couldNotVerify", "warning", ALL));
+        // Derived/report states: visible in reports but not user assessment choices.
+        rows.add(enumRow(RESULT, ResultCode.NOT_CHECKED, "notChecked", "neutral", ALL, false));
+        rows.add(enumRow(RESULT, ResultCode.NOT_APPLICABLE, "notApplicable", "neutral", ALL, false));
+        rows.add(enumRow(RESULT, ResultCode.COULD_NOT_VERIFY, "couldNotVerify", "warning", ALL, false));
 
         rows.add(enumRow(GRADE, Grade.A, "gradeA", "success", ALL));
         rows.add(enumRow(GRADE, Grade.B, "gradeB", "info", ALL));
@@ -328,6 +347,75 @@ public final class ReferenceTaxonomy {
         return List.copyOf(rows);
     }
 
+    private static List<SetSeed> buildSets() {
+        return List.of(
+                new SetSeed("JOB_STATUS", JOB_STATUS, "STATUS", true, "Job Status", 101),
+                new SetSeed("REVIEW_STATUS", REVIEW_STATUS, "STATUS", true, "Review Status", 102),
+                new SetSeed("PUBLICATION_STATUS", PUBLICATION_STATUS, "STATUS", true,
+                        "Publication Status", 103),
+                new SetSeed("DOCUMENT_STATUS", DOCUMENT_STATUS, "STATUS", true,
+                        "Document Status", 104),
+                new SetSeed("SYNC_STATUS", SYNC_STATUS, "STATUS", true, "Sync Status", 105),
+                new SetSeed("EVIDENCE_STATUS", EVIDENCE_STATUS, "STATUS", true,
+                        "Evidence Status", 106),
+                new SetSeed("TEMPLATE_STATUS", TEMPLATE_STATUS, "STATUS", true,
+                        "Template Status", 107),
+                new SetSeed("WORKSHOP_STATUS", WORKSHOP_STATUS, "STATUS", true,
+                        "Workshop Status", 108),
+                new SetSeed("CHECKLIST_STATUS", CHECKLIST_STATUS, "STATUS", true,
+                        "Checklist Status", 109),
+                new SetSeed("HEALTH_STATUS", HEALTH_STATUS, "STATUS", true, "Health Status", 110),
+                new SetSeed("PLATFORM_CHIP_STATUS", PLATFORM_CHIP_STATUS, "STATUS", true,
+                        "Platform Chip Status", 111),
+                new SetSeed("DELIVERY_STATUS", DELIVERY_STATUS, "STATUS", true,
+                        "Delivery Status", 112),
+                new SetSeed("CONSENT_STATUS", CONSENT_STATUS, "STATUS", true,
+                        "Consent Status", 113),
+                new SetSeed("TRANSLATION_STATUS", TRANSLATION_STATUS, "STATUS", true,
+                        "Translation Status", 114),
+                new SetSeed("DOCUMENT_TYPE_STATUS", DOCUMENT_TYPE_STATUS, "STATUS", true,
+                        "Document Type Status", 115),
+                new SetSeed("ROLE", ROLE, "ENUM", true, "Role", 201),
+                new SetSeed("RESULT", RESULT, "ENUM", true, "Result", 202),
+                new SetSeed("GRADE", GRADE, "ENUM", true, "Grade", 203),
+                new SetSeed("INPUT_TYPE", INPUT_TYPE, "ENUM", true, "Input Type", 204),
+                new SetSeed("EVIDENCE_TYPE", EVIDENCE_TYPE, "ENUM", true, "Evidence Type", 205),
+                new SetSeed("CONTENT_TYPE", CONTENT_TYPE, "ENUM", true, "Content Type", 206),
+                new SetSeed("MEASUREMENT_DIRECTION", MEASUREMENT_DIRECTION, "ENUM", true,
+                        "Measurement Direction", 207),
+                // Issue fields reference these as option/unit sets, so they stay
+                // CHECKLIST kind while their codes remain backend-owned.
+                new SetSeed("SEVERITY", SEVERITY, "CHECKLIST", true, "Severity", 5),
+                new SetSeed("UNIT", MEASUREMENT_UNIT, "CHECKLIST", true, "Unit", 9),
+                new SetSeed("YES_NO", "yes-no", "CHECKLIST", true, "Yes / No", 10));
+    }
+
+    /** The set that owns a reference domain key, or {@code null}. */
+    public static SetSeed setForDomain(String domainKey) {
+        return SETS_BY_DOMAIN.get(domainKey);
+    }
+
+    /** The set definition for an option-set code, or {@code null}. */
+    public static SetSeed setForCode(String code) {
+        return SETS_BY_CODE.get(code);
+    }
+
+    private static Map<String, SetSeed> buildSetsByDomain() {
+        Map<String, SetSeed> result = new LinkedHashMap<>();
+        for (SetSeed seed : SETS) {
+            result.put(seed.domainKey(), seed);
+        }
+        return Map.copyOf(result);
+    }
+
+    private static Map<String, SetSeed> buildSetsByCode() {
+        Map<String, SetSeed> result = new LinkedHashMap<>();
+        for (SetSeed seed : SETS) {
+            result.put(seed.code(), seed);
+        }
+        return Map.copyOf(result);
+    }
+
     private static List<TransitionSeed> buildTransitions() {
         List<TransitionSeed> rows = new ArrayList<>();
         rows.add(new TransitionSeed("job", "DRAFT", "SCHEDULED", "WORKSHOP_ADMIN"));
@@ -361,14 +449,25 @@ public final class ReferenceTaxonomy {
 
     private static DomainSeed enumRow(String domainKey, Enum<?> code, String labelKey,
                                       String tone, List<String> visibleFor) {
-        return domain("ENUM", domainKey, code, labelKey, tone, visibleFor);
+        return domain("ENUM", domainKey, code, labelKey, tone, visibleFor, true);
+    }
+
+    private static DomainSeed enumRow(String domainKey, Enum<?> code, String labelKey,
+                                      String tone, List<String> visibleFor, boolean selectable) {
+        return domain("ENUM", domainKey, code, labelKey, tone, visibleFor, selectable);
     }
 
     private static DomainSeed domain(String type, String domainKey, Enum<?> code,
                                      String labelKey, String tone, List<String> visibleFor) {
+        return domain(type, domainKey, code, labelKey, tone, visibleFor, true);
+    }
+
+    private static DomainSeed domain(String type, String domainKey, Enum<?> code,
+                                     String labelKey, String tone, List<String> visibleFor,
+                                     boolean selectable) {
         int order = Integer.parseInt(String.valueOf(code.ordinal())) + 1;
         return new DomainSeed(type, domainKey, code.name(), labelKey, tone,
-                "circle", order, true, visibleFor);
+                "circle", order, selectable, visibleFor);
     }
 
     /** Allowed-next codes for a status row, derived from the transition graph. */

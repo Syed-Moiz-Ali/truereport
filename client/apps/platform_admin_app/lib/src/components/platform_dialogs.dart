@@ -6,6 +6,8 @@ import '../platform_theme.dart';
 
 import 'package:l10n/l10n.dart';
 
+import 'platform_buttons.dart';
+
 /// Shared dialog shell: 18px w800 title, consistent content padding,
 /// Cancel + Primary actions, max-width 560 for forms, scrollable content,
 /// full-screen sheet on compact widths.
@@ -141,17 +143,20 @@ Future<bool> showPlatformConfirmDialog({
       style: PtTheme.font(13, lineHeight: 19, color: PtTheme.muted),
     ),
     actionsBuilder: (dialogContext) => [
-      TextButton(
+      PlatformGhostButton(
+        label: strings.tKey(CommonKeys.buttonCancel),
         onPressed: () => Navigator.of(dialogContext).pop(false),
-        child: Text(strings.tKey(CommonKeys.buttonCancel)),
       ),
-      FilledButton(
-        onPressed: () => Navigator.of(dialogContext).pop(true),
-        style: FilledButton.styleFrom(
-          backgroundColor: destructive ? PtTheme.rose : PtTheme.deepGreen,
+      if (destructive)
+        PlatformDestructiveButton(
+          label: confirmLabel,
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+        )
+      else
+        PlatformPrimaryButton(
+          label: confirmLabel,
+          onPressed: () => Navigator.of(dialogContext).pop(true),
         ),
-        child: Text(confirmLabel),
-      ),
     ],
   );
   return confirmed == true;

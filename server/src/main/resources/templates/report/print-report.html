@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html th:lang="${r.lang}" th:dir="${r.dir}">
 <head>
   <meta charset="utf-8">
   <meta name="color-scheme" content="light">
@@ -1001,7 +1001,7 @@ table.checklist tr:nth-child(even) td {
       </div>
     </div>
     <div class="cover-report-id">
-      <div class="cover-report-id-label">Report Number</div>
+      <div class="cover-report-id-label" th:text="${r.en.reportNumber}">Report Number</div>
       <div class="cover-report-id-num ltr" th:text="${r.reportNumber}">TR-2024-00001</div>
     </div>
   </div>
@@ -1063,15 +1063,15 @@ table.checklist tr:nth-child(even) td {
       <div class="cover-footer-value" th:text="${r.vehicle['clientName']}">Private Client</div>
     </div>
     <div class="cover-footer-item">
-      <div class="cover-footer-label">Inspection Date</div>
+      <div class="cover-footer-label" th:text="${r.en.inspectedOn}">Inspection Date</div>
       <div class="cover-footer-value" th:text="${r.inspection.dateTime}">November 2024</div>
     </div>
     <div class="cover-footer-item">
-      <div class="cover-footer-label">Workshop</div>
+      <div class="cover-footer-label" th:text="${r.en.workshop}">Workshop</div>
       <div class="cover-footer-value" th:text="${r.workshop.name}">TrueReport</div>
     </div>
     <div class="cover-footer-item">
-      <div class="cover-footer-label">Version</div>
+      <div class="cover-footer-label" th:text="${r.en.version}">Version</div>
       <div class="cover-footer-value" th:text="${r.en.version ?: 'Version'} + ' ' + ${r.version}">v1</div>
     </div>
   </div>
@@ -1098,7 +1098,7 @@ table.checklist tr:nth-child(even) td {
     <div class="exec-score-block">
       <div class="exec-score-label" th:text="${r.en.overallPassRate}">Overall Pass Rate</div>
       <div class="exec-score-val" th:text="${r.passRate} + '%'">94%</div>
-      <div class="exec-score-sub" th:text="${r.coverage.text} + ' Checks Completed'">31/32 Checks Completed</div>
+      <div class="exec-score-sub" th:text="${r.coverage.text} + ' ' + ${r.en.checksCompleted}">31/32 Checks Completed</div>
     </div>
     <div class="exec-divider"></div>
     <div class="exec-stat exec-pass">
@@ -1128,7 +1128,7 @@ table.checklist tr:nth-child(even) td {
         <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model}">Toyota Camry</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['year'] != null}">
-        <span class="detail-label">Year</span>
+        <span class="detail-label" th:text="${r.en.year}">Year</span>
         <span class="detail-value" th:text="${r.vehicle['year']}">2022</span>
       </div>
       <div class="detail-row">
@@ -1136,31 +1136,31 @@ table.checklist tr:nth-child(even) td {
         <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G11AK8NU****</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['odometer'] != null and r.vehicle['odometer'] != ''}">
-        <span class="detail-label">Odometer</span>
+        <span class="detail-label" th:text="${r.en.odometer}">Odometer</span>
         <span class="detail-value" th:text="${r.vehicle['odometer']}">45,200 km</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['gearbox'] != null and r.vehicle['gearbox'] != ''}">
-        <span class="detail-label">Gearbox</span>
+        <span class="detail-label" th:text="${r.en.gearbox}">Gearbox</span>
         <span class="detail-value" th:text="${r.vehicle['gearbox']}">Automatic (8-Speed)</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['fuelType'] != null and r.vehicle['fuelType'] != ''}">
-        <span class="detail-label">Fuel Type</span>
+        <span class="detail-label" th:text="${r.en.fuelType}">Fuel Type</span>
         <span class="detail-value" th:text="${r.vehicle['fuelType']}">Gasoline / Hybrid</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['drivetrain'] != null and r.vehicle['drivetrain'] != ''}">
-        <span class="detail-label">Drivetrain</span>
+        <span class="detail-label" th:text="${r.en.drivetrain}">Drivetrain</span>
         <span class="detail-value" th:text="${r.vehicle['drivetrain']}">FWD</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['engineSize'] != null and r.vehicle['engineSize'] != ''}">
-        <span class="detail-label">Engine</span>
+        <span class="detail-label" th:text="${r.en.engine}">Engine</span>
         <span class="detail-value" th:text="${r.vehicle['engineSize']}">2.5 L 4-Cylinder</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['specsOrigin'] != null and r.vehicle['specsOrigin'] != ''}">
-        <span class="detail-label">Specs Origin</span>
+        <span class="detail-label" th:text="${r.en.specsOrigin}">Specs Origin</span>
         <span class="detail-value" th:text="${r.vehicle['specsOrigin']}">GCC Specs</span>
       </div>
       <div class="detail-row" th:if="${r.vehicle['exteriorColor'] != null and r.vehicle['exteriorColor'] != ''}">
-        <span class="detail-label">Exterior Color</span>
+        <span class="detail-label" th:text="${r.en.exteriorColor}">Exterior Color</span>
         <span class="detail-value" th:text="${r.vehicle['exteriorColor']}">Silver Metallic</span>
       </div>
     </div>
@@ -1170,47 +1170,47 @@ table.checklist tr:nth-child(even) td {
       <div class="detail-card" style="margin-bottom:3mm;">
         <div class="detail-card-title" th:text="${r.en.customerInspection}">Customer &amp; Inspection Info</div>
         <div class="detail-row" th:if="${r.vehicle['clientName'] != null and r.vehicle['clientName'] != ''}">
-          <span class="detail-label">Customer</span>
+          <span class="detail-label" th:text="${r.en.customer}">Customer</span>
           <span class="detail-value" th:text="${r.vehicle['clientName']}">Private Client</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Inspection Date</span>
+          <span class="detail-label" th:text="${r.en.inspectedOn}">Inspection Date</span>
           <span class="detail-value" th:text="${r.inspection.dateTime}">November 11, 2024</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Inspection Scope</span>
+          <span class="detail-label" th:text="${r.en.scope}">Inspection Scope</span>
           <span class="detail-value" th:text="${r.inspection.scope}">Comprehensive</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Template Version</span>
+          <span class="detail-label" th:text="${r.en.template}">Template Version</span>
           <span class="detail-value" th:text="${r.inspection.templateVersion}">v2</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Total Checks</span>
-          <span class="detail-value" th:text="${r.totalEvaluated} + ' evaluated'">32 evaluated</span>
+          <span class="detail-label" th:text="${r.en.totalChecks}">Total Checks</span>
+          <span class="detail-value" th:text="${r.totalEvaluated} + ' ' + ${r.en.checksEvaluated}">32 evaluated</span>
         </div>
       </div>
 
       <div class="detail-card">
         <div class="detail-card-title">🏢 Workshop &amp; Technician</div>
         <div class="detail-row">
-          <span class="detail-label">Workshop</span>
+          <span class="detail-label" th:text="${r.en.workshop}">Workshop</span>
           <span class="detail-value" th:text="${r.workshop.name}">TrueReport</span>
         </div>
         <div class="detail-row" th:if="${r.workshop.branch != null and r.workshop.branch != ''}">
-          <span class="detail-label">Branch</span>
+          <span class="detail-label" th:text="${r.en.branch}">Branch</span>
           <span class="detail-value" th:text="${r.workshop.branch}">Main Branch</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Certified Technician</span>
+          <span class="detail-label" th:text="${r.en.technician}">Certified Technician</span>
           <span class="detail-value" th:text="${r.technician.displayName}">Senior Inspector</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Report Version</span>
+          <span class="detail-label" th:text="${r.en.version}">Report Version</span>
           <span class="detail-value" th:text="${r.version}">1</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Issued On</span>
+          <span class="detail-label" th:text="${r.en.inspectedOn}">Issued On</span>
           <span class="detail-value" th:text="${r.finalizedAt}">November 11, 2024</span>
         </div>
       </div>
@@ -1222,14 +1222,14 @@ table.checklist tr:nth-child(even) td {
   <div class="section-heading">
     <span class="section-heading-dot"></span>
     Key Findings &amp; Defects
-    <span class="badge badge-fail" th:if="${!#lists.isEmpty(r.keyFindings)}" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.keyFindings)} + ' Item(s) Require Attention'"></span>
+    <span class="badge badge-fail" th:if="${!#lists.isEmpty(r.keyFindings)}" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.keyFindings)} + ' ' + ${r.en.itemsRequireAttention}"></span>
   </div>
 
   <!-- No findings -->
   <div class="no-findings-box" th:if="${#lists.isEmpty(r.keyFindings)}">
     <span class="no-findings-icon">✓</span>
     <div>
-      <div class="no-findings-text">No Critical Defects Found</div>
+      <div class="no-findings-text" th:text="${r.en.noCriticalDefects}">No Critical Defects Found</div>
       <div class="small muted" th:text="${r.en.noKeyFindings}">All inspected components passed without any defects or safety issues.</div>
     </div>
   </div>
@@ -1241,7 +1241,7 @@ table.checklist tr:nth-child(even) td {
          th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'fc-fail' : 'fc-attn'}">
       <div class="finding-top">
         <div>
-          <div class="finding-label" th:text="${item.labelEn}">Brake Pad Friction Lining</div>
+          <div class="finding-label" th:text="${item.label}">Brake Pad Friction Lining</div>
         </div>
         <div class="finding-badges">
           <span class="badge" th:classappend="${item.resultCode == 'DEFECT_FOUND' ? 'badge-fail' : 'badge-attn'}"
@@ -1250,8 +1250,8 @@ table.checklist tr:nth-child(even) td {
         </div>
       </div>
       <div class="finding-spec-row" th:if="${item.measuredSpec != null and item.measuredSpec != ''}">
-        <span class="finding-spec-pill" th:text="'Measured: ' + ${item.measuredSpec}">Measured: 2.1mm</span>
-        <span class="finding-spec-pill" th:if="${item.standardSpec != null and item.standardSpec != ''}" th:text="'Standard: ' + ${item.standardSpec}">Standard: &gt;3mm</span>
+        <span class="finding-spec-pill" th:text="${r.en.measuredSpec} + ': ' + ${item.measuredSpec}">Measured: 2.1mm</span>
+        <span class="finding-spec-pill" th:if="${item.standardSpec != null and item.standardSpec != ''}" th:text="${r.en.standardSpec} + ': ' + ${item.standardSpec}">Standard: &gt;3mm</span>
         <span class="finding-spec-pill" th:if="${item.severityEn != null and item.severityEn != ''}" th:text="${item.severityEn}">Major</span>
       </div>
       <div class="finding-note" th:if="${item.note != null and item.note != ''}"
@@ -1287,7 +1287,7 @@ table.checklist tr:nth-child(even) td {
     <div th:each="cat : ${r.categories}"
          class="cat-overview-card avoid-break"
          th:classappend="${cat.defectCount > 0 ? 'cat-status-fail' : (cat.attentionCount > 0 ? 'cat-status-attn' : 'cat-status-good')}">
-      <div class="cat-overview-label" th:text="${cat.labelEn}">Category</div>
+      <div class="cat-overview-label" th:text="${cat.label}">Category</div>
       <div class="cat-score-row">
         <span class="cat-score-num"
               th:classappend="${cat.defectCount > 0 ? 'cat-score-fail' : (cat.attentionCount > 0 ? 'cat-score-attn' : 'cat-score-good')}"
@@ -1307,7 +1307,7 @@ table.checklist tr:nth-child(even) td {
         <span class="badge"
               th:classappend="${cat.defectCount > 0 ? 'badge-fail' : (cat.attentionCount > 0 ? 'badge-attn' : 'badge-pass')}"
               th:text="${cat.statusBadge}">PASS</span>
-        <span class="small muted" style="margin-left:2mm;" th:text="${#lists.size(cat.items)} + ' checks'">6 checks</span>
+        <span class="small muted" style="margin-left:2mm;" th:text="${#lists.size(cat.items)} + ' ' + ${r.en.checks}">6 checks</span>
       </div>
     </div>
   </div>
@@ -1349,7 +1349,7 @@ table.checklist tr:nth-child(even) td {
   <div th:if="${r.categories.size() > 0}" class="category-section avoid-break" th:with="cat=${r.categories[0]}">
     <div class="cat-section-header">
       <div>
-        <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+        <div class="cat-section-name" th:text="${cat.label}">Category</div>
       </div>
       <div class="cat-section-meta">
         <span class="cat-section-score"
@@ -1373,7 +1373,7 @@ table.checklist tr:nth-child(even) td {
       <tbody>
         <tr th:each="item : ${cat.items}">
           <td>
-            <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+            <div class="chk-name" th:text="${item.label}">Item Name</div>
           </td>
           <td class="chk-status-cell">
             <span class="status-circle"
@@ -1426,7 +1426,7 @@ table.checklist tr:nth-child(even) td {
     <div class="category-section avoid-break" style="margin-bottom:5mm;">
       <div class="cat-section-header">
         <div>
-          <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+          <div class="cat-section-name" th:text="${cat.label}">Category</div>
         </div>
         <div class="cat-section-meta">
           <span class="cat-section-score"
@@ -1450,7 +1450,7 @@ table.checklist tr:nth-child(even) td {
         <tbody>
           <tr th:each="item : ${cat.items}">
             <td>
-              <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+              <div class="chk-name" th:text="${item.label}">Item Name</div>
             </td>
             <td class="chk-status-cell">
               <span class="status-circle"
@@ -1501,7 +1501,7 @@ table.checklist tr:nth-child(even) td {
     <div class="category-section avoid-break" style="margin-bottom:5mm;">
       <div class="cat-section-header">
         <div>
-          <div class="cat-section-name" th:text="${cat.labelEn}">Category</div>
+          <div class="cat-section-name" th:text="${cat.label}">Category</div>
         </div>
         <div class="cat-section-meta">
           <span class="cat-section-score"
@@ -1525,7 +1525,7 @@ table.checklist tr:nth-child(even) td {
         <tbody>
           <tr th:each="item : ${cat.items}">
             <td>
-              <div class="chk-name" th:text="${item.labelEn}">Item Name</div>
+              <div class="chk-name" th:text="${item.label}">Item Name</div>
             </td>
             <td class="chk-status-cell">
               <span class="status-circle"
@@ -1620,7 +1620,7 @@ table.checklist tr:nth-child(even) td {
           <div class="tyre-metric-val" th:text="${tyre.pressure}">33 PSI</div>
         </div>
         <div class="tyre-metric-box">
-          <div class="tyre-metric-label">Brake Pad</div>
+          <div class="tyre-metric-label" th:text="${r.en.brakePad}">Brake Pad</div>
           <div class="tyre-metric-val" th:text="${tyre.brakePad}">8.2mm</div>
         </div>
       </div>
@@ -1632,7 +1632,7 @@ table.checklist tr:nth-child(even) td {
 
       <!-- Score row -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2.5mm;">
-        <span class="small muted">Score</span>
+        <span class="small muted" th:text="${r.en.itemScore}">Score</span>
         <span class="bold" th:classappend="${tyre.score >= 85 ? 'pass' : (tyre.score >= 65 ? 'attn' : 'fail')}"
               th:style="${tyre.score >= 85 ? 'color:var(--pass)' : (tyre.score >= 65 ? 'color:var(--attention)' : 'color:var(--fail)')}"
               th:text="${tyre.scoreText}">95/100</span>
@@ -1657,7 +1657,7 @@ table.checklist tr:nth-child(even) td {
               th:text="${zone.statusLabel}">Clean</span>
       </div>
       <div class="dz-paint">
-        <span class="bold">Paint:</span>
+        <span class="bold" th:text="${r.en.paintThickness} + ':'">Paint:</span>
         <span th:text="${zone.paintThickness}">125 µm</span>
         <span class="badge badge-neutral" style="margin-left:2mm;" th:text="'[' + ${zone.code} + ']'">FB</span>
       </div>
@@ -1674,7 +1674,7 @@ table.checklist tr:nth-child(even) td {
     <table class="not-checked-table">
       <thead>
         <tr>
-          <th>Check Item</th>
+          <th th:text="${r.en.check}">Check Item</th>
           <th th:text="${r.en.status}">Status</th>
           <th th:text="${r.en.reason}">Reason</th>
         </tr>
@@ -1682,7 +1682,7 @@ table.checklist tr:nth-child(even) td {
       <tbody>
         <tr th:each="item : ${r.notChecked}">
           <td>
-            <span class="bold" th:text="${item.labelEn}">Item</span>
+            <span class="bold" th:text="${item.label}">Item</span>
           </td>
           <td><span class="badge badge-neutral" th:text="${item.resultEn}">Not Checked</span></td>
           <td class="small muted" th:text="${item.reason}">—</td>
@@ -1711,7 +1711,7 @@ table.checklist tr:nth-child(even) td {
   <div class="section-heading">
     <span class="section-heading-dot"></span>
     Official Inspection Photo Gallery
-    <span class="badge badge-pass" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.vehicleShowcase)} + ' Photos Documented'"></span>
+    <span class="badge badge-pass" style="font-size:7pt;margin-left:3mm;" th:text="${#lists.size(r.vehicleShowcase)} + ' ' + ${r.en.photosDocumented}"></span>
   </div>
 
   <div class="photo-grid">
@@ -1750,11 +1750,11 @@ table.checklist tr:nth-child(even) td {
       <div class="report-meta-val ltr mono" th:text="${r.reportNumber}">TR-2024-00001</div>
     </div>
     <div class="report-meta-box">
-      <div class="report-meta-label">Version</div>
+      <div class="report-meta-label" th:text="${r.en.version}">Version</div>
       <div class="report-meta-val" th:text="${r.version}">1</div>
     </div>
     <div class="report-meta-box">
-      <div class="report-meta-label">Finalized At</div>
+      <div class="report-meta-label" th:text="${r.en.finalized}">Finalized At</div>
       <div class="report-meta-val" th:text="${r.finalizedAt}">Nov 11, 2024</div>
     </div>
   </div>
@@ -1769,8 +1769,8 @@ table.checklist tr:nth-child(even) td {
         </svg>
       </div>
       <div>
-        <div class="ver-title">Tamper-Proof Certification</div>
-        <div class="ver-sub" th:text="'Cryptographically signed &amp; verified by ' + ${r.workshop.name}">Verified by TrueReport Workshop</div>
+        <div class="ver-title" th:text="${r.en.tamperProof}">Tamper-Proof Certification</div>
+        <div class="ver-sub" th:text="${r.en.signedVerifiedBy} + ' ' + ${r.workshop.name}">Verified by TrueReport Workshop</div>
       </div>
       <div style="margin-left:auto;">
         <span class="badge badge-pass" style="font-size:8pt;padding:3px 10px;">✓ CERTIFIED</span>
@@ -1786,7 +1786,7 @@ table.checklist tr:nth-child(even) td {
     <div class="verification-card" style="margin-bottom:0;">
       <div class="detail-card-title" th:text="${r.en.englishSummary}">English Report Summary</div>
       <div class="detail-row">
-        <span class="detail-label">Vehicle</span>
+        <span class="detail-label" th:text="${r.en.vehicle}">Vehicle</span>
         <span class="detail-value" th:text="${r.vehicle.make} + ' ' + ${r.vehicle.model} + ' ' + ${r.vehicle['year']}">Toyota Camry 2022</span>
       </div>
       <div class="detail-row">
@@ -1794,19 +1794,19 @@ table.checklist tr:nth-child(even) td {
         <span class="detail-value ltr mono" th:text="${r.vehicle.vinMasked}">4T1G11AK8NU****</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Workshop</span>
+        <span class="detail-label" th:text="${r.en.workshop}">Workshop</span>
         <span class="detail-value" th:text="${r.workshop.name}">Workshop</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Technician</span>
+        <span class="detail-label" th:text="${r.en.technician}">Technician</span>
         <span class="detail-value" th:text="${r.technician.displayName}">Technician</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Scope</span>
+        <span class="detail-label" th:text="${r.en.scope}">Scope</span>
         <span class="detail-value" th:text="${r.inspection.scope}">Comprehensive</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Template</span>
+        <span class="detail-label" th:text="${r.en.template}">Template</span>
         <span class="detail-value" th:text="${r.inspection.templateVersion}">v2</span>
       </div>
     </div>
@@ -1833,8 +1833,8 @@ table.checklist tr:nth-child(even) td {
       <div class="small muted" th:text="${r.en.certifiedPlatform}">Certified Vehicle Inspection Platform</div>
     </div>
     <div style="text-align:right;">
-      <div class="small muted" th:text="${r.reportNumber} + ' · Version ' + ${r.version}">TR-2024-00001 · v1</div>
-      <div class="small muted" th:text="'Issued: ' + ${r.finalizedAt}">Issued: November 2024</div>
+      <div class="small muted" th:text="${r.reportNumber} + ' · ' + ${r.en.version} + ' ' + ${r.version}">TR-2024-00001 · v1</div>
+      <div class="small muted" th:text="${r.en.issued} + ': ' + ${r.finalizedAt}">Issued: November 2024</div>
     </div>
   </div>
 
@@ -1844,7 +1844,7 @@ table.checklist tr:nth-child(even) td {
 <div class="page-footer">
   <span class="page-footer-brand">TrueReport</span>
   <span class="ltr" th:text="${r.reportNumber}">TR-2024-00001</span>
-  <span class="small muted" th:text="'Version ' + ${r.version} + ' · ' + ${r.finalizedAt}">v1</span>
+  <span class="small muted" th:text="${r.en.version} + ' ' + ${r.version} + ' · ' + ${r.finalizedAt}">v1</span>
 </div>
 
 </body>

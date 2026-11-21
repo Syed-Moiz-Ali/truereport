@@ -182,7 +182,11 @@ class ApiEndpoints {
   String get i18nLanguages => '$_root/i18n/languages';
   String get i18nMe => '$_root/i18n/me';
   String get platformLanguages => '$_root/platform/i18n/languages';
+  String platformLanguage(String code) =>
+      '$_root/platform/i18n/languages/$code';
   String get platformLanguageCoverage => '$_root/platform/i18n/coverage';
+  String get platformContentLanguages =>
+      '$_root/platform/i18n/content/languages';
   String platformLanguageReadiness(String code) =>
       '$_root/platform/i18n/languages/$code/readiness';
   String platformLanguageBacklog(String code) =>
@@ -190,6 +194,20 @@ class ApiEndpoints {
   String platformLanguageCoverageFor(String code) =>
       '$_root/platform/i18n/coverage?language=$code';
   String get platformTranslations => '$_root/platform/i18n/translations';
+  String get platformContentUnits => '$_root/platform/i18n/content/units';
+  String platformContentTranslation(
+    String entityType,
+    String entityId,
+    String field,
+  ) => '$_root/platform/i18n/content/$entityType/$entityId/$field';
+  String get contentReview => '$_root/platform/i18n/content/review';
+  String get contentReviewSummary =>
+      '$_root/platform/i18n/content/review/summary';
+  String contentReviewAction(
+    String entityType,
+    String entityId,
+    String field,
+  ) => '$_root/platform/i18n/content/$entityType/$entityId/$field/review';
   String get platformOverview => '$_root/platform/overview';
   String platformWorkshop(String workshopId) =>
       '$_root/platform/workshops/$workshopId';

@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Read-only access to the manifest-synchronized language registry.
+ * Access to the manifest-synchronized language registry.
  *
- * <p>Rows are created and updated only by {@code StaticLanguageSync}. No
- * admin write path exists.</p>
+ * <p>{@code StaticLanguageSync} seeds the manifest languages. Platform Admin
+ * may additionally create, retire and reactivate codes; those writes are
+ * intentionally soft so content translation rows are never deleted.</p>
  */
 @Repository
 public class LanguageRepository {
@@ -58,6 +59,52 @@ public class LanguageRepository {
         return jdbc.query("""
                 SELECT code FROM platform_languages WHERE is_default = TRUE
                 """, rs -> rs.next() ? rs.getString(1) : null);
+    }
+
+    public int updateStatus(String code, String status, boolean active) {
+        return jdbc.update("""
+                UPDATE platform_languages
+                SET status = ?, active = ?, updated_at = CURRENT_TIMESTAMP,
+                    version = version + 1
+                WHERE code = ?
+                """, status, active, code);
+    }
+
+    /** Highest sort order in the whole registry, retired rows included. */
+    public int maxSortOrder() {
+        Integer max = jdbc.queryForObject(
+                "SELECT COALESCE(MAX(sort_order), 0) FROM platform_languages", Integer.class);
+        return max == null ? 0 : max;
+    }
+
+    public int insert(String code, String nativeName, String direction, int sortOrder) {
+        return jdbc.update("""
+                INSERT INTO platform_languages
+                    (code, native_name, direction, active, is_default, sort_order,
+                     status, created_at, updated_at, version)
+                VALUES (?, ?, ?, TRUE, FALSE, ?, 'LIVE',
+                        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, code, nativeName, direction, sortOrder);
+    }
+
+    /** Reactivates a retired row in place, preserving every translation row. */
+    public int reactivate(String code, String nativeName, String direction, int sortOrder) {
+        return jdbc.update("""
+                UPDATE platform_languages
+                SET native_name = ?, direction = ?, active = TRUE, status = 'LIVE',
+                    sort_order = ?, updated_at = CURRENT_TIMESTAMP, version = version + 1
+                WHERE code = ?
+                """, nativeName, direction, sortOrder, code);
+    }
+
+    /** Soft retire: the row and all child content stay in the database. */
+    public int retire(String code) {
+        return jdbc.update("""
+                UPDATE platform_languages
+                SET status = 'RETIRED', active = FALSE, updated_at = CURRENT_TIMESTAMP,
+                    version = version + 1
+                WHERE code = ?
+                """, code);
     }
 
     public Optional<String> preferredLanguage(String userId) {

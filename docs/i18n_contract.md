@@ -13,10 +13,16 @@ and `/{client}/manifest|bundle` flat API used by Workshop Admin and Technician).
    Technician use the same endpoints, the same manifest shape, and the same
    shared Flutter package (`client/packages/l10n`). No app-local manifest,
    bundle, language-list or selector code.
-3. **Adding a language is a backend-only change.** Dropping
+3. **A UI language is a backend-only change.** Dropping
    `i18n/<scope>/<code>.json` and registering the code in `i18n/languages.json`
-   must make the language appear in all three selectors and load without a
-   frontend rebuild.
+   makes the language appear in all three selectors and load without a frontend
+   rebuild.
+   **A content language** is added at runtime: Platform Admin → Languages →
+   **Add language** (`POST /api/v1/platform/i18n/languages`). It is immediately
+   writable through the manual-translation screen and content endpoints, and its
+   interface text falls back to English until the `<code>.json` catalogs exist.
+   `DELETE /api/v1/platform/i18n/languages/{code}` retires it softly (rows and
+   translations are kept); re-adding reactivates it.
 4. **English is the fallback.** Any missing key resolves to the English value.
 5. **Arabic is gone.** No Arabic locale, ARB, generated localization, RTL flag,
    `isArabic` parameter, Arabic property file, or hardcoded `"ar"` branch in

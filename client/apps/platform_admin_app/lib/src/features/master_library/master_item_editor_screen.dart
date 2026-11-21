@@ -16,24 +16,66 @@ import '../../platform_theme.dart';
 import '../../reference_status_lookup.dart';
 import '../checklist/checklist_status.dart';
 import 'option_label.dart';
+import '../localization/translation_issue_dialog.dart';
 
 import 'package:l10n/l10n.dart';
 import 'package:reference_data/reference_data.dart';
 
-const _resultCodes = <String>[
-  'NO_ISSUE_OBSERVED',
-  'ATTENTION_RECOMMENDED',
-  'DEFECT_FOUND',
+/// Codes for a served enum, in served order.
+///
+/// `selectable` is the backend's "this code may be chosen" flag: the result
+/// taxonomy serves report-only codes next to the assessment results, and only
+/// selectable values belong in an editor picker. A stored code is never
+/// filtered out by this helper; callers keep it visible through
+/// [pickerValue].
+List<String> _selectableCodes(Iterable<ReferenceRecord>? records) => <String>[
+  for (final record in records ?? const <ReferenceRecord>[])
+    if (record.selectable) record.code,
 ];
-const _inputTypes = <String>[
-  'SELECT',
-  'MULTI_SELECT',
-  'NUMBER',
-  'BOOLEAN',
-  'TEXT',
-];
-const _evidenceTypes = <String>['PHOTO', 'VIDEO', 'DOCUMENT', ''];
-const _directions = <String>['HIGHER_IS_BETTER', 'LOWER_IS_BETTER'];
+
+/// The value a picker shows.
+///
+/// A stored code always wins, even after it stops being selectable (an
+/// existing rule keeps its stored `resultCode`); only an empty stored value
+/// falls back to the first served code, never to a local list.
+String _pickerValue(String stored, List<String> served) {
+  if (stored.isNotEmpty) return stored;
+  return served.isEmpty ? '' : served.first;
+}
+
+/// Picker items for [codes], plus [current] when the stored code is no longer
+/// in the served set, so a legacy value stays visible instead of being
+/// silently rewritten on open.
+List<DropdownMenuItem<String>> _codeItems({
+  required UiMessageStrings strings,
+  required Iterable<ReferenceRecord>? records,
+  required List<String> codes,
+  required String current,
+}) {
+  final values = <String>[...codes];
+  if (current.isNotEmpty && !values.contains(current)) values.add(current);
+  return <DropdownMenuItem<String>>[
+    for (final code in values)
+      DropdownMenuItem<String>(
+        value: code,
+        child: Text(referenceCodeLabel(strings, records, code)),
+      ),
+  ];
+}
+
+/// Selectable result codes plus any stored requirement whose code is no longer
+/// selectable, so an existing rule stays visible instead of silently
+/// disappearing from the editor.
+List<String> _requiredStatusChoices(
+  List<String> selectable,
+  Set<String> stored,
+) {
+  final codes = <String>[...selectable];
+  for (final code in stored) {
+    if (code.isNotEmpty && !codes.contains(code)) codes.add(code);
+  }
+  return codes;
+}
 
 String _resultLabel(
   UiMessageStrings strings,
@@ -46,24 +88,6 @@ String _evidenceTypeLabel(
   Iterable<ReferenceRecord>? records,
   String type,
 ) => referenceCodeLabel(strings, records, type);
-
-String _inputTypeLabel(
-  UiMessageStrings strings,
-  Iterable<ReferenceRecord>? records,
-  String type,
-) => referenceCodeLabel(strings, records, type);
-
-String _directionLabel(
-  UiMessageStrings strings,
-  Iterable<ReferenceRecord>? records,
-  String direction,
-) => referenceCodeLabel(strings, records, direction);
-
-const _requiredForStatuses = <String>[
-  'NO_ISSUE_OBSERVED',
-  'ATTENTION_RECOMMENDED',
-  'DEFECT_FOUND',
-];
 
 class MasterItemEditorScreen extends StatelessWidget {
   const MasterItemEditorScreen({super.key, this.itemId, this.initialStep = 0});
@@ -183,6 +207,11 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     setState(() => _saving = true);
     try {
       final actions = ref.read(platformConfigActionsProvider);
+      // Wait for the served assessment results instead of creating an item
+      // with an empty `resultOptions` while the enum is still loading.
+      final resultOptions = _selectableCodes(
+        await ref.read(enumsProvider('result').future),
+      );
       final detail = await actions.createItem(<String, dynamic>{
         'stableCode': _codeController.text.trim(),
         'categoryId': _categoryId,
@@ -190,11 +219,7 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
         'instruction': _instructionController.text.trim(),
         'standardSpec': _specController.text.trim(),
         'sampleData': false,
-        'resultOptions': const <String>[
-          'NO_ISSUE_OBSERVED',
-          'ATTENTION_RECOMMENDED',
-          'DEFECT_FOUND',
-        ],
+        'resultOptions': resultOptions,
         'severityPolicy': '{}',
         'applicability': '{}',
         'reasonCodes': const <String>[],
@@ -263,7 +288,9 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     final categories =
         categoriesAsync.asData?.value ?? const <PlatformCategory>[];
     final optionSets =
-        ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[];
+        (ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[])
+            .where((set) => set.isChecklistCatalog)
+            .toList(growable: false);
 
     return _EditorShell(
       child: Column(
@@ -907,6 +934,10 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
       ref.invalidate(itemDetailProvider(widget.itemId));
     } catch (error) {
       if (!mounted) return;
+      if (error is AppFailure && error.code == 'TRANSLATION_REVIEW_REQUIRED') {
+        await showTranslationIssuesDialog(context, error);
+        return;
+      }
       _showSnack(context, _failureMessage(error), isError: true);
     } finally {
       if (mounted) setState(() => _publishing = false);
@@ -981,7 +1012,9 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
         : versions.firstWhere((item) => item.id == selectedId);
     final editable = version != null && version.status == 'DRAFT';
     final optionSets =
-        ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[];
+        (ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[])
+            .where((set) => set.isChecklistCatalog)
+            .toList(growable: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1063,12 +1096,12 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                       ),
                       PlatformStatusChip(
                         status: item.status,
-                        label: checklistStatusLabel(strings, item.status),
+                        label: checklistStatusLabel(ref, item.status),
                       ),
                       if (version != null)
                         PlatformStatusChip(
                           status: version.status,
-                          label: checklistStatusLabel(strings, version.status),
+                          label: checklistStatusLabel(ref, version.status),
                         ),
                     ],
                   ),
@@ -1118,7 +1151,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                         DropdownMenuItem(
                           value: itemVersion.id,
                           child: Text(
-                            'v${itemVersion.versionNo} · ${checklistStatusLabel(strings, itemVersion.status)}',
+                            'v${itemVersion.versionNo} · ${checklistStatusLabel(ref, itemVersion.status)}',
                           ),
                         ),
                     ],
@@ -1528,11 +1561,11 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
                       ),
                       PlatformStatusChip(
                         status: item.status,
-                        label: checklistStatusLabel(strings, item.status),
+                        label: checklistStatusLabel(ref, item.status),
                       ),
                       PlatformStatusChip(
                         status: draft.status,
-                        label: checklistStatusLabel(strings, draft.status),
+                        label: checklistStatusLabel(ref, draft.status),
                       ),
                     ],
                   ),
@@ -1865,7 +1898,7 @@ class _BasicsSectionState extends ConsumerState<_BasicsSection> {
           const SizedBox(height: 12),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: PlatformPrimaryButton(
+            child: PlatformSecondaryButton(
               label: strings.tKey(CommonKeys.buttonSave),
               isLoading: _saving,
               onPressed: widget.editable && !_saving
@@ -1967,7 +2000,7 @@ class _SourceContentSectionState extends ConsumerState<_SourceContentSection> {
           const SizedBox(height: 12),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: PlatformPrimaryButton(
+            child: PlatformSecondaryButton(
               label: strings.tKey(CommonKeys.buttonSave),
               isLoading: _saving,
               onPressed: widget.editable && !_saving ? _save : null,
@@ -1999,6 +2032,11 @@ class _EvidenceRulesSection extends ConsumerStatefulWidget {
 class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   Future<void> save() => _save();
   late List<_EvidenceRuleForm> _forms;
+  ProviderSubscription<AsyncValue<List<ReferenceRecord>>>? _resultWatch;
+
+  /// True once default rows were created from a served result set, so a
+  /// provider refresh cannot resurrect rows the admin deliberately deleted.
+  bool _seededDefaults = false;
   bool _saving = false;
   String? _error;
 
@@ -2006,6 +2044,22 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   void initState() {
     super.initState();
     _forms = _buildForms(widget.rules);
+    if (widget.rules.isEmpty && !_seededDefaults) {
+      // The enum may still be loading: seed the default rules for the
+      // selectable results as soon as they arrive. Never from a local list.
+      _resultWatch = ref.listenManual<AsyncValue<List<ReferenceRecord>>>(
+        enumsProvider('result'),
+        (previous, next) {
+          if (!mounted || _seededDefaults || _forms.isNotEmpty) return;
+          final codes = _selectableCodes(next.value);
+          if (codes.isEmpty) return;
+          setState(() {
+            _forms = _defaultForms(codes);
+            _seededDefaults = true;
+          });
+        },
+      );
+    }
   }
 
   @override
@@ -2019,21 +2073,30 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
 
   List<_EvidenceRuleForm> _buildForms(List<EvidenceRule> rules) {
     if (rules.isNotEmpty) {
+      _seededDefaults = true;
       return rules.map(_EvidenceRuleForm.new).toList();
     }
-    return [
-      for (final code in _resultCodes)
-        _EvidenceRuleForm(
-          EvidenceRule(
-            resultCode: code,
-            minPhotos: code == 'DEFECT_FOUND' ? 1 : 0,
-            minVideos: 0,
-            minNotesChars: 0,
-            requiredEvidenceType: '',
-          ),
-        ),
-    ];
+    final codes = _selectableCodes(ref.read(enumsProvider('result')).value);
+    if (codes.isEmpty) return <_EvidenceRuleForm>[];
+    _seededDefaults = true;
+    return _defaultForms(codes);
   }
+
+  /// One default rule per currently selectable assessment result, in the
+  /// order the taxonomy serves them.
+  List<_EvidenceRuleForm> _defaultForms(List<String> codes) =>
+      <_EvidenceRuleForm>[
+        for (final code in codes)
+          _EvidenceRuleForm(
+            EvidenceRule(
+              resultCode: code,
+              minPhotos: code == 'DEFECT_FOUND' ? 1 : 0,
+              minVideos: 0,
+              minNotesChars: 0,
+              requiredEvidenceType: '',
+            ),
+          ),
+      ];
 
   void _disposeForms() {
     for (final form in _forms) {
@@ -2043,6 +2106,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
 
   @override
   void dispose() {
+    _resultWatch?.close();
     _disposeForms();
     super.dispose();
   }
@@ -2061,8 +2125,16 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
       _saving = true;
       _error = null;
     });
+    final fallbackCodes = _selectableCodes(
+      ref.read(enumsProvider('result')).value,
+    );
+    final fallbackCode = fallbackCodes.isEmpty ? '' : fallbackCodes.first;
     try {
-      await widget.onSave(_forms.map((form) => form.toRule()).toList());
+      await widget.onSave(
+        _forms
+            .map((form) => form.toRule(fallbackResultCode: fallbackCode))
+            .toList(),
+      );
     } catch (error) {
       if (!mounted) return;
       final invalidRules =
@@ -2082,6 +2154,8 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final selectableResults = _selectableCodes(resultRecords);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2091,7 +2165,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
           ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildRuleRow(strings, index),
+            _buildRuleRow(strings, index, resultRecords, selectableResults),
             const SizedBox(height: 10),
           ],
           if (_error != null) ...[
@@ -2118,12 +2192,14 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
               PlatformSecondaryButton(
                 label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
-                onPressed: widget.editable
+                onPressed: widget.editable && selectableResults.isNotEmpty
                     ? () => setState(
                         () => _forms.add(
                           _EvidenceRuleForm(
                             EvidenceRule(
-                              resultCode: _resultCodes.first,
+                              resultCode: selectableResults.isEmpty
+                                  ? ''
+                                  : selectableResults.first,
                               minPhotos: 0,
                               minVideos: 0,
                               minNotesChars: 0,
@@ -2146,9 +2222,24 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
     );
   }
 
-  Widget _buildRuleRow(dynamic strings, int index) {
+  Widget _buildRuleRow(
+    dynamic strings,
+    int index,
+    Iterable<ReferenceRecord>? resultRecords,
+    List<String> selectableResults,
+  ) {
     final form = _forms[index];
     final isVideo = form.isVideo;
+    final resultValue = _pickerValue(form.resultCode, selectableResults);
+    final evidenceTypeRecords = ref.watch(enumsProvider('evidence-type')).value;
+    final evidenceTypeOptions = <String>[
+      ..._selectableCodes(evidenceTypeRecords),
+      '',
+    ];
+    if (form.requiredEvidenceType.isNotEmpty &&
+        !evidenceTypeOptions.contains(form.requiredEvidenceType)) {
+      evidenceTypeOptions.add(form.requiredEvidenceType);
+    }
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2167,21 +2258,17 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
                   child: Opacity(
                     opacity: widget.editable ? 1 : 0.6,
                     child: PlatformDropdown<String>(
-                      label: strings.tKey(CommonKeys.tableStatus),
-                      value: form.resultCode,
-                      items: [
-                        for (final code in _resultCodes)
-                          DropdownMenuItem(
-                            value: code,
-                            child: Text(
-                              _resultLabel(
-                                strings,
-                                ref.watch(enumsProvider('result')).value,
-                                code,
-                              ),
-                            ),
-                          ),
-                      ],
+                      key: Key('evidence-rule-result-$index'),
+                      label: strings.tKey(
+                        PlatformAdminKeys.checklistEditorEvidenceResult,
+                      ),
+                      value: resultValue,
+                      items: _codeItems(
+                        strings: strings,
+                        records: resultRecords,
+                        codes: selectableResults,
+                        current: resultValue,
+                      ),
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => form.resultCode = value);
@@ -2249,23 +2336,19 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
+                          key: Key('evidence-rule-type-$index'),
                           label: strings.tKey(
                             PlatformAdminKeys.fieldEvidenceRequiredEvidenceType,
                           ),
-                          value:
-                              _evidenceTypes.contains(form.requiredEvidenceType)
-                              ? form.requiredEvidenceType
-                              : '',
+                          value: form.requiredEvidenceType,
                           items: [
-                            for (final type in _evidenceTypes)
+                            for (final type in evidenceTypeOptions)
                               DropdownMenuItem(
                                 value: type,
                                 child: Text(
                                   _evidenceTypeLabel(
                                     strings,
-                                    ref
-                                        .watch(enumsProvider('evidence-type'))
-                                        .value,
+                                    evidenceTypeRecords,
                                     type,
                                   ),
                                 ),
@@ -2335,9 +2418,7 @@ class _EvidenceRulesSectionState extends ConsumerState<_EvidenceRulesSection> {
 
 class _EvidenceRuleForm {
   _EvidenceRuleForm(EvidenceRule rule)
-    : resultCode = _resultCodes.contains(rule.resultCode)
-          ? rule.resultCode
-          : _resultCodes.first,
+    : resultCode = rule.resultCode,
       requiredEvidenceType = rule.requiredEvidenceType,
       minPhotos = TextEditingController(text: rule.minPhotos.toString()),
       minVideos = TextEditingController(text: rule.minVideos.toString()),
@@ -2368,8 +2449,8 @@ class _EvidenceRuleForm {
   bool get hasInvalidDuration =>
       evidenceDurationsInvalid(minDuration.text, maxDuration.text);
 
-  EvidenceRule toRule() => EvidenceRule(
-    resultCode: resultCode,
+  EvidenceRule toRule({String fallbackResultCode = ''}) => EvidenceRule(
+    resultCode: resultCode.isEmpty ? fallbackResultCode : resultCode,
     minPhotos: int.tryParse(minPhotos.text.trim()) ?? 0,
     minVideos: int.tryParse(minVideos.text.trim()) ?? 0,
     minNotesChars: int.tryParse(minNotes.text.trim()) ?? 0,
@@ -2440,10 +2521,17 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
+    final inputTypes = _selectableCodes(
+      ref.read(enumsProvider(inputTypeEnum)).value,
+    );
+    final fallbackInputType = inputTypes.isEmpty ? '' : inputTypes.first;
     try {
       await widget.onSave([
         for (var index = 0; index < _forms.length; index++)
-          _forms[index].toIssueField(index),
+          _forms[index].toIssueField(
+            index,
+            fallbackInputType: fallbackInputType,
+          ),
       ]);
     } catch (error) {
       if (!mounted) return;
@@ -2456,6 +2544,10 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
+    final inputTypeRecords = ref.watch(enumsProvider(inputTypeEnum)).value;
+    final inputTypes = _selectableCodes(inputTypeRecords);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final selectableResults = _selectableCodes(resultRecords);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2465,7 +2557,14 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
           ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildFieldRow(strings, index),
+            _buildFieldRow(
+              strings,
+              index,
+              inputTypeRecords: inputTypeRecords,
+              inputTypes: inputTypes,
+              resultRecords: resultRecords,
+              selectableResults: selectableResults,
+            ),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -2476,9 +2575,16 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
               PlatformSecondaryButton(
                 label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
-                onPressed: widget.editable
+                onPressed: widget.editable && inputTypes.isNotEmpty
                     ? () => setState(
-                        () => _forms.add(_IssueFieldForm.empty(_forms.length)),
+                        () => _forms.add(
+                          _IssueFieldForm.empty(
+                            _forms.length,
+                            fallbackInputType: inputTypes.isEmpty
+                                ? ''
+                                : inputTypes.first,
+                          ),
+                        ),
                       )
                     : null,
               ),
@@ -2494,7 +2600,14 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
     );
   }
 
-  Widget _buildFieldRow(dynamic strings, int index) {
+  Widget _buildFieldRow(
+    dynamic strings,
+    int index, {
+    required Iterable<ReferenceRecord>? inputTypeRecords,
+    required List<String> inputTypes,
+    required Iterable<ReferenceRecord>? resultRecords,
+    required List<String> selectableResults,
+  }) {
     final form = _forms[index];
     final optionCodes = widget.optionSets
         .map((optionSet) => optionSet.code)
@@ -2566,25 +2679,17 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
+                          key: Key('issue-field-input-type-$index'),
                           label: strings.tKey(
                             PlatformAdminKeys.fieldIssueInputType,
                           ),
-                          value: form.inputType,
-                          items: [
-                            for (final type in _inputTypes)
-                              DropdownMenuItem(
-                                value: type,
-                                child: Text(
-                                  _inputTypeLabel(
-                                    strings,
-                                    ref
-                                        .watch(enumsProvider(inputTypeEnum))
-                                        .value,
-                                    type,
-                                  ),
-                                ),
-                              ),
-                          ],
+                          value: _pickerValue(form.inputType, inputTypes),
+                          items: _codeItems(
+                            strings: strings,
+                            records: inputTypeRecords,
+                            codes: inputTypes,
+                            current: _pickerValue(form.inputType, inputTypes),
+                          ),
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => form.inputType = value);
@@ -2758,13 +2863,12 @@ class _IssueFieldsSectionState extends ConsumerState<_IssueFieldsSection> {
                 spacing: 8,
                 runSpacing: 6,
                 children: [
-                  for (final status in _requiredForStatuses)
+                  for (final status in _requiredStatusChoices(
+                    selectableResults,
+                    form.requiredForStatuses,
+                  ))
                     PlatformFilterChip(
-                      label: _resultLabel(
-                        strings,
-                        ref.watch(enumsProvider('result')).value,
-                        status,
-                      ),
+                      label: _resultLabel(strings, resultRecords, status),
                       selected: form.requiredForStatuses.contains(status),
                       onTap: () => setState(() {
                         if (form.requiredForStatuses.contains(status)) {
@@ -2789,9 +2893,7 @@ class _IssueFieldForm {
     : initialId = field.id,
       fieldCode = TextEditingController(text: field.fieldCode),
       label = TextEditingController(text: field.label),
-      inputType = _inputTypes.contains(field.inputType)
-          ? field.inputType
-          : _inputTypes.first,
+      inputType = field.inputType,
       optionSetCode = field.optionSetCode,
       unitSetCode = field.unitSetCode,
       required = field.required,
@@ -2812,11 +2914,11 @@ class _IssueFieldForm {
       sortOrder = TextEditingController(text: field.sortOrder.toString()),
       allowedValues = List<String>.from(field.allowedValues);
 
-  _IssueFieldForm.empty(int index)
+  _IssueFieldForm.empty(int index, {String fallbackInputType = ''})
     : initialId = null,
       fieldCode = TextEditingController(),
       label = TextEditingController(),
-      inputType = _inputTypes.first,
+      inputType = fallbackInputType,
       optionSetCode = '',
       unitSetCode = '',
       required = false,
@@ -2849,25 +2951,26 @@ class _IssueFieldForm {
   final TextEditingController sortOrder;
   final List<String> allowedValues;
 
-  IssueField toIssueField(int index) => IssueField(
-    id: initialId,
-    fieldCode: fieldCode.text.trim(),
-    label: label.text.trim(),
-    inputType: inputType,
-    optionSetCode: optionSetCode,
-    unitSetCode: unitSetCode,
-    required: required,
-    requiredForStatuses: requiredForStatuses.toList(),
-    minValue: double.tryParse(minValue.text.trim()),
-    maxValue: double.tryParse(maxValue.text.trim()),
-    decimalPlaces: int.tryParse(decimalPlaces.text.trim()) ?? 0,
-    dependsOnFieldCode: dependsOnFieldCode.text.trim(),
-    dependsOnValueCode: dependsOnValueCode.text.trim(),
-    allowMultiple: allowMultiple,
-    allowFreeText: allowFreeText,
-    sortOrder: int.tryParse(sortOrder.text.trim()) ?? index,
-    allowedValues: allowedValues,
-  );
+  IssueField toIssueField(int index, {String fallbackInputType = ''}) =>
+      IssueField(
+        id: initialId,
+        fieldCode: fieldCode.text.trim(),
+        label: label.text.trim(),
+        inputType: inputType.isEmpty ? fallbackInputType : inputType,
+        optionSetCode: optionSetCode,
+        unitSetCode: unitSetCode,
+        required: required,
+        requiredForStatuses: requiredForStatuses.toList(),
+        minValue: double.tryParse(minValue.text.trim()),
+        maxValue: double.tryParse(maxValue.text.trim()),
+        decimalPlaces: int.tryParse(decimalPlaces.text.trim()) ?? 0,
+        dependsOnFieldCode: dependsOnFieldCode.text.trim(),
+        dependsOnValueCode: dependsOnValueCode.text.trim(),
+        allowMultiple: allowMultiple,
+        allowFreeText: allowFreeText,
+        sortOrder: int.tryParse(sortOrder.text.trim()) ?? index,
+        allowedValues: allowedValues,
+      );
 
   void dispose() {
     fieldCode.dispose();
@@ -2933,8 +3036,18 @@ class _MeasurementBandsSectionState
 
   Future<void> _save() async {
     setState(() => _saving = true);
+    final directions = _selectableCodes(
+      ref.read(enumsProvider(measurementDirectionEnum)).value,
+    );
+    final results = _selectableCodes(ref.read(enumsProvider('result')).value);
     try {
-      await widget.onSave(_forms.map((form) => form.toBand()).toList());
+      await widget.onSave([
+        for (final form in _forms)
+          form.toBand(
+            fallbackDirection: directions.isEmpty ? '' : directions.first,
+            fallbackResultCode: results.isEmpty ? '' : results.first,
+          ),
+      ]);
     } catch (error) {
       if (!mounted) return;
       _showSnack(context, _failureMessage(error), isError: true);
@@ -2946,6 +3059,12 @@ class _MeasurementBandsSectionState
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
+    final directionRecords = ref
+        .watch(enumsProvider(measurementDirectionEnum))
+        .value;
+    final directions = _selectableCodes(directionRecords);
+    final resultRecords = ref.watch(enumsProvider('result')).value;
+    final selectableResults = _selectableCodes(resultRecords);
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2955,7 +3074,14 @@ class _MeasurementBandsSectionState
           ),
           const SizedBox(height: 12),
           for (var index = 0; index < _forms.length; index++) ...[
-            _buildBandRow(strings, index),
+            _buildBandRow(
+              strings,
+              index,
+              directionRecords: directionRecords,
+              directions: directions,
+              resultRecords: resultRecords,
+              selectableResults: selectableResults,
+            ),
             const SizedBox(height: 10),
           ],
           Wrap(
@@ -2966,17 +3092,24 @@ class _MeasurementBandsSectionState
               PlatformSecondaryButton(
                 label: strings.tKey(PlatformAdminKeys.buttonItemAdd),
                 icon: Icons.add_rounded,
-                onPressed: widget.editable
+                onPressed:
+                    widget.editable &&
+                        directions.isNotEmpty &&
+                        selectableResults.isNotEmpty
                     ? () => setState(
                         () => _forms.add(
                           _MeasurementBandForm(
                             MeasurementBand(
                               fieldCode: '',
                               unitCode: '',
-                              direction: _directions.first,
+                              direction: directions.isEmpty
+                                  ? ''
+                                  : directions.first,
                               minValue: 0,
                               maxValue: 0,
-                              resultCode: _resultCodes.first,
+                              resultCode: selectableResults.isEmpty
+                                  ? ''
+                                  : selectableResults.first,
                               sortOrder: _forms.length,
                             ),
                           ),
@@ -2996,7 +3129,14 @@ class _MeasurementBandsSectionState
     );
   }
 
-  Widget _buildBandRow(dynamic strings, int index) {
+  Widget _buildBandRow(
+    dynamic strings,
+    int index, {
+    required Iterable<ReferenceRecord>? directionRecords,
+    required List<String> directions,
+    required Iterable<ReferenceRecord>? resultRecords,
+    required List<String> selectableResults,
+  }) {
     final form = _forms[index];
     return Container(
       padding: const EdgeInsets.all(12),
@@ -3057,29 +3197,17 @@ class _MeasurementBandsSectionState
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
+                          key: Key('band-direction-$index'),
                           label: strings.tKey(
                             PlatformAdminKeys.fieldMeasureDirection,
                           ),
-                          value: form.direction,
-                          items: [
-                            for (final direction in _directions)
-                              DropdownMenuItem(
-                                value: direction,
-                                child: Text(
-                                  _directionLabel(
-                                    strings,
-                                    ref
-                                        .watch(
-                                          enumsProvider(
-                                            measurementDirectionEnum,
-                                          ),
-                                        )
-                                        .value,
-                                    direction,
-                                  ),
-                                ),
-                              ),
-                          ],
+                          value: _pickerValue(form.direction, directions),
+                          items: _codeItems(
+                            strings: strings,
+                            records: directionRecords,
+                            codes: directions,
+                            current: _pickerValue(form.direction, directions),
+                          ),
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => form.direction = value);
@@ -3109,21 +3237,21 @@ class _MeasurementBandsSectionState
                       child: Opacity(
                         opacity: widget.editable ? 1 : 0.6,
                         child: PlatformDropdown<String>(
+                          key: Key('band-result-$index'),
                           label: strings.tKey(CommonKeys.tableStatus),
-                          value: form.resultCode,
-                          items: [
-                            for (final code in _resultCodes)
-                              DropdownMenuItem(
-                                value: code,
-                                child: Text(
-                                  _resultLabel(
-                                    strings,
-                                    ref.watch(enumsProvider('result')).value,
-                                    code,
-                                  ),
-                                ),
-                              ),
-                          ],
+                          value: _pickerValue(
+                            form.resultCode,
+                            selectableResults,
+                          ),
+                          items: _codeItems(
+                            strings: strings,
+                            records: resultRecords,
+                            codes: selectableResults,
+                            current: _pickerValue(
+                              form.resultCode,
+                              selectableResults,
+                            ),
+                          ),
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => form.resultCode = value);
@@ -3160,14 +3288,10 @@ class _MeasurementBandForm {
   _MeasurementBandForm(MeasurementBand band)
     : fieldCode = TextEditingController(text: band.fieldCode),
       unitCode = TextEditingController(text: band.unitCode),
-      direction = _directions.contains(band.direction)
-          ? band.direction
-          : _directions.first,
+      direction = band.direction,
       minValue = TextEditingController(text: band.minValue.toString()),
       maxValue = TextEditingController(text: band.maxValue.toString()),
-      resultCode = _resultCodes.contains(band.resultCode)
-          ? band.resultCode
-          : _resultCodes.first,
+      resultCode = band.resultCode,
       label = TextEditingController(text: band.label),
       sortOrder = TextEditingController(text: band.sortOrder.toString());
 
@@ -3180,13 +3304,16 @@ class _MeasurementBandForm {
   final TextEditingController label;
   final TextEditingController sortOrder;
 
-  MeasurementBand toBand() => MeasurementBand(
+  MeasurementBand toBand({
+    String fallbackDirection = '',
+    String fallbackResultCode = '',
+  }) => MeasurementBand(
     fieldCode: fieldCode.text.trim(),
     unitCode: unitCode.text.trim(),
-    direction: direction,
+    direction: direction.isEmpty ? fallbackDirection : direction,
     minValue: double.tryParse(minValue.text.trim()) ?? 0,
     maxValue: double.tryParse(maxValue.text.trim()) ?? 0,
-    resultCode: resultCode,
+    resultCode: resultCode.isEmpty ? fallbackResultCode : resultCode,
     label: label.text.trim(),
     sortOrder: int.tryParse(sortOrder.text.trim()) ?? 0,
   );

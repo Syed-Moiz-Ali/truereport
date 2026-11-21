@@ -11,6 +11,9 @@ public interface LocalizedContentRepository extends JpaRepository<LocalizedConte
 
     List<LocalizedContent> findByEntityTypeAndEntityIdAndLocale(String entityType, UUID entityId, String locale);
 
+    List<LocalizedContent> findByEntityTypeAndLocaleAndFieldKey(
+            String entityType, String locale, String fieldKey);
+
     Optional<LocalizedContent> findByEntityTypeAndEntityIdAndLocaleAndFieldKey(
             String entityType, UUID entityId, String locale, String fieldKey);
 

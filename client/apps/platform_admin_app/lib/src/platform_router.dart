@@ -9,12 +9,13 @@ import 'features/dashboard/dashboard_screen.dart';
 import 'features/documents/document_types_screen.dart';
 import 'features/languages/language_workspace_screen.dart';
 import 'features/languages/languages_screen.dart';
+import 'features/languages/manual_translations_screen.dart';
 import 'features/languages/translation_queue_screen.dart';
+import 'features/localization/translation_review_screen.dart';
 import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
 import 'features/master_library/categories_screen.dart';
 import 'features/master_library/option_sets_screen.dart';
-import 'features/reference/reference_admin_screens.dart';
 import 'features/reference/reference_transitions_screen.dart';
 import 'features/governance/config_health_screen.dart';
 import 'features/settings/platform_settings_screen.dart';
@@ -26,6 +27,22 @@ import 'features/workshops/workshop_form.dart';
 class _AuthRefresh extends ChangeNotifier {
   _AuthRefresh(Ref ref) {
     ref.listen(authControllerProvider, (_, _) => notifyListeners());
+  }
+}
+
+/// Legacy taxonomy routes now point at one merged option-sets screen.
+///
+/// Kept public and pure so the redirect contract is testable without a router.
+String? configurationOptionSetsRedirect(Uri uri) {
+  switch (uri.path) {
+    case '/configuration':
+    case '/configuration/statuses':
+      return '/checklist/option-sets?tab=statuses';
+    case '/configuration/enums':
+    case '/configuration/dropdowns':
+      return '/checklist/option-sets?tab=enums';
+    default:
+      return null;
   }
 }
 
@@ -89,7 +106,8 @@ List<RouteBase> _buildRoutes() {
     ),
     GoRoute(
       path: '/checklist/option-sets',
-      builder: (context, state) => const OptionSetsScreen(),
+      builder: (context, state) =>
+          OptionSetsScreen(initialTab: state.uri.queryParameters['tab']),
     ),
     GoRoute(
       path: '/checklist/health',
@@ -97,23 +115,29 @@ List<RouteBase> _buildRoutes() {
     ),
     GoRoute(
       path: '/configuration',
-      redirect: (_, _) => '/configuration/statuses',
+      redirect: (context, state) => configurationOptionSetsRedirect(state.uri),
     ),
     GoRoute(
       path: '/configuration/statuses',
-      builder: (context, state) => const ReferenceStatusesScreen(),
+      redirect: (context, state) => configurationOptionSetsRedirect(state.uri),
     ),
     GoRoute(
       path: '/configuration/enums',
-      builder: (context, state) => const ReferenceEnumsScreen(),
+      redirect: (context, state) => configurationOptionSetsRedirect(state.uri),
     ),
     GoRoute(
       path: '/configuration/dropdowns',
-      builder: (context, state) => const ReferenceDropdownsScreen(),
+      redirect: (context, state) => configurationOptionSetsRedirect(state.uri),
     ),
     GoRoute(
       path: '/configuration/transitions',
       builder: (context, state) => const ReferenceTransitionsScreen(),
+    ),
+    GoRoute(
+      path: '/configuration/translations',
+      builder: (context, state) => TranslationReviewScreen(
+        initialLanguage: state.uri.queryParameters['lang'],
+      ),
     ),
     GoRoute(path: '/reports', redirect: (_, _) => '/reports/document-types'),
     GoRoute(
@@ -139,6 +163,11 @@ List<RouteBase> _buildRoutes() {
       path: '/settings/languages/:code/translations',
       builder: (context, state) =>
           TranslationQueueScreen(languageCode: state.pathParameters['code']!),
+    ),
+    GoRoute(
+      path: '/settings/languages/:code/manual',
+      builder: (context, state) =>
+          ManualTranslationsScreen(languageCode: state.pathParameters['code']!),
     ),
     GoRoute(
       path: '/audit-log',

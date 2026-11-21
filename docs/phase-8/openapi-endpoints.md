@@ -19,6 +19,15 @@ Generated from `/v3/api-docs` on the running development server. Authentication 
 | GET | `/api/v1/platform/deliveries` |
 | GET | `/api/v1/platform/hierarchy` |
 | POST | `/api/v1/platform/invitations` |
+| GET | `/api/v1/platform/i18n/content/languages` |
+| GET | `/api/v1/platform/i18n/content/units` |
+| GET | `/api/v1/platform/i18n/content/coverage` |
+| GET | `/api/v1/platform/i18n/content/review` |
+| GET | `/api/v1/platform/i18n/content/review/summary` |
+| POST | `/api/v1/platform/i18n/content/backfill` |
+| DELETE | `/api/v1/platform/i18n/content/{entityType}/{entityId}/{field}` |
+| PUT | `/api/v1/platform/i18n/content/{entityType}/{entityId}/{field}` |
+| POST | `/api/v1/platform/i18n/content/{entityType}/{entityId}/{field}/review` |
 | GET | `/api/v1/platform/master/categories` |
 | POST | `/api/v1/platform/master/categories` |
 | PUT | `/api/v1/platform/master/categories/{id}` |

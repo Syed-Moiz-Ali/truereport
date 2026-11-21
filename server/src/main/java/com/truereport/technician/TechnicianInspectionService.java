@@ -125,12 +125,16 @@ public class TechnicianInspectionService {
     private final ObjectStorage storage;
     private final ObjectMapper objectMapper;
     private final boolean allowFileSource;
+    private final com.truereport.shared.i18n.ContentTranslationService contentTranslations;
+    private final com.truereport.shared.i18n.RequestLanguageContext languageContext;
 
     public TechnicianInspectionService(TechnicianStore store, FieldAuditService audit,
                                        OutboxService outbox, IdempotencyService idempotency,
                                        ObjectStorage storage, ObjectMapper objectMapper,
                                        @Value("${truereport.evidence.allow-file-source:true}")
-                                       boolean allowFileSource) {
+                                       boolean allowFileSource,
+                                       com.truereport.shared.i18n.ContentTranslationService contentTranslations,
+                                       com.truereport.shared.i18n.RequestLanguageContext languageContext) {
         this.store = store;
         this.audit = audit;
         this.outbox = outbox;
@@ -138,6 +142,8 @@ public class TechnicianInspectionService {
         this.storage = storage;
         this.objectMapper = objectMapper;
         this.allowFileSource = allowFileSource;
+        this.contentTranslations = contentTranslations;
+        this.languageContext = languageContext;
     }
 
     // ------------------------------------------------------------------ jobs
@@ -183,9 +189,17 @@ public class TechnicianInspectionService {
         }
         String snapshotHash = stored.map(ChecklistRow::snapshotHash).orElse(hash);
         TemplateRow template = store.template(job.templateVersionId()).orElse(null);
+        String lang = languageContext.activeLanguage();
+        Map<String, ItemConfig> configs = new LinkedHashMap<>();
+        for (ItemRow item : items) {
+            configs.put(item.itemCode(), config(item));
+        }
+        ChecklistLocalization localization =
+                checklistLocalization(items, configs, lang);
         List<ChecklistItemDto> checklistItems = new ArrayList<>();
         for (ItemRow item : items) {
-            checklistItems.add(checklistItem(item, assessments.get(item.itemCode())));
+            checklistItems.add(checklistItem(item, assessments.get(item.itemCode()),
+                    configs.get(item.itemCode()), localization));
         }
         int completed = (int) assessments.values().stream()
                 .filter(value -> value.resultCode() != null)
@@ -746,6 +760,10 @@ public class TechnicianInspectionService {
         }
     }
 
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
     private static ApiException notEditable() {
         return new ApiException(HttpStatus.CONFLICT, "JOB_NOT_EDITABLE",
                 "error.job.statusInvalid",
@@ -799,8 +817,77 @@ public class TechnicianInspectionService {
                 .replaceAll("^-+|-+$", "");
     }
 
-    private ChecklistItemDto checklistItem(ItemRow item, AssessmentRow assessment) {
-        ItemConfig config = config(item);
+    private record ChecklistLocalization(boolean active, Map<String, String> itemLabels,
+                                         Map<String, String> itemInstructions,
+                                         Map<String, String> itemStandardSpecs,
+                                         Map<String, String> optionLabels) {
+        String label(String versionId, String fallback) {
+            return active ? itemLabels.getOrDefault(versionId, fallback) : null;
+        }
+
+        String instruction(String versionId, String fallback) {
+            return active ? itemInstructions.getOrDefault(versionId, fallback) : null;
+        }
+
+        String standardSpec(String versionId, String fallback) {
+            return active ? itemStandardSpecs.getOrDefault(versionId, fallback) : null;
+        }
+
+        String optionLabel(String optionId, String fallback) {
+            return active ? optionLabels.getOrDefault(optionId, fallback) : null;
+        }
+    }
+
+    private static final ChecklistLocalization NO_LOCALIZATION =
+            new ChecklistLocalization(false, Map.of(), Map.of(), Map.of(), Map.of());
+
+    private ChecklistLocalization checklistLocalization(List<ItemRow> items,
+                                                        Map<String, ItemConfig> configs,
+                                                        String lang) {
+        if (lang.equals(contentTranslations.defaultLanguage())) {
+            return NO_LOCALIZATION;
+        }
+        Map<String, Map<String, String>> itemEnglish = new LinkedHashMap<>();
+        for (ItemRow item : items) {
+            itemEnglish.put(item.itemVersionId(), Map.of(
+                    "label", safe(item.labelEn()),
+                    "instruction", safe(item.instructionEn()),
+                    "standardSpec", safe(item.standardSpecEn())));
+        }
+        Map<String, Map<String, String>> optionEnglish = new LinkedHashMap<>();
+        for (ItemConfig config : configs.values()) {
+            for (IssueFieldDef field : config.issueFields()) {
+                for (OptionRow option : field.options()) {
+                    optionEnglish.put(option.id(), Map.of("label", safe(option.labelEn())));
+                }
+            }
+        }
+        Map<String, Map<String, String>> localizedItems =
+                contentTranslations.resolveMany("ITEM", itemEnglish, lang);
+        Map<String, Map<String, String>> localizedOptions =
+                contentTranslations.resolveMany("OPTION_VALUE", optionEnglish, lang);
+        return new ChecklistLocalization(true,
+                extract(localizedItems, "label"),
+                extract(localizedItems, "instruction"),
+                extract(localizedItems, "standardSpec"),
+                extract(localizedOptions, "label"));
+    }
+
+    private static Map<String, String> extract(Map<String, Map<String, String>> localized,
+                                               String field) {
+        Map<String, String> result = new LinkedHashMap<>();
+        localized.forEach((id, values) -> {
+            String value = values.get(field);
+            if (value != null) {
+                result.put(id, value);
+            }
+        });
+        return result;
+    }
+
+    private ChecklistItemDto checklistItem(ItemRow item, AssessmentRow assessment,
+                                           ItemConfig config,
+                                           ChecklistLocalization localization) {
         List<String> resultOptions = resultOptions(item.resultOptionsJson());
         List<ScoreBandDto> scoreBands = config.scoreBands().stream()
                 .map(band -> new ScoreBandDto(band.resultCode(), band.minScore(),
@@ -812,7 +899,7 @@ public class TechnicianInspectionService {
                         rule.minVideos(), rule.minNotesChars(), rule.requiredEvidenceType()))
                 .toList();
         List<IssueFieldDto> issueFields = config.issueFields().stream()
-                .map(this::issueFieldDto).toList();
+                .map(field -> issueFieldDto(field, localization)).toList();
         List<MeasurementBandDto> bands = config.measurementBands().stream()
                 .map(band -> new MeasurementBandDto(band.fieldCode(), band.unitCode(),
                         band.direction(), band.minValue(), band.maxValue(), band.resultCode(),
@@ -825,14 +912,19 @@ public class TechnicianInspectionService {
                 item.measurementUnit(), item.sensorTool(), item.safetyCritical(),
                 item.multiPoint(), multiPointIndexes, item.allowFreeTextNote(),
                 item.noteRequirement(), resultOptions, scoreBands, evidenceRules, issueFields,
-                bands, assessment == null ? null : assessmentDtoForItem(item, assessment, config));
+                bands, assessment == null ? null : assessmentDtoForItem(item, assessment, config),
+                localization.label(item.itemVersionId(), item.labelEn()),
+                localization.instruction(item.itemVersionId(), item.instructionEn()),
+                localization.standardSpec(item.itemVersionId(), item.standardSpecEn()));
     }
 
-    private IssueFieldDto issueFieldDto(IssueFieldDef definition) {
+    private IssueFieldDto issueFieldDto(IssueFieldDef definition,
+                                        ChecklistLocalization localization) {
         IssueFieldRow row = definition.row();
         List<OptionDto> options = definition.options().stream()
                 .map(option -> new OptionDto(option.code(), option.labelEn(), option.labelAr(),
-                        option.sortOrder(), option.labelKey()))
+                        option.sortOrder(), option.labelKey(),
+                        localization.optionLabel(option.id(), option.labelEn())))
                 .toList();
         return new IssueFieldDto(row.fieldCode(), row.labelEn(), row.labelAr(), row.inputType(),
                 row.optionSetCode(), options, options.stream().map(OptionDto::code).toList(),
@@ -1378,7 +1470,8 @@ public class TechnicianInspectionService {
             return map;
         }).toList());
         snapshot.put("items", items.stream().map(item -> {
-            ChecklistItemDto schema = checklistItem(item, null);
+            ChecklistItemDto schema = checklistItem(item, null, config(item),
+                    NO_LOCALIZATION);
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("itemCode", schema.itemCode());
             map.put("itemVersionId", schema.itemVersionId());

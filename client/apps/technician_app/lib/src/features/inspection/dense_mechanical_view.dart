@@ -44,11 +44,16 @@ class DenseMechanicalView extends StatefulWidget {
   final String? initialExpandedId;
   final String? focusedItemId;
 
+  // Presentation grouping of the item's served result options into the
+  // segmented primary controls vs. the secondary chips. Labels and
+  // membership of the item's `resultOptions` still come from the API.
+  // gate-allow: codes
   static const _primary = <String>[
     'NO_ISSUE_OBSERVED',
     'ATTENTION_RECOMMENDED',
     'DEFECT_FOUND',
   ];
+  // gate-allow: codes
   static const _secondary = <String>[
     'NOT_CHECKED',
     'COULD_NOT_VERIFY',

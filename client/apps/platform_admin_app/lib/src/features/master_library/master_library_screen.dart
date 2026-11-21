@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/catalog/catalog_ui.dart';
 import '../checklist/checklist_status.dart';
+import '../localization/translation_issue_dialog.dart';
 
 class MasterLibraryScreen extends ConsumerStatefulWidget {
   const MasterLibraryScreen({super.key, this.embedded = false});
@@ -261,8 +263,13 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
       if (!mounted) return;
       _toast(strings.tKey(PlatformAdminKeys.toastItemPublished));
       ref.invalidate(itemsProvider);
-    } catch (_) {
-      if (mounted) _toast(strings.tKey(CommonKeys.stateError), error: true);
+    } catch (error) {
+      if (!mounted) return;
+      if (error is AppFailure && error.code == 'TRANSLATION_REVIEW_REQUIRED') {
+        await showTranslationIssuesDialog(context, error);
+        return;
+      }
+      _toast(strings.tKey(CommonKeys.stateError), error: true);
     } finally {
       if (mounted) setState(() => _acting = false);
     }
@@ -459,7 +466,24 @@ class _Toolbar extends ConsumerWidget {
           hint: strings.tKey(PlatformAdminKeys.checklistBuilderSearchItems),
           onChanged: onSearch,
         );
-        final filters = Wrap(
+        // Item lifecycle filter, not a taxonomy list: platform_items only ever
+        // has these three statuses; labels resolve from the API.
+        // gate-allow: codes
+        final statusFilters = Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final value in const ['', 'PUBLISHED', 'DRAFT', 'RETIRED'])
+              _FilterPill(
+                label: value.isEmpty
+                    ? strings.tKey(CommonKeys.filterAll)
+                    : checklistStatusLabel(ref, value),
+                selected: status == value,
+                onTap: () => onStatus(value),
+              ),
+          ],
+        );
+        final categoryFilters = Wrap(
           spacing: 6,
           runSpacing: 6,
           children: [
@@ -474,27 +498,28 @@ class _Toolbar extends ConsumerWidget {
                 selected: categoryId == category.id,
                 onTap: () => onCategory(category.id),
               ),
-            for (final value in const ['', 'PUBLISHED', 'DRAFT', 'RETIRED'])
-              _FilterPill(
-                label: value.isEmpty
-                    ? strings.tKey(CommonKeys.filterAll)
-                    : checklistStatusLabel(ref, value),
-                selected: status == value,
-                onTap: () => onStatus(value),
-              ),
+          ],
+        );
+        final filterStack = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Unbounded width keeps the pills intrinsic; they stay visible and
+            // only scroll if the viewport is too narrow for all four.
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: statusFilters,
+            ),
+            const SizedBox(height: 6),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: categoryFilters,
+            ),
           ],
         );
         if (narrow) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              search,
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: filters,
-              ),
-            ],
+            children: [search, const SizedBox(height: 8), filterStack],
           );
         }
         return Column(
@@ -508,10 +533,7 @@ class _Toolbar extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: filters,
-            ),
+            filterStack,
           ],
         );
       },

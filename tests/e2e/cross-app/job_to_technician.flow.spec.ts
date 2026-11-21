@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { API, APPS } from '../apps';
 import { apiLogin, emailFor, passwordFor, uiSignIn } from '../auth';
-import { jobRefVisible, reloadAndBoot } from '../flutter';
+import { bootFlutterWeb } from '../flutter';
 import { seedJob } from '../fixtures/jobs';
 
 /**
@@ -33,16 +33,18 @@ test.describe('cross-app — workshop job reaches the technician', () => {
     const apiBody = (await apiJobs.json()) as { items: Array<{ reference: string }> };
     expect(apiBody.items.some((item) => item.reference === job.reference)).toBe(true);
 
-    // Observer app: technician.
+    // Observer app: technician. The queue is day-scoped and paginated, so open
+    // the job directly; the guarantee under test is that a freshly assigned job
+    // is fetchable and renderable, not that it lands on the first queue page.
     await page.goto(`${APPS.technician.baseURL}/signin`);
     await uiSignIn(page, APPS.technician);
 
+    await page.goto(`${APPS.technician.baseURL}/jobs/${job.id}`);
+    await bootFlutterWeb(page);
+    // The detail header shows the plate, not the reference.
     await expect
       .poll(
-        async () => {
-          await reloadAndBoot(page);
-          return await jobRefVisible(page, job.reference);
-        },
+        async () => page.getByText(job.vehiclePlate, { exact: false }).first().isVisible(),
         { timeout: 10_000, intervals: [500, 1000, 2000] },
       )
       .toBe(true);

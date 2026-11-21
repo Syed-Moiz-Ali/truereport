@@ -12,5 +12,6 @@ import java.util.UUID;
 public record CategoryDto(UUID id, String slug, String status, int sortOrder,
                           String name, long itemCount, String code, boolean active,
                           Map<String, Map<String, String>> translations,
-                          String nameEn, String nameAr) {
+                          String nameEn, String nameAr, String description,
+                          String translationStatus) {
 }

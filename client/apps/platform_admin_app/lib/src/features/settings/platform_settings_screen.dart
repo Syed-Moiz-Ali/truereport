@@ -117,6 +117,10 @@ class _PlatformSettingsScreenState
                       width: cardWidth,
                       child: _buildTaxonomyCard(strings),
                     ),
+                    SizedBox(
+                      width: cardWidth,
+                      child: _buildTranslationReviewCard(strings),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -257,6 +261,20 @@ class _PlatformSettingsScreenState
     );
   }
 
+  Widget _buildTranslationReviewCard(UiMessageStrings strings) {
+    return _SettingsHubCard(
+      icon: Icons.translate_rounded,
+      title: strings.tKey(PlatformAdminKeys.settingsTranslationReviewTitle),
+      body: strings.tKey(PlatformAdminKeys.settingsTranslationReviewBody),
+      data: const SizedBox.shrink(),
+      action: PlatformGhostButton(
+        key: const Key('open-translation-review'),
+        label: strings.tKey(PlatformAdminKeys.settingsTranslationReviewAction),
+        onPressed: () => context.go('/configuration/translations'),
+      ),
+    );
+  }
+
   Widget _buildTaxonomyCard(UiMessageStrings strings) {
     return _SettingsHubCard(
       icon: Icons.account_tree_outlined,
@@ -264,9 +282,7 @@ class _PlatformSettingsScreenState
       body: strings.tKey(PlatformAdminKeys.taxonomyPageTitle),
       data: Text(
         <String>[
-          strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
-          strings.tKey(PlatformAdminKeys.taxonomyEnumsTitle),
-          strings.tKey(PlatformAdminKeys.taxonomyDropdownsTitle),
+          strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
           strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
         ].join(' · '),
         style: PtTheme.bodyMuted,
@@ -276,19 +292,9 @@ class _PlatformSettingsScreenState
         runSpacing: 8,
         children: <Widget>[
           PlatformGhostButton(
-            key: const Key('open-reference-statuses'),
-            label: strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
-            onPressed: () => context.go('/configuration/statuses'),
-          ),
-          PlatformGhostButton(
-            key: const Key('open-reference-enums'),
-            label: strings.tKey(PlatformAdminKeys.taxonomyEnumsTitle),
-            onPressed: () => context.go('/configuration/enums'),
-          ),
-          PlatformGhostButton(
-            key: const Key('open-reference-dropdowns'),
-            label: strings.tKey(PlatformAdminKeys.taxonomyDropdownsTitle),
-            onPressed: () => context.go('/configuration/dropdowns'),
+            key: const Key('open-option-sets'),
+            label: strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+            onPressed: () => context.go('/checklist/option-sets'),
           ),
           PlatformGhostButton(
             key: const Key('open-reference-transitions'),

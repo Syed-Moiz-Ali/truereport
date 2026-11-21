@@ -1,7 +1,14 @@
 package com.truereport.reports;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+/**
+ * Stored snapshot contract. Unknown fields are ignored so a published snapshot written by a
+ * newer server still renders after a rollback (the format only ever grows).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record ReportSnapshot(
         String reportNumber,
         int reportVersion,
@@ -23,9 +30,11 @@ public record ReportSnapshot(
         List<NotChecked> notChecked,
         List<String> limitations,
         String disclaimer,
-        String verificationHash
+        String verificationHash,
+        String language
 ) {
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Vehicle(
             String make,
             String model,
@@ -39,6 +48,7 @@ public record ReportSnapshot(
     ) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Inspection(
             String scope,
             Integer templateVersionNo,
@@ -46,12 +56,15 @@ public record ReportSnapshot(
     ) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Workshop(String name, String branch) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Technician(String displayName) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Coverage(
             int total,
             int applicable,
@@ -66,6 +79,7 @@ public record ReportSnapshot(
      * Headline figures computed by the server from the stored snapshot/score.
      * The client never derives these from the detail arrays.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Summary(
             int findingsCount,
             int safetyCriticalCount,
@@ -74,6 +88,7 @@ public record ReportSnapshot(
     ) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Measurement(
             String fieldCode,
             String valueIndex,
@@ -84,12 +99,16 @@ public record ReportSnapshot(
     ) {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record ItemSnapshot(
             String stableCode,
             String labelEn,
             String labelAr,
             String instructionEn,
             String instructionAr,
+            String label,
+            String instruction,
+            String standardSpec,
             String resultCode,
             String severityCode,
             String note,
@@ -105,12 +124,14 @@ public record ReportSnapshot(
         }
     }
 
-    public record Category(String labelEn, String labelAr, List<ItemSnapshot> items) {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Category(String labelEn, String labelAr, String label, List<ItemSnapshot> items) {
         public Category {
             items = items == null ? List.of() : items;
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record NotChecked(String labelEn, String labelAr, String resultCode, String reason) {
     }
 }

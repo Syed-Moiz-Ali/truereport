@@ -3,3 +3,4 @@ export 'src/api_config.dart';
 export 'src/api_endpoints.dart';
 export 'src/problem_details.dart';
 export 'src/request_cancellation.dart';
+export 'src/translation_issue.dart';

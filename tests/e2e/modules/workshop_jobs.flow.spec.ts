@@ -43,8 +43,13 @@ test.describe('workshop admin — job visibility and consent write path', () => 
     await page.getByRole('button', { name: /^Jobs$/ }).first().click({ force: true });
     await page.getByText(job.reference, { exact: false }).first().click({ force: true });
 
-    await expect(page.getByText(/Consent missing/i).first()).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: /Granted/i }).first().click({ force: true });
+    await expect(
+      page.getByText(/Public-link consent is not recorded|Consent missing/i).first(),
+    ).toBeVisible({ timeout: 30_000 });
+    await page
+      .getByRole('button', { name: /Public-link consent|Grant consent/i })
+      .first()
+      .click({ force: true });
 
     await expect
       .poll(

@@ -3,6 +3,7 @@ package com.truereport.localization.api;
 import com.truereport.localization.LanguageReadinessService;
 import com.truereport.localization.LocalizationService;
 import com.truereport.localization.TranslationBacklogService;
+import com.truereport.localization.api.LanguageDtos.CreateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.LanguageBacklogDto;
 import com.truereport.localization.api.LanguageDtos.LanguageCoverageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
@@ -13,10 +14,14 @@ import com.truereport.localization.api.LanguageDtos.UpsertTranslationRequest;
 import com.truereport.shared.security.CurrentUser;
 import com.truereport.shared.security.CurrentUserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,11 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Read-only language registry plus the dynamic content translation queue.
+ * Platform Admin language registry plus the dynamic content translation queue.
  *
- * <p>Static UI languages are added by editing the JSON manifest and
- * restarting; there is intentionally no create, generate, review, approve,
- * publish or status endpoint here.</p>
+ * <p>Manifest languages are seeded at startup. Platform Admin may add a new
+ * language or reactivate a retired one; retiring is soft so translation rows
+ * survive and a later re-create restores the language.</p>
  */
 @RestController
 @RequestMapping("/api/v1/platform/i18n")
@@ -55,6 +60,22 @@ public class PlatformLanguageController {
     @GetMapping("/languages")
     public List<LanguageDto> languages() {
         return localization.allLanguages();
+    }
+
+    @PostMapping("/languages")
+    public ResponseEntity<LanguageDto> createLanguage(
+            @RequestBody(required = false) CreateLanguageRequest request) {
+        LocalizationService.LanguageCreationResult result = localization.createLanguage(
+                request == null ? null : request.code(),
+                request == null ? null : request.nativeName(),
+                request == null ? null : request.direction());
+        return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(result.language());
+    }
+
+    @DeleteMapping("/languages/{code}")
+    public LanguageDto retireLanguage(@PathVariable String code) {
+        return localization.retireLanguage(code);
     }
 
     @GetMapping("/coverage")
@@ -83,5 +104,10 @@ public class PlatformLanguageController {
     @GetMapping("/languages/{code}/readiness")
     public LanguageReadinessDto readiness(@PathVariable String code) {
         return readiness.readiness(code);
+    }
+
+    @PostMapping("/languages/{code}/go-live")
+    public LanguageDto goLive(@PathVariable String code) {
+        return localization.goLive(code);
     }
 }

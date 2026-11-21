@@ -26,7 +26,8 @@ export default defineConfig({
   projects: [
     {
       name: 'platform-admin',
-      testMatch: /modules\/(auth|platform_admin)\.flow\.spec\.ts/,
+      testMatch:
+        /modules\/(auth|platform_admin)\.flow\.spec\.ts|modules\/master_library_visual\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:5301' },
     },
     {

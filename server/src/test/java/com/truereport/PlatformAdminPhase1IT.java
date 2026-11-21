@@ -41,7 +41,7 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
         assertThat(count("platform_categories")).isEqualTo(6);
         assertThat(count("platform_items")).isEqualTo(30);
         assertThat(count("platform_document_types")).isEqualTo(5);
-        assertThat(count("platform_option_sets")).isEqualTo(10);
+        assertThat(count("platform_option_sets")).isEqualTo(32);
         assertThat(count("platform_templates")).isEqualTo(1);
         assertThat(count("platform_template_categories")).isEqualTo(6);
         assertThat(count("platform_template_items")).isEqualTo(30);
@@ -225,7 +225,9 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                 .matches("^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)+$");
 
         List<String> storedKeys = jdbc.queryForList("""
-                SELECT label_key FROM platform_option_values WHERE label_key IS NOT NULL
+                SELECT v.label_key FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE v.label_key IS NOT NULL AND s.code_locked = 0
                 """, String.class);
         assertThat(storedKeys).isNotEmpty();
         assertThat(storedKeys).allMatch(key ->
@@ -235,17 +237,24 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
     @Test
     void optionValueLabelKeyIsGeneratedUnlessProvided() throws Exception {
         Login platform = login("platform@test.local");
-        JsonNode set = postJson(platform, "/api/v1/platform/master/option-sets", """
-                {"code":"LABEL_KEY_SET","name":"Label key set"}
-                """);
-        String setId = set.get("id").asText();
+        postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
+
+        JsonNode sets = getJson(platform, "/api/v1/platform/master/option-sets");
+        JsonNode cause = null;
+        for (JsonNode set : sets) {
+            if ("CAUSE".equals(set.get("code").asText())) {
+                cause = set;
+            }
+        }
+        assertThat(cause).isNotNull();
+        String setId = cause.get("id").asText();
 
         JsonNode generated = postJson(platform,
                 "/api/v1/platform/master/option-sets/" + setId + "/values", """
                         {"code":"WITHOUT_KEY","label":"Without key"}
                         """);
         assertThat(generated.get("labelKey").asText())
-                .isEqualTo("option.labelKeySet.withoutKey");
+                .isEqualTo("option.cause.withoutKey");
 
         JsonNode explicit = postJson(platform,
                 "/api/v1/platform/master/option-sets/" + setId + "/values", """
@@ -259,7 +268,7 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                 "/api/v1/platform/master/option-sets/" + setId + "/values/" + generatedId,
                 "{\"label\":\"Without key renamed\"}");
         assertThat(preserved.get("labelKey").asText())
-                .isEqualTo("option.labelKeySet.withoutKey");
+                .isEqualTo("option.cause.withoutKey");
 
         JsonNode overridden = putJson(platform,
                 "/api/v1/platform/master/option-sets/" + setId + "/values/" + generatedId,
@@ -275,6 +284,84 @@ class PlatformAdminPhase1IT extends IntegrationTestBase {
                                 """))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("LABEL_KEY_INVALID"));
+    }
+
+    @Test
+    void optionSetStructureIsBackendDefinedAndSystemCodesAreLocked() throws Exception {
+        Login platform = login("platform@test.local");
+        postJson(platform, "/api/v1/platform/seed/default-checklist", "{}");
+
+        mockMvc.perform(post("/api/v1/platform/master/option-sets")
+                        .header("Authorization", bearer(platform))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"CLIENT_SET\",\"name\":\"Client set\"}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("OPTION_SET_BACKEND_DEFINED"));
+
+        JsonNode sets = getJson(platform, "/api/v1/platform/master/option-sets");
+        JsonNode jobStatus = null;
+        JsonNode severity = null;
+        JsonNode cause = null;
+        for (JsonNode set : sets) {
+            switch (set.get("code").asText()) {
+                case "JOB_STATUS" -> jobStatus = set;
+                case "SEVERITY" -> severity = set;
+                case "CAUSE" -> cause = set;
+                default -> {
+                }
+            }
+        }
+        assertThat(jobStatus).isNotNull();
+        assertThat(jobStatus.get("setKind").asText()).isEqualTo("STATUS");
+        assertThat(jobStatus.get("domainKey").asText()).isEqualTo("job-status");
+        assertThat(jobStatus.get("codeLocked").asBoolean()).isTrue();
+        assertThat(jobStatus.get("valuesCount").asInt()).isGreaterThan(0);
+
+        assertThat(severity).isNotNull();
+        assertThat(severity.get("setKind").asText()).isEqualTo("CHECKLIST");
+        assertThat(severity.get("domainKey").asText()).isEqualTo("severity");
+        assertThat(severity.get("codeLocked").asBoolean()).isTrue();
+        assertThat(cause).isNotNull();
+        assertThat(cause.get("codeLocked").asBoolean()).isFalse();
+
+        String jobStatusId = jobStatus.get("id").asText();
+        mockMvc.perform(post("/api/v1/platform/master/option-sets/" + jobStatusId + "/retire")
+                        .header("Authorization", bearer(platform)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("OPTION_SET_BACKEND_DEFINED"));
+
+        String severityId = severity.get("id").asText();
+        String minorId = null;
+        for (JsonNode value : severity.get("values")) {
+            if ("MINOR".equals(value.get("code").asText())) {
+                minorId = value.get("id").asText();
+            }
+        }
+        assertThat(minorId).isNotNull();
+
+        mockMvc.perform(post("/api/v1/platform/master/option-sets/" + severityId + "/values")
+                        .header("Authorization", bearer(platform))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"EXTREME\",\"label\":\"Extreme\"}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("OPTION_SET_CODES_LOCKED"));
+
+        mockMvc.perform(post("/api/v1/platform/master/option-sets/" + severityId
+                                + "/values/" + minorId + "/retire")
+                        .header("Authorization", bearer(platform))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("OPTION_SET_CODES_LOCKED"));
+
+        JsonNode edited = putJson(platform, "/api/v1/platform/master/option-sets/"
+                + severityId + "/values/" + minorId, "{\"label\":\"Minor edited\"}");
+        assertThat(edited.get("label").asText()).isEqualTo("Minor edited");
+
+        JsonNode catalogueValue = postJson(platform,
+                "/api/v1/platform/master/option-sets/" + cause.get("id").asText() + "/values",
+                "{\"code\":\"TEST_CAUSE\",\"label\":\"Test cause\"}");
+        assertThat(catalogueValue.get("code").asText()).isEqualTo("TEST_CAUSE");
     }
 
     @Test

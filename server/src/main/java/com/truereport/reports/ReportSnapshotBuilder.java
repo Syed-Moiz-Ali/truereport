@@ -32,11 +32,13 @@ public class ReportSnapshotBuilder {
 
     public ReportSnapshot build(JsonNode finalSnapshot, String snapshotHash) {
         JsonNode root = finalSnapshot;
+        String language = firstNonBlank(text(root, "language"), "en");
         String finalizedAt = text(root, "finalizedAt");
         List<ReportSnapshot.ItemSnapshot> items = new ArrayList<>();
         List<ReportSnapshot.NotChecked> notChecked = new ArrayList<>();
         Map<String, List<ReportSnapshot.ItemSnapshot>> grouped = new LinkedHashMap<>();
         Map<String, String> categoryAr = new LinkedHashMap<>();
+        Map<String, String> categoryLocalized = new LinkedHashMap<>();
         int notApplicable = 0;
         int notCheckedCount = 0;
         int couldNotVerify = 0;
@@ -77,6 +79,9 @@ public class ReportSnapshotBuilder {
             ReportSnapshot.ItemSnapshot item = new ReportSnapshot.ItemSnapshot(
                     text(rules, "stableCode"), labelEn, labelAr,
                     text(rules, "instructionEn"), text(rules, "instructionAr"),
+                    firstNonBlank(text(rules, "label"), labelEn),
+                    firstNonBlank(text(rules, "instruction"), text(rules, "instructionEn")),
+                    firstNonBlank(text(rules, "standardSpec"), text(rules, "standardSpecEn")),
                     result, text(assessment, "severityCode"), sanitize(text(assessment, "note"), root),
                     text(assessment, "noteLanguage"), text(assessment, "reasonCode"),
                     sanitize(text(assessment, "reasonText"), root), List.copyOf(evidenceIds),
@@ -99,12 +104,16 @@ public class ReportSnapshotBuilder {
                     ? text(rules, "categoryLabelAr") : categoryEn;
             grouped.computeIfAbsent(categoryEn, ignored -> new ArrayList<>()).add(item);
             categoryAr.putIfAbsent(categoryEn, categoryLabelAr);
+            categoryLocalized.putIfAbsent(categoryEn,
+                    firstNonBlank(text(rules, "categoryLabel"), categoryEn));
         }
 
         List<ReportSnapshot.Category> categories = new ArrayList<>();
         for (Map.Entry<String, List<ReportSnapshot.ItemSnapshot>> entry : grouped.entrySet()) {
             categories.add(new ReportSnapshot.Category(entry.getKey(),
-                    categoryAr.getOrDefault(entry.getKey(), entry.getKey()), List.copyOf(entry.getValue())));
+                    categoryAr.getOrDefault(entry.getKey(), entry.getKey()),
+                    categoryLocalized.getOrDefault(entry.getKey(), entry.getKey()),
+                    List.copyOf(entry.getValue())));
         }
 
         List<ReportSnapshot.ItemSnapshot> keyFindings = items.stream()
@@ -128,6 +137,10 @@ public class ReportSnapshotBuilder {
         boolean safetyCapApplied = root.path("safetyCapApplied").asBoolean(false);
         String safetyCapReason = textOrNull(root, "safetyCapReason");
 
+        List<String> limitations = "en".equals(language)
+                ? LIMITATIONS : ReportMessages.limitations(language);
+        String disclaimer = "en".equals(language)
+                ? DISCLAIMER_EN : ReportMessages.disclaimer(language);
         return new ReportSnapshot(
                 text(root, "reference").isBlank() ? "REPORT" : text(root, "reference"),
                 1,
@@ -156,10 +169,15 @@ public class ReportSnapshotBuilder {
                 keyFindings,
                 List.copyOf(categories),
                 List.copyOf(notChecked),
-                LIMITATIONS,
-                DISCLAIMER_EN,
-                snapshotHash
+                limitations,
+                disclaimer,
+                snapshotHash,
+                language
         );
+    }
+
+    private static String firstNonBlank(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred;
     }
 
     private int severityRank(String severity) {

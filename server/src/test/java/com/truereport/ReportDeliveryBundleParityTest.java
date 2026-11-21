@@ -103,11 +103,14 @@ class ReportDeliveryBundleParityTest {
     }
 
     @Test
-    void nonEnglishLanguageArgumentsResolveToEnglish() {
-        assertThat(ReportMessages.labels("es"))
-                .containsExactlyInAnyOrderEntriesOf(ReportMessages.labels("en"));
+    void nonEnglishLanguageArgumentsUseTheirCatalogAndFallBack() {
+        assertThat(ReportMessages.labels("es").get("title"))
+                .isEqualTo("Informe de inspección del vehículo");
         assertThat(DeliveryMessages.forEmail("es", "TR-42").body())
-                .isEqualTo(DeliveryMessages.forEmail("en", "TR-42").body());
+                .contains("Su informe de inspección");
+        // A language with no catalog at all falls back to English per key.
+        assertThat(ReportMessages.labels("de"))
+                .containsExactlyInAnyOrderEntriesOf(ReportMessages.labels("en"));
     }
 
     @Test

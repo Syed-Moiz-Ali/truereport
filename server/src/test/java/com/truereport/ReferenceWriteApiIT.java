@@ -14,9 +14,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Write-side contract after the taxonomy merge: codes are backend-owned, while
+ * presentation (label key, tone, icon, order, visibility) stays editable.
+ */
 class ReferenceWriteApiIT extends IntegrationTestBase {
 
     private static final String BASE = "/api/v1/reference";
@@ -25,21 +28,25 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
     JdbcTemplate jdbc;
 
     @Test
-    void draftIsHiddenFromClientsUntilPublishedAndEtagChanges() throws Exception {
+    void draftValueIsHiddenFromClientsUntilPublishedAndEtagChanges() throws Exception {
         Login platform = login("platform@test.local");
         Login workshop = login("admin.a@test.local");
 
-        JsonNode created = write(platform, "post", BASE + "/statuses/job", """
-                {"code":"E2E_DRAFT","labelKey":"statusScheduled","tone":"info",
-                 "icon":"circle","order":99,"selectable":true,
-                 "visibleFor":["platform_admin","workshop_admin","technician"],
-                 "allowedNext":["CANCELLED"]}
-                """, 201);
-        assertThat(created.get("code").asText()).isEqualTo("E2E_DRAFT");
-        assertThat(created.get("status").asText()).isEqualTo("DRAFT");
+        String setId = jdbc.queryForObject(
+                "SELECT id FROM platform_option_sets WHERE code = 'JOB_STATUS'", String.class);
+        jdbc.update("""
+                INSERT INTO platform_option_values
+                    (id, option_set_id, code, label, label_key, status, sort_order,
+                     metadata_json, created_at, updated_at, version)
+                VALUES (?, ?, 'E2E_DRAFT', 'E2E draft', 'statusScheduled', 'DRAFT', 99,
+                        '{"tone":"info","icon":"circle","selectable":true,
+                          "visibleFor":["platform_admin","workshop_admin","technician"],
+                          "allowedNext":["CANCELLED"],"legacyDomain":"job-status"}',
+                        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, UUID.randomUUID().toString(), setId);
 
-        assertThat(codes(read(workshop, BASE + "/statuses/job", 200)
-                .body())).doesNotContain("E2E_DRAFT");
+        assertThat(codes(read(workshop, BASE + "/statuses/job", 200).body()))
+                .doesNotContain("E2E_DRAFT");
         JsonNode draftRows = read(platform, BASE + "/statuses/job?includeDraft=true", 200)
                 .body();
         assertThat(codes(draftRows)).contains("E2E_DRAFT");
@@ -68,49 +75,57 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void enumLifecycleCreatePublishAndUpdate() throws Exception {
+    void codesAreBackendDefinedButPresentationIsEditable() throws Exception {
         Login platform = login("platform@test.local");
         Login technician = login("tech.a@test.local");
 
-        JsonNode created = write(platform, "post", BASE + "/enums/severity", """
+        JsonNode createProblem = write(platform, "post", BASE + "/enums/severity", """
                 {"code":"EXTREME","labelKey":"minor","tone":"danger","icon":"circle",
                  "order":9,"selectable":true,
                  "visibleFor":["platform_admin","workshop_admin","technician"]}
-                """, 201);
-        int createdVersion = created.get("version").asInt();
-        assertThat(codes(read(technician, BASE + "/enums/severity", 200).body()))
-                .doesNotContain("EXTREME");
-        write(platform, "post", BASE + "/enums/severity/EXTREME/publish", "{}", 200);
-        assertThat(codes(read(technician, BASE + "/enums/severity", 200).body()))
-                .contains("EXTREME");
+                """, 422);
+        assertThat(createProblem.get("code").asText())
+                .isEqualTo("REFERENCE_CODES_BACKEND_DEFINED");
 
-        JsonNode updated = write(platform, "put", BASE + "/enums/severity/EXTREME", """
-                {"labelKey":"major","tone":"warning","icon":"alert","order":10,
+        JsonNode updated = write(platform, "put", BASE + "/enums/severity/MINOR", """
+                {"labelKey":"moderate","tone":"warning","icon":"alert","order":10,
                  "selectable":false,"visibleFor":["technician"]}
                 """, 200);
-        assertThat(updated.get("labelKey").asText()).isEqualTo("major");
-        assertThat(updated.get("version").asInt()).isGreaterThan(createdVersion);
-        assertThat(codes(read(login("tech.a@test.local"), BASE + "/enums/severity", 200)
-                .body())).contains("EXTREME");
+        assertThat(updated.get("code").asText()).isEqualTo("MINOR");
+        assertThat(updated.get("labelKey").asText()).isEqualTo("moderate");
+        assertThat(updated.get("tone").asText()).isEqualTo("warning");
+        assertThat(updated.get("icon").asText()).isEqualTo("alert");
+        assertThat(updated.get("order").asInt()).isEqualTo(10);
+        assertThat(updated.get("selectable").asBoolean()).isFalse();
+
+        JsonNode readBack = read(technician, BASE + "/enums/severity", 200).body();
+        assertThat(codes(readBack)).contains("MINOR");
+        for (JsonNode row : readBack) {
+            if ("MINOR".equals(row.get("code").asText())) {
+                assertThat(row.get("labelKey").asText()).isEqualTo("moderate");
+                assertThat(row.get("tone").asText()).isEqualTo("warning");
+                assertThat(row.get("order").asInt()).isEqualTo(10);
+            }
+        }
     }
 
     @Test
-    void unknownLabelKeyAndInvalidVisibleForAre422() throws Exception {
+    void invalidPresentationOnUpdateIs422() throws Exception {
         Login platform = login("platform@test.local");
-        JsonNode unknown = write(platform, "post", BASE + "/statuses/job", """
-                {"code":"BAD_LABEL","labelKey":"not.a.real.key","tone":"info",
+        JsonNode unknown = write(platform, "put", BASE + "/statuses/job/DRAFT", """
+                {"labelKey":"not.a.real.key","tone":"info",
                  "order":1,"visibleFor":["technician"]}
                 """, 422);
         assertThat(unknown.get("code").asText()).isEqualTo("LABEL_KEY_UNKNOWN");
 
-        JsonNode noVisibility = write(platform, "post", BASE + "/statuses/job", """
-                {"code":"BAD_VIS","labelKey":"statusScheduled","tone":"info",
+        JsonNode noVisibility = write(platform, "put", BASE + "/statuses/job/DRAFT", """
+                {"labelKey":"statusScheduled","tone":"info",
                  "order":1,"visibleFor":[]}
                 """, 422);
         assertThat(noVisibility.get("code").asText()).isEqualTo("VISIBLE_FOR_INVALID");
 
-        JsonNode badOrder = write(platform, "post", BASE + "/statuses/job", """
-                {"code":"BAD_ORDER","labelKey":"statusScheduled","tone":"info",
+        JsonNode badOrder = write(platform, "put", BASE + "/statuses/job/DRAFT", """
+                {"labelKey":"statusScheduled","tone":"info",
                  "order":-1,"visibleFor":["technician"]}
                 """, 422);
         assertThat(badOrder.get("code").asText()).isEqualTo("ORDER_INVALID");
@@ -119,11 +134,7 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
     @Test
     void codeIsImmutableOnUpdate() throws Exception {
         Login platform = login("platform@test.local");
-        write(platform, "post", BASE + "/statuses/job", """
-                {"code":"KEEP_CODE","labelKey":"statusScheduled","tone":"info",
-                 "order":50,"visibleFor":["technician"]}
-                """, 201);
-        JsonNode problem = write(platform, "put", BASE + "/statuses/job/KEEP_CODE", """
+        JsonNode problem = write(platform, "put", BASE + "/statuses/job/DRAFT", """
                 {"code":"RENAMED","labelKey":"statusScheduled","tone":"info",
                  "order":50,"visibleFor":["technician"]}
                 """, 422);
@@ -131,7 +142,7 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
     }
 
     @Test
-    void retireInUseIs409AndImpactReportsCounts() throws Exception {
+    void retireIsBackendDefinedButImpactStillReportsCounts() throws Exception {
         Login platform = login("platform@test.local");
 
         String templateId = UUID.randomUUID().toString();
@@ -152,24 +163,9 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
         assertThat(impact.get("templates").asInt()).isGreaterThanOrEqualTo(1);
 
         JsonNode problem = write(platform, "post",
-                BASE + "/statuses/template/PUBLISHED/retire", "{}", 409);
-        assertThat(problem.get("code").asText()).isEqualTo("REFERENCE_IN_USE");
-    }
-
-    @Test
-    void retireUnusedSucceeds() throws Exception {
-        Login platform = login("platform@test.local");
-        write(platform, "post", BASE + "/statuses/job", """
-                {"code":"UNUSED_CODE","labelKey":"statusScheduled","tone":"info",
-                 "order":60,"visibleFor":["platform_admin","technician"]}
-                """, 201);
-        write(platform, "post", BASE + "/statuses/job/UNUSED_CODE/publish", "{}", 200);
-        write(platform, "post", BASE + "/statuses/job/UNUSED_CODE/retire", "{}", 200);
-        JsonNode retiredRows = read(platform, BASE + "/statuses/job?includeDraft=true", 200)
-                .body();
-        assertThat(statusOf(retiredRows, "UNUSED_CODE")).isEqualTo("RETIRED");
-        assertThat(codes(read(platform, BASE + "/statuses/job", 200).body()))
-                .doesNotContain("UNUSED_CODE");
+                BASE + "/statuses/template/PUBLISHED/retire", "{}", 422);
+        assertThat(problem.get("code").asText())
+                .isEqualTo("REFERENCE_CODES_BACKEND_DEFINED");
     }
 
     @Test
@@ -203,6 +199,16 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
                  {"fromCode":"SCHEDULED","toCode":"CANCELLED","role":"WORKSHOP_ADMIN","guard":{}}]
                 """, 200);
         assertThat(transitions.size()).isEqualTo(2);
+
+        // allowedNext in the status payload mirrors the replaced graph.
+        JsonNode draft = null;
+        for (JsonNode row : read(platform, BASE + "/statuses/job", 200).body()) {
+            if ("DRAFT".equals(row.get("code").asText())) {
+                draft = row;
+            }
+        }
+        assertThat(draft).isNotNull();
+        assertThat(strings(draft.get("allowedNext"))).containsExactly("SCHEDULED");
     }
 
     @Test
@@ -267,6 +273,12 @@ class ReferenceWriteApiIT extends IntegrationTestBase {
         List<String> codes = new java.util.ArrayList<>();
         rows.forEach(row -> codes.add(row.get("code").asText()));
         return codes;
+    }
+
+    private static List<String> strings(JsonNode values) {
+        List<String> strings = new java.util.ArrayList<>();
+        values.forEach(value -> strings.add(value.asText()));
+        return strings;
     }
 
     private static String statusOf(JsonNode rows, String code) {

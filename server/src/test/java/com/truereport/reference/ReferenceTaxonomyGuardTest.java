@@ -76,14 +76,49 @@ class ReferenceTaxonomyGuardTest {
         assertCodes(ReferenceTaxonomy.MEASUREMENT_DIRECTION, codes(MeasurementDirection.values()));
 
         // PENDING and FAILED are intentionally reused from document-status.
-        List<String> chip = jdbc.queryForList(
-                "SELECT code FROM reference_domain WHERE domain_key = ?",
-                String.class, ReferenceTaxonomy.PLATFORM_CHIP_STATUS);
+        List<String> chip = jdbc.queryForList("""
+                SELECT v.code FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE s.domain_key = ?
+                """, String.class, ReferenceTaxonomy.PLATFORM_CHIP_STATUS);
         assertThat(chip).containsExactly(PlatformChipStatus.DISABLED.name());
-        List<String> document = jdbc.queryForList(
-                "SELECT code FROM reference_domain WHERE domain_key = ?",
-                String.class, ReferenceTaxonomy.DOCUMENT_STATUS);
+        List<String> document = jdbc.queryForList("""
+                SELECT v.code FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE s.domain_key = ?
+                """, String.class, ReferenceTaxonomy.DOCUMENT_STATUS);
         assertThat(document).contains("PENDING", "FAILED");
+    }
+
+    @Test
+    void referenceDomainsAreBackedByBackendDefinedOptionSets() {
+        for (ReferenceTaxonomy.SetSeed seed : ReferenceTaxonomy.SETS) {
+            assertThat(jdbc.queryForObject("""
+                    SELECT COUNT(*) FROM platform_option_sets
+                    WHERE code = ? AND domain_key = ? AND set_kind = ? AND code_locked = 1
+                    """, Integer.class, seed.code(), seed.domainKey(), seed.kind()))
+                    .as("option set %s", seed.code())
+                    .isEqualTo(1);
+        }
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_option_sets
+                WHERE domain_key IS NOT NULL AND domain_key <> ''
+                """, Integer.class)).isGreaterThanOrEqualTo(ReferenceTaxonomy.SETS.size());
+    }
+
+    @Test
+    void derivedResultStatesAreSeededNonSelectable() {
+        List<String> derived = List.of("NOT_CHECKED", "NOT_APPLICABLE", "COULD_NOT_VERIFY");
+        int checked = 0;
+        for (ReferenceTaxonomy.DomainSeed row : ReferenceTaxonomy.DOMAINS) {
+            if (ReferenceTaxonomy.RESULT.equals(row.domainKey())) {
+                checked++;
+                assertThat(row.selectable())
+                        .as("selectable for RESULT.%s", row.code())
+                        .isEqualTo(!derived.contains(row.code()));
+            }
+        }
+        assertThat(checked).isEqualTo(ResultCode.values().length);
     }
 
     @Test
@@ -115,9 +150,12 @@ class ReferenceTaxonomyGuardTest {
     }
 
     private void assertCodes(String domainKey, List<String> expected) {
-        List<String> actual = jdbc.queryForList(
-                "SELECT code FROM reference_domain WHERE domain_key = ? ORDER BY sort_order, code",
-                String.class, domainKey);
+        List<String> actual = jdbc.queryForList("""
+                SELECT v.code FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE s.domain_key = ?
+                ORDER BY v.sort_order, v.code
+                """, String.class, domainKey);
         assertThat(actual)
                 .as("seeded codes for %s", domainKey)
                 .containsExactlyInAnyOrderElementsOf(expected);

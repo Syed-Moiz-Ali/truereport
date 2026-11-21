@@ -25,6 +25,7 @@ public record ItemVersionDto(
         String labelEn,
         String labelAr,
         String instructionEn,
-        String instructionAr
+        String instructionAr,
+        String translationStatus
 ) {
 }

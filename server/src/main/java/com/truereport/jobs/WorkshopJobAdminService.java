@@ -90,7 +90,6 @@ public class WorkshopJobAdminService {
             "DRAFT", "SCHEDULED", "ASSIGNED", "IN_PROGRESS");
     private static final Set<String> ASSIGNABLE_STATUSES = Set.of(
             "DRAFT", "SCHEDULED", "ASSIGNED", "IN_PROGRESS");
-    private static final Set<String> LANGUAGES = Set.of("en");
     private static final List<String> GRADE_ORDER = List.of("A", "B", "C", "D");
 
     private static final List<String> ACTION_ORDER = List.of(
@@ -131,6 +130,9 @@ public class WorkshopJobAdminService {
     private final PlatformQrService qr;
     private final ObjectMapper objectMapper;
     private final String publicBaseUrl;
+    private final com.truereport.shared.i18n.TranslationReviewGate reviewGate;
+    private final com.truereport.shared.i18n.LanguageCatalog languageCatalog;
+    private final com.truereport.shared.i18n.ContentTranslationService contentTranslations;
 
     public WorkshopJobAdminService(PlatformJobStore store,
                                       WorkshopMembershipRepository memberships,
@@ -145,6 +147,9 @@ public class WorkshopJobAdminService {
                                       PlatformQrService qr,
                                       ReferenceRepository reference,
                                       ObjectMapper objectMapper,
+                                      com.truereport.shared.i18n.TranslationReviewGate reviewGate,
+                                      com.truereport.shared.i18n.LanguageCatalog languageCatalog,
+                                      com.truereport.shared.i18n.ContentTranslationService contentTranslations,
                                       @Value("${truereport.report.public-base-url:http://localhost:8080}")
                                       String publicBaseUrl) {
         this.store = store;
@@ -160,6 +165,9 @@ public class WorkshopJobAdminService {
         this.qr = qr;
         this.reference = reference;
         this.objectMapper = objectMapper;
+        this.reviewGate = reviewGate;
+        this.languageCatalog = languageCatalog;
+        this.contentTranslations = contentTranslations;
         this.publicBaseUrl = publicBaseUrl.endsWith("/")
                 ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
     }
@@ -606,6 +614,16 @@ public class WorkshopJobAdminService {
                     "error.job.consentRequired",
                     "Public-link consent must be granted before publishing");
         }
+        // Reports are English today (PlatformJobDocumentService uses en). The
+        // language gate is wired here so enabling a localized renderer later
+        // automatically enforces reviewed safety-critical copy.
+        String reportLanguage = reportLanguage(job);
+        if (!reportLanguage.equals(languageCatalog.defaultLanguage())) {
+            reviewGate.assertJobPublish(store.reportItems(job.id()).stream()
+                    .map(ReportItemRow::itemVersionId)
+                    .filter(id -> id != null && !id.isBlank())
+                    .toList(), reportLanguage);
+        }
         ReportVersionRow version = store.latestReportVersion(jobId)
                 .orElseThrow(() -> new ApiException(HttpStatus.CONFLICT,
                         "REPORT_VERSION_MISSING", "error.job.publishState",
@@ -636,6 +654,12 @@ public class WorkshopJobAdminService {
         PublicLinkDto dto = linkDto(job, store.activeLink(jobId).orElseThrow(), true);
         storeIdempotent(actorId, endpoint, idempotencyKey, 200, dto);
         return dto;
+    }
+
+    private String reportLanguage(JobRow job) {
+        String preferred = languageCatalog.normalize(job.preferredLanguage());
+        return languageCatalog.isSupported(preferred)
+                ? preferred : languageCatalog.defaultLanguage();
     }
 
     @Transactional
@@ -883,7 +907,7 @@ public class WorkshopJobAdminService {
         required(issues, "transmission", transmission);
         required(issues, "fuelType", fuel);
         String language = normalizeLanguage(preferredLanguage);
-        if (!LANGUAGES.contains(language)) {
+        if (!languageCatalog.isSupported(language)) {
             issues.add(field("preferredLanguage", "LANGUAGE_INVALID"));
         }
         return issues;
@@ -1166,6 +1190,7 @@ public class WorkshopJobAdminService {
      * contact fields are not written.
      */
     private String snapshot(JobRow job, Evaluation evaluation, ScoreResult score) {
+        String language = reportLanguage(job);
         List<ReportItemRow> rows = store.reportItems(job.id());
         Map<String, List<ReportItemRow>> grouped = new LinkedHashMap<>();
         for (ReportItemRow row : rows) {
@@ -1179,7 +1204,13 @@ public class WorkshopJobAdminService {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("stableCode", row.itemCode());
                 item.put("labelEn", row.labelEn());
+                item.put("label", contentTranslations.resolve("ITEM", row.itemVersionId(),
+                        "label", language, row.labelEn()));
                 item.put("instructionEn", row.instructionEn());
+                item.put("instruction", contentTranslations.resolve("ITEM", row.itemVersionId(),
+                        "instruction", language, row.instructionEn()));
+                item.put("standardSpec", contentTranslations.resolve("ITEM",
+                        row.itemVersionId(), "standardSpec", language, row.standardSpecEn()));
                 item.put("resultCode", row.resultCode());
                 item.put("severityCode", row.severityCode());
                 item.put("note", row.notesEn() == null ? "" : row.notesEn());
@@ -1206,6 +1237,9 @@ public class WorkshopJobAdminService {
             }
             Map<String, Object> category = new LinkedHashMap<>();
             category.put("labelEn", entry.getKey());
+            ReportItemRow first = entry.getValue().get(0);
+            category.put("label", contentTranslations.resolve("CATEGORY", first.categoryId(),
+                    "name", language, entry.getKey()));
             category.put("items", items);
             categories.add(category);
         }
@@ -1282,6 +1316,7 @@ public class WorkshopJobAdminService {
         snapshot.put("disclaimer", "");
         snapshot.put("verificationHash",
                 sha256(job.id() + "|" + job.reference() + "|" + score.score()));
+        snapshot.put("language", language);
         return json(snapshot);
     }
 
@@ -1423,8 +1458,9 @@ public class WorkshopJobAdminService {
         }
     }
 
-    private static String normalizeLanguage(String value) {
-        return isBlank(value) ? "en" : value.trim().toLowerCase(Locale.ROOT);
+    private String normalizeLanguage(String value) {
+        return isBlank(value) ? languageCatalog.defaultLanguage()
+                : languageCatalog.normalize(value);
     }
 
     private static String str(LocalDateTime value) {

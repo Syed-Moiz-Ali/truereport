@@ -1291,5 +1291,12 @@
   "unitNM": "Nm",
   "unitBAR": "bar",
   "unitKM": "km",
-  "unitDegC": "C"
+  "unitDegC": "C",
+  "translationReviewRequiredTitle": "Translation review required",
+  "translationReviewRequiredBody": "These safety-critical translations must be reviewed in the Platform Admin console before this can be published.",
+  "translationIssueEntity": "Entity",
+  "translationIssueField": "Field",
+  "translationIssueLanguage": "Language",
+  "translationIssueReason": "Reason",
+  "translationIssueMore": "and {count} more"
 }

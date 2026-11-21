@@ -6,6 +6,7 @@
   "scripts": {
     "gate:literals": "node tools/gate_no_literals.js",
     "gate:taxonomy": "node tools/gate_no_status_switch.js",
+    "gate:code-arrays": "node tools/gate_no_code_arrays.js",
     "gate": "node tools/gate_all.js",
     "e2e:list": "playwright test --list",
     "e2e": "playwright test",

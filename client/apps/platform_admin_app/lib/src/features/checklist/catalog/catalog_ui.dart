@@ -348,6 +348,7 @@ class CatalogField extends StatelessWidget {
     this.hint,
     this.keyboardType,
     this.helper,
+    this.enabled = true,
   });
 
   final TextEditingController controller;
@@ -356,6 +357,7 @@ class CatalogField extends StatelessWidget {
   final String? hint;
   final TextInputType? keyboardType;
   final String? helper;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -368,6 +370,7 @@ class CatalogField extends StatelessWidget {
         controller: controller,
         validator: validator,
         keyboardType: keyboardType,
+        enabled: enabled,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         style: Catalog.text(12.5),
         decoration: InputDecoration(
@@ -377,7 +380,7 @@ class CatalogField extends StatelessWidget {
           helperText: helper,
           helperStyle: Catalog.text(10.5, color: PtTheme.muted),
           filled: true,
-          fillColor: PtTheme.white,
+          fillColor: enabled ? PtTheme.white : PtTheme.canvas,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 13,

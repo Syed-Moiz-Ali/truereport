@@ -46,7 +46,8 @@ public final class TechnicianDtos {
     }
 
     public record OptionDto(
-            String code, String labelEn, String labelAr, int sortOrder, String labelKey) {
+            String code, String labelEn, String labelAr, int sortOrder, String labelKey,
+            String label) {
     }
 
     public record IssueFieldDto(
@@ -97,7 +98,8 @@ public final class TechnicianDtos {
             List<String> multiPointIndexes, boolean allowFreeTextNote, String noteRequirement,
             List<String> resultOptions, List<ScoreBandDto> scoreBands,
             List<EvidenceRuleDto> evidenceRules, List<IssueFieldDto> issueFields,
-            List<MeasurementBandDto> measurementBands, AssessmentDto assessment) {
+            List<MeasurementBandDto> measurementBands, AssessmentDto assessment,
+            String label, String instruction, String standardSpec) {
     }
 
     public record ProgressDto(int completed, int total) {

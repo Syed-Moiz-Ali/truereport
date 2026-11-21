@@ -28,27 +28,33 @@ public class OptionSetRepository {
 
     public List<OptionSetDto> findAll() {
         return jdbc.query("""
-                SELECT id, code, name, status, sort_order
+                SELECT id, code, name, status, sort_order, set_kind, domain_key, code_locked
                 FROM platform_option_sets ORDER BY sort_order, code
                 """, (rs, i) -> optionSet(rs.getString("id"), rs.getString("code"),
-                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order")));
+                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order"),
+                rs.getString("set_kind"), rs.getString("domain_key"),
+                rs.getBoolean("code_locked")));
     }
 
     public Optional<OptionSetDto> findById(String id) {
         return jdbc.query("""
-                SELECT id, code, name, status, sort_order
+                SELECT id, code, name, status, sort_order, set_kind, domain_key, code_locked
                 FROM platform_option_sets WHERE id = ?
                 """, (rs, i) -> optionSet(rs.getString("id"), rs.getString("code"),
-                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order")), id)
+                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order"),
+                rs.getString("set_kind"), rs.getString("domain_key"),
+                rs.getBoolean("code_locked")), id)
                 .stream().findFirst();
     }
 
     public Optional<OptionSetDto> findByCode(String code) {
         return jdbc.query("""
-                SELECT id, code, name, status, sort_order
+                SELECT id, code, name, status, sort_order, set_kind, domain_key, code_locked
                 FROM platform_option_sets WHERE code = ?
                 """, (rs, i) -> optionSet(rs.getString("id"), rs.getString("code"),
-                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order")), code)
+                rs.getString("name"), rs.getString("status"), rs.getInt("sort_order"),
+                rs.getString("set_kind"), rs.getString("domain_key"),
+                rs.getBoolean("code_locked")), code)
                 .stream().findFirst();
     }
 
@@ -232,13 +238,17 @@ public class OptionSetRepository {
         return count == null ? 0 : count;
     }
 
-    private OptionSetDto optionSet(String id, String code, String name, String status, int sortOrder) {
+    private OptionSetDto optionSet(String id, String code, String name, String status,
+                                   int sortOrder, String setKind, String domainKey,
+                                   boolean codeLocked) {
         Map<String, Map<String, String>> fieldTranslations =
                 translations.view("OPTION_SET", id, Map.of("name", name == null ? "" : name));
         String nameAr = translations.resolve("OPTION_SET", id, "name", "ar",
                 name == null ? "" : name);
-        return new OptionSetDto(id, code, name, status, sortOrder, values(id),
-                fieldTranslations, name, nameAr);
+        List<OptionValueDto> values = values(id);
+        return new OptionSetDto(id, code, name, status, sortOrder,
+                setKind == null ? "CHECKLIST" : setKind, domainKey, codeLocked,
+                values.size(), values, fieldTranslations, name, nameAr);
     }
 
     private OptionValueDto optionValue(String id, String code, String label, String status,

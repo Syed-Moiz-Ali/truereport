@@ -1,7 +1,8 @@
 package com.truereport.uimessages;
 
-import com.truereport.uimessages.PlatformUiMessageCatalog.StaticLanguage;
-import com.truereport.uimessages.PlatformUiMessageCatalog.StaticManifest;
+import com.truereport.shared.i18n.LanguageCatalog;
+import com.truereport.uimessages.PlatformUiMessageCatalog.Language;
+import com.truereport.uimessages.PlatformUiMessageCatalog.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -14,14 +15,16 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Mirrors the languages advertised for Platform Admin into {@code platform_languages}.
+ * Seeds {@code platform_languages} from the manifest registry and registers
+ * every active LIVE database row in {@link LanguageCatalog}.
  *
- * <p>The database registry backs dynamic content translations, readiness and
- * user preferences. Every language registered in {@code i18n/languages.json}
- * with a {@code i18n/platform_admin/<code>.json} file is inserted if missing and
- * refreshed if present. Shared rows for other apps are retained even when they
- * are not advertised for Platform Admin. Platform Admin never edits the registry
- * directly.</p>
+ * <p>The registry ({@code i18n/languages.json}) is the source of truth for the
+ * DB language set. Every declared code is inserted if missing and refreshed if
+ * present, even when it has no Platform Admin UI catalog; the UI manifest is
+ * intentionally narrower and stays English-only. Rows added at runtime are not
+ * in the registry and are never modified here: LIVE ones stay live, RETIRED ones
+ * stay retired. After the sync all active LIVE codes are registered so admin
+ * additions survive a restart.</p>
  */
 @Service
 public class StaticLanguageSync {
@@ -30,27 +33,32 @@ public class StaticLanguageSync {
 
     private final JdbcTemplate jdbc;
     private final PlatformUiMessageCatalog catalog;
+    private final LanguageCatalog languageCatalog;
 
-    public StaticLanguageSync(JdbcTemplate jdbc, PlatformUiMessageCatalog catalog) {
+    public StaticLanguageSync(JdbcTemplate jdbc, PlatformUiMessageCatalog catalog,
+                              LanguageCatalog languageCatalog) {
         this.jdbc = jdbc;
         this.catalog = catalog;
+        this.languageCatalog = languageCatalog;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void sync() {
-        StaticManifest manifest = catalog.manifest();
+        Registry registry = catalog.registry();
         List<String> codes = new ArrayList<>();
         int sortOrder = 1;
-        for (StaticLanguage language : manifest.languages()) {
-            String code = language.code().trim().toLowerCase(Locale.ROOT);
-            if (codes.contains(code)) {
+        for (Language language : registry.languages()) {
+            String code = language.code() == null
+                    ? "" : language.code().trim().toLowerCase(Locale.ROOT);
+            if (code.isBlank() || codes.contains(code)) {
                 continue;
             }
             codes.add(code);
-            upsert(language, sortOrder++);
+            upsert(code, language.name(), language.nativeName(), language.direction(),
+                    sortOrder++);
         }
-        String defaultCode = manifest.defaultLanguage() == null
-                ? "en" : manifest.defaultLanguage().trim().toLowerCase(Locale.ROOT);
+        String defaultCode = registry.defaultLanguage() == null
+                ? "en" : registry.defaultLanguage().trim().toLowerCase(Locale.ROOT);
         jdbc.update("UPDATE platform_languages SET is_default = FALSE WHERE code <> ?",
                 defaultCode);
         jdbc.update("""
@@ -58,21 +66,33 @@ public class StaticLanguageSync {
                 SET is_default = TRUE, updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE code = ?
                 """, defaultCode);
-        log.info("Synchronized static UI languages from manifest: {}", codes);
+        log.info("Synchronized UI language registry into platform_languages: {}", codes);
+        List<String> liveCodes = jdbc.queryForList("""
+                SELECT code FROM platform_languages
+                WHERE active = TRUE AND status = 'LIVE'
+                ORDER BY sort_order, code
+                """, String.class);
+        languageCatalog.registerAll(liveCodes);
+        log.info("Registered active LIVE languages: {}", liveCodes);
     }
 
-    private void upsert(StaticLanguage language, int sortOrder) {
-        String code = language.code().trim().toLowerCase(Locale.ROOT);
-        String nativeName = language.nativeName() == null || language.nativeName().isBlank()
-                ? language.name() : language.nativeName().trim();
-        String direction = "rtl".equalsIgnoreCase(language.direction()) ? "rtl" : "ltr";
+    private void upsert(String code, String name, String nativeName, String direction,
+                        int sortOrder) {
+        String resolvedName = nativeName;
+        if (resolvedName == null || resolvedName.isBlank()) {
+            resolvedName = name;
+        }
+        if (resolvedName == null || resolvedName.isBlank()) {
+            resolvedName = code;
+        }
+        String resolvedDirection = "rtl".equalsIgnoreCase(direction) ? "rtl" : "ltr";
         int updated = jdbc.update("""
                 UPDATE platform_languages
                 SET native_name = ?, direction = ?, active = TRUE, sort_order = ?,
                     status = 'LIVE', updated_at = CURRENT_TIMESTAMP,
                     version = version + 1
                 WHERE code = ?
-                """, nativeName, direction, sortOrder, code);
+                """, resolvedName.trim(), resolvedDirection, sortOrder, code);
         if (updated == 0) {
             jdbc.update("""
                     INSERT INTO platform_languages
@@ -80,7 +100,7 @@ public class StaticLanguageSync {
                          status, created_at, updated_at, version)
                     VALUES (?, ?, ?, TRUE, FALSE, ?, 'LIVE',
                             CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                    """, code, nativeName, direction, sortOrder);
+                    """, code, resolvedName.trim(), resolvedDirection, sortOrder);
         }
     }
 

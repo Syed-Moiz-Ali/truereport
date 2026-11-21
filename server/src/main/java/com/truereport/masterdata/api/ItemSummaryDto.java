@@ -28,6 +28,7 @@ public record ItemSummaryDto(
         String labelEn,
         String labelAr,
         String standardSpecEn,
-        String standardSpecAr
+        String standardSpecAr,
+        String translationStatus
 ) {
 }

@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 
 /// A compact single-choice group built from workshop filter chips.
 ///
-/// The wizard's odometer unit, transmission, fuel and language values are
-/// client conventions with no server enum and no ARB label, so they are
-/// humanized here instead of printing raw upper-case codes. A change request
-/// for first-class labels is recorded in `docs/change_requests.md` (CR-9).
+/// The wizard's odometer unit, transmission and fuel values are client
+/// conventions with no server enum and no ARB label, so they are humanized here
+/// instead of printing raw upper-case codes. The preferred-language values are
+/// backend codes and pass their manifest display names through [labelFor].
+/// A change request for first-class labels is recorded in
+/// `docs/change_requests.md` (CR-9).
 class WizardChoiceGroup extends StatelessWidget {
   const WizardChoiceGroup({
     required this.label,

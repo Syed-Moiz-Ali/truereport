@@ -33,7 +33,7 @@ class FlywayMigrationTest {
                 .load();
         latest.migrate();
 
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("128");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("135");
         assertThat(tableExists(url, "audit_events")).isTrue();
         assertThat(tableExists(url, "invitations")).isTrue();
         assertThat(tableExists(url, "account_idempotency_keys")).isTrue();
@@ -58,9 +58,16 @@ class FlywayMigrationTest {
         assertThat(tableExists(url, "platform_job_assignments")).isTrue();
         assertThat(tableExists(url, "platform_job_results")).isTrue();
         assertThat(tableExists(url, "platform_job_approvals")).isTrue();
-        assertThat(tableExists(url, "reference_domain")).isTrue();
+        assertThat(tableExists(url, "reference_domain")).isFalse();
         assertThat(tableExists(url, "status_transition")).isTrue();
+        assertThat(columnExists(url, "platform_option_sets", "set_kind")).isTrue();
+        assertThat(columnExists(url, "platform_option_sets", "domain_key")).isTrue();
+        assertThat(columnExists(url, "platform_option_sets", "code_locked")).isTrue();
         assertThat(tableExists(url, "platform_public_links")).isTrue();
+        assertThat(tableExists(url, "content_translation")).isTrue();
+        assertThat(tableExists(url, "translatable_field")).isTrue();
+        assertThat(tableExists(url, "translation_glossary")).isTrue();
+        assertThat(columnExists(url, "content_translation", "review_note")).isTrue();
         assertThat(tableExists(url, "platform_report_documents")).isTrue();
         assertThat(tableExists(url, "platform_notifications")).isTrue();
         assertThat(tableExists(url, "platform_job_checklists")).isTrue();

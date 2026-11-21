@@ -158,6 +158,8 @@ public class PublicReportService {
                     new Resolved(PublicShareLink.cleanActive(row.pdfDownloadEnabled()), null,
                             version, page, row.customerName()));
         } catch (Exception exception) {
+            log.warn("Clean public report resolution failed for token {}: {}",
+                    token, exception.getMessage(), exception);
             return Resolution.unavailable();
         }
     }

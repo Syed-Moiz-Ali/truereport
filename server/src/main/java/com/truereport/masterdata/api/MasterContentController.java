@@ -36,8 +36,8 @@ public class MasterContentController {
     }
 
     @GetMapping("/categories")
-    public List<CategoryDto> categories() {
-        return service.listCategories();
+    public List<CategoryDto> categories(@RequestParam(required = false) String lang) {
+        return service.listCategories(lang);
     }
 
     @PostMapping("/categories")
@@ -62,13 +62,15 @@ public class MasterContentController {
     @GetMapping("/items")
     public List<ItemSummaryDto> items(@RequestParam(required = false) String search,
                                       @RequestParam(required = false) UUID categoryId,
-                                      @RequestParam(required = false) String status) {
-        return service.listItems(search, categoryId, status);
+                                      @RequestParam(required = false) String status,
+                                      @RequestParam(required = false) String lang) {
+        return service.listItems(search, categoryId, status, lang);
     }
 
     @GetMapping("/items/{id}")
-    public ItemDetailDto item(@PathVariable UUID id) {
-        return service.itemDetail(id);
+    public ItemDetailDto item(@PathVariable UUID id,
+                              @RequestParam(required = false) String lang) {
+        return service.itemDetail(id, lang);
     }
 
     @PostMapping("/items")
@@ -79,8 +81,9 @@ public class MasterContentController {
     }
 
     @GetMapping("/items/{id}/versions")
-    public List<ItemVersionDto> versions(@PathVariable UUID id) {
-        return service.listVersions(id);
+    public List<ItemVersionDto> versions(@PathVariable UUID id,
+                                         @RequestParam(required = false) String lang) {
+        return service.listVersions(id, lang);
     }
 
     @PostMapping("/items/{id}/versions")

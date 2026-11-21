@@ -7,6 +7,7 @@ import 'package:l10n/l10n.dart';
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_context_bar.dart';
+import '../../components/platform_dialogs.dart';
 import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
@@ -15,6 +16,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
 import '../../reference_status_lookup.dart';
+import 'language_failures.dart';
 
 import 'package:reference_data/reference_data.dart';
 
@@ -63,6 +65,7 @@ class _LanguageWorkspaceScreenState
     extends ConsumerState<LanguageWorkspaceScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  bool _retiring = false;
 
   String get _code => widget.languageCode;
 
@@ -91,6 +94,44 @@ class _LanguageWorkspaceScreenState
     _tabController.animateTo(index);
   }
 
+  Future<void> _retire() async {
+    if (_retiring) return;
+    final strings = ref.read(uiStringsProvider);
+    final confirmed = await showPlatformConfirmDialog(
+      context: context,
+      title: strings.tKey(PlatformAdminKeys.languagesRetireTitle),
+      body: strings.tKey(PlatformAdminKeys.languagesRetireBody),
+      confirmLabel: strings.tKey(PlatformAdminKeys.languagesRetireConfirm),
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _retiring = true);
+    try {
+      await ref.read(platformConfigActionsProvider).retireLanguage(_code);
+      if (!mounted) return;
+      context.go('/settings/languages');
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          backgroundColor: PtTheme.deepGreen,
+          content: Text(strings.tKey(PlatformAdminKeys.languagesRetireToast)),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          backgroundColor: PtTheme.rose,
+          content: Text(languageRetireErrorText(strings, error)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _retiring = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
@@ -115,7 +156,12 @@ class _LanguageWorkspaceScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _WorkspaceHeader(code: _code, readiness: readiness.asData?.value),
+            _WorkspaceHeader(
+              code: _code,
+              readiness: readiness.asData?.value,
+              retiring: _retiring,
+              onRetire: _retire,
+            ),
             const SizedBox(height: 12),
             PlatformSectionCard(
               padding: EdgeInsets.zero,
@@ -223,15 +269,42 @@ class _LanguageWorkspaceScreenState
   }
 }
 
-class _WorkspaceHeader extends StatelessWidget {
-  const _WorkspaceHeader({required this.code, required this.readiness});
+class _WorkspaceHeader extends ConsumerWidget {
+  const _WorkspaceHeader({
+    required this.code,
+    required this.readiness,
+    required this.retiring,
+    required this.onRetire,
+  });
 
   final String code;
   final LanguageReadiness? readiness;
+  final bool retiring;
+  final VoidCallback onRetire;
 
   @override
-  Widget build(BuildContext context) {
-    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    // The registry is the authority for "is default"; readiness is the
+    // fallback when the registry has not loaded yet.
+    final registry = ref.watch(platformLanguagesProvider).asData?.value;
+    PlatformLanguage? registryLanguage;
+    for (final language in registry ?? const <PlatformLanguage>[]) {
+      if (language.code == code) {
+        registryLanguage = language;
+        break;
+      }
+    }
+    final isDefault =
+        registryLanguage?.isDefault ?? readiness?.isDefault ?? false;
+    final statusLabel = readiness == null
+        ? null
+        : referenceCodeLabel(
+            strings,
+            ref.watch(statusesProvider(translationStatusDomain)).value,
+            readiness!.status,
+          );
+
     return PlatformSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -263,7 +336,10 @@ class _WorkspaceHeader extends StatelessWidget {
                   label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
                   value: readiness!.direction,
                 ),
-                PlatformStatusChip(status: readiness!.status),
+                PlatformStatusChip(
+                  status: readiness!.status,
+                  label: statusLabel,
+                ),
                 PlatformMetaPill(
                   label: strings.tKey(
                     PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage,
@@ -279,6 +355,23 @@ class _WorkspaceHeader extends StatelessWidget {
                       '${readiness!.contentApproved}/${readiness!.contentTotal}',
                 ),
               ],
+              PlatformSecondaryButton(
+                key: const Key('btn-manual-translations'),
+                label: strings.tKey(
+                  PlatformAdminKeys.manualTranslationsButtonOpen,
+                ),
+                icon: Icons.edit_note_rounded,
+                onPressed: () => context.go('/settings/languages/$code/manual'),
+              ),
+              if (!isDefault)
+                PlatformSecondaryButton(
+                  key: const Key('btn-retire-language'),
+                  label: strings.tKey(PlatformAdminKeys.languagesRetireAction),
+                  icon: Icons.archive_outlined,
+                  destructive: true,
+                  isLoading: retiring,
+                  onPressed: onRetire,
+                ),
             ],
           ),
           const SizedBox(height: 6),

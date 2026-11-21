@@ -132,13 +132,10 @@ class WizardTechnicianStep extends ConsumerWidget {
           },
         ),
         SizedBox(height: spacing.md),
-        WizardChoiceGroup(
+        _PreferredLanguageChoice(
           label: t(WorkshopAdminKeys.jobsFieldPreferredLanguage),
-          values: const ['en'],
           selected: preferredLanguage,
           onChanged: onPreferredLanguage,
-          keyPrefix: 'jobs-wizard-language',
-          labelFor: (value) => t(WorkshopAdminKeys.languageEnglish),
         ),
         SizedBox(height: spacing.lg),
         Text(
@@ -159,6 +156,50 @@ class WizardTechnicianStep extends ConsumerWidget {
           leading: const Icon(Icons.verified_user_outlined),
         ),
       ],
+    );
+  }
+}
+
+/// The customer's report language, taken from the languages the backend
+/// advertises for this client. Each chip shows the manifest `nativeName`; the
+/// operator's current UI language is the default (see `WizardFormState`).
+class _PreferredLanguageChoice extends ConsumerWidget {
+  const _PreferredLanguageChoice({
+    required this.label,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String selected;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selection = ref.watch(
+      languageSelectionProvider(adminUiMessageClient),
+    );
+    final languages =
+        selection.manifest?.languages ?? const <UiMessageLanguage>[];
+    final codes = languages.isEmpty
+        ? <String>[selected]
+        : languages.map((language) => language.code).toList(growable: false);
+    String labelFor(String code) {
+      for (final language in languages) {
+        if (language.code == code && language.displayName.isNotEmpty) {
+          return language.displayName;
+        }
+      }
+      return code.toUpperCase();
+    }
+
+    return WizardChoiceGroup(
+      label: label,
+      values: codes,
+      selected: selected,
+      onChanged: onChanged,
+      keyPrefix: 'jobs-wizard-language',
+      labelFor: labelFor,
     );
   }
 }

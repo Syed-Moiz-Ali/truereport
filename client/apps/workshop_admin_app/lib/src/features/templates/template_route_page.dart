@@ -1,9 +1,11 @@
 import 'package:design_system/design_system.dart';
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:workshop_admin_app/src/admin_api.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
+import 'package:workshop_admin_app/src/shared/translation_issue_dialog.dart';
 import 'package:workshop_admin_app/src/features/templates/template_catalog_panel.dart';
 import 'package:workshop_admin_app/src/features/templates/template_details_step.dart';
 import 'package:workshop_admin_app/src/features/templates/template_publish_step.dart';
@@ -383,10 +385,13 @@ class _TemplateBuilderPageState extends ConsumerState<TemplateBuilderPage> {
       if (mounted) {
         _notify(t(WorkshopAdminKeys.templatePublished));
       }
-    } on Object {
-      if (mounted) {
-        _notify(t(WorkshopAdminKeys.actionFailed));
+    } on Object catch (error) {
+      if (!mounted) return;
+      if (error is AppFailure && error.code == 'TRANSLATION_REVIEW_REQUIRED') {
+        await showTranslationIssuesDialog(context, error);
+        return;
       }
+      _notify(t(WorkshopAdminKeys.actionFailed));
     } finally {
       if (mounted) {
         setState(() => _busy = false);

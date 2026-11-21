@@ -331,7 +331,8 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
     final t = UiStrings.of(context);
     final spacing = context.spacing;
     // No invitation flow exists: staff are created with credentials, so only
-    // Active and Disabled are named.
+    // Active and Disabled are named. Labels resolve through the API.
+    // gate-allow: codes
     const states = ['ACTIVE', 'DISABLED'];
 
     Widget pill(String status) {

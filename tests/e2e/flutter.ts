@@ -66,3 +66,4 @@ export async function reloadAndBoot(page: Page): Promise<void> {
   await page.reload({ waitUntil: 'domcontentloaded' });
   await bootFlutterWeb(page);
 }
+

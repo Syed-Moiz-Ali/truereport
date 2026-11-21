@@ -39,6 +39,10 @@ const _enumCodes = <String>[
   'evidence-type',
 ];
 
+// Read-only dropdown viewer: the seven set codes it exposes are a fixed
+// catalogue of served dropdown sets, not a selectable taxonomy in an editor;
+// each set's values still come from dropdownProvider.
+// gate-allow: codes
 const _dropdownSets = <String>[
   'ISSUE_TYPE',
   'LOCATION',

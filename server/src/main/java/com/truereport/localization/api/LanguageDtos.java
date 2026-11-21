@@ -29,6 +29,13 @@ public final class LanguageDtos {
     public record SetLanguageRequest(String language) {
     }
 
+    /**
+     * Platform Admin language creation. {@code code} is normalized to lower
+     * case; {@code direction} defaults to {@code ltr}.
+     */
+    public record CreateLanguageRequest(String code, String nativeName, String direction) {
+    }
+
     public record UpsertTranslationRequest(
             String entityType,
             String entityId,

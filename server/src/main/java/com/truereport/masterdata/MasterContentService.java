@@ -19,6 +19,7 @@ import com.truereport.masterdata.api.TranslationRequest;
 import com.truereport.localization.DynamicContentTranslations;
 import com.truereport.localization.TranslationFieldRegistry;
 import com.truereport.masterdata.config.PlatformMasterDtos.IssueFieldDto;
+import com.truereport.masterdata.config.ContentLocalizer;
 import com.truereport.masterdata.config.ItemConfigRepository;
 import com.truereport.masterdata.config.PlatformContentStore;
 import com.truereport.masterdata.config.PlatformContentStore.CategoryRow;
@@ -77,6 +78,9 @@ public class MasterContentService {
     private final FieldAuditService auditService;
     private final TranslationGate translationGate;
     private final DynamicContentTranslations translations;
+    private final ContentLocalizer localizer;
+    private final com.truereport.shared.i18n.RequestLanguageContext languageContext;
+    private final com.truereport.shared.i18n.ContentAuthoring authoring;
 
     public MasterContentService(PlatformContentStore content,
                                 LocalizedContentRepository localized,
@@ -90,7 +94,10 @@ public class MasterContentService {
                                 PlatformItemService platformItemService,
                                 FieldAuditService auditService,
                                 TranslationGate translationGate,
-                                DynamicContentTranslations translations) {
+                                DynamicContentTranslations translations,
+                                ContentLocalizer localizer,
+                                com.truereport.shared.i18n.RequestLanguageContext languageContext,
+                                com.truereport.shared.i18n.ContentAuthoring authoring) {
         this.content = content;
         this.localized = localized;
         this.reasons = reasons;
@@ -104,13 +111,21 @@ public class MasterContentService {
         this.auditService = auditService;
         this.translationGate = translationGate;
         this.translations = translations;
+        this.localizer = localizer;
+        this.languageContext = languageContext;
+        this.authoring = authoring;
     }
 
     // ---------------------------------------------------------- categories
 
     @Transactional(readOnly = true)
     public List<CategoryDto> listCategories() {
-        return content.categories();
+        return listCategories(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryDto> listCategories(String lang) {
+        return localizer.categories(content.categories(), language(lang));
     }
 
     @Transactional
@@ -134,6 +149,7 @@ public class MasterContentService {
         CategoryDto created = content.createCategory(code, name.trim(), categoryTranslations,
                 request.sortOrder() == null ? 0 : request.sortOrder(),
                 wantsActive && allLiveProvided ? "ACTIVE" : (wantsActive ? "DRAFT" : status));
+        authoring.publish("CATEGORY", created.id().toString(), Map.of("name", name.trim()));
         audit(actor, "MASTER_CATEGORY_CREATED", "CATEGORY", created.id(), Map.of("code", code));
         return created;
     }
@@ -159,6 +175,7 @@ public class MasterContentService {
         CategoryDto updated = content.updateCategory(id.toString(), name,
                 providedTranslations(request.translations()),
                 request.sortOrder(), status);
+        authoring.publish("CATEGORY", id.toString(), Map.of("name", name));
         audit(actor, "MASTER_CATEGORY_UPDATED", "CATEGORY", id,
                 Map.of("code", updated.code(), "status", updated.status()));
         return updated;
@@ -179,7 +196,7 @@ public class MasterContentService {
 
     @Transactional(readOnly = true)
     public List<CategoryDto> listActiveCategories() {
-        return content.activeCategories();
+        return localizer.categories(content.activeCategories(), languageContext.activeLanguage());
     }
 
     @Transactional
@@ -196,27 +213,52 @@ public class MasterContentService {
 
     @Transactional(readOnly = true)
     public List<ItemSummaryDto> listItems(String search, UUID categoryId, String status) {
-        return content.items(search, categoryId, status);
+        return listItems(search, categoryId, status, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemSummaryDto> listItems(String search, UUID categoryId, String status,
+                                          String lang) {
+        return localizer.items(content.items(search, categoryId, status), language(lang));
     }
 
     @Transactional(readOnly = true)
     public List<PublishedItemDto> listPublishedItems(String search, UUID categoryId) {
-        return content.publishedItems(search, categoryId);
+        return localizer.publishedItems(content.publishedItems(search, categoryId),
+                languageContext.activeLanguage());
     }
 
     @Transactional(readOnly = true)
     public PublishedItemDto publishedItem(UUID versionId) {
-        return content.publishedItem(versionId);
+        PublishedItemDto item = content.publishedItem(versionId);
+        if (item == null) {
+            return null;
+        }
+        return localizer.publishedItems(List.of(item), languageContext.activeLanguage()).get(0);
     }
 
     @Transactional(readOnly = true)
     public ItemDetailDto itemDetail(UUID itemId) {
-        return content.itemDetail(itemId);
+        return itemDetail(itemId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public ItemDetailDto itemDetail(UUID itemId, String lang) {
+        return localizer.itemDetail(content.itemDetail(itemId), language(lang));
     }
 
     @Transactional(readOnly = true)
     public List<ItemVersionDto> listVersions(UUID itemId) {
-        return content.listVersions(itemId);
+        return listVersions(itemId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemVersionDto> listVersions(UUID itemId, String lang) {
+        return localizer.versions(content.listVersions(itemId), language(lang));
+    }
+
+    private String language(String lang) {
+        return languageContext.resolve(lang);
     }
 
     @Transactional
@@ -253,6 +295,13 @@ public class MasterContentService {
                 request.noteRequirement(), request.evidenceRequirement(),
                 request.minPhotos() == null ? 0 : request.minPhotos(),
                 request.equipmentIds(), request.guideImageId());
+        String versionId = detail.versions().stream().findFirst()
+                .map(version -> version.id().toString()).orElse(null);
+        if (versionId != null) {
+            authoring.publish("ITEM", versionId,
+                    fieldMap("label", label, "instruction", instruction,
+                            "standardSpec", standardSpec));
+        }
         audit(actor, "MASTER_ITEM_CREATED", "MASTER_ITEM", detail.item().id(),
                 Map.of("stableCode", detail.item().stableCode(),
                         "sampleData", Boolean.toString(detail.item().sampleData())));
@@ -268,6 +317,9 @@ public class MasterContentService {
                         .filter(version -> !version.id().equals(draft.id()))
                         .findFirst().map(VersionRow::id).orElse(draft.id()),
                 draft.id());
+        authoring.publish("ITEM", draft.id(),
+                fieldMap("label", draft.label(), "instruction", draft.instruction(),
+                        "standardSpec", draft.standardSpec()));
         audit(actor, "MASTER_ITEM_DRAFT_CREATED", "MASTER_ITEM", itemId,
                 Map.of("version", Integer.toString(draft.versionNo())));
         return detail;
@@ -278,6 +330,8 @@ public class MasterContentService {
                                             String locale, TranslationRequest request) {
         content.requireDraft(itemId, versionId);
         content.updateTranslation(itemId, versionId, locale, request.label(), request.instruction());
+        authoring.publish("ITEM", versionId.toString(),
+                fieldMap("label", request.label(), "instruction", request.instruction()));
         audit(actor, "MASTER_TRANSLATION_UPDATED", "MASTER_ITEM_VERSION", versionId,
                 Map.of("locale", locale));
         return content.itemVersionDto(versionId.toString());
@@ -340,10 +394,11 @@ public class MasterContentService {
 
     @Transactional(readOnly = true)
     public List<ReasonDto> listReasons() {
-        return reasons.findAllByOrderBySortOrderAsc().stream().map(reason -> new ReasonDto(
-                reason.getId(), reason.getCode(), reason.getStatus(), reason.getSortOrder(),
-                text(REASON, reason.getId(), "en", "label"),
-                "")).toList();
+        List<ReasonDto> dtos = reasons.findAllByOrderBySortOrderAsc().stream().map(reason ->
+                new ReasonDto(reason.getId(), reason.getCode(), reason.getStatus(),
+                        reason.getSortOrder(), text(REASON, reason.getId(), "en", "label"),
+                        "", null)).toList();
+        return localizer.reasons(dtos, languageContext.activeLanguage());
     }
 
     @Transactional
@@ -354,15 +409,19 @@ public class MasterContentService {
         MasterReason reason = reasons.save(new MasterReason(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(REASON, reason.getId(), "en", "label", request.labelEn());
+        authoring.publish("REASON", reason.getId().toString(),
+                fieldMap("label", request.labelEn()));
         audit(actor, "MASTER_REASON_CREATED", "REASON", reason.getId(),
                 Map.of("code", reason.getCode()));
         return new ReasonDto(reason.getId(), reason.getCode(), reason.getStatus(),
-                reason.getSortOrder(), request.labelEn(), "");
+                reason.getSortOrder(), request.labelEn(), "", null);
     }
 
     @Transactional(readOnly = true)
     public List<EquipmentDto> listEquipment() {
-        return equipment.findAllByOrderBySortOrderAsc().stream().map(this::equipmentDto).toList();
+        List<EquipmentDto> dtos = equipment.findAllByOrderBySortOrderAsc().stream()
+                .map(this::equipmentDto).toList();
+        return localizer.equipment(dtos, languageContext.activeLanguage());
     }
 
     @Transactional(readOnly = true)
@@ -370,10 +429,11 @@ public class MasterContentService {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return equipment.findAllById(ids).stream()
+        List<EquipmentDto> dtos = equipment.findAllById(ids).stream()
                 .sorted(Comparator.comparingInt(Equipment::getSortOrder))
                 .map(this::equipmentDto)
                 .toList();
+        return localizer.equipment(dtos, languageContext.activeLanguage());
     }
 
     @Transactional
@@ -381,24 +441,32 @@ public class MasterContentService {
         Equipment item = equipment.save(new Equipment(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(EQUIPMENT, item.getId(), "en", "label", request.labelEn());
+        authoring.publish("EQUIPMENT", item.getId().toString(),
+                fieldMap("label", request.labelEn()));
         audit(actor, "MASTER_EQUIPMENT_CREATED", "EQUIPMENT", item.getId(),
                 Map.of("code", item.getCode()));
         return new EquipmentDto(item.getId(), item.getCode(), item.getStatus(),
-                item.getSortOrder(), request.labelEn(), "");
+                item.getSortOrder(), request.labelEn(), "", null);
     }
 
     @Transactional(readOnly = true)
     public List<DropdownDto> listDropdowns() {
-        return dropdowns.findAllByOrderBySortOrderAsc().stream().map(dropdown -> new DropdownDto(
-                dropdown.getId(), dropdown.getCode(), dropdown.getStatus(), dropdown.getSortOrder(),
-                text(DROPDOWN, dropdown.getId(), "en", "label"),
-                "",
-                dropdownValues.findByDropdownIdOrderBySortOrderAsc(dropdown.getId()).stream()
-                        .map(value -> new DropdownValueDto(value.getId(), value.getCode(),
-                                value.getStatus(), value.getSortOrder(),
-                                text(DROPDOWN_VALUE, value.getId(), "en", "label"),
-                                ""))
-                        .toList())).toList();
+        List<DropdownDto> dtos = dropdowns.findAllByOrderBySortOrderAsc().stream()
+                .map(dropdown -> new DropdownDto(
+                        dropdown.getId(), dropdown.getCode(), dropdown.getStatus(),
+                        dropdown.getSortOrder(),
+                        text(DROPDOWN, dropdown.getId(), "en", "label"), "",
+                        dropdownValues.findByDropdownIdOrderBySortOrderAsc(dropdown.getId())
+                                .stream()
+                                .map(value -> new DropdownValueDto(value.getId(),
+                                        value.getCode(), value.getStatus(),
+                                        value.getSortOrder(),
+                                        text(DROPDOWN_VALUE, value.getId(), "en", "label"),
+                                        "", null))
+                                .toList(),
+                        null))
+                .toList();
+        return localizer.dropdowns(dtos, languageContext.activeLanguage());
     }
 
     @Transactional
@@ -406,10 +474,12 @@ public class MasterContentService {
         MasterDropdown dropdown = dropdowns.save(new MasterDropdown(request.code().trim(),
                 request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(DROPDOWN, dropdown.getId(), "en", "label", request.labelEn());
+        authoring.publish("DROPDOWN", dropdown.getId().toString(),
+                fieldMap("label", request.labelEn()));
         audit(actor, "MASTER_DROPDOWN_CREATED", "DROPDOWN", dropdown.getId(),
                 Map.of("code", dropdown.getCode()));
         return new DropdownDto(dropdown.getId(), dropdown.getCode(), dropdown.getStatus(),
-                dropdown.getSortOrder(), request.labelEn(), "", List.of());
+                dropdown.getSortOrder(), request.labelEn(), "", List.of(), null);
     }
 
     @Transactional
@@ -419,10 +489,12 @@ public class MasterContentService {
         MasterDropdownValue value = dropdownValues.save(new MasterDropdownValue(dropdown.getId(),
                 request.code().trim(), request.sortOrder() == null ? 0 : request.sortOrder()));
         putText(DROPDOWN_VALUE, value.getId(), "en", "label", request.labelEn());
+        authoring.publish("DROPDOWN_VALUE", value.getId().toString(),
+                fieldMap("label", request.labelEn()));
         audit(actor, "MASTER_DROPDOWN_VALUE_CREATED", "DROPDOWN_VALUE", value.getId(),
                 Map.of("dropdownCode", dropdown.getCode(), "code", value.getCode()));
         return new DropdownValueDto(value.getId(), value.getCode(), value.getStatus(),
-                value.getSortOrder(), request.labelEn(), "");
+                value.getSortOrder(), request.labelEn(), "", null);
     }
 
     // -------------------------------------------------------- guide images
@@ -596,7 +668,7 @@ public class MasterContentService {
     private EquipmentDto equipmentDto(Equipment item) {
         return new EquipmentDto(item.getId(), item.getCode(), item.getStatus(), item.getSortOrder(),
                 text(EQUIPMENT, item.getId(), "en", "label"),
-                "");
+                "", null);
     }
 
     private String safeFilename(String filename) {
@@ -608,6 +680,17 @@ public class MasterContentService {
                        Map<String, String> metadata) {
         auditService.record(actor, action, entityType,
                 entityId == null ? null : entityId.toString(), null, metadata, null, null);
+    }
+
+    private static Map<String, String> fieldMap(String... pairs) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        for (int index = 0; index + 1 < pairs.length; index += 2) {
+            String value = pairs[index + 1];
+            if (value != null && !value.isBlank()) {
+                fields.put(pairs[index], value);
+            }
+        }
+        return fields;
     }
 
     public record GuideImageContent(String mime, byte[] bytes) {

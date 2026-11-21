@@ -42,6 +42,10 @@ public class ReportViewMapper {
                                           String language, boolean pdfDownloadEnabled,
                                           String token, String customerName) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
+        String snapshotLanguage = snapshot.language();
+        if (snapshotLanguage != null && !snapshotLanguage.isBlank()) {
+            language = snapshotLanguage;
+        }
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
                 .filter(d -> d.getPurpose().equals("PUBLIC_FULL"))
                 .collect(Collectors.toMap(EvidenceDerivative::getEvidenceAssetId, Function.identity(),
@@ -101,22 +105,29 @@ public class ReportViewMapper {
             if (d > 0 || a > 0) {
                 attentionCats++;
                 c.put("categoryStatus", "ATTENTION");
-                c.put("categoryStatusLabel", "Needs Service");
+                c.put("categoryStatusLabel", ReportMessages.label(language, "categoryStatus.attention"));
             } else {
                 goodCats++;
                 c.put("categoryStatus", "GOOD");
-                c.put("categoryStatusLabel", "Good");
+                c.put("categoryStatusLabel", ReportMessages.label(language, "categoryStatus.good"));
             }
         }
+        String bullet = ReportMessages.label(language, "categorySummary.separator");
+        String systemsGood = counted(language, goodCats,
+                "categorySummary.systemsGood", "categorySummary.systemsGood");
+        String systemsAttention = counted(language, attentionCats,
+                "categorySummary.systemsAttention", "categorySummary.systemsAttention");
         Map<String, Object> catSummary = new LinkedHashMap<>();
         catSummary.put("total", catList.size());
         catSummary.put("goodCount", goodCats);
         catSummary.put("attentionCount", attentionCats);
-        catSummary.put("text", goodCats + " Systems Good • " + attentionCats + " System Needs Service");
-        String passCatEn = goodCats + (goodCats == 1 ? " Category Passed" : " Categories Passed");
-        String attnCatEn = attentionCats + (attentionCats == 1 ? " Category Needs Attention" : " Categories Need Attention");
-        catSummary.put("checklistSummaryText", passCatEn + " • " + attnCatEn);
-        catSummary.put("servicesText", passCatEn + " • " + attnCatEn);
+        catSummary.put("text", systemsGood + " " + bullet + " " + systemsAttention);
+        String passCat = counted(language, goodCats,
+                "categorySummary.passedOne", "categorySummary.passedMany");
+        String attnCat = counted(language, attentionCats,
+                "categorySummary.attentionOne", "categorySummary.attentionMany");
+        catSummary.put("checklistSummaryText", passCat + " " + bullet + " " + attnCat);
+        catSummary.put("servicesText", passCat + " " + bullet + " " + attnCat);
         root.put("categoriesSummary", catSummary);
         root.put("tyreAssemblies", tyreAssemblies(snapshot, byEvidence, token));
         root.put("damageZones", damageZones(snapshot, byEvidence, token));
@@ -144,17 +155,21 @@ public class ReportViewMapper {
     public Map<String, Object> printPage(ReportVersion version, List<EvidenceDerivative> derivatives,
                                          String customerName) throws Exception {
         ReportSnapshot snapshot = objectMapper.readValue(version.getSnapshotJson(), ReportSnapshot.class);
+        String language = snapshotLanguage(snapshot);
         Map<UUID, EvidenceDerivative> byEvidence = derivatives.stream()
                 .filter(d -> d.getPurpose().equals("PUBLIC_FULL"))
                 .collect(Collectors.toMap(EvidenceDerivative::getEvidenceAssetId, Function.identity(),
                         (left, right) -> left, LinkedHashMap::new));
         Map<String, Object> root = new LinkedHashMap<>();
-        root.put("en", ReportMessages.labels("en"));
+        root.put("en", ReportMessages.labels(language));
+        root.put("labels", ReportMessages.labels(language));
+        root.put("lang", language);
+        root.put("dir", "ltr");
         root.put("reportNumber", snapshot.reportNumber());
         root.put("displayToken", snapshot.reportNumber());
         root.put("version", snapshot.reportVersion());
-        root.put("finalizedAt", formatDate(snapshot.finalizedAt(), "en"));
-        root.put("publishedAt", formatDate(snapshot.publishedAt(), "en"));
+        root.put("finalizedAt", formatDate(snapshot.finalizedAt(), language));
+        root.put("publishedAt", formatDate(snapshot.publishedAt(), language));
         root.put("verificationHash", snapshot.verificationHash());
         root.put("score", snapshot.score());
         root.put("gradeCode", snapshot.gradeCode());
@@ -162,7 +177,7 @@ public class ReportViewMapper {
         root.put("safetyCapReason", snapshot.safetyCapReason());
         root.put("vehicle", vehicle(snapshot.vehicle(),
                 firstNonBlank(customerName, snapshot.customerName())));
-        root.put("inspection", inspection(snapshot.inspection(), "en"));
+        root.put("inspection", inspection(snapshot.inspection(), language));
         root.put("workshop", workshop(snapshot.workshop()));
         root.put("technician", technician(snapshot.technician()));
         int passedCount = 0;
@@ -182,11 +197,11 @@ public class ReportViewMapper {
         root.put("defectCount", defectCount);
         root.put("passRate", passRate);
         root.put("totalEvaluated", evaluated);
-        root.put("coverage", coverage(snapshot.coverage(), "en"));
+        root.put("coverage", coverage(snapshot.coverage(), language));
         // Same honesty rule as the public page: no stock/fabricated sections in print.
         root.put("visualInspections", List.of());
         root.put("inspectionSystems", List.of());
-        List<Map<String, Object>> catListEn = categories(snapshot.categories(), byEvidence, true);
+        List<Map<String, Object>> catListEn = categories(snapshot.categories(), byEvidence, language, true, null);
         root.put("categories", catListEn);
         int goodCatsEn = 0;
         int attentionCatsEn = 0;
@@ -196,24 +211,25 @@ public class ReportViewMapper {
             if (d > 0 || a > 0) {
                 attentionCatsEn++;
                 c.put("categoryStatus", "ATTENTION");
-                c.put("categoryStatusLabel", "Needs Service");
+                c.put("categoryStatusLabel", ReportMessages.label(language, "servicesNeedService"));
             } else {
                 goodCatsEn++;
                 c.put("categoryStatus", "GOOD");
-                c.put("categoryStatusLabel", "Good");
+                c.put("categoryStatusLabel", ReportMessages.label(language, "goodCondition"));
             }
         }
         Map<String, Object> catSummaryEn = new LinkedHashMap<>();
         catSummaryEn.put("total", catListEn.size());
         catSummaryEn.put("goodCount", goodCatsEn);
         catSummaryEn.put("attentionCount", attentionCatsEn);
-        catSummaryEn.put("text", goodCatsEn + " Systems Good • " + attentionCatsEn + " System Needs Service");
-        String passCatPrint = goodCatsEn + (goodCatsEn == 1 ? " Category Passed" : " Categories Passed");
-        String attnCatPrint = attentionCatsEn + (attentionCatsEn == 1 ? " Category Needs Attention" : " Categories Need Attention");
-        catSummaryEn.put("checklistSummaryText", passCatPrint + " • " + attnCatPrint);
-        catSummaryEn.put("servicesText", passCatPrint + " • " + attnCatPrint);
+        String goodText = ReportMessages.label(language, "servicesGood");
+        String needText = ReportMessages.label(language, "servicesNeedService");
+        catSummaryEn.put("text", goodCatsEn + " " + goodText + " · " + attentionCatsEn + " " + needText);
+        String summaryText = goodCatsEn + " " + goodText + " · " + attentionCatsEn + " " + needText;
+        catSummaryEn.put("checklistSummaryText", summaryText);
+        catSummaryEn.put("servicesText", summaryText);
         root.put("categoriesSummary", catSummaryEn);
-        List<Map<String, Object>> printShowcase = vehicleShowcase(snapshot, byEvidence, "en", null);
+        List<Map<String, Object>> printShowcase = vehicleShowcase(snapshot, byEvidence, language, null);
         root.put("tyreAssemblies", tyreAssemblies(snapshot, byEvidence, null));
         root.put("damageZones", damageZones(snapshot, byEvidence, null));
         root.put("inspectorSummary", List.of());
@@ -229,10 +245,10 @@ public class ReportViewMapper {
                 .filter(i -> "imperfections".equals(i.get("category"))).toList());
         root.put("showcaseUnderbody", printShowcase.stream()
                 .filter(i -> "underbody".equals(i.get("category"))).toList());
-        root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, "en", true));
-        root.put("notChecked", notChecked(snapshot.notChecked(), "en", true));
-        root.put("limitationsEn", limitations());
-        root.put("disclaimerEn", disclaimer());
+        root.put("keyFindings", items(snapshot.keyFindings(), byEvidence, language, true));
+        root.put("notChecked", notChecked(snapshot.notChecked(), language, true));
+        root.put("limitationsEn", snapshot.limitations());
+        root.put("disclaimerEn", snapshot.disclaimer());
         return root;
     }
 
@@ -344,7 +360,7 @@ public class ReportViewMapper {
         List<Map<String, Object>> result = new ArrayList<>();
         for (ReportSnapshot.Category category : categories) {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("label", category.labelEn());
+            map.put("label", display(category.label(), category.labelEn()));
             map.put("labelEn", category.labelEn());
             List<Map<String, Object>> itemList = items(category.items(), derivatives, language,
                     bilingual, token);
@@ -369,7 +385,11 @@ public class ReportViewMapper {
             map.put("attentionCount", catAttention);
             map.put("defectCount", catDefect);
             String catStatus = catDefect > 0 ? "DEFECT" : (catAttention > 0 ? "ATTENTION" : "GOOD");
-            String catStatusLabel = catDefect > 0 ? "FAIL" : (catAttention > 0 ? "ATTENTION" : "PASS");
+            String catStatusLabel = catDefect > 0
+                    ? ReportMessages.label(language, "categoryStatus.badgeDefect")
+                    : (catAttention > 0
+                            ? ReportMessages.label(language, "categoryStatus.badgeAttention")
+                            : ReportMessages.label(language, "categoryStatus.badgePass"));
             map.put("categoryStatus", catStatus);
             map.put("categoryStatusLabel", catStatusLabel);
             map.put("statusBadge", catStatusLabel);
@@ -398,10 +418,11 @@ public class ReportViewMapper {
         for (ReportSnapshot.ItemSnapshot item : items) {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("stableCode", item.stableCode());
-            map.put("label", item.labelEn());
+            map.put("label", display(item.label(), item.labelEn()));
             map.put("labelEn", item.labelEn());
-            map.put("instruction", item.instructionEn());
+            map.put("instruction", display(item.instruction(), item.instructionEn()));
             map.put("instructionEn", item.instructionEn());
+            map.put("standardSpec", display(item.standardSpec(), ""));
             map.put("resultCode", item.resultCode());
             map.put("result", ReportMessages.result(language, item.resultCode()));
             map.put("resultEn", ReportMessages.result("en", item.resultCode()));
@@ -427,7 +448,6 @@ public class ReportViewMapper {
             String measuredSpec = measurementSummary(item);
             map.put("diagnosticMetric", measuredSpec);
             map.put("measuredSpec", measuredSpec);
-            map.put("standardSpec", "");
             map.put("hasVideo", false);
             map.put("videoUrl", null);
             map.put("videoDuration", null);
@@ -474,8 +494,8 @@ public class ReportViewMapper {
                     }
                     Map<String, Object> video = new LinkedHashMap<>();
                     video.put("id", derivative.getId());
-                    video.put("title", item.labelEn());
-                    video.put("category", category.labelEn());
+                    video.put("title", display(item.label(), item.labelEn()));
+                    video.put("category", display(category.label(), category.labelEn()));
                     video.put("videoUrl", videoUrl(token, derivative.getId()));
                     video.put("thumbnailUrl", firstPhotoUrl(item, byEvidence, token));
                     video.put("duration", "");
@@ -598,7 +618,7 @@ public class ReportViewMapper {
                     return label + ": " + value.numericValue()
                             + (value.unitCode() == null ? "" : " " + value.unitCode());
                 })
-                .collect(Collectors.joining(" • "));
+                .collect(Collectors.joining(" â·¢ "));
     }
 
     private List<Map<String, Object>> vehicleShowcase(ReportSnapshot snapshot,
@@ -622,8 +642,8 @@ public class ReportViewMapper {
                     Map<String, Object> photo = new LinkedHashMap<>();
                     photo.put("id", "photo-" + derivative.getId());
                     photo.put("category", showcaseCategory(category.labelEn()));
-                    photo.put("categoryLabel", category.labelEn());
-                    photo.put("title", item.labelEn());
+                    photo.put("categoryLabel", display(category.label(), category.labelEn()));
+                    photo.put("title", display(item.label(), item.labelEn()));
                     photo.put("details", measurementSummary(item));
                     photo.put("condition", ReportMessages.result(language, item.resultCode()));
                     photo.put("imageUrl", photoUrl(token, derivative.getId()));
@@ -672,10 +692,11 @@ public class ReportViewMapper {
                     tyre.put("id", "tyre-" + positions[i].toLowerCase(Locale.ROOT));
                     tyre.put("posCode", positions[i]);
                     tyre.put("position", labels[i]);
-                    tyre.put("title", item.labelEn() + " " + labels[i]);
-                    tyre.put("category", category.labelEn());
+                    tyre.put("title", display(item.label(), item.labelEn()) + " " + labels[i]);
+                    tyre.put("category", display(category.label(), category.labelEn()));
                     tyre.put("status", tyreStatus(item.resultCode()));
-                    tyre.put("statusLabel", ReportMessages.result("en", item.resultCode()));
+                    tyre.put("statusLabel", ReportMessages.result(snapshotLanguage(snapshot),
+                            item.resultCode()));
                     tyre.put("statusClass", "NO_ISSUE_OBSERVED".equals(item.resultCode())
                             ? "badge-pass" : "badge-attention");
                     tyre.put("score", score);
@@ -725,10 +746,11 @@ public class ReportViewMapper {
                 Map<String, Object> zone = new LinkedHashMap<>();
                 zone.put("id", item.stableCode());
                 zone.put("code", item.stableCode());
-                zone.put("title", item.labelEn());
+                zone.put("title", display(item.label(), item.labelEn()));
                 zone.put("isDamaged", true);
                 zone.put("status", item.resultCode());
-                zone.put("statusLabel", ReportMessages.result("en", item.resultCode()));
+                zone.put("statusLabel", ReportMessages.result(snapshotLanguage(snapshot),
+                        item.resultCode()));
                 zone.put("statusClass", "DEFECT_FOUND".equals(item.resultCode())
                         ? "badge-defect" : "badge-attention");
                 zone.put("paintThickness", item.measurements().isEmpty() ? ""
@@ -753,12 +775,27 @@ public class ReportViewMapper {
         }
         try {
             LocalDateTime date = LocalDateTime.parse(value);
-            Locale locale = Locale.ENGLISH;
+            Locale locale = ReportMessages.locale(language);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", locale);
             return date.atOffset(ZoneOffset.ofHours(4)).format(formatter) + " GST";
         } catch (DateTimeParseException exception) {
             return value;
         }
+    }
+
+    private static String display(String localized, String english) {
+        return localized == null || localized.isBlank()
+                ? (english == null ? "" : english) : localized;
+    }
+
+    private static String counted(String language, int count, String oneKey, String manyKey) {
+        String template = ReportMessages.label(language, count == 1 ? oneKey : manyKey);
+        return template.replace("{0}", Integer.toString(count));
+    }
+
+    private static String snapshotLanguage(ReportSnapshot snapshot) {
+        return snapshot.language() == null || snapshot.language().isBlank()
+                ? "en" : snapshot.language();
     }
 
 }

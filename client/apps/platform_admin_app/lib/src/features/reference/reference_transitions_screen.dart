@@ -21,12 +21,6 @@ const List<String> referenceTransitionEntities = <String>[
   'publication',
 ];
 
-const List<String> referenceTransitionRoles = <String>[
-  'PLATFORM_ADMIN',
-  'WORKSHOP_ADMIN',
-  'TECHNICIAN',
-];
-
 class ReferenceTransitionsScreen extends StatelessWidget {
   const ReferenceTransitionsScreen({super.key});
 
@@ -319,6 +313,13 @@ class _EdgeCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roles = ref.watch(enumsProvider('role')).value;
+    final roleCodes = <String>[
+      for (final record in roles ?? const <ReferenceRecord>[])
+        if (record.selectable) record.code,
+    ];
+    if (draft.role.isNotEmpty && !roleCodes.contains(draft.role)) {
+      roleCodes.add(draft.role);
+    }
     final from = PlatformTextField(
       key: Key('reference-edge-from-$index'),
       controller: draft.from,
@@ -338,7 +339,7 @@ class _EdgeCard extends ConsumerWidget {
       label: strings.tKey(CommonKeys.tableRole),
       value: draft.role,
       items: <DropdownMenuItem<String>>[
-        for (final role in referenceTransitionRoles)
+        for (final role in roleCodes)
           DropdownMenuItem<String>(
             value: role,
             child: Text(_roleLabel(strings, roles, role)),

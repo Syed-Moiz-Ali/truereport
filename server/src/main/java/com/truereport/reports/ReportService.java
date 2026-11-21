@@ -479,7 +479,7 @@ public class ReportService {
                 snapshot.safetyCapApplied(), snapshot.safetyCapReason(),
                 snapshot.keyFindings(), snapshot.categories(),
                 snapshot.notChecked(), snapshot.limitations(), snapshot.disclaimer(),
-                snapshot.verificationHash());
+                snapshot.verificationHash(), snapshot.language());
     }
 
     private static double coveragePercent(ReportSnapshot.Coverage coverage) {

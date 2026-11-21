@@ -1,6 +1,8 @@
 import 'package:api_client/api_client.dart';
 
 import 'platform_catalogue_models.dart';
+import 'features/languages/manual_translation_models.dart';
+import 'features/localization/translation_review_models.dart';
 import 'platform_config_models.dart';
 
 /// Typed Platform Admin configuration API backed by `/api/v1/platform`.
@@ -20,6 +22,46 @@ class PlatformConfigApi {
 
   Future<List<PlatformLanguage>> platformLanguages() async {
     final data = await _api.getDynamic(_endpoints.platformLanguages);
+    return _list(data)
+        .map((item) => PlatformLanguage.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
+  /// Registers a language in the backend registry.
+  ///
+  /// The server answers 201 for a new language and 200 when a retired one is
+  /// reactivated; both return the stored [PlatformLanguage]. 409
+  /// `LANGUAGE_EXISTS` means the language is already live, 422
+  /// `LANGUAGE_INVALID` / `LANGUAGE_DEFAULT` reject the body.
+  Future<PlatformLanguage> createLanguage({
+    required String code,
+    required String nativeName,
+    required String direction,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformLanguages,
+      body: <String, dynamic>{
+        'code': code,
+        'nativeName': nativeName,
+        'direction': direction,
+      },
+    );
+    return PlatformLanguage.fromJson(_map(data));
+  }
+
+  /// Retires a language (status RETIRED, inactive) without deleting content.
+  ///
+  /// 422 rejects the default language, 404 an unknown code.
+  Future<PlatformLanguage> retireLanguage(String code) async {
+    final data = await _api.deleteDynamic(_endpoints.platformLanguage(code));
+    return PlatformLanguage.fromJson(_map(data));
+  }
+
+  /// Languages that actually carry content translations. This is deliberately
+  /// not [platformLanguages]: that is the UI-message registry and can be
+  /// English-only while content exists in other languages.
+  Future<List<PlatformLanguage>> contentLanguages() async {
+    final data = await _api.getDynamic(_endpoints.platformContentLanguages);
     return _list(data)
         .map((item) => PlatformLanguage.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
@@ -55,6 +97,104 @@ class PlatformConfigApi {
       _endpoints.platformLanguageReadiness(code),
     );
     return LanguageReadiness.fromJson(_map(data));
+  }
+
+  // -------------------------------------------------------- content review
+
+  Future<List<TranslationReviewItem>> contentReview({
+    required String lang,
+    String? state,
+    int page = 0,
+    int size = 50,
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.contentReview,
+      query: <String, dynamic>{
+        'lang': lang,
+        if (state != null && state.isNotEmpty) 'state': state,
+        'page': '$page',
+        'size': '$size',
+      },
+    );
+    return _list(data)
+        .whereType<Map>()
+        .map(
+          (item) => TranslationReviewItem.fromJson(
+            item.map((key, value) => MapEntry(key.toString(), value)),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<TranslationReviewSummary> contentReviewSummary(String lang) async {
+    final data = await _api.getDynamic(
+      _endpoints.contentReviewSummary,
+      query: <String, dynamic>{'lang': lang},
+    );
+    return TranslationReviewSummary.fromJson(_map(data));
+  }
+
+  Future<TranslationReviewItem> reviewContent({
+    required String entityType,
+    required String entityId,
+    required String field,
+    required String lang,
+    required String action,
+    String? body,
+    String? note,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.contentReviewAction(entityType, entityId, field),
+      body: <String, dynamic>{'action': action, 'body': ?body, 'note': ?note},
+    );
+    final payload = _map(data);
+    return TranslationReviewItem.fromJson(payload);
+  }
+
+  // ------------------------------------------------- manual translations
+
+  /// Every canonical field for [lang], including untranslated ones.
+  ///
+  /// [filter] is `all` or `missing`; [total] on the page is the server total
+  /// for the current filter, so callers must never derive counts from
+  /// `items.length`.
+  Future<ManualTranslationPage> contentUnits({
+    required String lang,
+    String? entityType,
+    String filter = ManualTranslationFilter.all,
+    String query = '',
+    int page = 0,
+    int size = 50,
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.platformContentUnits,
+      query: <String, dynamic>{
+        'lang': lang,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+        'filter': filter,
+        if (query.trim().isNotEmpty) 'query': query.trim(),
+        'page': '$page',
+        'size': '$size',
+      },
+    );
+    return ManualTranslationPage.fromJson(_map(data));
+  }
+
+  /// Saves one manually authored translation and returns the stored row.
+  Future<ManualTranslationUnit> writeContentTranslation({
+    required String entityType,
+    required String entityId,
+    required String field,
+    required String lang,
+    required String text,
+  }) async {
+    final data = await _api.putDynamic(
+      _endpoints.platformContentTranslation(entityType, entityId, field),
+      query: <String, dynamic>{'lang': lang},
+      body: <String, dynamic>{'body': text.trim()},
+    );
+    return ManualTranslationUnit.fromJson(_map(data));
   }
 
   // ------------------------------------------------------------- categories
@@ -258,6 +398,14 @@ class PlatformConfigApi {
   Future<OptionSet> retireOptionSet(String id) async {
     final data = await _api.postDynamic(_endpoints.retireOptionSet(id));
     return OptionSet.fromJson(_map(data));
+  }
+
+  /// Values for one set, used when the catalogue returns summaries only.
+  Future<List<OptionValue>> optionSetValues(String id) async {
+    final data = await _api.getDynamic(_endpoints.optionSetValues(id));
+    return _list(data)
+        .map((item) => OptionValue.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
   }
 
   Future<OptionValue> addOptionValue(

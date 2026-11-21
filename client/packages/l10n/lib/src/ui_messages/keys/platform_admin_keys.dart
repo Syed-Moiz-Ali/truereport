@@ -561,6 +561,9 @@ abstract final class PlatformAdminKeys {
   static const checklistEditorButtonCreateDraftToEdit = UiMessageKey.platformAdmin(
     'checklist.editor.buttonCreateDraftToEdit',
   );
+  static const checklistEditorEvidenceResult = UiMessageKey.platformAdmin(
+    'checklist.editor.evidenceResult',
+  );
   static const checklistEditorPublishedBannerBody = UiMessageKey.platformAdmin(
     'checklist.editor.publishedBannerBody',
   );
@@ -1200,6 +1203,15 @@ abstract final class PlatformAdminKeys {
   static const filterOptionSetsSearch = UiMessageKey.platformAdmin(
     'filter.optionSets.search',
   );
+  static const filterOptionSetsSearchChecklist = UiMessageKey.platformAdmin(
+    'filter.optionSets.searchChecklist',
+  );
+  static const filterOptionSetsSearchEnums = UiMessageKey.platformAdmin(
+    'filter.optionSets.searchEnums',
+  );
+  static const filterOptionSetsSearchStatuses = UiMessageKey.platformAdmin(
+    'filter.optionSets.searchStatuses',
+  );
   static const filterOptionValuesSearch = UiMessageKey.platformAdmin(
     'filter.optionValues.search',
   );
@@ -1704,6 +1716,93 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceUiTextTitle = UiMessageKey.platformAdmin(
     'languageWorkspace.uiText.title',
   );
+  static const languagesAddButton = UiMessageKey.platformAdmin(
+    'languages.add.button',
+  );
+  static const languagesAddErrorCodeDefault = UiMessageKey.platformAdmin(
+    'languages.add.error.codeDefault',
+  );
+  static const languagesAddErrorCodeInvalid = UiMessageKey.platformAdmin(
+    'languages.add.error.codeInvalid',
+  );
+  static const languagesAddErrorCodeRequired = UiMessageKey.platformAdmin(
+    'languages.add.error.codeRequired',
+  );
+  static const languagesAddErrorDefault = UiMessageKey.platformAdmin(
+    'languages.add.error.default',
+  );
+  static const languagesAddErrorExists = UiMessageKey.platformAdmin(
+    'languages.add.error.exists',
+  );
+  static const languagesAddErrorGeneric = UiMessageKey.platformAdmin(
+    'languages.add.error.generic',
+  );
+  static const languagesAddErrorNameRequired = UiMessageKey.platformAdmin(
+    'languages.add.error.nameRequired',
+  );
+  static const languagesAddFieldCode = UiMessageKey.platformAdmin(
+    'languages.add.field.code',
+  );
+  static const languagesAddFieldCodeHelper = UiMessageKey.platformAdmin(
+    'languages.add.field.codeHelper',
+  );
+  static const languagesAddFieldCodeHint = UiMessageKey.platformAdmin(
+    'languages.add.field.codeHint',
+  );
+  static const languagesAddFieldDirection = UiMessageKey.platformAdmin(
+    'languages.add.field.direction',
+  );
+  static const languagesAddFieldNativeName = UiMessageKey.platformAdmin(
+    'languages.add.field.nativeName',
+  );
+  static const languagesAddFieldNativeNameHint = UiMessageKey.platformAdmin(
+    'languages.add.field.nativeNameHint',
+  );
+  static const languagesAddSubmit = UiMessageKey.platformAdmin(
+    'languages.add.submit',
+  );
+  static const languagesAddToastReady = UiMessageKey.platformAdmin(
+    'languages.add.toast.ready',
+  );
+  static const languagesRegistryNoCatalog = UiMessageKey.platformAdmin(
+    'languages.registry.noCatalog',
+  );
+  static const languagesRegistryNotice = UiMessageKey.platformAdmin(
+    'languages.registry.notice',
+  );
+  static const languagesRegistryStatus = UiMessageKey.platformAdmin(
+    'languages.registry.status',
+  );
+  static const languagesRegistrySubtitle = UiMessageKey.platformAdmin(
+    'languages.registry.subtitle',
+  );
+  static const languagesRegistryTitle = UiMessageKey.platformAdmin(
+    'languages.registry.title',
+  );
+  static const languagesRetireAction = UiMessageKey.platformAdmin(
+    'languages.retire.action',
+  );
+  static const languagesRetireBody = UiMessageKey.platformAdmin(
+    'languages.retire.body',
+  );
+  static const languagesRetireConfirm = UiMessageKey.platformAdmin(
+    'languages.retire.confirm',
+  );
+  static const languagesRetireErrorDefault = UiMessageKey.platformAdmin(
+    'languages.retire.error.default',
+  );
+  static const languagesRetireErrorGeneric = UiMessageKey.platformAdmin(
+    'languages.retire.error.generic',
+  );
+  static const languagesRetireErrorNotFound = UiMessageKey.platformAdmin(
+    'languages.retire.error.notFound',
+  );
+  static const languagesRetireTitle = UiMessageKey.platformAdmin(
+    'languages.retire.title',
+  );
+  static const languagesRetireToast = UiMessageKey.platformAdmin(
+    'languages.retire.toast',
+  );
   static const loginAppName = UiMessageKey.platformAdmin('login.appName');
   static const loginAuthorizedEyebrow = UiMessageKey.platformAdmin(
     'login.authorizedEyebrow',
@@ -1786,10 +1885,121 @@ abstract final class PlatformAdminKeys {
   static const loginVerifyButton = UiMessageKey.platformAdmin(
     'login.verifyButton',
   );
+  static const manualTranslationsButtonOpen = UiMessageKey.platformAdmin(
+    'manualTranslations.button.open',
+  );
+  static const manualTranslationsEmptyMissing = UiMessageKey.platformAdmin(
+    'manualTranslations.empty.missing',
+  );
+  static const manualTranslationsEmptyMissingBody = UiMessageKey.platformAdmin(
+    'manualTranslations.empty.missingBody',
+  );
+  static const manualTranslationsEmptyNone = UiMessageKey.platformAdmin(
+    'manualTranslations.empty.none',
+  );
+  static const manualTranslationsEntity = UiMessageKey.platformAdmin(
+    'manualTranslations.entity',
+  );
+  static const manualTranslationsEntityType = UiMessageKey.platformAdmin(
+    'manualTranslations.entityType',
+  );
+  static const manualTranslationsField = UiMessageKey.platformAdmin(
+    'manualTranslations.field',
+  );
+  static const manualTranslationsFieldProgress = UiMessageKey.platformAdmin(
+    'manualTranslations.field.progress',
+  );
+  static const manualTranslationsFilterAll = UiMessageKey.platformAdmin(
+    'manualTranslations.filter.all',
+  );
+  static const manualTranslationsFilterMissing = UiMessageKey.platformAdmin(
+    'manualTranslations.filter.missing',
+  );
+  static const manualTranslationsGroupCount = UiMessageKey.platformAdmin(
+    'manualTranslations.groupCount',
+  );
+  static const manualTranslationsHintMissing = UiMessageKey.platformAdmin(
+    'manualTranslations.hint.missing',
+  );
+  static const manualTranslationsPageInfo = UiMessageKey.platformAdmin(
+    'manualTranslations.pageInfo',
+  );
+  static const manualTranslationsSafetyCritical = UiMessageKey.platformAdmin(
+    'manualTranslations.safetyCritical',
+  );
+  static const manualTranslationsSearch = UiMessageKey.platformAdmin(
+    'manualTranslations.search',
+  );
+  static const manualTranslationsSource = UiMessageKey.platformAdmin(
+    'manualTranslations.source',
+  );
+  static const manualTranslationsStatusDraft = UiMessageKey.platformAdmin(
+    'manualTranslations.status.draft',
+  );
+  static const manualTranslationsStatusPendingReview = UiMessageKey.platformAdmin(
+    'manualTranslations.status.pendingReview',
+  );
+  static const manualTranslationsStatusReviewed = UiMessageKey.platformAdmin(
+    'manualTranslations.status.reviewed',
+  );
+  static const manualTranslationsStatusStale = UiMessageKey.platformAdmin(
+    'manualTranslations.status.stale',
+  );
+  static const manualTranslationsSubtitle = UiMessageKey.platformAdmin(
+    'manualTranslations.subtitle',
+  );
+  static const manualTranslationsTitle = UiMessageKey.platformAdmin(
+    'manualTranslations.title',
+  );
+  static const manualTranslationsToastSaved = UiMessageKey.platformAdmin(
+    'manualTranslations.toast.saved',
+  );
+  static const manualTranslationsTranslation = UiMessageKey.platformAdmin(
+    'manualTranslations.translation',
+  );
   static const navChecklist = UiMessageKey.platformAdmin('nav.checklist');
   static const navDashboard = UiMessageKey.platformAdmin('nav.dashboard');
   static const navReports = UiMessageKey.platformAdmin('nav.reports');
   static const navWorkshops = UiMessageKey.platformAdmin('nav.workshops');
+  static const optionSetsBackendDefinedBadge = UiMessageKey.platformAdmin(
+    'optionSets.backendDefined.badge',
+  );
+  static const optionSetsBackendDefinedHelper = UiMessageKey.platformAdmin(
+    'optionSets.backendDefined.helper',
+  );
+  static const optionSetsChecklistHelper = UiMessageKey.platformAdmin(
+    'optionSets.checklist.helper',
+  );
+  static const optionSetsCodeImmutable = UiMessageKey.platformAdmin(
+    'optionSets.codeImmutable',
+  );
+  static const optionSetsEmptyChecklist = UiMessageKey.platformAdmin(
+    'optionSets.empty.checklist',
+  );
+  static const optionSetsEmptyEnums = UiMessageKey.platformAdmin(
+    'optionSets.empty.enums',
+  );
+  static const optionSetsEmptyStatuses = UiMessageKey.platformAdmin(
+    'optionSets.empty.statuses',
+  );
+  static const optionSetsEnumsHelper = UiMessageKey.platformAdmin(
+    'optionSets.enums.helper',
+  );
+  static const optionSetsListChecklist = UiMessageKey.platformAdmin(
+    'optionSets.list.checklist',
+  );
+  static const optionSetsListEnums = UiMessageKey.platformAdmin(
+    'optionSets.list.enums',
+  );
+  static const optionSetsListStatuses = UiMessageKey.platformAdmin(
+    'optionSets.list.statuses',
+  );
+  static const optionSetsStatusesHelper = UiMessageKey.platformAdmin(
+    'optionSets.statuses.helper',
+  );
+  static const optionSetsTransitionsAction = UiMessageKey.platformAdmin(
+    'optionSets.transitionsAction',
+  );
   static const pageAuditEyebrow = UiMessageKey.platformAdmin(
     'page.audit.eyebrow',
   );
@@ -1883,6 +2093,120 @@ abstract final class PlatformAdminKeys {
   );
   static const pageTranslationQueueTitle = UiMessageKey.platformAdmin(
     'page.translationQueue.title',
+  );
+  static const pageTranslationReviewActionApprove = UiMessageKey.platformAdmin(
+    'page.translationReview.action.approve',
+  );
+  static const pageTranslationReviewActionEdit = UiMessageKey.platformAdmin(
+    'page.translationReview.action.edit',
+  );
+  static const pageTranslationReviewActionReject = UiMessageKey.platformAdmin(
+    'page.translationReview.action.reject',
+  );
+  static const pageTranslationReviewBlockedBody = UiMessageKey.platformAdmin(
+    'page.translationReview.blocked.body',
+  );
+  static const pageTranslationReviewBlockedOpen = UiMessageKey.platformAdmin(
+    'page.translationReview.blocked.open',
+  );
+  static const pageTranslationReviewBlockedTitle = UiMessageKey.platformAdmin(
+    'page.translationReview.blocked.title',
+  );
+  static const pageTranslationReviewColumnEntity = UiMessageKey.platformAdmin(
+    'page.translationReview.column.entity',
+  );
+  static const pageTranslationReviewColumnField = UiMessageKey.platformAdmin(
+    'page.translationReview.column.field',
+  );
+  static const pageTranslationReviewColumnMachine = UiMessageKey.platformAdmin(
+    'page.translationReview.column.machine',
+  );
+  static const pageTranslationReviewColumnProvider = UiMessageKey.platformAdmin(
+    'page.translationReview.column.provider',
+  );
+  static const pageTranslationReviewColumnSource = UiMessageKey.platformAdmin(
+    'page.translationReview.column.source',
+  );
+  static const pageTranslationReviewEditBody = UiMessageKey.platformAdmin(
+    'page.translationReview.edit.body',
+  );
+  static const pageTranslationReviewEditTitle = UiMessageKey.platformAdmin(
+    'page.translationReview.edit.title',
+  );
+  static const pageTranslationReviewEmptyBody = UiMessageKey.platformAdmin(
+    'page.translationReview.empty.body',
+  );
+  static const pageTranslationReviewEmptyTitle = UiMessageKey.platformAdmin(
+    'page.translationReview.empty.title',
+  );
+  static const pageTranslationReviewFilterPending = UiMessageKey.platformAdmin(
+    'page.translationReview.filter.pending',
+  );
+  static const pageTranslationReviewFilterReviewed = UiMessageKey.platformAdmin(
+    'page.translationReview.filter.reviewed',
+  );
+  static const pageTranslationReviewFilterStale = UiMessageKey.platformAdmin(
+    'page.translationReview.filter.stale',
+  );
+  static const pageTranslationReviewIssueEntity = UiMessageKey.platformAdmin(
+    'page.translationReview.issue.entity',
+  );
+  static const pageTranslationReviewIssueField = UiMessageKey.platformAdmin(
+    'page.translationReview.issue.field',
+  );
+  static const pageTranslationReviewIssueLanguage = UiMessageKey.platformAdmin(
+    'page.translationReview.issue.language',
+  );
+  static const pageTranslationReviewIssueMore = UiMessageKey.platformAdmin(
+    'page.translationReview.issue.more',
+  );
+  static const pageTranslationReviewIssueReason = UiMessageKey.platformAdmin(
+    'page.translationReview.issue.reason',
+  );
+  static const pageTranslationReviewLanguage = UiMessageKey.platformAdmin(
+    'page.translationReview.language',
+  );
+  static const pageTranslationReviewRejectNote = UiMessageKey.platformAdmin(
+    'page.translationReview.reject.note',
+  );
+  static const pageTranslationReviewRejectTitle = UiMessageKey.platformAdmin(
+    'page.translationReview.reject.title',
+  );
+  static const pageTranslationReviewSafetyBadge = UiMessageKey.platformAdmin(
+    'page.translationReview.safetyBadge',
+  );
+  static const pageTranslationReviewState = UiMessageKey.platformAdmin(
+    'page.translationReview.state',
+  );
+  static const pageTranslationReviewSubtitle = UiMessageKey.platformAdmin(
+    'page.translationReview.subtitle',
+  );
+  static const pageTranslationReviewSummaryPending = UiMessageKey.platformAdmin(
+    'page.translationReview.summary.pending',
+  );
+  static const pageTranslationReviewSummaryReviewed = UiMessageKey.platformAdmin(
+    'page.translationReview.summary.reviewed',
+  );
+  static const pageTranslationReviewSummarySafetyBlocked = UiMessageKey.platformAdmin(
+    'page.translationReview.summary.safetyBlocked',
+  );
+  static const pageTranslationReviewSummarySafetyPending = UiMessageKey.platformAdmin(
+    'page.translationReview.summary.safetyPending',
+  );
+  static const pageTranslationReviewSummaryStale = UiMessageKey.platformAdmin(
+    'page.translationReview.summary.stale',
+  );
+  static const pageTranslationReviewTitle = UiMessageKey.platformAdmin(
+    'page.translationReview.title',
+  );
+  static const pageTranslationReviewToastApproved = UiMessageKey.platformAdmin(
+    'page.translationReview.toast.approved',
+  );
+  static const pageTranslationReviewToastRejected = UiMessageKey.platformAdmin(
+    'page.translationReview.toast.rejected',
+  );
+  static const pageTranslationReviewToastSaved = UiMessageKey.platformAdmin(
+    'page.translationReview.toast.saved',
   );
   static const pageUiMessagesReviewSubtitle = UiMessageKey.platformAdmin(
     'page.uiMessagesReview.subtitle',
@@ -2229,6 +2553,15 @@ abstract final class PlatformAdminKeys {
   static const settingsScopeBadge = UiMessageKey.platformAdmin(
     'settings.scopeBadge',
   );
+  static const settingsTranslationReviewAction = UiMessageKey.platformAdmin(
+    'settings.translationReview.action',
+  );
+  static const settingsTranslationReviewBody = UiMessageKey.platformAdmin(
+    'settings.translationReview.body',
+  );
+  static const settingsTranslationReviewTitle = UiMessageKey.platformAdmin(
+    'settings.translationReview.title',
+  );
   static const sidebarLanguagesActionContinueGeneration = UiMessageKey.platformAdmin(
     'sidebar.languages.actionContinueGeneration',
   );
@@ -2355,6 +2688,15 @@ abstract final class PlatformAdminKeys {
   );
   static const tabItemArabic = UiMessageKey.platformAdmin('tab.item.arabic');
   static const tabItemEnglish = UiMessageKey.platformAdmin('tab.item.english');
+  static const tabOptionSetsChecklist = UiMessageKey.platformAdmin(
+    'tab.optionSets.checklist',
+  );
+  static const tabOptionSetsEnums = UiMessageKey.platformAdmin(
+    'tab.optionSets.enums',
+  );
+  static const tabOptionSetsStatuses = UiMessageKey.platformAdmin(
+    'tab.optionSets.statuses',
+  );
   static const tabTemplates = UiMessageKey.platformAdmin('tab.templates');
   static const tabWorkshopActivity = UiMessageKey.platformAdmin(
     'tab.workshop.activity',

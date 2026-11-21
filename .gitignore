@@ -57,3 +57,7 @@ infra/backups*
 
 # Local development credentials (never commit real values)
 TEST_LOGIN_CREDENTIALS.txt
+
+# Playwright MCP page dumps and local evidence storage
+.playwright-mcp/
+server/.truereport-storage/

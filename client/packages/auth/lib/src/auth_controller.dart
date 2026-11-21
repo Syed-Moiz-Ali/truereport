@@ -85,7 +85,19 @@ class AuthController extends AsyncNotifier<Session?> {
   }
 
   Future<void> signOut() async {
-    await _repository.signOut();
+    // Leave protected screens immediately. The router listens to this state and
+    // must not wait for the logout round-trip (which can 401, hang or fail).
+    ref.read(apiClientProvider).accessToken = null;
     state = const AsyncData(null);
+    try {
+      await _repository.signOut();
+    } on Object {
+      // Local sign-out already happened; make sure the stored session is gone.
+      try {
+        await ref.read(sessionStoreProvider).clear();
+      } on Object {
+        // Storage unavailable: the in-memory state is still signed out.
+      }
+    }
   }
 }

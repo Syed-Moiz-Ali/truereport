@@ -198,6 +198,9 @@ class _DispatchQueuePageState extends ConsumerState<DispatchQueuePage> {
     );
   }
 
+  // Fallback only while statusesProvider('job') is loading or empty; the
+  // served records replace this sequence as soon as they arrive.
+  // gate-allow: codes
   static const _fallbackStages = <String>[
     'DRAFT',
     'SCHEDULED',

@@ -1831,6 +1831,19 @@
     "technicianPhotoGuide": {},
     "technicianDocumentGuide": {},
     "technicianChooseSource": {},
-    "technicianSourceFiles": {}
+    "technicianSourceFiles": {},
+    "translationReviewRequiredTitle": {},
+    "translationReviewRequiredBody": {},
+    "translationIssueEntity": {},
+    "translationIssueField": {},
+    "translationIssueLanguage": {},
+    "translationIssueReason": {},
+    "translationIssueMore": {
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    }
   }
 }

@@ -25,19 +25,48 @@ public class DocumentTypeService {
     private final FieldAuditService audit;
     private final TranslationGate translationGate;
     private final DynamicContentTranslations translations;
+    private final com.truereport.shared.i18n.ContentTranslationService contentTranslations;
+    private final com.truereport.shared.i18n.RequestLanguageContext languageContext;
+    private final com.truereport.shared.i18n.ContentAuthoring authoring;
 
     public DocumentTypeService(DocumentTypeRepository repository, FieldAuditService audit,
                                TranslationGate translationGate,
-                               DynamicContentTranslations translations) {
+                               DynamicContentTranslations translations,
+                               com.truereport.shared.i18n.ContentTranslationService contentTranslations,
+                               com.truereport.shared.i18n.RequestLanguageContext languageContext,
+                               com.truereport.shared.i18n.ContentAuthoring authoring) {
         this.repository = repository;
         this.audit = audit;
         this.translationGate = translationGate;
         this.translations = translations;
+        this.contentTranslations = contentTranslations;
+        this.languageContext = languageContext;
+        this.authoring = authoring;
     }
 
     @Transactional(readOnly = true)
     public List<DocumentTypeDto> list() {
-        return repository.findAllOrdered();
+        List<DocumentTypeDto> dtos = repository.findAllOrdered();
+        String lang = languageContext.activeLanguage();
+        if (lang.equals(contentTranslations.defaultLanguage()) || dtos.isEmpty()) {
+            return dtos;
+        }
+        java.util.Map<String, java.util.Map<String, String>> english =
+                new java.util.LinkedHashMap<>();
+        for (DocumentTypeDto dto : dtos) {
+            english.put(dto.id(), java.util.Map.of("name",
+                    dto.name() == null ? "" : dto.name()));
+        }
+        java.util.Map<String, java.util.Map<String, String>> localized =
+                contentTranslations.resolveMany("DOCUMENT_TYPE", english, lang);
+        return dtos.stream().map(dto -> {
+            java.util.Map<String, String> values =
+                    localized.getOrDefault(dto.id(), java.util.Map.of());
+            return new DocumentTypeDto(dto.id(), dto.code(),
+                    values.getOrDefault("name", dto.name() == null ? "" : dto.name()),
+                    dto.status(), dto.required(), dto.sortOrder(), dto.translations(),
+                    dto.nameEn(), dto.nameAr());
+        }).toList();
     }
 
     @Transactional
@@ -65,6 +94,7 @@ public class DocumentTypeService {
                 request.sortOrder() == null ? 0 : request.sortOrder(),
                 allLiveProvided ? "ACTIVE" : "DRAFT");
         DocumentTypeDto result = repository.findById(created.id()).orElse(created);
+        authoring.publish("DOCUMENT_TYPE", result.id(), Map.of("name", name.trim()));
         audit.record(actor, "DOCUMENT_TYPE_CREATED", "DOCUMENT_TYPE", result.id(),
                 null, result, null, http);
         return result;
@@ -94,6 +124,8 @@ public class DocumentTypeService {
         }
         repository.update(id, name, fields, required, sortOrder, status);
         DocumentTypeDto updated = repository.findById(id).orElse(existing);
+        authoring.publish("DOCUMENT_TYPE", id,
+                Map.of("name", name == null ? updated.name() : name));
         audit.record(actor, "DOCUMENT_TYPE_UPDATED", "DOCUMENT_TYPE", id,
                 existing, updated, null, http);
         return updated;

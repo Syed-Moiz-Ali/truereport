@@ -79,7 +79,8 @@ public class PlatformJobStore {
             String itemCode, String itemVersionId, String resultCode, String severityCode,
             String notesEn, String notesAr, String reasonCode, Integer score,
             String labelEn, String labelAr, String instructionEn, String instructionAr,
-            String categoryEn, String categoryAr, int sortOrder) {
+            String standardSpecEn, String categoryId, String categoryEn, String categoryAr,
+            int sortOrder) {
     }
 
     public record EvidenceRuleRow(int minPhotos, int minVideos, String requiredEvidenceType) {
@@ -427,6 +428,8 @@ public class PlatformJobStore {
                        (SELECT body FROM platform_translations pt
                         WHERE pt.entity_type = 'ITEM' AND pt.entity_id = v.id
                           AND pt.field_name = 'instruction' AND pt.lang = 'ar') AS instruction_ar,
+                       v.standard_spec AS standard_spec_en,
+                       c.id AS category_id,
                        c.name AS category_en,
                        (SELECT body FROM platform_translations pt
                         WHERE pt.entity_type = 'CATEGORY' AND pt.entity_id = c.id
@@ -445,6 +448,7 @@ public class PlatformJobStore {
                 rs.getString("reason_code"), nullableInt(rs, "score"),
                 rs.getString("label_en"), rs.getString("label_ar"),
                 rs.getString("instruction_en"), rs.getString("instruction_ar"),
+                rs.getString("standard_spec_en"), rs.getString("category_id"),
                 rs.getString("category_en"), rs.getString("category_ar"),
                 rs.getInt("category_sort")), jobId);
     }

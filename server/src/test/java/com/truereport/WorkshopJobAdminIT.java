@@ -36,6 +36,18 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
     @Autowired
     PlatformUiMessageCatalog uiMessages;
 
+    @Autowired
+    com.truereport.shared.i18n.ContentTranslationService contentTranslations;
+
+    @Autowired
+    com.truereport.shared.i18n.ContentChangePublisher changes;
+
+    @Autowired
+    com.truereport.shared.i18n.ContentTranslationWorker translationWorker;
+
+    @Autowired
+    com.truereport.shared.i18n.ContentReviewService reviews;
+
     @Test
     void jobCreateListDetailUpdateAssignCancelAndTenantScoping() throws Exception {
         Login adminA = login("admin.a@test.local");
@@ -591,6 +603,17 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         return objectMapper.readTree(result.getResponse().getContentAsString());
     }
 
+    private static String jobUpdateBody(String language, int version) {
+        return """
+                {"customerName":"Spanish customer","customerPhone":"+971500000000",
+                 "customerEmail":"customer@test.local","vehicleVin":"1HGCM82633A004352",
+                 "vehicleMake":"Toyota","vehicleModel":"Camry","vehicleYear":2022,
+                 "vehiclePlate":"A12345","odometerValue":12000,"odometerUnit":"KM",
+                 "transmission":"AUTOMATIC","fuelType":"PETROL",
+                 "preferredLanguage":"%s","version":%d}
+                """.formatted(language, version);
+    }
+
     private String jobBody(Seed seed, String customer, String technicianId) {
         return """
                 {"templateVersionId":"%s","customerName":"%s",
@@ -608,6 +631,143 @@ class WorkshopJobAdminIT extends IntegrationTestBase {
         List<String> codes = new ArrayList<>();
         actions.forEach(action -> codes.add(action.get("code").asText()));
         return codes;
+    }
+
+    @Test
+    void spanishJobRendersLocalizedReportAndGate() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        JsonNode created = createJob(adminA, seed, "Spanish customer", null);
+        String jobId = created.get("id").asText();
+        // The API must accept every language declared in i18n/languages.json and
+        // reject unknown codes; a hardcoded allow-list would break Phase E.
+        mockMvc.perform(put(JOBS + "/" + jobId)
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jobUpdateBody("xx", created.get("version").asInt())))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("JOB_VALIDATION_FAILED"));
+        mockMvc.perform(put(JOBS + "/" + jobId)
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jobUpdateBody("es", created.get("version").asInt())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.preferredLanguage").value("es"));
+        markPendingReview(jobId);
+        insertResults(jobId, seed, "ATTENTION_RECOMMENDED", 70, 1, 1,
+                "NO_ISSUE_OBSERVED", 96, 1, 1);
+        seedAssessments(jobId, seed,
+                new String[]{"ATTENTION_RECOMMENDED", "MODERATE", "70"},
+                new String[]{"NO_ISSUE_OBSERVED", "MINOR", "96"});
+
+        String versionId = seed.itemVersionIds().get(0);
+        String secondVersionId = seed.itemVersionIds().get(1);
+        String categoryId = jdbc.queryForObject("""
+                SELECT i.category_id FROM platform_items i
+                JOIN platform_item_versions v ON v.item_id = i.id
+                WHERE v.id = ?
+                """, String.class, versionId);
+        jdbc.update("UPDATE platform_item_versions SET instruction = ? WHERE id = ?",
+                "Check the brake pad", versionId);
+        contentTranslations.write("ITEM", versionId, "label", "es",
+                "Etiqueta española", "test");
+        contentTranslations.write("CATEGORY", categoryId, "name", "es",
+                "Categoría española", "test");
+        changes.fieldChanged("ITEM", versionId, "instruction", "Check the brake pad");
+        String secondInstruction = jdbc.queryForObject(
+                "SELECT instruction FROM platform_item_versions WHERE id = ?",
+                String.class, secondVersionId);
+        if (secondInstruction != null && !secondInstruction.isBlank()) {
+            changes.fieldChanged("ITEM", secondVersionId, "instruction", secondInstruction);
+        }
+        translationWorker.workOnce();
+
+        postJson(adminA, JOBS + "/" + jobId + "/approve", "{\"reason\":\"Reviewed\"}");
+        mockMvc.perform(post(JOBS + "/" + jobId + "/publish")
+                        .header("Authorization", "Bearer " + adminA.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"pdfDownloadEnabled\":true}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("TRANSLATION_REVIEW_REQUIRED"));
+
+        reviews.review("ITEM", versionId, "instruction", "es", "APPROVE", null,
+                "Approved in test", "test");
+        if (secondInstruction != null && !secondInstruction.isBlank()) {
+            reviews.review("ITEM", secondVersionId, "instruction", "es", "APPROVE", null,
+                    "Approved in test", "test");
+        }
+        JsonNode link = postJson(adminA, JOBS + "/" + jobId + "/publish",
+                "{\"pdfDownloadEnabled\":true}");
+        String token = link.get("token").asText();
+
+        String html = mockMvc.perform(get("/r/" + token))
+                .andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(html).contains("lang=\"es\"");
+        assertThat(html).contains("Informe de inspección del vehículo");
+        assertThat(html).contains("Etiqueta española");
+        assertThat(html).contains("Categoría española");
+
+        String snapshotJson = jdbc.queryForObject("""
+                SELECT v.snapshot_json FROM platform_public_links l
+                JOIN platform_report_versions v ON v.id = l.report_version_id
+                WHERE l.job_id = ?
+                """, String.class, jobId);
+        assertThat(snapshotJson).contains("[[es]] Check the pastilla de freno",
+                "Etiqueta española", "\"language\":\"es\"");
+
+        byte[] pdf = mockMvc.perform(get("/r/" + token + "/pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", MediaType.APPLICATION_PDF_VALUE))
+                .andReturn().getResponse().getContentAsByteArray();
+        String pdfText = pdfText(pdf);
+        assertThat(pdfText).contains("Informe de inspección", "Etiqueta española");
+    }
+
+    @Test
+    void englishJobKeepsEnglishReport() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Seed seed = seedTemplate(true);
+        String jobId = approvedJob(adminA, seed, "English customer");
+
+        JsonNode link = postJson(adminA, JOBS + "/" + jobId + "/publish", "{}");
+        String html = mockMvc.perform(get("/r/" + link.get("token").asText()))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        assertThat(html).contains("lang=\"en\"");
+        assertThat(html).contains("Vehicle inspection report");
+        assertThat(html).doesNotContain("Informe de inspección del vehículo");
+    }
+
+    private static String pdfText(byte[] pdf) throws Exception {
+        try (org.apache.pdfbox.pdmodel.PDDocument document =
+                     org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            return new org.apache.pdfbox.text.PDFTextStripper().getText(document);
+        }
+    }
+
+    private void seedAssessments(String jobId, Seed seed, String[] first, String[] second) {
+        insertAssessment(jobId, seed.itemVersionIds().get(0), first);
+        insertAssessment(jobId, seed.itemVersionIds().get(1), second);
+    }
+
+    private void insertAssessment(String jobId, String itemVersionId, String[] values) {
+        String itemCode = jdbc.queryForObject("""
+                SELECT i.stable_code FROM platform_items i
+                JOIN platform_item_versions v ON v.item_id = i.id
+                WHERE v.id = ?
+                """, String.class, itemVersionId);
+        jdbc.update("""
+                INSERT INTO platform_assessments
+                    (id, job_id, item_version_id, item_code, result_code, severity_code,
+                     suggested_result_code, suggested_score, score, notes_en, notes_ar,
+                     reason_code, state, client_revision, server_revision, conflict_state,
+                     assessed_by, created_at, updated_at, version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, 'COMPLETE', 1, 1,
+                        'NONE', 'test', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
+                """, UUID.randomUUID().toString(), jobId, itemVersionId, itemCode,
+                values[0], values[1], values[0], Integer.parseInt(values[2]),
+                Integer.parseInt(values[2]));
     }
 
     private String approvedJob(Login login, Seed seed, String customer) throws Exception {        String jobId = createJob(login, seed, customer, null).get("id").asText();

@@ -44,10 +44,17 @@ public class PublicReportController {
     public ModelAndView page(@PathVariable String token,
                              @RequestParam(defaultValue = "en") String lang,
                              HttpServletResponse response) {
-        // English-only product: any lang parameter is ignored.
+        // Published snapshots carry their own language; ?lang= never overrides it.
         String language = "en";
         PublicReportService.Resolution resolution = service.resolve(token, language);
         response.setStatus(PublicReportService.statusFor(resolution.status()).value());
+        response.setCharacterEncoding(java.nio.charset.StandardCharsets.UTF_8.name());
+        if (resolution.status() == PublicReportService.Status.ACTIVE) {
+            Object resolvedLanguage = resolution.resolved().page().get("lang");
+            if (resolvedLanguage != null && !resolvedLanguage.toString().isBlank()) {
+                language = resolvedLanguage.toString();
+            }
+        }
         Map<String, Object> model = new LinkedHashMap<>();
         model.put("labels", ReportMessages.labels(language));
         model.put("lang", language);

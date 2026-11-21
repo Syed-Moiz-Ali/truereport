@@ -109,6 +109,7 @@ class ApiClient {
     final normalized = path.split('?').first;
     return normalized.startsWith('/api/v1/i18n/') ||
         normalized == '/api/v1/auth/login' ||
+        normalized == '/api/v1/auth/logout' ||
         normalized == '/api/v1/auth/refresh' ||
         normalized == '/api/v1/auth/2fa/verify' ||
         normalized.startsWith('/r/') ||
@@ -213,11 +214,13 @@ class ApiClient {
     String path, {
     Object? body,
     Map<String, String>? headers,
+    Map<String, dynamic>? query,
   }) async {
     try {
       final response = await _dio.put<dynamic>(
         path,
         data: body,
+        queryParameters: query,
         options: Options(headers: _headers(path, headers)),
       );
       return response.data;

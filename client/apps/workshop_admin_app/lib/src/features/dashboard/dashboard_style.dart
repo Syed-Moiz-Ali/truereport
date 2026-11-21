@@ -121,6 +121,9 @@ Color dashboardStatusTint(WorkshopStatusTone tone, WorkshopTokens ws) {
 
 /// Fixed display order of the nine verified statuses
 /// (docs/data/dashboard_inventory.md §2a).
+///
+/// Display sequence only: tones and labels come from the served taxonomy.
+// gate-allow: codes
 const List<String> dashboardStatusOrder = <String>[
   'DRAFT',
   'SCHEDULED',

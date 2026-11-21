@@ -41,8 +41,13 @@ class MySqlMigrationIT {
                 .locations("classpath:db/migration", "classpath:db/migration-mysql")
                 .load();
         latest.migrate();
-        assertThat(latest.info().current().getVersion().toString()).isEqualTo("128");
+        assertThat(latest.info().current().getVersion().toString()).isEqualTo("135");
         assertThat(tableExists("audit_events")).isTrue();
+        assertThat(tableExists("reference_domain")).isFalse();
+        assertThat(tableExists("status_transition")).isTrue();
+        assertThat(columnExists("platform_option_sets", "set_kind")).isTrue();
+        assertThat(columnExists("platform_option_sets", "domain_key")).isTrue();
+        assertThat(columnExists("platform_option_sets", "code_locked")).isTrue();
         assertThat(tableExists("invitations")).isTrue();
         assertThat(tableExists("account_idempotency_keys")).isTrue();
         assertThat(tableExists("master_inspection_items")).isTrue();
@@ -59,6 +64,7 @@ class MySqlMigrationIT {
         assertThat(tableExists("public_share_links")).isTrue();
         assertThat(tableExists("platform_option_values")).isTrue();
         assertThat(columnExists("platform_option_values", "label_key")).isTrue();
+        assertThat(tableExists("translation_glossary")).isTrue();
         assertThat(triggerExists("trg_reports_no_update")).isTrue();
         assertThat(triggerExists("trg_report_versions_no_update")).isTrue();
         assertThat(triggerExists("trg_public_share_link_no_token_change")).isTrue();

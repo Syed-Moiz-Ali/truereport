@@ -67,6 +67,20 @@ springdoc:
 truereport:
   i18n:
     ui-messages-dir: ${UI_MESSAGES_DIR:src/main/resources/i18n}
+    translation:
+      provider: ${I18N_TRANSLATION_PROVIDER:fake}
+      worker-enabled: ${I18N_WORKER_ENABLED:true}
+      batch-size: 25
+      max-attempts: 3
+      backoff-seconds: 30
+      stale-timeout-seconds: 300
+      fixed-delay-ms: 15000
+      libretranslate:
+        url: ${LIBRETRANSLATE_URL:http://localhost:5000}
+        timeout: ${LIBRETRANSLATE_TIMEOUT:10s}
+        api-key: ${LIBRETRANSLATE_API_KEY:}
+        batch-size: 20
+        format: text
   jwt:
     issuer: truereport
     audience: truereport-api

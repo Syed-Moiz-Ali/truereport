@@ -7,13 +7,16 @@ import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/app.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Real web URLs (/jobs) instead of hash fragments (/#/jobs).
   usePathUrlStrategy();
+  final uiMessageStore = await createUiMessageStore();
   runApp(
     ProviderScope(
       overrides: [
+        // Durable selection + catalogs: a chosen language survives a reload.
+        uiMessageStoreProvider.overrideWithValue(uiMessageStore),
         // One shared fetcher; the app owns no language implementation.
         uiMessageFetcherProvider.overrideWith(
           (ref) => ref.watch(technicianUiMessageFetcherProvider),

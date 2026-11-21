@@ -2529,6 +2529,27 @@ abstract final class WorkshopAdminKeys {
   static const translationCoverage = UiMessageKey.workshopAdmin(
     'translationCoverage',
   );
+  static const translationIssueEntity = UiMessageKey.workshopAdmin(
+    'translationIssueEntity',
+  );
+  static const translationIssueField = UiMessageKey.workshopAdmin(
+    'translationIssueField',
+  );
+  static const translationIssueLanguage = UiMessageKey.workshopAdmin(
+    'translationIssueLanguage',
+  );
+  static const translationIssueMore = UiMessageKey.workshopAdmin(
+    'translationIssueMore',
+  );
+  static const translationIssueReason = UiMessageKey.workshopAdmin(
+    'translationIssueReason',
+  );
+  static const translationReviewRequiredBody = UiMessageKey.workshopAdmin(
+    'translationReviewRequiredBody',
+  );
+  static const translationReviewRequiredTitle = UiMessageKey.workshopAdmin(
+    'translationReviewRequiredTitle',
+  );
   static const twoFactorLabel = UiMessageKey.workshopAdmin('twoFactorLabel');
   static const twoFactorRequired = UiMessageKey.workshopAdmin(
     'twoFactorRequired',

@@ -36,12 +36,19 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
     }
 
     @Test
-    void manifestAndRegistryExposeEnglishOnlyForPlatformAdmin() throws Exception {
+    void registryExposesEveryLiveLanguage() throws Exception {
         Login platform = login("platform@test.local");
         JsonNode registry = getJson(platform, "/api/v1/platform/i18n/languages");
-        assertThat(registry.size()).isEqualTo(1);
+        // The DB registry is seeded from i18n/languages.json in manifest order;
+        // admin-created languages are covered by LanguageAdminIT.
+        assertThat(registry.size()).isEqualTo(3);
         assertThat(registry.get(0).get("code").asText()).isEqualTo("en");
-        assertThat(registry.get(0).get("status").asText()).isEqualTo("LIVE");
+        assertThat(registry.get(1).get("code").asText()).isEqualTo("es");
+        assertThat(registry.get(2).get("code").asText()).isEqualTo("fr");
+        for (JsonNode language : registry) {
+            assertThat(language.get("status").asText()).isEqualTo("LIVE");
+            assertThat(language.get("active").asBoolean()).isTrue();
+        }
     }
 
     @Test
@@ -115,9 +122,8 @@ class PlatformUiMessagesIT extends IntegrationTestBase {
         assertThat(es.get("messages").get("signInTitle").asText())
                 .isEqualTo("Iniciar sesión")
                 .isNotEqualTo(en.get("messages").get("signInTitle").asText());
-        // Untranslated keys still resolve to their English value.
-        assertThat(es.get("messages").get("twoFactorLabel").asText())
-                .isEqualTo("Authentication code");
+        // Spanish covers every key now; per-key English fallback is covered by
+        // UiMessageLanguageAdditionTest with a deliberately partial catalog.
 
         // Split invariant, derived rather than pinned: messages == common + client.
         int commonSize = en.get("catalogs").get("common").size();

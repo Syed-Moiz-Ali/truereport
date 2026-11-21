@@ -67,6 +67,9 @@ class JobStageRail extends ConsumerWidget {
 
   final String status;
 
+  // Stage rail sequence mirroring the server lifecycle; labels and tones
+  // resolve through statusesProvider('job').
+  // gate-allow: codes
   static const stages = <String>[
     'DRAFT',
     'SCHEDULED',

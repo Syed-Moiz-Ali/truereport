@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import 'package:workshop_admin_app/src/features/jobs/publish/publish_gate.dart';
 import 'package:workshop_admin_app/src/features/jobs/publish/publish_states.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_action_set.dart';
 import 'package:workshop_admin_app/src/features/jobs/shared/job_error_copy.dart';
+import 'package:workshop_admin_app/src/shared/translation_issue_dialog.dart';
 import 'package:workshop_admin_app/src/workshop_job_models.dart';
 import 'package:workshop_admin_app/src/workshop_job_providers.dart';
 
@@ -254,9 +256,12 @@ class _PublishChecklistPageState extends ConsumerState<PublishChecklistPage> {
       );
     } on Object catch (error) {
       ref.invalidate(publishChecklistProvider(widget.jobId));
-      if (mounted) {
-        setState(() => _error = jobErrorCopy(t, error));
+      if (!mounted) return;
+      if (error is AppFailure && error.code == 'TRANSLATION_REVIEW_REQUIRED') {
+        await showTranslationIssuesDialog(context, error);
+        return;
       }
+      setState(() => _error = jobErrorCopy(t, error));
     } finally {
       if (mounted) {
         setState(() => _busy = false);

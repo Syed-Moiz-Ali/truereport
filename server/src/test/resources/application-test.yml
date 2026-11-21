@@ -26,6 +26,15 @@ truereport:
     key: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
   storage:
     local-root: ./target/test-storage
+  i18n:
+    translation:
+      provider: fake
+      worker-enabled: false
+      batch-size: 25
+      max-attempts: 3
+      backoff-seconds: 0
+      stale-timeout-seconds: 300
+      fixed-delay-ms: 60000
   invitations:
     ttl: PT72H
   dev:

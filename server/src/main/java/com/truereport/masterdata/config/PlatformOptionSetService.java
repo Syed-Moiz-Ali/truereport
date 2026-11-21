@@ -28,51 +28,48 @@ public class PlatformOptionSetService {
     private final FieldAuditService audit;
     private final TranslationGate translationGate;
     private final DynamicContentTranslations translations;
+    private final ContentLocalizer localizer;
+    private final com.truereport.shared.i18n.RequestLanguageContext languageContext;
+    private final com.truereport.shared.i18n.ContentAuthoring authoring;
 
     public PlatformOptionSetService(OptionSetRepository repository, FieldAuditService audit,
                                     TranslationGate translationGate,
-                                    DynamicContentTranslations translations) {
+                                    DynamicContentTranslations translations,
+                                    ContentLocalizer localizer,
+                                    com.truereport.shared.i18n.RequestLanguageContext languageContext,
+                                    com.truereport.shared.i18n.ContentAuthoring authoring) {
         this.repository = repository;
         this.audit = audit;
         this.translationGate = translationGate;
         this.translations = translations;
+        this.localizer = localizer;
+        this.languageContext = languageContext;
+        this.authoring = authoring;
     }
 
     @Transactional(readOnly = true)
     public List<OptionSetDto> list() {
-        return repository.findAll();
+        return localizer.optionSets(repository.findAll(), languageContext.activeLanguage());
     }
 
     @Transactional(readOnly = true)
     public OptionSetDto get(String id) {
-        return repository.findById(id).orElseThrow(ApiException::notFound);
+        return localizer.optionSet(repository.findById(id).orElseThrow(ApiException::notFound),
+                languageContext.activeLanguage());
     }
 
     @Transactional(readOnly = true)
     public List<OptionValueDto> values(String id) {
         repository.findById(id).orElseThrow(ApiException::notFound);
-        return repository.values(id);
+        return localizer.optionValues(repository.values(id), languageContext.activeLanguage());
     }
 
     @Transactional
     public OptionSetDto create(CurrentUser actor, OptionSetRequest request, HttpServletRequest http) {
-        translationGate.requireNewContentAllowed("Option set");
-        String code = requireCode(request.code());
-        String name = firstNonBlank(request.name(), source(request.translations(), "name", request.nameEn()));
-        translations.requireEnglishSource("name", name);
-        if (repository.findByCode(code).isPresent()) {
-            throw ApiException.conflict("OPTION_SET_EXISTS", "Option set code already exists");
-        }
-        Map<String, Map<String, String>> setTranslations =
-                overlays(request.translations(), "name", request.nameAr());
-        boolean allLiveProvided = translationGate.translationProvidedForLive(
-                setTranslations, "name");
-        OptionSetDto created = repository.insert(code, name.trim(), setTranslations,
-                request.sortOrder() == null ? 0 : request.sortOrder(),
-                allLiveProvided ? "ACTIVE" : "DRAFT");
-        OptionSetDto result = repository.findById(created.id()).orElse(created);
-        audit.record(actor, "OPTION_SET_CREATED", "OPTION_SET", result.id(), null, result, null, http);
-        return result;
+        // Option sets (including catalogue sets) are backend-defined. The route
+        // stays for contract compatibility but never writes a set.
+        throw ApiException.unprocessable("OPTION_SET_BACKEND_DEFINED",
+                "Option sets are backend-defined and cannot be created by clients");
     }
 
     @Transactional
@@ -82,6 +79,10 @@ public class PlatformOptionSetService {
         String name = request.translations() == null || request.translations().get("name") == null
                 ? firstNonBlank(request.name(), request.nameEn()) : source(request.translations(), "name", firstNonBlank(request.name(), request.nameEn()));
         String targetStatus = normalizeStatus(request.status());
+        if ("RETIRED".equals(targetStatus)) {
+            throw ApiException.unprocessable("OPTION_SET_BACKEND_DEFINED",
+                    "Option sets are backend-defined and cannot be retired by clients");
+        }
         if (statusChangeToActive(existing.status(), targetStatus)) {
             translationGate.requireOverlaysApproved("OPTION_SET", id);
         }
@@ -89,28 +90,26 @@ public class PlatformOptionSetService {
                 overlays(request.translations(), "name", request.nameAr()),
                 request.sortOrder(), targetStatus);
         OptionSetDto updated = repository.findById(id).orElse(existing);
+        authoring.publish("OPTION_SET", id, Map.of("name", name == null ? updated.name() : name));
         audit.record(actor, "OPTION_SET_UPDATED", "OPTION_SET", id, existing, updated, null, http);
         return updated;
     }
 
     @Transactional
     public OptionSetDto retire(CurrentUser actor, String id, HttpServletRequest http) {
-        OptionSetDto existing = repository.findById(id).orElseThrow(ApiException::notFound);
-        if (repository.optionSetInUse(id)) {
-            throw ApiException.conflict("OPTION_SET_IN_USE",
-                    "Option sets referenced by active items cannot be retired");
-        }
-        repository.retire(id);
-        OptionSetDto updated = repository.findById(id).orElse(existing);
-        audit.record(actor, "OPTION_SET_RETIRED", "OPTION_SET", id, existing, updated, null, http);
-        return updated;
+        repository.findById(id).orElseThrow(ApiException::notFound);
+        throw ApiException.unprocessable("OPTION_SET_BACKEND_DEFINED",
+                "Option sets are backend-defined and cannot be retired by clients");
     }
 
     @Transactional
     public OptionValueDto addValue(CurrentUser actor, String setId, OptionValueRequest request,
                                    HttpServletRequest http) {
-        translationGate.requireNewContentAllowed("Option value");
         OptionSetDto set = repository.findById(setId).orElseThrow(ApiException::notFound);
+        if (set.codeLocked()) {
+            throw codesLocked();
+        }
+        translationGate.requireNewContentAllowed("Option value");
         String code = requireCode(request.code());
         String label = firstNonBlank(request.label(), source(request.translations(), "label", request.labelEn()));
         translations.requireEnglishSource("label", label);
@@ -126,6 +125,7 @@ public class PlatformOptionSetService {
                 valueTranslations, request.sortOrder() == null ? 0 : request.sortOrder(),
                 request.metadataJson(), allLiveProvided ? "ACTIVE" : "DRAFT");
         OptionValueDto result = repository.findValue(created.id()).orElse(created);
+        authoring.publish("OPTION_VALUE", result.id(), Map.of("label", label.trim()));
         audit.record(actor, "OPTION_VALUE_CREATED", "OPTION_VALUE", result.id(), null, result, null, http);
         return result;
     }
@@ -135,6 +135,10 @@ public class PlatformOptionSetService {
                                       OptionValueUpdateRequest request, HttpServletRequest http) {
         OptionSetDto set = repository.findById(setId).orElseThrow(ApiException::notFound);
         OptionValueDto existing = repository.findValue(valueId).orElseThrow(ApiException::notFound);
+        if (set.codeLocked() && request.status() != null && !request.status().isBlank()
+                && !request.status().trim().equalsIgnoreCase(existing.status())) {
+            throw codesLocked();
+        }
         String label = request.translations() == null || request.translations().get("label") == null
                 ? firstNonBlank(request.label(), request.labelEn()) : source(request.translations(), "label", firstNonBlank(request.label(), request.labelEn()));
         String targetStatus = normalizeStatus(request.status());
@@ -147,6 +151,8 @@ public class PlatformOptionSetService {
                 overlays(request.translations(), "label", request.labelAr()), request.sortOrder(),
                 request.metadataJson(), targetStatus);
         OptionValueDto updated = repository.findValue(valueId).orElse(existing);
+        authoring.publish("OPTION_VALUE", valueId,
+                Map.of("label", label == null ? updated.label() : label));
         audit.record(actor, "OPTION_VALUE_UPDATED", "OPTION_VALUE", valueId, existing, updated, null, http);
         return updated;
     }
@@ -154,7 +160,10 @@ public class PlatformOptionSetService {
     @Transactional
     public OptionValueDto retireValue(CurrentUser actor, String setId, String valueId,
                                       String replacementCode, HttpServletRequest http) {
-        repository.findById(setId).orElseThrow(ApiException::notFound);
+        OptionSetDto set = repository.findById(setId).orElseThrow(ApiException::notFound);
+        if (set.codeLocked()) {
+            throw codesLocked();
+        }
         OptionValueDto existing = repository.findValue(valueId).orElseThrow(ApiException::notFound);
         if (repository.valueInUse(valueId)) {
             if (replacementCode == null || replacementCode.isBlank()) {
@@ -179,6 +188,11 @@ public class PlatformOptionSetService {
             repository.reorderValues(setId, orderedIds);
         }
         return repository.values(setId);
+    }
+
+    private static ApiException codesLocked() {
+        return ApiException.unprocessable("OPTION_SET_CODES_LOCKED",
+                "Codes are backend-defined for this option set");
     }
 
     private static String normalizeStatus(String status) {

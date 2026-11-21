@@ -60,7 +60,9 @@ class ChecklistPageFrame extends ConsumerWidget {
             _ChecklistCatalogSnapshot(
               itemsCount: itemsAsync.asData?.value.length,
               categoriesCount: categoriesAsync.asData?.value.length,
-              optionsCount: optionsAsync.asData?.value.length,
+              optionsCount: optionsAsync.asData?.value
+                  .where((set) => set.isChecklistCatalog)
+                  .length,
               health: healthAsync.asData?.value,
             ),
             const SizedBox(height: 16),

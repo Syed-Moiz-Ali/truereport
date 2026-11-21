@@ -259,6 +259,13 @@ final optionSetsProvider = FutureProvider.autoDispose<List<OptionSet>>(
   (ref) => ref.watch(platformConfigApiProvider).optionSets(),
 );
 
+/// Per-set values, used when the catalogue summary omits the value rows.
+final optionSetValuesProvider = FutureProvider.autoDispose
+    .family<List<OptionValue>, String>(
+      (ref, setId) =>
+          ref.watch(platformConfigApiProvider).optionSetValues(setId),
+    );
+
 final documentTypesProvider =
     FutureProvider.autoDispose<List<ReportDocumentType>>(
       (ref) => ref.watch(platformConfigApiProvider).documentTypes(),
@@ -308,6 +315,7 @@ class PlatformConfigActions {
     _ref.invalidate(itemDetailProvider);
     _ref.invalidate(itemConfigProvider);
     _ref.invalidate(optionSetsProvider);
+    _ref.invalidate(optionSetValuesProvider);
     _ref.invalidate(documentTypesProvider);
     _ref.invalidate(platformLanguagesProvider);
     _ref.invalidate(translationCoverageProvider);
@@ -315,6 +323,37 @@ class PlatformConfigActions {
     _ref.invalidate(configHealthProvider);
     _ref.invalidate(configReleasesProvider);
     _ref.invalidate(impactProvider);
+  }
+
+  /// Registry + coverage + readiness after a language registry write.
+  ///
+  /// The UI-message manifest is file-backed and cannot gain a language here,
+  /// so the list must be refreshed from the registry, not the manifest.
+  void _invalidateLanguages() {
+    _ref.invalidate(platformLanguagesProvider);
+    _ref.invalidate(translationCoverageProvider);
+    _ref.invalidate(readinessProvider);
+    _ref.invalidate(overviewProvider);
+  }
+
+  Future<PlatformLanguage> createLanguage({
+    required String code,
+    required String nativeName,
+    required String direction,
+  }) async {
+    final result = await _api.createLanguage(
+      code: code,
+      nativeName: nativeName,
+      direction: direction,
+    );
+    _invalidateLanguages();
+    return result;
+  }
+
+  Future<PlatformLanguage> retireLanguage(String code) async {
+    final result = await _api.retireLanguage(code);
+    _invalidateLanguages();
+    return result;
   }
 
   Future<SeedResult> seed() async {

@@ -28,6 +28,7 @@ export interface SeededJob {
   reference: string;
   status: string;
   assignedTechnicianId: string;
+  vehiclePlate: string;
 }
 
 export async function seedJob(
@@ -66,6 +67,9 @@ export async function seedJob(
     preferredLanguage: 'en',
     assignedTechnicianId: technician?.userId,
     consentGranted: true,
+    // The technician queue is day-scoped; a job without a schedule is invisible
+    // there. Scheduling it today keeps status ASSIGNED and makes it reachable.
+    scheduledAt: new Date().toISOString().slice(0, 19),
     ...overrides,
   };
 
@@ -74,7 +78,8 @@ export async function seedJob(
     data: payload,
   });
   expect(response.ok(), `create job: ${response.status()} ${await response.text()}`).toBeTruthy();
-  return (await response.json()) as SeededJob;
+  const created = (await response.json()) as Omit<SeededJob, 'vehiclePlate'>;
+  return { ...created, vehiclePlate: payload.vehiclePlate };
 }
 
 export async function getJob(

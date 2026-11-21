@@ -60,7 +60,7 @@ public class ReferenceService {
         if (domainKey == null) {
             throw ApiException.notFound();
         }
-        return records("STATUS", domainKey, caller, includeDraft);
+        return records(domainKey, caller, includeDraft);
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +70,7 @@ public class ReferenceService {
         if (domainKey == null) {
             throw ApiException.notFound();
         }
-        return records("ENUM", domainKey, caller, includeDraft);
+        return records(domainKey, caller, includeDraft);
     }
 
     @Transactional(readOnly = true)
@@ -116,100 +116,78 @@ public class ReferenceService {
 
     // ----------------------------------------------------------------- writes
 
+    /**
+     * Reference codes are backend-owned after the option-set merge. The route
+     * is kept for API compatibility but never creates a value.
+     */
     @Transactional
     public ReferenceRecordDto createStatus(String statusType, ReferenceWriteRequest request,
                                            CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
-        return create("STATUS", domainKey, request, actor);
+        requireDomain(statusType);
+        throw backendDefinedCodes();
     }
 
     @Transactional
     public ReferenceRecordDto updateStatus(String statusType, String code,
                                            ReferenceWriteRequest request, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireDomain(statusType);
         return update(domainKey, code, request, actor);
     }
 
     @Transactional
     public ReferenceRecordDto publishStatus(String statusType, String code, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireDomain(statusType);
         return publish(domainKey, code, actor);
     }
 
+    /**
+     * Retiring a system code would break clients and stored rows; admins can
+     * only edit its presentation. Kept as a route for contract compatibility.
+     */
     @Transactional
     public ReferenceRecordDto retireStatus(String statusType, String code, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
-        return retire(domainKey, code, actor);
+        requireDomain(statusType);
+        throw backendDefinedCodes();
     }
 
     @Transactional
     public List<ReferenceRecordDto> reorderStatuses(String statusType, List<ReorderEntry> entries,
                                                     CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireDomain(statusType);
         return reorder(domainKey, entries, actor);
     }
 
     @Transactional
     public List<ReferenceRecordDto> reorderEnums(String enumCode, List<ReorderEntry> entries,
                                                  CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireEnum(enumCode);
         return reorder(domainKey, entries, actor);
     }
 
     @Transactional
     public ReferenceRecordDto createEnum(String enumCode, ReferenceWriteRequest request,
                                          CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
-        return create("ENUM", domainKey, request, actor);
+        requireEnum(enumCode);
+        throw backendDefinedCodes();
     }
 
     @Transactional
     public ReferenceRecordDto updateEnum(String enumCode, String code,
                                          ReferenceWriteRequest request, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireEnum(enumCode);
         return update(domainKey, code, request, actor);
     }
 
     @Transactional
     public ReferenceRecordDto publishEnum(String enumCode, String code, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
+        String domainKey = requireEnum(enumCode);
         return publish(domainKey, code, actor);
     }
 
     @Transactional
     public ReferenceRecordDto retireEnum(String enumCode, String code, CurrentUser actor) {
-        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
-        if (domainKey == null) {
-            throw ApiException.notFound();
-        }
-        return retire(domainKey, code, actor);
+        requireEnum(enumCode);
+        throw backendDefinedCodes();
     }
 
     @Transactional
@@ -231,24 +209,10 @@ public class ReferenceService {
             repository.insertTransition(entity, entry.fromCode().trim(), entry.toCode().trim(),
                     entry.role().trim(), entry.guard() == null ? "{}" : json(entry.guard()));
         }
+        syncAllowedNext(entity, safe);
         audit(actor, "reference.transition.updated", entity, null,
                 Map.of("count", safe.size()));
         return transitions(entity, actor);
-    }
-
-    private ReferenceRecordDto create(String domainType, String domainKey,
-                                      ReferenceWriteRequest request, CurrentUser actor) {
-        String code = validateCode(request.code());
-        if (repository.find(domainKey, code).isPresent()) {
-            throw ApiException.conflict("REFERENCE_EXISTS",
-                    "Reference code already exists: " + code);
-        }
-        WriteValues values = validate(domainKey, request, code, true);
-        repository.insert(domainType, domainKey, code, values.labelKey, values.tone,
-                values.icon, values.order, values.selectable, jsonArray(values.visibleFor),
-                jsonArray(values.allowedNext), "DRAFT");
-        audit(actor, action(domainType, "created"), domainKey, code, values.asMap());
-        return dto(requireRow(domainKey, code));
     }
 
     private ReferenceRecordDto update(String domainKey, String code,
@@ -258,14 +222,20 @@ public class ReferenceService {
             throw ApiException.unprocessable("CODE_IMMUTABLE",
                     "Reference code is immutable after create");
         }
-        if ("RETIRED".equals(before.status())) {
+        if ("RETIRED".equals(referenceStatus(before.status()))) {
             throw ApiException.conflict("REFERENCE_RETIRED",
                     "Retired reference records cannot be edited");
         }
-        WriteValues values = validate(domainKey, request, code, false);
-        repository.update(domainKey, code, values.labelKey, values.tone, values.icon,
-                values.order, values.selectable, jsonArray(values.visibleFor),
-                jsonArray(values.allowedNext));
+        WriteValues values = validate(domainKey, request, code);
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("tone", values.tone);
+        metadata.put("icon", values.icon);
+        metadata.put("selectable", values.selectable);
+        metadata.put("visibleFor", values.visibleFor);
+        metadata.put("allowedNext", values.allowedNext);
+        metadata.put("legacyDomain", domainKey);
+        repository.updateValue(domainKey, code, catalogLabel(values.labelKey), values.labelKey,
+                values.order, json(metadata));
         audit(actor, "reference." + family(domainKey) + ".updated", domainKey, code,
                 values.asMap());
         return dto(requireRow(domainKey, code));
@@ -273,32 +243,12 @@ public class ReferenceService {
 
     private ReferenceRecordDto publish(String domainKey, String code, CurrentUser actor) {
         ReferenceRow row = requireRow(domainKey, code);
-        if (!"DRAFT".equals(row.status())) {
+        if (!"DRAFT".equals(referenceStatus(row.status()))) {
             throw ApiException.conflict("REFERENCE_STATE_INVALID",
                     "Only DRAFT references can be published");
         }
-        repository.updateStatus(domainKey, code, "PUBLISHED");
+        repository.updateValueStatus(domainKey, code, "ACTIVE");
         audit(actor, "reference." + family(domainKey) + ".published", domainKey, code,
-                Map.of("code", code));
-        return dto(requireRow(domainKey, code));
-    }
-
-    private ReferenceRecordDto retire(String domainKey, String code, CurrentUser actor) {
-        ReferenceRow row = requireRow(domainKey, code);
-        if (!"PUBLISHED".equals(row.status())) {
-            throw ApiException.conflict("REFERENCE_STATE_INVALID",
-                    "Only PUBLISHED references can be retired");
-        }
-        ImpactDto impact = repository.impact(domainKey, code);
-        if (impact.items() > 0 || impact.jobs() > 0 || impact.templates() > 0
-                || impact.documents() > 0) {
-            throw ApiException.conflict("REFERENCE_IN_USE",
-                    "Reference is still in use: " + impact.items() + " items, "
-                            + impact.jobs() + " jobs, " + impact.templates()
-                            + " templates, " + impact.documents() + " documents");
-        }
-        repository.updateStatus(domainKey, code, "RETIRED");
-        audit(actor, "reference." + family(domainKey) + ".retired", domainKey, code,
                 Map.of("code", code));
         return dto(requireRow(domainKey, code));
     }
@@ -315,13 +265,41 @@ public class ReferenceService {
             requireRow(domainKey, entry.code());
         }
         for (ReorderEntry entry : safe) {
-            repository.updateOrder(domainKey, entry.code(), entry.order());
+            repository.updateValueOrder(domainKey, entry.code(), entry.order());
         }
         audit(actor, "reference." + family(domainKey) + ".reordered", domainKey, null,
                 Map.of("count", safe.size()));
-        String domainType = ReferenceTaxonomy.ENUM_CODES.containsValue(domainKey)
-                ? "ENUM" : "STATUS";
-        return records(domainType, domainKey, actor, true);
+        return records(domainKey, actor, true);
+    }
+
+    /**
+     * Mirrors the transition graph onto the status values so the legacy
+     * {@code allowedNext} field of {@code /reference/statuses} stays in sync.
+     */
+    private void syncAllowedNext(String entity, List<TransitionEntry> entries) {
+        String domainKey = switch (entity) {
+            case "job" -> ReferenceTaxonomy.JOB_STATUS;
+            case "review" -> ReferenceTaxonomy.REVIEW_STATUS;
+            case "publication" -> ReferenceTaxonomy.PUBLICATION_STATUS;
+            default -> null;
+        };
+        if (domainKey == null) {
+            return;
+        }
+        Map<String, List<String>> next = new LinkedHashMap<>();
+        for (TransitionEntry entry : entries) {
+            List<String> targets = next.computeIfAbsent(entry.fromCode().trim(),
+                    ignored -> new ArrayList<>());
+            String target = entry.toCode().trim();
+            if (!targets.contains(target)) {
+                targets.add(target);
+            }
+        }
+        for (ReferenceRow row : repository.findDomain(domainKey, true)) {
+            Map<String, Object> metadata = object(row.metadataJson());
+            metadata.put("allowedNext", next.getOrDefault(row.code(), List.of()));
+            repository.updateValueMetadata(domainKey, row.code(), json(metadata));
+        }
     }
 
     // --------------------------------------------------------------- helpers
@@ -342,8 +320,7 @@ public class ReferenceService {
         }
     }
 
-    private WriteValues validate(String domainKey, ReferenceWriteRequest request,
-                                 String code, boolean creating) {
+    private WriteValues validate(String domainKey, ReferenceWriteRequest request, String code) {
         if (request == null) {
             throw ApiException.unprocessable("REFERENCE_INVALID", "A request body is required");
         }
@@ -375,16 +352,16 @@ public class ReferenceService {
                 request.selectable() == null || request.selectable(), visibleFor, allowedNext);
     }
 
-    private List<ReferenceRecordDto> records(String domainType, String domainKey,
-                                             CurrentUser caller, boolean includeDraft) {
+    private List<ReferenceRecordDto> records(String domainKey, CurrentUser caller,
+                                             boolean includeDraft) {
         if (includeDraft && !caller.isPlatformAdmin()) {
             throw ApiException.forbidden();
         }
         String client = clientName(caller);
         List<ReferenceRecordDto> result = new ArrayList<>();
-        for (ReferenceRow row : repository.findDomain(domainType, domainKey, includeDraft)) {
-            List<String> visibleFor = strings(row.visibleForJson());
-            if (!visibleFor.contains(client)) {
+        for (ReferenceRow row : repository.findDomain(domainKey, includeDraft)) {
+            List<String> visibleFor = strings(object(row.metadataJson()).get("visibleFor"));
+            if (!visibleFor.isEmpty() && !visibleFor.contains(client)) {
                 continue;
             }
             result.add(dto(row));
@@ -393,13 +370,37 @@ public class ReferenceService {
     }
 
     private ReferenceRecordDto dto(ReferenceRow row) {
-        return new ReferenceRecordDto(row.code(), row.labelKey(), row.tone(), row.icon(),
-                row.sortOrder(), row.selectable(), strings(row.visibleForJson()),
-                strings(row.allowedNextJson()), row.version(), row.status());
+        Map<String, Object> metadata = object(row.metadataJson());
+        return new ReferenceRecordDto(row.code(), row.labelKey(),
+                text(metadata, "tone", "neutral"), text(metadata, "icon", "circle"),
+                row.sortOrder(), flag(metadata, "selectable", true),
+                strings(metadata.get("visibleFor")), strings(metadata.get("allowedNext")),
+                row.version(), referenceStatus(row.status()));
     }
 
     private ReferenceRow requireRow(String domainKey, String code) {
         return repository.find(domainKey, code).orElseThrow(ApiException::notFound);
+    }
+
+    private String requireDomain(String statusType) {
+        String domainKey = ReferenceTaxonomy.STATUS_TYPES.get(statusType);
+        if (domainKey == null) {
+            throw ApiException.notFound();
+        }
+        return domainKey;
+    }
+
+    private String requireEnum(String enumCode) {
+        String domainKey = ReferenceTaxonomy.ENUM_CODES.get(enumCode);
+        if (domainKey == null) {
+            throw ApiException.notFound();
+        }
+        return domainKey;
+    }
+
+    private static ApiException backendDefinedCodes() {
+        return ApiException.unprocessable("REFERENCE_CODES_BACKEND_DEFINED",
+                "Reference codes are backend-defined; edit label, tone, icon or order instead");
     }
 
     private String statusOrEnumDomain(String domain) {
@@ -414,12 +415,15 @@ public class ReferenceService {
         throw ApiException.notFound();
     }
 
-    private String validateCode(String raw) {
-        String code = raw == null ? "" : raw.trim();
-        if (code.isEmpty() || !code.matches("^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")) {
-            throw ApiException.unprocessable("CODE_INVALID", "Invalid reference code");
+    private String catalogLabel(String labelKey) {
+        for (String namespace : List.of("common", "workshop_admin", "technician",
+                "platform_admin")) {
+            String value = uiMessages.namespace(namespace, "en").values().get(labelKey);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
         }
-        return code;
+        return null;
     }
 
     private boolean isCatalogKey(String label) {
@@ -441,6 +445,25 @@ public class ReferenceService {
         return parent == null ? null : parent.toString();
     }
 
+    private List<String> strings(Object value) {
+        if (value == null) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        if (value instanceof List<?> list) {
+            for (Object item : list) {
+                if (item != null) {
+                    result.add(item.toString());
+                }
+            }
+            return List.copyOf(result);
+        }
+        if (value instanceof String text) {
+            return strings(text);
+        }
+        return List.of();
+    }
+
     private List<String> strings(String json) {
         if (json == null || json.isBlank()) {
             return List.of();
@@ -459,24 +482,39 @@ public class ReferenceService {
 
     private Map<String, Object> object(String json) {
         if (json == null || json.isBlank()) {
-            return Map.of();
+            return new LinkedHashMap<>();
         }
         try {
             JsonNode node = objectMapper.readTree(json);
             if (!node.isObject()) {
-                return Map.of();
+                return new LinkedHashMap<>();
             }
             Map<String, Object> values = new LinkedHashMap<>();
             node.fields().forEachRemaining(entry ->
-                    values.put(entry.getKey(), objectMapper.convertValue(entry.getValue(), Object.class)));
+                    values.put(entry.getKey(),
+                            objectMapper.convertValue(entry.getValue(), Object.class)));
             return values;
         } catch (Exception exception) {
             throw new IllegalStateException("Invalid reference taxonomy JSON", exception);
         }
     }
 
-    private String jsonArray(List<String> values) {
-        return json(values);
+    private static String text(Map<String, Object> metadata, String key, String fallback) {
+        Object value = metadata.get(key);
+        return value == null || value.toString().isBlank() ? fallback : value.toString();
+    }
+
+    private static boolean flag(Map<String, Object> metadata, String key, boolean fallback) {
+        Object value = metadata.get(key);
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        return value == null ? fallback : Boolean.parseBoolean(value.toString());
+    }
+
+    /** Option-set status is ACTIVE; the reference contract keeps PUBLISHED. */
+    private static String referenceStatus(String status) {
+        return "ACTIVE".equals(status) ? "PUBLISHED" : status;
     }
 
     private String json(Object value) {
@@ -491,10 +529,6 @@ public class ReferenceService {
                        Object metadata) {
         audit.record(actor, action, "REFERENCE_DOMAIN",
                 code == null ? domainKey : domainKey + ":" + code, null, metadata, null, null);
-    }
-
-    private static String action(String domainType, String suffix) {
-        return "reference." + ("STATUS".equals(domainType) ? "status" : "enum") + "." + suffix;
     }
 
     private static String family(String domainKey) {

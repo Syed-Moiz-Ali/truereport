@@ -66,67 +66,95 @@ public final class ReportMessages {
             "customer", "vehicleDetails", "overallPassRate", "customerInspection",
             "categoryOverview", "checklistContinued", "tyresBrakesBody",
             "photoEvidence", "verificationDisclaimer", "reportNumber",
-            "tamperHash", "tamperExplanation", "englishSummary", "certifiedPlatform");
+            "tamperHash", "tamperExplanation", "englishSummary", "certifiedPlatform",
+            "year", "engine", "branch", "totalChecks", "noCriticalDefects", "brakePad",
+            "checksEvaluated", "itemsRequireAttention", "checks", "signedVerifiedBy",
+            "issued", "specsOrigin");
 
     private ReportMessages() {
     }
 
     public static Map<String, Object> labels(String language) {
-        ResourceBundle bundle = bundle(language);
         Map<String, Object> labels = new LinkedHashMap<>();
         for (String key : LABEL_KEYS) {
-            labels.put(key, bundle.getString(key));
+            labels.put(key, value(language, key));
         }
         return labels;
     }
 
     public static String label(String language, String key) {
-        return bundle(language).getString(key);
+        return value(language, key);
     }
 
     public static String result(String language, String code) {
-        try {
-            return bundle(language).getString("result." + code);
-        } catch (MissingResourceException exception) {
-            return code;
-        }
+        return valueOr(language, "result." + code, code);
     }
 
     public static String severity(String language, String code) {
         if (code == null) {
             return "";
         }
-        try {
-            return bundle(language).getString("severity." + code);
-        } catch (MissingResourceException exception) {
-            return "";
-        }
+        return valueOr(language, "severity." + code, "");
     }
 
     public static List<String> limitations(String language) {
-        ResourceBundle bundle = bundle(language);
         return List.of(
-                bundle.getString("limitation.1"),
-                bundle.getString("limitation.2"),
-                bundle.getString("limitation.3"),
-                bundle.getString("limitation.4"));
+                value(language, "limitation.1"),
+                value(language, "limitation.2"),
+                value(language, "limitation.3"),
+                value(language, "limitation.4"));
     }
 
     public static String disclaimer(String language) {
-        return bundle(language).getString("disclaimer");
+        return value(language, "disclaimer");
     }
 
     public static String photoAlt(String language) {
-        return bundle(language).getString("photo.alt");
+        return value(language, "photo.alt");
     }
 
     static Locale locale(String language) {
-        // Report, PDF and delivery bundles are English-only. The parameter is
-        // kept so callers continue to pass a language through the generic path.
-        return Locale.ENGLISH;
+        if (language == null || language.isBlank()) {
+            return Locale.ENGLISH;
+        }
+        return Locale.forLanguageTag(language.trim().toLowerCase(Locale.ROOT));
     }
 
     static ResourceBundle bundle(String language) {
-        return ResourceBundle.getBundle(BASE_NAME, locale(language));
+        return target(language);
+    }
+
+    /** Per-key fallback to English when the locale bundle is missing a key. */
+    private static String value(String language, String key) {
+        ResourceBundle target = target(language);
+        if (target.containsKey(key)) {
+            return target.getString(key);
+        }
+        return english().getString(key);
+    }
+
+    private static String valueOr(String language, String key, String fallback) {
+        ResourceBundle target = target(language);
+        if (target.containsKey(key)) {
+            return target.getString(key);
+        }
+        ResourceBundle english = english();
+        return english.containsKey(key) ? english.getString(key) : fallback;
+    }
+
+    private static ResourceBundle target(String language) {
+        Locale locale = locale(language);
+        if (Locale.ENGLISH.equals(locale)) {
+            return english();
+        }
+        try {
+            return ResourceBundle.getBundle(BASE_NAME, locale);
+        } catch (MissingResourceException exception) {
+            return english();
+        }
+    }
+
+    private static ResourceBundle english() {
+        return ResourceBundle.getBundle(BASE_NAME, Locale.ENGLISH);
     }
 }

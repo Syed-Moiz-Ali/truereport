@@ -183,7 +183,7 @@ public class PlatformContentStore {
                 safe(row.name()));
         return new CategoryDto(UUID.fromString(row.id()), row.code(), row.status(), row.sortOrder(),
                 row.name(), itemCount, row.code(), "ACTIVE".equals(row.status()),
-                fieldTranslations, row.name(), labelAr);
+                fieldTranslations, row.name(), labelAr, null, null);
     }
 
     // --------------------------------------------------------------- items
@@ -258,13 +258,13 @@ public class PlatformContentStore {
                 current.map(VersionRow::allowFreeTextNote).orElse(false),
                 item.sortOrder(),
                 current.map(VersionRow::guideImageId).orElse(""),
-                fieldTranslations, labelEn, labelAr, standardSpecEn, standardSpecAr);
+                fieldTranslations, labelEn, labelAr, standardSpecEn, standardSpecAr, null);
     }
 
     public ItemDetailDto itemDetail(UUID itemId) {
         ItemRow item = item(itemId.toString()).orElseThrow(ApiException::notFound);
         List<ItemVersionDto> versions = versions(item.id()).stream().map(this::toVersionDto).toList();
-        return new ItemDetailDto(summary(item), versions);
+        return new ItemDetailDto(summary(item), versions, null);
     }
 
     public List<ItemVersionDto> listVersions(UUID itemId) {
@@ -570,7 +570,7 @@ public class PlatformContentStore {
                 row.publishedAt() == null ? "" : row.publishedAt().toString(),
                 safe(row.label()), safe(row.instruction()), safe(row.standardSpec()),
                 fieldTranslations, safe(row.label()), labelAr,
-                safe(row.instruction()), instructionAr);
+                safe(row.instruction()), instructionAr, null);
     }
 
     private PublishedItemDto publishedItem(ItemRow item, VersionRow version) {

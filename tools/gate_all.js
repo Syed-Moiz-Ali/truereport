@@ -4,7 +4,11 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 let failed = false;
-for (const script of ['gate_no_literals.js', 'gate_no_status_switch.js']) {
+for (const script of [
+  'gate_no_literals.js',
+  'gate_no_status_switch.js',
+  'gate_no_code_arrays.js',
+]) {
   const result = spawnSync(process.execPath, [path.join(__dirname, script)], {
     stdio: 'inherit',
   });

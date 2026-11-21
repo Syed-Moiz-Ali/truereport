@@ -33,7 +33,7 @@ class ReportProfileParityTest {
             "lang", "dir", "isRtl", "pdfDownloadEnabled", "fontCss");
     private static final Set<String> PUBLIC_LAYOUT_ONLY_ROOTS = Set.of(
             "categoriesSummary", "inspectionVideos", "showcaseExterior",
-            "showcaseInterior", "showcaseMechanical", "dir", "labels", "lang",
+            "showcaseInterior", "showcaseMechanical", "labels",
             "pdfDownloadEnabled", "disclaimer");
     private static final Set<String> PRINT_LAYOUT_ONLY_ROOTS = Set.of(
             "en", "finalizedAt", "fontCss", "limitationsEn", "disclaimerEn");

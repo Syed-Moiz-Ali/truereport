@@ -62,7 +62,12 @@ class ChecklistTabBar extends ConsumerWidget {
         ?.value
         .length;
     final categoriesCount = ref.watch(categoriesProvider).asData?.value.length;
-    final optionsCount = ref.watch(optionSetsProvider).asData?.value.length;
+    final optionsCount = ref
+        .watch(optionSetsProvider)
+        .asData
+        ?.value
+        .where((set) => set.isChecklistCatalog)
+        .length;
     final healthData = ref.watch(configHealthProvider).asData?.value;
     final healthIssueCount = healthData?.checks.where((c) => !c.ok).length;
 

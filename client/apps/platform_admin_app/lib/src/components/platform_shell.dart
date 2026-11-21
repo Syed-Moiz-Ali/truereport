@@ -176,11 +176,14 @@ class PlatformPageHeader extends StatelessWidget {
             if (actions.isNotEmpty) ...[
               const SizedBox(width: 16),
               Flexible(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.end,
-                  children: actions,
+                child: Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.end,
+                    children: actions,
+                  ),
                 ),
               ),
             ],

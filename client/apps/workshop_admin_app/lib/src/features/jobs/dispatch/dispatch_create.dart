@@ -33,6 +33,18 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // The report language defaults to the workshop's current UI language.
+    final active = ref
+        .read(languageSelectionProvider(adminUiMessageClient))
+        .activeLanguage;
+    if (active.isNotEmpty) {
+      _form.preferredLanguage = active;
+    }
+  }
+
+  @override
   void dispose() {
     _form.dispose();
     super.dispose();

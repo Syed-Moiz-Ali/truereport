@@ -10,9 +10,13 @@ import java.util.Optional;
 @Repository
 public class ReferenceRepository {
 
-    public record ReferenceRow(String domainKey, String code, String labelKey, String tone,
-                               String icon, int sortOrder, boolean selectable,
-                               String visibleForJson, String allowedNextJson, String status,
+    /**
+     * A reference row backed by an option value. The taxonomy-specific fields
+     * (tone, icon, selectable, visibleFor, allowedNext) live in
+     * {@code metadata_json} and are parsed by the service.
+     */
+    public record ReferenceRow(String domainKey, String code, String labelKey,
+                               int sortOrder, String metadataJson, String status,
                                int version) {
     }
 
@@ -33,80 +37,73 @@ public class ReferenceRepository {
         this.jdbc = jdbc;
     }
 
-    public List<ReferenceRow> findDomain(String domainType, String domainKey,
-                                         boolean includeDraft) {
-        String statuses = includeDraft
-                ? "('PUBLISHED', 'DRAFT', 'RETIRED')" : "('PUBLISHED')";
+    public List<ReferenceRow> findDomain(String domainKey, boolean includeDraft) {
+        String statuses = includeDraft ? "('ACTIVE', 'DRAFT', 'RETIRED')" : "('ACTIVE')";
         return jdbc.query("""
-                SELECT domain_key, code, label_key, tone, icon, sort_order, selectable,
-                       visible_for_json, allowed_next_json, status, version
-                FROM reference_domain
-                WHERE domain_type = ? AND domain_key = ? AND status IN %s
-                ORDER BY sort_order, code
+                SELECT s.domain_key, v.code, v.label_key, v.sort_order, v.metadata_json,
+                       v.status, v.version
+                FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE s.domain_key = ? AND v.status IN %s
+                ORDER BY v.sort_order, v.code
                 """.formatted(statuses), (rs, i) -> new ReferenceRow(
                 rs.getString("domain_key"), rs.getString("code"),
-                rs.getString("label_key"), rs.getString("tone"), rs.getString("icon"),
-                rs.getInt("sort_order"), rs.getBoolean("selectable"),
-                rs.getString("visible_for_json"), rs.getString("allowed_next_json"),
-                rs.getString("status"), rs.getInt("version")), domainType, domainKey);
+                rs.getString("label_key"), rs.getInt("sort_order"),
+                rs.getString("metadata_json"), rs.getString("status"),
+                rs.getInt("version")), domainKey);
     }
 
     public Optional<ReferenceRow> find(String domainKey, String code) {
         return jdbc.query("""
-                SELECT domain_key, code, label_key, tone, icon, sort_order, selectable,
-                       visible_for_json, allowed_next_json, status, version
-                FROM reference_domain
-                WHERE domain_key = ? AND code = ?
+                SELECT s.domain_key, v.code, v.label_key, v.sort_order, v.metadata_json,
+                       v.status, v.version
+                FROM platform_option_values v
+                JOIN platform_option_sets s ON s.id = v.option_set_id
+                WHERE s.domain_key = ? AND v.code = ?
                 """, (rs, i) -> new ReferenceRow(
                 rs.getString("domain_key"), rs.getString("code"),
-                rs.getString("label_key"), rs.getString("tone"), rs.getString("icon"),
-                rs.getInt("sort_order"), rs.getBoolean("selectable"),
-                rs.getString("visible_for_json"), rs.getString("allowed_next_json"),
-                rs.getString("status"), rs.getInt("version")), domainKey, code)
+                rs.getString("label_key"), rs.getInt("sort_order"),
+                rs.getString("metadata_json"), rs.getString("status"),
+                rs.getInt("version")), domainKey, code)
                 .stream().findFirst();
     }
 
-    public void insert(String domainType, String domainKey, String code, String labelKey,
-                       String tone, String icon, int sortOrder, boolean selectable,
-                       String visibleForJson, String allowedNextJson, String status) {
+    public void updateValue(String domainKey, String code, String label, String labelKey,
+                            int sortOrder, String metadataJson) {
         jdbc.update("""
-                INSERT INTO reference_domain
-                    (id, domain_type, domain_key, code, label_key, tone, icon, sort_order,
-                     selectable, visible_for_json, allowed_next_json, status, version,
-                     created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """, ReferenceSeeder.idBytes(com.truereport.shared.uuid.UuidV7.generate()),
-                domainType, domainKey, code, labelKey, tone, icon, sortOrder, selectable,
-                visibleForJson, allowedNextJson, status);
+                UPDATE platform_option_values
+                SET label = COALESCE(?, label), label_key = ?, sort_order = ?,
+                    metadata_json = ?, version = version + 1, updated_at = CURRENT_TIMESTAMP
+                WHERE option_set_id = (SELECT id FROM platform_option_sets WHERE domain_key = ?)
+                  AND code = ?
+                """, label, labelKey, sortOrder, metadataJson, domainKey, code);
     }
 
-    public void update(String domainKey, String code, String labelKey, String tone, String icon,
-                       int sortOrder, boolean selectable, String visibleForJson,
-                       String allowedNextJson) {
+    public void updateValueStatus(String domainKey, String code, String status) {
         jdbc.update("""
-                UPDATE reference_domain
-                SET label_key = ?, tone = ?, icon = ?, sort_order = ?, selectable = ?,
-                    visible_for_json = ?, allowed_next_json = ?, version = version + 1,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE domain_key = ? AND code = ?
-                """, labelKey, tone, icon, sortOrder, selectable, visibleForJson,
-                allowedNextJson, domainKey, code);
-    }
-
-    public void updateStatus(String domainKey, String code, String status) {
-        jdbc.update("""
-                UPDATE reference_domain
+                UPDATE platform_option_values
                 SET status = ?, version = version + 1, updated_at = CURRENT_TIMESTAMP
-                WHERE domain_key = ? AND code = ?
+                WHERE option_set_id = (SELECT id FROM platform_option_sets WHERE domain_key = ?)
+                  AND code = ?
                 """, status, domainKey, code);
     }
 
-    public void updateOrder(String domainKey, String code, int sortOrder) {
+    public void updateValueOrder(String domainKey, String code, int sortOrder) {
         jdbc.update("""
-                UPDATE reference_domain
+                UPDATE platform_option_values
                 SET sort_order = ?, version = version + 1, updated_at = CURRENT_TIMESTAMP
-                WHERE domain_key = ? AND code = ?
+                WHERE option_set_id = (SELECT id FROM platform_option_sets WHERE domain_key = ?)
+                  AND code = ?
                 """, sortOrder, domainKey, code);
+    }
+
+    public void updateValueMetadata(String domainKey, String code, String metadataJson) {
+        jdbc.update("""
+                UPDATE platform_option_values
+                SET metadata_json = ?, version = version + 1, updated_at = CURRENT_TIMESTAMP
+                WHERE option_set_id = (SELECT id FROM platform_option_sets WHERE domain_key = ?)
+                  AND code = ?
+                """, metadataJson, domainKey, code);
     }
 
     public List<TransitionRow> findTransitions(String entity) {

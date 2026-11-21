@@ -43,19 +43,22 @@ public class WorkshopTemplateService {
     private final MasterContentService masterContent;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final com.truereport.shared.i18n.TranslationReviewGate reviewGate;
 
     public WorkshopTemplateService(WorkshopTemplateRepository templates,
                                    TemplateVersionRepository versions,
                                    TemplateItemRepository items,
                                    MasterContentService masterContent,
                                    AuditService auditService,
-                                   ObjectMapper objectMapper) {
+                                   ObjectMapper objectMapper,
+                                   com.truereport.shared.i18n.TranslationReviewGate reviewGate) {
         this.templates = templates;
         this.versions = versions;
         this.items = items;
         this.masterContent = masterContent;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.reviewGate = reviewGate;
     }
 
     @Transactional(readOnly = true)
@@ -218,6 +221,12 @@ public class WorkshopTemplateService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "TEMPLATE_EMPTY",
                     "error.template.empty", "A template must contain at least one item");
         }
+        reviewGate.assertTemplatePublish(templateItems.stream()
+                .filter(TemplateItem::isIncluded)
+                .map(TemplateItem::getMasterItemVersionId)
+                .filter(java.util.Objects::nonNull)
+                .map(UUID::toString)
+                .toList());
         for (TemplateItem item : templateItems) {
             try {
                 masterContent.publishedItem(item.getMasterItemVersionId());

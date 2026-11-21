@@ -42,6 +42,29 @@ public class ApiExceptionHandler {
         this.localeResolver = localeResolver;
     }
 
+    @ExceptionHandler(com.truereport.shared.i18n.TranslationReviewRequiredException.class)
+    public ResponseEntity<ProblemDetail> handleTranslationReviewRequired(
+            com.truereport.shared.i18n.TranslationReviewRequiredException exception,
+            HttpServletRequest request) {
+        String messageEn = "Safety-critical translations must be reviewed before publishing";
+        ProblemDetail detail = problem(HttpStatus.CONFLICT, "TRANSLATION_REVIEW_REQUIRED",
+                "error.translation.reviewRequired", messageEn, messageEn, request);
+        List<Map<String, String>> issues = new ArrayList<>();
+        for (com.truereport.shared.i18n.TranslationReviewRequiredException.Issue issue
+                : exception.issues()) {
+            Map<String, String> mapped = new LinkedHashMap<>();
+            mapped.put("entityType", issue.entityType());
+            mapped.put("entityId", issue.entityId());
+            mapped.put("field", issue.field());
+            mapped.put("lang", issue.lang());
+            mapped.put("reason", issue.reason());
+            issues.add(mapped);
+        }
+        detail.setProperty("translationIssues", issues);
+        detail.setProperty("errors", issues);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(detail);
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> handleApi(ApiException exception, HttpServletRequest request) {
         Locale requested = resolveLocale(request);

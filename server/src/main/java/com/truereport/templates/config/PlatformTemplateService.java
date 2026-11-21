@@ -34,17 +34,23 @@ public class PlatformTemplateService {
     private final DynamicContentTranslations translations;
     private final OutboxService outbox;
     private final ObjectMapper objectMapper;
+    private final com.truereport.shared.i18n.ContentAuthoring authoring;
+    private final com.truereport.shared.i18n.TranslationReviewGate reviewGate;
 
     public PlatformTemplateService(TemplateRepository templates, FieldAuditService audit,
                                     OutboxService outbox, ObjectMapper objectMapper,
                                     TranslationGate translationGate,
-                                    DynamicContentTranslations translations) {
+                                    DynamicContentTranslations translations,
+                                    com.truereport.shared.i18n.ContentAuthoring authoring,
+                                    com.truereport.shared.i18n.TranslationReviewGate reviewGate) {
         this.templates = templates;
         this.audit = audit;
         this.outbox = outbox;
         this.objectMapper = objectMapper;
         this.translationGate = translationGate;
         this.translations = translations;
+        this.authoring = authoring;
+        this.reviewGate = reviewGate;
     }
 
     @Transactional(readOnly = true)
@@ -88,6 +94,7 @@ public class PlatformTemplateService {
                 request.nameAr(), request.descriptionAr());
         String id = templates.insertTemplate(code, name, description, fields);
         String versionId = templates.insertVersion(id, 1, "DRAFT");
+        authoring.publish("TEMPLATE", id, fields(name, description));
         audit.record(actor, "TEMPLATE_CREATED", "TEMPLATE", id, null,
                 Map.of("code", code, "name", name, "draftVersionId", versionId), null, null);
         return detail(id);
@@ -104,6 +111,7 @@ public class PlatformTemplateService {
                 request.nameAr(), request.descriptionAr());
         templates.updateTemplate(id, name, description, fields);
         TemplateSummaryDto after = detail(id);
+        authoring.publish("TEMPLATE", id, fields(name, description));
         audit.record(actor, "TEMPLATE_UPDATED", "TEMPLATE", id,
                 Map.of("name", before.name()),
                 Map.of("name", after.name()),
@@ -121,6 +129,17 @@ public class PlatformTemplateService {
             legacy.put("description", descriptionAr.trim());
         }
         return translations.mergeLegacy(provided, legacy);
+    }
+
+    private static Map<String, String> fields(String name, String description) {
+        Map<String, String> fields = new java.util.LinkedHashMap<>();
+        if (name != null && !name.isBlank()) {
+            fields.put("name", name);
+        }
+        if (description != null && !description.isBlank()) {
+            fields.put("description", description);
+        }
+        return fields;
     }
 
     private static String firstNonBlank(String preferred, String fallback) {
@@ -201,6 +220,10 @@ public class PlatformTemplateService {
         }
         translationGate.requireOverlaysApproved("TEMPLATE", templateId,
                 java.util.List.of("name", "description"));
+        reviewGate.assertTemplatePublish(templates.items(versionId).stream()
+                .map(com.truereport.templates.config.PlatformTemplateDtos.TemplateItemDto::itemVersionId)
+                .filter(id -> id != null && !id.isBlank())
+                .toList());
         if (templates.findPendingChangeRequest("TEMPLATE_VERSION", versionId).isPresent()) {
             throw new ApiException(HttpStatus.CONFLICT, "CHANGE_REQUEST_EXISTS",
                     "error.template.changeRequestExists",
@@ -234,6 +257,10 @@ public class PlatformTemplateService {
         }
         translationGate.requireOverlaysApproved("TEMPLATE", templateId,
                 java.util.List.of("name", "description"));
+        reviewGate.assertTemplatePublish(templates.items(versionId).stream()
+                .map(com.truereport.templates.config.PlatformTemplateDtos.TemplateItemDto::itemVersionId)
+                .filter(id -> id != null && !id.isBlank())
+                .toList());
         templates.updateVersionStatus(versionId, "PUBLISHED", actorId);
         templates.setCurrentPublishedVersion(templateId, versionId);
         templates.setTemplateStatus(templateId, "ACTIVE");

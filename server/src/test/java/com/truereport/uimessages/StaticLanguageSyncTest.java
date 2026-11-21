@@ -1,9 +1,11 @@
 package com.truereport.uimessages;
 
-import com.truereport.uimessages.PlatformUiMessageCatalog.StaticLanguage;
-import com.truereport.uimessages.PlatformUiMessageCatalog.StaticManifest;
+import com.truereport.shared.i18n.LanguageCatalog;
+import com.truereport.uimessages.PlatformUiMessageCatalog.Language;
+import com.truereport.uimessages.PlatformUiMessageCatalog.Registry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -13,12 +15,14 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class StaticLanguageSyncTest {
 
     private JdbcTemplate jdbc;
     private PlatformUiMessageCatalog catalog;
+    private LanguageCatalog languageCatalog;
 
     @BeforeEach
     void setUp() {
@@ -42,36 +46,26 @@ class StaticLanguageSyncTest {
                 )
                 """);
         catalog = mock(PlatformUiMessageCatalog.class);
+        languageCatalog = mock(LanguageCatalog.class);
     }
 
     @Test
-    void insertsOnlyManifestLanguageAndKeepsSharedRows() {
-        insertSharedSpanishRow();
-        when(catalog.manifest()).thenReturn(englishOnlyManifest());
+    void seedsEveryRegistryLanguageInManifestOrder() {
+        when(catalog.registry()).thenReturn(registry());
 
-        new StaticLanguageSync(jdbc, catalog).sync();
+        new StaticLanguageSync(jdbc, catalog, languageCatalog).sync();
 
-        Map<String, Object> english = jdbc.queryForMap("""
-                SELECT code, native_name, direction, active, is_default, sort_order, status
-                FROM platform_languages WHERE code = 'en'
-                """);
-        assertThat(english.get("native_name")).isEqualTo("English");
-        assertThat(english.get("direction")).isEqualTo("ltr");
-        assertThat(english.get("active")).isEqualTo(true);
-        assertThat(english.get("is_default")).isEqualTo(true);
-        assertThat(english.get("sort_order")).isEqualTo(1);
-        assertThat(english.get("status")).isEqualTo("LIVE");
+        assertRow("en", "English", "ltr", true, true, 1, "LIVE");
+        assertRow("es", "Español", "ltr", true, false, 2, "LIVE");
+        assertRow("fr", "Français", "ltr", true, false, 3, "LIVE");
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM platform_languages WHERE is_default = TRUE",
                 Integer.class)).isEqualTo(1);
-
-        // Shared rows for other apps must survive a Platform Admin reset.
-        assertThat(status("es")).isEqualTo("LIVE");
-        assertThat(active("es")).isTrue();
+        assertRegisteredLiveCodes("en", "es", "fr");
     }
 
     @Test
-    void updatesExistingEnglishRow() {
+    void refreshesAnExistingManifestRow() {
         jdbc.update("""
                 INSERT INTO platform_languages
                     (code, native_name, direction, active, is_default, sort_order,
@@ -79,44 +73,65 @@ class StaticLanguageSyncTest {
                 VALUES ('en', 'Old English', 'ltr', FALSE, FALSE, 9, 'RETIRED',
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
                 """);
-        when(catalog.manifest()).thenReturn(englishOnlyManifest());
+        when(catalog.registry()).thenReturn(registry());
 
-        new StaticLanguageSync(jdbc, catalog).sync();
+        new StaticLanguageSync(jdbc, catalog, languageCatalog).sync();
 
-        Map<String, Object> english = jdbc.queryForMap("""
-                SELECT native_name, active, is_default, sort_order, status
-                FROM platform_languages WHERE code = 'en'
-                """);
-        assertThat(english.get("native_name")).isEqualTo("English");
-        assertThat(english.get("active")).isEqualTo(true);
-        assertThat(english.get("is_default")).isEqualTo(true);
-        assertThat(english.get("sort_order")).isEqualTo(1);
-        assertThat(english.get("status")).isEqualTo("LIVE");
+        assertRow("en", "English", "ltr", true, true, 1, "LIVE");
+        assertRegisteredLiveCodes("en", "es", "fr");
     }
 
-    private void insertSharedSpanishRow() {
+    @Test
+    void leavesRuntimeAddedRowsAloneAndRegistersOnlyLiveOnes() {
+        insertRuntimeLanguage("de", "Deutsch", true, "LIVE", 40);
+        insertRuntimeLanguage("it", "Italiano", false, "RETIRED", 41);
+        when(catalog.registry()).thenReturn(registry());
+
+        new StaticLanguageSync(jdbc, catalog, languageCatalog).sync();
+
+        // de is not in the registry: keep it LIVE, active and in its own order.
+        assertRow("de", "Deutsch", "ltr", true, false, 40, "LIVE");
+        // it is not in the registry: keep it retired.
+        assertRow("it", "Italiano", "ltr", false, false, 41, "RETIRED");
+        assertRegisteredLiveCodes("en", "es", "fr", "de");
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertRegisteredLiveCodes(String... expected) {
+        ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+        verify(languageCatalog).registerAll(captor.capture());
+        assertThat(captor.getValue()).containsExactly(expected);
+    }
+
+    private void assertRow(String code, String nativeName, String direction, boolean active,
+                           boolean isDefault, int sortOrder, String status) {
+        Map<String, Object> row = jdbc.queryForMap("""
+                SELECT native_name, direction, active, is_default, sort_order, status
+                FROM platform_languages WHERE code = ?
+                """, code);
+        assertThat(row.get("native_name")).isEqualTo(nativeName);
+        assertThat(row.get("direction")).isEqualTo(direction);
+        assertThat(row.get("active")).isEqualTo(active);
+        assertThat(row.get("is_default")).isEqualTo(isDefault);
+        assertThat(row.get("sort_order")).isEqualTo(sortOrder);
+        assertThat(row.get("status")).isEqualTo(status);
+    }
+
+    private void insertRuntimeLanguage(String code, String nativeName, boolean active,
+                                       String status, int sortOrder) {
         jdbc.update("""
                 INSERT INTO platform_languages
                     (code, native_name, direction, active, is_default, sort_order,
                      status, created_at, updated_at, version)
-                VALUES ('es', 'Español', 'ltr', TRUE, FALSE, 2, 'LIVE',
+                VALUES (?, ?, 'ltr', ?, FALSE, ?, ?,
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)
-                """);
+                """, code, nativeName, active, sortOrder, status);
     }
 
-    private StaticManifest englishOnlyManifest() {
-        return new StaticManifest("en", List.of(
-                new StaticLanguage("en", "English", "English", "ltr",
-                        "platform_admin/en.json")));
-    }
-
-    private String status(String code) {
-        return jdbc.queryForObject(
-                "SELECT status FROM platform_languages WHERE code = ?", String.class, code);
-    }
-
-    private boolean active(String code) {
-        return Boolean.TRUE.equals(jdbc.queryForObject(
-                "SELECT active FROM platform_languages WHERE code = ?", Boolean.class, code));
+    private static Registry registry() {
+        return new Registry("en", List.of(
+                new Language("en", "English", "English", "ltr"),
+                new Language("es", "Spanish", "Español", "ltr"),
+                new Language("fr", "French", "Français", "ltr")));
     }
 }

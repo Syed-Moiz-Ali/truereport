@@ -1570,6 +1570,10 @@ class _ResultChoices extends ConsumerWidget {
     required this.onSelect,
   });
 
+  // Presentation grouping of the item's served result options: the three
+  // primary assessment buttons, not a selectable taxonomy copy. Labels and
+  // membership of the item's `resultOptions` still come from the API.
+  // gate-allow: codes
   static const _primary = [
     'NO_ISSUE_OBSERVED',
     'ATTENTION_RECOMMENDED',

@@ -62,11 +62,18 @@ cd ../workshop_admin_app;       flutter build web --release --no-pub --dart-defi
 cd ../technician_app;           flutter build web --release --no-pub --dart-define=API_BASE_URL=http://localhost:8080
 cd ../../..
 
+> Flutter web registers a service worker. After a rebuild, an **already-open tab** can keep
+> serving the old bundle (this looks like "the fix didn't work"). Hard reload
+> (`Ctrl+Shift+R`) or unregister the service worker once. For local harness builds you can
+> also add `--pwa-strategy=none` to the three `flutter build web` commands.
+
 # 2. server (needs MySQL + Flyway + dev seed)
 cd server; mvn -q -DskipTests spring-boot:run
 cd ..
 
 # 3. harness
+# Optional interactive MCP (separate from the spec runner):
+#   opencode mcp add playwright -- npx -y @playwright/mcp
 npm install
 npx playwright install chromium
 $env:E2E_PASSWORD = (Get-Content infra/.env | Where-Object { $_ -match '^DEV_SEED_PASSWORD=' }).Split('=',2)[1]

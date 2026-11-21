@@ -53,6 +53,10 @@ class DefectDetailView extends ConsumerWidget {
   final ui.Image? wireframeImage;
   final ui.Image? evidenceImage;
 
+  // Presentation grouping of the item's served result options: the three
+  // primary assessment buttons, not a selectable taxonomy copy. Labels and
+  // membership of the item's `resultOptions` still come from the API.
+  // gate-allow: codes
   static const _primaryResults = <String>[
     'NO_ISSUE_OBSERVED',
     'ATTENTION_RECOMMENDED',

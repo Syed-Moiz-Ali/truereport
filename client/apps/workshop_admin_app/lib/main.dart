@@ -9,12 +9,15 @@ import 'package:l10n/ui_strings.dart';
 import 'src/web_url_strategy_stub.dart'
     if (dart.library.html) 'src/web_url_strategy_web.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureWebUrlStrategy();
+  final uiMessageStore = await createUiMessageStore();
   runApp(
     ProviderScope(
       overrides: [
+        // Durable selection + catalogs: a chosen language survives a reload.
+        uiMessageStoreProvider.overrideWithValue(uiMessageStore),
         // One shared fetcher; the app owns no language implementation.
         uiMessageFetcherProvider.overrideWith(
           (ref) => ref.watch(adminUiMessageFetcherProvider),

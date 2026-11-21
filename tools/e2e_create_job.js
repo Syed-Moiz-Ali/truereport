@@ -26,8 +26,10 @@ async function call(token, method, path, body) {
 
   const staff = await call(token, 'GET', '/api/v1/workshop/staff');
   const rows = staff.items ?? staff;
-  const technician = rows.find((row) => (row.email ?? '').includes('tech.a'));
-  console.log('technician:', technician?.id);
+  const technician =
+    rows.find((row) => row.role === 'TECHNICIAN' && (row.displayName ?? '').includes('Technician A')) ??
+    rows.find((row) => row.role === 'TECHNICIAN');
+  console.log('technician:', technician?.userId);
 
   const job = await call(token, 'POST', '/api/v1/workshop/jobs', {
     templateVersionId: VERSION_ID,
@@ -45,7 +47,7 @@ async function call(token, method, path, body) {
     fuelType: 'PETROL',
     preferredLanguage: 'en',
     scheduledAt: new Date().toISOString().slice(0, 19),
-    assignedTechnicianId: technician?.id,
+    assignedTechnicianId: technician?.userId,
     consentGranted: true,
   });
   console.log('job:', job.reference, job.id, job.status, 'consent=', job.consentGranted);

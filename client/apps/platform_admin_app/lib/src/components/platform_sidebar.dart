@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 import '../features/languages/language_workspace_screen.dart';
 import '../platform_config_models.dart';
 import '../platform_providers.dart';
 import '../platform_theme.dart';
+import '../reference_status_lookup.dart';
 import 'platform_nav.dart';
 
 /// SVG path for the CoreOS brand hub/network icon from Figma (Icon-1_3514.svg).
@@ -448,9 +450,13 @@ class _TargetLanguageReadinessCard extends ConsumerWidget {
               const SizedBox(height: 3),
 
               Text(
-                readiness.status.isNotEmpty
-                    ? readiness.status
-                    : language.status,
+                referenceCodeLabel(
+                  strings,
+                  ref.watch(statusesProvider(translationStatusDomain)).value,
+                  readiness.status.isNotEmpty
+                      ? readiness.status
+                      : language.status,
+                ),
                 style: PtTheme.font(
                   10,
                   lineHeight: 14,

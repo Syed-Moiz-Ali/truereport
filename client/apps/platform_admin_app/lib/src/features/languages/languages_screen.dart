@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
+import 'package:reference_data/reference_data.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -12,14 +13,16 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
+import '../../reference_status_lookup.dart';
+import 'add_language_dialog.dart';
 
-/// Read-only language registry.
+/// Language registry: shipped UI-message languages plus backend-registered
+/// languages that do not have a UI catalog file yet.
 ///
 /// Static languages and their JSON catalogs come from the backend manifest.
-/// There is no add, generate, review, approve or publish action: adding a
-/// language means adding a JSON file and a manifest entry, then restarting the
-/// backend. Dynamic content coverage is shown per language when the language
-/// has a dynamic translation registry row.
+/// Dynamic content coverage is shown per language when the language has a
+/// registry row. Adding or retiring a language is a registry action; shipping
+/// its interface text still requires a catalog file.
 class LanguagesScreen extends ConsumerWidget {
   const LanguagesScreen({super.key});
 
@@ -29,11 +32,37 @@ class LanguagesScreen extends ConsumerWidget {
     final manifest = ref.watch(platformUiManifestProvider);
     final registry = ref.watch(platformLanguagesProvider);
     final coverage = ref.watch(translationCoverageProvider);
+    final registryLanguages =
+        registry.asData?.value ?? const <PlatformLanguage>[];
     final registryByCode = <String, PlatformLanguage>{
-      for (final language
-          in registry.asData?.value ?? const <PlatformLanguage>[])
-        language.code: language,
+      for (final language in registryLanguages) language.code: language,
     };
+    final manifestCodes = <String>{
+      for (final language in manifest?.languages ?? const <UiMessageLanguage>[])
+        language.code,
+    };
+    // Registry rows without a catalog file. Retired rows are not part of the
+    // shipped product, so they stay out of the list; re-adding reactivates.
+    final registryOnly = registryLanguages
+        .where((language) => !manifestCodes.contains(language.code))
+        .where((language) => !language.isRetired)
+        .toList(growable: false);
+    final hasLanguages =
+        (manifest?.languages.isNotEmpty ?? false) || registryOnly.isNotEmpty;
+
+    Future<void> addLanguage() async {
+      final created = await showAddLanguageDialog(context);
+      if (created == null || !context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          backgroundColor: PtTheme.deepGreen,
+          content: Text(strings.tKey(PlatformAdminKeys.languagesAddToastReady)),
+        ),
+      );
+      context.go('/settings/languages/${created.code}');
+    }
 
     return PlatformShell(
       currentRoute: '/settings/languages',
@@ -55,25 +84,67 @@ class LanguagesScreen extends ConsumerWidget {
             PlatformPageHeader(
               title: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
               subtitle: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+              actions: [
+                PlatformPrimaryButton(
+                  key: const Key('btn-add-language'),
+                  label: strings.tKey(PlatformAdminKeys.languagesAddButton),
+                  icon: Icons.add_rounded,
+                  onPressed: addLanguage,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             _StaticManifestNotice(child: _manifestSummary(strings, manifest)),
+            if (registry.hasError) ...[
+              const SizedBox(height: 16),
+              PlatformErrorView(
+                message: strings.tKey(CommonKeys.statusUnhealthy),
+                retryLabel: strings.tKey(CommonKeys.buttonRetry),
+                onRetry: () => ref.invalidate(platformLanguagesProvider),
+              ),
+            ],
             const SizedBox(height: 16),
-            if (manifest == null)
-              const SizedBox.shrink()
-            else if (manifest.languages.isEmpty)
+            if (!hasLanguages && manifest != null)
               PlatformEmptyView(
                 icon: Icons.translate_rounded,
                 title: strings.tKey(CommonKeys.emptyTitle),
               )
-            else
-              for (final language in manifest.languages) ...[
-                _StaticLanguageCard(
-                  language: language,
-                  dynamicLanguage: registryByCode[language.code],
+            else ...[
+              for (final language
+                  in manifest?.languages ?? const <UiMessageLanguage>[])
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _LanguageCard(
+                    key: ValueKey('language-card-${language.code}'),
+                    code: language.code,
+                    manifestLanguage: language,
+                    registryLanguage: registryByCode[language.code],
+                    isDefault:
+                        registryByCode[language.code]?.isDefault ??
+                        language.code == manifest?.defaultLanguage,
+                  ),
+                ),
+              if (registryOnly.isNotEmpty) ...[
+                PlatformSectionHeader(
+                  title: strings.tKey(PlatformAdminKeys.languagesRegistryTitle),
+                  subtitle: strings.tKey(
+                    PlatformAdminKeys.languagesRegistrySubtitle,
+                  ),
                 ),
                 const SizedBox(height: 12),
+                for (final language in registryOnly)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _LanguageCard(
+                      key: ValueKey('language-card-${language.code}'),
+                      code: language.code,
+                      manifestLanguage: null,
+                      registryLanguage: language,
+                      isDefault: language.isDefault,
+                    ),
+                  ),
               ],
+            ],
             const SizedBox(height: 8),
             _CoverageSection(
               coverage: coverage,
@@ -154,7 +225,7 @@ class _StaticManifestNotice extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
+                  strings.tKey(PlatformAdminKeys.languagesRegistryNotice),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: PtTheme.font(12, color: PtTheme.muted),
@@ -170,23 +241,35 @@ class _StaticManifestNotice extends StatelessWidget {
   }
 }
 
-class _StaticLanguageCard extends ConsumerWidget {
-  const _StaticLanguageCard({
-    required this.language,
-    required this.dynamicLanguage,
+/// One language row-card. [manifestLanguage] is null for languages that are
+/// registered in the backend but do not ship a UI catalog file yet.
+class _LanguageCard extends ConsumerWidget {
+  const _LanguageCard({
+    super.key,
+    required this.code,
+    required this.manifestLanguage,
+    required this.registryLanguage,
+    required this.isDefault,
   });
 
-  final UiMessageLanguage language;
-  final PlatformLanguage? dynamicLanguage;
+  final String code;
+  final UiMessageLanguage? manifestLanguage;
+  final PlatformLanguage? registryLanguage;
+  final bool isDefault;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final readiness = dynamicLanguage == null
+    final readiness = registryLanguage == null
         ? null
-        : ref.watch(readinessProvider(language.code)).asData?.value;
-    final missing = language.missingKeys;
-    final valid = missing == 0 && language.placeholderMismatch == 0;
+        : ref.watch(readinessProvider(code)).asData?.value;
+    final manifest = manifestLanguage;
+    final missing = manifest?.missingKeys ?? 0;
+    final valid = manifest == null
+        ? registryLanguage?.isLive ?? false
+        : missing == 0 && manifest.placeholderMismatch == 0;
+    final displayName =
+        registryLanguage?.displayName ?? manifest?.displayName ?? code;
 
     return PlatformSectionCard(
       child: Column(
@@ -199,11 +282,12 @@ class _StaticLanguageCard extends ConsumerWidget {
             children: [
               PlatformMetaPill(
                 label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
-                value: language.code,
+                value: code,
               ),
               PlatformMetaPill(
                 label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
-                value: language.direction,
+                value:
+                    registryLanguage?.direction ?? manifest?.direction ?? 'ltr',
               ),
               PlatformStatusChip(
                 status: valid
@@ -222,7 +306,7 @@ class _StaticLanguageCard extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            language.displayName,
+            displayName,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: PtTheme.font(
@@ -231,24 +315,44 @@ class _StaticLanguageCard extends ConsumerWidget {
               color: PtTheme.ink,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
-            '${language.path.isEmpty ? '-' : language.path}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: PtTheme.font(12, color: PtTheme.muted),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage)}: '
-            '${language.totalKeys - language.missingKeys}/${language.totalKeys}'
-            '${language.placeholderMismatch > 0 ? ' · ${strings.tKey(CommonKeys.statusUnhealthy)}' : ''}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: PtTheme.font(12, color: PtTheme.muted),
-          ),
-          if (dynamicLanguage != null && !dynamicLanguage!.isDefault) ...[
+          if (manifest != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
+              '${manifest.path.isEmpty ? '-' : manifest.path}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: PtTheme.font(12, color: PtTheme.muted),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage)}: '
+              '${manifest.totalKeys - manifest.missingKeys}/${manifest.totalKeys}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: PtTheme.font(12, color: PtTheme.muted),
+            ),
+          ] else ...[
+            const SizedBox(height: 2),
+            Text(
+              strings.tKey(PlatformAdminKeys.languagesRegistryNoCatalog),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: PtTheme.font(12, color: PtTheme.muted),
+            ),
+            if (registryLanguage != null) ...[
+              const SizedBox(height: 4),
+              PlatformMetaPill(
+                label: strings.tKey(PlatformAdminKeys.languagesRegistryStatus),
+                value: referenceCodeLabel(
+                  strings,
+                  ref.watch(statusesProvider(translationStatusDomain)).value,
+                  registryLanguage!.status,
+                ),
+              ),
+            ],
+          ],
+          if (registryLanguage != null && !isDefault) ...[
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -256,23 +360,21 @@ class _StaticLanguageCard extends ConsumerWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 PlatformPrimaryButton(
-                  key: ValueKey('view-${language.code}'),
+                  key: ValueKey('view-$code'),
                   label: strings.tKey(
                     PlatformAdminKeys.languageWorkspaceButtonManage,
                   ),
                   icon: Icons.tune_rounded,
-                  onPressed: () =>
-                      context.go('/settings/languages/${language.code}'),
+                  onPressed: () => context.go('/settings/languages/$code'),
                 ),
                 PlatformSecondaryButton(
-                  key: ValueKey('translate-${language.code}'),
+                  key: ValueKey('translate-$code'),
                   label: strings.tKey(
                     PlatformAdminKeys.pageTranslationQueueTitle,
                   ),
                   icon: Icons.translate_rounded,
-                  onPressed: () => context.go(
-                    '/settings/languages/${language.code}/translations',
-                  ),
+                  onPressed: () =>
+                      context.go('/settings/languages/$code/translations'),
                 ),
               ],
             ),

@@ -3,6 +3,7 @@ package com.truereport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.truereport.jobs.CleanEvidencePublicationService;
 import com.truereport.shared.error.ApiException;
+import com.truereport.shared.i18n.ContentTranslationService;
 import com.truereport.shared.uuid.UuidV7;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,115 @@ class TechnicianPhase3IT extends IntegrationTestBase {
 
     @Autowired
     PlatformTransactionManager transactionManager;
+
+    @Autowired
+    ContentTranslationService contentTranslations;
+
+    @Test
+    void languageQueryParameterBeatsHeaderOnLocalizedReads() throws Exception {
+        Login adminA = login("admin.a@test.local");
+        Login techA = login("tech.a@test.local");
+        Login platform = login("platform@test.local");
+        Seed seed = seedTemplate();
+        String jobId = createJob(adminA, seed);
+
+        String categoryId = jdbc.queryForObject("""
+                SELECT id FROM platform_categories WHERE code = ?
+                """, String.class, seed.categoryCode());
+        contentTranslations.write("CATEGORY", categoryId, "name", "es",
+                "Categor\u00eda t\u00e9cnica", "test");
+        contentTranslations.write("ITEM", seed.itemVersionA(), "label", "es",
+                "Etiqueta t\u00e9cnica", "test");
+        contentTranslations.write("ITEM", seed.itemVersionA(), "instruction", "es",
+                "Instrucci\u00f3n t\u00e9cnica", "test");
+        contentTranslations.write("ITEM", seed.itemVersionB(), "label", "es",
+                "Etiqueta dos", "test");
+
+        String itemsPath = "/api/v1/workshop/master/items";
+        String categoriesPath = "/api/v1/workshop/master/categories";
+        String checklistPath = TECH + "/jobs/" + jobId + "/checklist";
+
+        // ?lang wins with no header.
+        assertThat(publishedItem(localizedGet(adminA, itemsPath, "es", null), seed.itemVersionA())
+                .get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+        assertThat(category(localizedGet(adminA, categoriesPath, "es", null),
+                seed.categoryCode()).get("name").asText()).isEqualTo("Categor\u00eda t\u00e9cnica");
+        assertThat(checklistItem(localizedGet(techA, checklistPath, "es", null),
+                seed.itemCodeA()).get("instruction").asText())
+                .isEqualTo("Instrucci\u00f3n t\u00e9cnica");
+
+        // Header still works when no query parameter is present.
+        assertThat(publishedItem(localizedGet(adminA, itemsPath, null, "es"), seed.itemVersionA())
+                .get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+        assertThat(category(localizedGet(adminA, categoriesPath, null, "es"),
+                seed.categoryCode()).get("name").asText()).isEqualTo("Categor\u00eda t\u00e9cnica");
+        assertThat(checklistItem(localizedGet(techA, checklistPath, null, "es"),
+                seed.itemCodeA()).get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+
+        // Explicit query parameter beats a conflicting header.
+        assertThat(publishedItem(localizedGet(adminA, itemsPath, "es", "fr"), seed.itemVersionA())
+                .get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+        assertThat(category(localizedGet(adminA, categoriesPath, "es", "fr"),
+                seed.categoryCode()).get("name").asText()).isEqualTo("Categor\u00eda t\u00e9cnica");
+        assertThat(checklistItem(localizedGet(techA, checklistPath, "es", "fr"),
+                seed.itemCodeA()).get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+
+        // An unsupported ?lang falls back to the header, never a 500.
+        assertThat(publishedItem(localizedGet(adminA, itemsPath, "zz", "es"), seed.itemVersionA())
+                .get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+
+        // Detail read and platform-admin read follow the same rule.
+        assertThat(call(adminA, get(itemsPath + "/" + seed.itemVersionA() + "?lang=es"), 200)
+                .get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+        assertThat(masterItem(call(platform, get("/api/v1/platform/master/items?lang=es"), 200),
+                seed.itemCodeA()).get("label").asText()).isEqualTo("Etiqueta t\u00e9cnica");
+    }
+
+    private static JsonNode masterItem(JsonNode list, String stableCode) {
+        for (JsonNode node : list) {
+            if (stableCode.equals(node.get("stableCode").asText())) {
+                return node;
+            }
+        }
+        throw new AssertionError("Item not found: " + stableCode);
+    }
+
+    private JsonNode localizedGet(Login login, String path, String queryLang, String headerLang)
+            throws Exception {
+        MockHttpServletRequestBuilder request =
+                get(path + (queryLang == null ? "" : "?lang=" + queryLang));
+        if (headerLang != null) {
+            request.header("Accept-Language", headerLang);
+        }
+        return call(login, request, 200);
+    }
+
+    private static JsonNode publishedItem(JsonNode list, String versionId) {
+        for (JsonNode node : list) {
+            if (versionId.equals(node.get("versionId").asText())) {
+                return node;
+            }
+        }
+        throw new AssertionError("Item not found: " + versionId);
+    }
+
+    private static JsonNode category(JsonNode list, String code) {
+        for (JsonNode node : list) {
+            if (code.equals(node.get("code").asText())) {
+                return node;
+            }
+        }
+        throw new AssertionError("Category not found: " + code);
+    }
+
+    private static JsonNode checklistItem(JsonNode checklist, String itemCode) {
+        for (JsonNode node : checklist.get("items")) {
+            if (itemCode.equals(node.get("itemCode").asText())) {
+                return node;
+            }
+        }
+        throw new AssertionError("Checklist item not found: " + itemCode);
+    }
 
     @Test
     void technicianOnlySeesJobsAssignedToThemInTheirWorkshop() throws Exception {

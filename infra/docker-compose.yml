@@ -44,6 +44,28 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  # Optional translation provider (Phase C). Not started by default:
+  #   docker compose --profile libretranslate up -d libretranslate
+  # The image downloads en/es/fr models on first start; expect ~2 GB RAM
+  # and a few minutes of warm-up before /languages is ready.
+  libretranslate:
+    profiles: ["libretranslate"]
+    image: libretranslate/libretranslate:latest
+    environment:
+      LT_LOAD_ONLY: en,es,fr
+      LT_DISABLE_WEB_UI: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/languages')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
   server:
     build:
       context: ../server
@@ -66,6 +88,9 @@ services:
       DELIVERY_WEBHOOK_SECRET: ${DELIVERY_WEBHOOK_SECRET:-change-me-local-only}
       DELIVERY_ALLOWED_PHONE_RECIPIENTS: ${DELIVERY_ALLOWED_PHONE_RECIPIENTS:-}
       DELIVERY_ALLOWED_EMAIL_RECIPIENTS: ${DELIVERY_ALLOWED_EMAIL_RECIPIENTS:-}
+      I18N_TRANSLATION_PROVIDER: ${I18N_TRANSLATION_PROVIDER:-fake}
+      LIBRETRANSLATE_URL: ${LIBRETRANSLATE_URL:-http://libretranslate:5000}
+      LIBRETRANSLATE_API_KEY: ${LIBRETRANSLATE_API_KEY:-}
     depends_on:
       mysql:
         condition: service_healthy
@@ -78,3 +103,4 @@ volumes:
   mysql_data:
   minio_data:
   server_storage:
+  libretranslate_models:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../platform_theme.dart';
 
@@ -17,6 +18,10 @@ class PlatformTextField extends StatelessWidget {
     this.maxLines = 1,
     this.enabled = true,
     this.textDirection,
+    this.autofocus = false,
+    this.textInputAction,
+    this.inputFormatters,
+    this.onFieldSubmitted,
   });
 
   final TextEditingController? controller;
@@ -29,6 +34,10 @@ class PlatformTextField extends StatelessWidget {
   final int maxLines;
   final bool enabled;
   final TextDirection? textDirection;
+  final bool autofocus;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onFieldSubmitted;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +49,10 @@ class PlatformTextField extends StatelessWidget {
       maxLines: maxLines,
       enabled: enabled,
       textDirection: textDirection,
+      autofocus: autofocus,
+      textInputAction: textInputAction,
+      inputFormatters: inputFormatters,
+      onFieldSubmitted: onFieldSubmitted,
       style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
       decoration: InputDecoration(
         labelText: label,

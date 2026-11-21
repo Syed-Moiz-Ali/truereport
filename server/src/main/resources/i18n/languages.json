@@ -12,6 +12,12 @@
       "name": "Spanish",
       "nativeName": "Español",
       "direction": "ltr"
+    },
+    {
+      "code": "fr",
+      "name": "French",
+      "nativeName": "Français",
+      "direction": "ltr"
     }
   ]
 }

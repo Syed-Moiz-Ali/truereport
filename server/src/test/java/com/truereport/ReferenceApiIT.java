@@ -25,6 +25,36 @@ class ReferenceApiIT extends IntegrationTestBase {
     JdbcTemplate jdbc;
 
     @Test
+    void resultSelectableFlagsSeparateAssessmentFromDerivedStates() throws Exception {
+        Login platform = login("platform@test.local");
+        JsonNode rows = getJson(platform, BASE + "/enums/result");
+        assertThat(codes(rows)).containsExactly(
+                "NO_ISSUE_OBSERVED", "ATTENTION_RECOMMENDED", "DEFECT_FOUND",
+                "NOT_CHECKED", "NOT_APPLICABLE", "COULD_NOT_VERIFY");
+        for (JsonNode row : rows) {
+            String code = row.get("code").asText();
+            boolean derived = List.of("NOT_CHECKED", "NOT_APPLICABLE", "COULD_NOT_VERIFY")
+                    .contains(code);
+            assertThat(row.get("selectable").asBoolean())
+                    .as("selectable for %s", code)
+                    .isEqualTo(!derived);
+        }
+    }
+
+    @Test
+    void severityParityComesFromOptionSetMetadata() throws Exception {
+        Login platform = login("platform@test.local");
+        JsonNode rows = getJson(platform, BASE + "/enums/severity");
+        assertThat(codes(rows)).containsExactly("MINOR", "MODERATE", "MAJOR", "SAFETY_CRITICAL");
+        assertThat(rows.get(0).get("labelKey").asText()).isEqualTo("minor");
+        assertThat(rows.get(0).get("tone").asText()).isEqualTo("neutral");
+        assertThat(rows.get(2).get("labelKey").asText()).isEqualTo("major");
+        assertThat(rows.get(2).get("tone").asText()).isEqualTo("danger");
+        assertThat(rows.get(3).get("visibleFor").size()).isGreaterThan(0);
+        assertThat(rows.get(3).get("status").asText()).isEqualTo("PUBLISHED");
+    }
+
+    @Test
     void jobStatusesHaveTheExactContractShapeAndOrder() throws Exception {
         Login technician = login("tech.a@test.local");
         JsonNode rows = getJson(technician, BASE + "/statuses/job");
