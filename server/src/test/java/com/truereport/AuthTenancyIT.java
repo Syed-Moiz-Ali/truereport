@@ -83,38 +83,6 @@ class AuthTenancyIT extends IntegrationTestBase {
     }
 
     @Test
-    void refreshTokenRotationAndReuseIsRejected() throws Exception {
-        Login login = login("tech.a@test.local");
-
-        var refreshResult = mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"refreshToken":"%s"}
-                                """.formatted(login.refreshToken())))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        JsonNode refreshed = objectMapper.readTree(refreshResult.getResponse().getContentAsString());
-        assertThat(refreshed.get("refreshToken").asText()).isNotEqualTo(login.refreshToken());
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"refreshToken":"%s"}
-                                """.formatted(login.refreshToken())))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTH_REFRESH_REUSED"));
-
-        // Reuse detection revokes the whole family, including the rotated token.
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"refreshToken":"%s"}
-                                """.formatted(refreshed.get("refreshToken").asText())))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     void meReturnsOnlyTheCallersMemberships() throws Exception {
         Login adminA = login("admin.a@test.local");
 

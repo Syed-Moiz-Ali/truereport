@@ -46,6 +46,7 @@ public class AuthService {
     private final TotpService totpService;
     private final SecretCipher secretCipher;
     private final AuditService auditService;
+    private final RefreshTokenRevoker refreshTokenRevoker;
     private final boolean adminTotpRequired;
     private final SecureRandom random = new SecureRandom();
 
@@ -60,6 +61,7 @@ public class AuthService {
                        TotpService totpService,
                        SecretCipher secretCipher,
                        AuditService auditService,
+                       RefreshTokenRevoker refreshTokenRevoker,
                        @org.springframework.beans.factory.annotation.Value(
                                "${truereport.auth.admin-totp.required:false}")
                        boolean adminTotpRequired) {
@@ -74,6 +76,7 @@ public class AuthService {
         this.totpService = totpService;
         this.secretCipher = secretCipher;
         this.auditService = auditService;
+        this.refreshTokenRevoker = refreshTokenRevoker;
         this.adminTotpRequired = adminTotpRequired;
     }
 
@@ -152,8 +155,7 @@ public class AuthService {
         RefreshToken stored = refreshTokens.findByTokenHash(hash)
                 .orElseThrow(() -> ApiException.unauthorized("AUTH_TOKEN_INVALID", "Invalid refresh token"));
         if (stored.getRevokedAt() != null) {
-            revokeFamily(stored.getFamilyId());
-            auditService.recordAuth(stored.getUserId(), "REFRESH_REUSE_DETECTED", "ROTATED_TOKEN_REUSED");
+            refreshTokenRevoker.revokeFamilyAndAudit(stored.getFamilyId(), stored.getUserId());
             throw ApiException.unauthorized("AUTH_REFRESH_REUSED", "Refresh token reuse detected");
         }
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
@@ -342,16 +344,6 @@ public class AuthService {
     private boolean hasRole(UUID userId, String role) {
         return memberships.findByUserIdAndStatus(userId, "ACTIVE").stream()
                 .anyMatch(m -> m.getRole().name().equals(role));
-    }
-
-    private void revokeFamily(UUID familyId) {
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        refreshTokens.findByFamilyId(familyId).stream()
-                .filter(token -> token.getRevokedAt() == null)
-                .forEach(token -> {
-                    token.revoke(now, null);
-                    refreshTokens.save(token);
-                });
     }
 
     private void requireActive(User user) {

@@ -127,3 +127,20 @@ DELETE /api/v1/technician/jobs/{jobId}/vehicle-photo        -> 204
 - Public: `GET /r/{token}/vehicle-photo` streams the image for an ACTIVE link; the report page
   exposes `heroPhotoUrl` and falls back to the first evidence showcase image when absent. The PDF
   embeds the same photo as a data URI on the cover.
+
+## 8. Access and refresh tokens
+
+- `POST /api/v1/auth/login` (and `/2fa/verify`) returns `accessToken` (JWT), `refreshToken`
+  (opaque, hashed at rest), `tokenType: "Bearer"`, `expiresIn`, the user and memberships.
+- Access tokens are stateless. `JWT_ACCESS_TTL` (default `PT15M`) expiry is only observable as
+  **401** on an authenticated endpoint; there is no client-side decode requirement.
+- On a 401 the client calls `POST /api/v1/auth/refresh` **once** (concurrent 401s share one
+  in-flight call), persists the rotated pair, and retries the original request with the new access
+  token. `api_client` implements the interceptor; `auth_repository` persists the session.
+- Refresh tokens are single-use. Each refresh returns a new refresh token and revokes the previous
+  row. Reusing a rotated token returns **401 `AUTH_REFRESH_REUSED`** and revokes the entire token
+  family (committed independently of the failing request), so the client must sign out.
+- `POST /auth/logout` revokes the current session token; `POST /auth/logout-all` revokes every
+  active token for the user.
+- TTLs: `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL` (default `P30D`), `JWT_CHALLENGE_TTL` (default
+  `PT5M`). Production can shorten the access TTL without rebuilding.

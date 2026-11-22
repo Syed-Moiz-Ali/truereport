@@ -213,7 +213,7 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ## Current numbers
 
 ```
-backend                    349 tests · 0 failures · 12 skipped
+backend                    350 tests · 0 failures · 12 skipped
 l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
 ui_gallery 5 · platform_admin 117 · workshop 205 · technician 146
 flutter analyze            clean
@@ -377,6 +377,32 @@ Exhaustive browser/API coverage rather than only the happy paths:
 Final full run (2026-11-22): **41 tests, 39 passed, 2 skipped, 0 failures in 50.2 minutes**
 (the two skips are the token-gated public-report tests; with `E2E_PUBLIC_REPORT_TOKEN` they pass
 and only the Spanish-report fixture remains skipped).
+
+### Access and refresh tokens (2026-11-22)
+
+The flow already existed (login returns a 15-minute access token and a single-use 30-day refresh
+token; the client refreshes on 401, persists the rotated pair and retries, single-flight). This
+pass proved it and fixed the security bug found while proving it:
+
+- **Bug:** `AuthService.refresh` revoked the token family and wrote the audit row inside the same
+  `@Transactional` method that then threw `401 AUTH_REFRESH_REUSED`. The throw rolled everything
+  back, so a **rotated refresh token stayed usable after reuse was detected**. The old IT passed
+  only because it ran inside one test transaction. Fixed with `RefreshTokenRevoker`
+  (`REQUIRES_NEW`), which commits the family revocation and `REFRESH_REUSE_DETECTED` audit before
+  the 401 is returned. New `RefreshTokenRotationIT` runs without a test transaction and asserts
+  reuse → old 401, rotated 401, every family row revoked, audit row present, expired token 401,
+  logout revokes.
+- **TTLs are now env-configurable**: `JWT_ACCESS_TTL` (PT15M), `JWT_REFRESH_TTL` (P30D),
+  `JWT_CHALLENGE_TTL` (PT5M).
+- **Client tests added**: the rotated pair is persisted for the next launch; a failed refresh
+  returns null and leaves the stored session intact. (Single-flight, retry and sign-out-on-failure
+  were already covered.)
+- **Live proof (browser, 10s access TTL):** after expiry, five concurrent requests returned 401
+  with the old token, exactly **one** `POST /auth/refresh` fired, and all five retried with the new
+  token and returned 200 — the app stayed on `/workshop` (no sign-out). API-level: reuse →
+  `401 AUTH_REFRESH_REUSED`, then the rotated token is also `401`, family `total=2 revoked=2`.
+- Note: Spring's JWT validator allows 60s of clock skew, so an expired access token is accepted
+  for up to a minute; that is standard and is why the 10s test waited ~72s before triggering 401.
 
 ### Visual token pass (2026-11-22)
 

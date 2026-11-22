@@ -85,9 +85,9 @@ truereport:
     issuer: truereport
     audience: truereport-api
     secret: ${JWT_SECRET}
-    access-ttl: PT15M
-    refresh-ttl: P30D
-    challenge-ttl: PT5M
+    access-ttl: ${JWT_ACCESS_TTL:PT15M}
+    refresh-ttl: ${JWT_REFRESH_TTL:P30D}
+    challenge-ttl: ${JWT_CHALLENGE_TTL:PT5M}
   encryption:
     key: ${APP_ENCRYPTION_KEY}
   auth:
