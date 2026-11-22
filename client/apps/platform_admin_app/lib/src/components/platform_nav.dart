@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
-
-import '../platform_providers.dart';
-import '../platform_theme.dart';
 
 class PlatformNavEntry {
   const PlatformNavEntry({
@@ -37,9 +33,11 @@ class PlatformNavEntry {
     if (id == 'reports') {
       return currentRoute.startsWith('/reports');
     }
-    // The Settings tab covers settings and its sub-pages (e.g. languages).
+    // The Settings tab covers settings, the language workspace and the
+    // configuration pages that are reached from settings.
     if (id == 'settings') {
-      return currentRoute.startsWith('/settings');
+      return currentRoute.startsWith('/settings') ||
+          currentRoute.startsWith('/configuration');
     }
     // Audit Log is a single page: exact match only.
     if (id == 'audit-log') {
@@ -53,7 +51,7 @@ class PlatformNavEntry {
 class PlatformNavData {
   const PlatformNavData._();
 
-  /// Primary navigation items, in sidebar order.
+  /// Primary navigation items, in rail / dock order.
   static const primaryItems = <PlatformNavEntry>[
     PlatformNavEntry(
       id: 'dashboard',
@@ -94,135 +92,4 @@ class PlatformNavData {
   ];
 
   static List<PlatformNavEntry> get allItems => [...primaryItems];
-}
-
-/// Reusable navigation item widget used in desktop sidebar and mobile sheet.
-class PlatformNavItem extends ConsumerWidget {
-  const PlatformNavItem({
-    super.key,
-    required this.entry,
-    required this.isActive,
-    required this.onTap,
-    this.keyPrefix = 'nav-',
-  });
-
-  final PlatformNavEntry entry;
-  final bool isActive;
-  final VoidCallback onTap;
-  final String keyPrefix;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final label = strings.tKey(entry.labelKey);
-    final fg = isActive ? PtTheme.ink : PtTheme.darkNavText;
-    final iconColor = isActive ? PtTheme.emerald : PtTheme.muted;
-    final bg = isActive ? PtTheme.canvas : Colors.transparent;
-
-    return Semantics(
-      selected: isActive,
-      button: true,
-      label: label,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          key: Key('$keyPrefix${entry.id}'),
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          hoverColor: PtTheme.canvas.withValues(alpha: 0.6),
-          focusColor: PtTheme.emerald.withValues(alpha: 0.08),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 14, 10),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(8),
-              border: BorderDirectional(
-                start: BorderSide(
-                  color: isActive ? PtTheme.deepGreen : Colors.transparent,
-                  width: 3.5,
-                ),
-              ),
-              boxShadow: isActive
-                  ? const [
-                      BoxShadow(
-                        color: Color(0x06000000),
-                        blurRadius: 6,
-                        offset: Offset(0, 1),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? PtTheme.emerald.withValues(alpha: 0.14)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(entry.icon, size: 18, color: iconColor),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: PtTheme.font(
-                      14,
-                      lineHeight: 20,
-                      weight: isActive ? FontWeight.w600 : FontWeight.w500,
-                      color: fg,
-                      tracking: -0.07,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Renders the complete navigation list (primary items only).
-class PlatformNavList extends StatelessWidget {
-  const PlatformNavList({
-    super.key,
-    required this.currentRoute,
-    required this.onNavigate,
-    this.keyPrefix = 'nav-',
-    this.padding = EdgeInsets.zero,
-    this.shrinkWrap = false,
-  });
-
-  final String currentRoute;
-  final ValueChanged<String> onNavigate;
-  final String keyPrefix;
-  final EdgeInsetsGeometry padding;
-  final bool shrinkWrap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: padding,
-      shrinkWrap: shrinkWrap,
-      children: [
-        for (var i = 0; i < PlatformNavData.primaryItems.length; i++) ...[
-          if (i > 0) const SizedBox(height: 4),
-          PlatformNavItem(
-            entry: PlatformNavData.primaryItems[i],
-            isActive: PlatformNavData.primaryItems[i].isActive(currentRoute),
-            onTap: () => onNavigate(PlatformNavData.primaryItems[i].route),
-            keyPrefix: keyPrefix,
-          ),
-        ],
-      ],
-    );
-  }
 }

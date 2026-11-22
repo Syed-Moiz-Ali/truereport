@@ -17,11 +17,12 @@ class ContextBreadcrumbItem {
   final VoidCallback? onTap;
 }
 
-/// Reusable context bar rendered directly below [PlatformHeader].
+/// Reusable context bar rendered directly below [PlatformCommandBar].
 ///
-/// Hierarchy:
-/// Left side: optional back affordance + breadcrumb trail (parent -> current).
-/// Right side: page-provided actions.
+/// It sits on the page canvas rather than on a second white strip, so the
+/// command bar is the only chrome edge on screen. Hierarchy:
+/// Left: optional back affordance + breadcrumb trail (parent -> current).
+/// Right: page-provided actions.
 class PlatformContextBar extends StatelessWidget {
   const PlatformContextBar({
     super.key,
@@ -68,15 +69,11 @@ class PlatformContextBar extends StatelessWidget {
 
         return Container(
           width: double.infinity,
-          decoration: const BoxDecoration(
-            color: PtTheme.white,
-            border: Border(bottom: BorderSide(color: PtTheme.border, width: 1)),
-          ),
           padding: EdgeInsetsDirectional.fromSTEB(
-            compact ? 14 : 24,
-            8,
-            compact ? 14 : 24,
-            8,
+            compact ? 16 : 24,
+            6,
+            compact ? 16 : 24,
+            6,
           ),
           child: child,
         );
@@ -114,25 +111,33 @@ class _Breadcrumbs extends ConsumerWidget {
             Semantics(
               button: true,
               label: strings.tKey(CommonKeys.buttonBack),
-              child: InkWell(
-                key: const Key('btn-context-bar-back'),
-                onTap: effectiveBack,
-                borderRadius: BorderRadius.circular(6),
-                child: const Padding(
-                  padding: EdgeInsetsDirectional.only(end: 8),
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    size: 16,
-                    color: PtTheme.muted,
+              child: Tooltip(
+                message: strings.tKey(CommonKeys.buttonBack),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: const Key('btn-context-bar-back'),
+                    onTap: effectiveBack,
+                    customBorder: const CircleBorder(),
+                    child: const SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: Icon(
+                        Icons.arrow_back_rounded,
+                        size: 17,
+                        color: PtTheme.muted,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
+            const SizedBox(width: 4),
           ],
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) ...[
               Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 6),
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 7),
                 child: Text(
                   '/',
                   style: PtTheme.font(
@@ -164,8 +169,9 @@ class _Crumb extends StatelessWidget {
         ? PtTheme.font(
             13,
             lineHeight: 18,
-            weight: FontWeight.w600,
+            weight: FontWeight.w700,
             color: PtTheme.ink,
+            tracking: -0.1,
           )
         : PtTheme.font(
             12,
@@ -191,8 +197,8 @@ class _Crumb extends StatelessWidget {
 
     return InkWell(
       onTap: item.onTap,
-      borderRadius: BorderRadius.circular(4),
-      hoverColor: PtTheme.canvas,
+      borderRadius: BorderRadius.circular(8),
+      hoverColor: PtTheme.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: label,

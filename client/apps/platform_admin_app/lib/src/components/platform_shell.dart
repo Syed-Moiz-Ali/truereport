@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../platform_theme.dart';
-import 'platform_header.dart';
-import 'platform_sidebar.dart';
+import 'platform_command_bar.dart';
+import 'platform_mobile_dock.dart';
+import 'platform_rail.dart';
 
-/// Shared Platform Admin shell.
+/// Shared Platform Admin shell — the command deck.
 ///
-/// Keeps the desktop sidebar and header on every screen, hides the sidebar on
-/// compact widths (<900px, where header exposes mobile nav trigger), and provides
-/// a calm, premium, consistent layout across all viewports.
+/// Desktop (>=900): a 76px icon rail owns navigation, the command bar owns
+/// context, search and global actions, and pages keep the full remaining width.
+/// Compact: a 56px context row (plus an optional search row), a five-item dock
+/// at the foot, and the full navigation sheet behind the menu button.
 class PlatformShell extends StatelessWidget {
   const PlatformShell({
     super.key,
@@ -27,28 +29,34 @@ class PlatformShell extends StatelessWidget {
   final ValueChanged<String>? onNavigate;
 
   /// Page-provided context bar (breadcrumbs + page actions) rendered
-  /// directly below the app header. Pages own their breadcrumb data.
+  /// directly below the command bar. Pages own their breadcrumb data.
   final Widget? contextBar;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final showSidebar = constraints.maxWidth >= 900;
+        final showRail = constraints.maxWidth >= 900;
         return Scaffold(
           backgroundColor: PtTheme.canvas,
+          bottomNavigationBar: showRail
+              ? null
+              : PlatformMobileDock(
+                  currentRoute: currentRoute,
+                  onNavigate: onNavigate,
+                ),
           body: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (showSidebar)
-                PlatformSidebar(
+              if (showRail)
+                PlatformRail(
                   currentRoute: currentRoute,
                   onNavigate: onNavigate,
                 ),
               Expanded(
                 child: Column(
                   children: [
-                    PlatformHeader(
+                    PlatformCommandBar(
                       currentRoute: currentRoute,
                       onSearchChanged: showSearch ? onSearchChanged : null,
                       onNavigate: onNavigate,
@@ -211,7 +219,7 @@ class PlatformSectionCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: PtTheme.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: PtTheme.border),
       ),
       child: child,
