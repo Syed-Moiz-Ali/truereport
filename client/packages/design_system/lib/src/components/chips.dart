@@ -25,9 +25,10 @@ class StatusChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: context.motionDuration(context.motion.fast),
         curve: context.motion.enterCurve,
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: context.spacing.md,
-          vertical: context.spacing.xs,
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
         ),
         decoration: BoxDecoration(
           color: pair.background,
@@ -179,7 +180,7 @@ class _AppFilterChipState extends State<AppFilterChip> {
               onTap: widget.onRemoved,
               borderRadius: BorderRadius.circular(radii.pill),
               child: SizedBox.square(
-                dimension: sizing.targetMin,
+                dimension: 28,
                 child: Icon(
                   Icons.close,
                   size: sizing.iconSm,
@@ -205,9 +206,7 @@ class _AppFilterChipState extends State<AppFilterChip> {
           boxShadow: _focused ? [context.shadows.focus] : null,
         ),
         child: Material(
-          color: background,
-          shape: RoundedRectangleBorder(borderRadius: radius),
-          clipBehavior: Clip.antiAlias,
+          type: MaterialType.transparency,
           child: InkWell(
             onTap: widget.onSelected == null
                 ? null
@@ -216,12 +215,24 @@ class _AppFilterChipState extends State<AppFilterChip> {
             borderRadius: radius,
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: sizing.targetMin),
-              child: Padding(
-                padding: EdgeInsetsDirectional.symmetric(
-                  horizontal: context.spacing.md,
-                  vertical: context.spacing.xs,
+              child: Center(
+                widthFactor: 1,
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: background,
+                    borderRadius: radius,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 32),
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: label,
+                    ),
+                  ),
                 ),
-                child: label,
               ),
             ),
           ),

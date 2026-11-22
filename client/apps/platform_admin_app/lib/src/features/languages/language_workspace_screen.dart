@@ -827,11 +827,14 @@ class _ContentTabState extends ConsumerState<_ContentTab> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      decoration: InputDecoration(
-                        hintText: strings.tKey(
-                          PlatformAdminKeys.filterQueueSearch,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: PtTheme.fieldDecoration(
+                        hint: strings.tKey(PlatformAdminKeys.filterQueueSearch),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          size: 18,
+                          color: PtTheme.muted,
                         ),
-                        prefixIcon: const Icon(Icons.search_rounded, size: 18),
                       ),
                       onChanged: (value) => setState(() => _query = value),
                     ),
@@ -845,6 +848,29 @@ class _ContentTabState extends ConsumerState<_ContentTab> {
                           ChoiceChip(
                             label: Text(_contentFilterLabel(strings, filter)),
                             selected: _contentFilter == filter,
+                            showCheckmark: false,
+                            shape: const StadiumBorder(),
+                            side: BorderSide(
+                              color: _contentFilter == filter
+                                  ? PtTheme.deepGreen.withValues(alpha: 0.35)
+                                  : PtTheme.border,
+                            ),
+                            backgroundColor: PtTheme.canvas,
+                            selectedColor: PtTheme.deepGreen.withValues(
+                              alpha: 0.12,
+                            ),
+                            padding: const EdgeInsetsDirectional.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            labelPadding: EdgeInsets.zero,
+                            labelStyle: PtTheme.font(
+                              12,
+                              weight: FontWeight.w600,
+                              color: _contentFilter == filter
+                                  ? PtTheme.deepGreen
+                                  : PtTheme.muted,
+                            ),
                             onSelected: (_) =>
                                 setState(() => _contentFilter = filter),
                           ),
@@ -998,7 +1024,8 @@ class _ContentRowState extends ConsumerState<_ContentRow> {
                 key: ValueKey('content-edit-${item.key}'),
                 controller: _controller,
                 maxLines: null,
-                decoration: const InputDecoration(isDense: true),
+                textAlignVertical: TextAlignVertical.top,
+                decoration: PtTheme.fieldDecoration(),
               ),
             ],
           );

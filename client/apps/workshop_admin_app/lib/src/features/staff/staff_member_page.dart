@@ -343,11 +343,14 @@ class _StaffMemberPageState extends ConsumerState<StaffMemberPage> {
         label: label,
         child: ExcludeSemantics(
           child: Container(
-            height: 28,
-            padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+            constraints: const BoxConstraints(minHeight: 32),
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
             decoration: BoxDecoration(
               color: current ? ws.ink : ws.canvas,
-              borderRadius: BorderRadius.circular(ws.touchTarget),
+              borderRadius: BorderRadius.circular(context.radii.pill),
               border: Border.all(color: current ? ws.ink : ws.border),
             ),
             child: Center(

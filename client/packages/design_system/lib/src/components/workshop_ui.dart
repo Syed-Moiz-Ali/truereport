@@ -55,7 +55,7 @@ class _WorkshopButtonState extends State<WorkshopButton> {
     final ws = context.ws;
     final spacing = context.spacing;
     final enabled = widget.onPressed != null && !widget.isLoading;
-    final radius = BorderRadius.circular(ws.controlRadius);
+    final radius = BorderRadius.circular(context.radii.pill);
     final duration = context.motionDuration(const Duration(milliseconds: 140));
 
     late final Color background;
@@ -120,7 +120,7 @@ class _WorkshopButtonState extends State<WorkshopButton> {
         minWidth: ws.touchTarget,
       ),
       child: SizedBox(
-        height: ws.controlHeight,
+        height: context.sizing.buttonHeight,
         width: widget.expand ? double.infinity : null,
         child: Padding(
           padding: EdgeInsetsDirectional.symmetric(horizontal: spacing.lg),
@@ -198,7 +198,7 @@ class _WorkshopIconButtonState extends State<WorkshopIconButton> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final enabled = widget.onPressed != null;
-    final radius = BorderRadius.circular(ws.controlRadius);
+    final radius = BorderRadius.circular(context.radii.pill);
     final background = widget.selected
         ? ws.accentSoft
         : _hovered && enabled
@@ -506,7 +506,7 @@ class _WorkshopSearchFieldState extends State<WorkshopSearchField> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final radius = BorderRadius.circular(ws.controlRadius);
+    final radius = BorderRadius.circular(context.radii.xl);
     return Semantics(
       textField: true,
       label: widget.semanticLabel,
@@ -532,7 +532,7 @@ class _WorkshopSearchFieldState extends State<WorkshopSearchField> {
             border: Border.all(color: _focused ? ws.accent : ws.border),
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: ws.touchTarget),
+            constraints: BoxConstraints(minHeight: context.sizing.inputHeight),
             child: TextField(
               controller: widget.controller,
               focusNode: _focusNode,
@@ -568,7 +568,7 @@ class _WorkshopSearchFieldState extends State<WorkshopSearchField> {
   }
 }
 
-/// 46 px workshop text field with a persistent label above the control.
+/// 56 px workshop text field with a persistent label above the control.
 ///
 /// The optional [key] is attached to the inner [TextFormField] so existing
 /// tests can read `TextFormField` state straight from the key (the outer
@@ -644,12 +644,15 @@ class _WorkshopTextFieldState extends State<WorkshopTextField> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final radius = BorderRadius.circular(ws.controlRadius);
+    final radius = BorderRadius.circular(context.radii.xl);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ExcludeSemantics(child: Text(widget.label, style: ws.bodyStrong)),
+        Text(
+          widget.label,
+          style: ws.meta.copyWith(color: ws.muted, fontWeight: FontWeight.w600),
+        ),
         SizedBox(height: spacing.xs),
         Semantics(
           textField: true,
@@ -674,7 +677,9 @@ class _WorkshopTextFieldState extends State<WorkshopTextField> {
               border: Border.all(color: _focused ? ws.accent : ws.border),
             ),
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: ws.controlHeight),
+              constraints: BoxConstraints(
+                minHeight: context.sizing.inputHeight,
+              ),
               child: TextFormField(
                 key: widget._fieldKey,
                 controller: widget.controller,
@@ -719,7 +724,7 @@ class _WorkshopTextFieldState extends State<WorkshopTextField> {
   }
 }
 
-/// 40 px filter chip (44 px tap target) that renders the count inside the
+/// 32 px pill filter chip (44 px tap target) that renders the count inside the
 /// label, e.g. `All (3)`.
 class WorkshopFilterChip extends StatefulWidget {
   const WorkshopFilterChip({
@@ -745,7 +750,7 @@ class _WorkshopFilterChipState extends State<WorkshopFilterChip> {
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
-    final radius = BorderRadius.circular(ws.chipRadius);
+    final radius = BorderRadius.circular(context.radii.pill);
     final text = widget.count == null
         ? widget.label
         : '${widget.label} (${widget.count})';
@@ -777,11 +782,7 @@ class _WorkshopFilterChipState extends State<WorkshopFilterChip> {
               height: ws.touchTarget,
               child: Center(
                 widthFactor: 1,
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 40),
-                  padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: context.spacing.md,
-                  ),
+                child: Ink(
                   decoration: BoxDecoration(
                     color: widget.selected ? ws.accentSoft : ws.surface,
                     borderRadius: radius,
@@ -789,11 +790,20 @@ class _WorkshopFilterChipState extends State<WorkshopFilterChip> {
                       color: widget.selected ? ws.accent : ws.border,
                     ),
                   ),
-                  child: ExcludeSemantics(
-                    child: Text(
-                      text,
-                      maxLines: 1,
-                      style: ws.bodyStrong.copyWith(color: ws.ink),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 32),
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: ExcludeSemantics(
+                        child: Text(
+                          text,
+                          maxLines: 1,
+                          style: ws.bodyStrong.copyWith(color: ws.ink),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -839,13 +849,14 @@ class WorkshopStatusBadge extends StatelessWidget {
       container: true,
       label: label,
       child: Container(
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: context.spacing.sm,
-          vertical: context.spacing.xs,
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
         ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(ws.chipRadius),
+          borderRadius: BorderRadius.circular(context.radii.pill),
           border: Border.all(color: foreground.withValues(alpha: 0.28)),
         ),
         child: Wrap(
@@ -1079,7 +1090,7 @@ class _WorkshopAccountMenuState extends State<WorkshopAccountMenu> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
-    final radius = BorderRadius.circular(ws.controlRadius);
+    final radius = BorderRadius.circular(context.radii.pill);
 
     final trigger = widget.compact
         ? WorkshopAvatar(

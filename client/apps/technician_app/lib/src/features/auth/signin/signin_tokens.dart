@@ -27,9 +27,9 @@ abstract final class SignInDims {
   static const double stripPhone = 56;
   static const double stripWide = 72;
 
-  static const double cellHeight = 52;
+  static const double cellHeight = 56;
   static const double primaryHeight = 56;
-  static const double cellRadius = 12;
+  static const double cellRadius = 16;
 
   static const double primaryWidth = 300;
 

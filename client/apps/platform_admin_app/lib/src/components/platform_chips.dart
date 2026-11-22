@@ -27,34 +27,42 @@ class PlatformFilterChip extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(PtTheme.chipRadius),
           hoverColor: PtTheme.canvas,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
-            decoration: BoxDecoration(
-              color: selected
-                  ? PtTheme.deepGreen.withValues(alpha: 0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
+          // 7px of padding above/below the 30px pill keeps the touch target at
+          // 44px without making the visible chip taller than the row.
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(vertical: 7),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 12,
+                vertical: 7,
+              ),
+              constraints: const BoxConstraints(minWidth: 44),
+              decoration: BoxDecoration(
                 color: selected
-                    ? PtTheme.deepGreen.withValues(alpha: 0.35)
-                    : PtTheme.border,
-                width: 1,
+                    ? PtTheme.deepGreen.withValues(alpha: 0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(PtTheme.chipRadius),
+                border: Border.all(
+                  color: selected
+                      ? PtTheme.deepGreen.withValues(alpha: 0.35)
+                      : PtTheme.border,
+                  width: 1,
+                ),
               ),
-            ),
-            child: Text(
-              label,
-              style: PtTheme.font(
-                12,
-                lineHeight: 16,
-                weight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? PtTheme.deepGreen : PtTheme.muted,
+              child: Text(
+                label,
+                style: PtTheme.font(
+                  12,
+                  lineHeight: 16,
+                  weight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? PtTheme.deepGreen : PtTheme.muted,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),
@@ -100,10 +108,14 @@ class PlatformStatusChip extends ConsumerWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      // 14px line + 8px padding above/below = the 30px chip height.
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(PtTheme.chipRadius),
         border: Border.all(color: foreground.withValues(alpha: 0.2)),
       ),
       child: Text(
@@ -132,10 +144,14 @@ class PlatformMetaPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      // 14px line + 8px padding above/below = the 30px chip height.
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(PtTheme.chipRadius),
         border: Border.all(color: PtTheme.border),
       ),
       child: Text(
@@ -163,10 +179,14 @@ class PlatformMetadataChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      constraints: const BoxConstraints(minHeight: PtTheme.chipHeight),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(PtTheme.chipRadius),
         border: Border.all(color: PtTheme.border),
       ),
       child: Row(

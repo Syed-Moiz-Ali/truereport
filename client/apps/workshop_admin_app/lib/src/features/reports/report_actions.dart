@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 enum ReportActionVariant { primary, secondary, ghost, danger }
 
-/// The certificate's action button: radius 14, height 48, inline loading and a
+/// The certificate's action button: pill, height 56, inline loading and a
 /// keyboard focus ring. One shape for every button on the screen, so the sheet
 /// footer region can never mix radii.
 class ReportActionButton extends StatefulWidget {
@@ -26,8 +26,8 @@ class ReportActionButton extends StatefulWidget {
   final bool expand;
   final String? semanticLabel;
 
-  static const double height = 48;
-  static const double radius = 14;
+  static const double height = 56;
+  static const double radius = 999;
 
   @override
   State<ReportActionButton> createState() => _ReportActionButtonState();

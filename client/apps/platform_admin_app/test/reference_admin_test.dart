@@ -35,6 +35,10 @@ Future<void> _pump(
   ProviderContainer container,
   Widget body,
 ) async {
+  // The design-token pass grew controls to 48/56px. A 800x600 surface clips
+  // the row actions the tests tap, so give the body a real desktop viewport.
+  await tester.binding.setSurfaceSize(const Size(1200, 1000));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,

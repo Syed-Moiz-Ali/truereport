@@ -11,12 +11,12 @@ import '../../../platform_theme.dart';
 /// with the rest of Platform Admin.
 abstract final class Atlas {
   static const double buttonHeight = 48;
-  static const double fieldHeight = 52;
-  static const double buttonRadius = 14;
-  static const double fieldRadius = 14;
+  static const double fieldHeight = 56;
+  static const double buttonRadius = 999;
+  static const double fieldRadius = 16;
   static const double surfaceRadius = 16;
   static const double dialogRadius = 20;
-  static const double pillHeight = 28;
+  static const double pillHeight = 30;
   static const double panelGap = 20;
   static const Duration fast = Duration(milliseconds: 140);
   static const Duration settle = Duration(milliseconds: 220);
@@ -314,7 +314,7 @@ class AtlasPill extends StatelessWidget {
     };
     return Container(
       height: Atlas.pillHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 11),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -613,6 +613,7 @@ class _AtlasTextFieldState extends State<AtlasTextField> {
                 ? AutovalidateMode.onUserInteraction
                 : AutovalidateMode.disabled,
             style: Atlas.text(13.5),
+            textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               isDense: true,
               hintText: widget.hint,
@@ -679,6 +680,7 @@ class AtlasSearchField extends StatelessWidget {
       child: TextField(
         controller: controller,
         onChanged: onChanged,
+        textAlignVertical: TextAlignVertical.center,
         style: Atlas.text(13),
         decoration: InputDecoration(
           isDense: true,

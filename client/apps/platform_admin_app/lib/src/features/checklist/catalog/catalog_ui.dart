@@ -8,9 +8,10 @@ import '../../../platform_theme.dart';
 /// Colours reuse PtTheme; radii/heights follow the premium house style.
 abstract final class Catalog {
   static const buttonHeight = 48.0;
-  static const buttonRadius = 14.0;
+  static const buttonRadius = 999.0;
   static const surfaceRadius = 16.0;
-  static const fieldHeight = 52.0;
+  static const fieldHeight = 56.0;
+  static const fieldRadius = 16.0;
   static const dialogRadius = 20.0;
   static const fast = Duration(milliseconds: 140);
 
@@ -213,8 +214,8 @@ class CatalogPill extends StatelessWidget {
       CatalogTone.neutral => (PtTheme.muted, Catalog.neutralTint),
     };
     return Container(
-      height: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 30,
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
@@ -233,7 +234,7 @@ class CatalogPill extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Catalog.text(10.5, weight: FontWeight.w700, color: fg),
+              style: Catalog.text(11, weight: FontWeight.w600, color: fg),
             ),
           ),
         ],
@@ -260,6 +261,7 @@ class CatalogSearch extends StatelessWidget {
     child: TextField(
       controller: controller,
       onChanged: onChanged,
+      textAlignVertical: TextAlignVertical.center,
       style: Catalog.text(12.5),
       decoration: InputDecoration(
         isDense: true,
@@ -278,11 +280,11 @@ class CatalogSearch extends StatelessWidget {
           vertical: 13,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(Catalog.fieldRadius),
           borderSide: const BorderSide(color: PtTheme.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(Catalog.fieldRadius),
           borderSide: const BorderSide(color: PtTheme.deepGreen, width: 1.6),
         ),
       ),
@@ -372,6 +374,7 @@ class CatalogField extends StatelessWidget {
         keyboardType: keyboardType,
         enabled: enabled,
         autovalidateMode: AutovalidateMode.onUserInteraction,
+        textAlignVertical: TextAlignVertical.center,
         style: Catalog.text(12.5),
         decoration: InputDecoration(
           isDense: true,
@@ -387,19 +390,19 @@ class CatalogField extends StatelessWidget {
           ),
           constraints: const BoxConstraints(minHeight: Catalog.fieldHeight),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(Catalog.fieldRadius),
             borderSide: const BorderSide(color: PtTheme.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(Catalog.fieldRadius),
             borderSide: const BorderSide(color: PtTheme.deepGreen, width: 1.6),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(Catalog.fieldRadius),
             borderSide: const BorderSide(color: PtTheme.rose),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(Catalog.fieldRadius),
             borderSide: const BorderSide(color: PtTheme.rose, width: 1.6),
           ),
         ),

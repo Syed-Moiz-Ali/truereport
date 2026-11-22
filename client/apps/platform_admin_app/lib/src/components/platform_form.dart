@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 
 import '../platform_theme.dart';
 
-/// Consistent 10px-radius, 44px-min-height input used by every Platform
-/// Admin form. Validation messages wrap; inputs expand to available width.
+/// Consistent pill-free 16px-radius, 56px-min-height input used by every
+/// Platform Admin form. The label sits above the field; the placeholder is the
+/// caller's hint (or the label) and is vertically centred inside the input.
+/// Validation messages wrap; inputs expand to available width.
 class PlatformTextField extends StatelessWidget {
   const PlatformTextField({
     super.key,
@@ -41,7 +43,12 @@ class PlatformTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    final hasLabel = label != null && label!.isNotEmpty;
+    // The label already sits above the field; only a genuinely different hint
+    // belongs inside, otherwise the same text renders twice.
+    final placeholder = (hint != null && hint!.isNotEmpty) ? hint : null;
+
+    final field = TextFormField(
       controller: controller,
       onChanged: onChanged,
       validator: validator,
@@ -54,41 +61,38 @@ class PlatformTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       onFieldSubmitted: onFieldSubmitted,
       style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
+      textAlignVertical: maxLines > 1
+          ? TextAlignVertical.top
+          : TextAlignVertical.center,
+      decoration: PtTheme.fieldDecoration(
+        hint: placeholder,
         helperText: helperText,
-        helperMaxLines: 3,
-        labelStyle: PtTheme.font(12, lineHeight: 16, color: PtTheme.muted),
-        hintStyle: PtTheme.font(14, lineHeight: 20, color: PtTheme.muted),
-        filled: true,
-        fillColor: PtTheme.canvas,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        constraints: const BoxConstraints(minHeight: 44),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.deepGreen, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.rose),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.rose, width: 1.5),
-        ),
+        hintSize: 14,
       ),
+    );
+
+    if (!hasLabel) return field;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label!,
+          style: PtTheme.font(
+            12,
+            lineHeight: 16,
+            weight: FontWeight.w500,
+            color: PtTheme.muted,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        // The visible label sits above the field, so associate it explicitly:
+        // without this the input has no accessible name (and `getByLabel`
+        // cannot find it).
+        Semantics(label: label, child: field),
+      ],
     );
   }
 }
@@ -110,35 +114,34 @@ class PlatformDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: PtTheme.font(12, lineHeight: 16, color: PtTheme.muted),
-        filled: true,
-        fillColor: PtTheme.canvas,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: PtTheme.font(
+            12,
+            lineHeight: 16,
+            weight: FontWeight.w500,
+            color: PtTheme.muted,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        constraints: const BoxConstraints(minHeight: 44),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
+        const SizedBox(height: 6),
+        Semantics(
+          label: label,
+          child: DropdownButtonFormField<T>(
+            initialValue: value,
+            isExpanded: true,
+            decoration: PtTheme.fieldDecoration(),
+            style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
+            items: items,
+            onChanged: onChanged,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: PtTheme.deepGreen, width: 1.5),
-        ),
-      ),
-      style: PtTheme.font(14, lineHeight: 20, color: PtTheme.ink),
-      items: items,
-      onChanged: onChanged,
+      ],
     );
   }
 }

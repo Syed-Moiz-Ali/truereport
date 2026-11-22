@@ -32,11 +32,14 @@ class JobStatusPill extends ConsumerWidget {
     return Semantics(
       label: text,
       child: Container(
-        height: 24,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(context.radii.pill),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -87,7 +90,7 @@ class JobStageRail extends ConsumerWidget {
     final current = stages.indexOf(status);
 
     Widget stage(int i) => Container(
-      height: 28,
+      constraints: const BoxConstraints(minHeight: 32),
       padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: i < current
@@ -95,10 +98,11 @@ class JobStageRail extends ConsumerWidget {
             : i == current
             ? ws.ink
             : ws.canvas,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(context.radii.pill),
         border: Border.all(color: i == current ? ws.ink : ws.border),
       ),
       child: Center(
+        widthFactor: 1,
         child: Text(
           referenceStatusText(records, stages[i]),
           style: ws.meta.copyWith(

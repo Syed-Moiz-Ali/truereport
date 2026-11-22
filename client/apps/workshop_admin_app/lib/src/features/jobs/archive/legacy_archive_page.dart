@@ -165,11 +165,14 @@ class _CountPill extends StatelessWidget {
     return Semantics(
       label: '${UiStrings.of(context)(WorkshopAdminKeys.jobsTab)} $label',
       child: Container(
-        height: 24,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: ws.canvas,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(context.radii.pill),
           border: Border.all(color: ws.border),
         ),
         child: Center(

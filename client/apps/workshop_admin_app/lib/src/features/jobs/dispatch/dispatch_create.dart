@@ -327,17 +327,26 @@ class _DispatchCreateJobState extends ConsumerState<DispatchCreateJob> {
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: ws.contentMaxWidth),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (var i = 0; i < labels.length; i++) ...[
-                  _stepPill(context, i, labels[i]),
-                  if (i < labels.length - 1) const SizedBox(width: 8),
-                ],
-              ],
-            ),
-          ),
+          child: width < 520
+              ? Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (var i = 0; i < labels.length; i++)
+                      _stepPill(context, i, labels[i]),
+                  ],
+                )
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < labels.length; i++) ...[
+                        _stepPill(context, i, labels[i]),
+                        if (i < labels.length - 1) const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                ),
         ),
       ),
     );

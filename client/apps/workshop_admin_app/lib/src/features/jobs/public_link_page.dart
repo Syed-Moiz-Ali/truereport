@@ -486,11 +486,14 @@ class _StatePill extends StatelessWidget {
     return Semantics(
       label: label,
       child: Container(
-        height: 26,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(context.radii.pill),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -37,15 +37,16 @@ class PlatformToolbar extends ConsumerWidget {
             maxWidth: compact ? double.infinity : 320,
           ),
           child: Container(
-            height: 38,
+            height: PtTheme.controlHeight,
             decoration: BoxDecoration(
               color: PtTheme.canvas,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
               border: Border.all(color: PtTheme.border),
             ),
             child: TextField(
               controller: searchController,
               onChanged: onSearchChanged,
+              textAlignVertical: TextAlignVertical.center,
               style: PtTheme.font(13, lineHeight: 18, color: PtTheme.ink),
               decoration: InputDecoration(
                 hintText: searchHint ?? strings.tKey(CommonKeys.filterSearch),
@@ -59,15 +60,16 @@ class PlatformToolbar extends ConsumerWidget {
                   size: 17,
                   color: PtTheme.muted,
                 ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 40),
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
+                contentPadding: const EdgeInsetsDirectional.symmetric(
                   horizontal: 10,
-                  vertical: 9,
+                  vertical: 14,
                 ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
                   borderSide: const BorderSide(
                     color: PtTheme.deepGreen,
                     width: 1.2,
@@ -83,7 +85,7 @@ class PlatformToolbar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: PtTheme.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
             border: Border.all(color: PtTheme.border),
           ),
           child: Column(

@@ -215,7 +215,7 @@ provider SPI; safety-critical copy requires review; languages driven by `i18n/la
 ```
 backend                    349 tests · 0 failures · 12 skipped
 l10n 58 · api_client 5 · auth 1 · reference_data 9 · design_system 29
-ui_gallery 5 · platform_admin 107 · workshop 201 · technician 142
+ui_gallery 5 · platform_admin 117 · workshop 205 · technician 146
 flutter analyze            clean
 npm run gate               0
 playwright e2e             41 tests · 39 passed · 2 skipped (public token env) · 50.2m
@@ -377,6 +377,27 @@ Exhaustive browser/API coverage rather than only the happy paths:
 Final full run (2026-11-22): **41 tests, 39 passed, 2 skipped, 0 failures in 50.2 minutes**
 (the two skips are the token-gated public-report tests; with `E2E_PUBLIC_REPORT_TOKEN` they pass
 and only the Spanish-report fixture remains skipped).
+
+### Visual token pass (2026-11-22)
+
+Owner request: rounded buttons/chips/fields, taller controls where they were small, and the field
+hint centred instead of a floating label at the top.
+
+- **Controls** — text buttons are 56px pills (icon buttons 44), platform buttons went 40→48 with
+  radius 8→pill, and every chip is a 32px pill inside a 44px+ target (status, filters, tabs,
+  counts, stage rail).
+- **Fields** — 16px radius, 56px minimum height, 12-13px muted label **above** the field, and the
+  hint inside is vertically centred. When the caller supplies no distinct hint the input stays
+  empty inside rather than repeating the label. The label is wrapped in `Semantics` so the field
+  keeps an accessible name (the old `labelText` used to provide it).
+- **Platform Admin** — tokens live in `platform_theme.dart` (`controlHeight`, `fieldHeight`,
+  `chipHeight`, `fieldDecoration`) and the global button/input/chip themes enforce them, so forms,
+  dialogs, header/toolbar search, pickers and audit filters cannot drift again.
+- **Workshop/Technician** — `AppTextField` defaults to label-above, `WorkshopTextField` and the
+  queue primitives follow, the create wizard stepper wraps at 390 instead of clipping, and the
+  account/menu triggers are pills.
+- Tests: platform 116 (+9 token tests), workshop 205, technician 146, design_system 29; real-font
+  captures under `test/screenshots/` and `TEMP\truereport-visual-pass`.
 
 ### Vehicle cover photo (2026-11-22)
 

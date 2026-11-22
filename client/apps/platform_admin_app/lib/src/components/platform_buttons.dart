@@ -65,9 +65,11 @@ class PlatformPrimaryButton extends StatelessWidget {
         foregroundColor: PtTheme.white,
         disabledBackgroundColor: PtTheme.muted.withValues(alpha: 0.25),
         disabledForegroundColor: PtTheme.white.withValues(alpha: 0.7),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        minimumSize: const Size(44, PtTheme.controlHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
+        ),
         elevation: 0,
       ),
       child: child,
@@ -106,9 +108,11 @@ class PlatformSecondaryButton extends StatelessWidget {
         backgroundColor: PtTheme.white,
         foregroundColor: color,
         disabledForegroundColor: PtTheme.muted.withValues(alpha: 0.4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        minimumSize: const Size(44, PtTheme.controlHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
+        ),
       ),
       child: isLoading
           ? SizedBox(
@@ -177,9 +181,11 @@ class PlatformGhostButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       style: TextButton.styleFrom(
         foregroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        minimumSize: const Size(44, PtTheme.controlHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
+        ),
       ),
       child: isLoading
           ? SizedBox(
@@ -253,9 +259,11 @@ class PlatformDestructiveButton extends StatelessWidget {
         backgroundColor: PtTheme.rose,
         foregroundColor: PtTheme.white,
         disabledBackgroundColor: PtTheme.rose.withValues(alpha: 0.3),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        minimumSize: const Size(44, 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        minimumSize: const Size(44, PtTheme.controlHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
+        ),
         elevation: 0,
       ),
       child: isLoading

@@ -554,25 +554,30 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? Catalog.tint : PtTheme.white,
-    borderRadius: BorderRadius.circular(999),
+    color: Colors.transparent,
     child: InkWell(
       borderRadius: BorderRadius.circular(999),
       onTap: onTap,
-      child: Container(
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? Catalog.tint : PtTheme.border),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: Catalog.text(
-            11,
-            weight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? PtTheme.deepGreen : PtTheme.muted,
+      hoverColor: Catalog.neutralTint,
+      child: Padding(
+        // 7px above/below the 30px pill keeps the 44px touch target.
+        padding: const EdgeInsetsDirectional.symmetric(vertical: 7),
+        child: Container(
+          height: 30,
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: selected ? Catalog.tint : PtTheme.white,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: selected ? Catalog.tint : PtTheme.border),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: Catalog.text(
+              11,
+              weight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? PtTheme.deepGreen : PtTheme.muted,
+            ),
           ),
         ),
       ),

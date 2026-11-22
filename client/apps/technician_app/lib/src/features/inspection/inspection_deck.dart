@@ -408,12 +408,13 @@ class _Plate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(minHeight: 32),
       padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 9,
-        vertical: 4,
+        horizontal: 12,
+        vertical: 6,
       ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(context.radii.pill),
         border: Border.all(color: context.colors.outline),
       ),
       child: Row(

@@ -216,8 +216,11 @@ class _QueueChipState extends State<QueueChip> {
               duration: context.motionDuration(
                 const Duration(milliseconds: 140),
               ),
-              height: 28,
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+              height: 32,
+              padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
               decoration: BoxDecoration(
                 color: widget.selected ? brand.container : colors.surface,
                 borderRadius: BorderRadius.circular(QueueMetrics.radiusChip),
@@ -277,8 +280,11 @@ class QueueStatusChip extends StatelessWidget {
     final colors = context.colors;
     final pair = context.statusColors.forTone(tone);
     return Container(
-      height: 28,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+      height: 32,
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(QueueMetrics.radiusChip),

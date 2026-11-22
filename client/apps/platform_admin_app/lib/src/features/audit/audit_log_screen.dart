@@ -163,9 +163,14 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
         children: [
           TextField(
             controller: _search,
-            decoration: InputDecoration(
-              hintText: strings.tKey(PlatformAdminKeys.filterAuditSearch),
-              prefixIcon: const Icon(Icons.search_rounded, size: 18),
+            textAlignVertical: TextAlignVertical.center,
+            decoration: PtTheme.fieldDecoration(
+              hint: strings.tKey(PlatformAdminKeys.filterAuditSearch),
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+                size: 18,
+                color: PtTheme.muted,
+              ),
             ),
             onSubmitted: (value) =>
                 _apply(_query.copyWith(search: value.trim())),
@@ -210,7 +215,7 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
                 child: DropdownButtonFormField<String>(
                   initialValue: _query.sort,
                   isExpanded: true,
-                  decoration: const InputDecoration(),
+                  decoration: PtTheme.fieldDecoration(),
                   items: [
                     DropdownMenuItem(
                       value: 'occurredAt,desc',
@@ -246,10 +251,27 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
   }) {
     return SizedBox(
       width: 220,
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: label),
-        onSubmitted: onSubmitted,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: PtTheme.font(
+              12,
+              lineHeight: 16,
+              weight: FontWeight.w500,
+              color: PtTheme.muted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: controller,
+            textAlignVertical: TextAlignVertical.center,
+            decoration: PtTheme.fieldDecoration(hint: label),
+            onSubmitted: onSubmitted,
+          ),
+        ],
       ),
     );
   }

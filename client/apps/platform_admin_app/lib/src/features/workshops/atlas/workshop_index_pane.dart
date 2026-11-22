@@ -226,42 +226,47 @@ class _FilterPill extends StatelessWidget {
       selected: selected,
       label: '$label, $count',
       child: Material(
-        color: selected ? Atlas.accentTint : PtTheme.white,
-        borderRadius: BorderRadius.circular(999),
+        color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(999),
           onTap: onTap,
-          child: Container(
-            height: Atlas.pillHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 11),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: selected ? Atlas.accentTint : PtTheme.border,
+          hoverColor: Atlas.neutralTint,
+          child: Padding(
+            // 7px above/below the 30px pill keeps the 44px touch target.
+            padding: const EdgeInsetsDirectional.symmetric(vertical: 7),
+            child: Container(
+              height: Atlas.pillHeight,
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: selected ? Atlas.accentTint : PtTheme.white,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: selected ? Atlas.accentTint : PtTheme.border,
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: Atlas.text(
-                    11.5,
-                    weight: selected ? FontWeight.w700 : FontWeight.w600,
-                    color: selected ? PtTheme.deepGreen : PtTheme.muted,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: Atlas.text(
+                      11.5,
+                      weight: selected ? FontWeight.w700 : FontWeight.w600,
+                      color: selected ? PtTheme.deepGreen : PtTheme.muted,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$count',
-                  style: Atlas.text(
-                    10.5,
-                    weight: FontWeight.w700,
-                    tabular: true,
-                    color: selected ? PtTheme.deepGreen : PtTheme.muted,
+                  const SizedBox(width: 6),
+                  Text(
+                    '$count',
+                    style: Atlas.text(
+                      10.5,
+                      weight: FontWeight.w700,
+                      tabular: true,
+                      color: selected ? PtTheme.deepGreen : PtTheme.muted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

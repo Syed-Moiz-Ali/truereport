@@ -143,14 +143,14 @@ class _ChecklistTabButton extends StatelessWidget {
       child: InkWell(
         key: Key('checklist-tab-${tab.key}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PtTheme.chipRadius),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           constraints: const BoxConstraints(minHeight: 44),
           decoration: BoxDecoration(
             color: activeBg,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(PtTheme.chipRadius),
             border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1),
           ),
           child: Row(
@@ -182,7 +182,7 @@ class _ChecklistTabButton extends StatelessWidget {
                         : (hasIssues
                               ? PtTheme.rose.withValues(alpha: 0.12)
                               : PtTheme.canvas),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(PtTheme.chipRadius),
                     border: Border.all(
                       color: hasIssues
                           ? PtTheme.rose.withValues(alpha: 0.3)

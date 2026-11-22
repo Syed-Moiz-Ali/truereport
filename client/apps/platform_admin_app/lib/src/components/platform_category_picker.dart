@@ -57,16 +57,16 @@ class PlatformCategoryPicker extends ConsumerWidget {
       label: label ?? strings.tKey(PlatformAdminKeys.filterCategory),
       child: InkWell(
         onTap: () => _openPicker(context),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: PtTheme.fieldHeight),
           padding: const EdgeInsetsDirectional.symmetric(
             horizontal: 14,
-            vertical: 10,
+            vertical: 16,
           ),
           decoration: BoxDecoration(
             color: PtTheme.canvas,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
             border: Border.all(color: PtTheme.border),
           ),
           child: Row(

@@ -658,15 +658,15 @@ class _ManualUnitRowState extends State<_ManualUnitRow> {
                 controller: _controller,
                 minLines: 1,
                 maxLines: 4,
+                textAlignVertical: TextAlignVertical.top,
                 enabled: !_saving,
                 onChanged: (value) {
                   widget.onEdited(value);
                   setState(() {});
                 },
                 style: PtTheme.font(13, lineHeight: 19, color: PtTheme.ink),
-                decoration: InputDecoration(
-                  isDense: true,
-                  hintText: unit.isMissing
+                decoration: PtTheme.fieldDecoration(
+                  hint: unit.isMissing
                       ? strings.tKey(
                           PlatformAdminKeys.manualTranslationsHintMissing,
                         )
@@ -769,10 +769,13 @@ class _SafetyCriticalBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: PtTheme.gold.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(PtTheme.chipRadius),
         border: Border.all(color: PtTheme.gold.withValues(alpha: 0.35)),
       ),
       child: Row(

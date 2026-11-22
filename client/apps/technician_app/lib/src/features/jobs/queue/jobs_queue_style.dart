@@ -1,14 +1,14 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
-/// Local radius family for the jobs queue (spec §5): buttons 14, chips 999,
-/// fields 14, cards 16, sheets 24.
+/// Local geometry for the jobs queue: pill buttons, chips and fields, 56 px
+/// controls, 16 px cards and 24 px sheets.
 ///
-/// Divergence: `design_system` ships pill buttons and 24px cards. The queue
-/// uses this tighter family deliberately; see the handover notes.
+/// Divergence: `design_system` ships 24px cards. The queue uses this tighter
+/// card family deliberately; see the handover notes.
 abstract final class QueueMetrics {
-  static const double buttonHeight = 48;
-  static const double fieldHeight = 52;
+  static const double buttonHeight = 56;
+  static const double fieldHeight = 56;
   static const double radiusButton = 999;
   static const double radiusField = 999;
   static const double radiusCard = 16;

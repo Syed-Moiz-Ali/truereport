@@ -11,9 +11,9 @@ import '../../../platform_theme.dart';
 /// primitives (8–10px radius, 40–44px height).
 abstract final class Trellis {
   static const buttonHeight = 48.0;
-  static const buttonRadius = 14.0;
+  static const buttonRadius = 999.0;
   static const surfaceRadius = 16.0;
-  static const pillHeight = 28.0;
+  static const pillHeight = 30.0;
   static const gap = 16.0;
   static const fast = Duration(milliseconds: 140);
 
@@ -262,7 +262,7 @@ class TrellisPill extends StatelessWidget {
     };
     return Container(
       height: Trellis.pillHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 11),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),

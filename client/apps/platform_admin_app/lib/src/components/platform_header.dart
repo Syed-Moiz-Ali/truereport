@@ -86,9 +86,9 @@ class PlatformHeader extends ConsumerWidget {
                     color: PtTheme.ink,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(
-                    minWidth: isVeryCompact ? 32 : 40,
-                    minHeight: isVeryCompact ? 32 : 40,
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
                   ),
                   onPressed: () => _openMobileNav(context),
                 ),
@@ -331,11 +331,16 @@ class PlatformHeader extends ConsumerWidget {
                           }
                         },
                         style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(44, 36),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          minimumSize: const Size(44, PtTheme.controlHeight),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                           side: const BorderSide(color: PtTheme.border),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                              PtTheme.controlRadius,
+                            ),
                           ),
                         ),
                         icon: const Icon(Icons.copy_rounded, size: 15),
@@ -467,16 +472,20 @@ class _HeaderSearchFieldState extends ConsumerState<_HeaderSearchField> {
         : strings.tKey(PlatformAdminKeys.headerSearchHint);
 
     return Container(
-      constraints: const BoxConstraints(minHeight: 38, maxHeight: 38),
+      constraints: const BoxConstraints(
+        minHeight: PtTheme.controlHeight,
+        maxHeight: PtTheme.controlHeight,
+      ),
       decoration: BoxDecoration(
         color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
         border: Border.all(color: borderColor, width: 1.2),
       ),
       child: TextField(
         key: const Key('header-search'),
         focusNode: _focusNode,
         onChanged: widget.onChanged,
+        textAlignVertical: TextAlignVertical.center,
         style: PtTheme.font(
           13,
           lineHeight: 18,
@@ -497,12 +506,13 @@ class _HeaderSearchFieldState extends ConsumerState<_HeaderSearchField> {
             size: 17,
             color: PtTheme.muted,
           ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 38),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
+          contentPadding: const EdgeInsetsDirectional.symmetric(
             horizontal: 10,
-            vertical: 8,
+            vertical: 14,
           ),
           isDense: true,
         ),
@@ -530,19 +540,21 @@ class _HeaderCircleAction extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: PtTheme.canvas,
-          shape: BoxShape.circle,
-          border: Border.all(color: PtTheme.border),
-        ),
-        child: IconButton(
-          tooltip: tooltip,
-          padding: EdgeInsets.zero,
-          icon: Icon(icon, size: 18, color: PtTheme.muted),
-          onPressed: onPressed,
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: PtTheme.canvas,
+            shape: BoxShape.circle,
+            border: Border.all(color: PtTheme.border),
+          ),
+          child: IconButton(
+            tooltip: tooltip,
+            padding: EdgeInsets.zero,
+            icon: Icon(icon, size: 18, color: PtTheme.muted),
+            onPressed: onPressed,
+          ),
         ),
       ),
     );
@@ -572,6 +584,9 @@ class _HeaderLanguageSelector extends ConsumerWidget {
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 768;
+    // Below 480 the header has no width to spare: keep the code visible and
+    // drop the decorative glyphs so the search field keeps a usable hint.
+    final veryCompact = screenWidth < 480;
     final selectorText = isCompact
         ? activeLang.code.toUpperCase()
         : activeLang.nativeName.isNotEmpty &&
@@ -586,18 +601,26 @@ class _HeaderLanguageSelector extends ConsumerWidget {
           : activeLang.code.toUpperCase();
       return Container(
         key: const Key('header-language-static'),
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 44,
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: veryCompact ? 10 : 14,
+        ),
         decoration: BoxDecoration(
           color: PtTheme.canvas,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
           border: Border.all(color: PtTheme.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.translate_rounded, size: 15, color: PtTheme.muted),
-            const SizedBox(width: 6),
+            if (!veryCompact) ...[
+              const Icon(
+                Icons.translate_rounded,
+                size: 15,
+                color: PtTheme.muted,
+              ),
+              const SizedBox(width: 6),
+            ],
             Text(
               label,
               style: PtTheme.font(
@@ -674,18 +697,26 @@ class _HeaderLanguageSelector extends ConsumerWidget {
         } catch (_) {}
       },
       child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 44,
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: veryCompact ? 10 : 14,
+        ),
         decoration: BoxDecoration(
           color: PtTheme.canvas,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(PtTheme.controlRadius),
           border: Border.all(color: PtTheme.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.translate_rounded, size: 15, color: PtTheme.muted),
-            const SizedBox(width: 6),
+            if (!veryCompact) ...[
+              const Icon(
+                Icons.translate_rounded,
+                size: 15,
+                color: PtTheme.muted,
+              ),
+              const SizedBox(width: 6),
+            ],
             Text(
               selectorText,
               style: PtTheme.font(
@@ -695,12 +726,14 @@ class _HeaderLanguageSelector extends ConsumerWidget {
                 color: PtTheme.ink,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.arrow_drop_down_rounded,
-              size: 16,
-              color: PtTheme.muted,
-            ),
+            if (!veryCompact) ...[
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.arrow_drop_down_rounded,
+                size: 16,
+                color: PtTheme.muted,
+              ),
+            ],
           ],
         ),
       ),
@@ -926,12 +959,14 @@ class _UserMenu extends ConsumerWidget {
             ? strings.tKey(PlatformAdminKeys.headerAccount)
             : '$displayName${roleLabel.isEmpty ? '' : ', $roleLabel'}',
         child: Container(
-          constraints: const BoxConstraints(minHeight: 36),
+          constraints: const BoxConstraints(minHeight: 44),
           padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: 4,
-            vertical: 2,
+            horizontal: 6,
+            vertical: 4,
           ),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(PtTheme.fieldRadius),
+          ),
           child: label,
         ),
       ),

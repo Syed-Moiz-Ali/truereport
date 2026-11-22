@@ -25,7 +25,7 @@ class AppTextField extends StatefulWidget {
     this.prefixText,
     this.suffixText,
     this.focusNode,
-    this.labelAbove = false,
+    this.labelAbove = true,
     super.key,
   });
 
@@ -110,6 +110,7 @@ class _AppTextFieldState extends State<AppTextField> {
     final radii = context.radii;
     final sizing = context.sizing;
     final radius = BorderRadius.circular(radii.xl);
+    final labelAbove = widget.labelAbove;
 
     final field = Semantics(
       textField: true,
@@ -157,7 +158,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   horizontal: spacing.lg,
                   vertical: spacing.md,
                 ),
-                labelText: widget.labelAbove ? null : widget.label,
+                labelText: labelAbove ? null : widget.label,
                 hintText: widget.hint,
                 helperText: widget.helperText,
                 errorText: widget.errorText,
@@ -188,20 +189,16 @@ class _AppTextFieldState extends State<AppTextField> {
       ),
     );
 
-    if (!widget.labelAbove) {
+    if (!labelAbove) {
       return field;
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ExcludeSemantics(
-          child: Text(
-            widget.label,
-            style: texts.labelLarge?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
-          ),
+        Text(
+          widget.label,
+          style: texts.labelMedium?.copyWith(color: colors.onSurfaceVariant),
         ),
         SizedBox(height: spacing.xs),
         field,

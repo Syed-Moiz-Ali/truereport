@@ -59,6 +59,7 @@ class _WorkshopReasonDialogState extends State<WorkshopReasonDialog> {
             controller: _controller,
             focusNode: _focus,
             autofocus: true,
+            textAlignVertical: TextAlignVertical.center,
             style: Atlas.text(13.5),
             decoration: InputDecoration(
               isDense: true,

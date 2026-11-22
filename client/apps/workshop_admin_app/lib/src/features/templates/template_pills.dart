@@ -43,7 +43,7 @@ class _TemplatePillButtonState extends State<TemplatePillButton> {
   Widget build(BuildContext context) {
     final ws = context.ws;
     final enabled = widget.onPressed != null && !widget.loading;
-    final height = widget.compact ? 34.0 : 42.0;
+    final height = widget.compact ? 44.0 : 56.0;
 
     final (Color bg, Color fg, Color border) = switch (widget.variant) {
       TemplatePillVariant.filled => (
@@ -180,40 +180,47 @@ class _TemplatePillChipState extends State<TemplatePillChip> {
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 140),
-            height: 32,
-            padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: selected ? ws.accent : ws.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.label,
-                  style: ws.meta.copyWith(
-                    color: selected ? ws.accent : ws.ink,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                  ),
+          child: SizedBox(
+            height: 44,
+            child: Center(
+              widthFactor: 1,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 140),
+                height: 32,
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(context.radii.pill),
+                  border: Border.all(color: selected ? ws.accent : ws.border),
                 ),
-                if (widget.count != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    '${widget.count}',
-                    style: ws.meta.copyWith(
-                      color: fg,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.label,
+                      style: ws.meta.copyWith(
+                        color: selected ? ws.accent : ws.ink,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ],
+                    if (widget.count != null) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        '${widget.count}',
+                        style: ws.meta.copyWith(
+                          color: fg,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -241,11 +248,14 @@ class TemplateStatusPill extends ConsumerWidget {
     return Semantics(
       label: label,
       child: Container(
-        height: 24,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(context.radii.pill),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

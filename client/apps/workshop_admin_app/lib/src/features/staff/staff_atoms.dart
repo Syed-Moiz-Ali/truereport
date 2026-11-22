@@ -125,11 +125,14 @@ class StaffStatusDot extends ConsumerWidget {
     return Semantics(
       label: label,
       child: Container(
-        height: 24,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+        constraints: const BoxConstraints(minHeight: 32),
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 6,
+        ),
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(ws.touchTarget),
+          borderRadius: BorderRadius.circular(context.radii.pill),
         ),
         child: content,
       ),

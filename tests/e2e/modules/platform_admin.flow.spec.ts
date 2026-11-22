@@ -116,7 +116,9 @@ test.describe('platform admin — workshops and master library read real data', 
       timeout: 30_000,
     });
     // The review selector lists content languages, not the English-only UI registry.
-    await expect(page.getByRole('button', { name: /Language\s+Español/i }).first()).toBeVisible();
+    // The label now sits above the dropdown, so it is a separate text node.
+    await expect(page.getByText('Language', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Español/i }).first()).toBeVisible();
     await expect(page.getByText(/Pending: \d+/).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /^Approve$/i }).first()).toBeVisible({
       timeout: 30_000,

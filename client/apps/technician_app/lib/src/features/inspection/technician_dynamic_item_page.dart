@@ -166,12 +166,15 @@ class _AssessmentTopBar extends StatelessWidget {
                     Row(
                       children: [
                         Container(
+                          constraints: const BoxConstraints(minHeight: 32),
                           padding: const EdgeInsetsDirectional.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
+                            horizontal: 12,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                              context.radii.pill,
+                            ),
                             border: Border.all(color: colors.outline),
                           ),
                           child: Text(

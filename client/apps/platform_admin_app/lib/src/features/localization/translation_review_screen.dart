@@ -211,7 +211,7 @@ class _TranslationReviewScreenState
       onPressed: onSave,
       style: FilledButton.styleFrom(
         backgroundColor: PtTheme.deepGreen,
-        minimumSize: const Size(96, 44),
+        minimumSize: const Size(96, PtTheme.controlHeight),
       ),
       child: Text(strings.tKey(CommonKeys.buttonSave)),
     ),
