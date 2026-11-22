@@ -1,4 +1,4 @@
-﻿# Secrets and local environment
+# Secrets and local environment
 .env
 .env.*
 !.env.example
@@ -9,6 +9,7 @@
 server/target/
 *.class
 *.log
+*.log.err
 
 # Flutter / Dart
 client/.dart_tool/
