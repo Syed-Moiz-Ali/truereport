@@ -9,7 +9,7 @@ void main() {
     const files = <String>[
       'lib/src/ui_helpers.dart',
       'lib/src/features/sync/technician_sync_page.dart',
-      'lib/src/features/jobs/queue/jobs_queue_row.dart',
+      'lib/src/features/jobs/queue/jobs_queue_agenda.dart',
       'lib/src/features/review/technician_summary_page.dart',
     ];
     for (final path in files) {
@@ -36,11 +36,11 @@ void main() {
     final clean = _read(
       'lib/src/features/jobs/technician_jobs_clean_page.dart',
     );
-    final rail = _read('lib/src/features/jobs/queue/jobs_queue_week.dart');
+    final agenda = _read('lib/src/features/jobs/queue/jobs_queue_agenda.dart');
     expect(clean.contains("statusesProvider('job')"), isTrue);
-    expect(rail.contains("statusesProvider('job')"), isTrue);
+    expect(agenda.contains("statusesProvider('job')"), isFalse);
     expect(clean.contains("_setStatus('ASSIGNED')"), isFalse);
-    expect(rail.contains("onStatus('ASSIGNED')"), isFalse);
+    expect(agenda.contains("onStatus('ASSIGNED')"), isFalse);
   });
 
   test('the evidence UI reads canonical server statuses', () {

@@ -31,6 +31,7 @@ class SignInField extends StatefulWidget {
     this.hint,
     this.suffix,
     this.fieldKey,
+    this.onDark = false,
     super.key,
   });
 
@@ -54,6 +55,10 @@ class SignInField extends StatefulWidget {
   final Widget? suffix;
   final Key? fieldKey;
 
+  /// Renders the cell for a dark translucent surface (the "Bay Door" sheet):
+  /// white label, translucent white fill and border, white input text.
+  final bool onDark;
+
   @override
   State<SignInField> createState() => _SignInFieldState();
 }
@@ -72,7 +77,13 @@ class _SignInFieldState extends State<SignInField> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final labelStyle = Fx.label12Wide.copyWith(color: scheme.onSurfaceVariant);
+    final onDark = widget.onDark;
+    final labelStyle = Fx.label12Wide.copyWith(
+      color: onDark
+          ? Colors.white.withValues(alpha: 0.86)
+          : scheme.onSurfaceVariant,
+    );
+    final errorColor = onDark ? const Color(0xFFFFC9C4) : scheme.error;
 
     return FormField<String>(
       validator: (_) => widget.validator(widget.controller.text),
@@ -93,11 +104,18 @@ class _SignInFieldState extends State<SignInField> {
               builder: (context, _) {
                 final focused = _focus.hasFocus;
                 final invalid = state.hasError;
-                final borderColor = invalid
-                    ? scheme.error
-                    : focused
-                    ? scheme.primary
-                    : scheme.outlineVariant;
+                final Color borderColor;
+                if (invalid) {
+                  borderColor = errorColor;
+                } else if (onDark) {
+                  borderColor = focused
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.30);
+                } else {
+                  borderColor = focused
+                      ? scheme.primary
+                      : scheme.outlineVariant;
+                }
                 return Semantics(
                   label: widget.label,
                   textField: true,
@@ -110,7 +128,11 @@ class _SignInFieldState extends State<SignInField> {
                       end: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: widget.enabled
+                      color: onDark
+                          ? Colors.white.withValues(
+                              alpha: widget.enabled ? 0.14 : 0.07,
+                            )
+                          : widget.enabled
                           ? scheme.surfaceContainerLowest
                           : scheme.surfaceContainer,
                       borderRadius: BorderRadius.circular(
@@ -150,11 +172,17 @@ class _SignInFieldState extends State<SignInField> {
                               24,
                               FontWeight.w500,
                               -0.16,
-                              color: scheme.onSurface,
+                              color: onDark ? Colors.white : scheme.onSurface,
                             ),
-                            cursorColor: scheme.primary,
+                            cursorColor: onDark ? Colors.white : scheme.primary,
                             decoration: InputDecoration(
                               isDense: true,
+                              // The app theme fills inputs by default; on the
+                              // dark glass sheet that fill would paint an
+                              // opaque bar over the photograph (and hide the
+                              // white input text).
+                              filled: false,
+                              fillColor: Colors.transparent,
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -168,9 +196,11 @@ class _SignInFieldState extends State<SignInField> {
                                 24,
                                 FontWeight.w400,
                                 0,
-                                color: scheme.onSurfaceVariant.withValues(
-                                  alpha: 0.55,
-                                ),
+                                color: onDark
+                                    ? Colors.white.withValues(alpha: 0.55)
+                                    : scheme.onSurfaceVariant.withValues(
+                                        alpha: 0.55,
+                                      ),
                               ),
                             ),
                           ),
@@ -195,7 +225,7 @@ class _SignInFieldState extends State<SignInField> {
                       16,
                       FontWeight.w500,
                       0,
-                      color: scheme.error,
+                      color: errorColor,
                     ),
                   ),
                 ),

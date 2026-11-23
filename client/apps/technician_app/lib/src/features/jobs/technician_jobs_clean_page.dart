@@ -10,10 +10,9 @@ import '../../inspection_models.dart';
 import '../../reference_ui.dart';
 import '../../technician_providers.dart';
 import '../profile/profile_sheet.dart';
+import 'queue/jobs_queue_agenda.dart';
 import 'queue/jobs_queue_format.dart';
-import 'queue/jobs_queue_hero.dart';
 import 'queue/jobs_queue_primitives.dart';
-import 'queue/jobs_queue_row.dart';
 import 'queue/jobs_queue_style.dart';
 import 'queue/jobs_queue_week.dart';
 
@@ -175,6 +174,13 @@ class _TechnicianJobsCleanPageState
     final days = List.generate(7, (index) => today.add(Duration(days: index)));
     final allJobs = pageAsync.asData?.value.items ?? const <JobSummary>[];
     final daysWithJobs = _daysWithJobs(allJobs, today);
+    final dayJobs = _jobsForDay(allJobs, _selectedDay, today);
+    final nextTime = queueNextTimeLabel(dayJobs);
+    final dayLabel = queueDayLabel(_selectedDay, t, locale);
+    final subtitle = nextTime == null
+        ? dayLabel
+        : '$dayLabel · '
+              '${t(TechnicianKeys.technicianQueueNextAt, {'time': nextTime})}';
 
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
@@ -199,111 +205,68 @@ class _TechnicianJobsCleanPageState
       ),
       body: Column(
         children: [
-          Center(
-            heightFactor: 1,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 12, 8),
-                child: _TopBar(
-                  title: t(TechnicianKeys.technicianJobQueue),
-                  subtitle: queueDayLabel(_selectedDay, t, locale),
-                  searchOpen: _searchOpen,
-                  onSearch: _toggleSearch,
-                  onProfile: () => showTechnicianProfile(context, ref),
-                  technicianName: name,
-                ),
-              ),
+          _Centered(
+            maxWidth: 820,
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 12, 2),
+            child: _TopBar(
+              title: t(TechnicianKeys.technicianJobQueue),
+              subtitle: subtitle,
+              searchOpen: _searchOpen,
+              onSearch: _toggleSearch,
+              onProfile: () => showTechnicianProfile(context, ref),
+              technicianName: name,
             ),
           ),
           if (_searchOpen)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  child: QueueSearchField(
-                    controller: _search,
-                    autofocus: true,
-                    hint: t(TechnicianKeys.technicianJobSearchHint),
-                    onChanged: (_) => setState(() {}),
-                    onClear: () {
-                      _search.clear();
-                      setState(() {});
-                    },
+            _Centered(
+              maxWidth: 820,
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 6),
+              child: QueueSearchField(
+                controller: _search,
+                autofocus: true,
+                hint: t(TechnicianKeys.technicianJobSearchHint),
+                onChanged: (_) => setState(() {}),
+                onClear: () {
+                  _search.clear();
+                  setState(() {});
+                },
+              ),
+            ),
+          // One week control on every width: the old tablet rail is gone, so
+          // the day strip is the only way the week is presented.
+          _Centered(
+            maxWidth: 820,
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 12, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: QueueWeekStrip(
+                    days: days,
+                    selected: _selectedDay,
+                    daysWithJobs: daysWithJobs,
+                    onSelect: _selectDay,
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                _FilterIcon(
+                  active: _status.isNotEmpty,
+                  label: t(TechnicianKeys.technicianFilter),
+                  onPressed: _openFilters,
+                ),
+              ],
             ),
-          if (!wide)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 12, 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: QueueWeekStrip(
-                      days: days,
-                      selected: _selectedDay,
-                      daysWithJobs: daysWithJobs,
-                      onSelect: _selectDay,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterIcon(
-                    active: _status.isNotEmpty,
-                    label: t(TechnicianKeys.technicianFilter),
-                    onPressed: _openFilters,
-                  ),
-                ],
-              ),
-            ),
+          ),
           Expanded(
-            child: wide
-                ? Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 900),
-                      child: SizedBox.expand(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            QueueWeekRail(
-                              days: days,
-                              selected: _selectedDay,
-                              daysWithJobs: daysWithJobs,
-                              onSelect: _selectDay,
-                              status: _status,
-                              onStatus: _setStatus,
-                              pending: waiting,
-                              conflicts: conflicts,
-                              onSync: () => context.push('/sync'),
-                            ),
-                            Expanded(
-                              child: _buildScroll(
-                                context: context,
-                                wide: true,
-                                pageAsync: pageAsync,
-                                online: online,
-                                waiting: waiting,
-                                conflicts: conflicts,
-                                t: t,
-                                today: today,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : _buildScroll(
-                    context: context,
-                    wide: false,
-                    pageAsync: pageAsync,
-                    online: online,
-                    waiting: waiting,
-                    conflicts: conflicts,
-                    t: t,
-                    today: today,
-                  ),
+            child: _buildScroll(
+              context: context,
+              wide: wide,
+              pageAsync: pageAsync,
+              online: online,
+              waiting: waiting,
+              conflicts: conflicts,
+              t: t,
+              today: today,
+            ),
           ),
         ],
       ),
@@ -334,11 +297,9 @@ class _TechnicianJobsCleanPageState
           28,
         ),
         child: Align(
-          alignment: wide
-              ? AlignmentDirectional.topStart
-              : AlignmentDirectional.topCenter,
+          alignment: AlignmentDirectional.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
+            constraints: const BoxConstraints(maxWidth: 820),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -357,6 +318,17 @@ class _TechnicianJobsCleanPageState
                     onSync: () => context.push('/sync'),
                   ),
                   const SizedBox(height: 12),
+                ],
+                if (_status.isNotEmpty) ...[
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: QueueChip(
+                      label: jobStatusLabel(ref, _status),
+                      selected: true,
+                      onPressed: () => _setStatus(''),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                 ],
                 AnimatedSwitcher(
                   duration: context.motionDuration(
@@ -419,16 +391,42 @@ class _TechnicianJobsCleanPageState
                           body: t(TechnicianKeys.technicianPickAnotherDay),
                         );
                       }
-                      return _Agenda(
+                      final liveJobId = queueLiveJobId(jobs);
+                      return Column(
                         key: ValueKey(
                           'queue-day-${_selectedDay.toIso8601String()}-'
                           '${_status.isEmpty ? 'all' : _status}',
                         ),
-                        jobs: jobs,
-                        t: t,
-                        page: page,
-                        onOpen: (job) => context.push('/jobs/${job.id}'),
-                        onPage: _setPage,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                t(TechnicianKeys.technicianQueueOnBoard, {
+                                  'count': jobs.length,
+                                }),
+                                style: queueEyebrow(context),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  height: 1,
+                                  color: context.colors.outlineVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          QueueAgenda(
+                            jobs: jobs,
+                            liveJobId: liveJobId,
+                            onOpen: (job) => context.push('/jobs/${job.id}'),
+                          ),
+                          if (page.totalPages > 1) ...[
+                            const SizedBox(height: 16),
+                            _Pager(page: page, onPage: _setPage),
+                          ],
+                        ],
                       );
                     },
                   ),
@@ -702,102 +700,6 @@ class _FilterIcon extends StatelessWidget {
   }
 }
 
-class _Agenda extends StatelessWidget {
-  const _Agenda({
-    required this.jobs,
-    required this.t,
-    required this.page,
-    required this.onOpen,
-    required this.onPage,
-    super.key,
-  });
-
-  final List<JobSummary> jobs;
-  final UiStrings t;
-  final JobSummaryPage page;
-  final ValueChanged<JobSummary> onOpen;
-  final ValueChanged<int> onPage;
-
-  @override
-  Widget build(BuildContext context) {
-    final nextUp = _nextUp(jobs);
-    final rest = nextUp == null
-        ? jobs
-        : jobs.where((job) => job.id != nextUp.id).toList(growable: false);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (nextUp != null) ...[
-          QueueNextUpBand(job: nextUp, onOpen: () => onOpen(nextUp)),
-          const SizedBox(height: 20),
-        ],
-        if (rest.isNotEmpty) ...[
-          Row(
-            children: [
-              Text(
-                t(TechnicianKeys.technicianJobsCount, {
-                  'count': rest.length,
-                }).toUpperCase(),
-                style: queueEyebrow(context),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  height: 1,
-                  color: context.colors.outlineVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          QueueDayGroup(jobs: rest, highlightId: nextUp?.id, onOpen: onOpen),
-        ] else
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 4),
-            child: Text(
-              t(TechnicianKeys.technicianQueueCurrent),
-              style: queueBody(context, color: context.colors.onSurfaceVariant),
-            ),
-          ),
-        if (page.totalPages > 1) ...[
-          const SizedBox(height: 16),
-          _Pager(page: page, onPage: onPage),
-        ],
-      ],
-    );
-  }
-
-  JobSummary? _nextUp(List<JobSummary> items) {
-    // Flow priority, not display order: the served JOB_STATUS.order starts at
-    // DRAFT 1 / SCHEDULED 2, which would rank scheduled work above active
-    // work. Only the technician's actionable statuses compete for the band.
-    // gate-allow: codes
-    int rank(JobSummary job) => switch (job.status) {
-      'IN_PROGRESS' => 0,
-      'ASSIGNED' || 'SCHEDULED' => 1,
-      'READY_TO_FINALIZE' => 2,
-      _ => 9,
-    };
-    final candidates = items.where((job) => rank(job) < 9).toList();
-    if (candidates.isEmpty) {
-      return null;
-    }
-    candidates.sort((a, b) {
-      final byRank = rank(a).compareTo(rank(b));
-      if (byRank != 0) {
-        return byRank;
-      }
-      final left = queueMoment(a);
-      final right = queueMoment(b);
-      if (left == null || right == null) {
-        return 0;
-      }
-      return left.compareTo(right);
-    });
-    return candidates.first;
-  }
-}
-
 class _SyncStrip extends StatelessWidget {
   const _SyncStrip({
     required this.waiting,
@@ -812,12 +714,15 @@ class _SyncStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
+    final tone = conflicts > 0
+        ? context.statusColors.danger
+        : context.statusColors.warning;
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 10),
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: tone.background,
         borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
-        border: Border.all(color: context.colors.outlineVariant),
+        border: Border.all(color: tone.foreground.withValues(alpha: 0.24)),
       ),
       child: Row(
         children: [
@@ -826,9 +731,7 @@ class _SyncStrip extends StatelessWidget {
                 ? Icons.sync_problem_rounded
                 : Icons.cloud_upload_outlined,
             size: 18,
-            color: conflicts > 0
-                ? context.statusColors.danger.foreground
-                : context.statusColors.warning.foreground,
+            color: tone.foreground,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -837,8 +740,13 @@ class _SyncStrip extends StatelessWidget {
                   ? t(TechnicianKeys.technicianSyncConflictsCount, {
                       'count': conflicts,
                     })
-                  : '${t(TechnicianKeys.technicianSyncPending)} $waiting',
-              style: queueMeta(context).copyWith(fontWeight: FontWeight.w600),
+                  : t(TechnicianKeys.technicianSyncPendingCount, {
+                      'count': waiting,
+                    }),
+              style: queueMeta(
+                context,
+                color: tone.foreground,
+              ).copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           QueueButton(
@@ -885,6 +793,31 @@ class _Pager extends StatelessWidget {
               : () => onPage(page.page + 1),
         ),
       ],
+    );
+  }
+}
+
+/// Full-width band whose content is centred and capped, so the header, week
+/// strip and scroll body all share one measure.
+class _Centered extends StatelessWidget {
+  const _Centered({
+    required this.maxWidth,
+    required this.padding,
+    required this.child,
+  });
+
+  final double maxWidth;
+  final EdgeInsetsGeometry padding;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Padding(padding: padding, child: child),
+      ),
     );
   }
 }

@@ -15,6 +15,7 @@ class SignInPrimary extends StatelessWidget {
     this.busy = false,
     this.height = SignInDims.primaryHeight,
     this.blockKey,
+    this.onGlass = false,
     super.key,
   });
 
@@ -24,16 +25,31 @@ class SignInPrimary extends StatelessWidget {
   final double height;
   final Key? blockKey;
 
+  /// On the dark glass sheet the action inverts: a white pill with ink text,
+  /// which keeps the strongest contrast on the photograph.
+  final bool onGlass;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final enabled = onPressed != null && !busy;
-    final fill = enabled || busy
-        ? scheme.primary
-        : scheme.onSurface.withValues(alpha: 0.12);
-    final foreground = enabled || busy
-        ? scheme.onPrimary
-        : scheme.onSurface.withValues(alpha: 0.38);
+    final Color fill;
+    final Color foreground;
+    if (onGlass) {
+      fill = enabled || busy
+          ? Colors.white
+          : Colors.white.withValues(alpha: 0.35);
+      foreground = enabled || busy
+          ? scheme.onSurface
+          : scheme.onSurface.withValues(alpha: 0.55);
+    } else {
+      fill = enabled || busy
+          ? scheme.primary
+          : scheme.onSurface.withValues(alpha: 0.12);
+      foreground = enabled || busy
+          ? scheme.onPrimary
+          : scheme.onSurface.withValues(alpha: 0.38);
+    }
 
     return Semantics(
       button: true,
@@ -56,7 +72,7 @@ class SignInPrimary extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: scheme.onPrimary,
+                        color: onGlass ? scheme.onSurface : scheme.onPrimary,
                       ),
                     )
                   : Text(

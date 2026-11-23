@@ -15,6 +15,7 @@ class SignInMetaRow extends StatelessWidget {
     this.compact = true,
     this.accessKey,
     this.securityKey,
+    this.onDark = false,
     super.key,
   });
 
@@ -25,6 +26,9 @@ class SignInMetaRow extends StatelessWidget {
   final Key? accessKey;
   final Key? securityKey;
 
+  /// White text for the dark "Bay Door" sheet.
+  final bool onDark;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -33,7 +37,9 @@ class SignInMetaRow extends StatelessWidget {
       16,
       FontWeight.w600,
       0.2,
-      color: scheme.onSurfaceVariant,
+      color: onDark
+          ? Colors.white.withValues(alpha: 0.70)
+          : scheme.onSurfaceVariant,
     );
 
     final access = Wrap(
@@ -48,7 +54,12 @@ class SignInMetaRow extends StatelessWidget {
     final security = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FxIcon(id: '1_7128', width: 10, height: 12, color: scheme.outline),
+        FxIcon(
+          id: '1_7128',
+          width: 10,
+          height: 12,
+          color: onDark ? Colors.white.withValues(alpha: 0.55) : scheme.outline,
+        ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(

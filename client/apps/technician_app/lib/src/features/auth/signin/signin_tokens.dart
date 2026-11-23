@@ -51,4 +51,27 @@ abstract final class SignInDims {
 
   static const double riseOffset = 12;
   static const Duration riseDuration = Duration(milliseconds: 240);
+
+  // --- Direction A "Bay Door" (full-bleed photo + glass sheet) ------------
+
+  /// Width at which the statement column and the sheet sit side by side.
+  static const double sheetRow = 900;
+
+  /// Text scale at which the sheet takes the full width even on desktop.
+  static const double sheetStackScale = 1.6;
+
+  /// Float sheet width on desktop.
+  static const double sheetWidth = 400;
+
+  /// Sheet radius: 24 floating, 26 when pinned to the bottom edge.
+  static const double sheetRadius = 24;
+  static const double sheetRadiusPhone = 26;
+
+  /// Inner padding of the sheet.
+  static const double sheetPadWide = 26;
+  static const double sheetPadPhone = 20;
+
+  /// Statement type sizes.
+  static const double titleWide = 54;
+  static const double titlePhone = 30;
 }

@@ -6,10 +6,12 @@ import 'package:reference_data/reference_data.dart';
 
 import '../../inspection_models.dart';
 import '../../ui_helpers.dart';
-import 'clean_shared.dart';
 
 const double _radiusControl = 999;
 const double _radiusCard = 16;
+
+/// Width the deck is allowed to reach on a desktop window.
+const double _deckMaxWidth = 1000;
 
 TextStyle _text(
   BuildContext context,
@@ -30,8 +32,13 @@ TextStyle _text(
   );
 }
 
-/// The vehicle workspace as an inspection deck: one focused item, a section
-/// rail, and the next stops. The assessment itself opens on the item route.
+/// The vehicle workspace as a section ledger: the selected section, in
+/// checklist order, with every item's state visible at once and the next
+/// unchecked item pinned in the footer.
+///
+/// The assessment itself still opens on the item route — this surface answers
+/// "what is left in this section and what do I start next", not "how do I
+/// assess this one".
 class InspectionDeck extends StatelessWidget {
   const InspectionDeck({
     required this.checklist,
@@ -62,7 +69,7 @@ class InspectionDeck extends StatelessWidget {
   /// banner). Never blocks the deck.
   final Widget? banner;
 
-  /// Compact action shown in the header, before the progress pill.
+  /// Compact action shown in the header, before the progress line.
   final Widget? headerTrailing;
 
   @override
@@ -87,125 +94,136 @@ class InspectionDeck extends StatelessWidget {
       (value) => value.code == code,
       orElse: () => categories.first,
     );
-    final items = checklist.itemsForCategory(category.code);
-    final checklistItems = [...items]
+    final items = [...checklist.itemsForCategory(category.code)]
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    final focused = _focused(checklistItems, focusedItemCode);
-    final next = checklistItems
-        .where((item) => item.itemCode != focused?.itemCode)
-        .toList(growable: false);
+    final answered = items
+        .where((item) => item.assessment?.resultCode != null)
+        .length;
+    // The next stop is the first item without a result: a ledger should
+    // continue in order, not jump to whatever was touched last.
+    final nextIndex = items.indexWhere(
+      (item) => item.assessment?.resultCode == null,
+    );
+    final next = nextIndex >= 0 ? items[nextIndex] : null;
+    final sectionName = category.nameFor(locale);
     final language = Localizations.localeOf(context).languageCode;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 760;
-        final content = ListView(
-          padding: EdgeInsetsDirectional.fromSTEB(
-            wide ? 24 : 16,
-            8,
-            wide ? 24 : 16,
-            32,
-          ),
+        return Column(
           children: [
-            if (banner != null) ...[banner!, const SizedBox(height: 14)],
-            if (!wide) ...[
-              _SectionChips(
-                categories: categories,
-                checklist: checklist,
-                selected: category.code,
-                locale: locale,
-                onSelected: onCategory,
-              ),
-              const SizedBox(height: 14),
-            ],
-            if (focused != null) ...[
-              Text(
-                '${t(TechnicianKeys.technicianInspection).toUpperCase()} · '
-                '${category.nameFor(language).toUpperCase()}',
-                style: _eyebrow(context),
-              ),
-              const SizedBox(height: 8),
-              _FocusedItemCard(
-                item: focused,
-                language: language,
-                t: t,
-                onOpen: () => onOpen(focused),
-              ),
-            ],
-            if (next.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Text(
-                    t(TechnicianKeys.technicianNextUp).toUpperCase(),
-                    style: _eyebrow(context),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      height: 1,
-                      color: context.colors.outlineVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _NextItems(
-                items: next,
-                language: language,
-                t: t,
-                onFocus: onFocus,
-                onOpen: onOpen,
-              ),
-            ],
-            const SizedBox(height: 18),
-            _SummaryStrip(onTap: onSummary),
-          ],
-        );
-        if (!wide) {
-          return Column(
-            children: [
-              _TopBar(
+            _Capped(
+              maxWidth: _deckMaxWidth,
+              child: _TopBar(
                 checklist: checklist,
                 onBack: onBack,
                 trailing: headerTrailing,
               ),
-              Expanded(child: content),
-            ],
-          );
-        }
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: Column(
-              children: [
-                _TopBar(
-                  checklist: checklist,
-                  onBack: onBack,
-                  trailing: headerTrailing,
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                wide ? 24 : 16,
+                0,
+                wide ? 24 : 16,
+                10,
+              ),
+              child: _Capped(
+                maxWidth: _deckMaxWidth,
+                child: _ProgressLine(
+                  done: answered,
+                  total: items.length,
+                  sectionName: sectionName,
+                  overallDone: checklist.completed,
+                  overallTotal: checklist.total,
                 ),
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 200,
-                        child: _CategoryRail(
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  wide ? 24 : 16,
+                  2,
+                  wide ? 24 : 16,
+                  28,
+                ),
+                children: [
+                  _Capped(
+                    maxWidth: _deckMaxWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (banner != null) ...[
+                          banner!,
+                          const SizedBox(height: 12),
+                        ],
+                        _SectionTabs(
                           categories: categories,
                           checklist: checklist,
                           selected: category.code,
                           locale: locale,
                           onSelected: onCategory,
                         ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(child: content),
-                    ],
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Text(
+                              t(TechnicianKeys.technicianChecklistOrder),
+                              style: _eyebrow(context),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 1,
+                                color: context.colors.outlineVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (items.isEmpty)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.symmetric(
+                              vertical: 18,
+                            ),
+                            child: EmptyState(
+                              title: t(TechnicianKeys.technicianNoItems),
+                              body: t(TechnicianKeys.technicianStartHint),
+                              icon: Icons.checklist_rounded,
+                            ),
+                          )
+                        else
+                          _Ledger(
+                            items: items,
+                            language: language,
+                            nextItemCode: next?.itemCode,
+                            focusedItemCode: focusedItemCode,
+                            wide: wide,
+                            onOpen: (item) {
+                              onFocus(item);
+                              onOpen(item);
+                            },
+                          ),
+                        const SizedBox(height: 14),
+                        _SummaryRow(onTap: onSummary),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            _DeckFooter(
+              next: next,
+              sectionName: sectionName,
+              onOpen: () {
+                if (next != null) {
+                  onFocus(next);
+                  onOpen(next);
+                }
+              },
+              onSummary: onSummary,
+            ),
+          ],
         );
       },
     );
@@ -214,7 +232,14 @@ class InspectionDeck extends StatelessWidget {
   Widget _chrome(BuildContext context, UiStrings t, {required Widget child}) {
     return Column(
       children: [
-        _TopBar(checklist: checklist, onBack: onBack, trailing: headerTrailing),
+        _Capped(
+          maxWidth: _deckMaxWidth,
+          child: _TopBar(
+            checklist: checklist,
+            onBack: onBack,
+            trailing: headerTrailing,
+          ),
+        ),
         if (banner != null)
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
@@ -229,25 +254,6 @@ class InspectionDeck extends StatelessWidget {
       ],
     );
   }
-
-  ChecklistItem? _focused(List<ChecklistItem> items, String? code) {
-    if (items.isEmpty) {
-      return null;
-    }
-    if (code != null) {
-      for (final item in items) {
-        if (item.itemCode == code) {
-          return item;
-        }
-      }
-    }
-    for (final item in items) {
-      if (item.assessment?.resultCode == null) {
-        return item;
-      }
-    }
-    return items.first;
-  }
 }
 
 TextStyle _eyebrow(BuildContext context) => _text(
@@ -258,6 +264,25 @@ TextStyle _eyebrow(BuildContext context) => _text(
   tracking: 0.9,
   color: context.colors.onSurfaceVariant,
 );
+
+/// Centres a band of the deck on the shared measure.
+class _Capped extends StatelessWidget {
+  const _Capped({required this.maxWidth, required this.child});
+
+  final double maxWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
+  }
+}
 
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.checklist, required this.onBack, this.trailing});
@@ -358,144 +383,67 @@ class _TopBar extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          if (trailing != null) ...[trailing!, const SizedBox(width: 8)],
-          _ProgressPill(value: checklist.completed, total: checklist.total),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing!],
         ],
       ),
     );
   }
 }
 
-class _ProgressPill extends StatelessWidget {
-  const _ProgressPill({required this.value, required this.total});
-
-  final int value;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 12,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(_radiusControl),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Text(
-        '$value/$total',
-        style: _text(
-          context,
-          12.5,
-          weight: FontWeight.w700,
-          height: 16,
-          tabular: true,
-        ),
-      ),
-    );
-  }
-}
-
-class _Plate extends StatelessWidget {
-  const _Plate(this.value);
-
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 32),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 12,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(context.radii.pill),
-        border: Border.all(color: context.colors.outline),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 3,
-            height: 13,
-            decoration: BoxDecoration(
-              color: context.brand.ink,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: _text(
-              context,
-              12,
-              weight: FontWeight.w700,
-              height: 16,
-              tracking: 0.6,
-              tabular: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryRail extends StatelessWidget {
-  const _CategoryRail({
-    required this.categories,
-    required this.checklist,
-    required this.selected,
-    required this.locale,
-    required this.onSelected,
+/// Section progress: one bar, and the two counts that matter.
+class _ProgressLine extends StatelessWidget {
+  const _ProgressLine({
+    required this.done,
+    required this.total,
+    required this.sectionName,
+    required this.overallDone,
+    required this.overallTotal,
   });
 
-  final List<Category> categories;
-  final Checklist checklist;
-  final String selected;
-  final String locale;
-  final ValueChanged<String> onSelected;
+  final int done;
+  final int total;
+  final String sectionName;
+  final int overallDone;
+  final int overallTotal;
 
   @override
   Widget build(BuildContext context) {
+    final t = UiStrings.of(context);
     final colors = context.colors;
-    return ListView(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 24),
+    final fraction = overallTotal <= 0
+        ? 0.0
+        : (overallDone / overallTotal).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          UiStrings.of(context)(TechnicianKeys.technicianInspectionModules)
-              .toUpperCase(),
-          style: _eyebrow(context),
-        ),
-        const SizedBox(height: 8),
-        for (final category in categories)
-          _RailTile(
-            category: category,
-            checklist: checklist,
-            selected: category.code == selected,
-            locale: locale,
-            onTap: () => onSelected(category.code),
-          ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsetsDirectional.all(12),
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            UiStrings.of(context)(TechnicianKeys.technicianStartHint),
-            style: _text(
-              context,
-              12,
-              height: 17,
-              color: colors.onSurfaceVariant,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(_radiusControl),
+          child: SizedBox(
+            height: 6,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: colors.surfaceContainerHighest),
+                FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: fraction,
+                  child: ColoredBox(color: context.brand.ink),
+                ),
+              ],
             ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${t(TechnicianKeys.technicianSectionProgress, {'done': done, 'total': total, 'section': sectionName})} · ${t(TechnicianKeys.technicianOverallProgress, {'done': overallDone, 'total': overallTotal})}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: _text(
+            context,
+            11.5,
+            weight: FontWeight.w500,
+            height: 16,
+            color: colors.onSurfaceVariant,
           ),
         ),
       ],
@@ -503,92 +451,9 @@ class _CategoryRail extends StatelessWidget {
   }
 }
 
-class _RailTile extends StatelessWidget {
-  const _RailTile({
-    required this.category,
-    required this.checklist,
-    required this.selected,
-    required this.locale,
-    required this.onTap,
-  });
-
-  final Category category;
-  final Checklist checklist;
-  final bool selected;
-  final String locale;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final items = checklist.itemsForCategory(category.code);
-    final done = items
-        .where((item) => item.assessment?.resultCode != null)
-        .length;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: category.nameFor(locale),
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: 44,
-          margin: const EdgeInsetsDirectional.only(bottom: 2),
-          padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: selected ? context.brand.container : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                categoryIconFor(category.iconCode),
-                size: 16,
-                color: selected
-                    ? context.brand.onContainer
-                    : colors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  category.nameFor(locale),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _text(
-                    context,
-                    13,
-                    weight: selected ? FontWeight.w700 : FontWeight.w500,
-                    height: 17,
-                    color: selected
-                        ? context.brand.onContainer
-                        : colors.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              Text(
-                '$done/${items.length}',
-                style: _text(
-                  context,
-                  11.5,
-                  weight: FontWeight.w600,
-                  height: 15,
-                  tabular: true,
-                  color: selected
-                      ? context.brand.onContainer
-                      : colors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionChips extends StatelessWidget {
-  const _SectionChips({
+/// The section switcher: underline tabs, so the deck reads as one document.
+class _SectionTabs extends StatelessWidget {
+  const _SectionTabs({
     required this.categories,
     required this.checklist,
     required this.selected,
@@ -605,234 +470,140 @@ class _SectionChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return SizedBox(
-      height: 34,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final items = checklist.itemsForCategory(category.code);
-          final done = items
-              .where((item) => item.assessment?.resultCode != null)
-              .length;
-          final isSelected = category.code == selected;
-          return Semantics(
-            button: true,
-            selected: isSelected,
-            label: category.nameFor(locale),
-            child: GestureDetector(
-              onTap: () => onSelected(category.code),
-              child: Container(
-                height: 30,
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? context.brand.container : colors.surface,
-                  borderRadius: BorderRadius.circular(_radiusControl),
-                  border: Border.all(
-                    color: isSelected
-                        ? context.brand.ink.withValues(alpha: 0.28)
-                        : colors.outlineVariant,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final category in categories) ...[
+                _SectionTab(
+                  category: category,
+                  checklist: checklist,
+                  locale: locale,
+                  selected: category.code == selected,
+                  onTap: () => onSelected(category.code),
                 ),
-                child: Row(
-                  children: [
-                    Text(
-                      category.nameFor(locale),
-                      style: _text(
-                        context,
-                        12.5,
-                        weight: FontWeight.w600,
-                        height: 16,
-                        color: isSelected
-                            ? context.brand.onContainer
-                            : colors.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$done/${items.length}',
-                      style: _text(
-                        context,
-                        11,
-                        weight: FontWeight.w600,
-                        height: 14,
-                        tabular: true,
-                        color: isSelected
-                            ? context.brand.onContainer
-                            : colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+                const SizedBox(width: 20),
+              ],
+            ],
+          ),
+        ),
+        Container(height: 1, color: colors.outlineVariant),
+      ],
     );
   }
 }
 
-class _FocusedItemCard extends ConsumerWidget {
-  const _FocusedItemCard({
-    required this.item,
-    required this.language,
-    required this.t,
-    required this.onOpen,
+class _SectionTab extends StatelessWidget {
+  const _SectionTab({
+    required this.category,
+    required this.checklist,
+    required this.locale,
+    required this.selected,
+    required this.onTap,
   });
 
-  final ChecklistItem item;
-  final String language;
-  final UiStrings t;
-  final VoidCallback onOpen;
+  final Category category;
+  final Checklist checklist;
+  final String locale;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final resultRecords = ref.watch(enumsProvider('result')).value;
+  Widget build(BuildContext context) {
+    final items = checklist.itemsForCategory(category.code);
+    final done = items
+        .where((item) => item.assessment?.resultCode != null)
+        .length;
     final colors = context.colors;
-    final result = item.assessment?.resultCode;
-    final instruction = item.instructionFor(language);
-    final spec = item.standardSpecFor(language);
-    return Container(
-      padding: const EdgeInsetsDirectional.all(18),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(_radiusCard),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  item.labelFor(language),
+    final fg = selected ? colors.onSurface : colors.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: category.nameFor(locale),
+      child: FocusableActionDetector(
+        mouseCursor: SystemMouseCursors.click,
+        actions: <Type, Action<Intent>>{
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              onTap();
+              return null;
+            },
+          ),
+        },
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 40),
+            padding: const EdgeInsetsDirectional.only(top: 10, bottom: 8),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: selected ? colors.onSurface : Colors.transparent,
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  category.nameFor(locale),
                   style: _text(
                     context,
-                    17,
+                    12.5,
                     weight: FontWeight.w700,
-                    height: 23,
-                    tracking: -0.2,
+                    height: 17,
+                    color: fg,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              _ResultChip(
-                label: result == null
-                    ? t(TechnicianKeys.notChecked)
-                    : resultLabel(resultRecords, result),
-                tone: resultTone(resultRecords, result),
-              ),
-            ],
-          ),
-          if (instruction != null && instruction.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              instruction,
-              style: _text(
-                context,
-                13.5,
-                height: 19,
-                color: colors.onSurfaceVariant,
-              ),
+                const SizedBox(width: 6),
+                Text(
+                  '$done/${items.length}',
+                  style: _text(
+                    context,
+                    11,
+                    weight: FontWeight.w600,
+                    height: 16,
+                    tabular: true,
+                    color: selected
+                        ? colors.onSurfaceVariant
+                        : colors.onSurfaceVariant.withValues(alpha: 0.75),
+                  ),
+                ),
+              ],
             ),
-          ],
-          if (spec != null && spec.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsetsDirectional.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.straighten_rounded,
-                    size: 15,
-                    color: colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      spec,
-                      style: _text(
-                        context,
-                        12.5,
-                        height: 17,
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              if (item.safetyCritical)
-                _ToneChip(
-                  label: t(TechnicianKeys.technicianSafetyCritical),
-                  tone: StatusTone.danger,
-                  icon: Icons.health_and_safety_outlined,
-                ),
-              if (item.multiPoint)
-                _ToneChip(
-                  label: t(TechnicianKeys.technicianMultiPoint),
-                  tone: StatusTone.info,
-                  icon: Icons.grid_on_outlined,
-                ),
-              if (item.measurementUnit != null)
-                _ToneChip(
-                  label:
-                      '${t(TechnicianKeys.technicianUnit)}: ${item.measurementUnit}',
-                  tone: StatusTone.neutral,
-                ),
-            ],
           ),
-          const SizedBox(height: 14),
-          _PillButton(
-            label: result == null
-                ? t(TechnicianKeys.start)
-                : t(TechnicianKeys.technicianContinueChecklist),
-            icon: Icons.arrow_forward_rounded,
-            onPressed: onOpen,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _NextItems extends StatelessWidget {
-  const _NextItems({
+/// One card, every item of the section, in checklist order.
+class _Ledger extends StatelessWidget {
+  const _Ledger({
     required this.items,
     required this.language,
-    required this.t,
-    required this.onFocus,
+    required this.nextItemCode,
+    required this.focusedItemCode,
+    required this.wide,
     required this.onOpen,
   });
 
   final List<ChecklistItem> items;
   final String language;
-  final UiStrings t;
-  final ValueChanged<ChecklistItem> onFocus;
+  final String? nextItemCode;
+  final String? focusedItemCode;
+  final bool wide;
   final ValueChanged<ChecklistItem> onOpen;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final visible = items.take(4).toList(growable: false);
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
@@ -843,17 +614,17 @@ class _NextItems extends StatelessWidget {
         borderRadius: BorderRadius.circular(_radiusCard),
         child: Column(
           children: [
-            for (var index = 0; index < visible.length; index++) ...[
-              _NextRow(
-                item: visible[index],
+            for (var index = 0; index < items.length; index++) ...[
+              _LedgerRow(
+                item: items[index],
+                number: index + 1,
                 language: language,
-                t: t,
-                onTap: () {
-                  onFocus(visible[index]);
-                  onOpen(visible[index]);
-                },
+                wide: wide,
+                current:
+                    items[index].itemCode == (focusedItemCode ?? nextItemCode),
+                onTap: () => onOpen(items[index]),
               ),
-              if (index != visible.length - 1)
+              if (index != items.length - 1)
                 Divider(
                   height: 1,
                   color: colors.outlineVariant,
@@ -868,77 +639,391 @@ class _NextItems extends StatelessWidget {
   }
 }
 
-class _NextRow extends ConsumerWidget {
-  const _NextRow({
+class _LedgerRow extends ConsumerStatefulWidget {
+  const _LedgerRow({
     required this.item,
+    required this.number,
     required this.language,
-    required this.t,
+    required this.wide,
+    required this.current,
     required this.onTap,
   });
 
   final ChecklistItem item;
+  final int number;
   final String language;
-  final UiStrings t;
+  final bool wide;
+  final bool current;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final resultRecords = ref.watch(enumsProvider('result')).value;
+  ConsumerState<_LedgerRow> createState() => _LedgerRowState();
+}
+
+class _LedgerRowState extends ConsumerState<_LedgerRow> {
+  bool _hovered = false;
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = UiStrings.of(context);
     final colors = context.colors;
+    final item = widget.item;
+    final results = ref.watch(enumsProvider('result')).value;
     final result = item.assessment?.resultCode;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+
+    final background = _hovered
+        ? colors.surfaceContainerLow
+        : Colors.transparent;
+
     return Semantics(
       button: true,
-      label: item.labelFor(language),
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12),
-          child: Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: result == null
-                      ? colors.outline
-                      : context.statusColors
-                            .forTone(resultTone(resultRecords, result))
-                            .foreground,
-                  shape: BoxShape.circle,
-                ),
+      label: item.labelFor(widget.language),
+      child: FocusableActionDetector(
+        actions: <Type, Action<Intent>>{
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onTap();
+              return null;
+            },
+          ),
+        },
+        onShowHoverHighlight: (value) => setState(() => _hovered = value),
+        onShowFocusHighlight: (value) => setState(() => _focused = value),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _hovered = true),
+          onExit: (_) => setState(() => _hovered = false),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onTap,
+            child: AnimatedContainer(
+              duration: context.motionDuration(
+                const Duration(milliseconds: 120),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  item.labelFor(language),
-                  style: _text(
-                    context,
-                    13.5,
-                    weight: FontWeight.w600,
-                    height: 18,
+              foregroundDecoration: _focused
+                  ? BoxDecoration(
+                      border: Border.all(color: colors.focus, width: 2),
+                    )
+                  : null,
+              decoration: BoxDecoration(
+                color: background,
+                border: BorderDirectional(
+                  start: BorderSide(
+                    color: widget.current
+                        ? context.brand.ink
+                        : Colors.transparent,
+                    width: 3,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                result == null
-                    ? t(TechnicianKeys.notChecked)
-                    : resultLabel(resultRecords, result),
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsetsDirectional.fromSTEB(11, 10, 10, 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(top: 2),
+                      child: Text(
+                        '${widget.number}'.padLeft(2, '0'),
+                        textDirection: TextDirection.ltr,
+                        style: _text(
+                          context,
+                          11,
+                          weight: FontWeight.w700,
+                          height: 15,
+                          tabular: true,
+                          color: widget.current
+                              ? context.brand.ink
+                              : colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            if (!widget.wide && item.safetyCritical) ...[
+                              Icon(
+                                Icons.health_and_safety_outlined,
+                                size: 13,
+                                color: context.statusColors.danger.foreground,
+                              ),
+                              const SizedBox(width: 5),
+                            ],
+                            Flexible(
+                              child: Text(
+                                item.labelFor(widget.language),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: _text(
+                                  context,
+                                  14,
+                                  weight: FontWeight.w600,
+                                  height: 19,
+                                ),
+                              ),
+                            ),
+                            if (!widget.wide && item.multiPoint) ...[
+                              const SizedBox(width: 5),
+                              Icon(
+                                Icons.grid_on_outlined,
+                                size: 12,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (widget.wide) _rowDetail(context, t, item),
+                        // On a phone the state moves under the label: a chip
+                        // that stays inline would squeeze the item name, and
+                        // the item name is what the technician scans for.
+                        if (!widget.wide) ...[
+                          const SizedBox(height: 5),
+                          _ResultChip(
+                            label: result == null
+                                ? t(TechnicianKeys.notChecked)
+                                : resultLabel(results, result),
+                            tone: resultTone(results, result),
+                            small: true,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (widget.wide)
+                    _ResultChip(
+                      label: result == null
+                          ? t(TechnicianKeys.notChecked)
+                          : resultLabel(results, result),
+                      tone: resultTone(results, result),
+                    ),
+                  const SizedBox(width: 2),
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      top: widget.wide ? 4 : 2,
+                    ),
+                    child: Icon(
+                      rtl
+                          ? Icons.chevron_left_rounded
+                          : Icons.chevron_right_rounded,
+                      size: 18,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Flags and the measurement standard, on one quiet line. Only shown where
+  /// there is room; the phone keeps the label and the state.
+  Widget _rowDetail(BuildContext context, UiStrings t, ChecklistItem item) {
+    final spec = item.standardSpecFor(widget.language)?.trim() ?? '';
+    final unit = item.measurementUnit;
+    final flags = <Widget>[
+      if (item.safetyCritical)
+        _ToneChip(
+          label: t(TechnicianKeys.technicianSafetyCritical),
+          tone: StatusTone.danger,
+          icon: Icons.health_and_safety_outlined,
+        ),
+      if (item.multiPoint)
+        _ToneChip(
+          label: t(TechnicianKeys.technicianMultiPoint),
+          tone: StatusTone.info,
+          icon: Icons.grid_on_outlined,
+        ),
+    ];
+    if (flags.isEmpty && spec.isEmpty && unit == null) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: 5),
+      child: Row(
+        children: [
+          for (final flag in flags) ...[flag, const SizedBox(width: 5)],
+          if (spec.isNotEmpty)
+            Flexible(
+              child: Text(
+                spec,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: _text(
                   context,
-                  11.5,
+                  11,
                   height: 15,
-                  color: colors.onSurfaceVariant,
+                  color: context.colors.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: colors.onSurfaceVariant,
+            )
+          else if (unit != null)
+            Flexible(
+              child: Text(
+                '${t(TechnicianKeys.technicianUnit)}: $unit',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _text(
+                  context,
+                  11,
+                  height: 15,
+                  color: context.colors.onSurfaceVariant,
+                ),
               ),
-            ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Persistent next action for the section.
+class _DeckFooter extends StatelessWidget {
+  const _DeckFooter({
+    required this.next,
+    required this.sectionName,
+    required this.onOpen,
+    required this.onSummary,
+  });
+
+  final ChecklistItem? next;
+  final String sectionName;
+  final VoidCallback onOpen;
+  final VoidCallback onSummary;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = UiStrings.of(context);
+    final colors = context.colors;
+    final done = next == null;
+    final label = done
+        ? t(TechnicianKeys.technicianOpenSummary)
+        : (next!.assessment?.resultCode == null
+              ? t(TechnicianKeys.start)
+              : t(TechnicianKeys.technicianContinueChecklist));
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outlineVariant)),
+      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 12),
+      child: _Capped(
+        maxWidth: _deckMaxWidth,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    done
+                        ? sectionName.toUpperCase()
+                        : t(TechnicianKeys.technicianNextUp).toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _text(
+                      context,
+                      9.5,
+                      weight: FontWeight.w800,
+                      height: 12,
+                      tracking: 0.9,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    done
+                        ? t(TechnicianKeys.technicianAllCaughtUp)
+                        : next!.labelFor(
+                            Localizations.localeOf(context).languageCode,
+                          ),
+                    key: const Key('inspection-next-action'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _text(
+                      context,
+                      14,
+                      weight: FontWeight.w700,
+                      height: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            _FooterButton(
+              label: label,
+              onPressed: done ? onSummary : onOpen,
+              icon: done
+                  ? Icons.fact_check_outlined
+                  : Icons.arrow_forward_rounded,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FooterButton extends StatelessWidget {
+  const _FooterButton({
+    required this.label,
+    required this.onPressed,
+    required this.icon,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: SizedBox(
+        height: 48,
+        child: Material(
+          color: context.brand.ink,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: _text(
+                      context,
+                      14,
+                      weight: FontWeight.w700,
+                      height: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(icon, size: 18, color: Colors.white),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -946,8 +1031,8 @@ class _NextRow extends ConsumerWidget {
   }
 }
 
-class _SummaryStrip extends StatelessWidget {
-  const _SummaryStrip({required this.onTap});
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.onTap});
 
   final VoidCallback onTap;
 
@@ -1000,18 +1085,69 @@ class _SummaryStrip extends StatelessWidget {
   }
 }
 
+class _Plate extends StatelessWidget {
+  const _Plate(this.value);
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 32),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(context.radii.pill),
+        border: Border.all(color: context.colors.outline),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 3,
+            height: 13,
+            decoration: BoxDecoration(
+              color: context.brand.ink,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: _text(
+              context,
+              12,
+              weight: FontWeight.w700,
+              height: 16,
+              tracking: 0.6,
+              tabular: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ResultChip extends StatelessWidget {
-  const _ResultChip({required this.label, required this.tone});
+  const _ResultChip({
+    required this.label,
+    required this.tone,
+    this.small = false,
+  });
 
   final String label;
   final StatusTone tone;
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
     final pair = context.statusColors.forTone(tone);
     return Container(
-      height: 28,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
+      height: small ? 24 : 28,
+      padding: EdgeInsetsDirectional.symmetric(horizontal: small ? 8 : 10),
       decoration: BoxDecoration(
         color: pair.background,
         borderRadius: BorderRadius.circular(_radiusControl),
@@ -1032,7 +1168,7 @@ class _ResultChip extends StatelessWidget {
             label,
             style: _text(
               context,
-              11.5,
+              small ? 10.5 : 11.5,
               weight: FontWeight.w700,
               height: 14,
               color: pair.foreground,
@@ -1055,8 +1191,8 @@ class _ToneChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final pair = context.statusColors.forTone(tone);
     return Container(
-      height: 26,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 9),
+      height: 22,
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         color: pair.background,
         borderRadius: BorderRadius.circular(_radiusControl),
@@ -1065,62 +1201,20 @@ class _ToneChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 13, color: pair.foreground),
-            const SizedBox(width: 5),
+            Icon(icon, size: 12, color: pair.foreground),
+            const SizedBox(width: 4),
           ],
           Text(
             label,
             style: _text(
               context,
-              11,
+              10,
               weight: FontWeight.w600,
               height: 14,
               color: pair.foreground,
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PillButton extends StatelessWidget {
-  const _PillButton({required this.label, required this.onPressed, this.icon});
-
-  final String label;
-  final VoidCallback onPressed;
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: Material(
-        color: context.brand.ink,
-        borderRadius: BorderRadius.circular(_radiusControl),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(_radiusControl),
-          onTap: onPressed,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: _text(
-                  context,
-                  14.5,
-                  weight: FontWeight.w700,
-                  height: 18,
-                  color: Colors.white,
-                ),
-              ),
-              if (icon != null) ...[
-                const SizedBox(width: 8),
-                Icon(icon, size: 18, color: Colors.white),
-              ],
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -9,14 +9,23 @@ import '../signin_tokens.dart';
 /// not move the primary action; the row may grow to two lines and the dock
 /// grows upward from its fixed bottom edge. Announced as a live region.
 class SignInErrorRow extends StatelessWidget {
-  const SignInErrorRow({this.message, this.alignEnd = false, super.key});
+  const SignInErrorRow({
+    this.message,
+    this.alignEnd = false,
+    this.onDark = false,
+    super.key,
+  });
 
   final String? message;
   final bool alignEnd;
 
+  /// Error colour for a dark translucent surface.
+  final bool onDark;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final errorColor = onDark ? const Color(0xFFFFC9C4) : scheme.error;
     final text = message;
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: SignInDims.errorMinHeight),
@@ -29,7 +38,7 @@ class SignInErrorRow extends StatelessWidget {
                     ? MainAxisAlignment.end
                     : MainAxisAlignment.start,
                 children: [
-                  Icon(Icons.error_outline, size: 14, color: scheme.error),
+                  Icon(Icons.error_outline, size: 14, color: errorColor),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -43,7 +52,7 @@ class SignInErrorRow extends StatelessWidget {
                         Localizations.localeOf(context).languageCode == 'ar'
                             ? 0
                             : 0.1,
-                        color: scheme.error,
+                        color: errorColor,
                       ),
                     ),
                   ),

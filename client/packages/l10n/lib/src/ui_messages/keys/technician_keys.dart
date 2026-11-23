@@ -1420,6 +1420,9 @@ abstract final class TechnicianKeys {
   static const technicianCategory = UiMessageKey.technician(
     'technicianCategory',
   );
+  static const technicianChecklistOrder = UiMessageKey.technician(
+    'technicianChecklistOrder',
+  );
   static const technicianChecksCount = UiMessageKey.technician(
     'technicianChecksCount',
   );
@@ -1890,6 +1893,9 @@ abstract final class TechnicianKeys {
   static const technicianOptional = UiMessageKey.technician(
     'technicianOptional',
   );
+  static const technicianOverallProgress = UiMessageKey.technician(
+    'technicianOverallProgress',
+  );
   static const technicianPageOf = UiMessageKey.technician('technicianPageOf');
   static const technicianPasswordHelp = UiMessageKey.technician(
     'technicianPasswordHelp',
@@ -1955,6 +1961,12 @@ abstract final class TechnicianKeys {
   );
   static const technicianQueueEmpty = UiMessageKey.technician(
     'technicianQueueEmpty',
+  );
+  static const technicianQueueNextAt = UiMessageKey.technician(
+    'technicianQueueNextAt',
+  );
+  static const technicianQueueOnBoard = UiMessageKey.technician(
+    'technicianQueueOnBoard',
   );
   static const technicianQueueRefreshed = UiMessageKey.technician(
     'technicianQueueRefreshed',
@@ -2025,6 +2037,9 @@ abstract final class TechnicianKeys {
   static const technicianScoreOverride = UiMessageKey.technician(
     'technicianScoreOverride',
   );
+  static const technicianSectionProgress = UiMessageKey.technician(
+    'technicianSectionProgress',
+  );
   static const technicianSecureDelivery = UiMessageKey.technician(
     'technicianSecureDelivery',
   );
@@ -2048,6 +2063,15 @@ abstract final class TechnicianKeys {
   );
   static const technicianShiftToday = UiMessageKey.technician(
     'technicianShiftToday',
+  );
+  static const technicianSignInHeadline = UiMessageKey.technician(
+    'technicianSignInHeadline',
+  );
+  static const technicianSignInSheetBody = UiMessageKey.technician(
+    'technicianSignInSheetBody',
+  );
+  static const technicianSignInSheetTitle = UiMessageKey.technician(
+    'technicianSignInSheetTitle',
   );
   static const technicianSignInTagline = UiMessageKey.technician(
     'technicianSignInTagline',
@@ -2126,6 +2150,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianSyncPending = UiMessageKey.technician(
     'technicianSyncPending',
+  );
+  static const technicianSyncPendingCount = UiMessageKey.technician(
+    'technicianSyncPendingCount',
   );
   static const technicianSyncQueuedChanges = UiMessageKey.technician(
     'technicianSyncQueuedChanges',

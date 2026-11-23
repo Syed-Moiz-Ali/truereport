@@ -45,6 +45,62 @@ String queueTimeLabel(JobSummary job) {
   return _format('HH:mm', 'en').format(moment);
 }
 
+/// Appointment time of a job: the scheduled hour, falling back to the start
+/// time when the job carries no schedule. The agenda gutter shows when the car
+/// is due, not when the technician happened to open it.
+String queueSlotLabel(JobSummary job) {
+  final moment = parseWallTime(job.scheduledAt) ?? queueMoment(job);
+  if (moment == null) {
+    return '';
+  }
+  return _format('HH:mm', 'en').format(moment);
+}
+
+/// Vehicle identity for a queue row: make + model + year, falling back to the
+/// plate and finally the job reference so a row is never blank.
+String queueVehicleLabel(JobSummary job) {
+  final year = job.vehicleYear;
+  final base = '${job.vehicleMake} ${job.vehicleModel}'.trim();
+  if (base.isEmpty) {
+    return job.vehiclePlate ?? job.reference;
+  }
+  return year == null ? base : '$base $year';
+}
+
+/// Id of the job whose inspection is open right now, or null. The agenda marks
+/// exactly one row as live, so this is the single source for that state.
+String? queueLiveJobId(List<JobSummary> jobs) {
+  // gate-allow: codes — flow state, not a display label.
+  for (final job in jobs) {
+    if (job.status == 'IN_PROGRESS') {
+      return job.id;
+    }
+  }
+  return null;
+}
+
+/// Time of the next job that has not reached its hour yet, otherwise the live
+/// job's time. Null when the day holds nothing left to start.
+String? queueNextTimeLabel(List<JobSummary> jobs, {DateTime? now}) {
+  final dubai = (now ?? DateTime.now()).toUtc().add(technicianDubaiOffset);
+  for (final job in jobs) {
+    final moment = queueMoment(job);
+    if (moment != null && moment.isAfter(dubai)) {
+      return queueSlotLabel(job);
+    }
+  }
+  final live = queueLiveJobId(jobs);
+  if (live == null) {
+    return null;
+  }
+  for (final job in jobs) {
+    if (job.id == live) {
+      return queueSlotLabel(job);
+    }
+  }
+  return null;
+}
+
 String queueDateFormat(DateTime day, String locale, {bool weekday = true}) =>
     _format(weekday ? 'EEE d MMM' : 'd MMM', locale).format(day);
 
