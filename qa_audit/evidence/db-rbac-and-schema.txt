@@ -1,0 +1,15 @@
+﻿email	platform_admin	status
+admin.a@truereport.test	0	ACTIVE
+tech.a@truereport.test	0	ACTIVE
+admin.b@truereport.test	1	ACTIVE
+platform@truereport.test	1	ACTIVE
+e2e.tech@truereport.test	0	ACTIVE
+admin@truereport.test	1	ACTIVE
+platform_jobs
+118
+legacy_inspection_jobs
+1
+platform_report_versions
+7
+legacy_report_versions
+1

@@ -1,0 +1,3 @@
+﻿reference	status	customer_phone	cancelled_at	cancel_reason	version
+JOB-5ED26BF9	CANCELLED	v1:tZjrau76XMDJRWl2fYkshvEGj57fbcArpJJg0nBKyyxVBfyppO+XXpA=	2026-11-23 07:52:54.668499	QA audit cleanup	3
+JOB-26C41FE1	CANCELLED	v1:oG0J09pqKrFIdSlzg9VYquY3fIs8REbF/Mwndxv0o9CIY9hGh8H8xvE=	2026-11-23 07:52:34.671801	QA audit cleanup	2
