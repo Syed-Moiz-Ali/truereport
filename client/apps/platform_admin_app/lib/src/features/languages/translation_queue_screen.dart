@@ -20,6 +20,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
 import '../../reference_status_lookup.dart';
+import 'language_cards.dart';
 
 import 'package:reference_data/reference_data.dart';
 
@@ -76,10 +77,13 @@ class _TranslationQueueScreenState
           ContextBreadcrumbItem(label: widget.languageCode),
         ],
       ),
-      child: PlatformPage(
-        child: backlog.when(
-          loading: () => const PlatformLoadingView(),
-          error: (error, stackTrace) => PlatformErrorView(
+      // The data branch owns its own bounded layout (fixed header + scrolling
+      // ledger + pinned action bar), so it must not sit inside a scroll view.
+      // Loading and error keep the plain scrolling page.
+      child: backlog.when(
+        loading: () => const PlatformPage(child: PlatformLoadingView()),
+        error: (error, stackTrace) => PlatformPage(
+          child: PlatformErrorView(
             message: strings.tKey(CommonKeys.stateError),
             retryLabel: strings.tKey(CommonKeys.buttonRetry),
             onRetry: () {
@@ -87,12 +91,12 @@ class _TranslationQueueScreenState
               ref.invalidate(platformLanguagesProvider);
             },
           ),
-          data: (data) => _QueueBody(
-            backlog: data,
-            languageCode: widget.languageCode,
-            nativeName: nativeName,
-            registryStatus: language?.status,
-          ),
+        ),
+        data: (data) => _QueueBody(
+          backlog: data,
+          languageCode: widget.languageCode,
+          nativeName: nativeName,
+          registryStatus: language?.status,
         ),
       ),
     );
@@ -314,7 +318,6 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
     final filtered = _filtered();
     final counts = _counts();
     final status = widget.registryStatus ?? backlog.languageStatus;
-    final percent = backlog.coveragePercent.clamp(0, 100).toDouble();
     final entityTypes =
         backlog.groups
             .map((group) => group.entityType.toUpperCase())
@@ -322,132 +325,41 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
             .toList(growable: false)
           ..sort();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PlatformPageHeader(
-          title: strings.tKey(PlatformAdminKeys.pageTranslationQueueTitle),
-          subtitle:
-              '${widget.nativeName} · ${_languageStatusLabel(strings, translationStatuses, status)} · ${percent.toStringAsFixed(0)}%',
-          actions: [
-            PlatformSecondaryButton(
-              label: strings.tKey(PlatformAdminKeys.buttonQueueExport),
-              icon: Icons.ios_share_rounded,
-              onPressed: _bulkSaving ? null : () => _export(filtered),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: backlog.totalRequired == 0
-                ? 0
-                : (backlog.approvedCount / backlog.totalRequired)
-                      .clamp(0, 1)
-                      .toDouble(),
-            minHeight: 8,
-            backgroundColor: PtTheme.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(PtTheme.deepGreen),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _SummaryCard(
-              label: strings.tKey(PlatformAdminKeys.queueMissing),
-              value: counts.missing,
-            ),
-            _SummaryCard(
-              label: strings.tKey(PlatformAdminKeys.queueDraft),
-              value: counts.draft,
-            ),
-            _SummaryCard(
-              label: strings.tKey(PlatformAdminKeys.queueReviewed),
-              value: counts.reviewed,
-            ),
-            _SummaryCard(
-              label: strings.tKey(PlatformAdminKeys.queueApproved),
-              value: counts.approved,
-            ),
-            _SummaryCard(
-              label: strings.tKey(PlatformAdminKeys.queueTotal),
-              value: backlog.totalRequired,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        PlatformToolbar(
-          searchController: _searchController,
-          searchHint: strings.tKey(PlatformAdminKeys.filterQueueSearch),
-          onSearchChanged: (value) => setState(() => _search = value),
-          filters: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 240),
-              child: PlatformDropdown<String>(
-                label: strings.tKey(PlatformAdminKeys.tableQueueEntityType),
-                value: _entityFilter,
-                items: [
-                  DropdownMenuItem(
-                    value: _allTypes,
-                    child: Text(strings.tKey(CommonKeys.filterAll)),
-                  ),
-                  for (final type in entityTypes)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(
-                        _entityLabel(strings, contentTypes, type),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _entityFilter = value);
-                },
-              ),
-            ),
-            PlatformFilterChip(
-              label: strings.tKey(PlatformAdminKeys.filterQueueMissingOnly),
-              selected: _missingOnly,
-              onTap: () => setState(() => _missingOnly = !_missingOnly),
-            ),
-          ],
-          countLabel:
-              '${strings.tKey(PlatformAdminKeys.queueTotal)}: ${filtered.length}',
-          trailing: PlatformSecondaryButton(
-            label: strings.tKey(PlatformAdminKeys.buttonQueueApproveSelected),
-            icon: Icons.check_rounded,
-            onPressed: _selected.isEmpty || _bulkSaving
-                ? null
-                : () => _approveSelected(filtered),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (backlog.totalRequired == 0)
-          PlatformEmptyView(
-            icon: Icons.translate_rounded,
-            title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
-            body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
-          )
-        else if (filtered.isEmpty) ...[
-          if (_missingOnly && !backlog.allItems.any((item) => item.isMissing))
-            PlatformEmptyView(
-              icon: Icons.translate_rounded,
-              title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
-              body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
-            )
-          else
-            PlatformEmptyView(
-              icon: Icons.search_off_rounded,
-              title: strings.tKey(CommonKeys.emptyTitle),
-            ),
-        ] else ...[
+    final percent = backlog.totalRequired == 0
+        ? 0.0
+        : (backlog.approvedCount / backlog.totalRequired)
+              .clamp(0, 1)
+              .toDouble();
+    final compact = MediaQuery.sizeOf(context).width < 700;
+    final pad = compact ? 16.0 : 24.0;
+    final hasSelection = _selected.isNotEmpty;
+
+    Widget listBody;
+    if (backlog.totalRequired == 0) {
+      listBody = PlatformEmptyView(
+        icon: Icons.translate_rounded,
+        title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
+        body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
+      );
+    } else if (filtered.isEmpty) {
+      if (_missingOnly && !backlog.allItems.any((item) => item.isMissing)) {
+        listBody = PlatformEmptyView(
+          icon: Icons.translate_rounded,
+          title: strings.tKey(PlatformAdminKeys.emptyQueueTitle),
+          body: strings.tKey(PlatformAdminKeys.emptyQueueBody),
+        );
+      } else {
+        listBody = PlatformEmptyView(
+          icon: Icons.search_off_rounded,
+          title: strings.tKey(CommonKeys.emptyTitle),
+        );
+      }
+    } else {
+      listBody = LanguageLedger(
+        children: [
           for (final group in backlog.groups)
             if (_entityFilter == _allTypes ||
-                group.entityType.toUpperCase() == _entityFilter) ...[
+                group.entityType.toUpperCase() == _entityFilter)
               Builder(
                 builder: (context) {
                   final rows = filtered
@@ -458,48 +370,295 @@ class _QueueBodyState extends ConsumerState<_QueueBody> {
                       )
                       .toList(growable: false);
                   if (rows.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: PlatformSectionCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          PlatformSectionHeader(
-                            title: _entityLabel(
-                              strings,
-                              contentTypes,
-                              group.entityType,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          16,
+                          14,
+                          16,
+                          6,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _entityLabel(
+                                  strings,
+                                  contentTypes,
+                                  group.entityType,
+                                ),
+                                style: PtTheme.font(
+                                  13,
+                                  lineHeight: 18,
+                                  weight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                            subtitle: '${group.approved}/${group.total}',
-                          ),
-                          const SizedBox(height: 8),
-                          for (var i = 0; i < rows.length; i++) ...[
-                            if (i > 0) const Divider(height: 20),
-                            _QueueRow(
-                              item: rows[i],
-                              selected: _selected.contains(rows[i].key),
-                              onSelected: (value) => setState(() {
-                                if (value == true) {
-                                  _selected.add(rows[i].key);
-                                } else {
-                                  _selected.remove(rows[i].key);
-                                }
-                              }),
-                              onEdit: () => _openEditor(
-                                filtered,
-                                filtered.indexOf(rows[i]),
+                            Text(
+                              '${group.approved}/${group.total}',
+                              style: PtTheme.font(
+                                12,
+                                lineHeight: 16,
+                                weight: FontWeight.w600,
+                                color: PtTheme.muted,
                               ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
+                      for (var i = 0; i < rows.length; i++)
+                        _QueueRow(
+                          item: rows[i],
+                          selected: _selected.contains(rows[i].key),
+                          onSelected: (value) => setState(() {
+                            if (value == true) {
+                              _selected.add(rows[i].key);
+                            } else {
+                              _selected.remove(rows[i].key);
+                            }
+                          }),
+                          onEdit: () =>
+                              _openEditor(filtered, filtered.indexOf(rows[i])),
+                        ),
+                    ],
                   );
                 },
               ),
-            ],
         ],
-      ],
+      );
+    }
+
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1240),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(pad, 24, pad, 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PlatformPageHeader(
+                title: strings.tKey(
+                  PlatformAdminKeys.pageTranslationQueueTitle,
+                ),
+                subtitle:
+                    '${widget.nativeName} · ${_languageStatusLabel(strings, translationStatuses, status)} · ${(percent * 100).round()}%',
+                actions: [
+                  PlatformSecondaryButton(
+                    label: strings.tKey(PlatformAdminKeys.buttonQueueExport),
+                    icon: Icons.ios_share_rounded,
+                    onPressed: _bulkSaving ? null : () => _export(filtered),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              LanguageCardShell(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${(percent * 100).round()}%',
+                          style:
+                              PtTheme.font(
+                                44,
+                                lineHeight: 44,
+                                weight: FontWeight.w800,
+                              ).copyWith(
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Text(
+                              '${backlog.approvedCount} ${strings.tKey(PlatformAdminKeys.queueApproved)} · ${counts.missing} ${strings.tKey(PlatformAdminKeys.queueMissing)}',
+                              style: PtTheme.font(
+                                12.5,
+                                lineHeight: 18,
+                                weight: FontWeight.w600,
+                                color: PtTheme.muted,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    LanguageCoverageMeter(value: percent),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _SummaryCard(
+                    label: strings.tKey(PlatformAdminKeys.queueMissing),
+                    value: counts.missing,
+                  ),
+                  _SummaryCard(
+                    label: strings.tKey(PlatformAdminKeys.queueDraft),
+                    value: counts.draft,
+                  ),
+                  _SummaryCard(
+                    label: strings.tKey(PlatformAdminKeys.queueReviewed),
+                    value: counts.reviewed,
+                  ),
+                  _SummaryCard(
+                    label: strings.tKey(PlatformAdminKeys.queueApproved),
+                    value: counts.approved,
+                  ),
+                  _SummaryCard(
+                    label: strings.tKey(PlatformAdminKeys.queueTotal),
+                    value: backlog.totalRequired,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              PlatformToolbar(
+                searchController: _searchController,
+                searchHint: strings.tKey(PlatformAdminKeys.filterQueueSearch),
+                onSearchChanged: (value) => setState(() => _search = value),
+                filters: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 240),
+                    child: PlatformDropdown<String>(
+                      label: strings.tKey(
+                        PlatformAdminKeys.tableQueueEntityType,
+                      ),
+                      value: _entityFilter,
+                      items: [
+                        DropdownMenuItem(
+                          value: _allTypes,
+                          child: Text(strings.tKey(CommonKeys.filterAll)),
+                        ),
+                        for (final type in entityTypes)
+                          DropdownMenuItem(
+                            value: type,
+                            child: Text(
+                              _entityLabel(strings, contentTypes, type),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => _entityFilter = value);
+                      },
+                    ),
+                  ),
+                  PlatformFilterChip(
+                    label: strings.tKey(
+                      PlatformAdminKeys.filterQueueMissingOnly,
+                    ),
+                    selected: _missingOnly,
+                    onTap: () => setState(() => _missingOnly = !_missingOnly),
+                  ),
+                ],
+                countLabel:
+                    '${strings.tKey(PlatformAdminKeys.queueTotal)}: ${filtered.length}',
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      padding: EdgeInsets.only(bottom: hasSelection ? 96 : 0),
+                      child: listBody,
+                    ),
+                    if (hasSelection)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _QueueActionBar(
+                          count: _selected.length,
+                          saving: _bulkSaving,
+                          onClear: () => setState(() => _selected.clear()),
+                          onApprove: () => _approveSelected(filtered),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sticky bulk-action bar for the queue (Direction A).
+///
+/// Appears when at least one row is selected. Same house chrome as the rest:
+/// one bordered card, tabular count, ghost Clear, primary Approve.
+class _QueueActionBar extends ConsumerWidget {
+  const _QueueActionBar({
+    required this.count,
+    required this.saving,
+    required this.onClear,
+    required this.onApprove,
+  });
+
+  final int count;
+  final bool saving;
+  final VoidCallback onClear;
+  final VoidCallback onApprove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.queueSelectedCount,
+                <String, Object?>{'count': '$count'},
+              ),
+              style: PtTheme.font(13, lineHeight: 18, weight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8),
+          PlatformGhostButton(
+            key: const Key('btn-queue-clear-selection'),
+            label: strings.tKey(PlatformAdminKeys.queueClearSelection),
+            onPressed: saving ? null : onClear,
+          ),
+          const SizedBox(width: 8),
+          PlatformPrimaryButton(
+            key: const Key('btn-queue-approve-selected'),
+            label: strings.tKey(PlatformAdminKeys.buttonQueueApproveSelected),
+            icon: Icons.check_rounded,
+            isLoading: saving,
+            onPressed: saving ? null : onApprove,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -515,10 +674,10 @@ class _SummaryCard extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 120, maxWidth: 220),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: PtTheme.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: PtTheme.border),
         ),
         child: Column(
@@ -526,19 +685,23 @@ class _SummaryCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '$value',
+              label,
               style: PtTheme.font(
-                22,
-                weight: FontWeight.w800,
-                color: PtTheme.ink,
+                11,
+                lineHeight: 14,
+                weight: FontWeight.w700,
+                color: PtTheme.muted,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
-              label,
-              style: PtTheme.font(12, color: PtTheme.muted),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              '$value',
+              style: PtTheme.font(
+                28,
+                lineHeight: 32,
+                weight: FontWeight.w800,
+                color: PtTheme.ink,
+              ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
             ),
           ],
         ),
@@ -564,61 +727,144 @@ class _QueueRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     final translation = (item.text ?? '').trim();
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Checkbox(value: selected, onChanged: onSelected),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  PlatformMetaPill(
-                    label: item.entityCode.isEmpty
-                        ? item.entityType
-                        : item.entityCode,
-                    value: item.field,
-                  ),
-                  PlatformStatusChip(
-                    status: _itemStatusLabel(strings, item.status),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                item.defaultText.isEmpty ? '—' : item.defaultText,
-                style: PtTheme.font(
-                  14,
-                  weight: FontWeight.w600,
-                  color: PtTheme.ink,
+    final missing = translation.isEmpty;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.defaultText,
+      child: Material(
+        color: selected
+            ? PtTheme.deepGreen.withValues(alpha: 0.06)
+            : Colors.transparent,
+        child: InkWell(
+          onTap: () => onSelected(!selected),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 6, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _LedgerCheckbox(
+                  selected: selected,
+                  onTap: () => onSelected(!selected),
                 ),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                translation.isEmpty ? '—' : translation,
-                style: PtTheme.font(13, color: PtTheme.muted),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsetsDirectional.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PtTheme.canvas,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item.entityCode.isEmpty
+                                  ? '${item.entityType} · ${item.field}'
+                                  : '${item.entityCode} · ${item.field}',
+                              style: PtTheme.font(
+                                10.5,
+                                lineHeight: 14,
+                                weight: FontWeight.w700,
+                                color: PtTheme.muted,
+                              ),
+                            ),
+                          ),
+                          PlatformStatusChip(
+                            status: _itemStatusLabel(strings, item.status),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item.defaultText.isEmpty ? '—' : item.defaultText,
+                        style: PtTheme.font(
+                          14,
+                          lineHeight: 20,
+                          weight: FontWeight.w600,
+                          color: PtTheme.ink,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        missing ? 'Not translated yet' : translation,
+                        style: PtTheme.font(
+                          13,
+                          lineHeight: 19,
+                          weight: FontWeight.w400,
+                          color: missing ? PtTheme.muted : PtTheme.ink,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  tooltip: strings.tKey(PlatformAdminKeys.dialogQueueEditTitle),
+                  onPressed: onEdit,
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                ),
+              ],
+            ),
           ),
         ),
-        IconButton(
-          tooltip: strings.tKey(PlatformAdminKeys.dialogQueueEditTitle),
-          onPressed: onEdit,
-          icon: const Icon(Icons.edit_outlined, size: 18),
-        ),
-      ],
+      ),
     );
   }
 }
 
+/// Rounded 22px selection box — the house checkbox, not Material's square.
+class _LedgerCheckbox extends StatelessWidget {
+  const _LedgerCheckbox({required this.selected, required this.onTap});
+
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      checked: selected,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
+          width: 22,
+          height: 22,
+          margin: const EdgeInsets.only(top: 2),
+          decoration: BoxDecoration(
+            color: selected ? PtTheme.deepGreen : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? PtTheme.deepGreen : PtTheme.border,
+              width: 1.5,
+            ),
+          ),
+          child: selected
+              ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+              : null,
+        ),
+      ),
+    );
+  }
+}
 class _TranslationEditorDialog extends ConsumerStatefulWidget {
   const _TranslationEditorDialog({
     required this.items,

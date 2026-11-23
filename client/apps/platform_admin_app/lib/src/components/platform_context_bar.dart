@@ -40,7 +40,13 @@ class PlatformContextBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 600;
-        final breadcrumb = _Breadcrumbs(items: breadcrumbs, onBack: onBack);
+        // Compact: the full trail does not fit, and the current page name plus
+        // its parent are the parts that matter. Keep the last two crumbs (the
+        // parent doubles as the back target) instead of clipping the trail.
+        final items = compact && breadcrumbs.length > 2
+            ? breadcrumbs.sublist(breadcrumbs.length - 2)
+            : breadcrumbs;
+        final breadcrumb = _Breadcrumbs(items: items, onBack: onBack);
 
         final child = actions.isEmpty
             ? breadcrumb

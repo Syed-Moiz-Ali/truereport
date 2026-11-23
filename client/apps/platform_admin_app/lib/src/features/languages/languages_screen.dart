@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
-import 'package:reference_data/reference_data.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
@@ -13,8 +12,9 @@ import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
-import '../../reference_status_lookup.dart';
 import 'add_language_dialog.dart';
+import 'language_cards.dart';
+import 'language_registry_card.dart';
 
 /// Language registry: shipped UI-message languages plus backend-registered
 /// languages that do not have a UI catalog file yet.
@@ -110,21 +110,23 @@ class LanguagesScreen extends ConsumerWidget {
                 title: strings.tKey(CommonKeys.emptyTitle),
               )
             else ...[
-              for (final language
-                  in manifest?.languages ?? const <UiMessageLanguage>[])
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _LanguageCard(
-                    key: ValueKey('language-card-${language.code}'),
-                    code: language.code,
-                    manifestLanguage: language,
-                    registryLanguage: registryByCode[language.code],
-                    isDefault:
-                        registryByCode[language.code]?.isDefault ??
-                        language.code == manifest?.defaultLanguage,
-                  ),
-                ),
+              LanguageGrid(
+                children: [
+                  for (final language
+                      in manifest?.languages ?? const <UiMessageLanguage>[])
+                    LanguageRegistryCard(
+                      key: ValueKey('language-card-${language.code}'),
+                      code: language.code,
+                      manifestLanguage: language,
+                      registryLanguage: registryByCode[language.code],
+                      isDefault:
+                          registryByCode[language.code]?.isDefault ??
+                          language.code == manifest?.defaultLanguage,
+                    ),
+                ],
+              ),
               if (registryOnly.isNotEmpty) ...[
+                const SizedBox(height: 20),
                 PlatformSectionHeader(
                   title: strings.tKey(PlatformAdminKeys.languagesRegistryTitle),
                   subtitle: strings.tKey(
@@ -132,17 +134,18 @@ class LanguagesScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                for (final language in registryOnly)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _LanguageCard(
-                      key: ValueKey('language-card-${language.code}'),
-                      code: language.code,
-                      manifestLanguage: null,
-                      registryLanguage: language,
-                      isDefault: language.isDefault,
-                    ),
-                  ),
+                LanguageGrid(
+                  children: [
+                    for (final language in registryOnly)
+                      LanguageRegistryCard(
+                        key: ValueKey('language-card-${language.code}'),
+                        code: language.code,
+                        manifestLanguage: null,
+                        registryLanguage: language,
+                        isDefault: language.isDefault,
+                      ),
+                  ],
+                ),
               ],
             ],
             const SizedBox(height: 8),
@@ -235,150 +238,6 @@ class _StaticManifestNotice extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One language row-card. [manifestLanguage] is null for languages that are
-/// registered in the backend but do not ship a UI catalog file yet.
-class _LanguageCard extends ConsumerWidget {
-  const _LanguageCard({
-    super.key,
-    required this.code,
-    required this.manifestLanguage,
-    required this.registryLanguage,
-    required this.isDefault,
-  });
-
-  final String code;
-  final UiMessageLanguage? manifestLanguage;
-  final PlatformLanguage? registryLanguage;
-  final bool isDefault;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final readiness = registryLanguage == null
-        ? null
-        : ref.watch(readinessProvider(code)).asData?.value;
-    final manifest = manifestLanguage;
-    final missing = manifest?.missingKeys ?? 0;
-    final valid = manifest == null
-        ? registryLanguage?.isLive ?? false
-        : missing == 0 && manifest.placeholderMismatch == 0;
-    final displayName =
-        registryLanguage?.displayName ?? manifest?.displayName ?? code;
-
-    return PlatformSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
-                value: code,
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
-                value:
-                    registryLanguage?.direction ?? manifest?.direction ?? 'ltr',
-              ),
-              PlatformStatusChip(
-                status: valid
-                    ? strings.tKey(CommonKeys.statusHealthy)
-                    : strings.tKey(CommonKeys.statusUnhealthy),
-              ),
-              if (readiness != null)
-                PlatformMetaPill(
-                  label: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceFieldContentCoverage,
-                  ),
-                  value:
-                      '${readiness.contentApproved}/${readiness.contentTotal}',
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            displayName,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: PtTheme.font(
-              16,
-              weight: FontWeight.w700,
-              color: PtTheme.ink,
-            ),
-          ),
-          if (manifest != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
-              '${manifest.path.isEmpty ? '-' : manifest.path}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(12, color: PtTheme.muted),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage)}: '
-              '${manifest.totalKeys - manifest.missingKeys}/${manifest.totalKeys}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(12, color: PtTheme.muted),
-            ),
-          ] else ...[
-            const SizedBox(height: 2),
-            Text(
-              strings.tKey(PlatformAdminKeys.languagesRegistryNoCatalog),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(12, color: PtTheme.muted),
-            ),
-            if (registryLanguage != null) ...[
-              const SizedBox(height: 4),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.languagesRegistryStatus),
-                value: referenceCodeLabel(
-                  strings,
-                  ref.watch(statusesProvider(translationStatusDomain)).value,
-                  registryLanguage!.status,
-                ),
-              ),
-            ],
-          ],
-          if (registryLanguage != null && !isDefault) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                PlatformPrimaryButton(
-                  key: ValueKey('view-$code'),
-                  label: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceButtonManage,
-                  ),
-                  icon: Icons.tune_rounded,
-                  onPressed: () => context.go('/settings/languages/$code'),
-                ),
-                PlatformSecondaryButton(
-                  key: ValueKey('translate-$code'),
-                  label: strings.tKey(
-                    PlatformAdminKeys.pageTranslationQueueTitle,
-                  ),
-                  icon: Icons.translate_rounded,
-                  onPressed: () =>
-                      context.go('/settings/languages/$code/translations'),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );

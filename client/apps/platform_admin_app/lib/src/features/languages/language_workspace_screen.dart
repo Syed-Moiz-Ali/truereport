@@ -8,7 +8,6 @@ import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_context_bar.dart';
 import '../../components/platform_dialogs.dart';
-import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
 import '../../platform_config_models.dart';
@@ -16,6 +15,7 @@ import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../platform_translations.dart';
 import '../../reference_status_lookup.dart';
+import 'language_cards.dart';
 import 'language_failures.dart';
 
 import 'package:reference_data/reference_data.dart';
@@ -304,57 +304,97 @@ class _WorkspaceHeader extends ConsumerWidget {
             ref.watch(statusesProvider(translationStatusDomain)).value,
             readiness!.status,
           );
+    final displayName = readiness?.displayName.isNotEmpty == true
+        ? readiness!.displayName
+        : code;
 
     return PlatformSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final hero = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                readiness?.displayName.isNotEmpty == true
-                    ? readiness!.displayName
-                    : code,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: PtTheme.font(
-                  20,
-                  lineHeight: 26,
-                  weight: FontWeight.w800,
-                  color: PtTheme.ink,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: PtTheme.font(
+                        26,
+                        lineHeight: 32,
+                        weight: FontWeight.w800,
+                        color: PtTheme.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      code,
+                      style: PtTheme.font(
+                        12,
+                        lineHeight: 16,
+                        weight: FontWeight.w600,
+                        color: PtTheme.muted,
+                      ),
+                    ),
+                    if (statusLabel != null) ...[
+                      const SizedBox(height: 8),
+                      LanguageStateChip(
+                        label: statusLabel,
+                        warn: readiness?.status != 'LIVE',
+                      ),
+                    ],
+                  ],
                 ),
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
-                value: code,
               ),
               if (readiness != null) ...[
-                PlatformMetaPill(
-                  label: strings.tKey(PlatformAdminKeys.fieldLanguageDirection),
-                  value: readiness!.direction,
-                ),
-                PlatformStatusChip(
-                  status: readiness!.status,
-                  label: statusLabel,
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage,
-                  ),
-                  value:
-                      '${readiness!.uiMessages.approved}/${readiness!.uiMessages.total}',
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceFieldContentCoverage,
-                  ),
-                  value:
-                      '${readiness!.contentApproved}/${readiness!.contentTotal}',
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${readiness!.readinessPercent}',
+                      style:
+                          PtTheme.font(
+                            48,
+                            lineHeight: 48,
+                            weight: FontWeight.w800,
+                            color: PtTheme.ink,
+                          ).copyWith(
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                    ),
+                    Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceFieldReadiness,
+                      ),
+                      style: PtTheme.font(
+                        11,
+                        lineHeight: 14,
+                        weight: FontWeight.w600,
+                        color: PtTheme.muted,
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            ],
+          );
+          final meta = readiness == null
+              ? null
+              : Text(
+                  '${readiness!.uiMessages.approved}/${readiness!.uiMessages.total} '
+                  '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldUiTextCoverage)}'
+                  ' · ${readiness!.contentApproved}/${readiness!.contentTotal} '
+                  '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldContentCoverage)}',
+                  style: PtTheme.font(12, lineHeight: 18, color: PtTheme.muted),
+                );
+          final actions = Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               PlatformSecondaryButton(
                 key: const Key('btn-manual-translations'),
                 label: strings.tKey(
@@ -373,23 +413,48 @@ class _WorkspaceHeader extends ConsumerWidget {
                   onPressed: onRetire,
                 ),
             ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            strings.tKey(PlatformAdminKeys.languageWorkspaceHeaderSubtitle),
-            style: PtTheme.font(12, color: PtTheme.muted),
-          ),
-          if (readiness != null && readiness!.uiMessagesPath.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Text(
-              '${strings.tKey(PlatformAdminKeys.fieldLanguageUiMessagesPath)}: '
-              '${readiness!.uiMessagesPath}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: PtTheme.font(12, color: PtTheme.muted),
-            ),
-          ],
-        ],
+          );
+          if (constraints.maxWidth < 560) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                hero,
+                if (meta != null) ...[const SizedBox(height: 8), meta],
+                const SizedBox(height: 14),
+                actions,
+                const SizedBox(height: 12),
+                Text(
+                  strings.tKey(
+                    PlatformAdminKeys.languageWorkspaceHeaderSubtitle,
+                  ),
+                  style: PtTheme.font(12, color: PtTheme.muted),
+                ),
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              hero,
+              if (meta != null) ...[const SizedBox(height: 8), meta],
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      strings.tKey(
+                        PlatformAdminKeys.languageWorkspaceHeaderSubtitle,
+                      ),
+                      style: PtTheme.font(12, color: PtTheme.muted),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  actions,
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -421,41 +486,38 @@ class _OverviewTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PlatformSectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PlatformSectionHeader(
-                    title: strings.tKey(
-                      PlatformAdminKeys.languageWorkspaceOverviewContent,
-                    ),
+            if (data.content.isEmpty)
+              PlatformSectionCard(
+                child: Text(
+                  strings.tKey(
+                    PlatformAdminKeys.languageWorkspaceContentNoItems,
                   ),
-                  const SizedBox(height: 8),
-                  if (data.content.isEmpty)
-                    Text(
-                      strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceContentNoItems,
-                      ),
-                      style: PtTheme.font(12, color: PtTheme.muted),
-                    )
-                  else
-                    for (final entry in data.content.entries)
-                      _EntityReadinessRow(
-                        entry: entry,
-                        onOpenTab: () =>
-                            onOpenTab(_tabForEntityType(entry.key)),
-                      ),
+                  style: PtTheme.font(12, color: PtTheme.muted),
+                ),
+              )
+            else
+              LanguageGrid(
+                children: [
+                  for (final entry in data.content.entries)
+                    _EntityCard(
+                      entry: entry,
+                      onOpenTab: () => onOpenTab(_tabForEntityType(entry.key)),
+                    ),
                 ],
               ),
-            ),
             const SizedBox(height: 12),
-            PlatformSectionCard(
+            LanguageCardShell(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PlatformSectionHeader(
-                    title: strings.tKey(
+                  Text(
+                    strings.tKey(
                       PlatformAdminKeys.languageWorkspaceOverviewBlockers,
+                    ),
+                    style: PtTheme.font(
+                      15,
+                      lineHeight: 21,
+                      weight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -477,6 +539,84 @@ class _OverviewTab extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// One entity readiness card (Direction B overview).
+///
+/// Human name, approved-of-total as a big number with a meter, and one
+/// verb: open the entity tab. Replaces the old readiness rows.
+class _EntityCard extends ConsumerWidget {
+  const _EntityCard({required this.entry, required this.onOpenTab});
+
+  final MapEntry<String, EntityReadiness> entry;
+  final VoidCallback onOpenTab;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    final types = ref.watch(enumsProvider(contentTypeEnum)).value;
+    final total = entry.value.total;
+    final approved = entry.value.approved;
+    final fraction = total <= 0 ? 0.0 : (approved / total).clamp(0.0, 1.0);
+    final complete = total > 0 && approved >= total;
+    return LanguageCardShell(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _localizedEntityName(strings, types, entry.key),
+                  style: PtTheme.font(
+                    15,
+                    lineHeight: 21,
+                    weight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (complete)
+                LanguageStateChip(label: strings.tKey(CommonKeys.statusHealthy))
+              else
+                LanguageStateChip(
+                  label:
+                      '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldApproved)} $approved/$total',
+                  warn: true,
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$approved / $total',
+            textDirection: TextDirection.ltr,
+            style: PtTheme.font(
+              32,
+              lineHeight: 36,
+              weight: FontWeight.w800,
+            ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            strings.tKey(PlatformAdminKeys.languageWorkspaceFieldApproved),
+            style: PtTheme.font(12, lineHeight: 16, color: PtTheme.muted),
+          ),
+          const SizedBox(height: 8),
+          LanguageCoverageMeter(value: fraction),
+          const SizedBox(height: 10),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: PlatformGhostButton(
+              label: strings.tKey(
+                PlatformAdminKeys.languageWorkspaceOverviewOpenTab,
+              ),
+              icon: Icons.arrow_forward_rounded,
+              onPressed: onOpenTab,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -509,61 +649,6 @@ String _localizedEntityName(
   Iterable<ReferenceRecord>? records,
   String entityType,
 ) => referenceCodeLabel(strings, records, entityType);
-
-class _EntityReadinessRow extends ConsumerWidget {
-  const _EntityReadinessRow({required this.entry, required this.onOpenTab});
-
-  final MapEntry<String, EntityReadiness> entry;
-  final VoidCallback onOpenTab;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final types = ref.watch(enumsProvider(contentTypeEnum)).value;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  _localizedEntityName(strings, types, entry.key),
-                  style: PtTheme.font(
-                    13,
-                    weight: FontWeight.w700,
-                    color: PtTheme.ink,
-                  ),
-                ),
-                Text(
-                  '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldApproved)}: '
-                  '${entry.value.approved}/${entry.value.total}',
-                  style: PtTheme.font(12, color: PtTheme.muted),
-                ),
-                if (entry.value.missing > 0)
-                  PlatformStatusChip(
-                    status:
-                        '${strings.tKey(PlatformAdminKeys.languageWorkspaceFieldMissing)}: '
-                        '${entry.value.missing}',
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          PlatformSecondaryButton(
-            label: strings.tKey(
-              PlatformAdminKeys.languageWorkspaceOverviewOpenTab,
-            ),
-            onPressed: onOpenTab,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _BlockerRow extends StatelessWidget {
   const _BlockerRow({required this.blocker, required this.onOpen});
@@ -781,171 +866,246 @@ class _ContentTabState extends ConsumerState<_ContentTab> {
         final selectedItems = items
             .where((item) => _selected.contains(item.key))
             .toList(growable: false);
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PlatformSectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PlatformSectionHeader(
+        final showBar = selectedItems.isNotEmpty;
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: showBar ? 96 : 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PlatformSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '$approved / $total',
+                              textDirection: TextDirection.ltr,
+                              style:
+                                  PtTheme.font(
+                                    32,
+                                    lineHeight: 36,
+                                    weight: FontWeight.w800,
+                                    color: PtTheme.ink,
+                                  ).copyWith(
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  strings.tKey(
+                                    PlatformAdminKeys
+                                        .languageWorkspaceFieldApproved,
+                                  ),
+                                  style: PtTheme.font(
+                                    12.5,
+                                    lineHeight: 18,
+                                    weight: FontWeight.w600,
+                                    color: PtTheme.muted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (total - approved > 0)
+                              LanguageStateChip(
+                                label: strings.tArgsKey(
+                                  PlatformAdminKeys
+                                      .pageLanguagesCardMissingCount,
+                                  <String, Object?>{
+                                    'count': '${total - approved}',
+                                  },
+                                ),
+                                warn: true,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        LanguageCoverageMeter(
+                          value: total <= 0 ? 0 : approved / total,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          textAlignVertical: TextAlignVertical.center,
+                          decoration: PtTheme.fieldDecoration(
+                            hint: strings.tKey(
+                              PlatformAdminKeys.filterQueueSearch,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              size: 18,
+                              color: PtTheme.muted,
+                            ),
+                          ),
+                          onChanged: (value) => setState(() => _query = value),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            for (final filter in _ContentFilter.values)
+                              PlatformFilterChip(
+                                label: _contentFilterLabel(strings, filter),
+                                selected: _contentFilter == filter,
+                                onTap: () =>
+                                    setState(() => _contentFilter = filter),
+                              ),
+                            if (widget.sourceRoute != null)
+                              PlatformSecondaryButton(
+                                label: strings.tKey(
+                                  PlatformAdminKeys
+                                      .languageWorkspaceButtonOpenSource,
+                                ),
+                                icon: Icons.open_in_new_rounded,
+                                onPressed: () =>
+                                    context.go(widget.sourceRoute!),
+                              ),
+                            PlatformPrimaryButton(
+                              label: strings.tKey(
+                                PlatformAdminKeys
+                                    .languageWorkspaceButtonBulkApprove,
+                              ),
+                              icon: Icons.verified_rounded,
+                              isLoading: _busy,
+                              onPressed: _busy || items.isEmpty
+                                  ? null
+                                  : () => _approveMany(items),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (items.isEmpty)
+                    PlatformEmptyView(
+                      icon: Icons.inbox_outlined,
                       title: strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceContentTitle,
+                        PlatformAdminKeys.languageWorkspaceContentNoItems,
                       ),
-                      subtitle: strings.tKey(
-                        PlatformAdminKeys.languageWorkspaceContentSubtitle,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    )
+                  else
+                    LanguageLedger(
                       children: [
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.languageWorkspaceFieldTotal,
+                        for (final item in items)
+                          _ContentRow(
+                            key: ValueKey(item.key),
+                            item: item,
+                            selected: _selected.contains(item.key),
+                            controllerText: _textFor(item),
+                            onSelected: (value) {
+                              setState(() {
+                                if (value) {
+                                  _selected.add(item.key);
+                                } else {
+                                  _selected.remove(item.key);
+                                }
+                              });
+                            },
+                            onChanged: (value) {
+                              _edits[item.key] = value;
+                            },
+                            onSave: () => _save(item),
+                            onApprove: () =>
+                                _save(item, status: TranslationStatus.approved),
                           ),
-                          value: '$total',
-                        ),
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.languageWorkspaceFieldApproved,
-                          ),
-                          value: '$approved',
-                        ),
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.languageWorkspaceFieldMissing,
-                          ),
-                          value:
-                              '${total - approved < 0 ? 0 : total - approved}',
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: PtTheme.fieldDecoration(
-                        hint: strings.tKey(PlatformAdminKeys.filterQueueSearch),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          size: 18,
-                          color: PtTheme.muted,
-                        ),
-                      ),
-                      onChanged: (value) => setState(() => _query = value),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        for (final filter in _ContentFilter.values)
-                          ChoiceChip(
-                            label: Text(_contentFilterLabel(strings, filter)),
-                            selected: _contentFilter == filter,
-                            showCheckmark: false,
-                            shape: const StadiumBorder(),
-                            side: BorderSide(
-                              color: _contentFilter == filter
-                                  ? PtTheme.deepGreen.withValues(alpha: 0.35)
-                                  : PtTheme.border,
-                            ),
-                            backgroundColor: PtTheme.canvas,
-                            selectedColor: PtTheme.deepGreen.withValues(
-                              alpha: 0.12,
-                            ),
-                            padding: const EdgeInsetsDirectional.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            labelPadding: EdgeInsets.zero,
-                            labelStyle: PtTheme.font(
-                              12,
-                              weight: FontWeight.w600,
-                              color: _contentFilter == filter
-                                  ? PtTheme.deepGreen
-                                  : PtTheme.muted,
-                            ),
-                            onSelected: (_) =>
-                                setState(() => _contentFilter = filter),
-                          ),
-                        if (widget.sourceRoute != null)
-                          PlatformSecondaryButton(
-                            label: strings.tKey(
-                              PlatformAdminKeys
-                                  .languageWorkspaceButtonOpenSource,
-                            ),
-                            icon: Icons.open_in_new_rounded,
-                            onPressed: () => context.go(widget.sourceRoute!),
-                          ),
-                        PlatformSecondaryButton(
-                          label: strings.tKey(
-                            PlatformAdminKeys.buttonQueueApproveSelected,
-                          ),
-                          icon: Icons.done_all_rounded,
-                          isLoading: _busy,
-                          onPressed: _busy || selectedItems.isEmpty
-                              ? null
-                              : () => _approveMany(selectedItems),
-                        ),
-                        PlatformPrimaryButton(
-                          label: strings.tKey(
-                            PlatformAdminKeys
-                                .languageWorkspaceButtonBulkApprove,
-                          ),
-                          icon: Icons.verified_rounded,
-                          isLoading: _busy,
-                          onPressed: _busy || items.isEmpty
-                              ? null
-                              : () => _approveMany(items),
-                        ),
-                      ],
-                    ),
-                  ],
+                ],
+              ),
+            ),
+            if (showBar)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _WorkspaceSelectionBar(
+                  count: selectedItems.length,
+                  busy: _busy,
+                  onClear: () => setState(() => _selected.clear()),
+                  onApprove: () => _approveMany(selectedItems),
                 ),
               ),
-              const SizedBox(height: 12),
-              if (items.isEmpty)
-                PlatformEmptyView(
-                  icon: Icons.inbox_outlined,
-                  title: strings.tKey(
-                    PlatformAdminKeys.languageWorkspaceContentNoItems,
-                  ),
-                )
-              else
-                for (final item in items) ...[
-                  _ContentRow(
-                    key: ValueKey(item.key),
-                    item: item,
-                    selected: _selected.contains(item.key),
-                    controllerText: _textFor(item),
-                    onSelected: (value) {
-                      setState(() {
-                        if (value) {
-                          _selected.add(item.key);
-                        } else {
-                          _selected.remove(item.key);
-                        }
-                      });
-                    },
-                    onChanged: (value) {
-                      _edits[item.key] = value;
-                    },
-                    onSave: () => _save(item),
-                    onApprove: () =>
-                        _save(item, status: TranslationStatus.approved),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-            ],
-          ),
+          ],
         );
       },
+    );
+  }
+}
+
+/// Sticky selection bar for the workspace content tab (Direction A).
+///
+/// Sits at the foot of the content panel when rows are selected: tabular
+/// count, ghost Clear, primary Approve selected — the same chrome as the
+/// queue bar so the two work surfaces feel like one product.
+class _WorkspaceSelectionBar extends ConsumerWidget {
+  const _WorkspaceSelectionBar({
+    required this.count,
+    required this.busy,
+    required this.onClear,
+    required this.onApprove,
+  });
+
+  final int count;
+  final bool busy;
+  final VoidCallback onClear;
+  final VoidCallback onApprove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strings = ref.watch(uiStringsProvider);
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.languageWorkspaceSelectedCount,
+                <String, Object?>{'count': '$count'},
+              ),
+              style: PtTheme.font(13, lineHeight: 18, weight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8),
+          PlatformGhostButton(
+            key: const Key('btn-workspace-clear-selection'),
+            label: strings.tKey(
+              PlatformAdminKeys.languageWorkspaceButtonClearSelection,
+            ),
+            onPressed: busy ? null : onClear,
+          ),
+          const SizedBox(width: 8),
+          PlatformPrimaryButton(
+            key: const Key('btn-workspace-approve-selected'),
+            label: strings.tKey(PlatformAdminKeys.buttonQueueApproveSelected),
+            icon: Icons.done_all_rounded,
+            isLoading: busy,
+            onPressed: busy ? null : onApprove,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1003,21 +1163,50 @@ class _ContentRowState extends ConsumerState<_ContentRow> {
     final strings = ref.watch(uiStringsProvider);
     final contentStatuses = ref.watch(statusesProvider('checklist')).value;
     final item = widget.item;
-    return PlatformSectionCard(
-      padding: const EdgeInsets.all(12),
+    final missing = (item.text ?? '').trim().isEmpty;
+    return Container(
+      color: widget.selected
+          ? PtTheme.deepGreen.withValues(alpha: 0.06)
+          : Colors.transparent,
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 820;
-          final source = _TextBlock(
-            label: strings.tKey(PlatformAdminKeys.tableQueueDefaultText),
-            value: item.defaultText,
+          final source = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                strings.tKey(PlatformAdminKeys.tableQueueDefaultText),
+                style: PtTheme.font(
+                  11,
+                  lineHeight: 14,
+                  weight: FontWeight.w700,
+                  color: PtTheme.muted,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.defaultText.isEmpty ? '—' : item.defaultText,
+                style: PtTheme.font(
+                  14,
+                  lineHeight: 20,
+                  weight: FontWeight.w600,
+                  color: PtTheme.ink,
+                ),
+              ),
+            ],
           );
           final target = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 strings.tKey(PlatformAdminKeys.tableQueueTranslation),
-                style: PtTheme.font(11, color: PtTheme.muted),
+                style: PtTheme.font(
+                  11,
+                  lineHeight: 14,
+                  weight: FontWeight.w700,
+                  color: PtTheme.muted,
+                ),
               ),
               const SizedBox(height: 4),
               TextField(
@@ -1025,57 +1214,72 @@ class _ContentRowState extends ConsumerState<_ContentRow> {
                 controller: _controller,
                 maxLines: null,
                 textAlignVertical: TextAlignVertical.top,
-                decoration: PtTheme.fieldDecoration(),
+                style: PtTheme.font(13, lineHeight: 19),
+                decoration: PtTheme.fieldDecoration(
+                  hint: missing ? 'Type the translation…' : null,
+                ),
               ),
             ],
           );
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Checkbox(
-                    value: widget.selected,
-                    onChanged: (value) => widget.onSelected(value ?? false),
-                    semanticLabel: strings.tKey(
-                      PlatformAdminKeys.languageWorkspaceContentSelectRow,
+                  _LedgerCheck(
+                    selected: widget.selected,
+                    onTap: () => widget.onSelected(!widget.selected),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: PtTheme.canvas,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${item.entityCode.isEmpty ? item.entityId : item.entityCode} · ${item.field}',
+                            style: PtTheme.font(
+                              10.5,
+                              lineHeight: 14,
+                              weight: FontWeight.w700,
+                              color: PtTheme.muted,
+                            ),
+                          ),
+                        ),
+                        PlatformStatusChip(
+                          status: _statusLabel(strings, item.status),
+                        ),
+                        if (item.contentStatus.isNotEmpty)
+                          PlatformStatusChip(
+                            status: _contentStatusLabel(
+                              strings,
+                              contentStatuses,
+                              item.contentStatus,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  Text(
-                    item.entityCode.isEmpty ? item.entityId : item.entityCode,
-                    style: PtTheme.font(
-                      12,
-                      weight: FontWeight.w700,
-                      color: PtTheme.muted,
-                    ),
-                  ),
-                  Text(
-                    item.field,
-                    style: PtTheme.font(11, color: PtTheme.muted),
-                  ),
-                  PlatformStatusChip(
-                    status: _statusLabel(strings, item.status),
-                  ),
-                  if (item.contentStatus.isNotEmpty)
-                    PlatformStatusChip(
-                      status: _contentStatusLabel(
-                        strings,
-                        contentStatuses,
-                        item.contentStatus,
-                      ),
-                    ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               if (wide)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: source),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Expanded(child: target),
                   ],
                 )
@@ -1084,7 +1288,7 @@ class _ContentRowState extends ConsumerState<_ContentRow> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [source, const SizedBox(height: 8), target],
                 ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -1112,24 +1316,38 @@ class _ContentRowState extends ConsumerState<_ContentRow> {
   }
 }
 
-class _TextBlock extends StatelessWidget {
-  const _TextBlock({required this.label, required this.value});
+/// Rounded 22px selection box shared by the work-surface rows.
+class _LedgerCheck extends StatelessWidget {
+  const _LedgerCheck({required this.selected, required this.onTap});
 
-  final String label;
-  final String value;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: PtTheme.font(11, color: PtTheme.muted)),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: PtTheme.font(13, lineHeight: 19, color: PtTheme.ink),
+    return Semantics(
+      checked: selected,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
+          width: 22,
+          height: 22,
+          margin: const EdgeInsets.only(top: 2),
+          decoration: BoxDecoration(
+            color: selected ? PtTheme.deepGreen : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? PtTheme.deepGreen : PtTheme.border,
+              width: 1.5,
+            ),
+          ),
+          child: selected
+              ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+              : null,
         ),
-      ],
+      ),
     );
   }
 }

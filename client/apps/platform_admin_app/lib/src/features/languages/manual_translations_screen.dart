@@ -19,6 +19,7 @@ import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../../reference_status_lookup.dart';
+import 'language_cards.dart';
 import 'manual_translation_models.dart';
 import 'manual_translation_providers.dart';
 
@@ -387,37 +388,65 @@ class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(uiStringsProvider);
-    final progress = summary == null
-        ? '—'
-        : '${summary!.translated}/${summary!.total}';
-    return PlatformSectionCard(
+    final total = summary?.total ?? 0;
+    final translated = summary?.translated ?? 0;
+    final fraction = total <= 0 ? 0.0 : (translated / total).clamp(0.0, 1.0);
+    return LanguageCardShell(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nativeName,
+                      style: PtTheme.font(
+                        22,
+                        lineHeight: 28,
+                        weight: FontWeight.w800,
+                        color: PtTheme.ink,
+                      ),
+                    ),
+                    Text(
+                      code,
+                      style: PtTheme.font(
+                        12,
+                        lineHeight: 16,
+                        weight: FontWeight.w600,
+                        color: PtTheme.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Text(
-                nativeName,
+                '$translated / $total',
+                textDirection: TextDirection.ltr,
                 style: PtTheme.font(
-                  20,
-                  lineHeight: 26,
+                  32,
+                  lineHeight: 36,
                   weight: FontWeight.w800,
                   color: PtTheme.ink,
+                ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LanguageCoverageMeter(value: fraction),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.manualTranslationsSubtitle),
+                  style: PtTheme.font(12, lineHeight: 18, color: PtTheme.muted),
                 ),
               ),
-              PlatformMetaPill(
-                label: strings.tKey(PlatformAdminKeys.fieldLanguageCode),
-                value: code,
-              ),
-              PlatformMetaPill(
-                label: strings.tKey(
-                  PlatformAdminKeys.manualTranslationsFieldProgress,
-                ),
-                value: progress,
-              ),
+              const SizedBox(width: 12),
               PlatformSecondaryButton(
                 key: const Key('btn-manual-translations-refresh'),
                 label: strings.tKey(CommonKeys.buttonRefresh),
@@ -425,11 +454,6 @@ class _Header extends ConsumerWidget {
                 onPressed: onRefresh,
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            strings.tKey(PlatformAdminKeys.manualTranslationsSubtitle),
-            style: PtTheme.font(12, lineHeight: 18, color: PtTheme.muted),
           ),
         ],
       ),
@@ -503,48 +527,52 @@ class _Results extends StatelessWidget {
       ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return LanguageLedger(
       children: [
-        for (final type in orderedTypes) ...[
+        for (final type in orderedTypes)
           if (grouped[type] case final rows?) ...[
-            PlatformSectionCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 6),
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: PlatformSectionHeader(
-                      title: referenceCodeLabel(strings, contentTypes, type),
-                      subtitle: strings.tArgsKey(
-                        PlatformAdminKeys.manualTranslationsGroupCount,
-                        <String, Object?>{'count': '${rows.length}'},
+                  Expanded(
+                    child: Text(
+                      referenceCodeLabel(strings, contentTypes, type),
+                      style: PtTheme.font(
+                        13,
+                        lineHeight: 18,
+                        weight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const Divider(height: 1),
-                  for (var index = 0; index < rows.length; index++) ...[
-                    if (index > 0)
-                      const Divider(height: 1, indent: 16, endIndent: 16),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                      child: _ManualUnitRow(
-                        key: ValueKey(rows[index].key),
-                        unit: rows[index],
-                        initialText:
-                            edits[rows[index].key] ?? rows[index].trimmedText,
-                        onEdited: (value) => onEdited(rows[index].key, value),
-                        onSave: onSave,
-                      ),
+                  Text(
+                    strings.tArgsKey(
+                      PlatformAdminKeys.manualTranslationsGroupCount,
+                      <String, Object?>{"count": "${rows.length}"},
                     ),
-                  ],
+                    textDirection: TextDirection.ltr,
+                    style: PtTheme.font(
+                      12,
+                      lineHeight: 16,
+                      color: PtTheme.muted,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            for (var index = 0; index < rows.length; index++)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 10),
+                child: _ManualUnitRow(
+                  key: ValueKey(rows[index].key),
+                  unit: rows[index],
+                  initialText:
+                      edits[rows[index].key] ?? rows[index].trimmedText,
+                  onEdited: (value) => onEdited(rows[index].key, value),
+                  onSave: onSave,
+                ),
+              ),
           ],
-        ],
       ],
     );
   }
@@ -691,21 +719,31 @@ class _ManualUnitRowState extends State<_ManualUnitRow> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Wrap(
-              spacing: 8,
+              spacing: 6,
               runSpacing: 6,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                PlatformMetaPill(
-                  label: strings.tKey(
-                    PlatformAdminKeys.manualTranslationsEntity,
+                // The entity type is already the group header; the row only
+                // needs the field it translates. The raw entity id is an
+                // internal identifier and is deliberately not shown.
+                Container(
+                  padding: const EdgeInsetsDirectional.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
                   ),
-                  value: unit.entityId,
-                ),
-                PlatformMetaPill(
-                  label: strings.tKey(
-                    PlatformAdminKeys.manualTranslationsField,
+                  decoration: BoxDecoration(
+                    color: PtTheme.canvas,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  value: unit.field,
+                  child: Text(
+                    unit.field,
+                    style: PtTheme.font(
+                      10.5,
+                      lineHeight: 14,
+                      weight: FontWeight.w700,
+                      color: PtTheme.muted,
+                    ),
+                  ),
                 ),
                 if (unit.hasStatus)
                   PlatformStatusChip(

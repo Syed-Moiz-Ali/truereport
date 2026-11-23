@@ -1434,6 +1434,9 @@ abstract final class PlatformAdminKeys {
   static const languageWorkspaceButtonBulkApprove = UiMessageKey.platformAdmin(
     'languageWorkspace.button.bulkApprove',
   );
+  static const languageWorkspaceButtonClearSelection = UiMessageKey.platformAdmin(
+    'languageWorkspace.button.clearSelection',
+  );
   static const languageWorkspaceButtonDeactivate = UiMessageKey.platformAdmin(
     'languageWorkspace.button.deactivate',
   );
@@ -1628,6 +1631,9 @@ abstract final class PlatformAdminKeys {
   );
   static const languageWorkspacePublishTitle = UiMessageKey.platformAdmin(
     'languageWorkspace.publish.title',
+  );
+  static const languageWorkspaceSelectedCount = UiMessageKey.platformAdmin(
+    'languageWorkspace.selectedCount',
   );
   static const languageWorkspaceTabCategories = UiMessageKey.platformAdmin(
     'languageWorkspace.tab.categories',
@@ -2043,6 +2049,9 @@ abstract final class PlatformAdminKeys {
   static const pageItemEditorTitle = UiMessageKey.platformAdmin(
     'page.item.editor.title',
   );
+  static const pageLanguagesCardMissingCount = UiMessageKey.platformAdmin(
+    'page.languages.card.missingCount',
+  );
   static const pageLanguagesCoverage = UiMessageKey.platformAdmin(
     'page.languages.coverage',
   );
@@ -2272,9 +2281,15 @@ abstract final class PlatformAdminKeys {
     'plural.items.zero',
   );
   static const queueApproved = UiMessageKey.platformAdmin('queue.approved');
+  static const queueClearSelection = UiMessageKey.platformAdmin(
+    'queue.clearSelection',
+  );
   static const queueDraft = UiMessageKey.platformAdmin('queue.draft');
   static const queueMissing = UiMessageKey.platformAdmin('queue.missing');
   static const queueReviewed = UiMessageKey.platformAdmin('queue.reviewed');
+  static const queueSelectedCount = UiMessageKey.platformAdmin(
+    'queue.selectedCount',
+  );
   static const queueTotal = UiMessageKey.platformAdmin('queue.total');
   static const referenceAddEdge = UiMessageKey.platformAdmin(
     'reference.addEdge',
