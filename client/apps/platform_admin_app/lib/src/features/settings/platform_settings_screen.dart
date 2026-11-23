@@ -6,18 +6,18 @@ import 'package:l10n/l10n.dart';
 
 import '../../components/platform_shell.dart';
 import '../../platform_providers.dart';
-import 'settings_header.dart';
-import 'settings_jump_list.dart';
-import 'settings_pulse.dart';
+import 'settings_cover.dart';
+import 'settings_hero.dart';
+import 'settings_ledger.dart';
 import 'settings_primitives.dart';
-import 'settings_seed_bar.dart';
 import 'settings_tokens.dart';
 
-/// Platform Settings — Control Deck.
+/// Platform Settings — Profile, Identity Hero (Direction A).
 ///
-/// The old six-card hub is gone. One live pulse, two intent-grouped jump lists
-/// and one separated maintenance action. Class name and path are unchanged so
-/// routing and DI stay untouched.
+/// Dark cover band (account, language, sign out), one giant health count,
+/// one continuous settings ledger. The shell strip stays hidden: the cover
+/// owns the top edge. Class name and path are unchanged so routing and DI
+/// stay untouched.
 class PlatformSettingsScreen extends ConsumerStatefulWidget {
   const PlatformSettingsScreen({super.key});
 
@@ -116,76 +116,46 @@ class _PlatformSettingsScreenState
     return PlatformShell(
       currentRoute: '/settings',
       showSearch: false,
+      showStrip: false,
       child: PlatformPage(
         maxWidth: 1040,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 720;
-            final content = Column(
+        child: Stack(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SettingsHeader(strings: strings),
-                const SizedBox(height: 26),
-                if (wide)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 340, child: SettingsPulse()),
-                      const SizedBox(width: 28),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SettingsJumpList(),
-                            const SizedBox(height: 20),
-                            SettingsSeedBar(
-                              strings: strings,
-                              seeding: _seeding,
-                              onSeed: _seedChecklist,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SettingsPulse(),
-                      const SizedBox(height: 24),
-                      const SettingsJumpList(),
-                      const SizedBox(height: 20),
-                      SettingsSeedBar(
-                        strings: strings,
-                        seeding: _seeding,
-                        onSeed: _seedChecklist,
-                      ),
-                    ],
-                  ),
-              ],
-            );
-
-            return Stack(
-              children: [
-                content,
-                if (_toastMessage != null)
-                  Positioned(
-                    bottom: 8,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: DeckToast(
-                        message: _toastMessage!,
-                        isError: _toastError,
-                        dismissLabel: strings.tKey(CommonKeys.buttonClose),
-                        onDismiss: () => setState(() => _toastMessage = null),
-                      ),
+                const SettingsCover(),
+                const SizedBox(height: 20),
+                const SettingsHero(),
+                const SizedBox(height: 24),
+                SettingsLedger(
+                  seedTrailing: DeckButton(
+                    label: strings.tKey(
+                      PlatformAdminKeys.buttonSeedLoadDefault,
                     ),
+                    icon: Icons.cloud_download_outlined,
+                    primary: false,
+                    loading: _seeding,
+                    onPressed: _seeding ? null : _seedChecklist,
                   ),
+                ),
               ],
-            );
-          },
+            ),
+            if (_toastMessage != null)
+              Positioned(
+                bottom: 8,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: DeckToast(
+                    message: _toastMessage!,
+                    isError: _toastError,
+                    dismissLabel: strings.tKey(CommonKeys.buttonClose),
+                    onDismiss: () => setState(() => _toastMessage = null),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

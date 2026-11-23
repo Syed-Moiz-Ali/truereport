@@ -32,13 +32,19 @@ Map<String, Map<String, String>> _loadCatalog(String file, {String? fromDir}) {
 final Map<String, Map<String, String>> platformEnCatalogs = _loadCatalog(
   'en.json',
 );
+// Backend serves the common namespace alongside platform_admin; the flat
+// common file lands under the default namespace here, so re-key it.
+final Map<String, String> commonEnCatalog =
+    _loadCatalog('../common/en.json')['platform_admin'] ?? const {};
 final Map<String, Map<String, String>> platformArCatalogs = _loadCatalog(
   'platform_admin_ar.json',
   fromDir: _fixtureCatalogDir,
 );
 
 UiMessageStrings fakeEnUiStrings() => UiMessageStrings(
-  catalogs: {'en': platformEnCatalogs},
+  catalogs: {
+    'en': {...platformEnCatalogs, 'common': commonEnCatalog},
+  },
   activeLanguage: 'en',
   defaultLanguage: 'en',
 );

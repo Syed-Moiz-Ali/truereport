@@ -9,7 +9,7 @@ import 'package:l10n/l10n.dart';
 import '../platform_providers.dart';
 import '../platform_theme.dart';
 import 'platform_nav.dart';
-import 'platform_rail.dart';
+import 'shell/platform_identity_strip.dart';
 
 /// Overlays owned by the shell: notifications, help, and the full navigation
 /// sheet used at compact widths. Keeping them in one file means the command

@@ -33,21 +33,22 @@ class PlatformNavEntry {
     if (id == 'reports') {
       return currentRoute.startsWith('/reports');
     }
-    // The Settings tab covers settings, the language workspace and the
-    // configuration pages that are reached from settings.
+    // The Profile tab covers the account screen, the language workspace,
+    // the configuration pages reached from the ledger, and the audit log,
+    // which lives inside the profile ledger (MONITOR group) rather than as
+    // its own dock destination. The route stays /settings so deep links
+    // and bookmarks keep working; only the visible name changed.
     if (id == 'settings') {
       return currentRoute.startsWith('/settings') ||
-          currentRoute.startsWith('/configuration');
-    }
-    // Audit Log is a single page: exact match only.
-    if (id == 'audit-log') {
-      return currentRoute == '/audit-log';
+          currentRoute.startsWith('/configuration') ||
+          currentRoute == '/audit-log';
     }
     return currentRoute.startsWith(route);
   }
 }
 
-/// Centralized navigation definition: exactly 6 primary items (D-074/D-075).
+/// Centralized navigation definition: exactly 5 primary dock items.
+/// Audit log is not a dock destination; it lives inside the profile ledger.
 class PlatformNavData {
   const PlatformNavData._();
 
@@ -78,16 +79,10 @@ class PlatformNavData {
       labelKey: PlatformAdminKeys.navReports,
     ),
     PlatformNavEntry(
-      id: 'audit-log',
-      route: '/audit-log',
-      icon: Icons.verified_user_outlined,
-      labelKey: PlatformAdminKeys.pageAuditTitle,
-    ),
-    PlatformNavEntry(
       id: 'settings',
       route: '/settings',
       icon: Icons.settings_outlined,
-      labelKey: PlatformAdminKeys.pageSettingsTitle,
+      labelKey: PlatformAdminKeys.pageProfileTitle,
     ),
   ];
 

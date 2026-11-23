@@ -8,13 +8,13 @@ import 'package:reference_data/reference_data.dart';
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_shell.dart';
-import '../../components/platform_states.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 
 import 'reference_dialogs.dart';
 import 'reference_failures.dart';
 import 'reference_record_form.dart';
+import 'reference_rows.dart';
 
 const _statusTypes = <String>[
   'job',
@@ -248,14 +248,17 @@ class _ReferenceStatusesBodyState extends ConsumerState<ReferenceStatusesBody> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    return _ReferencePage(
+    final admin = ref.watch(adminStatusesProvider(_type));
+    final published = ref.watch(statusesProvider(_type));
+    final records = admin.asData?.value;
+    final drafts = records == null || !published.hasValue
+        ? null
+        : draftCodes(records, published.requireValue);
+    return _TaxonomyPage(
+      strings: strings,
       title: strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
       subtitle: strings.tKey(PlatformAdminKeys.taxonomyStatusesSubtitle),
-      pickerLabel: strings.tKey(PlatformAdminKeys.taxonomyStatusType),
-      values: _statusTypes,
-      selected: _type,
-      onSelected: (value) => setState(() => _type = value),
-      actions: <Widget>[
+      headerActions: <Widget>[
         PlatformSecondaryButton(
           key: const Key('reference-open-transitions'),
           label: strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
@@ -269,33 +272,50 @@ class _ReferenceStatusesBodyState extends ConsumerState<ReferenceStatusesBody> {
           onPressed: _busy ? null : () => _openForm(),
         ),
       ],
-      strings: strings,
-      child: _RecordsView(
+      pickerIds: _statusTypes,
+      selectedId: _type,
+      onSelected: (value) => setState(() => _type = value),
+      detailList: ReferenceRecordList(
         strings: strings,
-        admin: ref.watch(adminStatusesProvider(_type)),
-        published: ref.watch(statusesProvider(_type)),
+        admin: admin,
+        published: published,
         onRetry: _refresh,
-        row: (records, drafts, index, record) => _RecordCard(
+        row: (all, draftSet, index, record) => ReferenceRecordRow(
           code: record.code,
           labelKey: record.labelKey,
           label: strings.resolveFlatKey(record.labelKey),
-          tone: record.tone,
-          order: record.order,
           selectable: record.selectable,
-          visibleFor: record.visibleFor,
-          version: record.version,
-          isDraft: drafts.contains(record.code),
+          isDraft: draftSet.contains(record.code),
+          position: index + 1,
+          total: all.length,
           strings: strings,
           busy: _busy,
           onEdit: () => _openForm(record: record),
           onPublish: () => _publish(record),
           onRetire: () => _retire(record),
-          onMoveUp: index == 0 ? null : () => _move(records, index, -1),
-          onMoveDown: index == records.length - 1
+          onMoveUp: index == 0 ? null : () => _move(all, index, -1),
+          onMoveDown: index == all.length - 1
               ? null
-              : () => _move(records, index, 1),
+              : () => _move(all, index, 1),
         ),
       ),
+      footer: drafts == null || records == null
+          ? null
+          : Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.referenceRecordSummary,
+                <String, Object?>{
+                  'total': '${records.length}',
+                  'drafts': '${drafts.length}',
+                },
+              ),
+              style: PtTheme.font(
+                12.5,
+                lineHeight: 18,
+                weight: FontWeight.w600,
+                color: PtTheme.muted,
+              ),
+            ),
     );
   }
 }
@@ -452,14 +472,17 @@ class _ReferenceEnumsBodyState extends ConsumerState<ReferenceEnumsBody> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    return _ReferencePage(
+    final admin = ref.watch(adminEnumsProvider(_code));
+    final published = ref.watch(enumsProvider(_code));
+    final records = admin.asData?.value;
+    final drafts = records == null || !published.hasValue
+        ? null
+        : draftCodes(records, published.requireValue);
+    return _TaxonomyPage(
+      strings: strings,
       title: strings.tKey(PlatformAdminKeys.taxonomyEnumsTitle),
       subtitle: strings.tKey(PlatformAdminKeys.taxonomyEnumsSubtitle),
-      pickerLabel: strings.tKey(PlatformAdminKeys.taxonomyEnumCode),
-      values: _enumCodes,
-      selected: _code,
-      onSelected: (value) => setState(() => _code = value),
-      actions: <Widget>[
+      headerActions: <Widget>[
         PlatformPrimaryButton(
           key: const Key('reference-create'),
           label: strings.tKey(PlatformAdminKeys.referenceCreate),
@@ -467,33 +490,50 @@ class _ReferenceEnumsBodyState extends ConsumerState<ReferenceEnumsBody> {
           onPressed: _busy ? null : () => _openForm(),
         ),
       ],
-      strings: strings,
-      child: _RecordsView(
+      pickerIds: _enumCodes,
+      selectedId: _code,
+      onSelected: (value) => setState(() => _code = value),
+      detailList: ReferenceRecordList(
         strings: strings,
-        admin: ref.watch(adminEnumsProvider(_code)),
-        published: ref.watch(enumsProvider(_code)),
+        admin: admin,
+        published: published,
         onRetry: _refresh,
-        row: (records, drafts, index, record) => _RecordCard(
+        row: (all, draftSet, index, record) => ReferenceRecordRow(
           code: record.code,
           labelKey: record.labelKey,
           label: strings.resolveFlatKey(record.labelKey),
-          tone: record.tone,
-          order: record.order,
           selectable: record.selectable,
-          visibleFor: record.visibleFor,
-          version: record.version,
-          isDraft: drafts.contains(record.code),
+          isDraft: draftSet.contains(record.code),
+          position: index + 1,
+          total: all.length,
           strings: strings,
           busy: _busy,
           onEdit: () => _openForm(record: record),
           onPublish: () => _publish(record),
           onRetire: () => _retire(record),
-          onMoveUp: index == 0 ? null : () => _moveEnums(records, index, -1),
-          onMoveDown: index == records.length - 1
+          onMoveUp: index == 0 ? null : () => _moveEnums(all, index, -1),
+          onMoveDown: index == all.length - 1
               ? null
-              : () => _moveEnums(records, index, 1),
+              : () => _moveEnums(all, index, 1),
         ),
       ),
+      footer: drafts == null || records == null
+          ? null
+          : Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.referenceRecordSummary,
+                <String, Object?>{
+                  'total': '${records.length}',
+                  'drafts': '${drafts.length}',
+                },
+              ),
+              style: PtTheme.font(
+                12.5,
+                lineHeight: 18,
+                weight: FontWeight.w600,
+                color: PtTheme.muted,
+              ),
+            ),
     );
   }
 }
@@ -514,14 +554,12 @@ class _ReferenceDropdownsBodyState
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
     final async = ref.watch(dropdownProvider(_set));
-    return _ReferencePage(
+    final values = async.asData?.value;
+    return _TaxonomyPage(
+      strings: strings,
       title: strings.tKey(PlatformAdminKeys.taxonomyDropdownsTitle),
       subtitle: strings.tKey(PlatformAdminKeys.taxonomyDropdownsSubtitle),
-      pickerLabel: strings.tKey(PlatformAdminKeys.taxonomySetCode),
-      values: _dropdownSets,
-      selected: _set,
-      onSelected: (value) => setState(() => _set = value),
-      actions: <Widget>[
+      headerActions: <Widget>[
         PlatformSecondaryButton(
           key: const Key('reference-open-option-sets'),
           label: strings.tKey(PlatformAdminKeys.taxonomyOptionSetsLink),
@@ -529,48 +567,69 @@ class _ReferenceDropdownsBodyState
           onPressed: () => context.go('/checklist/option-sets'),
         ),
       ],
-      strings: strings,
-      child: _ListView<ReferenceValue>(
+      pickerIds: _dropdownSets,
+      selectedId: _set,
+      onSelected: (value) => setState(() => _set = value),
+      detailList: ReferenceValueList<ReferenceValue>(
         strings: strings,
         async: async,
         onRetry: () => ref.invalidate(dropdownProvider(_set)),
-        row: (value) => _ValueCard(
+        row: (index, value) => ReferenceValueRow(
           code: value.code,
           labelKey: value.labelKey,
           label: strings.resolveFlatKey(value.labelKey),
-          order: value.order,
           selectable: value.selectable,
           parentCode: value.parentCode,
-          version: value.version,
+          position: index + 1,
+          total: values?.length ?? 0,
           strings: strings,
         ),
       ),
+      footer: values == null
+          ? null
+          : Text(
+              strings.tArgsKey(
+                PlatformAdminKeys.referenceValueSummary,
+                <String, Object?>{'count': '${values.length}'},
+              ),
+              style: PtTheme.font(
+                12.5,
+                lineHeight: 18,
+                weight: FontWeight.w600,
+                color: PtTheme.muted,
+              ),
+            ),
     );
   }
 }
 
-class _ReferencePage extends StatelessWidget {
-  const _ReferencePage({
+/// Direction A page frame shared by the taxonomy screens.
+///
+/// Header (title, subtitle, context actions), managed note, a horizontal
+/// type picker, one ledger, and a muted footer summary. The whole page
+/// scrolls; nothing is pinned.
+class _TaxonomyPage extends StatelessWidget {
+  const _TaxonomyPage({
     required this.strings,
     required this.title,
     required this.subtitle,
-    required this.pickerLabel,
-    required this.values,
-    required this.selected,
+    required this.headerActions,
+    required this.pickerIds,
+    required this.selectedId,
     required this.onSelected,
-    required this.child,
-    this.actions = const <Widget>[],
+    required this.detailList,
+    this.footer,
   });
 
   final UiMessageStrings strings;
   final String title;
   final String subtitle;
-  final String pickerLabel;
-  final List<String> values;
-  final String selected;
+  final List<Widget> headerActions;
+  final List<String> pickerIds;
+  final String selectedId;
   final ValueChanged<String> onSelected;
-  final Widget child;
-  final List<Widget> actions;
+  final Widget detailList;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -581,35 +640,30 @@ class _ReferencePage extends StatelessWidget {
           PlatformPageHeader(
             title: title,
             subtitle: subtitle,
-            actions: actions,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            pickerLabel,
-            style: PtTheme.font(
-              12,
-              weight: FontWeight.w600,
-              color: PtTheme.muted,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              for (final value in values)
-                PlatformFilterChip(
-                  key: Key('reference-picker-$value'),
-                  label: value,
-                  selected: selected == value,
-                  onTap: () => onSelected(value),
-                ),
-            ],
+            actions: headerActions,
           ),
           const SizedBox(height: 12),
           _ManagedNote(strings: strings),
           const SizedBox(height: 12),
-          child,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: <Widget>[
+                for (final id in pickerIds) ...<Widget>[
+                  if (id != pickerIds.first) const SizedBox(width: 8),
+                  PlatformFilterChip(
+                    key: Key('reference-picker-$id'),
+                    label: id,
+                    selected: selectedId == id,
+                    onTap: () => onSelected(id),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          detailList,
+          if (footer != null) ...<Widget>[const SizedBox(height: 12), footer!],
         ],
       ),
     );
@@ -625,10 +679,10 @@ class _ManagedNote extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('reference-managed-note'),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
       decoration: BoxDecoration(
         color: PtTheme.canvas,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: PtTheme.border),
       ),
       child: Row(
@@ -650,332 +704,6 @@ class _ManagedNote extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Renders the draft-aware record list.
-///
-/// The admin read includes drafts and the client read is published-only, so
-/// the difference is the draft set. Both must resolve before the list paints:
-/// otherwise every row would flash as a draft.
-class _RecordsView extends StatelessWidget {
-  const _RecordsView({
-    required this.strings,
-    required this.admin,
-    required this.published,
-    required this.onRetry,
-    required this.row,
-  });
-
-  final UiMessageStrings strings;
-  final AsyncValue<List<ReferenceRecord>> admin;
-  final AsyncValue<List<ReferenceRecord>> published;
-  final VoidCallback onRetry;
-  final Widget Function(
-    List<ReferenceRecord> records,
-    Set<String> drafts,
-    int index,
-    ReferenceRecord record,
-  )
-  row;
-
-  @override
-  Widget build(BuildContext context) {
-    if (admin.hasError || published.hasError) {
-      return PlatformErrorView(
-        message: strings.tKey(PlatformAdminKeys.taxonomyError),
-        retryLabel: strings.tKey(PlatformAdminKeys.taxonomyRetry),
-        onRetry: onRetry,
-      );
-    }
-    if (!admin.hasValue || !published.hasValue) {
-      return const PlatformSkeletonList(rows: 4);
-    }
-    final records = admin.requireValue;
-    final drafts = draftCodes(records, published.requireValue);
-    if (records.isEmpty) {
-      return PlatformEmptyView(
-        title: strings.tKey(PlatformAdminKeys.taxonomyEmpty),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        for (var i = 0; i < records.length; i++) ...<Widget>[
-          if (i > 0) const SizedBox(height: 8),
-          row(records, drafts, i, records[i]),
-        ],
-      ],
-    );
-  }
-}
-
-class _ListView<T> extends StatelessWidget {
-  const _ListView({
-    required this.strings,
-    required this.async,
-    required this.onRetry,
-    required this.row,
-  });
-
-  final UiMessageStrings strings;
-  final AsyncValue<List<T>> async;
-  final VoidCallback onRetry;
-  final Widget Function(T value) row;
-
-  @override
-  Widget build(BuildContext context) {
-    return async.when(
-      loading: () => const PlatformSkeletonList(rows: 4),
-      error: (error, _) => PlatformErrorView(
-        message: strings.tKey(PlatformAdminKeys.taxonomyError),
-        retryLabel: strings.tKey(PlatformAdminKeys.taxonomyRetry),
-        onRetry: onRetry,
-      ),
-      data: (items) {
-        if (items.isEmpty) {
-          return PlatformEmptyView(
-            title: strings.tKey(PlatformAdminKeys.taxonomyEmpty),
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            for (var i = 0; i < items.length; i++) ...<Widget>[
-              if (i > 0) const SizedBox(height: 8),
-              row(items[i]),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _RecordCard extends StatelessWidget {
-  const _RecordCard({
-    required this.code,
-    required this.labelKey,
-    required this.label,
-    required this.tone,
-    required this.order,
-    required this.selectable,
-    required this.visibleFor,
-    required this.version,
-    required this.isDraft,
-    required this.strings,
-    required this.busy,
-    required this.onEdit,
-    required this.onPublish,
-    required this.onRetire,
-    this.onMoveUp,
-    this.onMoveDown,
-  });
-
-  final String code;
-  final String labelKey;
-  final String? label;
-  final String tone;
-  final int order;
-  final bool selectable;
-  final List<String> visibleFor;
-  final int version;
-  final bool isDraft;
-  final UiMessageStrings strings;
-  final bool busy;
-  final VoidCallback onEdit;
-  final VoidCallback onPublish;
-  final VoidCallback onRetire;
-  final VoidCallback? onMoveUp;
-  final VoidCallback? onMoveDown;
-
-  @override
-  Widget build(BuildContext context) {
-    final reorderable = onMoveUp != null || onMoveDown != null;
-    return _RowFrame(
-      key: Key('reference-record-$code'),
-      code: code,
-      label: label,
-      labelKey: labelKey,
-      draft: isDraft,
-      badge: PlatformStatusChip(
-        key: Key('reference-state-$code'),
-        status: isDraft ? 'DRAFT' : 'PUBLISHED',
-        label: strings.tKey(
-          isDraft
-              ? PlatformAdminKeys.referenceDraftBadge
-              : PlatformAdminKeys.referencePublishedBadge,
-        ),
-      ),
-      fields: <Widget>[
-        _pill(strings, PlatformAdminKeys.taxonomyTone, tone),
-        _pill(strings, PlatformAdminKeys.taxonomyOrder, '$order'),
-        _pill(
-          strings,
-          PlatformAdminKeys.taxonomySelectable,
-          selectable
-              ? strings.tKey(PlatformAdminKeys.taxonomyYes)
-              : strings.tKey(PlatformAdminKeys.taxonomyNo),
-        ),
-        _pill(
-          strings,
-          PlatformAdminKeys.taxonomyVisibility,
-          visibleFor.isEmpty ? '*' : visibleFor.join(', '),
-        ),
-        _pill(strings, PlatformAdminKeys.taxonomyVersion, '$version'),
-      ],
-      actions: <Widget>[
-        if (reorderable) ...<Widget>[
-          IconButton(
-            key: Key('reference-move-up-$code'),
-            tooltip: strings.tKey(CommonKeys.buttonMoveUp),
-            icon: const Icon(Icons.arrow_upward_rounded, size: 18),
-            onPressed: busy ? null : onMoveUp,
-          ),
-          IconButton(
-            key: Key('reference-move-down-$code'),
-            tooltip: strings.tKey(CommonKeys.buttonMoveDown),
-            icon: const Icon(Icons.arrow_downward_rounded, size: 18),
-            onPressed: busy ? null : onMoveDown,
-          ),
-        ],
-        PlatformGhostButton(
-          key: Key('reference-edit-$code'),
-          label: strings.tKey(CommonKeys.buttonEdit),
-          icon: Icons.edit_outlined,
-          onPressed: busy ? null : onEdit,
-        ),
-        if (isDraft)
-          PlatformSecondaryButton(
-            key: Key('reference-publish-$code'),
-            label: strings.tKey(PlatformAdminKeys.referencePublish),
-            icon: Icons.publish_rounded,
-            onPressed: busy ? null : onPublish,
-          )
-        else
-          PlatformSecondaryButton(
-            key: Key('reference-retire-$code'),
-            label: strings.tKey(PlatformAdminKeys.referenceRetire),
-            icon: Icons.archive_outlined,
-            destructive: true,
-            onPressed: busy ? null : onRetire,
-          ),
-      ],
-    );
-  }
-}
-
-class _ValueCard extends StatelessWidget {
-  const _ValueCard({
-    required this.code,
-    required this.labelKey,
-    required this.label,
-    required this.order,
-    required this.selectable,
-    required this.parentCode,
-    required this.version,
-    required this.strings,
-  });
-
-  final String code;
-  final String labelKey;
-  final String? label;
-  final int order;
-  final bool selectable;
-  final String? parentCode;
-  final int version;
-  final UiMessageStrings strings;
-
-  @override
-  Widget build(BuildContext context) {
-    return _RowFrame(
-      key: Key('reference-value-$code'),
-      code: code,
-      label: label,
-      labelKey: labelKey,
-      fields: <Widget>[
-        _pill(strings, PlatformAdminKeys.taxonomyOrder, '$order'),
-        _pill(
-          strings,
-          PlatformAdminKeys.taxonomySelectable,
-          selectable
-              ? strings.tKey(PlatformAdminKeys.taxonomyYes)
-              : strings.tKey(PlatformAdminKeys.taxonomyNo),
-        ),
-        if (parentCode != null && parentCode!.isNotEmpty)
-          _pill(strings, PlatformAdminKeys.taxonomyVisibility, parentCode!),
-        _pill(strings, PlatformAdminKeys.taxonomyVersion, '$version'),
-      ],
-    );
-  }
-}
-
-class _RowFrame extends StatelessWidget {
-  const _RowFrame({
-    required this.code,
-    required this.label,
-    required this.labelKey,
-    required this.fields,
-    this.badge,
-    this.actions = const <Widget>[],
-    this.draft = false,
-    super.key,
-  });
-
-  final String code;
-  final String? label;
-  final String labelKey;
-  final List<Widget> fields;
-  final Widget? badge;
-  final List<Widget> actions;
-  final bool draft;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: draft ? const Color(0xFFFFFBEB) : PtTheme.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: draft ? PtTheme.amber.withValues(alpha: 0.35) : PtTheme.border,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: <Widget>[
-              ?badge,
-              PlatformMetadataChip(label: code),
-              Text(
-                label ?? labelKey,
-                style: PtTheme.font(13, weight: FontWeight.w600),
-              ),
-              PlatformMetadataChip(label: labelKey),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 6, children: fields),
-          if (actions.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: actions,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-Widget _pill(UiMessageStrings strings, UiMessageKey key, String value) {
-  return PlatformMetaPill(label: strings.tKey(key), value: value);
 }
 
 void _showMessage(BuildContext context, String message, {bool error = false}) {

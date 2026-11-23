@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 
 import '../platform_theme.dart';
-import 'platform_command_bar.dart';
-import 'platform_mobile_dock.dart';
-import 'platform_rail.dart';
+import 'shell/platform_dock.dart';
+import 'shell/platform_identity_strip.dart';
 
-/// Shared Platform Admin shell — the command deck.
+export 'shell/platform_identity_strip.dart' show PlatformBrandMark;
+
+/// Shared Platform Admin shell — direction A "Docked Command".
 ///
-/// Desktop (>=900): a 76px icon rail owns navigation, the command bar owns
-/// context, search and global actions, and pages keep the full remaining width.
-/// Compact: a 56px context row (plus an optional search row), a five-item dock
-/// at the foot, and the full navigation sheet behind the menu button.
+/// One 44px identity strip at the top, one floating dock at the bottom, and
+/// the work in between at full width. No rail, no command bar, no "More"
+/// sheet: the same five destinations are reachable at every size. Audit log
+/// lives inside the profile ledger rather than in the dock.
+///
+/// Pass [showStrip] false for immersive pages that own the top edge
+/// themselves (the profile screen carries its own account card, so the
+/// strip would duplicate it). Content still reserves the dock height.
+///
+/// Content reserves the dock's height ([PlatformDock.reserve]) so no screen
+/// has to know the dock exists. Layout uses directional insets, so an RTL
+/// locale mirrors the strip and the dock.
 class PlatformShell extends StatelessWidget {
   const PlatformShell({
     super.key,
@@ -20,6 +29,7 @@ class PlatformShell extends StatelessWidget {
     this.showSearch = true,
     this.onNavigate,
     this.contextBar,
+    this.showStrip = true,
   });
 
   final String currentRoute;
@@ -29,47 +39,63 @@ class PlatformShell extends StatelessWidget {
   final ValueChanged<String>? onNavigate;
 
   /// Page-provided context bar (breadcrumbs + page actions) rendered
-  /// directly below the command bar. Pages own their breadcrumb data.
+  /// directly below the strip on the page canvas. Pages own their data.
   final Widget? contextBar;
+
+  /// Whether the identity strip renders. The dock always renders.
+  final bool showStrip;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final showRail = constraints.maxWidth >= 900;
-        return Scaffold(
-          backgroundColor: PtTheme.canvas,
-          bottomNavigationBar: showRail
-              ? null
-              : PlatformMobileDock(
-                  currentRoute: currentRoute,
-                  onNavigate: onNavigate,
+    final reserve = PlatformDock.reserve(context);
+    return Scaffold(
+      backgroundColor: PtTheme.canvas,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showStrip)
+                  PlatformIdentityStrip(
+                    currentRoute: currentRoute,
+                    onSearchChanged: showSearch ? onSearchChanged : null,
+                    onNavigate: onNavigate,
+                  ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: reserve),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ?contextBar,
+                        Expanded(child: child),
+                      ],
+                    ),
+                  ),
                 ),
-          body: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showRail)
-                PlatformRail(
-                  currentRoute: currentRoute,
-                  onNavigate: onNavigate,
-                ),
-              Expanded(
-                child: Column(
-                  children: [
-                    PlatformCommandBar(
+              ],
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 12,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: PlatformDock(
                       currentRoute: currentRoute,
-                      onSearchChanged: showSearch ? onSearchChanged : null,
                       onNavigate: onNavigate,
                     ),
-                    ?contextBar,
-                    Expanded(child: child),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

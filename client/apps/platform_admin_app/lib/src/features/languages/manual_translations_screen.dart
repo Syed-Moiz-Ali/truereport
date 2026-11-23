@@ -197,7 +197,7 @@ class _ManualTranslationsScreenState
       contextBar: PlatformContextBar(
         breadcrumbs: [
           ContextBreadcrumbItem(
-            label: strings.tKey(PlatformAdminKeys.pageSettingsTitle),
+            label: strings.tKey(PlatformAdminKeys.pageProfileTitle),
             onTap: () => context.go('/settings'),
           ),
           ContextBreadcrumbItem(

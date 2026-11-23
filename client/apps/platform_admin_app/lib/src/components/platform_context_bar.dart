@@ -17,7 +17,7 @@ class ContextBreadcrumbItem {
   final VoidCallback? onTap;
 }
 
-/// Reusable context bar rendered directly below [PlatformCommandBar].
+/// Reusable context bar rendered directly below the identity strip.
 ///
 /// It sits on the page canvas rather than on a second white strip, so the
 /// command bar is the only chrome edge on screen. Hierarchy:

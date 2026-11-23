@@ -13,6 +13,7 @@ import '../../platform_theme.dart';
 import '../../reference_status_lookup.dart';
 
 import 'reference_failures.dart';
+import 'reference_rows.dart';
 
 /// Entities the live contract exposes for `PUT /reference/transitions/{entity}`.
 const List<String> referenceTransitionEntities = <String>[
@@ -75,27 +76,22 @@ class _ReferenceTransitionsBodyState
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            strings.tKey(PlatformAdminKeys.referenceEntityLabel),
-            style: PtTheme.font(
-              12,
-              weight: FontWeight.w600,
-              color: PtTheme.muted,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: <Widget>[
+                for (final entity in referenceTransitionEntities) ...<Widget>[
+                  if (entity != referenceTransitionEntities.first)
+                    const SizedBox(width: 8),
+                  PlatformFilterChip(
+                    key: Key('reference-transition-entity-$entity'),
+                    label: entity,
+                    selected: _entity == entity,
+                    onTap: () => setState(() => _entity = entity),
+                  ),
+                ],
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              for (final entity in referenceTransitionEntities)
-                PlatformFilterChip(
-                  key: Key('reference-transition-entity-$entity'),
-                  label: entity,
-                  selected: _entity == entity,
-                  onTap: () => setState(() => _entity = entity),
-                ),
-            ],
           ),
           const SizedBox(height: 12),
           async.when(
@@ -107,11 +103,11 @@ class _ReferenceTransitionsBodyState
               retryLabel: strings.tKey(PlatformAdminKeys.taxonomyRetry),
               onRetry: () => ref.invalidate(transitionRulesProvider(_entity)),
             ),
-            data: (edges) => _TransitionEditor(
+            data: (initial) => _TransitionEditor(
               key: ValueKey<String>(_entity),
               strings: strings,
               entity: _entity,
-              initial: edges,
+              initial: initial,
               actions: ref.read(referenceAdminProvider),
               onSaved: () => _refresh(strings),
             ),
@@ -185,6 +181,40 @@ class _TransitionEditorState extends State<_TransitionEditor> {
     });
   }
 
+  bool get _dirty {
+    if (_edges.length != widget.initial.length) return true;
+    for (var i = 0; i < _edges.length; i++) {
+      final draft = _edges[i];
+      final initial = widget.initial[i];
+      if (draft.from.text != initial.fromCode ||
+          draft.to.text != initial.toCode ||
+          draft.role != initial.role) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _discard() {
+    if (_saving) return;
+    for (final edge in _edges) {
+      edge.dispose();
+    }
+    setState(() {
+      _edges = <_EdgeDraft>[
+        for (final edge in widget.initial)
+          _EdgeDraft(from: edge.fromCode, to: edge.toCode, role: edge.role),
+      ];
+      _guards.clear();
+      for (final edge in widget.initial) {
+        if (edge.guard.isNotEmpty) {
+          _guards['${edge.fromCode}->${edge.toCode}'] = edge.guard;
+        }
+      }
+      _error = null;
+    });
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     final entries = <ReferenceTransition>[];
@@ -232,40 +262,84 @@ class _TransitionEditorState extends State<_TransitionEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                strings.tArgsKey(PlatformAdminKeys.referenceEdgeCount, {
-                  'count': _edges.length,
-                }),
-                style: PtTheme.bodyMuted,
+        LedgerSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        strings.tArgsKey(PlatformAdminKeys.referenceEdgeCount, {
+                          'count': _edges.length,
+                        }),
+                        style: PtTheme.font(
+                          13,
+                          lineHeight: 18,
+                          weight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (_dirty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: PtTheme.amber.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          strings.tArgsKey(
+                            PlatformAdminKeys.referenceUnsavedChanges,
+                            {'count': _edges.length},
+                          ),
+                          style: PtTheme.font(
+                            11,
+                            lineHeight: 15,
+                            weight: FontWeight.w700,
+                            color: PtTheme.amber,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            PlatformSecondaryButton(
-              key: const Key('reference-transition-add'),
-              label: strings.tKey(PlatformAdminKeys.referenceAddEdge),
-              icon: Icons.add_rounded,
-              onPressed: _saving ? null : _addEdge,
-            ),
-            const SizedBox(width: 8),
-            PlatformPrimaryButton(
-              key: const Key('reference-transition-save'),
-              label: strings.tKey(PlatformAdminKeys.referenceSaveTransitions),
-              icon: Icons.check_rounded,
-              isLoading: _saving,
-              onPressed: _saving ? null : _save,
-            ),
-          ],
+              const Divider(height: 1, color: PtTheme.border),
+              if (_edges.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: PlatformEmptyView(
+                    title: strings.tKey(
+                      PlatformAdminKeys.referenceTransitionsEmpty,
+                    ),
+                  ),
+                )
+              else
+                for (var i = 0; i < _edges.length; i++) ...<Widget>[
+                  if (i > 0) const Divider(height: 1, color: PtTheme.border),
+                  _EdgeFlowRow(
+                    index: i,
+                    draft: _edges[i],
+                    strings: strings,
+                    enabled: !_saving,
+                    onRemove: () => _removeEdge(i),
+                  ),
+                ],
+            ],
+          ),
         ),
         if (_error != null) ...<Widget>[
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Container(
             key: const Key('reference-transition-error'),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: PtTheme.rose.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: PtTheme.rose.withValues(alpha: 0.3)),
             ),
             child: Text(
@@ -275,28 +349,38 @@ class _TransitionEditorState extends State<_TransitionEditor> {
           ),
         ],
         const SizedBox(height: 12),
-        if (_edges.isEmpty)
-          PlatformEmptyView(
-            title: strings.tKey(PlatformAdminKeys.referenceTransitionsEmpty),
-          )
-        else
-          for (var i = 0; i < _edges.length; i++) ...<Widget>[
-            if (i > 0) const SizedBox(height: 8),
-            _EdgeCard(
-              index: i,
-              draft: _edges[i],
-              strings: strings,
-              enabled: !_saving,
-              onRemove: () => _removeEdge(i),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.end,
+          children: <Widget>[
+            PlatformSecondaryButton(
+              key: const Key('reference-transition-add'),
+              label: strings.tKey(PlatformAdminKeys.referenceAddEdge),
+              icon: Icons.add_rounded,
+              onPressed: _saving ? null : _addEdge,
+            ),
+            PlatformGhostButton(
+              key: const Key('reference-transition-discard'),
+              label: strings.tKey(CommonKeys.buttonDiscard),
+              onPressed: !_dirty || _saving ? null : _discard,
+            ),
+            PlatformPrimaryButton(
+              key: const Key('reference-transition-save'),
+              label: strings.tKey(PlatformAdminKeys.referenceSaveTransitions),
+              icon: Icons.check_rounded,
+              isLoading: _saving,
+              onPressed: _saving ? null : _save,
             ),
           ],
+        ),
       ],
     );
   }
 }
 
-class _EdgeCard extends ConsumerWidget {
-  const _EdgeCard({
+class _EdgeFlowRow extends ConsumerWidget {
+  const _EdgeFlowRow({
     required this.index,
     required this.draft,
     required this.strings,
@@ -352,12 +436,7 @@ class _EdgeCard extends ConsumerWidget {
           : (_) {},
     );
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: PtTheme.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: PtTheme.border),
-      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[

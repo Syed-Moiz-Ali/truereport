@@ -2058,6 +2058,18 @@ abstract final class PlatformAdminKeys {
   static const pageMasterLibraryHeading = UiMessageKey.platformAdmin(
     'page.masterLibrary.heading',
   );
+  static const pageProfileHeading = UiMessageKey.platformAdmin(
+    'page.profile.heading',
+  );
+  static const pageProfileLanguageTitle = UiMessageKey.platformAdmin(
+    'page.profile.languageTitle',
+  );
+  static const pageProfileSubtitle = UiMessageKey.platformAdmin(
+    'page.profile.subtitle',
+  );
+  static const pageProfileTitle = UiMessageKey.platformAdmin(
+    'page.profile.title',
+  );
   static const pageReleasesTitle = UiMessageKey.platformAdmin(
     'page.releases.title',
   );
@@ -2289,6 +2301,9 @@ abstract final class PlatformAdminKeys {
   static const referenceDraftBadge = UiMessageKey.platformAdmin(
     'reference.draftBadge',
   );
+  static const referenceDraftGroupTitle = UiMessageKey.platformAdmin(
+    'reference.draftGroupTitle',
+  );
   static const referenceEdgeCount = UiMessageKey.platformAdmin(
     'reference.edgeCount',
   );
@@ -2355,6 +2370,12 @@ abstract final class PlatformAdminKeys {
   static const referenceLabelKeyHelper = UiMessageKey.platformAdmin(
     'reference.labelKeyHelper',
   );
+  static const referenceNotSelectableLabel = UiMessageKey.platformAdmin(
+    'reference.notSelectableLabel',
+  );
+  static const referencePositionLabel = UiMessageKey.platformAdmin(
+    'reference.positionLabel',
+  );
   static const referencePublish = UiMessageKey.platformAdmin(
     'reference.publish',
   );
@@ -2363,6 +2384,12 @@ abstract final class PlatformAdminKeys {
   );
   static const referencePublishedBadge = UiMessageKey.platformAdmin(
     'reference.publishedBadge',
+  );
+  static const referencePublishedGroupTitle = UiMessageKey.platformAdmin(
+    'reference.publishedGroupTitle',
+  );
+  static const referenceRecordSummary = UiMessageKey.platformAdmin(
+    'reference.recordSummary',
   );
   static const referenceRemoveEdge = UiMessageKey.platformAdmin(
     'reference.removeEdge',
@@ -2416,6 +2443,15 @@ abstract final class PlatformAdminKeys {
   );
   static const referenceTransitionsTitle = UiMessageKey.platformAdmin(
     'reference.transitionsTitle',
+  );
+  static const referenceUnsavedChanges = UiMessageKey.platformAdmin(
+    'reference.unsavedChanges',
+  );
+  static const referenceValueParentLabel = UiMessageKey.platformAdmin(
+    'reference.valueParentLabel',
+  );
+  static const referenceValueSummary = UiMessageKey.platformAdmin(
+    'reference.valueSummary',
   );
   static const referenceVisibleForHelper = UiMessageKey.platformAdmin(
     'reference.visibleForHelper',

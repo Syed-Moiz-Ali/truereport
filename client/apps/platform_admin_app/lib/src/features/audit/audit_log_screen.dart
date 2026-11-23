@@ -5,6 +5,7 @@ import 'package:l10n/l10n.dart';
 
 import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
+import '../../components/platform_context_bar.dart';
 import '../../components/platform_shell.dart';
 import '../../components/platform_states.dart';
 import '../../download_file_stub.dart'
@@ -93,6 +94,18 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
     return PlatformShell(
       currentRoute: '/audit-log',
       onNavigate: (route) => context.go(route),
+      contextBar: PlatformContextBar(
+        breadcrumbs: [
+          ContextBreadcrumbItem(
+            label: strings.tKey(PlatformAdminKeys.pageProfileTitle),
+            onTap: () => context.go('/settings'),
+          ),
+          ContextBreadcrumbItem(
+            label: strings.tKey(PlatformAdminKeys.pageAuditTitle),
+          ),
+        ],
+        onBack: () => context.go('/settings'),
+      ),
       child: PlatformPage(
         maxWidth: 1200,
         child: Column(
