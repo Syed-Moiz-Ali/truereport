@@ -183,25 +183,6 @@ class _TechnicianJobsCleanPageState
 
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
-      bottomNavigationBar: Center(
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: TechnicianDock(
-            jobsLabel: t(TechnicianKeys.technicianJobsTitle),
-            syncLabel: t(TechnicianKeys.technicianSyncTitle),
-            profileLabel: t(TechnicianKeys.technicianProfileTitle),
-            selectedIndex: 0,
-            onSelected: (index) {
-              if (index == 1) {
-                context.push('/sync');
-              } else if (index == 2) {
-                context.push('/profile');
-              }
-            },
-          ),
-        ),
-      ),
       body: Column(
         children: [
           _Centered(

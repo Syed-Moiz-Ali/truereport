@@ -12,11 +12,12 @@ import 'features/inspection/assessment_screen.dart';
 import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
 import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
 import 'package:technician_app/src/features/profile/profile_page.dart';
+import 'package:technician_app/src/features/shell/technician_shell.dart';
 import 'package:technician_app/src/features/review/technician_completed_page.dart';
 import 'package:technician_app/src/features/review/signature_screen.dart';
 import 'package:technician_app/src/features/review/signoff_screen.dart';
 import 'package:technician_app/src/features/sync/sync_conflict_page.dart';
-import 'package:technician_app/src/features/sync/technician_sync_page.dart';
+import 'package:technician_app/src/features/sync/sync_screen.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 ///
@@ -68,9 +69,22 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
         path: '/signin',
         builder: (context, state) => const TechnicianSignInPage(),
       ),
-      GoRoute(
-        path: '/jobs',
-        builder: (context, state) => const TechnicianJobsCleanPage(),
+      // Two tabs, one IndexedStack: jobs and the technician's own screen.
+      // Sync is reached from the profile, not from the dock.
+      ShellRoute(
+        builder: (context, state, child) => TechnicianShell(
+          index: state.uri.path.startsWith('/profile') ? 1 : 0,
+        ),
+        routes: [
+          GoRoute(
+            path: '/jobs',
+            builder: (context, state) => const TechnicianJobsCleanPage(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const TechnicianProfilePage(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/sync',
@@ -80,10 +94,6 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
         path: '/sync/conflicts/:id',
         builder: (context, state) =>
             TechnicianConflictPage(conflictId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const TechnicianProfilePage(),
       ),
       GoRoute(
         path: '/jobs/:id',

@@ -11,6 +11,8 @@ import 'src/web_url_strategy_stub.dart'
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Shared backend url: packages/auth/.env (same for every app).
+  await AppEnv.load();
   configureWebUrlStrategy();
   final uiMessageStore = await createUiMessageStore();
   runApp(

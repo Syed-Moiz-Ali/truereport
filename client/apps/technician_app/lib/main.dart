@@ -9,6 +9,8 @@ import 'package:technician_app/src/technician_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Shared backend url: packages/auth/.env (same for every app).
+  await AppEnv.load();
   // Real web URLs (/jobs) instead of hash fragments (/#/jobs).
   usePathUrlStrategy();
   final uiMessageStore = await createUiMessageStore();

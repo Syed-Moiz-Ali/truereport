@@ -2,6 +2,8 @@
 .env
 .env.*
 !.env.example
+# Shared backend url is not a secret: one .env for every app lives in auth.
+!client/packages/auth/.env
 *.pem
 *.key
 

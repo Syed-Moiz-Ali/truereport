@@ -8,7 +8,9 @@ void main() {
   test('no local job/sync/evidence status label or tone map remains', () {
     const files = <String>[
       'lib/src/ui_helpers.dart',
-      'lib/src/features/sync/technician_sync_page.dart',
+      'lib/src/features/sync/sync_screen.dart',
+      'lib/src/features/sync/widgets/sync_operation_row.dart',
+      'lib/src/features/sync/widgets/sync_conflict_strip.dart',
       'lib/src/features/jobs/queue/jobs_queue_agenda.dart',
       'lib/src/features/review/signoff_screen.dart',
     ];

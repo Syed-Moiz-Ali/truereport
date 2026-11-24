@@ -1,11 +1,12 @@
 import 'package:api_client/api_client.dart';
+import 'package:auth/src/app_env.dart';
 import 'package:auth/src/auth_repository.dart';
 import 'package:auth/src/session_store.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
-  final client = ApiClient(config: ApiConfig.fromEnvironment());
+  final client = ApiClient(config: AppEnv.apiConfig());
   client.onUnauthorized = () {
     // Any 401 on an authenticated endpoint means the stored token is dead.
     // Clearing the session state makes the router redirect to /signin.
@@ -22,8 +23,7 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 final apiEndpointsProvider = Provider<ApiEndpoints>((ref) {
-  final config = ApiConfig.fromEnvironment();
-  return ApiEndpoints(baseUrl: config.baseUrl);
+  return AppEnv.apiEndpoints();
 });
 
 final sessionStoreProvider = Provider<SessionStore>((ref) {

@@ -28,21 +28,20 @@ class QueueWeekStrip extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     return SizedBox(
       height: 64,
-      child: Row(
-        children: [
-          for (var index = 0; index < days.length; index++) ...[
-            if (index > 0) const SizedBox(width: 6),
-            Expanded(
-              child: _DayCell(
-                weekday: queueWeekdayShort(days[index], locale),
-                number: queueDayNumber(days[index]),
-                selected: _dayKey(days[index]) == _dayKey(selected),
-                hasJobs: daysWithJobs.contains(_dayKey(days[index])),
-                onTap: () => onSelect(days[index]),
-              ),
-            ),
-          ],
-        ],
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        itemCount: days.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
+        itemBuilder: (context, index) => _DayCell(
+          width: 56,
+          weekday: queueWeekdayShort(days[index], locale),
+          number: queueDayNumber(days[index]),
+          selected: _dayKey(days[index]) == _dayKey(selected),
+          hasJobs: daysWithJobs.contains(_dayKey(days[index])),
+          onTap: () => onSelect(days[index]),
+        ),
       ),
     );
   }
@@ -50,6 +49,7 @@ class QueueWeekStrip extends StatelessWidget {
 
 class _DayCell extends StatelessWidget {
   const _DayCell({
+    required this.width,
     required this.weekday,
     required this.number,
     required this.selected,
@@ -57,6 +57,8 @@ class _DayCell extends StatelessWidget {
     required this.onTap,
   });
 
+  /// Fixed cell width: the strip scrolls rather than squeezing seven days in.
+  final double width;
   final String weekday;
   final String number;
   final bool selected;
@@ -81,6 +83,7 @@ class _DayCell extends StatelessWidget {
           cursor: SystemMouseCursors.click,
           child: AnimatedContainer(
             duration: context.motionDuration(const Duration(milliseconds: 140)),
+            width: width,
             decoration: BoxDecoration(
               color: selected ? brand.ink : colors.surface,
               borderRadius: BorderRadius.circular(14),

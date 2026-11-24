@@ -145,22 +145,9 @@ class _ScreenBar extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 16, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
           child: Row(
             children: [
-              Semantics(
-                button: true,
-                label: MaterialLocalizations.of(context).backButtonTooltip,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).maybePop(),
-                  child: const SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Icon(Icons.arrow_back_rounded, size: 21),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
               Text(
                 t(TechnicianKeys.technicianProfileTitle),
                 style: context.texts.titleLarge?.copyWith(

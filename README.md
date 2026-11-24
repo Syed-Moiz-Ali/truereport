@@ -145,17 +145,17 @@ Run the technician app:
 
 ```powershell
 cd client/apps/technician_app
-flutter run --dart-define-from-file=config/dev.json
+flutter run
 ```
 
 Run the admin app (web):
 
 ```powershell
 cd client/apps/admin_app
-flutter run -d chrome --dart-define-from-file=config/dev.json
+flutter run -d chrome
 ```
 
-Environment files: `config/dev.json`, `config/staging.json`, `config/prod.json`. The production URL is a placeholder; it must be replaced with the approved domain before a production build.
+Environment: one shared `.env` owns the base URL — `client/packages/auth/.env` (same URL for every app, loaded via `AppEnv.load()` in each `main()`). Dev defaults to `http://localhost:8080` with no flags; staging/prod just edit that one file. `--dart-define=API_BASE_URL=...` still wins when passed (CI / e2e overrides). The production URL is a placeholder; it must be replaced with the approved domain before a production build.
 
 The sign-in screen uses the server API. Workshop Admin home remains a foundation placeholder; Platform Admin has hierarchy and master-content management screens.
 

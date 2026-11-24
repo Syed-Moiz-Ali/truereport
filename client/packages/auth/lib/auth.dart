@@ -1,3 +1,4 @@
+export 'src/app_env.dart';
 export 'src/auth_controller.dart';
 export 'src/auth_repository.dart';
 export 'src/role_home.dart';
