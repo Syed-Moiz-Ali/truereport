@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/inspection_deck.dart';
-import 'package:technician_app/src/features/review/technician_summary_page.dart';
+import 'package:technician_app/src/features/review/signoff_screen.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/technician_providers.dart';

@@ -7,14 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:l10n/ui_strings.dart';
 
 import 'features/auth/signin/technician_sign_in_page.dart';
-import 'features/inspection/technician_dynamic_item_page.dart';
+import 'features/inspection/assessment_screen.dart';
 
 import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
 import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
 import 'package:technician_app/src/features/profile/profile_page.dart';
 import 'package:technician_app/src/features/review/technician_completed_page.dart';
-import 'package:technician_app/src/features/review/technician_signature_page.dart';
-import 'package:technician_app/src/features/review/technician_summary_page.dart';
+import 'package:technician_app/src/features/review/signature_screen.dart';
+import 'package:technician_app/src/features/review/signoff_screen.dart';
 import 'package:technician_app/src/features/sync/sync_conflict_page.dart';
 import 'package:technician_app/src/features/sync/technician_sync_page.dart';
 

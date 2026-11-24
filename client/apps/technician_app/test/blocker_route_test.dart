@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:technician_app/src/features/review/technician_summary_page.dart';
+import 'package:technician_app/src/features/review/signoff_screen.dart';
 import 'package:technician_app/src/inspection_models.dart';
 
 Blocker _blocker(String code, {String? itemCode}) =>

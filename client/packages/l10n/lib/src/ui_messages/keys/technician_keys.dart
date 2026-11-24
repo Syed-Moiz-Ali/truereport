@@ -523,6 +523,7 @@ abstract final class TechnicianKeys {
     'jobDetailReviewPublication',
   );
   static const jobDetails = UiMessageKey.technician('jobDetails');
+  static const jobReferenceLabel = UiMessageKey.technician('jobReferenceLabel');
   static const jobSearch = UiMessageKey.technician('jobSearch');
   static const jobsActivatedAt = UiMessageKey.technician('jobsActivatedAt');
   static const jobsAlreadyAssigned = UiMessageKey.technician(
@@ -1361,6 +1362,9 @@ abstract final class TechnicianKeys {
   static const technicianAllSynced = UiMessageKey.technician(
     'technicianAllSynced',
   );
+  static const technicianAlsoBlocking = UiMessageKey.technician(
+    'technicianAlsoBlocking',
+  );
   static const technicianAnglePerspective = UiMessageKey.technician(
     'technicianAnglePerspective',
   );
@@ -1390,6 +1394,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianBlockers = UiMessageKey.technician(
     'technicianBlockers',
+  );
+  static const technicianBlockersToResolve = UiMessageKey.technician(
+    'technicianBlockersToResolve',
   );
   static const technicianCall = UiMessageKey.technician('technicianCall');
   static const technicianCameraRequired = UiMessageKey.technician(
@@ -1690,7 +1697,13 @@ abstract final class TechnicianKeys {
     'technicianFileTooLarge',
   );
   static const technicianFilter = UiMessageKey.technician('technicianFilter');
+  static const technicianGateDone = UiMessageKey.technician(
+    'technicianGateDone',
+  );
   static const technicianGrade = UiMessageKey.technician('technicianGrade');
+  static const technicianGradeLabel = UiMessageKey.technician(
+    'technicianGradeLabel',
+  );
   static const technicianHomeTitle = UiMessageKey.technician(
     'technicianHomeTitle',
   );
@@ -1699,6 +1712,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianInspection = UiMessageKey.technician(
     'technicianInspection',
+  );
+  static const technicianInspectionComplete = UiMessageKey.technician(
+    'technicianInspectionComplete',
   );
   static const technicianInspectionHub = UiMessageKey.technician(
     'technicianInspectionHub',
@@ -1736,6 +1752,7 @@ abstract final class TechnicianKeys {
   static const technicianItemSaved = UiMessageKey.technician(
     'technicianItemSaved',
   );
+  static const technicianItems = UiMessageKey.technician('technicianItems');
   static const technicianItemsAssessed = UiMessageKey.technician(
     'technicianItemsAssessed',
   );
@@ -1785,6 +1802,30 @@ abstract final class TechnicianKeys {
     'technicianLiveSync',
   );
   static const technicianMake = UiMessageKey.technician('technicianMake');
+  static const technicianMarkDamage = UiMessageKey.technician(
+    'technicianMarkDamage',
+  );
+  static const technicianMarkupCaption = UiMessageKey.technician(
+    'technicianMarkupCaption',
+  );
+  static const technicianMarkupCircle = UiMessageKey.technician(
+    'technicianMarkupCircle',
+  );
+  static const technicianMarkupEmpty = UiMessageKey.technician(
+    'technicianMarkupEmpty',
+  );
+  static const technicianMarkupHint = UiMessageKey.technician(
+    'technicianMarkupHint',
+  );
+  static const technicianMarkupPen = UiMessageKey.technician(
+    'technicianMarkupPen',
+  );
+  static const technicianMarkupSave = UiMessageKey.technician(
+    'technicianMarkupSave',
+  );
+  static const technicianMarkupSaved = UiMessageKey.technician(
+    'technicianMarkupSaved',
+  );
   static const technicianMeasurement = UiMessageKey.technician(
     'technicianMeasurement',
   );
@@ -1972,6 +2013,9 @@ abstract final class TechnicianKeys {
     'technicianQueueRefreshed',
   );
   static const technicianQueued = UiMessageKey.technician('technicianQueued');
+  static const technicianReadyToComplete = UiMessageKey.technician(
+    'technicianReadyToComplete',
+  );
   static const technicianRefresh = UiMessageKey.technician('technicianRefresh');
   static const technicianRefreshQueue = UiMessageKey.technician(
     'technicianRefreshQueue',
@@ -1981,6 +2025,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianRequired = UiMessageKey.technician(
     'technicianRequired',
+  );
+  static const technicianRequiredCount = UiMessageKey.technician(
+    'technicianRequiredCount',
   );
   static const technicianRequiredEquipment = UiMessageKey.technician(
     'technicianRequiredEquipment',
@@ -2011,6 +2058,12 @@ abstract final class TechnicianKeys {
   static const technicianSaveAction = UiMessageKey.technician(
     'technicianSaveAction',
   );
+  static const technicianSaveAndFinish = UiMessageKey.technician(
+    'technicianSaveAndFinish',
+  );
+  static const technicianSaveAndNext = UiMessageKey.technician(
+    'technicianSaveAndNext',
+  );
   static const technicianSaveAssessment = UiMessageKey.technician(
     'technicianSaveAssessment',
   );
@@ -2022,6 +2075,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianSavePhoto = UiMessageKey.technician(
     'technicianSavePhoto',
+  );
+  static const technicianSaveSignature = UiMessageKey.technician(
+    'technicianSaveSignature',
   );
   static const technicianScheduledAt = UiMessageKey.technician(
     'technicianScheduledAt',
@@ -2076,8 +2132,18 @@ abstract final class TechnicianKeys {
   static const technicianSignInTagline = UiMessageKey.technician(
     'technicianSignInTagline',
   );
+  static const technicianSignNow = UiMessageKey.technician('technicianSignNow');
+  static const technicianSignOutBody = UiMessageKey.technician(
+    'technicianSignOutBody',
+  );
+  static const technicianSignToContinue = UiMessageKey.technician(
+    'technicianSignToContinue',
+  );
   static const technicianSignature = UiMessageKey.technician(
     'technicianSignature',
+  );
+  static const technicianSignatureCaptured = UiMessageKey.technician(
+    'technicianSignatureCaptured',
   );
   static const technicianSignatureHint = UiMessageKey.technician(
     'technicianSignatureHint',
@@ -2108,6 +2174,16 @@ abstract final class TechnicianKeys {
   );
   static const technicianStartedAt = UiMessageKey.technician(
     'technicianStartedAt',
+  );
+  static const technicianStepComplete = UiMessageKey.technician(
+    'technicianStepComplete',
+  );
+  static const technicianStepInspect = UiMessageKey.technician(
+    'technicianStepInspect',
+  );
+  static const technicianStepOf = UiMessageKey.technician('technicianStepOf');
+  static const technicianStepSign = UiMessageKey.technician(
+    'technicianStepSign',
   );
   static const technicianSuggestedResult = UiMessageKey.technician(
     'technicianSuggestedResult',
@@ -2246,6 +2322,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianVinEnding = UiMessageKey.technician(
     'technicianVinEnding',
+  );
+  static const technicianWaitingSignature = UiMessageKey.technician(
+    'technicianWaitingSignature',
   );
   static const technicianWalkaroundInspection = UiMessageKey.technician(
     'technicianWalkaroundInspection',

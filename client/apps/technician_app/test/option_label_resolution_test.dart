@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:technician_app/src/features/inspection/option_labels.dart';
-import 'package:technician_app/src/features/inspection/technician_dynamic_item_page.dart';
+import 'package:technician_app/src/features/inspection/assessment_screen.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
@@ -61,6 +61,10 @@ void main() {
     }..remove('option.issueType.cracked');
 
     await _pumpItem(tester, UiStrings.fromMessages(bundle));
+
+    // Optional paperwork is folded behind one disclosure on the item screen.
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
       find.text('Desgastado'),

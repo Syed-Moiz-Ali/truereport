@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/ui_strings_harness.dart';
 
-import 'package:technician_app/src/features/inspection/technician_dynamic_item_page.dart';
+import 'package:technician_app/src/features/inspection/assessment_screen.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
@@ -157,7 +157,7 @@ Future<void> _capture(
   await tester.pumpAndSettle();
   if (scrollToEvidence) {
     await tester.scrollUntilVisible(
-      find.text('Evidence checklist'),
+      find.text('Take photo'),
       240,
       scrollable: find.byType(Scrollable).first,
     );

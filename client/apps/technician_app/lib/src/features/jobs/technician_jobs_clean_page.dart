@@ -9,7 +9,6 @@ import 'package:reference_data/reference_data.dart';
 import '../../inspection_models.dart';
 import '../../reference_ui.dart';
 import '../../technician_providers.dart';
-import '../profile/profile_sheet.dart';
 import 'queue/jobs_queue_agenda.dart';
 import 'queue/jobs_queue_format.dart';
 import 'queue/jobs_queue_primitives.dart';
@@ -197,7 +196,7 @@ class _TechnicianJobsCleanPageState
               if (index == 1) {
                 context.push('/sync');
               } else if (index == 2) {
-                showTechnicianProfile(context, ref);
+                context.push('/profile');
               }
             },
           ),
@@ -213,7 +212,7 @@ class _TechnicianJobsCleanPageState
               subtitle: subtitle,
               searchOpen: _searchOpen,
               onSearch: _toggleSearch,
-              onProfile: () => showTechnicianProfile(context, ref),
+              onProfile: () => context.push('/profile'),
               technicianName: name,
             ),
           ),
