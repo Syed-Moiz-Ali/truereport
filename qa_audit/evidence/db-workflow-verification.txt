@@ -1,8 +1,0 @@
-﻿reference	status	review_status	publication_status	score	grade_code	signature_present
-JOB-599E2DEB	PUBLISHED	APPROVED	PUBLISHED	100	A	1
-assessments
-3
-evidence
-6
-status	n
-ACTIVE	1

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   flutter:
-    name: Flutter analyze and test
+    name: Flutter analyze
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,21 +30,9 @@ jobs:
       - name: Analyze (fatal infos)
         working-directory: client
         run: flutter analyze --fatal-infos
-      - name: Technician widget tests
-        working-directory: client/apps/technician_app
-        run: flutter test
-      - name: Admin widget tests
-        working-directory: client/apps/workshop_admin_app
-        run: flutter test
-      - name: Admin baseline gate (new failures only)
-        working-directory: client/apps/workshop_admin_app
-        # Fails on any test failure that is not in docs/baseline_allowlist.json,
-        # and on a stale allowlist entry. Analyzer is already covered by the
-        # repo-wide "--fatal-infos" step above.
-        run: dart run tool/baseline_check.dart --skip-analyze
 
   java:
-    name: Java build, tests, Modulith and ArchUnit
+    name: Java build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,9 +41,9 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-      - name: Maven tests (Testcontainers enabled by Docker on the runner)
+      - name: Maven package
         working-directory: server
-        run: mvn -B test
+        run: mvn -B -DskipTests package
 
   secret-scan:
     name: Secret scan

@@ -19,12 +19,17 @@ client/.flutter-plugins
 client/.flutter-plugins-dependencies
 client/build/
 client/apps/*/build/
+client/apps/*/coverage/
 client/apps/*/.dart_tool/
+client/apps/*/.flutter-plugins
+client/apps/*/.flutter-plugins-dependencies
 client/packages/*/.dart_tool/
 client/packages/*/build/
+client/packages/*/coverage/
 client/packages/*/test/failures/
 client/apps/*/test/failures/
 client/apps/*/android/.gradle/
+client/apps/*/android/.kotlin/
 client/apps/*/ios/Pods/
 client/apps/*/ios/.symlinks/
 client/apps/*/ios/Flutter/ephemeral/
@@ -42,6 +47,14 @@ client/apps/*/linux/flutter/ephemeral/
 # OS
 .DS_Store
 Thumbs.db
+
+# Junk / temporary files
+*.err
+*.bak
+*.old
+*.tmp
+*.orig
+.ruff_cache/
 
 # Spike outputs are kept, but generated caches are not
 spikes/**/node_modules/

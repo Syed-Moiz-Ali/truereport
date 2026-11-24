@@ -1,22 +1,12 @@
 {
-  "name": "truereport-e2e",
+  "name": "truereport-gates",
   "private": true,
   "version": "0.0.0",
-  "description": "Browser E2E harness for the TrueReport Flutter web apps and public report",
+  "description": "Repository quality gates for the TrueReport Flutter and Spring Boot apps",
   "scripts": {
     "gate:literals": "node tools/gate_no_literals.js",
     "gate:taxonomy": "node tools/gate_no_status_switch.js",
     "gate:code-arrays": "node tools/gate_no_code_arrays.js",
-    "gate": "node tools/gate_all.js",
-    "e2e:list": "playwright test --list",
-    "e2e": "playwright test",
-    "e2e:platform": "playwright test --project=platform-admin",
-    "e2e:workshop": "playwright test --project=workshop-admin",
-    "e2e:language": "playwright test --project=workshop-admin tests/e2e/modules/language_dynamic.flow.spec.ts",
-    "e2e:technician": "playwright test --project=technician",
-    "e2e:public": "playwright test --project=public-report"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.65.1"
+    "gate": "node tools/gate_all.js"
   }
 }

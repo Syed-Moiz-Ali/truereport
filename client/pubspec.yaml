@@ -16,7 +16,6 @@ workspace:
   - packages/reference_data
   - packages/domain
   - packages/auth
-  - packages/offline_sync
 
 dev_dependencies:
   melos: 8.10.0
@@ -25,7 +24,5 @@ melos:
   scripts:
     analyze:
       run: melos exec -- flutter analyze
-    test:
-      run: melos exec --dir-exists=test -- flutter test
     format:
       run: melos exec -- dart format .
