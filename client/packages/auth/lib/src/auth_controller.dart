@@ -86,13 +86,16 @@ class AuthController extends AsyncNotifier<Session?> {
 
   Future<void> signOut() async {
     // Leave protected screens immediately. The router listens to this state and
-    // must not wait for the logout round-trip (which can 401, hang or fail).
-    ref.read(apiClientProvider).accessToken = null;
+    // must not wait for the logout round-trip (which can hang or be offline).
     state = const AsyncData(null);
+    // The repository keeps the token for the revoke call and always clears it
+    // locally afterwards, so a failed round-trip can never leave a stale token
+    // on the wire (that used to make the next request 401 with no way back).
     try {
       await _repository.signOut();
     } on Object {
-      // Local sign-out already happened; make sure the stored session is gone.
+      // Local sign-out already happened; make sure the session is gone.
+      ref.read(apiClientProvider).accessToken = null;
       try {
         await ref.read(sessionStoreProvider).clear();
       } on Object {

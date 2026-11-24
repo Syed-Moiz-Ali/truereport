@@ -76,7 +76,23 @@ class ApiClient {
 
   final Dio _dio;
 
-  String? accessToken;
+  String? _accessToken;
+
+  /// Bearer token for authenticated requests.
+  ///
+  /// Assigning a non-empty token also re-arms [onUnauthorized], so a request
+  /// made right after a fresh sign-in can expire the session again.
+  String? get accessToken => _accessToken;
+
+  set accessToken(String? value) {
+    _accessToken = value;
+    if (value != null && value.isNotEmpty) {
+      _unauthorizedNotified = false;
+    }
+  }
+
+  /// Guards [onUnauthorized] so a burst of failing requests notifies once.
+  bool _unauthorizedNotified = false;
 
   /// BCP-47 language code sent as `Accept-Language` on every request.
   String? acceptLanguage;
@@ -86,7 +102,8 @@ class ApiClient {
   String? clientName;
 
   /// Invoked once when an authenticated request is rejected with 401 and the
-  /// refresh attempt fails (or no refresh is available).
+  /// session cannot be renewed (refresh failed, no refresh token, or the
+  /// freshly refreshed token was rejected too).
   ///
   /// The session layer uses this to clear the stored session and route to
   /// sign-in. Public endpoints never trigger it.
@@ -349,14 +366,18 @@ class ApiClient {
       handler.next(error);
       return;
     }
-    final alreadyRetried = request.extra[_retryFlag] == true;
-    final token = alreadyRetried ? null : await _refreshOnce();
+    // The retried request was already sent with a freshly refreshed token, so
+    // a second 401 means the server rejected that token as well: the session
+    // is dead. Without this, the app stayed on a protected screen and issued
+    // the same 401 request forever instead of returning to sign-in.
+    if (request.extra[_retryFlag] == true) {
+      _expireSession();
+      handler.next(error);
+      return;
+    }
+    final token = await _refreshOnce();
     if (token == null || token.isEmpty) {
-      accessToken = null;
-      final notify = onUnauthorized;
-      if (notify != null) {
-        scheduleMicrotask(notify);
-      }
+      _expireSession();
       handler.next(error);
       return;
     }
@@ -367,7 +388,24 @@ class ApiClient {
       final response = await _dio.fetch<dynamic>(request);
       handler.resolve(response);
     } on DioException catch (retryError) {
+      if (retryError.response?.statusCode == 401) {
+        _expireSession();
+      }
       handler.next(retryError);
+    }
+  }
+
+  /// Drops the in-memory token and asks the session layer to sign out.
+  ///
+  /// Notifies at most once per adopted token so a page full of parallel
+  /// requests cannot trigger a burst of sign-outs.
+  void _expireSession() {
+    accessToken = null;
+    if (_unauthorizedNotified) return;
+    _unauthorizedNotified = true;
+    final notify = onUnauthorized;
+    if (notify != null) {
+      scheduleMicrotask(notify);
     }
   }
 

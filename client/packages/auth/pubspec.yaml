@@ -26,6 +26,9 @@ dependencies:
   flutter_dotenv: ^6.0.2
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  dio: 5.11.1
   flutter_lints: 6.0.0
 
 flutter:
