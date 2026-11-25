@@ -12,11 +12,16 @@ class DeckPrimaryButton extends StatefulWidget {
   const DeckPrimaryButton({
     required this.label,
     required this.onPressed,
+    this.isLoading = false,
     super.key,
   });
 
   final String label;
   final VoidCallback? onPressed;
+
+  /// Inline saving state: the label and arrow swap for a spinner with no
+  /// layout shift. Off by default, so existing call sites render as before.
+  final bool isLoading;
 
   @override
   State<DeckPrimaryButton> createState() => _DeckPrimaryButtonState();
@@ -32,6 +37,7 @@ class _DeckPrimaryButtonState extends State<DeckPrimaryButton> {
     final colors = context.colors;
     final brand = context.brand;
     final enabled = widget.onPressed != null;
+    final busy = widget.isLoading;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final background = !enabled
         ? brand.ink.withValues(alpha: 0.42)
@@ -40,11 +46,11 @@ class _DeckPrimaryButtonState extends State<DeckPrimaryButton> {
         : brand.ink;
     return Semantics(
       button: true,
-      enabled: enabled,
+      enabled: enabled && !busy,
       label: widget.label,
       child: FocusableActionDetector(
-        enabled: enabled,
-        mouseCursor: enabled
+        enabled: enabled && !busy,
+        mouseCursor: enabled && !busy
             ? SystemMouseCursors.click
             : SystemMouseCursors.basic,
         onShowHoverHighlight: (value) => setState(() => _hovered = value),
@@ -52,16 +58,24 @@ class _DeckPrimaryButtonState extends State<DeckPrimaryButton> {
         actions: <Type, Action<Intent>>{
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
-              widget.onPressed?.call();
+              if (enabled && !busy) {
+                widget.onPressed?.call();
+              }
               return null;
             },
           ),
         },
         child: GestureDetector(
-          onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
-          onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
-          onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
-          onTap: enabled ? widget.onPressed : null,
+          onTapDown: enabled && !busy
+              ? (_) => setState(() => _pressed = true)
+              : null,
+          onTapUp: enabled && !busy
+              ? (_) => setState(() => _pressed = false)
+              : null,
+          onTapCancel: enabled && !busy
+              ? () => setState(() => _pressed = false)
+              : null,
+          onTap: enabled && !busy ? widget.onPressed : null,
           child: AnimatedScale(
             scale: _pressed ? 0.98 : 1,
             duration: context.motionDuration(const Duration(milliseconds: 120)),
@@ -82,40 +96,54 @@ class _DeckPrimaryButtonState extends State<DeckPrimaryButton> {
                 boxShadow: enabled ? context.shadows.buttonSubtle : null,
               ),
               child: Row(
+                mainAxisAlignment: widget.isLoading
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: queueText(
-                        context,
-                        16,
-                        weight: FontWeight.w700,
-                        height: 22,
-                        tracking: -0.2,
-                        color: enabled
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.7),
+                  if (widget.isLoading)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  else ...[
+                    Expanded(
+                      child: Text(
+                        widget.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: queueText(
+                          context,
+                          16,
+                          weight: FontWeight.w700,
+                          height: 22,
+                          tracking: -0.2,
+                          color: enabled
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.7),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.16),
-                      shape: BoxShape.circle,
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        rtl
+                            ? Icons.arrow_back_rounded
+                            : Icons.arrow_forward_rounded,
+                        size: 20,
+                        color: Colors.white,
+                      ),
                     ),
-                    child: Icon(
-                      rtl
-                          ? Icons.arrow_back_rounded
-                          : Icons.arrow_forward_rounded,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                  ),
+                  ],
                 ],
               ),
             ),

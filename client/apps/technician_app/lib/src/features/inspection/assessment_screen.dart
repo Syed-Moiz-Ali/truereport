@@ -9,16 +9,23 @@ import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
-import 'package:technician_app/src/features/inspection/evidence_capture_sheet.dart';
 import 'package:technician_app/src/features/inspection/evidence_upload_queue.dart';
 import 'package:technician_app/src/features/inspection/evidence_validation.dart';
 import 'package:technician_app/src/features/inspection/option_labels.dart';
 import 'package:technician_app/src/features/inspection/photo_markup_page.dart';
 import 'package:technician_app/src/inspection_models.dart';
-import 'package:technician_app/src/reference_ui.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 import 'package:uuid/uuid.dart';
+
+import '../jobs/queue/jobs_queue_primitives.dart';
+import '../jobs/queue/jobs_queue_style.dart';
+import '../jobs/queue/queue_model.dart';
+import 'assessment/evidence_section.dart';
+import 'assessment/item_footer.dart';
+import 'assessment/item_header.dart';
+import 'assessment/mark_prompt.dart';
+import 'assessment/result_options.dart';
 
 /// One checklist item, built as "Verdict first": the item, its result, the
 /// evidence a result needs, and one pinned action that moves to the next item.
@@ -65,7 +72,6 @@ class TechnicianItemPage extends ConsumerWidget {
           }
           return Column(
             children: [
-              _ScreenBar(checklist: checklist, item: item),
               Expanded(
                 child: _AssessmentForm(
                   key: ValueKey(
@@ -73,16 +79,14 @@ class TechnicianItemPage extends ConsumerWidget {
                   ),
                   jobId: jobId,
                   item: item,
+                  readOnly: verbFor(checklist.job) == QueueVerb.view,
                   eyebrow: _eyebrow(
                     checklist,
                     item,
                     Localizations.localeOf(context).languageCode,
+                    t,
                   ),
                   nextItemCode: _nextItem(checklist, item)?.itemCode,
-                  nextItemLabel: _nextItem(
-                    checklist,
-                    item,
-                  )?.labelFor(Localizations.localeOf(context).languageCode),
                 ),
               ),
             ],
@@ -92,9 +96,13 @@ class TechnicianItemPage extends ConsumerWidget {
     );
   }
 
-  /// "EXTERIOR · 02 / 07" — where this item sits, the same numbering the
-  /// section ledger uses.
-  String _eyebrow(Checklist checklist, ChecklistItem item, String language) {
+  /// "ITEM 6 OF 30 · Brakes" — global position plus the section name.
+  String _eyebrow(
+    Checklist checklist,
+    ChecklistItem item,
+    String language,
+    UiStrings t,
+  ) {
     final category = checklist.categories.firstWhere(
       (value) => value.code == item.categoryCode,
       orElse: () => Category(
@@ -105,12 +113,7 @@ class TechnicianItemPage extends ConsumerWidget {
         sortOrder: 0,
       ),
     );
-    final items = [...checklist.itemsForCategory(item.categoryCode)]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    final index = items.indexWhere((value) => value.itemCode == item.itemCode);
-    return '${category.nameFor(language).toUpperCase()} · '
-        '${'${index + 1}'.padLeft(2, '0')} / '
-        '${'${items.length}'.padLeft(2, '0')}';
+    return '${t(TechnicianKeys.technicianSessionItemOf, {'number': item.sortOrder, 'total': checklist.total}).toUpperCase()} · ${category.nameFor(language)}';
   }
 
   /// The next stop after this item: the next unanswered item in the same
@@ -164,225 +167,21 @@ class _ScreenShell extends StatelessWidget {
 }
 
 /// Vehicle context and the job's progress, on the same measure as the body.
-class _ScreenBar extends StatelessWidget {
-  const _ScreenBar({required this.checklist, required this.item});
-
-  final Checklist checklist;
-  final ChecklistItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    final job = checklist.job;
-    final language = Localizations.localeOf(context).languageCode;
-    final vehicle = [
-      job.vehicleMake,
-      job.vehicleModel,
-      if (job.vehicleYear != null) '${job.vehicleYear}',
-    ].where((value) => value.isNotEmpty).join(' ');
-    final plate = (job.vehiclePlate ?? '').trim();
-    final reference = job.reference.trim();
-    final showReference =
-        reference.isNotEmpty && plate.isNotEmpty && plate != reference;
-    final sectionItems = checklist.itemsForCategory(item.categoryCode);
-    final sectionDone = sectionItems
-        .where((value) => value.assessment?.resultCode != null)
-        .length;
-    final category = checklist.categories.firstWhere(
-      (value) => value.code == item.categoryCode,
-      orElse: () => Category(
-        code: item.categoryCode,
-        nameEn: item.categoryCode,
-        nameAr: item.categoryCode,
-        iconCode: null,
-        sortOrder: 0,
-      ),
-    );
-    final fraction = checklist.total <= 0
-        ? 0.0
-        : (checklist.completed / checklist.total).clamp(0.0, 1.0);
-
-    return Center(
-      heightFactor: 1,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 16, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Semantics(
-                    button: true,
-                    label: MaterialLocalizations.of(context).backButtonTooltip,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: const SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: Icon(Icons.arrow_back_rounded, size: 21),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          vehicle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.texts.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Row(
-                          children: [
-                            _Plate(plate.isNotEmpty ? plate : reference),
-                            if (showReference) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                reference,
-                                key: const Key('inspection-item-reference'),
-                                maxLines: 1,
-                                style: context.texts.labelSmall?.copyWith(
-                                  color: colors.onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.3,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsetsDirectional.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: colors.outlineVariant),
-                    ),
-                    child: Text(
-                      '${checklist.completed}/${checklist.total}',
-                      style: context.texts.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: SizedBox(
-                  height: 5,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ColoredBox(color: colors.surfaceContainerHighest),
-                      FractionallySizedBox(
-                        alignment: AlignmentDirectional.centerStart,
-                        widthFactor: fraction,
-                        child: ColoredBox(color: context.brand.ink),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                '$sectionDone of ${sectionItems.length} in '
-                '${category.nameFor(language)} · '
-                '${t(TechnicianKeys.technicianItemsAssessed, {'done': checklist.completed, 'total': checklist.total})}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.texts.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Plate extends StatelessWidget {
-  const _Plate(this.value);
-
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 28),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 10,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: context.colors.outline),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 3,
-            height: 12,
-            decoration: BoxDecoration(
-              color: context.brand.ink,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: context.texts.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _AssessmentForm extends ConsumerStatefulWidget {
   const _AssessmentForm({
     required this.jobId,
     required this.item,
     required this.eyebrow,
+    required this.readOnly,
     this.nextItemCode,
-    this.nextItemLabel,
     super.key,
   });
 
   final String jobId;
   final ChecklistItem item;
   final String eyebrow;
+  final bool readOnly;
   final String? nextItemCode;
-  final String? nextItemLabel;
 
   @override
   ConsumerState<_AssessmentForm> createState() => _AssessmentFormState();
@@ -396,11 +195,27 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   final Map<String, Map<String?, String>> _optionValues = {};
   final Map<String, Map<String?, Set<String>>> _multiValues = {};
   final Map<String, Map<String?, TextEditingController>> _fieldControllers = {};
-  final _service = EvidenceCaptureService();
+
+  /// The shared capture service, resolved from the provider so tests can
+  /// substitute it (the real one would open the platform camera).
+  EvidenceCaptureService get _service =>
+      ref.read(evidenceCaptureServiceProvider);
   late final EvidenceUploadQueue _queue;
   Map<String, ApiFieldError> _fieldErrors = {};
   String? _result;
   String? _error;
+
+  /// Auto-save arming: set whenever the technician changes an answer or adds
+  /// evidence this session. A pre-answered item opened for review never
+  /// auto-saves on mount.
+  /// Auto-save arming: set whenever the technician changes an answer or adds
+  /// evidence this session. A pre-answered item opened for review never
+  /// auto-saves on mount.
+  bool _autoSaveArmed = false;
+
+  /// The fresh photo awaiting the mark question, with its in-memory bytes so
+  /// marking never needs to reload it.
+  ({Uint8List bytes, String caption})? _markCandidate;
 
   /// Null until the technician opens or closes the folded details; the first
   /// build decides from how many folded fields the item actually requires.
@@ -511,6 +326,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   }
 
   void _handleMeasurementChanged() {
+    _autoSaveArmed = true;
     _recomputeSuggestion(applyResult: !_resultManuallyChosen);
   }
 
@@ -537,10 +353,14 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   }
 
   void _selectResult(String code) {
+    final changed = code != _result;
     setState(() {
       _result = code;
       _resultManuallyChosen = true;
       _scoreManuallyEdited = false;
+      if (changed) {
+        _autoSaveArmed = true;
+      }
       final band = scoreBandForResult(item, code);
       if (band != null) {
         _score.text = '${band.defaultScore}';
@@ -650,52 +470,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return photos >= requirement.minPhotos &&
         videos >= requirement.minVideos &&
         (!requirement.requiresDocument || documents > 0);
-  }
-
-  ({String label, StatusTone tone, IconData icon}) _evidenceStage(
-    UiStrings t,
-    EvidenceUploadState upload,
-    bool evidenceOk,
-  ) {
-    return switch (upload.stage) {
-      EvidenceUploadStage.capturing => (
-        label: t(TechnicianKeys.technicianEvidenceStateCapturing),
-        tone: StatusTone.info,
-        icon: Icons.photo_camera_outlined,
-      ),
-      EvidenceUploadStage.uploading => (
-        label: t(TechnicianKeys.technicianEvidenceStateUploading),
-        tone: StatusTone.info,
-        icon: Icons.cloud_upload_outlined,
-      ),
-      EvidenceUploadStage.queued => (
-        label: t(TechnicianKeys.technicianEvidenceStateQueued),
-        tone: StatusTone.warning,
-        icon: Icons.cloud_off_outlined,
-      ),
-      EvidenceUploadStage.failed => (
-        label: t(TechnicianKeys.technicianEvidenceStateFailed),
-        tone: StatusTone.danger,
-        icon: Icons.error_outline,
-      ),
-      EvidenceUploadStage.cancelled => (
-        label: t(TechnicianKeys.technicianEvidenceCancelled),
-        tone: StatusTone.neutral,
-        icon: Icons.cancel_outlined,
-      ),
-      EvidenceUploadStage.complete || EvidenceUploadStage.idle =>
-        evidenceOk
-            ? (
-                label: t(TechnicianKeys.technicianEvidenceStateComplete),
-                tone: StatusTone.success,
-                icon: Icons.check_circle_outline,
-              )
-            : (
-                label: t(TechnicianKeys.technicianEvidenceStateRequired),
-                tone: StatusTone.warning,
-                icon: Icons.pending_outlined,
-              ),
-    };
   }
 
   Future<void> _flushQueuedEvidence() async {
@@ -1009,33 +783,31 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return values;
   }
 
-  Future<void> _captureEvidence(String type) async {
+  /// Captures straight from the camera: no source sheet, no caption sheet.
+  /// Photo and video go through the existing capture service and queue;
+  /// documents open the file picker directly.
+  Future<void> _captureDirect(String type) async {
     final t = UiStrings.of(context);
     if (_queue.isBusy) {
-      return;
-    }
-    final request = await showEvidenceCaptureSheet(
-      context,
-      evidenceType: type,
-      evidenceTypes:
-          ref.read(enumsProvider('evidence-type')).value ??
-          const <ReferenceRecord>[],
-    );
-    if (request == null || !mounted) {
       return;
     }
     setState(() => _evidenceError = null);
     _queue.markCapturing(type);
     try {
       final existing = await _existingSha256();
-      final captured = await _capture(type, request, existing);
+      final CapturedEvidence? captured = switch (type) {
+        // gate-allow: behaviour — evidence type selects the capture call.
+        'PHOTO' => await _service.capturePhoto(),
+        'VIDEO' => await _service.recordVideo(existingSha256: existing),
+        _ => await _service.pickDocument(),
+      };
       if (captured == null) {
         _queue.clearCapturing();
         return;
       }
       final result = await _queue.enqueue(
         captured,
-        captionEn: request.captionEn,
+        captionEn: null,
         captionAr: null,
         existingSha256: existing,
       );
@@ -1043,6 +815,16 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
         return;
       }
       await _handleEvidenceResult(result);
+      if (type == 'PHOTO' &&
+          (result.outcome == EvidenceUploadOutcome.uploaded ||
+              result.outcome == EvidenceUploadOutcome.queued)) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _markCandidate = (bytes: captured.bytes, caption: '');
+        });
+      }
     } on EvidenceCaptureException catch (error) {
       _queue.clearCapturing();
       if (!mounted) {
@@ -1056,22 +838,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       }
       setState(() => _evidenceError = _serverEvidenceError(t, error));
     }
-  }
-
-  Future<CapturedEvidence?> _capture(
-    String type,
-    EvidenceCaptureRequest request,
-    List<String> existingSha256,
-  ) {
-    return switch (type) {
-      'PHOTO' => _service.capturePhoto(source: request.source),
-      'VIDEO' => _service.recordVideo(
-        source: request.source,
-        capturePoster: request.capturePoster,
-        existingSha256: existingSha256,
-      ),
-      _ => _service.pickDocument(),
-    };
   }
 
   Future<List<String>> _existingSha256() async {
@@ -1100,12 +866,14 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     final t = UiStrings.of(context);
     switch (result.outcome) {
       case EvidenceUploadOutcome.uploaded:
+        _autoSaveArmed = true;
         _invalidateEvidence();
         showAppSnackBar(
           context,
           message: t(TechnicianKeys.technicianEvidenceUploaded),
         );
       case EvidenceUploadOutcome.queued:
+        _autoSaveArmed = true;
         _invalidateEvidence();
         ref.invalidate(syncQueueStatusProvider);
         showAppSnackBar(
@@ -1210,43 +978,10 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
         : message;
   }
 
-  Future<void> _deleteEvidence(Evidence evidence) async {
-    final t = UiStrings.of(context);
-    final confirmed = await showAppConfirmDialog(
-      context,
-      title: t(TechnicianKeys.technicianDeleteEvidence),
-      message: t(TechnicianKeys.technicianDeleteEvidence),
-      confirmLabel: t(TechnicianKeys.commonConfirm),
-      cancelLabel: MaterialLocalizations.of(context).cancelButtonLabel,
-      destructive: true,
-    );
-    if (!confirmed) {
-      return;
-    }
-    try {
-      if (evidence.id.startsWith('local-')) {
-        await ref
-            .read(offlineStoreProvider)
-            .deleteLocalEvidence(evidence.id.substring('local-'.length));
-        _invalidateEvidence();
-        return;
-      }
-      await ref
-          .read(technicianApiProvider)
-          .deleteEvidence(jobId, item.itemCode, evidence.id);
-      _invalidateEvidence();
-    } on Object {
-      if (mounted) {
-        setState(
-          () => _evidenceError = t(TechnicianKeys.technicianEvidenceFailed),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
+    final colors = context.colors;
     final language = Localizations.localeOf(context).languageCode;
     ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
       if (next.value == true && previous?.value != true) {
@@ -1263,51 +998,150 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     final photos = evidence.where((value) => value.isPhoto).length;
     final videos = evidence.where((value) => value.isVideo).length;
     final documents = evidence.where((value) => value.isDocument).length;
-    final evidenceOk = _evidenceSatisfied(evidence);
     final upload = _queue.state.value;
-    final stage = _evidenceStage(t, upload, evidenceOk);
     final requiredDetails = _requiredDetailCount();
     final detailsOpen = _detailsOpen ?? requiredDetails > 0;
-    final resultLabel_ = _result == null
-        ? t(TechnicianKeys.notChecked)
-        : resultLabel(resultRecords, _result!);
-    final hint = _result == null
-        ? t(TechnicianKeys.technicianSelectResult)
-        : !evidenceOk
-        ? t(TechnicianKeys.technicianEvidenceRequired)
-        : widget.nextItemLabel == null
-        ? t(TechnicianKeys.technicianAllCaughtUp)
-        : '${t(TechnicianKeys.technicianNextUp)}: ${widget.nextItemLabel}';
+    final readOnly = widget.readOnly;
+    final minNotes = requirement.minNotesChars;
+    final showNotes = !readOnly && item.allowFreeTextNote && minNotes > 0;
+
+    // Auto-save through the existing path as soon as the chosen result's
+    // rule is met, then advance. A pre-answered item opened for review
+    // never fires on mount: only this session's choices arm it.
+    if (!readOnly &&
+        !_saving &&
+        _autoSaveArmed &&
+        _result != null &&
+        _formValid(evidence)) {
+      _autoSaveArmed = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        final fresh =
+            ref
+                .read(
+                  technicianEvidenceListProvider((
+                    jobId: jobId,
+                    itemCode: item.itemCode,
+                  )),
+                )
+                .value ??
+            evidence;
+        _save(fresh, advance: true);
+      });
+    }
+
+    final needPhotos = photos < requirement.minPhotos;
+    final needVideos = videos < requirement.minVideos;
+    final needDocs = requirement.requiresDocument && documents == 0;
+    final String? secondaryLabel = readOnly
+        ? null
+        : needPhotos
+        ? t(TechnicianKeys.addPhoto)
+        : needVideos
+        ? t(TechnicianKeys.addVideo)
+        : needDocs
+        ? t(TechnicianKeys.technicianCaptureDocument)
+        : null;
+    void secondaryAction() {
+      if (needPhotos) {
+        _captureDirect('PHOTO');
+      } else if (needVideos) {
+        _captureDirect('VIDEO');
+      } else if (needDocs) {
+        _captureDirect('DOCUMENT');
+      }
+    }
+
+    // Presentation grouping only; labels and membership come from the API.
+    // gate-allow: codes
+    const primaryCodes = [
+      'NO_ISSUE_OBSERVED',
+      'ATTENTION_RECOMMENDED',
+      'DEFECT_FOUND',
+    ];
+    final primary = [
+      for (final code in primaryCodes)
+        if (item.resultOptions.contains(code)) code,
+    ];
+    final rest = [
+      for (final code in item.resultOptions)
+        if (!primaryCodes.contains(code)) code,
+    ];
+    ResultOptionView viewFor(String code) => ResultOptionView(
+      code: code,
+      label: resultLabel(resultRecords, code),
+      tone: resultTone(resultRecords, code),
+      icon: resultIcon(code),
+    );
 
     return Align(
       alignment: AlignmentDirectional.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 16, 4),
+              child: ItemHeader(
+                eyebrow: widget.eyebrow,
+                label: item.labelFor(language),
+                instruction: item.instructionFor(language),
+                spec: item.standardSpecFor(language),
+                safety: item.safetyCritical,
+                onBack: () => Navigator.of(context).maybePop(),
+              ),
+            ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 16, 24),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 24),
                 children: [
-                  _VerdictCard(
-                    eyebrow: widget.eyebrow,
-                    label: item.labelFor(language),
-                    instruction: item.instructionFor(language),
-                    spec: item.standardSpecFor(language),
-                    unit: _measurementUnit,
-                    safety: item.safetyCritical,
-                    multi: item.multiPoint,
-                    resultLabel: resultLabel_,
-                    resultCode: _result,
-                    suggested: _suggestedResult == null
-                        ? null
-                        : '${t(TechnicianKeys.technicianSuggestedResult)}: '
-                              '${resultLabel(resultRecords, _suggestedResult!)}'
-                              '${_suggestedScore == null ? '' : ' · ${t(TechnicianKeys.technicianScore)} $_suggestedScore'}',
-                    codes: item.resultOptions,
-                    onSelect: _selectResult,
-                    error: _fieldErrors['resultCode']?.messageFor(language),
-                  ),
+                  if (readOnly)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsetsDirectional.all(16),
+                      decoration: BoxDecoration(
+                        color: colors.surfaceLowest,
+                        borderRadius: BorderRadius.circular(
+                          QueueMetrics.radiusCard,
+                        ),
+                        border: Border.all(color: colors.outlineVariant),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            t(TechnicianKeys.technicianResult).toUpperCase(),
+                            style: queueEyebrow(context),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: QueueStatusChip(
+                              label: _result == null
+                                  ? t(TechnicianKeys.notChecked)
+                                  : resultLabel(resultRecords, _result!),
+                              tone: resultTone(resultRecords, _result),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ResultOptions(
+                      options: [for (final code in primary) viewFor(code)],
+                      rest: [for (final code in rest) viewFor(code)],
+                      selected: _result,
+                      onSelect: _selectResult,
+                      suggestion: _suggestedResult == null
+                          ? null
+                          : '${t(TechnicianKeys.technicianSuggestedResult)}: '
+                                '${resultLabel(resultRecords, _suggestedResult!)}'
+                                '${_suggestedScore == null ? '' : ' · ${t(TechnicianKeys.technicianScore)} $_suggestedScore'}',
+                      error: _fieldErrors['resultCode']?.messageFor(language),
+                    ),
                   if (_error != null) ...[
                     const SizedBox(height: 10),
                     _Note(message: _error!, tone: StatusTone.danger),
@@ -1321,31 +1155,118 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                     ),
                   ],
                   const SizedBox(height: 12),
-                  _EvidenceCard(
-                    stageLabel: stage.label,
-                    stageTone: stage.tone,
-                    stageIcon: stage.icon,
+                  EvidenceSection(
                     photos: photos,
-                    videos: videos,
-                    documents: documents,
                     minPhotos: requirement.minPhotos,
+                    videos: videos,
                     minVideos: requirement.minVideos,
-                    requiresDocument: requirement.requiresDocument,
-                    evidenceOk: evidenceOk,
+                    documents: documents,
+                    minDocuments: requirement.requiresDocument ? 1 : 0,
+                    onCapturePhoto: () => _captureDirect('PHOTO'),
+                    onCaptureVideo: () => _captureDirect('VIDEO'),
+                    onCaptureDocument: requirement.requiresDocument
+                        ? () => _captureDirect('DOCUMENT')
+                        : null,
+                    interactive: !readOnly,
                     busy: _queue.isBusy,
-                    upload: upload,
-                    evidenceTypes: evidenceTypes,
-                    evidence: evidence,
-                    error: _evidenceError,
-                    onCapture: _captureEvidence,
+                    progress: upload.progress,
+                    progressLabel: upload.stage == EvidenceUploadStage.capturing
+                        ? t(TechnicianKeys.technicianEvidenceStateCapturing)
+                        : t(TechnicianKeys.technicianEvidenceUploading, {
+                            'type': evidenceTypeLabel(
+                              evidenceTypes,
+                              upload.type ?? 'PHOTO',
+                            ),
+                          }),
                     onCancel: _cancelEvidence,
+                    failed:
+                        upload.stage == EvidenceUploadStage.failed &&
+                        upload.failure == null,
                     onRetry: _retryEvidence,
-                    onDelete: _deleteEvidence,
-                    onMark: (value) =>
-                        _canMark(value) ? () => _markDamage(value) : null,
-                    loadBytes: _evidenceBytes,
+                    error: _evidenceError,
+                    queued: upload.stage == EvidenceUploadStage.queued,
                   ),
+                  if (_markCandidate != null && !readOnly) ...[
+                    const SizedBox(height: 12),
+                    MarkPrompt(
+                      photoBytes: _markCandidate!.bytes,
+                      // A defect emphasises marking over keeping the photo.
+                      // gate-allow: behaviour — emphasis follows the verdict.
+                      defect: _result == 'DEFECT_FOUND',
+                      onMark: _markCandidateDamage,
+                      onDismiss: () => setState(() => _markCandidate = null),
+                    ),
+                  ],
                   const SizedBox(height: 12),
+                  if (showNotes) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsetsDirectional.all(16),
+                      decoration: BoxDecoration(
+                        color: colors.surfaceLowest,
+                        borderRadius: BorderRadius.circular(
+                          QueueMetrics.radiusCard,
+                        ),
+                        border: Border.all(color: colors.outlineVariant),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  t(TechnicianKeys.technicianNotes),
+                                  style: queueText(
+                                    context,
+                                    16,
+                                    weight: FontWeight.w700,
+                                    height: 22,
+                                    tracking: -0.1,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                t(TechnicianKeys.technicianNotesCount, {
+                                  'done': _notesEn.text.trim().length,
+                                  'required': minNotes,
+                                }),
+                                textDirection: TextDirection.ltr,
+                                style: queueText(
+                                  context,
+                                  13,
+                                  weight: FontWeight.w700,
+                                  height: 18,
+                                  tabular: true,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          AppTextField(
+                            controller: _notesEn,
+                            label: t(TechnicianKeys.technicianCaptionsEn),
+                            labelAbove: true,
+                            maxLines: 3,
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 10),
+                          AppTextField(
+                            controller: _notesAr,
+                            label: t(TechnicianKeys.technicianCaptionsAr),
+                            labelAbove: true,
+                            maxLines: 3,
+                            textDirection: TextDirection.rtl,
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _DetailsCard(
                     open: detailsOpen,
                     requiredCount: requiredDetails,
@@ -1401,6 +1322,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                                 : _fieldErrors['score']?.messageFor(language),
                             onChanged: (_) {
                               _scoreManuallyEdited = true;
+                              _autoSaveArmed = true;
                               setState(() {});
                             },
                           ),
@@ -1432,6 +1354,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                                 requiredFor: _requiredFor,
                                 missing: _isMissing,
                                 onOptionChanged: (field, index, code) {
+                                  _autoSaveArmed = true;
                                   setState(() {
                                     _optionValues.putIfAbsent(
                                       field.fieldCode,
@@ -1440,6 +1363,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                                   });
                                 },
                                 onMultiChanged: (field, index, code, selected) {
+                                  _autoSaveArmed = true;
                                   setState(() {
                                     final map = _multiValues.putIfAbsent(
                                       field.fieldCode,
@@ -1461,55 +1385,28 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                               ),
                             ],
                           ),
-                    notes: item.allowFreeTextNote
-                        ? Column(
-                            children: [
-                              AppTextField(
-                                controller: _notesEn,
-                                label: t(TechnicianKeys.technicianCaptionsEn),
-                                labelAbove: true,
-                                maxLines: 3,
-                              ),
-                              const SizedBox(height: 10),
-                              AppTextField(
-                                controller: _notesAr,
-                                label: t(TechnicianKeys.technicianCaptionsAr),
-                                labelAbove: true,
-                                maxLines: 3,
-                                textDirection: TextDirection.rtl,
-                              ),
-                            ],
-                          )
-                        : null,
-                    notesHint:
-                        item.allowFreeTextNote &&
-                            _evidenceRequirement.minNotesChars > 0
-                        ? t(TechnicianKeys.technicianNotesHint, {
-                            'count': _evidenceRequirement.minNotesChars,
-                          })
-                        : null,
                   ),
                 ],
               ),
             ),
-            _ActionBar(
-              summary: resultLabel_,
-              hint: hint,
-              saving: _saving,
-              primaryLabel: widget.nextItemCode == null
+            ItemFooter(
+              primaryLabel: readOnly
+                  ? t(TechnicianKeys.commonBack)
+                  : widget.nextItemCode == null
                   ? t(TechnicianKeys.technicianSaveAndFinish)
                   : t(TechnicianKeys.technicianSaveAndNext),
-              onPressed: () => _save(evidence, advance: true),
+              onPrimary: readOnly
+                  ? () => Navigator.of(context).maybePop()
+                  : () => _save(evidence, advance: true),
+              saving: _saving && !readOnly,
+              secondaryLabel: secondaryLabel,
+              onSecondary: secondaryLabel == null ? null : secondaryAction,
             ),
           ],
         ),
       ),
     );
   }
-
-  bool _canMark(Evidence evidence) =>
-      evidence.isPhoto &&
-      (evidence.id.startsWith('local-') || evidence.status != 'PENDING');
 
   /// How many folded fields this item actually requires, so the
   /// disclosure can say so and start open when it matters.
@@ -1533,51 +1430,23 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     return count;
   }
 
-  /// Raw bytes for one evidence file: the offline copy while it is still
-  /// queued, otherwise the uploaded content.
-  Future<Uint8List?> _evidenceBytes(Evidence evidence) async {
-    if (evidence.id.startsWith('local-')) {
-      final local = await ref
-          .read(offlineStoreProvider)
-          .evidenceForItem(jobId, item.itemCode);
-      final id = evidence.id.substring('local-'.length);
-      for (final row in local) {
-        if (row.id == id) {
-          return row.bytes;
-        }
-      }
-      return null;
-    }
-    final bytes = await ref
-        .read(technicianApiProvider)
-        .evidenceContent(jobId, item.itemCode, evidence.id);
-    return Uint8List.fromList(bytes);
-  }
-
-  /// Opens the markup editor, then uploads the marked photo as ordinary
-  /// photo evidence so the report shows the damage circled.
-  Future<void> _markDamage(Evidence evidence) async {
-    final t = UiStrings.of(context);
-    if (_queue.isBusy) {
+  /// Opens the markup editor for the just-captured photo, then uploads the
+  /// marked image as an additional photo through the existing queue.
+  Future<void> _markCandidateDamage() async {
+    final candidate = _markCandidate;
+    if (candidate == null || _queue.isBusy) {
       return;
     }
-    setState(() => _evidenceError = null);
+    setState(() {
+      _markCandidate = null;
+      _evidenceError = null;
+    });
     final language = Localizations.localeOf(context).languageCode;
     try {
-      final bytes = await _evidenceBytes(evidence);
-      if (!mounted) {
-        return;
-      }
-      if (bytes == null) {
-        setState(
-          () => _evidenceError = t(TechnicianKeys.technicianEvidenceFailed),
-        );
-        return;
-      }
       final marked = await Navigator.of(context).push<MarkedPhoto>(
         MaterialPageRoute(
-          builder: (context) => PhotoMarkupPage(
-            photoBytes: bytes,
+          builder: (_) => PhotoMarkupPage(
+            photoBytes: candidate.bytes,
             title: item.labelFor(language),
           ),
         ),
@@ -1585,24 +1454,51 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       if (marked == null || !mounted) {
         return;
       }
-      _queue.markCapturing('PHOTO');
+      await _enqueueMarked(
+        marked.bytes,
+        marked.width,
+        marked.height,
+        candidate.caption,
+      );
+    } on Object catch (error) {
+      _queue.clearCapturing();
+      if (!mounted) {
+        return;
+      }
+      setState(
+        () =>
+            _evidenceError = _serverEvidenceError(UiStrings.of(context), error),
+      );
+    }
+  }
+
+  /// Uploads marked bytes as ordinary photo evidence so the report shows the
+  /// damage circled.
+  Future<void> _enqueueMarked(
+    Uint8List bytes,
+    int? width,
+    int? height,
+    String baseCaption,
+  ) async {
+    final t = UiStrings.of(context);
+    _queue.markCapturing('PHOTO');
+    try {
       final existing = await _existingSha256();
-      final caption = evidence.captionEn?.trim() ?? '';
-      final markedCaption = caption.isEmpty
+      final caption = baseCaption.isEmpty
           ? t(TechnicianKeys.technicianMarkupCaption)
-          : '$caption Â· ${t(TechnicianKeys.technicianMarkupCaption)}';
+          : '$baseCaption · ${t(TechnicianKeys.technicianMarkupCaption)}';
       final captured = CapturedEvidence(
         type: 'PHOTO',
-        bytes: marked.bytes,
+        bytes: bytes,
         mime: 'image/jpeg',
         capturedAt: DateTime.now().toUtc().toIso8601String(),
-        captureSource: evidence.captureSource ?? 'CAMERA',
-        width: marked.width,
-        height: marked.height,
+        captureSource: 'CAMERA',
+        width: width,
+        height: height,
       );
       final result = await _queue.enqueue(
         captured,
-        captionEn: markedCaption,
+        captionEn: caption,
         captionAr: null,
         existingSha256: existing,
       );
@@ -1672,962 +1568,6 @@ class _InlineError extends StatelessWidget {
 }
 
 /// The item, the standard it is judged against, and the verdict.
-class _VerdictCard extends ConsumerWidget {
-  const _VerdictCard({
-    required this.eyebrow,
-    required this.label,
-    required this.instruction,
-    required this.spec,
-    required this.unit,
-    required this.safety,
-    required this.multi,
-    required this.resultLabel,
-    required this.resultCode,
-    required this.suggested,
-    required this.codes,
-    required this.onSelect,
-    required this.error,
-  });
-
-  final String eyebrow;
-  final String label;
-  final String? instruction;
-  final String? spec;
-  final String? unit;
-  final bool safety;
-  final bool multi;
-  final String resultLabel;
-  final String? resultCode;
-  final String? suggested;
-  final List<String> codes;
-  final ValueChanged<String> onSelect;
-  final String? error;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    final tones = context.statusColors;
-    return _Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text(
-                eyebrow,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: context.texts.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.9,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const Spacer(),
-              _ResultPill(label: resultLabel, resultCode: resultCode),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: context.texts.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.4,
-              height: 1.15,
-            ),
-          ),
-          if (instruction != null && instruction!.trim().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              instruction!,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: context.texts.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-                height: 1.45,
-              ),
-            ),
-          ],
-          if (spec != null && spec!.trim().isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(
-                  Icons.straighten_rounded,
-                  size: 14,
-                  color: colors.onSurfaceVariant,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    spec!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.texts.labelMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (safety || multi || unit != null) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                if (safety)
-                  _Flag(
-                    label: t(TechnicianKeys.technicianSafetyCritical),
-                    icon: Icons.health_and_safety_outlined,
-                    tone: StatusTone.danger,
-                  ),
-                if (multi)
-                  _Flag(
-                    label: t(TechnicianKeys.technicianMultiPoint),
-                    icon: Icons.grid_on_outlined,
-                    tone: StatusTone.info,
-                  ),
-                if (unit != null)
-                  _Flag(
-                    label: '${t(TechnicianKeys.technicianUnit)}: $unit',
-                    icon: Icons.speed_rounded,
-                    tone: StatusTone.neutral,
-                  ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 16),
-          Text(
-            t(TechnicianKeys.technicianResult).toUpperCase(),
-            style: context.texts.labelSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.9,
-              color: colors.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _Verdicts(codes: codes, selected: resultCode, onSelect: onSelect),
-          if (suggested != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.auto_awesome_outlined,
-                  size: 13,
-                  color: tones.forTone(StatusTone.info).foreground,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    suggested!,
-                    maxLines: 2,
-                    style: context.texts.labelSmall?.copyWith(
-                      color: tones.forTone(StatusTone.info).foreground,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (error != null) ...[
-            const SizedBox(height: 8),
-            _Note(message: error!, tone: StatusTone.danger),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Full-width verdict rows on a phone, three tiles where there is room.
-class _Verdicts extends ConsumerWidget {
-  const _Verdicts({
-    required this.codes,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  // Presentation grouping only; labels and membership come from the API.
-  // gate-allow: codes
-  static const _primary = [
-    'NO_ISSUE_OBSERVED',
-    'ATTENTION_RECOMMENDED',
-    'DEFECT_FOUND',
-  ];
-
-  final List<String> codes;
-  final String? selected;
-  final ValueChanged<String> onSelect;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final records = ref.watch(enumsProvider('result')).value;
-    final primary = [
-      for (final code in _primary)
-        if (codes.contains(code)) code,
-    ];
-    final rest = [
-      for (final code in codes)
-        if (!_primary.contains(code)) code,
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                for (var index = 0; index < primary.length; index++) ...[
-                  Expanded(
-                    child: _VerdictTile(
-                      code: primary[index],
-                      label: resultLabel(records, primary[index]),
-                      selected: selected == primary[index],
-                      onTap: () => onSelect(primary[index]),
-                    ),
-                  ),
-                  if (index != primary.length - 1) const SizedBox(width: 8),
-                ],
-              ],
-            ),
-            if (rest.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final code in rest)
-                    _VerdictChip(
-                      label: resultLabel(records, code),
-                      selected: selected == code,
-                      onTap: () => onSelect(code),
-                    ),
-                ],
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _VerdictTile extends ConsumerWidget {
-  const _VerdictTile({
-    required this.code,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String code;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pair = context.statusColors.forTone(
-      resultTone(ref.watch(enumsProvider('result')).value, code),
-    );
-    final colors = context.colors;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          constraints: const BoxConstraints(minHeight: 74),
-          decoration: BoxDecoration(
-            color: selected ? pair.background : colors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected ? pair.foreground : colors.outlineVariant,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? pair.foreground.withValues(alpha: 0.12)
-                      : colors.surfaceContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  resultIcon(code),
-                  size: 17,
-                  color: selected ? pair.foreground : colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.texts.labelSmall?.copyWith(
-                    fontSize: 10.5,
-                    height: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: selected ? pair.foreground : colors.onSurface,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _VerdictChip extends StatelessWidget {
-  const _VerdictChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppFilterChip(
-      label: label,
-      selected: selected,
-      onSelected: (_) => onTap(),
-    );
-  }
-}
-
-class _ResultPill extends ConsumerWidget {
-  const _ResultPill({required this.label, required this.resultCode});
-
-  final String label;
-  final String? resultCode;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pair = resultCode == null
-        ? context.statusColors.forTone(StatusTone.neutral)
-        : context.statusColors.forTone(
-            resultTone(ref.watch(enumsProvider('result')).value, resultCode!),
-          );
-    return Container(
-      height: 26,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: pair.background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: pair.foreground,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: context.texts.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: pair.foreground,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Evidence: the counts a result needs, one tap to capture, and the media
-/// strip. Photos are real thumbnails; tapping one opens the damage marker.
-class _EvidenceCard extends StatelessWidget {
-  const _EvidenceCard({
-    required this.stageLabel,
-    required this.stageTone,
-    required this.stageIcon,
-    required this.photos,
-    required this.videos,
-    required this.documents,
-    required this.minPhotos,
-    required this.minVideos,
-    required this.requiresDocument,
-    required this.evidenceOk,
-    required this.busy,
-    required this.upload,
-    required this.evidenceTypes,
-    required this.evidence,
-    required this.error,
-    required this.onCapture,
-    required this.onCancel,
-    required this.onRetry,
-    required this.onDelete,
-    required this.onMark,
-    required this.loadBytes,
-  });
-
-  final String stageLabel;
-  final StatusTone stageTone;
-  final IconData stageIcon;
-  final int photos;
-  final int videos;
-  final int documents;
-  final int minPhotos;
-  final int minVideos;
-  final bool requiresDocument;
-  final bool evidenceOk;
-  final bool busy;
-  final EvidenceUploadState upload;
-  final List<ReferenceRecord>? evidenceTypes;
-  final List<Evidence> evidence;
-  final String? error;
-  final ValueChanged<String> onCapture;
-  final VoidCallback onCancel;
-  final VoidCallback onRetry;
-  final ValueChanged<Evidence> onDelete;
-  final VoidCallback? Function(Evidence) onMark;
-  final Future<Uint8List?> Function(Evidence) loadBytes;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    return _Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.photo_camera_outlined,
-                size: 16,
-                color: colors.onSurface,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  t(TechnicianKeys.technicianEvidenceCounts),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.texts.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              StatusChip(label: stageLabel, tone: stageTone, icon: stageIcon),
-            ],
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final twoUp = constraints.maxWidth < 420;
-              final width = twoUp
-                  ? (constraints.maxWidth - 8) / 2
-                  : (constraints.maxWidth - 16) / 3;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  SizedBox(
-                    width: width,
-                    child: _CaptureTile(
-                      icon: Icons.photo_camera_rounded,
-                      label: t(TechnicianKeys.technicianCapturePhoto),
-                      count: '$photos / $minPhotos',
-                      filled: true,
-                      enabled: !busy,
-                      onTap: () => onCapture('PHOTO'),
-                    ),
-                  ),
-                  SizedBox(
-                    width: width,
-                    child: _CaptureTile(
-                      icon: Icons.videocam_rounded,
-                      label: t(TechnicianKeys.technicianCaptureVideo),
-                      count: '$videos / $minVideos',
-                      enabled: !busy,
-                      onTap: () => onCapture('VIDEO'),
-                    ),
-                  ),
-                  if (requiresDocument || !twoUp)
-                    SizedBox(
-                      width: width,
-                      child: _CaptureTile(
-                        icon: Icons.description_rounded,
-                        label: t(TechnicianKeys.technicianCaptureDocument),
-                        count: '$documents / ${requiresDocument ? 1 : 0}',
-                        enabled: !busy,
-                        onTap: () => onCapture('DOCUMENT'),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          if (upload.busy) ...[
-            const SizedBox(height: 10),
-            if (upload.stage == EvidenceUploadStage.uploading) ...[
-              LinearProgressIndicator(
-                value: upload.progress,
-                semanticsLabel: t(TechnicianKeys.technicianUploadProgress),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      upload.progress == null
-                          ? ''
-                          : t(TechnicianKeys.technicianEvidencePercent, {
-                              'percent': (upload.progress! * 100).round(),
-                            }),
-                      style: context.texts.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: onCancel,
-                    child: Text(
-                      t(TechnicianKeys.technicianEvidenceCancel),
-                      style: context.texts.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ] else
-              Text(
-                upload.stage == EvidenceUploadStage.capturing
-                    ? t(TechnicianKeys.technicianEvidenceStateCapturing)
-                    : t(TechnicianKeys.technicianEvidenceUploading, {
-                        'type': evidenceTypeLabel(
-                          evidenceTypes,
-                          upload.type ?? 'PHOTO',
-                        ),
-                      }),
-                style: context.texts.bodySmall,
-              ),
-          ],
-          if (upload.stage == EvidenceUploadStage.queued) ...[
-            const SizedBox(height: 10),
-            _Note(
-              message: t(TechnicianKeys.technicianEvidenceQueued),
-              tone: StatusTone.warning,
-            ),
-          ],
-          if (upload.stage == EvidenceUploadStage.failed &&
-              upload.failure == null) ...[
-            const SizedBox(height: 10),
-            AppButton(
-              label: t(TechnicianKeys.technicianRetryUpload),
-              icon: Icons.refresh_rounded,
-              variant: AppButtonVariant.tonal,
-              onPressed: onRetry,
-            ),
-          ],
-          if (error != null) ...[
-            const SizedBox(height: 10),
-            _Note(message: error!, tone: StatusTone.danger),
-          ],
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final value in evidence)
-                _MediaTile(
-                  evidence: value,
-                  evidenceTypes: evidenceTypes,
-                  loadBytes: () => loadBytes(value),
-                  onMark: onMark(value),
-                  onDelete: () => onDelete(value),
-                ),
-              _AddTile(
-                label: t(TechnicianKeys.technicianCapturePhoto),
-                enabled: !busy,
-                onTap: () => onCapture('PHOTO'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                evidenceOk
-                    ? Icons.check_circle_outline
-                    : Icons.error_outline_rounded,
-                size: 14,
-                color: evidenceOk
-                    ? context.statusColors.success.foreground
-                    : context.statusColors.warning.foreground,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  evidenceOk
-                      ? t(TechnicianKeys.technicianEvidenceSatisfied)
-                      : t(TechnicianKeys.technicianEvidenceRequired),
-                  style: context.texts.labelSmall?.copyWith(
-                    color: evidenceOk
-                        ? context.statusColors.success.foreground
-                        : context.statusColors.warning.foreground,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One file in the media strip: real thumbnail for photos, tap to mark up.
-class _MediaTile extends ConsumerStatefulWidget {
-  const _MediaTile({
-    required this.evidence,
-    required this.evidenceTypes,
-    required this.loadBytes,
-    required this.onMark,
-    required this.onDelete,
-  });
-
-  final Evidence evidence;
-  final List<ReferenceRecord>? evidenceTypes;
-  final Future<Uint8List?> Function() loadBytes;
-  final VoidCallback? onMark;
-  final VoidCallback onDelete;
-
-  @override
-  ConsumerState<_MediaTile> createState() => _MediaTileState();
-}
-
-class _MediaTileState extends ConsumerState<_MediaTile> {
-  static const double _size = 74;
-
-  Uint8List? _bytes;
-  bool _done = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.evidence.isPhoto) {
-      _load();
-    }
-  }
-
-  Future<void> _load() async {
-    try {
-      final bytes = await widget.loadBytes();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _bytes = bytes;
-        _done = true;
-      });
-    } on Object {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _done = true);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    final evidence = widget.evidence;
-    // The status tone and label come from the served taxonomy, not a local
-    // guess about which states are "done".
-    final tone = evidenceStatusTone(ref, evidence.status);
-    final statusPair = context.statusColors.forTone(tone);
-    final statusIcon = switch (tone) {
-      StatusTone.success => Icons.check_rounded,
-      StatusTone.danger => Icons.error_outline_rounded,
-      _ => Icons.schedule_rounded,
-    };
-    final pending = tone != StatusTone.success;
-    final label = evidence.isPhoto
-        ? t(TechnicianKeys.technicianMarkDamage)
-        : evidenceTypeLabel(widget.evidenceTypes, evidence.type);
-
-    return Semantics(
-      button: widget.onMark != null,
-      label: '$label · ${evidenceStatusLabel(ref, evidence.status)}',
-      child: GestureDetector(
-        onTap: widget.onMark,
-        child: SizedBox(
-          width: _size,
-          height: _size,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: colors.surfaceContainer,
-                      border: Border.all(color: colors.outlineVariant),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: _content(evidence, pending),
-                  ),
-                ),
-              ),
-              PositionedDirectional(
-                end: 4,
-                bottom: 4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: statusPair.foreground,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colors.surface, width: 1.5),
-                  ),
-                  child: Icon(statusIcon, size: 11, color: Colors.white),
-                ),
-              ),
-              PositionedDirectional(
-                start: 2,
-                top: 2,
-                child: Semantics(
-                  button: true,
-                  label: t(TechnicianKeys.technicianDeleteEvidence),
-                  child: GestureDetector(
-                    onTap: widget.onDelete,
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: colors.surface.withValues(alpha: 0.92),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 12,
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _content(Evidence evidence, bool pending) {
-    final colors = context.colors;
-    if (evidence.isPhoto) {
-      final bytes = _bytes;
-      if (bytes != null) {
-        return Image.memory(
-          bytes,
-          fit: BoxFit.cover,
-          cacheWidth: 240,
-          gaplessPlayback: true,
-        );
-      }
-      return Center(
-        child: _done
-            ? Icon(
-                Icons.broken_image_outlined,
-                size: 20,
-                color: colors.onSurfaceVariant,
-              )
-            : SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-      );
-    }
-    final duration = evidence.durationMs;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            evidence.isVideo
-                ? Icons.play_circle_outline_rounded
-                : Icons.description_outlined,
-            size: 22,
-            color: context.brand.ink,
-          ),
-          if (evidence.isVideo && duration != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              '${(duration / 1000).round()}s',
-              style: context.texts.labelSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _AddTile extends StatelessWidget {
-  const _AddTile({
-    required this.label,
-    required this.onTap,
-    this.enabled = true,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: GestureDetector(
-        onTap: enabled ? onTap : null,
-        child: Container(
-          width: 74,
-          height: 74,
-          decoration: BoxDecoration(
-            color: context.brand.container.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: context.brand.ink.withValues(alpha: enabled ? 0.55 : 0.25),
-              width: 1.4,
-            ),
-          ),
-          child: Icon(
-            Icons.add_a_photo_outlined,
-            size: 22,
-            color: context.brand.ink.withValues(alpha: enabled ? 1 : 0.4),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CaptureTile extends StatelessWidget {
-  const _CaptureTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.count,
-    this.filled = false,
-    this.enabled = true,
-  });
-
-  final IconData icon;
-  final String label;
-  final String? count;
-  final VoidCallback onTap;
-  final bool filled;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final fg = filled ? Colors.white : colors.onSurface;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: GestureDetector(
-        onTap: enabled ? onTap : null,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: filled
-                ? context.brand.ink.withValues(alpha: enabled ? 1 : 0.45)
-                : colors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: filled ? context.brand.ink : colors.outlineVariant,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 19, color: fg),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.texts.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: fg,
-                        height: 1.2,
-                      ),
-                    ),
-                    if (count != null)
-                      Text(
-                        count!,
-                        style: context.texts.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: filled
-                              ? Colors.white70
-                              : colors.onSurfaceVariant,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _DetailsCard extends StatelessWidget {
   const _DetailsCard({
     required this.open,
@@ -2636,8 +1576,6 @@ class _DetailsCard extends StatelessWidget {
     required this.measurement,
     required this.score,
     required this.issueFields,
-    required this.notes,
-    required this.notesHint,
   });
 
   final bool open;
@@ -2646,14 +1584,12 @@ class _DetailsCard extends StatelessWidget {
   final Widget? measurement;
   final Widget? score;
   final Widget? issueFields;
-  final Widget? notes;
-  final String? notesHint;
 
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
     final colors = context.colors;
-    final groups = <Widget>[?measurement, ?score, ?issueFields, ?notes];
+    final groups = <Widget>[?measurement, ?score, ?issueFields];
     return _Panel(
       padding: EdgeInsets.zero,
       child: Column(
@@ -2729,15 +1665,6 @@ class _DetailsCard extends StatelessWidget {
                       Divider(height: 1, color: colors.outlineVariant),
                       const SizedBox(height: 14),
                     ],
-                    if (index == 2 && notesHint != null) ...[
-                      Text(
-                        notesHint!,
-                        style: context.texts.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                    ],
                     groups[index],
                   ],
                 ],
@@ -2751,84 +1678,6 @@ class _DetailsCard extends StatelessWidget {
 }
 
 /// The pinned action: what is missing, then the next stop.
-class _ActionBar extends StatelessWidget {
-  const _ActionBar({
-    required this.summary,
-    required this.hint,
-    required this.saving,
-    required this.primaryLabel,
-    required this.onPressed,
-  });
-
-  final String summary;
-  final String hint;
-  final bool saving;
-  final String primaryLabel;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.outlineVariant)),
-      ),
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 12),
-      child: Center(
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 620),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 430;
-              return Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          summary.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.texts.labelSmall?.copyWith(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.9,
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          hint,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.texts.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  _PrimaryAction(
-                    label: primaryLabel,
-                    showIcon: !compact,
-                    saving: saving,
-                    onPressed: onPressed,
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A white card on the canvas — the only container this screen uses.
 class _Panel extends StatelessWidget {
   const _Panel({required this.child, this.padding});
 
@@ -2845,41 +1694,6 @@ class _Panel extends StatelessWidget {
         border: Border.all(color: context.colors.outlineVariant),
       ),
       child: child,
-    );
-  }
-}
-
-class _Flag extends StatelessWidget {
-  const _Flag({required this.label, required this.icon, required this.tone});
-
-  final String label;
-  final IconData icon;
-  final StatusTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final pair = context.statusColors.forTone(tone);
-    return Container(
-      height: 24,
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: pair.background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: pair.foreground),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: context.texts.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: pair.foreground,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -3149,75 +1963,3 @@ class _IssueFieldInput extends StatelessWidget {
 /// The app's primary action: brand ink, 14 px radius, 48 px tall. AppButton's
 /// `large` variant paints the lighter emerald, which does not match the
 /// primary actions on the rest of the technician surface.
-class _PrimaryAction extends StatelessWidget {
-  const _PrimaryAction({
-    required this.label,
-    required this.onPressed,
-    this.showIcon = true,
-    this.saving = false,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-  final bool showIcon;
-  final bool saving;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = !saving;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: SizedBox(
-        height: 48,
-        child: Material(
-          color: enabled
-              ? context.brand.ink
-              : context.brand.ink.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: enabled ? onPressed : null,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (saving)
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  else
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.texts.labelLarge?.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  if (showIcon && !saving) ...[
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

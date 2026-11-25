@@ -19,6 +19,7 @@ abstract final class TechnicianKeys {
   static const addLanguage = UiMessageKey.technician('addLanguage');
   static const addOptionSet = UiMessageKey.technician('addOptionSet');
   static const addPhoto = UiMessageKey.technician('addPhoto');
+  static const addVideo = UiMessageKey.technician('addVideo');
   static const adminFeatureAudit = UiMessageKey.technician('adminFeatureAudit');
   static const adminFeatureCatalog = UiMessageKey.technician(
     'adminFeatureCatalog',
@@ -1936,6 +1937,9 @@ abstract final class TechnicianKeys {
     'technicianNotProvided',
   );
   static const technicianNotes = UiMessageKey.technician('technicianNotes');
+  static const technicianNotesCount = UiMessageKey.technician(
+    'technicianNotesCount',
+  );
   static const technicianNotesHint = UiMessageKey.technician(
     'technicianNotesHint',
   );
@@ -2385,6 +2389,24 @@ abstract final class TechnicianKeys {
   );
   static const technicianSuggestedResult = UiMessageKey.technician(
     'technicianSuggestedResult',
+  );
+  static const technicianSummaryAddSignature = UiMessageKey.technician(
+    'technicianSummaryAddSignature',
+  );
+  static const technicianSummaryCapApplied = UiMessageKey.technician(
+    'technicianSummaryCapApplied',
+  );
+  static const technicianSummaryComplete = UiMessageKey.technician(
+    'technicianSummaryComplete',
+  );
+  static const technicianSummaryReadyBody = UiMessageKey.technician(
+    'technicianSummaryReadyBody',
+  );
+  static const technicianSummaryResolveConflicts = UiMessageKey.technician(
+    'technicianSummaryResolveConflicts',
+  );
+  static const technicianSummaryReviewItems = UiMessageKey.technician(
+    'technicianSummaryReviewItems',
   );
   static const technicianSummaryTitle = UiMessageKey.technician(
     'technicianSummaryTitle',

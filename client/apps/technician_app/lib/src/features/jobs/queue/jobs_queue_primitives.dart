@@ -270,10 +270,18 @@ class _QueueChipState extends State<QueueChip> {
 }
 
 class QueueStatusChip extends StatelessWidget {
-  const QueueStatusChip({required this.label, required this.tone, super.key});
+  const QueueStatusChip({
+    required this.label,
+    required this.tone,
+    this.dense = false,
+    super.key,
+  });
 
   final String label;
   final StatusTone tone;
+
+  /// Tighter padding and type for lists where two chips share one line.
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -281,9 +289,9 @@ class QueueStatusChip extends StatelessWidget {
     // No fixed height: padding sets the 28 px resting size and the chip grows
     // with the text scale instead of clipping its word.
     return Container(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 12,
-        vertical: 6,
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: dense ? 9 : 12,
+        vertical: dense ? 4 : 6,
       ),
       decoration: BoxDecoration(
         color: pair.background,
@@ -295,21 +303,21 @@ class QueueStatusChip extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: dense ? 5 : 6,
+            height: dense ? 5 : 6,
             decoration: BoxDecoration(
               color: pair.foreground,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 7),
+          SizedBox(width: dense ? 5 : 7),
           Text(
             label,
             style: queueText(
               context,
-              12.5,
+              dense ? 11.5 : 12.5,
               weight: FontWeight.w600,
-              height: 16,
+              height: dense ? 14 : 16,
               color: context.colors.onSurface,
             ),
           ),
