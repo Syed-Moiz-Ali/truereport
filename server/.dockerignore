@@ -1,0 +1,4 @@
+target/
+.truereport-storage/
+*.log
+*.log.err

@@ -2,6 +2,7 @@ import 'package:auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
 import 'package:technician_app/app.dart';
@@ -11,6 +12,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Shared backend url: packages/auth/.env (same for every app).
   await AppEnv.load();
+  // Material's own copy (date pickers, dialogs) is localized per locale.
+  await initializeDateFormatting();
   // Real web URLs (/jobs) instead of hash fragments (/#/jobs).
   usePathUrlStrategy();
   final uiMessageStore = await createUiMessageStore();

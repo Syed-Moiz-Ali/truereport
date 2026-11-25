@@ -218,6 +218,14 @@ public class PlatformUiMessageCatalog {
         }
     }
 
+    /**
+     * Filesystem root when the configured catalog directory is a real folder;
+     * null when the catalogs are read from the classpath and cannot be written.
+     */
+    public Path writableRoot() {
+        return filesystemRoot ? Path.of(directory) : null;
+    }
+
     /** Reads every namespace for a client language; missing files are empty. */
     public ClientCatalog client(String client, String language) {
         if (!clientSupported(client)) {

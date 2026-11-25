@@ -73,10 +73,12 @@ class WorkshopRecordHeader extends ConsumerWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 2),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
                             child: Icon(
-                              Icons.place_outlined,
+                              (workshop.branchName ?? '').trim().isEmpty
+                                  ? Icons.mail_outline_rounded
+                                  : Icons.place_outlined,
                               size: 14,
                               color: PtTheme.muted,
                             ),
@@ -84,9 +86,15 @@ class WorkshopRecordHeader extends ConsumerWidget {
                           const SizedBox(width: 5),
                           Expanded(
                             child: Text(
-                              (workshop.branchName ?? '').trim().isEmpty
-                                  ? '—'
-                                  : workshop.branchName!,
+                              // Branch is optional now: fall back to the
+                              // workshop contact email, then to a dash.
+                              (workshop.branchName ?? '').trim().isNotEmpty
+                                  ? workshop.branchName!
+                                  : ((workshop.contactEmail ?? '')
+                                            .trim()
+                                            .isNotEmpty
+                                        ? workshop.contactEmail!
+                                        : '—'),
                               style: Atlas.text(12.5, color: PtTheme.muted),
                             ),
                           ),
@@ -181,6 +189,10 @@ class WorkshopInstrumentBand extends StatelessWidget {
         strings.tKey(PlatformAdminKeys.tabWorkshopStaff),
       ),
       (
+        '${workshop.admins.length}',
+        strings.tKey(PlatformAdminKeys.sectionWorkshopAdmins),
+      ),
+      (
         '${workshop.technicians.length}',
         strings.tKey(PlatformAdminKeys.sectionWorkshopTechnicians),
       ),
@@ -188,73 +200,25 @@ class WorkshopInstrumentBand extends StatelessWidget {
         '${workshop.pendingInvitations.length}',
         strings.tKey(PlatformAdminKeys.sectionWorkshopPendingInvitations),
       ),
-      (
-        '${workshop.bayCount}',
-        strings.tKey(PlatformAdminKeys.fieldWorkshopBays),
-      ),
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
         final narrow = constraints.maxWidth < 640;
-        final dial = Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AtlasGauge(value: workshop.assignedCapacityPercent),
-            const SizedBox(height: 6),
-            Text(
-              strings.tKey(PlatformAdminKeys.fieldWorkshopAssignedCapacity),
-              style: Atlas.text(
-                10.5,
-                weight: FontWeight.w600,
-                color: PtTheme.muted,
-              ),
-            ),
-          ],
-        );
         if (narrow) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          return Wrap(
+            runSpacing: 20,
+            spacing: 16,
             children: [
-              Row(
-                children: [
-                  dial,
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: Wrap(
-                      runSpacing: 16,
-                      children: [
-                        for (var i = 0; i < 2; i++)
-                          SizedBox(
-                            width: (constraints.maxWidth - 120) / 2,
-                            child: _Figure(
-                              value: figures[i].$1,
-                              label: figures[i].$2,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  for (var i = 2; i < figures.length; i++)
-                    Expanded(
-                      child: _Figure(
-                        value: figures[i].$1,
-                        label: figures[i].$2,
-                      ),
-                    ),
-                ],
-              ),
+              for (final figure in figures)
+                SizedBox(
+                  width: (constraints.maxWidth - 24) / 2,
+                  child: _Figure(value: figure.$1, label: figure.$2),
+                ),
             ],
           );
         }
         return Row(
           children: [
-            dial,
-            const SizedBox(width: 30),
             for (var i = 0; i < figures.length; i++) ...[
               if (i > 0) Container(width: 1, height: 52, color: PtTheme.border),
               Expanded(
@@ -323,23 +287,14 @@ class WorkshopOverview extends ConsumerWidget {
         final facts = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AtlasKeyRow(
-              label: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
-              value: (workshop.branchName ?? '').trim().isEmpty
-                  ? '—'
-                  : workshop.branchName!,
-            ),
+            if ((workshop.branchName ?? '').trim().isNotEmpty)
+              AtlasKeyRow(
+                label: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
+                value: workshop.branchName!,
+              ),
             AtlasKeyRow(
               label: strings.tKey(PlatformAdminKeys.fieldWorkshopContactEmail),
               value: contact.isEmpty ? '—' : contact,
-            ),
-            AtlasKeyRow(
-              label: strings.tKey(PlatformAdminKeys.fieldWorkshopBays),
-              value: '${workshop.bayCount}',
-            ),
-            AtlasKeyRow(
-              label: strings.tKey(PlatformAdminKeys.fieldWorkshopCapacity),
-              value: '${workshop.assignedCapacityPercent}%',
             ),
             AtlasKeyRow(
               label: strings.tKey(CommonKeys.tableStatus),

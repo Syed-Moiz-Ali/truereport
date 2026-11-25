@@ -8,6 +8,7 @@ public record HierarchyWorkshopDto(
         String name,
         String branchName,
         String status,
+        String contactEmail,
         long memberCount,
         List<PlatformAccountDto> admins,
         List<PlatformAccountDto> technicians

@@ -30,6 +30,9 @@ jobs:
       - name: Analyze (fatal infos)
         working-directory: client
         run: flutter analyze --fatal-infos
+      - name: Test (technician app)
+        working-directory: client/apps/technician_app
+        run: flutter test
 
   java:
     name: Java build

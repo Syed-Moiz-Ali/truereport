@@ -34,6 +34,8 @@ class SigninForm extends StatelessWidget {
     required this.validatePassword,
     required this.validateCode,
     required this.autofocusEmail,
+    this.forgotLabel,
+    this.onForgot,
   });
 
   final GlobalKey<FormState> formKey;
@@ -52,6 +54,8 @@ class SigninForm extends StatelessWidget {
   final FormFieldValidator<String> validatePassword;
   final FormFieldValidator<String> validateCode;
   final bool autofocusEmail;
+  final String? forgotLabel;
+  final VoidCallback? onForgot;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +119,8 @@ class SigninForm extends StatelessWidget {
                   validator: validatePassword,
                   suffixIcon: IconButton(
                     tooltip: obscurePassword
-                        ? t(SignInKeys.showPassword): t(SignInKeys.hidePassword),
+                        ? t(SignInKeys.showPassword)
+                        : t(SignInKeys.hidePassword),
                     icon: Icon(
                       obscurePassword
                           ? Icons.visibility_outlined
@@ -131,6 +136,21 @@ class SigninForm extends StatelessWidget {
                     }
                   },
                 ),
+              if (forgotLabel != null && onForgot != null)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton(
+                    key: const Key('sign-in-forgot-password'),
+                    onPressed: submitting ? null : onForgot,
+                    child: Text(
+                      forgotLabel!,
+                      style: ws.meta.copyWith(
+                        color: ws.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               if (errorText != null) ...[
                 SizedBox(height: spacing.md),
                 _FailureBanner(message: errorText!),
@@ -143,7 +163,10 @@ class SigninForm extends StatelessWidget {
                 onPressed: onSubmit,
               ),
               SizedBox(height: spacing.md),
-              Text(copy.help, style: ws.meta.copyWith(color: ws.muted)),
+              SelectableText(
+                copy.help,
+                style: ws.meta.copyWith(color: ws.muted),
+              ),
             ],
           ),
         ],

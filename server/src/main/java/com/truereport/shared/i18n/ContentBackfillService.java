@@ -149,7 +149,7 @@ public class ContentBackfillService {
     private List<String> resolveLanguages(List<String> requested) {
         if (requested == null || requested.isEmpty()) {
             List<String> defaults = new ArrayList<>();
-            for (String language : languages.languages()) {
+            for (String language : translations.liveLanguages()) {
                 if (!language.equals(languages.defaultLanguage())) {
                     defaults.add(language);
                 }

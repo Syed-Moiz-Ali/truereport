@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:api_client/api_client.dart';
 import 'package:auth/src/session_store.dart';
 import 'package:core/core.dart';
@@ -82,7 +84,12 @@ class AuthRepository {
     _api.accessToken = session.accessToken;
     _log('restore: token found, checking profile (${_endpoints.authMe})');
     try {
-      await _api.get(_endpoints.authMe);
+      // Bounded: a stalled profile call must not leave the router in its
+      // loading state forever. The refresh inside has its own timeout.
+      await _api.get(_endpoints.authMe).timeout(const Duration(seconds: 20));
+    } on TimeoutException {
+      _log('restore: profile check timed out, keeping the session');
+      return session;
     } on AppFailure catch (failure) {
       if (failure.statusCode == 401) {
         // ApiClient has already tried the refresh token and retried once.
@@ -137,6 +144,21 @@ class AuthRepository {
     }
   }
 
+  /// Changes the signed-in user's password. The server verifies the current
+  /// password and revokes every other session; this one keeps working.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _api.post(
+      _endpoints.authChangePassword,
+      body: <String, dynamic>{
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
   Future<AuthResult> verifyTwoFactor(String challengeToken, String code) async {
     final json = await _api.post(
       _endpoints.authVerifyTwoFactor,
@@ -157,10 +179,12 @@ class AuthRepository {
   }
 
   Future<String?> refreshAccessToken() async {
+    _log('refresh: requested');
     Map<String, dynamic>? stored;
     try {
       stored = await _store.read();
-    } on Object {
+    } on Object catch (error) {
+      _log('refresh: could not read the stored session ($error)');
       return null;
     }
     final refreshToken = stored?['refreshToken'];

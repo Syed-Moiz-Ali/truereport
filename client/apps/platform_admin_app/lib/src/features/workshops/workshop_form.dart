@@ -8,6 +8,8 @@ import '../../platform_models.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import 'atlas/atlas_ui.dart';
+import 'atlas/password_policy.dart';
+import 'atlas/staff_error_messages.dart';
 import 'workshop_reason_dialog.dart';
 
 class WorkshopForm extends ConsumerStatefulWidget {
@@ -31,11 +33,14 @@ class WorkshopForm extends ConsumerStatefulWidget {
 class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
-  late final TextEditingController _branchController;
   late final TextEditingController _emailController;
   final _nameFocus = FocusNode();
-  final _branchFocus = FocusNode();
   final _emailFocus = FocusNode();
+  final _adminPasswordController = TextEditingController();
+  final _adminConfirmController = TextEditingController();
+  final _adminPasswordFocus = FocusNode();
+  final _adminConfirmFocus = FocusNode();
+  bool _obscurePassword = true;
 
   bool _submitting = false;
   String? _error;
@@ -47,7 +52,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
     super.initState();
     final workshop = widget.workshop;
     _nameController = TextEditingController(text: workshop?.name ?? '');
-    _branchController = TextEditingController(text: workshop?.branchName ?? '');
     _emailController = TextEditingController(
       text: workshop?.contactEmail ?? '',
     );
@@ -56,11 +60,13 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    _branchController.dispose();
     _emailController.dispose();
+    _adminPasswordController.dispose();
+    _adminConfirmController.dispose();
     _nameFocus.dispose();
-    _branchFocus.dispose();
     _emailFocus.dispose();
+    _adminPasswordFocus.dispose();
+    _adminConfirmFocus.dispose();
     super.dispose();
   }
 
@@ -70,12 +76,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
     if (text.length < 2) {
       return strings.tKey(CommonKeys.validationRequiredField);
     }
-    return null;
-  }
-
-  String? _validateBranch(String? value, UiMessageStrings strings) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) return strings.tKey(CommonKeys.validationRequiredField);
     return null;
   }
 
@@ -94,11 +94,18 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
       _nameFocus.requestFocus();
       return;
     }
-    if (_validateBranch(_branchController.text, strings) != null) {
-      _branchFocus.requestFocus();
+    if (_validateEmail(_emailController.text, strings) != null) {
+      _emailFocus.requestFocus();
       return;
     }
-    _emailFocus.requestFocus();
+    if (!_isCreate) {
+      return;
+    }
+    if (accountPasswordError(strings, _adminPasswordController.text) != null) {
+      _adminPasswordFocus.requestFocus();
+      return;
+    }
+    _adminConfirmFocus.requestFocus();
   }
 
   Future<void> _submit() async {
@@ -109,7 +116,6 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
     }
     if (_submitting) return;
     final name = _nameController.text.trim();
-    final branch = _branchController.text.trim();
     final email = _emailController.text.trim();
 
     setState(() {
@@ -119,19 +125,36 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
     try {
       final api = ref.read(platformApiProvider);
       final saved = _isCreate
-          ? await api.registerWorkshop(
-              name: name,
-              location: branch,
-              contactEmail: email,
-            )
+          ? await api.registerWorkshop(name: name, contactEmail: email)
           : await api.updateWorkshop(
               widget.workshop!.id,
               name: name,
-              location: branch,
               contactEmail: email,
             );
+      String? adminError;
+      if (_isCreate) {
+        // One email, one name: the contact address is also the first
+        // administrator's sign-in, and the workshop name is their display
+        // name. Asking for both twice was the confusing part of this form.
+        try {
+          await api.createUser(
+            email: email,
+            displayName: name,
+            temporaryPassword: _adminPasswordController.text,
+            role: 'WORKSHOP_ADMIN',
+            workshopId: saved.id,
+          );
+        } catch (error) {
+          adminError = staffErrorMessage(strings, error);
+        }
+      }
       ref.invalidate(hierarchyStateProvider);
       if (!mounted) return;
+      if (adminError != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(adminError)));
+      }
       widget.onSaved?.call(saved);
     } catch (_) {
       if (!mounted) return;
@@ -162,19 +185,8 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
           label: strings.tKey(PlatformAdminKeys.fieldWorkshopName),
           hint: strings.tKey(PlatformAdminKeys.fieldWorkshopName),
           textInputAction: TextInputAction.next,
-          onFieldSubmitted: (_) => _branchFocus.requestFocus(),
-          validator: (value) => _validateName(value, strings),
-        ),
-        const SizedBox(height: 14),
-        AtlasTextField(
-          key: const Key('input-workshop-branch'),
-          controller: _branchController,
-          focusNode: _branchFocus,
-          label: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
-          hint: strings.tKey(PlatformAdminKeys.fieldWorkshopBranch),
-          textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => _emailFocus.requestFocus(),
-          validator: (value) => _validateBranch(value, strings),
+          validator: (value) => _validateName(value, strings),
         ),
       ],
     );
@@ -184,12 +196,74 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
       focusNode: _emailFocus,
       label: strings.tKey(PlatformAdminKeys.fieldWorkshopContactEmail),
       hint: strings.tKey(PlatformAdminKeys.fieldWorkshopContactEmail),
+      helperText: _isCreate
+          ? strings.tKey(PlatformAdminKeys.fieldWorkshopEmailHelper)
+          : null,
       keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) => _submit(),
+      textInputAction: _isCreate ? TextInputAction.next : TextInputAction.done,
+      onFieldSubmitted: (_) =>
+          _isCreate ? _adminPasswordFocus.requestFocus() : _submit(),
       autofillHints: const [AutofillHints.email],
       validator: (value) => _validateEmail(value, strings),
     );
+
+    // The first login for the workshop is created together with the workshop,
+    // so the platform admin never has to share an account without a password.
+    // Its email is the contact email above and its display name the workshop
+    // name: no field is asked twice.
+    final administrator = _isCreate
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AtlasTextField(
+                key: const Key('input-workshop-admin-password'),
+                controller: _adminPasswordController,
+                focusNode: _adminPasswordFocus,
+                label: strings.tKey(CommonKeys.fieldTemporaryPassword),
+                hint: strings.tKey(CommonKeys.fieldTemporaryPassword),
+                helperText: strings.tKey(
+                  PlatformAdminKeys.addStaffHelperTemporaryPassword,
+                ),
+                obscureText: _obscurePassword,
+                keyboardType: TextInputType.visiblePassword,
+                autofillHints: const [AutofillHints.newPassword],
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _adminConfirmFocus.requestFocus(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 18,
+                  ),
+                  tooltip: strings.tKey(CommonKeys.buttonShowPassword),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                validator: (value) =>
+                    accountPasswordError(strings, value ?? ''),
+              ),
+              const SizedBox(height: 14),
+              AtlasTextField(
+                key: const Key('input-workshop-admin-password-confirm'),
+                controller: _adminConfirmController,
+                focusNode: _adminConfirmFocus,
+                label: strings.tKey(CommonKeys.fieldConfirmPassword),
+                hint: strings.tKey(CommonKeys.fieldConfirmPassword),
+                obscureText: true,
+                keyboardType: TextInputType.visiblePassword,
+                autofillHints: const [AutofillHints.newPassword],
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                validator: (value) => accountPasswordConfirmError(
+                  strings,
+                  _adminPasswordController.text,
+                  value ?? '',
+                ),
+              ),
+            ],
+          )
+        : null;
 
     final actions = Wrap(
       alignment: WrapAlignment.end,
@@ -263,6 +337,15 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
           ),
           const SizedBox(height: 12),
           contact,
+          if (administrator != null) ...[
+            const SizedBox(height: 22),
+            Text(
+              strings.tKey(PlatformAdminKeys.sectionWorkshopAdministrator),
+              style: Atlas.eyebrow,
+            ),
+            const SizedBox(height: 12),
+            administrator,
+          ],
         ] else ...[
           AtlasSurface(
             child: Column(
@@ -291,6 +374,31 @@ class _WorkshopFormState extends ConsumerState<WorkshopForm> {
               ],
             ),
           ),
+          if (administrator != null) ...[
+            const SizedBox(height: 16),
+            AtlasSurface(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    strings.tKey(
+                      PlatformAdminKeys.sectionWorkshopAdministrator,
+                    ),
+                    style: Atlas.sectionTitle,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    strings.tKey(
+                      PlatformAdminKeys.sectionWorkshopAdministratorHelp,
+                    ),
+                    style: Atlas.text(11.5, height: 1.45, color: PtTheme.muted),
+                  ),
+                  const SizedBox(height: 18),
+                  administrator,
+                ],
+              ),
+            ),
+          ],
         ],
         const SizedBox(height: 24),
         actions,
@@ -347,8 +455,13 @@ class WorkshopFormPage extends ConsumerWidget {
                 const SizedBox(height: 24),
                 WorkshopForm(
                   workshop: workshop,
-                  onSaved: (_) {
-                    if (context.canPop()) {
+                  onSaved: (saved) {
+                    if (workshop == null) {
+                      // A new workshop has no login yet. Take the admin
+                      // straight to the staff tab so they can create the
+                      // workshop administrator before leaving the flow.
+                      context.go('/workshops/${saved.id}?tab=staff');
+                    } else if (context.canPop()) {
                       context.pop();
                     } else {
                       context.go('/workshops');

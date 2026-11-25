@@ -5,8 +5,9 @@ import '../signin_tokens.dart';
 
 /// The access + security meta line of "The dock".
 ///
-/// "Get help" is deliberately plain text: no channel exists for it yet
-/// (data gap G1), and a link that does nothing is worse than a caption.
+/// The help label is a catalog string from the owning app ("Contact your
+/// workshop admin." on the technician login), not a hardcoded "Get help", so
+/// the line reads as one sentence and translates with the rest of the screen.
 class SignInMetaRow extends StatelessWidget {
   const SignInMetaRow({
     required this.accessPrompt,

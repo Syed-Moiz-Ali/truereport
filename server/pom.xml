@@ -23,6 +23,8 @@
     <flyway.version>13.12.0</flyway.version>
     <mysql-connector.version>26.10.0</mysql-connector.version>
     <springdoc.version>3.2.0</springdoc.version>
+    <!-- Runtime provider for Spring Security's Argon2PasswordEncoder. -->
+    <bouncycastle.version>1.86</bouncycastle.version>
     <awssdk.version>2.57.8</awssdk.version>
   </properties>
 
@@ -105,6 +107,13 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>${springdoc.version}</version>
+    </dependency>
+    <!-- Argon2PasswordEncoder (the configured PasswordEncoder) needs this at
+         runtime; without it every login fails with NoClassDefFoundError. -->
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>${bouncycastle.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.gotson.nightmonkeys</groupId>

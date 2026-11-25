@@ -6,6 +6,7 @@ import 'package:l10n/ui_strings.dart';
 
 import 'widgets/settings_geometry.dart';
 import 'widgets/settings_language_surface.dart';
+import 'widgets/settings_password_surface.dart';
 import 'widgets/settings_record_plate.dart';
 import 'widgets/settings_session_surface.dart';
 
@@ -56,6 +57,8 @@ class WorkshopSettingsPage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SettingsLanguageSurface(),
+                const SizedBox(height: SettingsGeometry.sectionGap),
+                const SettingsPasswordSurface(),
                 const SizedBox(height: SettingsGeometry.sectionGap),
                 SettingsSessionSurface(
                   onSignOut: () =>

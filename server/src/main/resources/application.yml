@@ -77,7 +77,7 @@ truereport:
       fixed-delay-ms: 15000
       libretranslate:
         url: ${LIBRETRANSLATE_URL:http://localhost:5000}
-        timeout: ${LIBRETRANSLATE_TIMEOUT:10s}
+        timeout: ${LIBRETRANSLATE_TIMEOUT:30s}
         api-key: ${LIBRETRANSLATE_API_KEY:}
         batch-size: 20
         format: text

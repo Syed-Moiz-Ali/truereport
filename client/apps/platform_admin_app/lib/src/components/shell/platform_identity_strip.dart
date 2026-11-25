@@ -95,7 +95,7 @@ class _PlatformIdentityStripState extends ConsumerState<PlatformIdentityStrip> {
       return strings.tKey(PlatformAdminKeys.pageAuditTitle);
     }
     // The settings route reads "Profile" (new catalog key).
-    if (widget.currentRoute.startsWith('/settings')) {
+    if (widget.currentRoute.startsWith('/profile')) {
       return strings.tKey(PlatformAdminKeys.pageProfileTitle);
     }
     for (final entry in PlatformNavData.primaryItems) {

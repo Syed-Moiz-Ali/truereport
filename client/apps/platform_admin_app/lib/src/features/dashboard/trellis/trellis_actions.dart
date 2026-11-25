@@ -31,7 +31,7 @@ class TrellisActions extends StatelessWidget {
       ),
       (
         strings.tKey(PlatformAdminKeys.dashboardQuickActionsAddLanguage),
-        '/settings/languages',
+        '/profile/languages',
       ),
     ];
     return Column(

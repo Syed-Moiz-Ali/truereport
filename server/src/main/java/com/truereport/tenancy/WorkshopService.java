@@ -45,6 +45,7 @@ public class WorkshopService {
 
     private WorkshopDto toDto(Workshop workshop) {
         long count = memberships.countByWorkshopIdAndStatus(workshop.getId(), "ACTIVE");
-        return new WorkshopDto(workshop.getId(), workshop.getName(), workshop.getStatus(), count);
+        return new WorkshopDto(workshop.getId(), workshop.getName(), workshop.getStatus(),
+                workshop.getContactEmail(), count);
     }
 }

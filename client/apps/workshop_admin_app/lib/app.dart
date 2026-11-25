@@ -16,7 +16,7 @@ class AdminApp extends ConsumerWidget {
     // Keeps Accept-Language / X-Client on the shared API client in sync with
     // the active locale (see api_language_sync.dart).
     ref.watch(apiLanguageSyncProvider);
-    final locale = ref.watch(localeProvider);
+    final locale = ref.watch(uiLocaleProvider(adminUiMessageClient));
     final supportedLocales = ref.watch(
       supportedLocalesProvider(adminUiMessageClient),
     );
@@ -39,23 +39,26 @@ class AdminApp extends ConsumerWidget {
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        builder: (context, child) => UiMessageBootstrap(
+        builder: (context, child) => UiDirectionality(
           client: adminUiMessageClient,
-          loadingBuilder: (context) => Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: const Padding(
-                padding: EdgeInsetsDirectional.all(24),
-                child: WorkshopSkeleton(lines: 6, card: true),
+          child: UiMessageBootstrap(
+            client: adminUiMessageClient,
+            loadingBuilder: (context) => Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: const Padding(
+                  padding: EdgeInsetsDirectional.all(24),
+                  child: WorkshopSkeleton(lines: 6, card: true),
+                ),
               ),
             ),
+            onAuthFailure: () {
+              final auth = ref.read(authControllerProvider);
+              if (auth.isLoading || auth.value == null) return;
+              ref.read(authControllerProvider.notifier).signOut();
+            },
+            child: child ?? const SizedBox.shrink(),
           ),
-          onAuthFailure: () {
-            final auth = ref.read(authControllerProvider);
-            if (auth.isLoading || auth.value == null) return;
-            ref.read(authControllerProvider.notifier).signOut();
-          },
-          child: child ?? const SizedBox.shrink(),
         ),
         routerConfig: router,
       ),

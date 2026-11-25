@@ -98,13 +98,13 @@ class _AuditLogScreenState extends ConsumerState<AuditLogScreen> {
         breadcrumbs: [
           ContextBreadcrumbItem(
             label: strings.tKey(PlatformAdminKeys.pageProfileTitle),
-            onTap: () => context.go('/settings'),
+            onTap: () => context.go('/profile'),
           ),
           ContextBreadcrumbItem(
             label: strings.tKey(PlatformAdminKeys.pageAuditTitle),
           ),
         ],
-        onBack: () => context.go('/settings'),
+        onBack: () => context.go('/profile'),
       ),
       child: PlatformPage(
         maxWidth: 1200,

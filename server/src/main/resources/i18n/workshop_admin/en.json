@@ -1298,5 +1298,14 @@
   "translationIssueField": "Field",
   "translationIssueLanguage": "Language",
   "translationIssueReason": "Reason",
-  "translationIssueMore": "and {count} more"
+  "translationIssueMore": "and {count} more",
+  "changePassword": "Change password",
+  "changePasswordSubtitle": "Update the password you use to sign in.",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "passwordUpdated": "Password updated.",
+  "passwordCurrentInvalid": "Your current password is incorrect.",
+  "passwordPolicy": "Use 12 or more characters with an uppercase letter, a lowercase letter, a number and a symbol.",
+  "passwordUnchanged": "Choose a password different from your current one.",
+  "forgotPasswordBody": "Ask your platform administrator to reset your password. They can set a new one for you from the workshop page."
 }

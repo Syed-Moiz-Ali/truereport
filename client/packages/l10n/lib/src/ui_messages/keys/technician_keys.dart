@@ -1565,6 +1565,30 @@ abstract final class TechnicianKeys {
   static const technicianDataStorage = UiMessageKey.technician(
     'technicianDataStorage',
   );
+  static const technicianDeckCheckAction = UiMessageKey.technician(
+    'technicianDeckCheckAction',
+  );
+  static const technicianDeckCheckItem = UiMessageKey.technician(
+    'technicianDeckCheckItem',
+  );
+  static const technicianDeckContinueItem = UiMessageKey.technician(
+    'technicianDeckContinueItem',
+  );
+  static const technicianDeckFinishJob = UiMessageKey.technician(
+    'technicianDeckFinishJob',
+  );
+  static const technicianDeckOfflinePending = UiMessageKey.technician(
+    'technicianDeckOfflinePending',
+  );
+  static const technicianDeckSections = UiMessageKey.technician(
+    'technicianDeckSections',
+  );
+  static const technicianDeckStatusLine = UiMessageKey.technician(
+    'technicianDeckStatusLine',
+  );
+  static const technicianDeckSummaryAction = UiMessageKey.technician(
+    'technicianDeckSummaryAction',
+  );
   static const technicianDefectsCount = UiMessageKey.technician(
     'technicianDefectsCount',
   );
@@ -1997,20 +2021,80 @@ abstract final class TechnicianKeys {
   static const technicianProfileTitle = UiMessageKey.technician(
     'technicianProfileTitle',
   );
+  static const technicianQueueActionContinue = UiMessageKey.technician(
+    'technicianQueueActionContinue',
+  );
+  static const technicianQueueActionFinish = UiMessageKey.technician(
+    'technicianQueueActionFinish',
+  );
+  static const technicianQueueActionView = UiMessageKey.technician(
+    'technicianQueueActionView',
+  );
+  static const technicianQueueCancelled = UiMessageKey.technician(
+    'technicianQueueCancelled',
+  );
+  static const technicianQueueClearFilters = UiMessageKey.technician(
+    'technicianQueueClearFilters',
+  );
   static const technicianQueueCurrent = UiMessageKey.technician(
     'technicianQueueCurrent',
   );
   static const technicianQueueEmpty = UiMessageKey.technician(
     'technicianQueueEmpty',
   );
+  static const technicianQueueFilterAllDates = UiMessageKey.technician(
+    'technicianQueueFilterAllDates',
+  );
+  static const technicianQueueFilterDates = UiMessageKey.technician(
+    'technicianQueueFilterDates',
+  );
+  static const technicianQueueFilterPickDate = UiMessageKey.technician(
+    'technicianQueueFilterPickDate',
+  );
+  static const technicianQueueFilterTomorrow = UiMessageKey.technician(
+    'technicianQueueFilterTomorrow',
+  );
+  static const technicianQueueGoToDay = UiMessageKey.technician(
+    'technicianQueueGoToDay',
+  );
+  static const technicianQueueItems = UiMessageKey.technician(
+    'technicianQueueItems',
+  );
+  static const technicianQueueNearestDay = UiMessageKey.technician(
+    'technicianQueueNearestDay',
+  );
   static const technicianQueueNextAt = UiMessageKey.technician(
     'technicianQueueNextAt',
+  );
+  static const technicianQueueNothingScheduled = UiMessageKey.technician(
+    'technicianQueueNothingScheduled',
   );
   static const technicianQueueOnBoard = UiMessageKey.technician(
     'technicianQueueOnBoard',
   );
   static const technicianQueueRefreshed = UiMessageKey.technician(
     'technicianQueueRefreshed',
+  );
+  static const technicianQueueSectionDoneToday = UiMessageKey.technician(
+    'technicianQueueSectionDoneToday',
+  );
+  static const technicianQueueSectionNow = UiMessageKey.technician(
+    'technicianQueueSectionNow',
+  );
+  static const technicianQueueSectionToday = UiMessageKey.technician(
+    'technicianQueueSectionToday',
+  );
+  static const technicianQueueSectionUnfinished = UiMessageKey.technician(
+    'technicianQueueSectionUnfinished',
+  );
+  static const technicianQueueSectionUpcoming = UiMessageKey.technician(
+    'technicianQueueSectionUpcoming',
+  );
+  static const technicianQueueShowing = UiMessageKey.technician(
+    'technicianQueueShowing',
+  );
+  static const technicianQueueSummary = UiMessageKey.technician(
+    'technicianQueueSummary',
   );
   static const technicianQueued = UiMessageKey.technician('technicianQueued');
   static const technicianReadyToComplete = UiMessageKey.technician(

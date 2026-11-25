@@ -4,13 +4,17 @@ import 'package:l10n/ui_strings.dart';
 import '../../../inspection_models.dart';
 import '../../../shared/technician_intl.dart';
 
-/// Moment shown for a job: actual start when present, otherwise the schedule.
+/// Moment a job belongs to: the schedule when present, otherwise the actual
+/// start. Grouping and the printed time use this one value, so a job scheduled
+/// yesterday but started today still belongs to yesterday and prints
+/// yesterday's time.
+///
 /// Displayed on the Dubai wall clock used across the technician app.
 DateTime? queueMoment(JobSummary job) {
-  final started = job.startedAt;
-  final raw = started != null && started.isNotEmpty
-      ? started
-      : (job.scheduledAt ?? '');
+  final scheduled = job.scheduledAt;
+  final raw = scheduled != null && scheduled.isNotEmpty
+      ? scheduled
+      : (job.startedAt ?? '');
   return parseWallTime(raw);
 }
 
@@ -48,8 +52,10 @@ String queueTimeLabel(JobSummary job) {
 /// Appointment time of a job: the scheduled hour, falling back to the start
 /// time when the job carries no schedule. The agenda gutter shows when the car
 /// is due, not when the technician happened to open it.
+///
+/// Reads [queueMoment] so the label and the day bucket can never disagree.
 String queueSlotLabel(JobSummary job) {
-  final moment = parseWallTime(job.scheduledAt) ?? queueMoment(job);
+  final moment = queueMoment(job);
   if (moment == null) {
     return '';
   }

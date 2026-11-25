@@ -1,0 +1,19 @@
+[Unit]
+Description=TrueReport API
+After=network.target mysql.service libretranslate.service
+Wants=libretranslate.service
+
+[Service]
+Type=simple
+User=truereport
+Group=truereport
+WorkingDirectory=/opt/truereport
+EnvironmentFile=/etc/truereport/api.env
+ExecStart=/usr/bin/java -jar /opt/truereport/truereport-server.jar
+Restart=always
+RestartSec=5
+# 143 = SIGTERM from systemd.
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -148,7 +148,11 @@ class _PlatformLoginPageState extends ConsumerState<PlatformLoginPage> {
       portalLabel: read(PlatformAdminKeys.loginPortalBadge),
       title: read(PlatformAdminKeys.loginSignInTitle),
       subtitle: read(PlatformAdminKeys.loginSignInSubtitle),
-      help: read(PlatformAdminKeys.loginNeedHelp),
+      // The login screen has no help channel of its own, so the caption carries
+      // the real support address (selectable, so it can be copied).
+      help:
+          '${read(PlatformAdminKeys.loginNeedHelp)} '
+          '${read(PlatformAdminKeys.headerHelpContact)}',
       emailLabel: read(PlatformAdminKeys.loginEmailLabel),
       passwordLabel: read(PlatformAdminKeys.loginPasswordLabel),
       emailHint: read(PlatformAdminKeys.loginEmailHint),

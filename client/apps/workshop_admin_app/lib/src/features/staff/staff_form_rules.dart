@@ -24,11 +24,13 @@ String? staffEmailError(UiStrings t, String? value) {
   return valid ? null : t(WorkshopAdminKeys.invalidEmail);
 }
 
-/// Server policy is 12–128. Empty is the only message we can name; a short
-/// password is prevented by the disabled submit plus the strength read-out.
+/// Server policy is 12–128 with mixed case, a digit and a symbol.
 String? staffPasswordError(UiStrings t, String? value) {
   if (value == null || value.isEmpty) {
     return t(WorkshopAdminKeys.requiredField);
+  }
+  if (!staffPasswordAcceptable(value)) {
+    return t(WorkshopAdminKeys.passwordPolicy);
   }
   return null;
 }
@@ -43,5 +45,12 @@ String? staffConfirmError(UiStrings t, String password, String? value) {
   return null;
 }
 
-bool staffPasswordAcceptable(String value) =>
-    value.length >= 12 && value.length <= 128;
+bool staffPasswordAcceptable(String value) {
+  if (value.length < 12 || value.length > 128) {
+    return false;
+  }
+  return RegExp('[A-Z]').hasMatch(value) &&
+      RegExp('[a-z]').hasMatch(value) &&
+      RegExp('[0-9]').hasMatch(value) &&
+      RegExp('[^A-Za-z0-9]').hasMatch(value);
+}

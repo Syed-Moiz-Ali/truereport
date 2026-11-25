@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/l10n.dart';
 
 import '../../../platform_models.dart';
+import '../../../platform_providers.dart';
 import '../../../platform_theme.dart';
 import '../workshop_status.dart';
 import 'atlas_ui.dart';
+import 'workshop_record_parts.dart';
 
 /// Left-hand index of the Atlas workspace: search, status filters, and one
 /// scannable row per workshop.
@@ -301,10 +303,9 @@ class _WorkshopIndexRowState extends ConsumerState<WorkshopIndexRow> {
   @override
   Widget build(BuildContext context) {
     final workshop = widget.workshop;
+    final strings = ref.watch(uiStringsProvider);
     final inactive = workshop.status.toUpperCase() != 'ACTIVE';
-    final capacity = workshop.assignedCapacityPercent;
-    final tone = capacity >= 90 ? PtTheme.amber : PtTheme.deepGreen;
-    final percentTone = capacity >= 90 ? PtTheme.gold : PtTheme.deepGreen;
+    final staff = workshopStaffTotal(workshop);
     return Semantics(
       button: true,
       selected: widget.selected,
@@ -346,17 +347,6 @@ class _WorkshopIndexRowState extends ConsumerState<WorkshopIndexRow> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: 3,
-                              height: 14 + (capacity.clamp(0, 100) * 0.2),
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: inactive ? PtTheme.border : tone,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
                             AtlasMonogram(
                               name: workshop.name,
                               size: 38,
@@ -377,19 +367,33 @@ class _WorkshopIndexRowState extends ConsumerState<WorkshopIndexRow> {
                                     ),
                                   ),
                                   const SizedBox(height: 3),
-                                  Tooltip(
-                                    message: workshop.branchName ?? '—',
-                                    child: Text(
-                                      (workshop.branchName ?? '').trim().isEmpty
-                                          ? '—'
-                                          : workshop.branchName!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Atlas.text(
-                                        11.5,
-                                        color: PtTheme.muted,
-                                      ),
-                                    ),
+                                  Builder(
+                                    builder: (context) {
+                                      // No branch is collected any more, so the
+                                      // second line is the contact email when
+                                      // there is nothing else to show.
+                                      final branch = (workshop.branchName ?? '')
+                                          .trim();
+                                      final contact =
+                                          (workshop.contactEmail ?? '').trim();
+                                      final subtitle = branch.isNotEmpty
+                                          ? branch
+                                          : (contact.isNotEmpty
+                                                ? contact
+                                                : '—');
+                                      return Tooltip(
+                                        message: subtitle,
+                                        child: Text(
+                                          subtitle,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Atlas.text(
+                                            11.5,
+                                            color: PtTheme.muted,
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -399,17 +403,29 @@ class _WorkshopIndexRowState extends ConsumerState<WorkshopIndexRow> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // Real team size; the old "88%" was a client
+                                // default for a field the API never sends.
                                 Text(
-                                  inactive && capacity == 0
-                                      ? '—'
-                                      : '$capacity%',
+                                  '$staff',
                                   style: Atlas.text(
                                     13.5,
                                     weight: FontWeight.w800,
                                     tabular: true,
-                                    color: inactive && capacity == 0
+                                    color: inactive
                                         ? PtTheme.muted
-                                        : percentTone,
+                                        : PtTheme.ink,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  strings.tKey(
+                                    PlatformAdminKeys.tabWorkshopStaff,
+                                  ),
+                                  maxLines: 1,
+                                  style: Atlas.text(
+                                    10,
+                                    weight: FontWeight.w600,
+                                    color: PtTheme.muted,
                                   ),
                                 ),
                                 const SizedBox(height: 4),

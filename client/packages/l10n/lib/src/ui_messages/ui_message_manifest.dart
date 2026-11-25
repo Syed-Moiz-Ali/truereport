@@ -9,6 +9,7 @@ class UiMessageLanguage {
     this.totalKeys = 0,
     this.missingKeys = 0,
     this.placeholderMismatch = 0,
+    this.hasCatalog = true,
   });
 
   final String code;
@@ -20,6 +21,10 @@ class UiMessageLanguage {
   final int totalKeys;
   final int missingKeys;
   final int placeholderMismatch;
+
+  /// False when the language is advertised by the registry but has no
+  /// `<client>/<lang>.json` yet, so the app still serves English text.
+  final bool hasCatalog;
 
   bool get isRtl => direction.toLowerCase() == 'rtl';
 
@@ -44,6 +49,7 @@ class UiMessageLanguage {
       totalKeys: _asInt(json['totalKeys']),
       missingKeys: _asInt(json['missingKeys']),
       placeholderMismatch: _asInt(json['placeholderMismatch']),
+      hasCatalog: json['catalog'] is bool ? json['catalog'] as bool : true,
     );
   }
 
@@ -57,6 +63,7 @@ class UiMessageLanguage {
     'totalKeys': totalKeys,
     'missingKeys': missingKeys,
     'placeholderMismatch': placeholderMismatch,
+    'catalog': hasCatalog,
   };
 }
 

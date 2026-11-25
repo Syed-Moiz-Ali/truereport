@@ -74,6 +74,16 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> changePassword(JwtAuthenticationToken authentication,
+                                               @Valid @RequestBody ChangePasswordRequest request) {
+        CurrentUser user = currentUserService.require(authentication);
+        authService.changePassword(user.userId(), user.sessionId(),
+                request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/logout-all")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logoutAll(JwtAuthenticationToken authentication) {

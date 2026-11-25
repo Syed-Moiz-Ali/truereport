@@ -34,6 +34,30 @@ public class ContentTranslationStore {
     public record StateCount(String state, int count) {
     }
 
+    public record UiMessageRow(String entityId, String body) {
+    }
+
+    /** Background machine-translation progress for one language and scope. */
+    public record JobProgress(int pending, int running, int done, int failed) {
+
+
+        public int total() {
+            return pending + running + done + failed;
+        }
+
+        /** Jobs still queued or in flight: what the review desk shows as "translating". */
+        public int active() {
+            return pending + running;
+        }
+    }
+
+    /** One job the provider could not translate, with its reason. */
+    public record FailedJob(String entityType, String entityId, String field, String error) {
+    }
+
+    public record SelectedItem(String entityType, String entityId, String field) {
+    }
+
     private final JdbcTemplate jdbc;
 
     public ContentTranslationStore(JdbcTemplate jdbc) {
@@ -138,10 +162,7 @@ public class ContentTranslationStore {
                 """);
         args.add(lang);
         args.add(state);
-        if (entityType != null) {
-            sql.append(" AND entity_type = ?");
-            args.add(entityType);
-        }
+        appendEntityScope(sql, args, "entity_type", entityType);
         sql.append(" ORDER BY updated_at, entity_type, entity_id, field_name LIMIT ? OFFSET ?");
         args.add(limit);
         args.add(offset);
@@ -155,15 +176,16 @@ public class ContentTranslationStore {
                 """);
         args.add(lang);
         args.add(state);
-        if (entityType != null) {
-            sql.append(" AND entity_type = ?");
-            args.add(entityType);
-        }
+        appendEntityScope(sql, args, "entity_type", entityType);
         Integer count = jdbc.queryForObject(sql.toString(), Integer.class, args.toArray());
         return count == null ? 0 : count;
     }
 
     public List<StateCount> summary(String lang) {
+        return summary(lang, null);
+    }
+
+    public List<StateCount> summary(String lang, String entityType) {
         List<Object> args = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
                 SELECT status, COUNT(*) AS total FROM content_translation WHERE 1 = 1
@@ -172,9 +194,79 @@ public class ContentTranslationStore {
             sql.append(" AND lang = ?");
             args.add(lang);
         }
+        if (entityType != null && !entityType.isBlank()) {
+            appendEntityScope(sql, args, "entity_type", entityType);
+        }
         sql.append(" GROUP BY status ORDER BY status");
         return jdbc.query(sql.toString(), (rs, i) ->
                 new StateCount(rs.getString("status"), rs.getInt("total")), args.toArray());
+    }
+
+    /** Job counts for one language and scope; drives the review-desk progress bar. */
+    public JobProgress jobProgress(String lang, String entityType) {
+        List<Object> args = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                SELECT state, COUNT(*) AS total FROM content_translation_job
+                WHERE lang = ?
+                """);
+        args.add(lang);
+        appendEntityScope(sql, args, "entity_type", entityType);
+        sql.append(" GROUP BY state");
+        int pending = 0;
+        int running = 0;
+        int done = 0;
+        int failed = 0;
+        for (Map<String, Object> row : jdbc.queryForList(sql.toString(), args.toArray())) {
+            String state = String.valueOf(row.get("state"));
+            int count = ((Number) row.get("total")).intValue();
+            switch (state) {
+                case "PENDING" -> pending += count;
+                case "RUNNING" -> running += count;
+                case "DONE" -> done += count;
+                case "FAILED" -> failed += count;
+                default -> {
+                }
+            }
+        }
+        return new JobProgress(pending, running, done, failed);
+    }
+
+    /** The jobs the provider gave up on, so an admin can see and retry them. */
+    public List<FailedJob> failedJobs(String lang, String entityType, int limit) {
+        List<Object> args = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                SELECT entity_type, entity_id, field_name, error
+                FROM content_translation_job
+                WHERE state = 'FAILED' AND lang = ?
+                """);
+        args.add(lang);
+        appendEntityScope(sql, args, "entity_type", entityType);
+        sql.append(" ORDER BY entity_id LIMIT ?");
+        args.add(Math.max(1, limit));
+        return jdbc.query(sql.toString(), (rs, i) -> new FailedJob(rs.getString(1),
+                rs.getString(2), rs.getString(3), rs.getString(4)), args.toArray());
+    }
+
+    /** Puts failed jobs back in the queue without spending another attempt. */
+    public int retryFailed(String lang, String entityType) {
+        List<Object> args = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                UPDATE content_translation_job
+                SET state = 'PENDING', attempts = 0, error = NULL, next_attempt_at = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE state = 'FAILED' AND lang = ?
+                """);
+        args.add(lang);
+        appendEntityScope(sql, args, "entity_type", entityType);
+        return jdbc.update(sql.toString(), args.toArray());
+    }
+
+    public List<UiMessageRow> reviewedUiMessages(String lang) {
+        return jdbc.query("""
+                SELECT entity_id, body FROM content_translation
+                WHERE entity_type = 'UI_MESSAGE' AND field_name = 'value'
+                  AND lang = ? AND status = 'REVIEWED'
+                """, (rs, i) -> new UiMessageRow(rs.getString(1), rs.getString(2)), lang);
     }
 
     public int countByStatus(String lang, String state) {
@@ -184,19 +276,106 @@ public class ContentTranslationStore {
         return count == null ? 0 : count;
     }
 
+    public List<String> liveLanguages() {
+        return jdbc.queryForList("""
+                SELECT code FROM platform_languages
+                WHERE active = TRUE AND status = 'LIVE'
+                ORDER BY sort_order, code
+                """, String.class);
+    }
+
+    /**
+     * Approves pending machine translations for fields that are not marked
+     * safety-critical. Instructions and specifications stay in the manual queue.
+     *
+     * @return the number of rows approved (or that would be approved when dryRun)
+     */
+    public int bulkApproveNonSafety(String lang, List<String> entityTypes, String reviewedBy,
+                                    String note, boolean dryRun) {
+        StringBuilder where = new StringBuilder("""
+                WHERE t.lang = ? AND t.status = 'PENDING_REVIEW'
+                  AND EXISTS (
+                    SELECT 1 FROM translatable_field f
+                    WHERE f.entity_type = t.entity_type
+                      AND f.field_name = t.field_name
+                      AND f.safety_critical = FALSE
+                  )
+                """);
+        List<Object> args = new ArrayList<>();
+        args.add(lang);
+        if (entityTypes != null && !entityTypes.isEmpty()) {
+            where.append(" AND t.entity_type IN (")
+                    .append(placeholders(entityTypes.size()))
+                    .append(")");
+            args.addAll(entityTypes);
+        }
+        if (dryRun) {
+            Integer count = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM content_translation t " + where,
+                    Integer.class, args.toArray());
+            return count == null ? 0 : count;
+        }
+        List<Object> updateArgs = new ArrayList<>();
+        updateArgs.add(reviewedBy);
+        updateArgs.add(note);
+        updateArgs.addAll(args);
+        return jdbc.update("""
+                UPDATE content_translation t
+                SET t.status = 'REVIEWED', t.reviewed_by = ?, t.reviewed_at = CURRENT_TIMESTAMP,
+                    t.review_note = ?, t.updated_at = CURRENT_TIMESTAMP
+                """ + where, updateArgs.toArray());
+    }
+
     public int countByStatusSafety(String lang, String state, boolean safetyCritical) {
-        Integer count = jdbc.queryForObject("""
+        return countByStatusSafety(lang, state, safetyCritical, null);
+    }
+
+    public int countByStatusSafety(String lang, String state, boolean safetyCritical,
+                                   String entityType) {
+        List<Object> args = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
                 SELECT COUNT(*) FROM content_translation t
                 JOIN translatable_field f
                   ON f.entity_type = t.entity_type AND f.field_name = t.field_name
                 WHERE t.lang = ? AND t.status = ? AND f.safety_critical = ?
-                """, Integer.class, lang, state, safetyCritical);
+                """);
+        args.add(lang);
+        args.add(state);
+        args.add(safetyCritical);
+        if (entityType != null && !entityType.isBlank()) {
+            if (ContentSourceCatalog.CONTENT_SCOPE.equals(entityType)) {
+                sql.append(" AND t.entity_type <> ?");
+                args.add("UI_MESSAGE");
+            } else {
+                sql.append(" AND t.entity_type = ?");
+                args.add(entityType);
+            }
+        }
+        Integer count = jdbc.queryForObject(sql.toString(), Integer.class, args.toArray());
         return count == null ? 0 : count;
     }
 
-    public void markReview(String entityType, String entityId, String field, String lang,
-                           String status, String reviewedBy, String note) {
-        jdbc.update("""
+    /**
+     * Restricts a query to one entity type, or to every business content type
+     * when the caller asks for the {@code CONTENT} scope.
+     */
+    private static void appendEntityScope(StringBuilder sql, List<Object> args,
+                                          String column, String entityType) {
+        if (entityType == null || entityType.isBlank()) {
+            return;
+        }
+        if (ContentSourceCatalog.CONTENT_SCOPE.equals(entityType)) {
+            sql.append(" AND ").append(column).append(" <> ?");
+            args.add("UI_MESSAGE");
+            return;
+        }
+        sql.append(" AND ").append(column).append(" = ?");
+        args.add(entityType);
+    }
+
+    public int markReview(String entityType, String entityId, String field, String lang,
+                          String status, String reviewedBy, String note) {
+        return jdbc.update("""
                 UPDATE content_translation
                 SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP,
                     review_note = ?, updated_at = CURRENT_TIMESTAMP

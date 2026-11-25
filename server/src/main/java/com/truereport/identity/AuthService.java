@@ -199,6 +199,38 @@ public class AuthService {
         auditService.recordAuth(userId, "LOGOUT_ALL", null);
     }
 
+    /**
+     * Self-service password change for any signed-in admin. The current
+     * password is re-checked so a borrowed session cannot silently take over
+     * the account; every other session is revoked after the change.
+     */
+    @Transactional
+    public void changePassword(UUID userId, UUID keepSessionId, String currentPassword,
+                               String newPassword) {
+        User user = users.findById(userId).orElseThrow(ApiException::notFound);
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            auditService.recordAuth(userId, "PASSWORD_CHANGE_REJECTED", "CURRENT_PASSWORD_INVALID");
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_CURRENT_INVALID",
+                    "error.password.currentInvalid", "Current password is incorrect");
+        }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new ApiException(HttpStatus.CONFLICT, "PASSWORD_UNCHANGED",
+                    "error.password.unchanged", "Choose a password different from the current one");
+        }
+        PasswordPolicy.requireValid(newPassword);
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        users.save(user);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        for (RefreshToken token : refreshTokens.findByUserIdAndRevokedAtIsNull(userId)) {
+            if (keepSessionId != null && keepSessionId.equals(token.getId())) {
+                continue;
+            }
+            token.revoke(now, null);
+            refreshTokens.save(token);
+        }
+        auditService.recordAuth(userId, "PASSWORD_CHANGED", null);
+    }
+
     @Transactional(readOnly = true)
     public UserDto me(UUID userId) {
         return users.findById(userId).map(this::toDto)

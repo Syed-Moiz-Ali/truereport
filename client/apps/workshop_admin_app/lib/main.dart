@@ -4,6 +4,7 @@ import 'package:workshop_admin_app/app.dart';
 import 'package:workshop_admin_app/src/admin_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:l10n/ui_strings.dart';
 
 import 'src/web_url_strategy_stub.dart'
@@ -13,6 +14,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Shared backend url: packages/auth/.env (same for every app).
   await AppEnv.load();
+  // Material's own copy (date pickers, dialogs) is localized per locale; the
+  // symbols must exist before the app can render a non-English locale.
+  await initializeDateFormatting();
   configureWebUrlStrategy();
   final uiMessageStore = await createUiMessageStore();
   runApp(

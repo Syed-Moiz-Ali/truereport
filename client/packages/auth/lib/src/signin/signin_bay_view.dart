@@ -36,6 +36,8 @@ class SignInBayView extends StatelessWidget {
     this.emailEnabled = true,
     this.autofocusEmail,
     this.languageControl,
+    this.forgotLabel,
+    this.onForgot,
     super.key,
   });
 
@@ -56,6 +58,8 @@ class SignInBayView extends StatelessWidget {
   final bool emailEnabled;
   final bool? autofocusEmail;
   final Widget Function(bool onAccent)? languageControl;
+  final String? forgotLabel;
+  final VoidCallback? onForgot;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +86,8 @@ class SignInBayView extends StatelessWidget {
         validatePassword: validatePassword,
         validateCode: validateCode,
         autofocusEmail: autofocusEmail ?? split,
+        forgotLabel: forgotLabel,
+        onForgot: onForgot,
       ),
     );
 
@@ -256,7 +262,11 @@ class _BayPhoto extends StatelessWidget {
     final ws = context.ws;
     final spacing = context.spacing;
     final t = UiStrings.of(context);
-    final progress = t(SignInKeys.signInExampleProgress, {'done': exampleDone, 'total': exampleTotal, 'percent': examplePercent});
+    final progress = t(SignInKeys.signInExampleProgress, {
+      'done': exampleDone,
+      'total': exampleTotal,
+      'percent': examplePercent,
+    });
     final shadow = [
       Shadow(
         color: Colors.black.withValues(alpha: 0.35),

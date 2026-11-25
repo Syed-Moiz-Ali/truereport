@@ -57,6 +57,7 @@ class ApiClient {
       debug = true;
       return true;
     }());
+    _debug = debug;
     if (debug) {
       _dio.interceptors.add(
         LogInterceptor(
@@ -75,6 +76,13 @@ class ApiClient {
   }
 
   final Dio _dio;
+
+  /// Debug-only trace flag (enabled by the assert in the constructor).
+  bool _debug = false;
+
+  /// A hung refresh must never leave the app on a protected screen: after this
+  /// the session is treated as dead and the user goes to sign-in.
+  static const Duration _refreshTimeout = Duration(seconds: 15);
 
   String? _accessToken;
 
@@ -214,11 +222,13 @@ class ApiClient {
     String path, {
     Object? body,
     Map<String, String>? headers,
+    Map<String, dynamic>? query,
   }) async {
     try {
       final response = await _dio.post<dynamic>(
         path,
         data: body,
+        queryParameters: query,
         options: Options(headers: _headers(path, headers)),
       );
       return response.data;
@@ -371,16 +381,20 @@ class ApiClient {
     // is dead. Without this, the app stayed on a protected screen and issued
     // the same 401 request forever instead of returning to sign-in.
     if (request.extra[_retryFlag] == true) {
+      _authLog('retried ${request.path} still 401; signing out');
       _expireSession();
       handler.next(error);
       return;
     }
+    _authLog('401 on ${request.path}; trying the refresh token');
     final token = await _refreshOnce();
     if (token == null || token.isEmpty) {
+      _authLog('refresh failed or unavailable; signing out');
       _expireSession();
       handler.next(error);
       return;
     }
+    _authLog('refresh ok; retrying ${request.path}');
     accessToken = token;
     request.extra[_retryFlag] = true;
     request.headers['Authorization'] = 'Bearer $token';
@@ -389,9 +403,17 @@ class ApiClient {
       handler.resolve(response);
     } on DioException catch (retryError) {
       if (retryError.response?.statusCode == 401) {
+        _authLog('retried ${request.path} still 401; signing out');
         _expireSession();
       }
       handler.next(retryError);
+    }
+  }
+
+  void _authLog(String message) {
+    if (_debug) {
+      // ignore: avoid_print — debug-only trace; api_client has no flutter dep.
+      print('[Api] auth: $message');
     }
   }
 
@@ -414,11 +436,28 @@ class ApiClient {
     final existing = _refreshInFlight;
     if (existing != null) return existing;
     final refresher = tokenRefresher;
-    if (refresher == null) return Future<String?>.value();
-    final future = refresher().then<String?>(
-      (value) => value,
-      onError: (Object _) => null,
-    );
+    if (refresher == null) {
+      _authLog('no token refresher registered');
+      return Future<String?>.value();
+    }
+    final Future<String?> future;
+    try {
+      // A refresh that hangs (dead network, stalled tunnel, storage that never
+      // answers) used to block the whole session flow, so the router never saw
+      // a signed-out state. Bounded wait → treat it as a dead session.
+      future = refresher()
+          .timeout(_refreshTimeout)
+          .then<String?>(
+            (value) => value,
+            onError: (Object error) {
+              _authLog('refresh threw: $error');
+              return null;
+            },
+          );
+    } on Object catch (error) {
+      _authLog('refresh could not start: $error');
+      return Future<String?>.value();
+    }
     _refreshInFlight = future;
     future.whenComplete(() {
       if (identical(_refreshInFlight, future)) {

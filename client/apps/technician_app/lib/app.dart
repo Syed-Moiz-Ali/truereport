@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:l10n/ui_strings.dart';
+import 'package:technician_app/src/api_language_sync.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:technician_app/src/technician_router.dart';
 
@@ -12,7 +13,10 @@ class TechnicianApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
+    // Keeps Accept-Language / X-Client on the shared API client in sync with
+    // the language the technician picked (see api_language_sync.dart).
+    ref.watch(apiLanguageSyncProvider);
+    final locale = ref.watch(uiLocaleProvider(technicianUiMessageClient));
     final supportedLocales = ref.watch(
       supportedLocalesProvider(technicianUiMessageClient),
     );
@@ -38,20 +42,23 @@ class TechnicianApp extends ConsumerWidget {
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
-        builder: (context, child) => UiMessageBootstrap(
+        builder: (context, child) => UiDirectionality(
           client: technicianUiMessageClient,
-          loadingBuilder: (context) => const Center(
-            child: Padding(
-              padding: EdgeInsetsDirectional.all(24),
-              child: LoadingSkeleton(lines: 8),
+          child: UiMessageBootstrap(
+            client: technicianUiMessageClient,
+            loadingBuilder: (context) => const Center(
+              child: Padding(
+                padding: EdgeInsetsDirectional.all(24),
+                child: LoadingSkeleton(lines: 8),
+              ),
             ),
+            onAuthFailure: () {
+              final auth = ref.read(authControllerProvider);
+              if (auth.isLoading || auth.value == null) return;
+              ref.read(authControllerProvider.notifier).signOut();
+            },
+            child: child ?? const SizedBox.shrink(),
           ),
-          onAuthFailure: () {
-            final auth = ref.read(authControllerProvider);
-            if (auth.isLoading || auth.value == null) return;
-            ref.read(authControllerProvider.notifier).signOut();
-          },
-          child: child ?? const SizedBox.shrink(),
         ),
         routerConfig: router,
       ),

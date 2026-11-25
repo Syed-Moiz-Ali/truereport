@@ -36,15 +36,24 @@ public class GovernanceService {
     private final LocalizationService localizationService;
     private final ItemConfigRepository itemConfig;
     private final PlatformContentStore content;
+    private final com.truereport.shared.i18n.ContentReviewService reviewService;
+    private final com.truereport.shared.i18n.LanguageCatalog languageCatalog;
+    private final com.truereport.shared.i18n.ContentSourceCatalog sourceCatalog;
 
     public GovernanceService(JdbcTemplate jdbc,
                              LocalizationService localizationService,
                              ItemConfigRepository itemConfig,
-                             PlatformContentStore content) {
+                             PlatformContentStore content,
+                             com.truereport.shared.i18n.ContentReviewService reviewService,
+                             com.truereport.shared.i18n.LanguageCatalog languageCatalog,
+                             com.truereport.shared.i18n.ContentSourceCatalog sourceCatalog) {
         this.jdbc = jdbc;
         this.localizationService = localizationService;
         this.itemConfig = itemConfig;
         this.content = content;
+        this.reviewService = reviewService;
+        this.languageCatalog = languageCatalog;
+        this.sourceCatalog = sourceCatalog;
     }
 
     @Transactional(readOnly = true)
@@ -151,17 +160,37 @@ public class GovernanceService {
     // --------------------------------------------------------------- checks
 
     private HealthCheckDto translationCheck() {
-        var coverage = localizationService.coverage();
-        int missing = coverage.namespaces().values().stream()
-                .mapToInt(namespace -> namespace.missing().size()).sum();
-        List<String> references = coverage.namespaces().entrySet().stream()
-                .flatMap(entry -> entry.getValue().missing().stream()
-                        .map(name -> entry.getKey() + "." + name))
-                .limit(50).toList();
-        return check("TRANSLATIONS", missing == 0 ? "OK" : "ERROR",
-                missing == 0 ? "English content is complete"
-                        : missing + " translation(s) missing",
-                missing, references,
+        // Counts the current pipeline only: for every live non-default language,
+        // UI strings and content values that have neither a translation row nor
+        // an approved one. The retired platform_translations backlog is not a
+        // source of truth any more and used to report ~900 phantom misses.
+        int missing = 0;
+        List<String> references = new ArrayList<>();
+        for (String language : languageCatalog.languages()) {
+            if (language.equals(languageCatalog.defaultLanguage())) {
+                continue;
+            }
+            for (String scope : List.of(
+                    com.truereport.uimessages.UiMessageSourceCatalog.ENTITY_TYPE,
+                    com.truereport.shared.i18n.ContentSourceCatalog.CONTENT_SCOPE)) {
+                var summary = reviewService.summary(language, scope);
+                int rows = summary.states().values().stream()
+                        .mapToInt(Integer::intValue).sum();
+                int gap = Math.max(0, summary.targets() - rows);
+                if (gap <= 0) {
+                    continue;
+                }
+                missing += gap;
+                references.add(language + ":" + scope.toLowerCase() + "=" + gap);
+            }
+        }
+        String message = missing == 0
+                ? "Every string has a translation"
+                : missing == 1
+                        ? "1 string still needs a translation"
+                        : missing + " strings still need a translation";
+        return check("TRANSLATIONS", missing == 0 ? "OK" : "ERROR", message,
+                missing, references.stream().limit(50).toList(),
                 "health.check.translations.label", "health.check.translations.description");
     }
 

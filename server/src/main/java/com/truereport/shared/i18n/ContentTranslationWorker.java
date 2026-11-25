@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,6 +30,9 @@ import java.util.Map;
 public class ContentTranslationWorker {
 
     private static final Logger log = LoggerFactory.getLogger(ContentTranslationWorker.class);
+
+    /** A hostile {@code Retry-After} must not park the worker for a day. */
+    private static final long MAX_RATE_LIMIT_PAUSE_SECONDS = 900;
 
     private final ContentTranslationStore translations;
     private final TranslationJobStore jobs;
@@ -46,6 +50,9 @@ public class ContentTranslationWorker {
     private final int maxAttempts;
     private final int backoffSeconds;
     private final int staleTimeoutSeconds;
+
+    /** Set when the provider answered 429; every pass is skipped until it elapses. */
+    private volatile Instant pausedUntil = Instant.EPOCH;
 
     public ContentTranslationWorker(ContentTranslationStore translations,
                                     TranslationJobStore jobs,
@@ -105,6 +112,9 @@ public class ContentTranslationWorker {
     public int workOnce() {
         TranslationProvider active = provider.getIfAvailable();
         if (active == null) {
+            return 0;
+        }
+        if (Instant.now().isBefore(pausedUntil)) {
             return 0;
         }
         transaction.executeWithoutResult(status -> jobs.recoverStale(staleTimeoutSeconds));
@@ -201,6 +211,9 @@ public class ContentTranslationWorker {
         String providerId = active == null ? "unknown" : active.id();
         for (Outcome outcome : outcomes) {
             JobRow job = outcome.job();
+            // Interface labels are short and often legitimately identical across
+            // languages, so prose guards would reject good translations.
+            boolean lenient = sources.lenientMachineGuards(job.entityType());
             if (outcome.error() != null) {
                 jobs.markFailed(job.id(), outcome.error());
                 continue;
@@ -231,7 +244,7 @@ public class ContentTranslationWorker {
                         service.hash(outcome.output()), null, null);
                 changes.canonicalChanged(job.entityType(), job.entityId(), job.field(),
                         outcome.output(), job.lang());
-            } else if (unchanged(outcome.source(), outcome.output())) {
+            } else if (!lenient && unchanged(outcome.source(), outcome.output())) {
                 // The provider returned the source (or only changed case/spacing).
                 // Storing it would serve English as if it were translated, and the
                 // job must not retry forever.
@@ -239,10 +252,12 @@ public class ContentTranslationWorker {
                 service.invalidate(job.entityType(), job.entityId());
                 jobs.markFailed(job.id(), "NO_CHANGE");
                 continue;
-            } else if (truncated(outcome.source(), outcome.output())) {
+            } else if (truncated(outcome.source(), outcome.output(),
+                    lenient && shortLabel(outcome.source()))) {
                 // The provider dropped content (short output or a dangling
                 // conjunction). Never store it; a later run can retry after the
-                // provider/glossary is fixed.
+                // provider/glossary is fixed. Short labels skip the word-count
+                // ratio: French and German often need fewer words than English.
                 translations.delete(job.entityType(), job.entityId(), job.field(), job.lang());
                 service.invalidate(job.entityType(), job.entityId());
                 jobs.markFailed(job.id(), "TRUNCATED");
@@ -265,6 +280,21 @@ public class ContentTranslationWorker {
                 || providerException.retryable();
         long retryAfter = exception instanceof TranslationProviderException providerException
                 ? providerException.retryAfterSeconds() : 0;
+        if (retryable && retryAfter > 0) {
+            // The provider told us when to come back (429 Retry-After). Pause
+            // every language so we do not keep hammering it, and requeue this
+            // batch for that moment without spending a retry attempt: the work
+            // resumes exactly where it stopped.
+            long delay = Math.min(retryAfter, MAX_RATE_LIMIT_PAUSE_SECONDS);
+            pausedUntil = Instant.now().plusSeconds(delay);
+            LocalDateTime resumeAt = LocalDateTime.now().plusSeconds(delay);
+            for (JobRow job : group) {
+                jobs.requeueRateLimited(job.id(), resumeAt);
+            }
+            log.warn("Translation provider rate limited ({}); pausing {}s and resuming "
+                    + "{} job(s) at {}", message, delay, group.size(), resumeAt);
+            return;
+        }
         log.warn("Translation batch failed for {} job(s) (retryable={}): {}",
                 group.size(), retryable, message);
         for (JobRow job : group) {
@@ -276,7 +306,7 @@ public class ContentTranslationWorker {
             if (attempts >= maxAttempts) {
                 jobs.markFailed(job.id(), message);
             } else {
-                long delay = retryAfter > 0 ? retryAfter : (long) backoffSeconds * attempts;
+                long delay = (long) backoffSeconds * attempts;
                 jobs.markPending(job.id(), LocalDateTime.now().plusSeconds(delay));
             }
         }
@@ -295,7 +325,8 @@ public class ContentTranslationWorker {
         String hash = service.hash(source);
         if (TranslationJobStore.FROM_CANONICAL.equals(job.direction())) {
             return translations.find(job.entityType(), job.entityId(), job.field(), job.lang())
-                    .map(row -> row.body() != null && !row.body().isBlank()
+                    .map(row -> !"STALE".equals(row.status())
+                            && row.body() != null && !row.body().isBlank()
                             && hash.equals(row.sourceHash()))
                     .orElse(false);
         }
@@ -334,15 +365,16 @@ public class ContentTranslationWorker {
 
     /**
      * Content-loss guard: less than 60% of the source words, or a dangling
-     * conjunction/punctuation left by the model.
+     * conjunction/punctuation left by the model. {@code shortLabelExempt} skips
+     * only the word-count ratio, for interface labels that compress naturally.
      */
-    static boolean truncated(String source, String output) {
+    static boolean truncated(String source, String output, boolean shortLabelExempt) {
         String candidate = output == null ? "" : output.trim();
         if (candidate.isEmpty()) {
             return source != null && !source.isBlank();
         }
         int sourceWords = wordCount(source);
-        if (sourceWords >= 2 && wordCount(candidate) * 5 < sourceWords * 3) {
+        if (!shortLabelExempt && sourceWords >= 2 && wordCount(candidate) * 5 < sourceWords * 3) {
             return true;
         }
         String tail = candidate.toLowerCase(java.util.Locale.ROOT);
@@ -356,6 +388,12 @@ public class ContentTranslationWorker {
     private static int wordCount(String value) {
         String trimmed = value == null ? "" : value.trim();
         return trimmed.isEmpty() ? 0 : trimmed.split("\\s+").length;
+    }
+
+    /** A button/menu label: one to three words. */
+    static boolean shortLabel(String source) {
+        int words = wordCount(source);
+        return words > 0 && words <= 3;
     }
 
     private static String normalizeForComparison(String value) {

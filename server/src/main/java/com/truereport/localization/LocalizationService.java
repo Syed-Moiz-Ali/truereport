@@ -37,14 +37,20 @@ public class LocalizationService {
     private final TranslationBacklogService backlog;
     private final LanguageCatalog languageCatalog;
     private final com.truereport.shared.i18n.TranslationReviewGate reviewGate;
+    private final com.truereport.uimessages.LanguageRegistryWriter registryWriter;
+    private final WellKnownLanguages knownLanguages;
 
     public LocalizationService(LanguageRepository languages, TranslationBacklogService backlog,
                                LanguageCatalog languageCatalog,
-                               com.truereport.shared.i18n.TranslationReviewGate reviewGate) {
+                               com.truereport.shared.i18n.TranslationReviewGate reviewGate,
+                               com.truereport.uimessages.LanguageRegistryWriter registryWriter,
+                               WellKnownLanguages knownLanguages) {
         this.languages = languages;
         this.backlog = backlog;
         this.languageCatalog = languageCatalog;
         this.reviewGate = reviewGate;
+        this.registryWriter = registryWriter;
+        this.knownLanguages = knownLanguages;
     }
 
     /** Outcome of a create call: 201 for a new code, 200 for a reactivated row. */
@@ -54,12 +60,16 @@ public class LocalizationService {
     @Transactional
     public LanguageDto goLive(String code) {
         String target = normalize(code);
-        languages.find(target).orElseThrow(ApiException::notFound);
+        LanguageDto language = languages.find(target).orElseThrow(ApiException::notFound);
         reviewGate.assertLanguageReady(target);
         if (languages.updateStatus(target, "LIVE", true) == 0) {
             throw ApiException.notFound();
         }
         languageCatalog.register(target);
+        registryWriter.register(target,
+                knownLanguages.find(target).map(WellKnownLanguages.KnownLanguage::name)
+                        .orElse(language.nativeName()),
+                language.nativeName(), language.direction());
         return languages.find(target).orElseThrow(ApiException::notFound);
     }
 
@@ -102,6 +112,12 @@ public class LocalizationService {
             languages.reactivate(target, resolvedName, resolvedDirection, sortOrder);
         }
         languageCatalog.register(target);
+        // The manifest, the language switcher and the per-app catalogs all read
+        // languages.json, so a new language must be written there too.
+        String englishName = knownLanguages.find(target)
+                .map(WellKnownLanguages.KnownLanguage::name)
+                .orElse(resolvedName);
+        registryWriter.register(target, englishName, resolvedName, resolvedDirection);
         return new LanguageCreationResult(
                 languages.find(target).orElseThrow(ApiException::notFound), existing == null);
     }
@@ -127,6 +143,7 @@ public class LocalizationService {
             }
         }
         languageCatalog.unregister(target);
+        registryWriter.unregister(target);
         return languages.find(target).orElseThrow(ApiException::notFound);
     }
 

@@ -1,0 +1,100 @@
+name: truereport
+
+# Full stack for a server deployment:
+#   MySQL + LibreTranslate + the Spring Boot API.
+#
+#   cd deploy
+#   cp .env.example .env      # fill the secrets
+#   docker compose up -d --build
+#
+# LibreTranslate is NOT exposed to the host: only the API reaches it on the
+# private compose network. Its models live in a named volume so restarts do not
+# download them again.
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    command: --log-bin-trust-function-creators=1
+    environment:
+      MYSQL_DATABASE: truereport
+      MYSQL_USER: ${DB_USER:-truereport}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in deploy/.env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in deploy/.env}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - internal
+
+  libretranslate:
+    image: libretranslate/libretranslate:v1.10.0
+    restart: unless-stopped
+    environment:
+      # Keep this in sync with the languages that are LIVE in the product.
+      LT_LOAD_ONLY: ${LIBRETRANSLATE_LANGUAGES:-en,es,fr}
+    volumes:
+      # Persist downloaded Argos models across restarts/redeploys.
+      - libretranslate-models:/home/libretranslate/.local:rw
+    healthcheck:
+      test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
+      interval: 10s
+      timeout: 4s
+      retries: 6
+      start_period: 30s
+    networks:
+      - internal
+
+  api:
+    build:
+      context: ../server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      libretranslate:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://db:3306/truereport?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+      DB_USER: ${DB_USER:-truereport}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in deploy/.env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in deploy/.env}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?Set APP_ENCRYPTION_KEY in deploy/.env}
+      # Real content translation. The API reaches LibreTranslate by service name.
+      I18N_TRANSLATION_PROVIDER: libretranslate
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+      LIBRETRANSLATE_TIMEOUT: 30s
+      UI_MESSAGES_DIR: /app/i18n
+      DEV_SEED_ENABLED: "false"
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:*}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - truereport-storage:/app/.truereport-storage
+      # Approved interface translations are written here as JSON catalogs.
+      - truereport-i18n:/app/i18n
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - internal
+
+volumes:
+  mysql-data:
+  libretranslate-models:
+  truereport-storage:
+  truereport-i18n:
+
+networks:
+  internal:

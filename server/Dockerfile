@@ -20,8 +20,10 @@ COPY --from=chromium /ms-playwright/chromium-1248 /opt/chromium
 RUN useradd --system --create-home --uid 10001 truereport
 WORKDIR /app
 COPY --from=build /workspace/target/truereport-server-0.2.0-SNAPSHOT.jar /app/truereport-server.jar
+COPY --from=build /workspace/src/main/resources/i18n /app/i18n
 RUN mkdir -p /app/.truereport-storage && chown -R truereport:truereport /app
 ENV CHROME_PATH=/opt/chromium/chrome-linux64/chrome
+ENV UI_MESSAGES_DIR=/app/i18n
 USER truereport
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/truereport-server.jar"]

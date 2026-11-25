@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:api_client/api_client.dart';
 import 'package:auth/auth.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The startup contract this file pins:
@@ -307,4 +308,17 @@ void main() {
       expect(store.value, isNotNull);
     },
   );
+
+  test('auth controller survives a provider rebuild (invalidate)', () async {
+    final container = ProviderContainer.test(
+      overrides: [sessionStoreProvider.overrideWithValue(_FakeStore())],
+    );
+
+    expect(await container.read(authControllerProvider.future), isNull);
+    // Regression: `build()` used to assign a `late final` repository, so the
+    // second build threw LateInitializationError and the router kept showing
+    // the previous session while every request 401'd.
+    container.invalidate(authControllerProvider);
+    expect(await container.read(authControllerProvider.future), isNull);
+  });
 }

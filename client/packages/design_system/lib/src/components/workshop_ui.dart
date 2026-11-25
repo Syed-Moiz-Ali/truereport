@@ -617,106 +617,75 @@ class WorkshopTextField extends StatefulWidget {
 }
 
 class _WorkshopTextFieldState extends State<WorkshopTextField> {
-  final FocusNode _focusNode = FocusNode();
-  bool _focused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(_handleFocus);
-  }
-
-  void _handleFocus() {
-    if (mounted) {
-      setState(() => _focused = _focusNode.hasFocus);
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode
-      ..removeListener(_handleFocus)
-      ..dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final ws = context.ws;
     final spacing = context.spacing;
     final radius = BorderRadius.circular(context.radii.xl);
+    final idle = OutlineInputBorder(
+      borderRadius: radius,
+      borderSide: BorderSide(color: ws.border),
+    );
+    final focused = OutlineInputBorder(
+      borderRadius: radius,
+      borderSide: BorderSide(color: ws.accent, width: 1.6),
+    );
+    final invalid = OutlineInputBorder(
+      borderRadius: radius,
+      borderSide: BorderSide(color: ws.danger, width: 1.2),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           widget.label,
-          style: ws.meta.copyWith(color: ws.muted, fontWeight: FontWeight.w600),
+          style: ws.meta.copyWith(color: ws.ink, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: spacing.xs),
-        Semantics(
-          textField: true,
-          label: widget.label,
-          child: AnimatedContainer(
-            duration: context.motionDuration(const Duration(milliseconds: 140)),
-            curve: context.motion.enterCurve,
-            decoration: BoxDecoration(
-              color: widget.enabled ? ws.surface : ws.canvas,
-              borderRadius: radius,
-              boxShadow: _focused
-                  ? <BoxShadow>[
-                      BoxShadow(
-                        color: ws.focus.withValues(alpha: 0.3),
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : null,
+        TextFormField(
+          key: widget._fieldKey,
+          controller: widget.controller,
+          obscureText: widget.obscureText,
+          keyboardType: widget.keyboardType,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          autofocus: widget.autofocus,
+          textInputAction: widget.textInputAction,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          enabled: widget.enabled,
+          autofillHints: widget.autofillHints,
+          textAlignVertical: TextAlignVertical.center,
+          style: ws.body.copyWith(color: ws.ink, fontSize: 15),
+          cursorColor: ws.accent,
+          // The decoration draws the border, so the validation message lands
+          // under the field instead of inside a hand-drawn box.
+          decoration: InputDecoration(
+            isDense: false,
+            filled: true,
+            fillColor: widget.enabled ? ws.surface : ws.canvas,
+            contentPadding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 14,
+              vertical: 16,
             ),
-            foregroundDecoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(color: _focused ? ws.accent : ws.border),
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: context.sizing.inputHeight,
-              ),
-              child: TextFormField(
-                key: widget._fieldKey,
-                controller: widget.controller,
-                focusNode: _focusNode,
-                obscureText: widget.obscureText,
-                keyboardType: widget.keyboardType,
-                validator: widget.validator,
-                onChanged: widget.onChanged,
-                autofocus: widget.autofocus,
-                textInputAction: widget.textInputAction,
-                onFieldSubmitted: widget.onFieldSubmitted,
-                enabled: widget.enabled,
-                autofillHints: widget.autofillHints,
-                textAlignVertical: TextAlignVertical.center,
-                style: ws.body.copyWith(color: ws.ink),
-                cursorColor: ws.accent,
-                decoration: InputDecoration(
-                  isDense: true,
-                  filled: false,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  focusedErrorBorder: InputBorder.none,
-                  contentPadding: EdgeInsetsDirectional.symmetric(
-                    horizontal: spacing.md,
-                    vertical: spacing.md,
+            border: idle,
+            enabledBorder: idle,
+            disabledBorder: idle,
+            focusedBorder: focused,
+            errorBorder: invalid,
+            focusedErrorBorder: focused,
+            hintText: widget.hint,
+            hintStyle: ws.body.copyWith(color: ws.muted),
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: widget.suffixIcon == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 6),
+                    child: widget.suffixIcon,
                   ),
-                  hintText: widget.hint,
-                  hintStyle: ws.body.copyWith(color: ws.muted),
-                  prefixIcon: widget.prefixIcon,
-                  suffixIcon: widget.suffixIcon,
-                  errorStyle: ws.meta.copyWith(color: ws.danger),
-                ),
-              ),
-            ),
+            errorStyle: ws.meta.copyWith(color: ws.danger),
+            errorMaxLines: 2,
           ),
         ),
       ],

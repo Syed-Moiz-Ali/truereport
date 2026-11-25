@@ -383,11 +383,11 @@ public class HierarchyService {
         }
         long memberCount = members.stream().filter(m -> m.getStatus().equals("ACTIVE")).count();
         return new HierarchyWorkshopDto(workshop.getId(), workshop.getName(), workshop.getBranchName(),
-                workshop.getStatus(), memberCount, admins, technicians);
+                workshop.getStatus(), workshop.getContactEmail(), memberCount, admins, technicians);
     }
 
     private PlatformAccountDto account(User user, WorkshopMembership membership) {
-        return new PlatformAccountDto(user.getId(), user.getDisplayName(),
+        return new PlatformAccountDto(user.getId(), user.getDisplayName(), user.getEmail(),
                 maskEmail(user.getEmail()),
                 membership == null ? "UNKNOWN" : membership.getRole().name(),
                 membership == null ? user.getStatus().name() : membership.getStatus(),

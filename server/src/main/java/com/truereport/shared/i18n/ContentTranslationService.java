@@ -63,6 +63,11 @@ public class ContentTranslationService {
         return languages.defaultLanguage();
     }
 
+    /** Clears every cached translation, e.g. after a bulk review decision. */
+    public void invalidateAll() {
+        cache.clear();
+    }
+
     public boolean isSupported(String lang) {
         return languages.isSupported(lang);
     }
@@ -87,17 +92,24 @@ public class ContentTranslationService {
             return cached;
         }
         TranslationRow row = store.find(entityType, entityId, field, target).orElse(null);
-        if (row == null || "STALE".equals(row.status())) {
-            row = store.find(entityType, entityId, field, languages.defaultLanguage())
-                    .orElse(null);
-        }
-        if (row != null && !"STALE".equals(row.status())
-                && row.body() != null && !row.body().isBlank()
-                && hash.equals(row.sourceHash())) {
+        if (servable(row, hash)) {
             cachePut(key, row.body());
             return row.body();
         }
         return fallback;
+    }
+
+    /**
+     * Only human-approved text is served. Machine output waiting in the review
+     * queue ({@code PENDING_REVIEW}), drafts and stale rows fall back to the
+     * canonical English source.
+     */
+    private static boolean servable(TranslationRow row, String sourceHash) {
+        return row != null
+                && "REVIEWED".equals(row.status())
+                && row.body() != null
+                && !row.body().isBlank()
+                && sourceHash.equals(row.sourceHash());
     }
 
     /**
@@ -133,12 +145,7 @@ public class ContentTranslationService {
                 String fallback = english == null ? "" : english;
                 String hash = hash(fallback);
                 TranslationRow row = byKey.get(id + "|" + field + "|" + target);
-                if (row == null || "STALE".equals(row.status())) {
-                    row = byKey.get(id + "|" + field + "|" + languages.defaultLanguage());
-                }
-                if (row != null && !"STALE".equals(row.status())
-                        && row.body() != null && !row.body().isBlank()
-                        && hash.equals(row.sourceHash())) {
+                if (servable(row, hash)) {
                     cachePut(cacheKey(entityType, id, field, target, hash), row.body());
                     localized.put(field, row.body());
                 } else {
@@ -204,7 +211,7 @@ public class ContentTranslationService {
     public Translation write(String entityType, String entityId, String field, String lang,
                              String body, String actorId) {
         String type = ContentSourceCatalog.canonicalEntityType(entityType);
-        String id = ContentSourceCatalog.canonicalEntityId(entityId)
+        String id = ContentSourceCatalog.canonicalEntityId(type, entityId)
                 .orElseThrow(ApiException::notFound);
         String target = requireWritableTarget(lang);
         RegistryField registryField = requireField(type, field);
@@ -235,7 +242,7 @@ public class ContentTranslationService {
     @Transactional
     public void delete(String entityType, String entityId, String field, String lang) {
         String type = ContentSourceCatalog.canonicalEntityType(entityType);
-        String id = ContentSourceCatalog.canonicalEntityId(entityId)
+        String id = ContentSourceCatalog.canonicalEntityId(type, entityId)
                 .orElseThrow(ApiException::notFound);
         String target = requireWritableTarget(lang);
         RegistryField registryField = requireField(type, field);

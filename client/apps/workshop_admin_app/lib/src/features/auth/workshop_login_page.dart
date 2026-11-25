@@ -117,6 +117,23 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
     };
   }
 
+  Future<void> _showForgotPassword() async {
+    final t = UiStrings.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t(WorkshopAdminKeys.forgotPassword)),
+        content: Text(t(WorkshopAdminKeys.forgotPasswordBody)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t(CommonKeys.buttonClose)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
@@ -150,6 +167,8 @@ class _WorkshopLoginPageState extends ConsumerState<WorkshopLoginPage> {
       validateEmail: _validateEmail,
       validatePassword: _required,
       validateCode: (_) => null,
+      forgotLabel: t(WorkshopAdminKeys.forgotPassword),
+      onForgot: _showForgotPassword,
     );
   }
 }

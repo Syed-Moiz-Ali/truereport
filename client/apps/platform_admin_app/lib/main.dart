@@ -35,7 +35,11 @@ class PlatformAdminApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(platformRouterProvider);
     final title = ref.watch(platformAppTitleProvider);
-    ref.read(apiClientProvider).acceptLanguage = 'en';
+    final locale = ref.watch(uiLocaleProvider(UiMessageClients.platformAdmin));
+    final supportedLocales = ref.watch(
+      supportedLocalesProvider(UiMessageClients.platformAdmin),
+    );
+    ref.read(apiClientProvider).acceptLanguage = locale.languageCode;
     ref.read(apiClientProvider).clientName = 'platform_admin';
 
     return UiStringsScope(
@@ -46,15 +50,17 @@ class PlatformAdminApp extends ConsumerWidget {
         onGenerateTitle: (_) => title,
         debugShowCheckedModeBanner: false,
         theme: _platformTheme(),
-        locale: const Locale('en'),
-        supportedLocales: const [Locale('en')],
+        locale: locale,
+        supportedLocales: supportedLocales,
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        builder: (context, child) =>
-            UiMessagesBootstrap(child: child ?? const SizedBox.shrink()),
+        builder: (context, child) => UiDirectionality(
+          client: UiMessageClients.platformAdmin,
+          child: UiMessagesBootstrap(child: child ?? const SizedBox.shrink()),
+        ),
         routerConfig: router,
       ),
     );

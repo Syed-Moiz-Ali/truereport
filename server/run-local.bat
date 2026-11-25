@@ -61,6 +61,17 @@ set DEV_SEED_ENABLED=true
 set MANAGEMENT_HEALTH_MAIL_ENABLED=false
 set SPRING_PROFILES_ACTIVE=dev
 
+REM ---- LibreTranslate (content translation) ----
+set I18N_TRANSLATION_PROVIDER=libretranslate
+set LIBRETRANSLATE_URL=http://localhost:5000
+set LIBRETRANSLATE_TIMEOUT=30s
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\tools\ensure-libretranslate.ps1"
+if errorlevel 1 (
+  echo.
+  echo LibreTranslate is required for content translation and could not be started.
+  goto end
+)
+
 powershell -NoProfile -Command "$c = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue; if (-not $c) { exit 0 }; $owner = ($c.OwningProcess | Select-Object -First 1); $p = Get-Process -Id $owner -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -eq 'java') { Write-Output 'Stopping existing backend on port 8080 ...'; Stop-Process -Id $owner -Force; Start-Sleep -Seconds 2; exit 0 }; exit 1"
 if %ERRORLEVEL%==1 (
   echo.

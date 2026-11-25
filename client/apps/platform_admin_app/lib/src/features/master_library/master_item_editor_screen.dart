@@ -16,6 +16,7 @@ import '../../platform_theme.dart';
 import '../../reference_status_lookup.dart';
 import '../checklist/checklist_status.dart';
 import 'option_label.dart';
+import 'master_item_error_messages.dart';
 import '../localization/translation_issue_dialog.dart';
 
 import 'package:l10n/l10n.dart';
@@ -99,167 +100,211 @@ class MasterItemEditorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final id = itemId;
     if (id == null) {
-      return const _CreateItemStepper();
+      return const _CreateItemView();
     }
     return _EditItemView(itemId: id, initialStep: initialStep);
   }
 }
 
 class _EditorShell extends StatelessWidget {
-  const _EditorShell({required this.child, this.contextBar});
+  const _EditorShell({required this.child, this.contextBar, this.footer});
 
   final Widget child;
   final Widget? contextBar;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
     return PlatformShell(
       currentRoute: '/checklist/items',
       contextBar: contextBar,
-      child: PlatformPage(maxWidth: 1100, child: child),
+      child: PlatformPage(maxWidth: 1100, footer: footer, child: child),
     );
   }
 }
 
-class _CreateItemStepper extends ConsumerStatefulWidget {
-  const _CreateItemStepper();
+class _CreateItemView extends ConsumerStatefulWidget {
+  const _CreateItemView();
 
   @override
-  ConsumerState<_CreateItemStepper> createState() => _CreateItemStepperState();
+  ConsumerState<_CreateItemView> createState() => _CreateItemViewState();
 }
 
-class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
-  int _step = 0;
-  final _basicsFormKey = GlobalKey<FormState>();
-  final _contentFormKey = GlobalKey<FormState>();
+/// Single-page create flow.
+///
+/// Only the fields the server actually requires are asked up front: stable
+/// code, category, label and instruction. Evidence rules, issue fields and
+/// measurement bands are configured on the item page after creation, where
+/// they are versioned together with the content.
+class _CreateItemViewState extends ConsumerState<_CreateItemView> {
+  final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
   final _labelController = TextEditingController();
   final _instructionController = TextEditingController();
   final _unitController = TextEditingController();
   final _sensorController = TextEditingController();
-  final _specController = TextEditingController();
-  final _maxTyreAgeController = TextEditingController();
-  final _sortOrderController = TextEditingController(text: '0');
+  final _codeFocus = FocusNode();
+  final _labelFocus = FocusNode();
+  final _instructionFocus = FocusNode();
 
   String _categoryId = '';
   bool _safetyCritical = false;
   bool _multiPoint = false;
   bool _allowFreeTextNote = false;
-  List<EvidenceRule> _evidenceRules = const <EvidenceRule>[];
-  List<IssueField> _issueFields = const <IssueField>[];
-  List<MeasurementBand> _bands = const <MeasurementBand>[];
-  bool _evidenceTouched = false;
-  bool _fieldsTouched = false;
-  bool _bandsTouched = false;
+  bool _advancedOpen = false;
+  bool _codeTouched = false;
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    _labelController.addListener(_handleLabelChanged);
+    _labelController.addListener(_refreshPreview);
+    _instructionController.addListener(_refreshPreview);
+    _codeController.addListener(_refreshPreview);
+  }
+
+  @override
   void dispose() {
+    _labelController.removeListener(_handleLabelChanged);
+    _labelController.removeListener(_refreshPreview);
+    _instructionController.removeListener(_refreshPreview);
+    _codeController.removeListener(_refreshPreview);
     _codeController.dispose();
     _labelController.dispose();
     _instructionController.dispose();
     _unitController.dispose();
     _sensorController.dispose();
-    _specController.dispose();
-    _maxTyreAgeController.dispose();
-    _sortOrderController.dispose();
+    _codeFocus.dispose();
+    _labelFocus.dispose();
+    _instructionFocus.dispose();
     super.dispose();
   }
 
-  void _continueFrom(int step) {
-    if (step == 0) {
-      final valid =
-          _basicsFormKey.currentState?.validate() == true &&
-          _categoryId.isNotEmpty;
-      if (!valid) {
-        _basicsFormKey.currentState?.validate();
-        setState(() {});
-        return;
-      }
-    }
-    if (step == 1) {
-      if (_contentFormKey.currentState?.validate() != true) return;
-    }
-    if (step < 5) setState(() => _step = step + 1);
+  void _refreshPreview() {
+    if (mounted) setState(() {});
   }
 
-  Future<void> _saveAll({required bool publish}) async {
+  void _handleLabelChanged() {
+    if (_codeTouched) return;
+    final next = _slugify(_labelController.text);
+    if (next == _codeController.text) return;
+    _codeController.text = next;
+  }
+
+  /// Suggests a stable code from the label. The admin can overwrite it at any
+  /// time; once they do, the label no longer rewrites it.
+  static String _slugify(String input) {
+    final upper = input.toUpperCase().trim();
+    final replaced = upper
+        .replaceAll(RegExp('[^A-Z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return replaced.length <= 60 ? replaced : replaced.substring(0, 60);
+  }
+
+  String? _validateCode(String? value, UiMessageStrings strings) {
+    final text = (value ?? '').trim();
+    if (text.isEmpty) return strings.tKey(CommonKeys.validationRequired);
+    if (text.length > 60) return strings.tKey(CommonKeys.validationRequired);
+    return null;
+  }
+
+  String? _validateRequired(String? value, UiMessageStrings strings) {
+    return (value ?? '').trim().isEmpty
+        ? strings.tKey(CommonKeys.validationRequired)
+        : null;
+  }
+
+  void _focusFirstInvalid() {
+    if (_validateCode(_codeController.text, _strings) != null) {
+      _codeFocus.requestFocus();
+      return;
+    }
+    if (_categoryId.isEmpty) return;
+    if (_labelController.text.trim().isEmpty) {
+      _labelFocus.requestFocus();
+      return;
+    }
+    _instructionFocus.requestFocus();
+  }
+
+  UiMessageStrings get _strings => ref.read(uiStringsProvider);
+
+  Future<void> _save({required bool publish}) async {
     final strings = ref.read(uiStringsProvider);
-    if (_basicsFormKey.currentState?.validate() != true ||
-        _categoryId.isEmpty) {
-      setState(() => _step = 0);
-      _basicsFormKey.currentState?.validate();
+    if (!(_formKey.currentState?.validate() ?? false) || _categoryId.isEmpty) {
+      _focusFirstInvalid();
+      setState(() {});
       return;
     }
-    if (_contentFormKey.currentState?.validate() != true) {
-      setState(() => _step = 1);
-      return;
-    }
-    if (publish) {
-      final confirmed = await showPlatformConfirmDialog(
-        context: context,
-        title: strings.tKey(PlatformAdminKeys.buttonItemPublish),
-        body: strings.tKey(PlatformAdminKeys.buttonItemPublish),
-        confirmLabel: strings.tKey(PlatformAdminKeys.buttonPublish),
-      );
-      if (confirmed != true) return;
-    }
+    if (_saving) return;
     setState(() => _saving = true);
     try {
       final actions = ref.read(platformConfigActionsProvider);
-      // Wait for the served assessment results instead of creating an item
-      // with an empty `resultOptions` while the enum is still loading.
       final resultOptions = _selectableCodes(
         await ref.read(enumsProvider('result').future),
       );
-      final detail = await actions.createItem(<String, dynamic>{
-        'stableCode': _codeController.text.trim(),
-        'categoryId': _categoryId,
-        'label': _labelController.text.trim(),
-        'instruction': _instructionController.text.trim(),
-        'standardSpec': _specController.text.trim(),
-        'sampleData': false,
-        'resultOptions': resultOptions,
-        'severityPolicy': '{}',
-        'applicability': '{}',
-        'reasonCodes': const <String>[],
-        'noteRequirement': 'OPTIONAL',
-        'evidenceRequirement': 'REQUIRED_MIN_N',
-        'minPhotos': 1,
-        'equipmentIds': const <String>[],
-        'guideImageId': null,
-        'measurementUnit': _unitController.text.trim(),
-        'sensorTool': _sensorController.text.trim(),
-        'safetyCritical': _safetyCritical,
-        'multiPoint': _multiPoint,
-        'maxTyreAgeYears': int.tryParse(_maxTyreAgeController.text.trim()),
-        'allowFreeTextNote': _allowFreeTextNote,
-        'sortOrder': int.tryParse(_sortOrderController.text.trim()) ?? 0,
-      });
+      final PlatformItemDetail detail;
+      try {
+        detail = await actions.createItem(<String, dynamic>{
+          'stableCode': _codeController.text.trim(),
+          'categoryId': _categoryId,
+          'label': _labelController.text.trim(),
+          'instruction': _instructionController.text.trim(),
+          'standardSpec': '',
+          'sampleData': false,
+          'resultOptions': resultOptions,
+          'severityPolicy': '{}',
+          'applicability': '{}',
+          'reasonCodes': const <String>[],
+          'noteRequirement': _allowFreeTextNote ? 'OPTIONAL' : 'NONE',
+          'evidenceRequirement': 'NONE',
+          'minPhotos': 0,
+          'equipmentIds': const <String>[],
+          'guideImageId': null,
+          'measurementUnit': _unitController.text.trim(),
+          'sensorTool': _sensorController.text.trim(),
+          'safetyCritical': _safetyCritical,
+          'multiPoint': _multiPoint,
+          'maxTyreAgeYears': null,
+          'allowFreeTextNote': _allowFreeTextNote,
+          'sortOrder': 0,
+        });
+      } catch (error) {
+        if (!mounted) return;
+        _showSnack(
+          context,
+          itemCreateFailureMessage(strings, error),
+          isError: true,
+        );
+        return;
+      }
       final versionId = detail.draftVersion?.id ?? detail.versions.first.id;
-      if (_evidenceTouched) {
-        await actions.saveConfig(
-          itemId: detail.item.id,
-          versionId: versionId,
-          evidenceRules: _evidenceRules,
-        );
-      }
-      if (_fieldsTouched) {
-        await actions.saveConfig(
-          itemId: detail.item.id,
-          versionId: versionId,
-          issueFields: _issueFields,
-        );
-      }
-      if (_bandsTouched) {
-        await actions.saveConfig(
-          itemId: detail.item.id,
-          versionId: versionId,
-          measurementBands: _bands,
-        );
-      }
       if (publish) {
-        await actions.publishItem(detail.item.id, versionId);
+        try {
+          await actions.publishItem(detail.item.id, versionId);
+        } catch (error) {
+          if (!mounted) return;
+          if (error is AppFailure &&
+              error.code == 'TRANSLATION_REVIEW_REQUIRED') {
+            await showTranslationIssuesDialog(context, error);
+          } else {
+            _showSnack(
+              context,
+              itemCreateFailureMessage(strings, error),
+              isError: true,
+            );
+          }
+          if (!mounted) return;
+          // The item exists as a draft. Continue on its editor so retrying the
+          // publish never creates a duplicate item.
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (_) => MasterItemEditorScreen(itemId: detail.item.id),
+            ),
+          );
+          return;
+        }
       }
       if (!mounted) return;
       _showSnack(
@@ -275,7 +320,11 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
       );
     } catch (error) {
       if (!mounted) return;
-      _showSnack(context, _failureMessage(error), isError: true);
+      _showSnack(
+        context,
+        itemCreateFailureMessage(strings, error),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -284,380 +333,437 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(uiStringsProvider);
-    final categoriesAsync = ref.watch(categoriesProvider);
     final categories =
-        categoriesAsync.asData?.value ?? const <PlatformCategory>[];
-    final optionSets =
-        (ref.watch(optionSetsProvider).asData?.value ?? const <OptionSet>[])
-            .where((set) => set.isChecklistCatalog)
-            .toList(growable: false);
+        ref.watch(categoriesProvider).asData?.value ??
+        const <PlatformCategory>[];
 
     return _EditorShell(
+      footer: _footer(strings),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CreateItemHeader(strings: strings),
+            const SizedBox(height: 22),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 960;
+                final formColumn = Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _identityCard(strings, categories),
+                    const SizedBox(height: 16),
+                    _contentCard(strings),
+                    const SizedBox(height: 16),
+                    _optionalCard(strings),
+                  ],
+                );
+                final sideColumn = Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _previewCard(strings, categories),
+                    const SizedBox(height: 16),
+                    _nextCard(strings),
+                  ],
+                );
+                if (!wide) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      formColumn,
+                      const SizedBox(height: 16),
+                      sideColumn,
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: formColumn),
+                    const SizedBox(width: 20),
+                    Expanded(flex: 2, child: sideColumn),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _identityCard(
+    UiMessageStrings strings,
+    List<PlatformCategory> categories,
+  ) {
+    final fields = LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 640;
+        final code = PlatformTextField(
+          key: const Key('item-code'),
+          controller: _codeController,
+          label: strings.tKey(PlatformAdminKeys.fieldItemCode),
+          hint: strings.tKey(PlatformAdminKeys.fieldItemCode),
+          helperText: strings.tKey(PlatformAdminKeys.fieldItemCodeHelper),
+          autofocus: true,
+          textInputAction: TextInputAction.next,
+          onChanged: (value) {
+            _codeTouched = value.trim().isNotEmpty;
+          },
+          onFieldSubmitted: (_) => _labelFocus.requestFocus(),
+          validator: (value) => _validateCode(value, strings),
+        );
+        final category = FormField<String>(
+          initialValue: _categoryId,
+          validator: (value) => value == null || value.isEmpty
+              ? strings.tKey(CommonKeys.validationRequired)
+              : null,
+          builder: (state) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PlatformDropdown<String>(
+                label: strings.tKey(CommonKeys.labelCategory),
+                value: state.value ?? '',
+                items: [
+                  DropdownMenuItem(
+                    value: '',
+                    child: Text(
+                      strings.tKey(PlatformAdminKeys.fieldCategorySelect),
+                    ),
+                  ),
+                  for (final category in categories)
+                    DropdownMenuItem(
+                      value: category.id,
+                      child: Text(
+                        category.name.isEmpty ? category.code : category.name,
+                      ),
+                    ),
+                ],
+                onChanged: (value) {
+                  state.didChange(value ?? '');
+                  setState(() => _categoryId = value ?? '');
+                },
+              ),
+              if (state.hasError)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 12, top: 6),
+                  child: Text(
+                    state.errorText!,
+                    style: PtTheme.font(12, color: PtTheme.rose),
+                  ),
+                ),
+            ],
+          ),
+        );
+        if (!wide) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [code, const SizedBox(height: 14), category],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: code),
+            const SizedBox(width: 14),
+            Expanded(child: category),
+          ],
+        );
+      },
+    );
+
+    return PlatformSectionCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildHeader(strings),
-          const SizedBox(height: 18),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(
-              strings.tArgsKey(PlatformAdminKeys.stepCounter, {
-                'current': _step + 1,
-                'total': 6,
-              }),
-              style: PtTheme.font(
-                12,
-                weight: FontWeight.w700,
-                color: PtTheme.muted,
-                tracking: 0.4,
-              ),
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemCreateIdentity),
+            subtitle: strings.tKey(PlatformAdminKeys.sectionItemCreateRequired),
+          ),
+          const SizedBox(height: 16),
+          fields,
+        ],
+      ),
+    );
+  }
+
+  Widget _contentCard(UiMessageStrings strings) {
+    return PlatformSectionCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemCreateContent),
+            subtitle: strings.tKey(
+              PlatformAdminKeys.sectionItemCreateContentBody,
             ),
           ),
-          const SizedBox(height: 8),
-          Stepper(
-            currentStep: _step,
-            margin: EdgeInsets.zero,
-            connectorThickness: 1,
-            stepIconHeight: 32,
-            stepIconWidth: 32,
-            stepIconMargin: const EdgeInsets.only(right: 12),
-            headerPadding: const EdgeInsets.symmetric(vertical: 4),
-            contentPadding: const EdgeInsets.only(left: 44, bottom: 8),
-            onStepTapped: (index) {
-              if (index < _step && !_saving) {
-                setState(() => _step = index);
-              }
-            },
-            controlsBuilder: (context, details) {
-              final isLast = _step == 5;
-              return Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    if (_step > 0)
-                      PlatformSecondaryButton(
-                        key: const Key('stepper-back'),
-                        label: strings.tKey(CommonKeys.buttonPrevious),
-                        onPressed: _saving
-                            ? null
-                            : () => setState(() => _step--),
-                      ),
-                    PlatformSecondaryButton(
-                      key: const Key('stepper-save-draft'),
-                      label: strings.tKey(
-                        PlatformAdminKeys.buttonItemSaveDraft,
-                      ),
-                      onPressed: _saving
-                          ? null
-                          : () => _saveAll(publish: false),
-                    ),
-                    if (!isLast)
-                      PlatformPrimaryButton(
-                        key: const Key('stepper-next'),
-                        label: strings.tKey(CommonKeys.buttonNext),
-                        onPressed: _saving ? null : () => _continueFrom(_step),
-                      ),
-                    if (isLast)
-                      PlatformPrimaryButton(
-                        label: strings.tKey(PlatformAdminKeys.buttonPublish),
-                        isLoading: _saving,
-                        onPressed: _saving
-                            ? null
-                            : () => _saveAll(publish: true),
-                      ),
-                  ],
-                ),
-              );
-            },
-            steps: [
-              Step(
-                title: Text(strings.tKey(PlatformAdminKeys.stepItemBasics)),
-                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepBasics)),
-                isActive: _step >= 0,
-                state: _step > 0 ? StepState.complete : StepState.indexed,
-                content: _buildBasicsStep(strings, categories),
-              ),
-              Step(
-                title: Text(strings.tKey(PlatformAdminKeys.stepItemContent)),
-                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepContent)),
-                isActive: _step >= 1,
-                state: _step > 1 ? StepState.complete : StepState.indexed,
-                content: _buildContentStep(strings),
-              ),
-              Step(
-                title: Text(
-                  strings.tKey(PlatformAdminKeys.stepItemIssueOptions),
-                ),
-                subtitle: Text(
-                  strings.tKey(PlatformAdminKeys.helpStepIssueOptions),
-                ),
-                isActive: _step >= 2,
-                state: _step > 2 ? StepState.complete : StepState.indexed,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _IssueFieldsSection(
-                      fields: _issueFields,
-                      optionSets: optionSets,
-                      editable: true,
-                      onSave: (fields) async {
-                        setState(() {
-                          _issueFields = fields;
-                          _fieldsTouched = true;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Step(
-                title: Text(strings.tKey(PlatformAdminKeys.stepItemEvidence)),
-                subtitle: Text(
-                  strings.tKey(PlatformAdminKeys.helpStepEvidence),
-                ),
-                isActive: _step >= 3,
-                state: _step > 3 ? StepState.complete : StepState.indexed,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _EvidenceRulesSection(
-                      rules: _evidenceRules,
-                      editable: true,
-                      onSave: (rules) async {
-                        setState(() {
-                          _evidenceRules = rules;
-                          _evidenceTouched = true;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Step(
-                title: Text(
-                  strings.tKey(PlatformAdminKeys.stepItemMeasurements),
-                ),
-                subtitle: Text(
-                  strings.tKey(PlatformAdminKeys.helpStepMeasurements),
-                ),
-                isActive: _step >= 4,
-                state: _step > 4 ? StepState.complete : StepState.indexed,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _MeasurementBandsSection(
-                      bands: _bands,
-                      editable: true,
-                      onSave: (bands) async {
-                        setState(() {
-                          _bands = bands;
-                          _bandsTouched = true;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Step(
-                title: Text(strings.tKey(PlatformAdminKeys.stepItemReview)),
-                subtitle: Text(strings.tKey(PlatformAdminKeys.helpStepReview)),
-                isActive: _step >= 5,
-                state: StepState.indexed,
-                content: _buildCreateReview(strings, categories),
-              ),
-            ],
+          const SizedBox(height: 16),
+          PlatformTextField(
+            key: const Key('item-label'),
+            controller: _labelController,
+            label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+            hint: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
+            textInputAction: TextInputAction.next,
+            onFieldSubmitted: (_) => _instructionFocus.requestFocus(),
+            validator: (value) => _validateRequired(value, strings),
+          ),
+          const SizedBox(height: 14),
+          PlatformTextField(
+            key: const Key('item-instruction'),
+            controller: _instructionController,
+            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
+            hint: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
+            helperText: strings.tKey(
+              PlatformAdminKeys.fieldItemInstructionHelper,
+            ),
+            maxLines: 4,
+            textInputAction: TextInputAction.newline,
+            validator: (value) => _validateRequired(value, strings),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBasicsStep(dynamic strings, List<PlatformCategory> categories) {
-    return Form(
-      key: _basicsFormKey,
+  Widget _optionalCard(UiMessageStrings strings) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 640;
+            final unit = PlatformTextField(
+              controller: _unitController,
+              label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
+              hint: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
+              helperText: strings.tKey(PlatformAdminKeys.fieldItemUnitHelper),
+            );
+            final sensor = PlatformTextField(
+              controller: _sensorController,
+              label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
+              hint: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
+              helperText: strings.tKey(PlatformAdminKeys.fieldItemSensorHelper),
+            );
+            if (!wide) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [unit, const SizedBox(height: 14), sensor],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: unit),
+                const SizedBox(width: 14),
+                Expanded(child: sensor),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _ToggleChip(
+              label: strings.tKey(PlatformAdminKeys.badgeSafetyCritical),
+              selected: _safetyCritical,
+              onTap: () => setState(() => _safetyCritical = !_safetyCritical),
+            ),
+            _ToggleChip(
+              label: strings.tKey(PlatformAdminKeys.fieldItemMultiPoint),
+              selected: _multiPoint,
+              onTap: () => setState(() => _multiPoint = !_multiPoint),
+            ),
+            _ToggleChip(
+              label: strings.tKey(PlatformAdminKeys.fieldItemAllowFreeText),
+              selected: _allowFreeTextNote,
+              onTap: () =>
+                  setState(() => _allowFreeTextNote = !_allowFreeTextNote),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: PtTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.border),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final fieldWidth = constraints.maxWidth >= 700
-                  ? (constraints.maxWidth - 16) / 2
-                  : constraints.maxWidth;
-              return Wrap(
-                spacing: 16,
-                runSpacing: 12,
+          InkWell(
+            onTap: () => setState(() => _advancedOpen = !_advancedOpen),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 16, 18),
+              child: Row(
                 children: [
-                  for (final field in <Widget>[
-                    PlatformTextField(
-                      controller: _codeController,
-                      label: strings.tKey(PlatformAdminKeys.fieldItemCode),
-                      validator: (value) => _required(value, strings),
-                    ),
-                    FormField<String>(
-                      initialValue: _categoryId,
-                      validator: (value) => value == null || value.isEmpty
-                          ? strings.tKey(CommonKeys.labelCategory)
-                          : null,
-                      builder: (state) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          PlatformDropdown<String>(
-                            label: strings.tKey(CommonKeys.labelCategory),
-                            value: state.value ?? '',
-                            items: [
-                              const DropdownMenuItem(
-                                value: '',
-                                child: Text('—'),
-                              ),
-                              for (final category in categories)
-                                DropdownMenuItem(
-                                  value: category.id,
-                                  child: Text(
-                                    category.name.isEmpty
-                                        ? category.code
-                                        : category.name,
-                                  ),
-                                ),
-                            ],
-                            onChanged: (value) {
-                              state.didChange(value ?? '');
-                              setState(() => _categoryId = value ?? '');
-                            },
-                          ),
-                          if (state.hasError)
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(
-                                start: 12,
-                                top: 6,
-                              ),
-                              child: Text(
-                                state.errorText!,
-                                style: PtTheme.font(
-                                  12,
-                                  lineHeight: 16,
-                                  color: PtTheme.rose,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    PlatformTextField(
-                      controller: _unitController,
-                      label: strings.tKey(
-                        PlatformAdminKeys.fieldItemMeasurementUnit,
-                      ),
-                    ),
-                    PlatformTextField(
-                      controller: _sensorController,
-                      label: strings.tKey(
-                        PlatformAdminKeys.fieldItemSensorTool,
-                      ),
-                    ),
-                    PlatformTextField(
-                      controller: _sortOrderController,
-                      label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ])
-                    SizedBox(width: fieldWidth, child: field),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final fieldWidth = constraints.maxWidth >= 700
-                  ? (constraints.maxWidth - 16) / 2
-                  : constraints.maxWidth;
-              return Wrap(
-                spacing: 16,
-                runSpacing: 12,
-                children: [
-                  for (final field in <Widget>[
-                    _SwitchTile(
-                      label: strings.tKey(
-                        PlatformAdminKeys.badgeSafetyCritical,
-                      ),
-                      value: _safetyCritical,
-                      onChanged: (value) =>
-                          setState(() => _safetyCritical = value),
-                    ),
-                    _SwitchTile(
-                      label: strings.tKey(
-                        PlatformAdminKeys.fieldItemMultiPoint,
-                      ),
-                      value: _multiPoint,
-                      onChanged: (value) => setState(() => _multiPoint = value),
-                    ),
-                    _SwitchTile(
-                      label: strings.tKey(
-                        PlatformAdminKeys.fieldItemAllowFreeText,
-                      ),
-                      value: _allowFreeTextNote,
-                      onChanged: (value) =>
-                          setState(() => _allowFreeTextNote = value),
-                    ),
-                  ])
-                    SizedBox(width: fieldWidth, child: field),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          Material(
-            color: PtTheme.canvas,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: PtTheme.border),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(horizontal: 14),
-              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              title: Text(
-                strings.tKey(PlatformAdminKeys.sectionItemAdvanced),
-                style: PtTheme.font(
-                  14,
-                  weight: FontWeight.w700,
-                  color: PtTheme.ink,
-                ),
-              ),
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final fieldWidth = constraints.maxWidth >= 700
-                        ? (constraints.maxWidth - 16) / 2
-                        : constraints.maxWidth;
-                    return Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
+                  const Icon(
+                    Icons.tune_rounded,
+                    size: 18,
+                    color: PtTheme.muted,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (final field in <Widget>[
-                          PlatformTextField(
-                            key: const Key('item-standard-spec'),
-                            controller: _specController,
-                            label: strings.tKey(
-                              PlatformAdminKeys.fieldItemStandardSpecEn,
-                            ),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys.sectionItemCreateOptional,
                           ),
-                          PlatformTextField(
-                            controller: _maxTyreAgeController,
-                            label: strings.tKey(
-                              PlatformAdminKeys.fieldItemMaxTyreAge,
-                            ),
-                            keyboardType: TextInputType.number,
+                          style: PtTheme.sectionTitle,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          strings.tKey(
+                            PlatformAdminKeys.sectionItemCreateOptionalBody,
                           ),
-                        ])
-                          SizedBox(width: fieldWidth, child: field),
+                          style: PtTheme.bodyMuted,
+                        ),
                       ],
-                    );
-                  },
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _advancedOpen ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: PtTheme.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_advancedOpen)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: content,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _previewCard(
+    UiMessageStrings strings,
+    List<PlatformCategory> categories,
+  ) {
+    final code = _codeController.text.trim();
+    final label = _labelController.text.trim();
+    final instruction = _instructionController.text.trim();
+    var categoryName = '';
+    for (final category in categories) {
+      if (category.id == _categoryId) {
+        categoryName = category.name.isEmpty ? category.code : category.name;
+        break;
+      }
+    }
+
+    return PlatformSectionCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PlatformSectionHeader(
+            title: strings.tKey(PlatformAdminKeys.sectionItemCreatePreview),
+            subtitle: strings.tKey(
+              PlatformAdminKeys.sectionItemCreatePreviewBody,
+            ),
+          ),
+          const SizedBox(height: 16),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: PtTheme.canvas,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: PtTheme.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (code.isNotEmpty)
+                      _PreviewPill(
+                        label: code,
+                        background: PtTheme.white,
+                        foreground: PtTheme.muted,
+                      ),
+                    if (categoryName.isNotEmpty)
+                      _PreviewPill(
+                        label: categoryName,
+                        background: PtTheme.white,
+                        foreground: PtTheme.muted,
+                      ),
+                    if (_safetyCritical)
+                      _PreviewPill(
+                        label: strings.tKey(
+                          PlatformAdminKeys.badgeSafetyCritical,
+                        ),
+                        background: PtTheme.rose.withValues(alpha: 0.10),
+                        foreground: PtTheme.rose,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  label.isEmpty
+                      ? strings.tKey(PlatformAdminKeys.previewItemEmpty)
+                      : label,
+                  style: PtTheme.font(
+                    20,
+                    lineHeight: 26,
+                    weight: FontWeight.w800,
+                    tracking: -0.3,
+                    color: label.isEmpty ? PtTheme.muted : PtTheme.ink,
+                  ),
+                ),
+                if (instruction.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(instruction, style: PtTheme.bodyMuted),
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.photo_camera_outlined,
+                      size: 16,
+                      color: PtTheme.muted,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        strings.tKey(PlatformAdminKeys.previewItemNoEvidence),
+                        style: PtTheme.caption,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -667,140 +773,227 @@ class _CreateItemStepperState extends ConsumerState<_CreateItemStepper> {
     );
   }
 
-  Widget _buildContentStep(dynamic strings) {
-    return Form(
-      key: _contentFormKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _nextCard(UiMessageStrings strings) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: PtTheme.deepGreen.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PtTheme.deepGreen.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PlatformTextField(
-            key: const Key('item-label'),
-            controller: _labelController,
-            label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-            validator: (value) => _required(value, strings),
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: PtTheme.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.arrow_forward_rounded,
+              size: 18,
+              color: PtTheme.deepGreen,
+            ),
           ),
-          const SizedBox(height: 12),
-          PlatformTextField(
-            key: const Key('item-instruction'),
-            controller: _instructionController,
-            label: strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
-            maxLines: 3,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  strings.tKey(PlatformAdminKeys.sectionItemCreateNext),
+                  style: PtTheme.font(
+                    13,
+                    weight: FontWeight.w700,
+                    color: PtTheme.deepGreen,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.tKey(PlatformAdminKeys.sectionItemCreateNextBody),
+                  style: PtTheme.bodyMuted,
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCreateReview(
-    dynamic strings,
-    List<PlatformCategory> categories,
-  ) {
-    var categoryName = _categoryId;
-    for (final category in categories) {
-      if (category.id == _categoryId) {
-        categoryName = category.name;
-        if (categoryName.isEmpty) categoryName = category.code;
-        break;
-      }
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _footer(UiMessageStrings strings) {
+    return Wrap(
+      alignment: WrapAlignment.end,
+      spacing: 10,
+      runSpacing: 10,
       children: [
-        PlatformSectionCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.fieldItemCode),
-                value: _codeController.text.trim().isEmpty
-                    ? '�'
-                    : _codeController.text.trim(),
-              ),
-              _ReviewRow(
-                label: strings.tKey(CommonKeys.labelCategory),
-                value: categoryName,
-              ),
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.fieldItemLabelEn),
-                value: _labelController.text.trim().isEmpty
-                    ? '—'
-                    : _labelController.text.trim(),
-              ),
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
-                value: _unitController.text.trim().isEmpty
-                    ? '�'
-                    : _unitController.text.trim(),
-              ),
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.sectionItemIssueFields),
-                value: '${_issueFields.length}',
-              ),
-              _ReviewRow(
-                label: strings.tKey(PlatformAdminKeys.sectionItemEvidenceRules),
-                value: '${_evidenceRules.length}',
-              ),
-              _ReviewRow(
-                label: strings.tKey(
-                  PlatformAdminKeys.sectionItemMeasurementBands,
-                ),
-                value: '${_bands.length}',
-              ),
-            ],
-          ),
+        PlatformSecondaryButton(
+          key: const Key('item-create-draft'),
+          label: strings.tKey(PlatformAdminKeys.buttonItemCreateDraft),
+          onPressed: _saving ? null : () => _save(publish: false),
+        ),
+        PlatformPrimaryButton(
+          key: const Key('item-create-publish'),
+          label: strings.tKey(PlatformAdminKeys.buttonItemCreatePublish),
+          isLoading: _saving,
+          onPressed: _saving ? null : () => _save(publish: true),
         ),
       ],
     );
   }
+}
 
-  Widget _buildHeader(dynamic strings) {
+class _CreateItemHeader extends StatelessWidget {
+  const _CreateItemHeader({required this.strings});
+
+  final UiMessageStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         InkWell(
           onTap: () => Navigator.of(context).maybePop(),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.arrow_back_rounded,
-                size: 16,
-                color: PtTheme.muted,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
-                style: PtTheme.font(
-                  11,
-                  weight: FontWeight.w700,
+          borderRadius: BorderRadius.circular(999),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.arrow_back_rounded,
+                  size: 16,
                   color: PtTheme.muted,
-                  tracking: 0.5,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                Text(
+                  strings.tKey(PlatformAdminKeys.pageMasterLibraryHeading),
+                  style: PtTheme.font(
+                    11,
+                    weight: FontWeight.w700,
+                    color: PtTheme.muted,
+                    tracking: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 10),
         Text(
-          strings.tKey(PlatformAdminKeys.pageItemEditorTitle),
+          strings.tKey(PlatformAdminKeys.pageItemCreateTitle),
           style: PtTheme.font(
-            26,
-            lineHeight: 32,
+            28,
+            lineHeight: 34,
             weight: FontWeight.w800,
             color: PtTheme.ink,
-            tracking: -0.5,
+            tracking: -0.6,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
         Text(
-          strings.tKey(PlatformAdminKeys.buttonItemAdd),
-          style: PtTheme.font(13, lineHeight: 18, color: PtTheme.muted),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+          strings.tKey(PlatformAdminKeys.pageItemCreateSubtitle),
+          style: PtTheme.bodyMuted,
         ),
       ],
+    );
+  }
+}
+
+class _PreviewPill extends StatelessWidget {
+  const _PreviewPill({
+    required this.label,
+    required this.background,
+    required this.foreground,
+  });
+
+  final String label;
+  final Color background;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: PtTheme.border),
+      ),
+      child: Text(
+        label,
+        style: PtTheme.font(
+          10.5,
+          weight: FontWeight.w700,
+          tracking: 0.3,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+}
+
+class _ToggleChip extends StatelessWidget {
+  const _ToggleChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        color: selected
+            ? PtTheme.deepGreen.withValues(alpha: 0.10)
+            : PtTheme.canvas,
+        borderRadius: BorderRadius.circular(999),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: selected ? PtTheme.deepGreen : PtTheme.border,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                  size: 16,
+                  color: selected ? PtTheme.deepGreen : PtTheme.muted,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: PtTheme.font(
+                    12,
+                    weight: FontWeight.w600,
+                    color: selected ? PtTheme.deepGreen : PtTheme.ink,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1625,7 +1818,7 @@ class _EditItemViewState extends ConsumerState<_EditItemView> {
             PlatformSecondaryButton(
               label: strings.tKey(PlatformAdminKeys.textNeedsTranslation),
               icon: Icons.translate_rounded,
-              onPressed: () => context.go('/settings/languages'),
+              onPressed: () => context.go('/profile/languages'),
             ),
             PlatformPrimaryButton(
               label: strings.tKey(PlatformAdminKeys.buttonPublish),
@@ -3326,13 +3519,6 @@ class _MeasurementBandForm {
     label.dispose();
     sortOrder.dispose();
   }
-}
-
-String? _required(String? value, dynamic strings) {
-  if (value == null || value.trim().isEmpty) {
-    return strings.tKey(CommonKeys.validationRequired);
-  }
-  return null;
 }
 
 String _optionSetName(OptionSet set) {

@@ -36,10 +36,10 @@ class PlatformNavEntry {
     // The Profile tab covers the account screen, the language workspace,
     // the configuration pages reached from the ledger, and the audit log,
     // which lives inside the profile ledger (MONITOR group) rather than as
-    // its own dock destination. The route stays /settings so deep links
+    // its own dock destination. The route stays /profile so deep links
     // and bookmarks keep working; only the visible name changed.
     if (id == 'settings') {
-      return currentRoute.startsWith('/settings') ||
+      return currentRoute.startsWith('/profile') ||
           currentRoute.startsWith('/configuration') ||
           currentRoute == '/audit-log';
     }
@@ -80,7 +80,7 @@ class PlatformNavData {
     ),
     PlatformNavEntry(
       id: 'settings',
-      route: '/settings',
+      route: '/profile',
       icon: Icons.settings_outlined,
       labelKey: PlatformAdminKeys.pageProfileTitle,
     ),

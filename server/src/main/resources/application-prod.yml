@@ -34,6 +34,17 @@ logging:
     format:
       console: ecs
 truereport:
+  i18n:
+    ui-messages-dir: ${UI_MESSAGES_DIR:/app/i18n}
+    translation:
+      # Production always uses the real translation service. Point
+      # LIBRETRANSLATE_URL at the compose service (or another host).
+      provider: ${I18N_TRANSLATION_PROVIDER:libretranslate}
+      libretranslate:
+        # Personal server default. Docker Compose overrides this with
+        # http://libretranslate:5000.
+        url: ${LIBRETRANSLATE_URL:http://127.0.0.1:5000}
+        timeout: ${LIBRETRANSLATE_TIMEOUT:30s}
   storage:
     provider: filesystem
     root: ${STORAGE_ROOT:/app/.truereport-storage}

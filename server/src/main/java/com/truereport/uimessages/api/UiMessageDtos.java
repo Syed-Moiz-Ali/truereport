@@ -9,7 +9,7 @@ public final class UiMessageDtos {
     }
 
     public record ManifestLanguageDto(String code, String name, String nativeName,
-                                      String direction, int version) {
+                                      String direction, int version, boolean catalog) {
     }
 
     public record UiMessageManifestDto(

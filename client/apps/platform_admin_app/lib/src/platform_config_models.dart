@@ -1117,6 +1117,64 @@ class ImpactAnalysis {
 }
 
 @immutable
+class AppCoverageRow {
+  const AppCoverageRow({
+    required this.app,
+    required this.translated,
+    required this.total,
+    required this.catalog,
+  });
+
+  final String app;
+  final int translated;
+  final int total;
+  final bool catalog;
+
+  int get missing => total > translated ? total - translated : 0;
+
+  factory AppCoverageRow.fromJson(Map<String, dynamic> json) => AppCoverageRow(
+    app: _str(json['app']),
+    translated: json['translated'] is num
+        ? (json['translated'] as num).toInt()
+        : 0,
+    total: json['total'] is num ? (json['total'] as num).toInt() : 0,
+    catalog: json['catalog'] == true,
+  );
+}
+
+@immutable
+class LanguageCatalogEntry {
+  const LanguageCatalogEntry({
+    required this.code,
+    required this.name,
+    required this.nativeName,
+    required this.direction,
+    required this.added,
+  });
+
+  final String code;
+  final String name;
+  final String nativeName;
+  final String direction;
+  final bool added;
+
+  bool get isRtl => direction.toLowerCase() == 'rtl';
+
+  String get displayName => nativeName.isNotEmpty ? nativeName : name;
+
+  factory LanguageCatalogEntry.fromJson(Map<String, dynamic> json) =>
+      LanguageCatalogEntry(
+        code: _str(json['code']),
+        name: _str(json['name']),
+        nativeName: _str(json['nativeName']),
+        direction: _str(json['direction']).isEmpty
+            ? 'ltr'
+            : _str(json['direction']),
+        added: json['added'] == true,
+      );
+}
+
+@immutable
 class PlatformLanguage {
   const PlatformLanguage({
     required this.code,

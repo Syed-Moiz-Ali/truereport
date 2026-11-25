@@ -5,6 +5,7 @@ import 'package:l10n/l10n.dart';
 
 import '../../components/platform_shell.dart';
 import '../../platform_config_models.dart';
+import '../../platform_features.dart';
 import '../../platform_providers.dart';
 import '../../platform_theme.dart';
 import '../checklist/catalog/catalog_ui.dart';
@@ -173,62 +174,73 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
         final wide = c.maxWidth >= 1000;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(wide ? 24 : 14, 22, wide ? 24 : 14, 36),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _Header(strings: strings, wide: wide, tab: _tab),
-              const SizedBox(height: 12),
-              CatalogTabs(
-                labels: [
-                  strings.tKey(PlatformAdminKeys.tabChecklistItems),
-                  strings.tKey(PlatformAdminKeys.tabChecklistCategories),
-                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
-                ],
-                selected: 2,
-                onSelected: (index) {
-                  if (index == 0) context.go('/checklist/items');
-                  if (index == 1) context.go('/checklist/categories');
-                },
-              ),
-              const SizedBox(height: 14),
-              _KindTabs(
-                strings: strings,
-                selected: _tab,
-                counts: setsAsync.asData == null
-                    ? null
-                    : <OptionSetTab, int>{
-                        for (final tab in OptionSetTab.values)
-                          tab: optionSetsForTab(
-                            setsAsync.requireValue,
-                            tab,
-                          ).length,
-                      },
-                onSelected: _selectTab,
-              ),
-              const SizedBox(height: 12),
-              CatalogSearch(
-                controller: _search,
-                hint: strings.tKey(_tab.searchKey),
-                onChanged: (value) => setState(() => _query = value),
-              ),
-              const SizedBox(height: 12),
-              setsAsync.when(
-                loading: () => _ResultsSkeleton(wide: wide),
-                error: (_, _) => CatalogError(
-                  strings: strings,
-                  onRetry: () => ref.invalidate(optionSetsProvider),
-                ),
-                data: (sets) {
-                  final tabSets = optionSetsForTab(sets, _tab);
-                  final filtered = searchOptionSets(tabSets, _query);
-                  return _results(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: Catalog.maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(strings: strings, wide: wide, tab: _tab),
+                  const SizedBox(height: 12),
+                  CatalogTabs(
+                    labels: [
+                      strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                      strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+                      strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+                    ],
+                    selected: 2,
+                    onSelected: (index) {
+                      if (index == 0) context.go('/checklist/items');
+                      if (index == 1) context.go('/checklist/categories');
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  _KindTabs(
                     strings: strings,
-                    wide: wide,
-                    filtered: filtered,
-                  );
-                },
+                    selected: _tab,
+                    counts: setsAsync.asData == null
+                        ? null
+                        : <OptionSetTab, int>{
+                            for (final tab in OptionSetTab.values)
+                              tab: optionSetsForTab(
+                                setsAsync.requireValue,
+                                tab,
+                              ).length,
+                          },
+                    onSelected: _selectTab,
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: SizedBox(
+                      width: 360,
+                      child: CatalogSearch(
+                        controller: _search,
+                        hint: strings.tKey(_tab.searchKey),
+                        onChanged: (value) => setState(() => _query = value),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  setsAsync.when(
+                    loading: () => _ResultsSkeleton(wide: wide),
+                    error: (_, _) => CatalogError(
+                      strings: strings,
+                      onRetry: () => ref.invalidate(optionSetsProvider),
+                    ),
+                    data: (sets) {
+                      final tabSets = optionSetsForTab(sets, _tab);
+                      final filtered = searchOptionSets(tabSets, _query);
+                      return _results(
+                        strings: strings,
+                        wide: wide,
+                        filtered: filtered,
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -321,104 +333,27 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
     OptionValue? value,
   ]) async {
     final editing = value != null;
-    final codeLocked = set.codeLocked || editing;
     final labelKey = value?.labelKey?.trim() ?? '';
     final labelManaged =
         labelKey.isNotEmpty && strings.raw(labelKey).isNotEmpty;
-    final code = TextEditingController(text: value?.code ?? '');
-    final label = TextEditingController(text: value?.labelEn ?? '');
-    final description = TextEditingController();
-    final order = TextEditingController(
-      text: '${value?.sortOrder ?? set.effectiveValuesCount}',
-    );
-    final formKey = GlobalKey<FormState>();
-    final saved = await showDialog<bool>(
+    final draft = await showDialog<_ValueDraft>(
       context: context,
-      builder: (dialogContext) => CatalogDialog(
-        title: strings.tKey(
-          value == null
-              ? PlatformAdminKeys.buttonOptionValueAdd
-              : CommonKeys.buttonEdit,
-        ),
-        body: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CatalogField(
-                key: const Key('option-value-code-field'),
-                controller: code,
-                label: strings.tKey(PlatformAdminKeys.fieldOptionValueCode),
-                enabled: !codeLocked,
-                helper: codeLocked
-                    ? strings.tKey(PlatformAdminKeys.optionSetsCodeImmutable)
-                    : null,
-                validator: (v) => (v ?? '').trim().isEmpty
-                    ? strings.tKey(CommonKeys.validationRequiredField)
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              CatalogField(
-                key: const Key('option-value-label-field'),
-                controller: label,
-                label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
-                enabled: !labelManaged,
-                helper: labelManaged
-                    ? strings.tKey(PlatformAdminKeys.optionSetsLabelManaged)
-                    : null,
-                validator: labelManaged
-                    ? (_) => null
-                    : (v) => (v ?? '').trim().isEmpty
-                          ? strings.tKey(CommonKeys.validationRequiredField)
-                          : null,
-              ),
-              const SizedBox(height: 12),
-              CatalogField(
-                controller: description,
-                label: strings.tKey(
-                  PlatformAdminKeys.fieldOptionValueDescription,
-                ),
-                validator: (_) => null,
-              ),
-              const SizedBox(height: 12),
-              CatalogField(
-                key: const Key('option-value-order-field'),
-                controller: order,
-                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
-                keyboardType: TextInputType.number,
-                validator: (v) => int.tryParse((v ?? '').trim()) == null
-                    ? strings.tKey(CommonKeys.validationRequiredField)
-                    : null,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          CatalogButton(
-            label: strings.tKey(CommonKeys.buttonCancel),
-            secondary: true,
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-          ),
-          CatalogButton(
-            key: const Key('option-value-save'),
-            label: strings.tKey(CommonKeys.buttonSave),
-            onPressed: () {
-              if (formKey.currentState?.validate() != true) return;
-              Navigator.of(dialogContext).pop(true);
-            },
-          ),
-        ],
+      builder: (dialogContext) => _ValueDialog(
+        strings: strings,
+        value: value,
+        codeLocked: set.codeLocked || editing,
+        labelManaged: labelManaged,
+        initialOrder: value?.sortOrder ?? set.effectiveValuesCount,
       ),
     );
-    if (saved != true) return;
+    if (draft == null) return;
     try {
       final actions = ref.read(platformConfigActionsProvider);
       final body = <String, dynamic>{
-        'code': code.text.trim(),
-        'label': label.text.trim(),
-        'description': description.text.trim(),
-        'sortOrder': int.tryParse(order.text.trim()) ?? 0,
+        'code': draft.code,
+        'label': draft.label,
+        'description': draft.description,
+        'sortOrder': draft.order,
         'active': value == null ? true : value.status.toUpperCase() == 'ACTIVE',
         if (value?.labelKey != null) 'labelKey': value!.labelKey,
         if (value != null && value.translations.isNotEmpty)
@@ -566,7 +501,7 @@ class _OptionSetsScreenState extends ConsumerState<OptionSetsScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.strings, required this.wide, required this.tab});
 
   final UiMessageStrings strings;
@@ -574,7 +509,7 @@ class _Header extends StatelessWidget {
   final OptionSetTab tab;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final block = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -592,7 +527,9 @@ class _Header extends StatelessWidget {
         Text(strings.tKey(tab.helperKey), style: Catalog.body),
       ],
     );
-    final transitions = tab == OptionSetTab.statuses
+    final transitions =
+        tab == OptionSetTab.statuses &&
+            ref.watch(workflowEditingEnabledProvider)
         ? CatalogButton(
             key: const Key('option-sets-open-transitions'),
             label: strings.tKey(PlatformAdminKeys.optionSetsTransitionsAction),
@@ -916,13 +853,15 @@ class _SetList extends ConsumerWidget {
                         children: [
                           Text(
                             set.name,
-                            style: Catalog.text(12, weight: FontWeight.w700),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Catalog.text(13.5, weight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 2),
                           Text(
                             '${set.code} · '
                             '${strings.tArgsKey(PlatformAdminKeys.checklistOptionSetsValueCount, {'count': '${set.effectiveValuesCount}'})}',
-                            style: Catalog.text(9.5, color: PtTheme.muted),
+                            style: Catalog.text(10.5, color: PtTheme.muted),
                           ),
                         ],
                       ),
@@ -941,12 +880,12 @@ class _SetList extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    CatalogPill(
-                      label: checklistStatusLabel(ref, set.status),
-                      tone: set.status.toUpperCase() == 'ACTIVE'
-                          ? CatalogTone.good
-                          : CatalogTone.neutral,
-                    ),
+                    // Active is the normal state, so only the exception gets a pill.
+                    if (set.status.toUpperCase() != 'ACTIVE')
+                      CatalogPill(
+                        label: checklistStatusLabel(ref, set.status),
+                        tone: CatalogTone.neutral,
+                      ),
                   ],
                 ),
               ),
@@ -1285,10 +1224,12 @@ class _ValueRow extends ConsumerWidget {
           message: value.icon,
           child: Icon(_catalogIcon(value.icon), size: 16, color: PtTheme.muted),
         ),
-      if (canRetire)
+      // The status pill is only worth the space when it says something: every
+      // active row used to carry an identical "Active" tag.
+      if (canRetire && !active)
         CatalogPill(
           label: checklistStatusLabel(ref, value.status),
-          tone: active ? CatalogTone.good : CatalogTone.neutral,
+          tone: CatalogTone.neutral,
         ),
       _icon(
         Icons.arrow_upward_rounded,
@@ -1379,6 +1320,203 @@ class _ValueRow extends ConsumerWidget {
   );
 }
 
+class _ValueDraft {
+  const _ValueDraft({
+    required this.code,
+    required this.label,
+    required this.description,
+    required this.order,
+  });
+
+  final String code;
+  final String label;
+  final String description;
+  final int order;
+}
+
+/// Add or edit one option value.
+///
+/// A value is a label plus a stable code, so the code is derived from the label
+/// until someone edits it. Description and order sit behind "More options"
+/// because most values never touch them.
+class _ValueDialog extends StatefulWidget {
+  const _ValueDialog({
+    required this.strings,
+    required this.initialOrder,
+    required this.codeLocked,
+    required this.labelManaged,
+    this.value,
+  });
+
+  final UiMessageStrings strings;
+  final OptionValue? value;
+  final int initialOrder;
+  final bool codeLocked;
+  final bool labelManaged;
+
+  @override
+  State<_ValueDialog> createState() => _ValueDialogState();
+}
+
+class _ValueDialogState extends State<_ValueDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _label;
+  late final TextEditingController _code;
+  late final TextEditingController _description;
+  late final TextEditingController _order;
+  late bool _more;
+  bool _codeTouched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final value = widget.value;
+    _label = TextEditingController(text: value?.labelEn ?? '');
+    _code = TextEditingController(text: value?.code ?? '');
+    _description = TextEditingController();
+    _order = TextEditingController(text: '${widget.initialOrder}');
+    _more = value != null;
+    _label.addListener(_syncCodeFromLabel);
+  }
+
+  @override
+  void dispose() {
+    _label
+      ..removeListener(_syncCodeFromLabel)
+      ..dispose();
+    _code.dispose();
+    _description.dispose();
+    _order.dispose();
+    super.dispose();
+  }
+
+  void _syncCodeFromLabel() {
+    if (_codeTouched || widget.codeLocked) return;
+    final next = _slug(_label.text);
+    if (next == _code.text) return;
+    _code.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+  }
+
+  static String _slug(String value) => value
+      .toUpperCase()
+      .replaceAll(RegExp(r'[^A-Z0-9]+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+
+  void _submit() {
+    if (_formKey.currentState?.validate() != true) return;
+    Navigator.of(context).pop(
+      _ValueDraft(
+        code: _code.text.trim(),
+        label: _label.text.trim(),
+        description: _description.text.trim(),
+        order: int.tryParse(_order.text.trim()) ?? 0,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = widget.strings;
+    final editing = widget.value != null;
+    return CatalogDialog(
+      title: strings.tKey(
+        editing
+            ? PlatformAdminKeys.buttonOptionValueEdit
+            : PlatformAdminKeys.buttonOptionValueAdd,
+      ),
+      body: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CatalogField(
+              key: const Key('option-value-label-field'),
+              controller: _label,
+              label: strings.tKey(PlatformAdminKeys.fieldOptionValueLabel),
+              autofocus: !editing,
+              enabled: !widget.labelManaged,
+              helper: widget.labelManaged
+                  ? strings.tKey(PlatformAdminKeys.optionSetsLabelManaged)
+                  : null,
+              validator: widget.labelManaged
+                  ? (_) => null
+                  : (v) => (v ?? '').trim().isEmpty
+                        ? strings.tKey(CommonKeys.validationRequiredField)
+                        : null,
+            ),
+            const SizedBox(height: 12),
+            CatalogField(
+              key: const Key('option-value-code-field'),
+              controller: _code,
+              label: strings.tKey(PlatformAdminKeys.fieldOptionValueCode),
+              enabled: !widget.codeLocked,
+              helper: widget.codeLocked
+                  ? strings.tKey(PlatformAdminKeys.optionSetsCodeImmutable)
+                  : strings.tKey(PlatformAdminKeys.fieldOptionValueCodeHelper),
+              onChanged: (_) => _codeTouched = true,
+              validator: (v) => (v ?? '').trim().isEmpty
+                  ? strings.tKey(CommonKeys.validationRequiredField)
+                  : null,
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const Key('option-value-more'),
+                onPressed: () => setState(() => _more = !_more),
+                icon: Icon(
+                  _more ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  size: 18,
+                ),
+                label: Text(
+                  strings.tKey(PlatformAdminKeys.buttonMoreOptions),
+                  style: Catalog.text(12.5, weight: FontWeight.w600),
+                ),
+              ),
+            ),
+            if (_more) ...[
+              const SizedBox(height: 4),
+              CatalogField(
+                controller: _description,
+                label: strings.tKey(
+                  PlatformAdminKeys.fieldOptionValueDescription,
+                ),
+                validator: (_) => null,
+              ),
+              const SizedBox(height: 12),
+              CatalogField(
+                key: const Key('option-value-order-field'),
+                controller: _order,
+                label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
+                keyboardType: TextInputType.number,
+                validator: (v) => int.tryParse((v ?? '').trim()) == null
+                    ? strings.tKey(CommonKeys.validationRequiredField)
+                    : null,
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        CatalogButton(
+          label: strings.tKey(CommonKeys.buttonCancel),
+          secondary: true,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        CatalogButton(
+          key: const Key('option-value-save'),
+          label: strings.tKey(CommonKeys.buttonSave),
+          onPressed: _submit,
+        ),
+      ],
+    );
+  }
+}
+
 class _OrderPill extends StatelessWidget {
   const _OrderPill({required this.strings, required this.order});
 
@@ -1388,7 +1526,7 @@ class _OrderPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Tooltip(
     message: strings.tKey(PlatformAdminKeys.taxonomyOrder),
-    child: CatalogPill(label: '$order', tone: CatalogTone.neutral),
+    child: CatalogPill(label: '#$order', tone: CatalogTone.neutral),
   );
 }
 

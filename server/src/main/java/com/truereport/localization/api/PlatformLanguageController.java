@@ -3,8 +3,11 @@ package com.truereport.localization.api;
 import com.truereport.localization.LanguageReadinessService;
 import com.truereport.localization.LocalizationService;
 import com.truereport.localization.TranslationBacklogService;
+import com.truereport.localization.WellKnownLanguages;
+import com.truereport.localization.api.LanguageDtos.AppCoverageDto;
 import com.truereport.localization.api.LanguageDtos.CreateLanguageRequest;
 import com.truereport.localization.api.LanguageDtos.LanguageBacklogDto;
+import com.truereport.localization.api.LanguageDtos.LanguageCatalogEntryDto;
 import com.truereport.localization.api.LanguageDtos.LanguageCoverageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageDto;
 import com.truereport.localization.api.LanguageDtos.LanguageReadinessDto;
@@ -46,20 +49,49 @@ public class PlatformLanguageController {
     private final TranslationBacklogService backlog;
     private final LanguageReadinessService readiness;
     private final CurrentUserService currentUserService;
+    private final WellKnownLanguages knownLanguages;
+    private final com.truereport.uimessages.UiMessageService uiMessages;
 
     public PlatformLanguageController(LocalizationService localization,
                                       TranslationBacklogService backlog,
                                       LanguageReadinessService readiness,
-                                      CurrentUserService currentUserService) {
+                                      CurrentUserService currentUserService,
+                                      WellKnownLanguages knownLanguages,
+                                      com.truereport.uimessages.UiMessageService uiMessages) {
         this.localization = localization;
         this.backlog = backlog;
         this.readiness = readiness;
         this.currentUserService = currentUserService;
+        this.knownLanguages = knownLanguages;
+        this.uiMessages = uiMessages;
+    }
+
+    /** Per-app (namespace) interface-text coverage for one language. */
+    @GetMapping("/languages/{code}/apps")
+    public List<AppCoverageDto> appCoverage(@PathVariable String code) {
+        return uiMessages.appCoverage(code).stream()
+                .map(row -> new AppCoverageDto(row.app(), row.translated(),
+                        row.total(), row.catalog()))
+                .toList();
     }
 
     @GetMapping("/languages")
     public List<LanguageDto> languages() {
         return localization.allLanguages();
+    }
+
+    /** The closed list the Add-language picker offers, flagged when already live. */
+    @GetMapping("/languages/catalog")
+    public List<LanguageCatalogEntryDto> languageCatalog() {
+        java.util.Set<String> live = new java.util.HashSet<>();
+        for (LanguageDto language : localization.allLanguages()) {
+            live.add(language.code());
+        }
+        return knownLanguages.all().stream()
+                .map(language -> new LanguageCatalogEntryDto(language.code(), language.name(),
+                        language.nativeName(), language.direction(),
+                        live.contains(language.code())))
+                .toList();
     }
 
     @PostMapping("/languages")

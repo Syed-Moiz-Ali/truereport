@@ -16,9 +16,14 @@ import 'workshop_form.dart';
 /// Atlas record page: the same instrument band as the workspace, with the
 /// staff and activity depth that does not fit in the index pane.
 class WorkshopDetailScreen extends ConsumerStatefulWidget {
-  const WorkshopDetailScreen({super.key, required this.workshopId});
+  const WorkshopDetailScreen({
+    super.key,
+    required this.workshopId,
+    this.initialTab,
+  });
 
   final String workshopId;
+  final String? initialTab;
 
   @override
   ConsumerState<WorkshopDetailScreen> createState() =>
@@ -32,6 +37,7 @@ class _WorkshopDetailScreenState extends ConsumerState<WorkshopDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _tab = widget.initialTab == 'staff' ? 1 : 0;
     _future = ref.read(platformApiProvider).workshopDetail(widget.workshopId);
   }
 

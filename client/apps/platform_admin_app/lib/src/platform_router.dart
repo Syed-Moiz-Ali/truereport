@@ -7,10 +7,7 @@ import 'features/auth/platform_login_page.dart';
 import 'features/audit/audit_log_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/documents/document_types_screen.dart';
-import 'features/languages/language_workspace_screen.dart';
 import 'features/languages/languages_screen.dart';
-import 'features/languages/manual_translations_screen.dart';
-import 'features/languages/translation_queue_screen.dart';
 import 'features/localization/translation_review_screen.dart';
 import 'features/master_library/master_item_editor_screen.dart';
 import 'features/master_library/master_library_screen.dart';
@@ -18,10 +15,11 @@ import 'features/master_library/categories_screen.dart';
 import 'features/master_library/option_sets_screen.dart';
 import 'features/reference/reference_transitions_screen.dart';
 import 'features/governance/config_health_screen.dart';
-import 'features/settings/platform_settings_screen.dart';
+import 'features/settings/platform_profile_screen.dart';
 import 'features/workshops/workshop_detail_screen.dart';
 import 'features/workshops/workshops_screen.dart';
 import 'features/workshops/workshop_form.dart';
+import 'platform_features.dart';
 
 /// Notifies GoRouter to re-run `redirect` when auth state changes.
 class _AuthRefresh extends ChangeNotifier {
@@ -79,8 +77,10 @@ List<RouteBase> _buildRoutes() {
         ),
         GoRoute(
           path: ':id',
-          builder: (context, state) =>
-              WorkshopDetailScreen(workshopId: state.pathParameters['id']!),
+          builder: (context, state) => WorkshopDetailScreen(
+            workshopId: state.pathParameters['id']!,
+            initialTab: state.uri.queryParameters['tab'],
+          ),
         ),
       ],
     ),
@@ -137,6 +137,7 @@ List<RouteBase> _buildRoutes() {
       path: '/configuration/translations',
       builder: (context, state) => TranslationReviewScreen(
         initialLanguage: state.uri.queryParameters['lang'],
+        initialScope: state.uri.queryParameters['scope'],
       ),
     ),
     GoRoute(path: '/reports', redirect: (_, _) => '/reports/document-types'),
@@ -145,29 +146,19 @@ List<RouteBase> _buildRoutes() {
       builder: (context, state) => const DocumentTypesScreen(),
     ),
     GoRoute(
-      path: '/settings',
-      builder: (context, state) => const PlatformSettingsScreen(),
+      path: '/profile',
+      builder: (context, state) => const PlatformProfileScreen(),
     ),
     GoRoute(
-      path: '/settings/languages',
+      path: '/profile/languages',
       builder: (context, state) => const LanguagesScreen(),
     ),
+    // The screen lives at /profile now; keep the old settings URLs working so
+    // bookmarks and shared links do not 404.
+    GoRoute(path: '/settings', redirect: (_, _) => '/profile'),
     GoRoute(
-      path: '/settings/languages/:code',
-      builder: (context, state) => LanguageWorkspaceScreen(
-        languageCode: state.pathParameters['code']!,
-        initialTab: state.uri.queryParameters['tab'],
-      ),
-    ),
-    GoRoute(
-      path: '/settings/languages/:code/translations',
-      builder: (context, state) =>
-          TranslationQueueScreen(languageCode: state.pathParameters['code']!),
-    ),
-    GoRoute(
-      path: '/settings/languages/:code/manual',
-      builder: (context, state) =>
-          ManualTranslationsScreen(languageCode: state.pathParameters['code']!),
+      path: '/settings/languages',
+      redirect: (_, _) => '/profile/languages',
     ),
     GoRoute(
       path: '/audit-log',
@@ -197,7 +188,7 @@ List<RouteBase> _buildRoutes() {
       path: '/document-types',
       redirect: (_, _) => '/reports/document-types',
     ),
-    GoRoute(path: '/languages', redirect: (_, _) => '/settings/languages'),
+    GoRoute(path: '/languages', redirect: (_, _) => '/profile/languages'),
     GoRoute(
       path: '/data-catalogues',
       redirect: (_, _) => '/checklist/option-sets',
@@ -214,16 +205,26 @@ final platformRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
-      if (auth.isLoading) {
+      if (auth.isLoading && !auth.hasError) {
         return null;
       }
-      final session = auth.value;
+      // A failed restore is signed out. Riverpod keeps the previous value on
+      // an error state; trusting it left the app on a protected screen while
+      // every request 401'd instead of returning to sign-in.
+      final session = auth.hasError ? null : auth.value;
       final location = state.matchedLocation;
       if (session == null) {
         return location == '/signin' ? null : '/signin';
       }
       if (location == '/signin') {
         return '/dashboard';
+      }
+      // Expert workflow editing is hidden unless the build enables it. The
+      // route is redirected rather than deleted so enabling the flag restores
+      // the screen without any other change.
+      if (location == '/configuration/transitions' &&
+          !ref.read(workflowEditingEnabledProvider)) {
+        return '/profile';
       }
       return null;
     },

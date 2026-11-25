@@ -565,6 +565,8 @@ class AtlasTextField extends StatefulWidget {
     this.enabled = true,
     this.maxLength,
     this.autofillHints,
+    this.obscureText = false,
+    this.suffixIcon,
   });
 
   final TextEditingController controller;
@@ -579,6 +581,8 @@ class AtlasTextField extends StatefulWidget {
   final bool enabled;
   final int? maxLength;
   final Iterable<String>? autofillHints;
+  final bool obscureText;
+  final Widget? suffixIcon;
 
   @override
   State<AtlasTextField> createState() => _AtlasTextFieldState();
@@ -609,6 +613,7 @@ class _AtlasTextFieldState extends State<AtlasTextField> {
             validator: widget.validator,
             maxLength: widget.maxLength,
             autofillHints: widget.autofillHints,
+            obscureText: widget.obscureText,
             autovalidateMode: _touched
                 ? AutovalidateMode.onUserInteraction
                 : AutovalidateMode.disabled,
@@ -621,6 +626,7 @@ class _AtlasTextFieldState extends State<AtlasTextField> {
               filled: true,
               fillColor: PtTheme.white,
               counterText: '',
+              suffixIcon: widget.suffixIcon,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 16,

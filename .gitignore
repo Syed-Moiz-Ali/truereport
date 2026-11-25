@@ -74,6 +74,9 @@ infra/backups*
 # Local development credentials (never commit real values)
 TEST_LOGIN_CREDENTIALS.txt
 
+# Local LibreTranslate runtime (installed on demand by tools/run-libretranslate.ps1)
+tools/.libretranslate-venv/
+
 # Playwright MCP page dumps and local evidence storage
 .playwright-mcp/
 server/.truereport-storage/

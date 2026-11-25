@@ -36,8 +36,6 @@ class HierarchyWorkshop {
     required this.admins,
     required this.technicians,
     required this.pendingInvitations,
-    this.bayCount = 8,
-    this.assignedCapacityPercent = 88,
     this.contactEmail,
     this.initialTemplate,
     this.autoSyncMasterCatalog = true,
@@ -48,8 +46,6 @@ class HierarchyWorkshop {
   final String? branchName;
   final String status;
   final int memberCount;
-  final int bayCount;
-  final int assignedCapacityPercent;
   final List<PlatformAccount> admins;
   final List<PlatformAccount> technicians;
   final List<PlatformAccount> pendingInvitations;
@@ -76,8 +72,6 @@ class HierarchyWorkshop {
       branchName: json['branchName'] as String?,
       status: json['status'] as String? ?? 'ACTIVE',
       memberCount: json['memberCount'] as int? ?? 0,
-      bayCount: json['bayCount'] as int? ?? 8,
-      assignedCapacityPercent: json['assignedCapacityPercent'] as int? ?? 88,
       admins: parse('admins'),
       technicians: parse('technicians'),
       pendingInvitations: parse('pendingInvitations'),

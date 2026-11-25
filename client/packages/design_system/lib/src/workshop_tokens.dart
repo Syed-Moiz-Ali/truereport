@@ -205,7 +205,7 @@ class WorkshopTokens extends ThemeExtension<WorkshopTokens> {
       cardLargeRadius: 16,
       controlRadius: 10,
       chipRadius: 8,
-      controlHeight: 46,
+      controlHeight: 52,
       touchTarget: 44,
       topBarHeight: 60,
       sidebarWidth: 256,

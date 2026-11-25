@@ -9,6 +9,7 @@ import com.truereport.uimessages.PlatformUiMessageCatalog.Registry;
 import com.truereport.uimessages.api.UiMessageDtos.ManifestLanguageDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageBundleDto;
 import com.truereport.uimessages.api.UiMessageDtos.UiMessageManifestDto;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,9 +33,36 @@ public class UiMessageService {
     public static final String COMMON_NAMESPACE = PlatformUiMessageCatalog.COMMON_NAMESPACE;
 
     private final PlatformUiMessageCatalog catalog;
+    private final JdbcTemplate jdbc;
 
-    public UiMessageService(PlatformUiMessageCatalog catalog) {
+    public UiMessageService(PlatformUiMessageCatalog catalog, JdbcTemplate jdbc) {
         this.catalog = catalog;
+        this.jdbc = jdbc;
+    }
+
+    public record AppCoverage(String app, int translated, int total, boolean catalog) {
+    }
+
+    /**
+     * Interface-text coverage per app namespace for one language. The catalogs
+     * are written on approval, so the file's key count is the approved count.
+     */
+    public List<AppCoverage> appCoverage(String language) {
+        String defaultLanguage = catalog.registry().defaultLanguage();
+        String code = language == null || language.isBlank()
+                ? defaultLanguage
+                : language.trim().toLowerCase(Locale.ROOT);
+        List<String> namespaces = new ArrayList<>();
+        namespaces.add(COMMON_NAMESPACE);
+        namespaces.addAll(CLIENTS);
+        List<AppCoverage> rows = new ArrayList<>();
+        for (String namespace : namespaces) {
+            int total = catalog.namespace(namespace, defaultLanguage).values().size();
+            int translated = catalog.namespace(namespace, code).values().size();
+            rows.add(new AppCoverage(namespace, Math.min(translated, total), total,
+                    catalog.hasLanguageCatalog(namespace, code)));
+        }
+        return rows;
     }
 
     public UiMessageManifestDto manifest(String client, List<String> requestedNamespaces) {
@@ -43,16 +71,38 @@ public class UiMessageService {
         Registry registry = catalog.registry();
         String fallback = registry.defaultLanguage();
         List<ManifestLanguageDto> languages = new ArrayList<>();
-        for (Language language : catalog.languagesForClient(client)) {
+        for (PlatformUiMessageCatalog.Language language : liveLanguages(registry)) {
             Map<String, Map<String, String>> catalogs =
                     mergedCatalogs(client, language.code(), namespaces, fallback);
             Map<String, String> messages = new LinkedHashMap<>();
             catalogs.values().forEach(messages::putAll);
             languages.add(new ManifestLanguageDto(language.code(), language.name(),
                     language.nativeName(), language.direction(),
-                    PlatformUiMessageCatalog.version(messages)));
+                    PlatformUiMessageCatalog.version(messages),
+                    catalog.hasLanguageCatalog(client, language.code())));
         }
         return new UiMessageManifestDto(fallback, client, namespaces, languages);
+    }
+
+    /**
+     * Registry languages that are LIVE in {@code platform_languages}, in registry
+     * order with the default language first. A language added in the admin
+     * console appears here before it has any UI catalog; its bundle then serves
+     * English with the right writing direction.
+     */
+    private List<PlatformUiMessageCatalog.Language> liveLanguages(
+            Registry registry) {
+        java.util.Set<String> live = new java.util.HashSet<>(jdbc.queryForList("""
+                SELECT code FROM platform_languages
+                WHERE active = TRUE AND status = 'LIVE'
+                """, String.class));
+        List<PlatformUiMessageCatalog.Language> result = new ArrayList<>();
+        for (PlatformUiMessageCatalog.Language language : registry.languages()) {
+            if (live.isEmpty() || live.contains(language.code())) {
+                result.add(language);
+            }
+        }
+        return result;
     }
 
     public UiMessageBundleDto bundle(String client, String language,
@@ -63,7 +113,7 @@ public class UiMessageService {
         String code = language == null || language.isBlank()
                 ? fallback : language.trim().toLowerCase(Locale.ROOT);
         Language target = registry.find(code);
-        if (target == null || !catalog.hasLanguageCatalog(client, target.code())) {
+        if (target == null) {
             throw ApiException.notFound();
         }
         List<String> namespaces = resolveNamespaces(client, requestedNamespaces);

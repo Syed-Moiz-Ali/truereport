@@ -105,6 +105,10 @@ abstract final class WorkshopAdminKeys {
   static const categoryWeightMode = UiMessageKey.workshopAdmin(
     'categoryWeightMode',
   );
+  static const changePassword = UiMessageKey.workshopAdmin('changePassword');
+  static const changePasswordSubtitle = UiMessageKey.workshopAdmin(
+    'changePasswordSubtitle',
+  );
   static const channelEmail = UiMessageKey.workshopAdmin('channelEmail');
   static const channelSms = UiMessageKey.workshopAdmin('channelSms');
   static const channelWhatsapp = UiMessageKey.workshopAdmin('channelWhatsapp');
@@ -233,6 +237,7 @@ abstract final class WorkshopAdminKeys {
   static const createTemplate = UiMessageKey.workshopAdmin('createTemplate');
   static const criteriaAr = UiMessageKey.workshopAdmin('criteriaAr');
   static const criteriaEn = UiMessageKey.workshopAdmin('criteriaEn');
+  static const currentPassword = UiMessageKey.workshopAdmin('currentPassword');
   static const customerEmail = UiMessageKey.workshopAdmin('customerEmail');
   static const customerInformation = UiMessageKey.workshopAdmin(
     'customerInformation',
@@ -511,6 +516,9 @@ abstract final class WorkshopAdminKeys {
     'fluidSpecifications',
   );
   static const forgotPassword = UiMessageKey.workshopAdmin('forgotPassword');
+  static const forgotPasswordBody = UiMessageKey.workshopAdmin(
+    'forgotPasswordBody',
+  );
   static const fourHours = UiMessageKey.workshopAdmin('fourHours');
   static const fuelPowertrainTypes = UiMessageKey.workshopAdmin(
     'fuelPowertrainTypes',
@@ -1155,6 +1163,7 @@ abstract final class WorkshopAdminKeys {
   static const newCategory = UiMessageKey.workshopAdmin('newCategory');
   static const newItem = UiMessageKey.workshopAdmin('newItem');
   static const newJob = UiMessageKey.workshopAdmin('newJob');
+  static const newPassword = UiMessageKey.workshopAdmin('newPassword');
   static const newTemplate = UiMessageKey.workshopAdmin('newTemplate');
   static const next = UiMessageKey.workshopAdmin('next');
   static const noAssignedJobs = UiMessageKey.workshopAdmin('noAssignedJobs');
@@ -1193,10 +1202,14 @@ abstract final class WorkshopAdminKeys {
   static const optValues = UiMessageKey.workshopAdmin('optValues');
   static const optionSet = UiMessageKey.workshopAdmin('optionSet');
   static const optionSetsTab = UiMessageKey.workshopAdmin('optionSetsTab');
+  static const passwordCurrentInvalid = UiMessageKey.workshopAdmin(
+    'passwordCurrentInvalid',
+  );
   static const passwordLabel = UiMessageKey.workshopAdmin('passwordLabel');
   static const passwordMismatch = UiMessageKey.workshopAdmin(
     'passwordMismatch',
   );
+  static const passwordPolicy = UiMessageKey.workshopAdmin('passwordPolicy');
   static const passwordStrength = UiMessageKey.workshopAdmin(
     'passwordStrength',
   );
@@ -1212,6 +1225,10 @@ abstract final class WorkshopAdminKeys {
   static const passwordStrengthWeak = UiMessageKey.workshopAdmin(
     'passwordStrengthWeak',
   );
+  static const passwordUnchanged = UiMessageKey.workshopAdmin(
+    'passwordUnchanged',
+  );
+  static const passwordUpdated = UiMessageKey.workshopAdmin('passwordUpdated');
   static const pdfBytesSaved = UiMessageKey.workshopAdmin('pdfBytesSaved');
   static const pdfDownload = UiMessageKey.workshopAdmin('pdfDownload');
   static const pdfDownloadUnsupported = UiMessageKey.workshopAdmin(

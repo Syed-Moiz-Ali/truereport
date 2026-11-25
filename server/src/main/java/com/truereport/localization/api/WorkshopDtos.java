@@ -12,6 +12,7 @@ public final class WorkshopDtos {
     private WorkshopDtos() {
     }
 
-    public record WorkshopDto(UUID id, String name, String status, long memberCount) {
+    public record WorkshopDto(UUID id, String name, String status, String contactEmail,
+                              long memberCount) {
     }
 }

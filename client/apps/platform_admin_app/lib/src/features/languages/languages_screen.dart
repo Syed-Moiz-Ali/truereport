@@ -31,7 +31,6 @@ class LanguagesScreen extends ConsumerWidget {
     final strings = ref.watch(uiStringsProvider);
     final manifest = ref.watch(platformUiManifestProvider);
     final registry = ref.watch(platformLanguagesProvider);
-    final coverage = ref.watch(translationCoverageProvider);
     final registryLanguages =
         registry.asData?.value ?? const <PlatformLanguage>[];
     final registryByCode = <String, PlatformLanguage>{
@@ -47,12 +46,30 @@ class LanguagesScreen extends ConsumerWidget {
         .where((language) => !manifestCodes.contains(language.code))
         .where((language) => !language.isRetired)
         .toList(growable: false);
+    // The source language is not a translation target: it gets its own strip
+    // above the grid so the grid holds only cards with coverage to review.
+    final defaultCode = manifest?.defaultLanguage ?? 'en';
+    final manifestLanguages =
+        manifest?.languages ?? const <UiMessageLanguage>[];
+    UiMessageLanguage? defaultLanguage;
+    for (final language in manifestLanguages) {
+      if (language.code == defaultCode) defaultLanguage = language;
+    }
+    final translatableLanguages = manifestLanguages
+        .where((language) => language.code != defaultCode)
+        .toList(growable: false);
     final hasLanguages =
-        (manifest?.languages.isNotEmpty ?? false) || registryOnly.isNotEmpty;
+        manifestLanguages.isNotEmpty || registryOnly.isNotEmpty;
 
     Future<void> addLanguage() async {
       final created = await showAddLanguageDialog(context);
       if (created == null || !context.mounted) return;
+      // Stay on the list: the new language is already live, in languages.json
+      // and in the manifest, so its card appears here (the old per-language
+      // workspace route no longer exists).
+      ref.invalidate(platformLanguagesProvider);
+      ref.invalidate(languageCatalogProvider);
+      ref.invalidate(platformUiManifestProvider);
       final messenger = ScaffoldMessenger.of(context);
       messenger.clearSnackBars();
       messenger.showSnackBar(
@@ -61,16 +78,15 @@ class LanguagesScreen extends ConsumerWidget {
           content: Text(strings.tKey(PlatformAdminKeys.languagesAddToastReady)),
         ),
       );
-      context.go('/settings/languages/${created.code}');
     }
 
     return PlatformShell(
-      currentRoute: '/settings/languages',
+      currentRoute: '/profile/languages',
       contextBar: PlatformContextBar(
         breadcrumbs: [
           ContextBreadcrumbItem(
             label: strings.tKey(PlatformAdminKeys.pageProfileTitle),
-            onTap: () => context.go('/settings'),
+            onTap: () => context.go('/profile'),
           ),
           ContextBreadcrumbItem(
             label: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
@@ -85,6 +101,14 @@ class LanguagesScreen extends ConsumerWidget {
               title: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
               subtitle: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
               actions: [
+                PlatformSecondaryButton(
+                  key: const Key('btn-content-review'),
+                  label: strings.tKey(
+                    PlatformAdminKeys.pageTranslationReviewTitle,
+                  ),
+                  icon: Icons.rate_review_outlined,
+                  onPressed: () => context.go('/configuration/translations'),
+                ),
                 PlatformPrimaryButton(
                   key: const Key('btn-add-language'),
                   label: strings.tKey(PlatformAdminKeys.languagesAddButton),
@@ -110,18 +134,23 @@ class LanguagesScreen extends ConsumerWidget {
                 title: strings.tKey(CommonKeys.emptyTitle),
               )
             else ...[
+              if (defaultLanguage != null) ...[
+                _SourceLanguageStrip(
+                  strings: strings,
+                  code: defaultLanguage.code,
+                  name: defaultLanguage.displayName,
+                ),
+                const SizedBox(height: 16),
+              ],
               LanguageGrid(
                 children: [
-                  for (final language
-                      in manifest?.languages ?? const <UiMessageLanguage>[])
+                  for (final language in translatableLanguages)
                     LanguageRegistryCard(
                       key: ValueKey('language-card-${language.code}'),
                       code: language.code,
                       manifestLanguage: language,
                       registryLanguage: registryByCode[language.code],
-                      isDefault:
-                          registryByCode[language.code]?.isDefault ??
-                          language.code == manifest?.defaultLanguage,
+                      isDefault: false,
                     ),
                 ],
               ),
@@ -148,11 +177,6 @@ class LanguagesScreen extends ConsumerWidget {
                 ),
               ],
             ],
-            const SizedBox(height: 8),
-            _CoverageSection(
-              coverage: coverage,
-              onRetry: () => ref.invalidate(translationCoverageProvider),
-            ),
           ],
         ),
       ),
@@ -164,7 +188,6 @@ class LanguagesScreen extends ConsumerWidget {
     UiMessageManifest? manifest,
   ) {
     final languages = manifest?.languages.length ?? 0;
-    final defaultLanguage = manifest?.defaultLanguage ?? 'en';
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -173,10 +196,6 @@ class LanguagesScreen extends ConsumerWidget {
         PlatformMetaPill(
           label: strings.tKey(PlatformAdminKeys.pageLanguagesTitle),
           value: '$languages',
-        ),
-        PlatformStatusChip(
-          status:
-              '${strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage)}: $defaultLanguage',
         ),
       ],
     );
@@ -244,195 +263,95 @@ class _StaticManifestNotice extends StatelessWidget {
   }
 }
 
-class _CoverageSection extends StatelessWidget {
-  const _CoverageSection({required this.coverage, required this.onRetry});
+/// The source language, kept out of the translation grid: it has nothing to
+/// review and would otherwise sit as an empty card next to full ones.
+class _SourceLanguageStrip extends StatelessWidget {
+  const _SourceLanguageStrip({
+    required this.strings,
+    required this.code,
+    required this.name,
+  });
 
-  final AsyncValue<TranslationCoverage> coverage;
-  final VoidCallback onRetry;
+  final UiMessageStrings strings;
+  final String code;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    final strings = ProviderScope.containerOf(context).read(uiStringsProvider);
     return PlatformSectionCard(
-      child: coverage.when(
-        loading: () => const SizedBox.shrink(),
-        error: (error, stackTrace) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PlatformSectionHeader(
-              title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-            ),
-            const SizedBox(height: 12),
-            PlatformSecondaryButton(
-              label: strings.tKey(CommonKeys.buttonRetry),
-              onPressed: onRetry,
-            ),
-          ],
-        ),
-        data: (data) {
-          final namespaces = data.namespaces.entries.toList()
-            ..sort((a, b) => a.key.compareTo(b.key));
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PlatformSectionHeader(
-                title: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final language in data.languages)
-                    PlatformStatusChip(status: language),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (namespaces.isEmpty)
-                Text(
-                  strings.tKey(CommonKeys.emptyTitle),
-                  style: PtTheme.font(13, color: PtTheme.muted),
-                )
-              else
-                for (final entry in namespaces) ...[
-                  Text(
-                    entry.key,
-                    style: PtTheme.font(
-                      13,
-                      weight: FontWeight.w700,
-                      color: PtTheme.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${strings.tKey(PlatformAdminKeys.queueTotal)}: ${entry.value.total} · '
-                    '${strings.tKey(PlatformAdminKeys.pageLanguagesMissingTranslations)}: ${entry.value.missing.length}',
-                    style: PtTheme.font(12, color: PtTheme.muted),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Summary card for the Settings landing (`/settings`).
-///
-/// Shows the manifest language count, active count, default language and
-/// translation coverage state plus a single action that opens the full
-/// [LanguagesScreen] (`/settings/languages`).
-class LanguagesCoverageSummaryCard extends ConsumerWidget {
-  const LanguagesCoverageSummaryCard({super.key, this.onOpen});
-
-  /// Overrides the default navigation to `/settings/languages`.
-  final VoidCallback? onOpen;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(uiStringsProvider);
-    final manifest = ref.watch(platformUiManifestProvider);
-    final registry = ref.watch(platformLanguagesProvider);
-    final coverage = ref.watch(translationCoverageProvider);
-
-    void open() {
-      if (onOpen != null) {
-        onOpen!();
-        return;
-      }
-      try {
-        GoRouter.of(context).go('/settings/languages');
-      } catch (_) {
-        // No router in scope (e.g. isolated widget test): stay put.
-      }
-    }
-
-    return PlatformSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          PlatformSectionHeader(
-            title: strings.tKey(PlatformAdminKeys.sectionLanguagesCoverage),
-            subtitle: strings.tKey(PlatformAdminKeys.pageLanguagesCoverage),
-          ),
-          const SizedBox(height: 12),
-          if (manifest == null)
-            const SizedBox.shrink()
-          else
-            coverage.when(
-              loading: () => const SizedBox.shrink(),
-              error: (error, stackTrace) => PlatformErrorView(
-                message: strings.tKey(CommonKeys.statusUnhealthy),
-                retryLabel: strings.tKey(CommonKeys.buttonRetry),
-                onRetry: () => ref.invalidate(translationCoverageProvider),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: PtTheme.canvas,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.language_rounded,
+                color: PtTheme.deepGreen,
+                size: 20,
               ),
-              data: (data) {
-                var missing = 0;
-                for (final namespace in data.namespaces.values) {
-                  missing += namespace.missing.length;
-                }
-                final healthy = missing == 0;
-                var defaultName = manifest.defaultLanguage;
-                for (final language
-                    in registry.asData?.value ?? const <PlatformLanguage>[]) {
-                  if (language.code == manifest.defaultLanguage) {
-                    defaultName = language.displayName;
-                    break;
-                  }
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        PlatformMetaPill(
-                          label: strings.tKey(
-                            PlatformAdminKeys.pageLanguagesTitle,
-                          ),
-                          value: '${manifest.languages.length}',
-                        ),
-                        PlatformStatusChip(
-                          status:
-                              '${strings.tKey(PlatformAdminKeys.pageLanguagesDefaultLanguage)}: $defaultName',
-                        ),
-                        PlatformStatusChip(
-                          status: healthy
-                              ? strings.tKey(CommonKeys.statusHealthy)
-                              : strings.tKey(CommonKeys.statusUnhealthy),
-                        ),
-                        if (missing > 0)
-                          PlatformMetaPill(
-                            label: strings.tKey(
-                              PlatformAdminKeys
-                                  .pageLanguagesMissingTranslations,
-                            ),
-                            value: '$missing',
-                          ),
-                      ],
+                    Text(
+                      '$name · $code',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: PtTheme.font(
+                        14,
+                        weight: FontWeight.w700,
+                        color: PtTheme.ink,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        PlatformSecondaryButton(
-                          label: strings.tKey(
-                            PlatformAdminKeys.pageLanguagesTitle,
-                          ),
-                          icon: Icons.translate_rounded,
-                          onPressed: open,
+                    Container(
+                      padding: const EdgeInsetsDirectional.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PtTheme.canvas,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: PtTheme.border),
+                      ),
+                      child: Text(
+                        strings.tKey(
+                          PlatformAdminKeys.pageLanguagesSourceDefault,
                         ),
-                      ],
+                        style: PtTheme.font(
+                          10.5,
+                          lineHeight: 14,
+                          weight: FontWeight.w700,
+                          color: PtTheme.muted,
+                        ),
+                      ),
                     ),
                   ],
-                );
-              },
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  strings.tKey(PlatformAdminKeys.languagesSourceLanguage),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: PtTheme.font(12, color: PtTheme.muted),
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );

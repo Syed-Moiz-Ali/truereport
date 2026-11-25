@@ -18,4 +18,3 @@ const int exampleDone = 18;
 const int exampleTotal = 24;
 const int examplePercent = 75;
 const int exampleStartedMinutes = 45;
-

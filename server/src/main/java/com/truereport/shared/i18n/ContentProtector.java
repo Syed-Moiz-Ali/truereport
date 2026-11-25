@@ -15,12 +15,14 @@ import java.util.regex.Pattern;
  * afterwards. A lost token is a hard failure: callers must reject the machine
  * output rather than store corrupted copy.
  *
- * <p>Tokens look like {@code #1000123#}: a globally unique number, so a batch
- * of texts never shares token names. Plain digits are used because
- * LibreTranslate preserves {@code #123#}/{@code {123}} but mangles longer
- * random bodies and square-bracket wrappers. Restore is always per text (each
- * call takes its own {@link Protection}); a provider that returns another
- * text's token makes the expected token missing and fails loudly.</p>
+ * <p>Tokens look like {@code QZ1000123QZ}: globally unique, letter-wrapped, so
+ * a batch of texts never shares token names. The letters matter: LibreTranslate
+ * leaves a letter/number word alone in every position, while a bare
+ * {@code #123#} token is dropped at the start of a sentence
+ * ("#123# issues" -> "numéros") and zero-padded when it stands alone. Restore is
+ * always per text (each call takes its own {@link Protection}); a provider that
+ * returns another text's token makes the expected token missing and fails
+ * loudly.</p>
  */
 @Service
 public class ContentProtector {
@@ -53,6 +55,8 @@ public class ContentProtector {
     );
 
     private static final AtomicLong TOKEN_SEQUENCE = new AtomicLong(1_000_000L);
+    private static final String TOKEN_PREFIX = "QZ";
+    private static final String TOKEN_SUFFIX = "QZ";
 
     public Protection protect(String text, String protectPatterns, List<GlossaryTerm> lockedTerms) {
         String value = text == null ? "" : text;
@@ -100,7 +104,7 @@ public class ContentProtector {
      * restoring around a mangled wrapper would silently keep junk.
      */
     private static boolean containsAlteredWrapper(String value, String token) {
-        String signature = token.substring(1, token.length() - 1);
+        String signature = token.replaceAll("[^0-9]", "");
         return !signature.isBlank() && Pattern.compile("(?<!\\d)" + signature + "(?!\\d)")
                 .matcher(value).find();
     }
@@ -163,13 +167,13 @@ public class ContentProtector {
     }
 
     /**
-     * Globally unique, short numeric token. The sequence starts high enough that
-     * ordinary content never collides, and we skip a number the text already
-     * contains so restore cannot rewrite user text.
+     * Globally unique, letter-wrapped numeric token. The sequence starts high
+     * enough that ordinary content never collides, and we skip a number the text
+     * already contains so restore cannot rewrite user text.
      */
     private static String nextToken(String original) {
         while (true) {
-            String candidate = "#" + TOKEN_SEQUENCE.getAndIncrement() + "#";
+            String candidate = TOKEN_PREFIX + TOKEN_SEQUENCE.getAndIncrement() + TOKEN_SUFFIX;
             if (!original.contains(candidate)) {
                 return candidate;
             }

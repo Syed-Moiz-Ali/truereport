@@ -59,9 +59,12 @@ public class PlatformWorkshopService {
         if (branch != null && !branch.isBlank()) {
             workshop.setBranchName(branch.trim());
         }
-        workshops.save(workshop);
         String contactEmail = request.contactEmail() == null
                 ? null : request.contactEmail().trim();
+        if (contactEmail != null && !contactEmail.isBlank()) {
+            workshop.setContactEmail(contactEmail);
+        }
+        workshops.save(workshop);
         Map<String, String> after = new LinkedHashMap<>();
         after.put("name", workshop.getName());
         after.put("status", workshop.getStatus());
@@ -98,6 +101,7 @@ public class PlatformWorkshopService {
                 changed = true;
             }
             if (request.contactEmail() != null && !request.contactEmail().isBlank()) {
+                workshop.setContactEmail(request.contactEmail().trim());
                 changed = true;
             }
         }
@@ -136,6 +140,7 @@ public class PlatformWorkshopService {
 
     private WorkshopDto toDto(Workshop workshop) {
         long count = memberships.countByWorkshopIdAndStatus(workshop.getId(), "ACTIVE");
-        return new WorkshopDto(workshop.getId(), workshop.getName(), workshop.getStatus(), count);
+        return new WorkshopDto(workshop.getId(), workshop.getName(), workshop.getStatus(),
+                workshop.getContactEmail(), count);
     }
 }

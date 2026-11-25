@@ -9,6 +9,7 @@ import '../../components/platform_buttons.dart';
 import '../../components/platform_chips.dart';
 import '../../components/platform_shell.dart';
 import '../../platform_providers.dart';
+import '../../platform_features.dart';
 import '../../platform_theme.dart';
 
 import 'reference_dialogs.dart';
@@ -259,12 +260,13 @@ class _ReferenceStatusesBodyState extends ConsumerState<ReferenceStatusesBody> {
       title: strings.tKey(PlatformAdminKeys.taxonomyStatusesTitle),
       subtitle: strings.tKey(PlatformAdminKeys.taxonomyStatusesSubtitle),
       headerActions: <Widget>[
-        PlatformSecondaryButton(
-          key: const Key('reference-open-transitions'),
-          label: strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
-          icon: Icons.swap_horiz_rounded,
-          onPressed: () => context.go('/configuration/transitions'),
-        ),
+        if (ref.watch(workflowEditingEnabledProvider))
+          PlatformSecondaryButton(
+            key: const Key('reference-open-transitions'),
+            label: strings.tKey(PlatformAdminKeys.referenceTransitionsTitle),
+            icon: Icons.swap_horiz_rounded,
+            onPressed: () => context.go('/configuration/transitions'),
+          ),
         PlatformPrimaryButton(
           key: const Key('reference-create'),
           label: strings.tKey(PlatformAdminKeys.referenceCreate),

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/l10n.dart';
 
+import '../../components/platform_form.dart';
 import '../../components/platform_shell.dart';
 import '../../platform_config_models.dart';
 import '../../platform_providers.dart';
@@ -66,136 +67,141 @@ class _MasterLibraryScreenState extends ConsumerState<MasterLibraryScreen> {
         final wide = c.maxWidth >= 1000;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(wide ? 24 : 14, 22, wide ? 24 : 14, 36),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _Header(
-                strings: strings,
-                wide: wide,
-                onAdd: () => context.go('/checklist/items/new'),
-              ),
-              const SizedBox(height: 12),
-              CatalogTabs(
-                labels: [
-                  strings.tKey(PlatformAdminKeys.tabChecklistItems),
-                  strings.tKey(PlatformAdminKeys.tabChecklistCategories),
-                  strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
-                ],
-                selected: 0,
-                onSelected: (index) {
-                  if (index == 1) context.go('/checklist/categories');
-                  if (index == 2) context.go('/checklist/option-sets');
-                },
-              ),
-              if (health != null && !health.healthy) ...[
-                const SizedBox(height: 12),
-                _HealthStrip(
-                  strings: strings,
-                  count: health.checks.where((check) => !check.ok).length,
-                  onOpen: () => context.go('/checklist/health'),
-                ),
-              ],
-              const SizedBox(height: 12),
-              _Toolbar(
-                strings: strings,
-                controller: _searchController,
-                onSearch: _onSearch,
-                categories: categories,
-                categoryId: _categoryId,
-                status: _status,
-                onCategory: (value) => setState(() => _categoryId = value),
-                onStatus: (value) => setState(() => _status = value),
-                countLabel: itemsAsync.maybeWhen(
-                  data: (items) => strings.tArgsKey(
-                    PlatformAdminKeys.pageChecklistItemsResultCount,
-                    {'count': items.length},
-                  ),
-                  orElse: () => '',
-                ),
-              ),
-              const SizedBox(height: 12),
-              itemsAsync.when(
-                loading: () => const CatalogSkeleton(),
-                error: (_, _) => CatalogError(
-                  strings: strings,
-                  onRetry: () => ref.invalidate(itemsProvider),
-                ),
-                data: (items) {
-                  if (items.isEmpty) {
-                    final filtered =
-                        _search.isNotEmpty ||
-                        _categoryId.isNotEmpty ||
-                        _status.isNotEmpty;
-                    return CatalogSurface(
-                      child: CatalogEmpty(
-                        title: strings.tKey(
-                          filtered
-                              ? PlatformAdminKeys
-                                    .checklistItemsEmptyFilteredTitle
-                              : PlatformAdminKeys
-                                    .checklistItemsEmptyInitialTitle,
-                        ),
-                        body: strings.tKey(
-                          filtered
-                              ? PlatformAdminKeys
-                                    .checklistItemsEmptyFilteredBody
-                              : PlatformAdminKeys
-                                    .checklistItemsEmptyInitialBody,
-                        ),
-                        actionLabel: filtered
-                            ? null
-                            : strings.tKey(PlatformAdminKeys.buttonItemAdd),
-                        onAction: filtered
-                            ? null
-                            : () => context.go('/checklist/items/new'),
-                      ),
-                    );
-                  }
-                  final selected = items.firstWhere(
-                    (item) => item.id == _selectedId,
-                    orElse: () => items.first,
-                  );
-                  if (wide) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 380,
-                          child: _IndexPane(
-                            strings: strings,
-                            items: items,
-                            selectedId: selected.id,
-                            onSelect: (item) =>
-                                setState(() => _selectedId = item.id),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _RecordPane(
-                            strings: strings,
-                            item: selected,
-                            acting: _acting,
-                            onEdit: () => context.go(
-                              '/checklist/items/${selected.id}/edit',
-                            ),
-                            onDraft: () => _draft(strings, selected),
-                            onPublish: () => _publish(strings, selected),
-                            onRetire: () => _retire(strings, selected),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return _IndexPane(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: Catalog.maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(
                     strings: strings,
-                    items: items,
-                    selectedId: null,
-                    onSelect: (item) =>
-                        context.go('/checklist/items/${item.id}/edit'),
-                  );
-                },
+                    wide: wide,
+                    onAdd: () => context.go('/checklist/items/new'),
+                  ),
+                  const SizedBox(height: 12),
+                  CatalogTabs(
+                    labels: [
+                      strings.tKey(PlatformAdminKeys.tabChecklistItems),
+                      strings.tKey(PlatformAdminKeys.tabChecklistCategories),
+                      strings.tKey(PlatformAdminKeys.tabChecklistOptionSets),
+                    ],
+                    selected: 0,
+                    onSelected: (index) {
+                      if (index == 1) context.go('/checklist/categories');
+                      if (index == 2) context.go('/checklist/option-sets');
+                    },
+                  ),
+                  if (health != null && !health.healthy) ...[
+                    const SizedBox(height: 12),
+                    _HealthStrip(
+                      strings: strings,
+                      count: health.checks.where((check) => !check.ok).length,
+                      onOpen: () => context.go('/checklist/health'),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  _Toolbar(
+                    strings: strings,
+                    controller: _searchController,
+                    onSearch: _onSearch,
+                    categories: categories,
+                    categoryId: _categoryId,
+                    status: _status,
+                    onCategory: (value) => setState(() => _categoryId = value),
+                    onStatus: (value) => setState(() => _status = value),
+                    countLabel: itemsAsync.maybeWhen(
+                      data: (items) => strings.tArgsKey(
+                        PlatformAdminKeys.pageChecklistItemsResultCount,
+                        {'count': items.length},
+                      ),
+                      orElse: () => '',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  itemsAsync.when(
+                    loading: () => const CatalogSkeleton(),
+                    error: (_, _) => CatalogError(
+                      strings: strings,
+                      onRetry: () => ref.invalidate(itemsProvider),
+                    ),
+                    data: (items) {
+                      if (items.isEmpty) {
+                        final filtered =
+                            _search.isNotEmpty ||
+                            _categoryId.isNotEmpty ||
+                            _status.isNotEmpty;
+                        return CatalogSurface(
+                          child: CatalogEmpty(
+                            title: strings.tKey(
+                              filtered
+                                  ? PlatformAdminKeys
+                                        .checklistItemsEmptyFilteredTitle
+                                  : PlatformAdminKeys
+                                        .checklistItemsEmptyInitialTitle,
+                            ),
+                            body: strings.tKey(
+                              filtered
+                                  ? PlatformAdminKeys
+                                        .checklistItemsEmptyFilteredBody
+                                  : PlatformAdminKeys
+                                        .checklistItemsEmptyInitialBody,
+                            ),
+                            actionLabel: filtered
+                                ? null
+                                : strings.tKey(PlatformAdminKeys.buttonItemAdd),
+                            onAction: filtered
+                                ? null
+                                : () => context.go('/checklist/items/new'),
+                          ),
+                        );
+                      }
+                      final selected = items.firstWhere(
+                        (item) => item.id == _selectedId,
+                        orElse: () => items.first,
+                      );
+                      if (wide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 380,
+                              child: _IndexPane(
+                                strings: strings,
+                                items: items,
+                                selectedId: selected.id,
+                                onSelect: (item) =>
+                                    setState(() => _selectedId = item.id),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _RecordPane(
+                                strings: strings,
+                                item: selected,
+                                acting: _acting,
+                                onEdit: () => context.go(
+                                  '/checklist/items/${selected.id}/edit',
+                                ),
+                                onDraft: () => _draft(strings, selected),
+                                onPublish: () => _publish(strings, selected),
+                                onRetire: () => _retire(strings, selected),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return _IndexPane(
+                        strings: strings,
+                        items: items,
+                        selectedId: null,
+                        onSelect: (item) =>
+                            context.go('/checklist/items/${item.id}/edit'),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -483,57 +489,68 @@ class _Toolbar extends ConsumerWidget {
               ),
           ],
         );
-        final categoryFilters = Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            _FilterPill(
-              label: strings.tKey(PlatformAdminKeys.filterAllCategories),
-              selected: categoryId.isEmpty,
-              onTap: () => onCategory(''),
-            ),
-            for (final category in categories)
-              _FilterPill(
-                label: category.name,
-                selected: categoryId == category.id,
-                onTap: () => onCategory(category.id),
+        // A dozen categories as pills used to overflow into a clipped row; one
+        // dropdown stays readable and shows every category by name.
+        final categoryFilter = SizedBox(
+          width: narrow ? double.infinity : 240,
+          child: PlatformDropdown<String>(
+            key: const Key('checklist-category-filter'),
+            value: categoryId,
+            items: [
+              DropdownMenuItem<String>(
+                value: '',
+                child: Text(
+                  strings.tKey(PlatformAdminKeys.filterAllCategories),
+                ),
               ),
-          ],
-        );
-        final filterStack = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Unbounded width keeps the pills intrinsic; they stay visible and
-            // only scroll if the viewport is too narrow for all four.
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: statusFilters,
-            ),
-            const SizedBox(height: 6),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: categoryFilters,
-            ),
-          ],
+              for (final category in categories)
+                DropdownMenuItem<String>(
+                  value: category.id,
+                  child: Text(
+                    category.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: (value) => onCategory(value ?? ''),
+          ),
         );
         if (narrow) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [search, const SizedBox(height: 8), filterStack],
+            children: [
+              search,
+              const SizedBox(height: 8),
+              categoryFilter,
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: statusFilters,
+              ),
+            ],
           );
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 SizedBox(width: 360, child: search),
-                const Spacer(),
+                const SizedBox(width: 12),
+                categoryFilter,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: statusFilters,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Text(countLabel, style: Catalog.text(11, color: PtTheme.muted)),
               ],
             ),
-            const SizedBox(height: 8),
-            filterStack,
           ],
         );
       },
@@ -778,22 +795,38 @@ class _RecordPane extends ConsumerWidget {
             label: strings.tKey(PlatformAdminKeys.fieldItemCode),
             value: item.code,
           ),
-          _Fact(
-            label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
-            value: item.measurementUnit.isEmpty ? '—' : item.measurementUnit,
-          ),
-          _Fact(
-            label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
-            value: item.sensorTool.isEmpty ? '—' : item.sensorTool,
-          ),
-          _Fact(
-            label: strings.tKey(PlatformAdminKeys.fieldItemStandardSpecEn),
-            value: item.standardSpec.isEmpty ? '—' : item.standardSpec,
-          ),
+          if (item.measurementUnit.isNotEmpty)
+            _Fact(
+              label: strings.tKey(PlatformAdminKeys.fieldItemMeasurementUnit),
+              value: item.measurementUnit,
+            ),
+          if (item.sensorTool.isNotEmpty)
+            _Fact(
+              label: strings.tKey(PlatformAdminKeys.fieldItemSensorTool),
+              value: item.sensorTool,
+            ),
+          if (item.standardSpec.isNotEmpty)
+            _Fact(
+              label: strings.tKey(PlatformAdminKeys.fieldItemStandardSpecEn),
+              value: item.standardSpec,
+            ),
           _Fact(
             label: strings.tKey(PlatformAdminKeys.fieldCategoryOrder),
             value: '${item.sortOrder}',
           ),
+          if (item.instruction.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              strings.tKey(PlatformAdminKeys.fieldItemInstructionEn),
+              style: Catalog.text(
+                10.5,
+                weight: FontWeight.w700,
+                color: PtTheme.muted,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(item.instruction, style: Catalog.text(12.5)),
+          ],
           const SizedBox(height: 10),
           Wrap(
             spacing: 6,
@@ -819,31 +852,40 @@ class _RecordPane extends ConsumerWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              CatalogButton(
-                label: strings.tKey(CommonKeys.buttonEdit),
-                icon: Icons.edit_outlined,
-                secondary: true,
-                onPressed: onEdit,
-              ),
-              if (item.draftVersionExists)
+              // Published items are immutable, so the useful action is a draft;
+              // retire is destructive and stays a quiet secondary action.
+              if (item.draftVersionExists) ...[
                 CatalogButton(
                   label: strings.tKey(PlatformAdminKeys.buttonPublish),
                   icon: Icons.check_rounded,
                   onPressed: acting ? null : onPublish,
-                )
-              else
+                ),
+                CatalogButton(
+                  label: strings.tKey(CommonKeys.buttonEdit),
+                  icon: Icons.edit_outlined,
+                  secondary: true,
+                  onPressed: onEdit,
+                ),
+              ] else if (published)
                 CatalogButton(
                   label: strings.tKey(
                     PlatformAdminKeys.checklistEditorButtonCreateDraftToEdit,
                   ),
-                  secondary: true,
+                  icon: Icons.edit_note_rounded,
                   onPressed: acting ? null : onDraft,
+                )
+              else
+                CatalogButton(
+                  label: strings.tKey(CommonKeys.buttonEdit),
+                  icon: Icons.edit_outlined,
+                  onPressed: onEdit,
                 ),
               if (!retired)
                 CatalogButton(
                   label: strings.tKey(PlatformAdminKeys.buttonItemRetire),
-                  danger: true,
+                  secondary: true,
                   onPressed: acting ? null : onRetire,
                 ),
             ],

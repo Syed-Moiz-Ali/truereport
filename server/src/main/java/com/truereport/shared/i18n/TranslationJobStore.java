@@ -134,6 +134,20 @@ public class TranslationJobStore {
                 """, nextAttemptAt, id);
     }
 
+    /**
+     * The provider asked us to back off (429 with {@code Retry-After}). The job
+     * returns to PENDING at that time and its attempt budget is refunded, so a
+     * rate limit never turns into a permanent failure.
+     */
+    public void requeueRateLimited(String id, LocalDateTime nextAttemptAt) {
+        jdbc.update("""
+                UPDATE content_translation_job
+                SET state = 'PENDING', next_attempt_at = ?, updated_at = CURRENT_TIMESTAMP,
+                    attempts = GREATEST(attempts - 1, 0), error = 'RATE_LIMITED'
+                WHERE id = ?
+                """, nextAttemptAt, id);
+    }
+
     /** A crashed worker leaves RUNNING jobs; return them to PENDING after the timeout. */
     public int recoverStale(int staleTimeoutSeconds) {
         LocalDateTime cutoff = LocalDateTime.now().minusSeconds(Math.max(1, staleTimeoutSeconds));

@@ -36,7 +36,7 @@ public class ContentChangePublisher {
         for (TranslationRow row : translations.findForField(entityType, entityId, field)) {
             rows.put(row.lang(), row);
         }
-        for (String lang : languages.languages()) {
+        for (String lang : translations.liveLanguages()) {
             if (lang.equals(languages.defaultLanguage())) {
                 continue;
             }
@@ -72,7 +72,7 @@ public class ContentChangePublisher {
         for (TranslationRow row : translations.findForField(entityType, entityId, field)) {
             rows.put(row.lang(), row);
         }
-        for (String lang : languages.languages()) {
+        for (String lang : translations.liveLanguages()) {
             if (lang.equals(languages.defaultLanguage()) || lang.equals(skip)) {
                 continue;
             }

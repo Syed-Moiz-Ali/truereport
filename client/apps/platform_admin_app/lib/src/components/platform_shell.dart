@@ -108,18 +108,22 @@ class PlatformPage extends StatelessWidget {
     required this.child,
     this.maxWidth = 1240,
     this.padding,
+    this.footer,
   });
 
   final Widget child;
   final double maxWidth;
   final EdgeInsetsGeometry? padding;
 
+  /// Keeps the page's primary actions visible while the body scrolls.
+  final Widget? footer;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 700;
-        return SingleChildScrollView(
+        final body = SingleChildScrollView(
           padding:
               padding ??
               EdgeInsets.fromLTRB(
@@ -135,6 +139,32 @@ class PlatformPage extends StatelessWidget {
               child: child,
             ),
           ),
+        );
+        final footer = this.footer;
+        if (footer == null) return body;
+        return Column(
+          children: [
+            Expanded(child: body),
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                compact ? 16 : 24,
+                10,
+                compact ? 16 : 24,
+                12,
+              ),
+              decoration: const BoxDecoration(
+                color: PtTheme.canvas,
+                border: Border(top: BorderSide(color: PtTheme.border)),
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: footer,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

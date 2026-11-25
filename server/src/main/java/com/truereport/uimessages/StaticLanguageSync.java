@@ -86,11 +86,12 @@ public class StaticLanguageSync {
             resolvedName = code;
         }
         String resolvedDirection = "rtl".equalsIgnoreCase(direction) ? "rtl" : "ltr";
+        // Only refresh the display metadata of an existing row: a language an
+        // admin retired must not come back to life on the next restart.
         int updated = jdbc.update("""
                 UPDATE platform_languages
-                SET native_name = ?, direction = ?, active = TRUE, sort_order = ?,
-                    status = 'LIVE', updated_at = CURRENT_TIMESTAMP,
-                    version = version + 1
+                SET native_name = ?, direction = ?, sort_order = ?,
+                    updated_at = CURRENT_TIMESTAMP, version = version + 1
                 WHERE code = ?
                 """, resolvedName.trim(), resolvedDirection, sortOrder, code);
         if (updated == 0) {

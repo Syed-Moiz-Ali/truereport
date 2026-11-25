@@ -115,6 +115,15 @@ public final class LanguageDtos {
     public record ReadinessBlockerDto(String code, String tab, int count, String message) {
     }
 
+    /** One selectable entry in the Add-language picker. */
+    public record LanguageCatalogEntryDto(String code, String name, String nativeName,
+                                          String direction, boolean added) {
+    }
+
+    /** Interface-text coverage for one app namespace (common, platform_admin, …). */
+    public record AppCoverageDto(String app, int translated, int total, boolean catalog) {
+    }
+
     public record LanguageReadinessDto(
             String language,
             String status,

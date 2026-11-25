@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../locale_controller.dart';
 import 'ui_message_api.dart';
 import 'ui_message_cache.dart';
 import 'ui_message_key.dart';
@@ -63,6 +62,19 @@ final uiMessageMessagesProvider = Provider.family<Map<String, String>, String>((
   return ref.read(languageSelectionProvider(client).notifier).mergedMessages();
 });
 
+/// The Locale that belongs to the language the user actually picked.
+///
+/// `localeProvider` is the product default (English); this follows the manifest
+/// selection, so Material's own copy, date pickers and `Accept-Language` change
+/// with the interface instead of staying English.
+final uiLocaleProvider = Provider.family<Locale, String>((ref, client) {
+  final selection = ref.watch(languageSelectionProvider(client));
+  final code =
+      selection.manifest?.languageFor(selection.activeLanguage)?.code ??
+      selection.activeLanguage;
+  return localeForLanguage(code);
+});
+
 /// Flutter-supported locales for every language the server advertises.
 ///
 /// Built-in Material and Cupertino copy (date pickers, dialogs, tooltips) is
@@ -74,7 +86,7 @@ final supportedLocalesProvider = Provider.family<List<Locale>, String>((
   client,
 ) {
   final selection = ref.watch(languageSelectionProvider(client));
-  final locale = ref.watch(localeProvider);
+  final locale = ref.watch(uiLocaleProvider(client));
   return supportedLocalesFor(selection.manifest, locale);
 });
 

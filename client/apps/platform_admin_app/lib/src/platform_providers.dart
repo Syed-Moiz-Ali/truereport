@@ -276,6 +276,18 @@ final platformLanguagesProvider =
       (ref) => ref.watch(platformConfigApiProvider).platformLanguages(),
     );
 
+/// The closed list of addable languages (code, name, native name, direction).
+final languageCatalogProvider =
+    FutureProvider.autoDispose<List<LanguageCatalogEntry>>(
+      (ref) => ref.watch(platformConfigApiProvider).languageCatalog(),
+    );
+
+/// Interface-text coverage per app namespace for one language.
+final appCoverageProvider = FutureProvider.autoDispose
+    .family<List<AppCoverageRow>, String>(
+      (ref, code) => ref.watch(platformConfigApiProvider).appCoverage(code),
+    );
+
 final translationCoverageProvider =
     FutureProvider.autoDispose<TranslationCoverage>(
       (ref) => ref.watch(platformConfigApiProvider).translationCoverage(),

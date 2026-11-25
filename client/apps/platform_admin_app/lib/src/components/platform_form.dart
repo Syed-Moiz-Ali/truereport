@@ -21,6 +21,7 @@ class PlatformTextField extends StatelessWidget {
     this.enabled = true,
     this.textDirection,
     this.autofocus = false,
+    this.obscureText = false,
     this.textInputAction,
     this.inputFormatters,
     this.onFieldSubmitted,
@@ -37,6 +38,7 @@ class PlatformTextField extends StatelessWidget {
   final bool enabled;
   final TextDirection? textDirection;
   final bool autofocus;
+  final bool obscureText;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onFieldSubmitted;
@@ -57,6 +59,7 @@ class PlatformTextField extends StatelessWidget {
       enabled: enabled,
       textDirection: textDirection,
       autofocus: autofocus,
+      obscureText: obscureText,
       textInputAction: textInputAction,
       inputFormatters: inputFormatters,
       onFieldSubmitted: onFieldSubmitted,
@@ -101,37 +104,42 @@ class PlatformTextField extends StatelessWidget {
 class PlatformDropdown<T> extends StatelessWidget {
   const PlatformDropdown({
     super.key,
-    required this.label,
+    this.label,
     required this.value,
     required this.items,
     required this.onChanged,
   });
 
-  final String label;
+  /// Optional: a bare dropdown is used in toolbars where the current value
+  /// already says what it filters.
+  final String? label;
   final T value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final label = this.label;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: PtTheme.font(
-            12,
-            lineHeight: 16,
-            weight: FontWeight.w500,
-            color: PtTheme.muted,
+        if (label != null) ...[
+          Text(
+            label,
+            style: PtTheme.font(
+              12,
+              lineHeight: 16,
+              weight: FontWeight.w500,
+              color: PtTheme.muted,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 6),
+          const SizedBox(height: 6),
+        ],
         Semantics(
-          label: label,
+          label: label ?? '',
           child: DropdownButtonFormField<T>(
             initialValue: value,
             isExpanded: true,

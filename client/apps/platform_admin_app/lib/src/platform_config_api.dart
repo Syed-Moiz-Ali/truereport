@@ -27,6 +27,24 @@ class PlatformConfigApi {
         .toList(growable: false);
   }
 
+  /// The closed list the Add-language picker offers (code, name, direction).
+  Future<List<LanguageCatalogEntry>> languageCatalog() async {
+    final data = await _api.getDynamic(_endpoints.platformLanguageCatalog);
+    return _list(data)
+        .map(
+          (item) => LanguageCatalogEntry.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(growable: false);
+  }
+
+  /// Interface-text coverage of one language per app namespace.
+  Future<List<AppCoverageRow>> appCoverage(String code) async {
+    final data = await _api.getDynamic(_endpoints.platformLanguageApps(code));
+    return _list(data)
+        .map((item) => AppCoverageRow.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+  }
+
   /// Registers a language in the backend registry.
   ///
   /// The server answers 201 for a new language and 200 when a retired one is
@@ -104,6 +122,7 @@ class PlatformConfigApi {
   Future<List<TranslationReviewItem>> contentReview({
     required String lang,
     String? state,
+    String? entityType,
     int page = 0,
     int size = 50,
   }) async {
@@ -112,6 +131,8 @@ class PlatformConfigApi {
       query: <String, dynamic>{
         'lang': lang,
         if (state != null && state.isNotEmpty) 'state': state,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
         'page': '$page',
         'size': '$size',
       },
@@ -126,12 +147,118 @@ class PlatformConfigApi {
         .toList(growable: false);
   }
 
-  Future<TranslationReviewSummary> contentReviewSummary(String lang) async {
+  Future<TranslationReviewSummary> contentReviewSummary(
+    String lang, {
+    String? entityType,
+  }) async {
     final data = await _api.getDynamic(
       _endpoints.contentReviewSummary,
-      query: <String, dynamic>{'lang': lang},
+      query: <String, dynamic>{
+        'lang': lang,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+      },
     );
     return TranslationReviewSummary.fromJson(_map(data));
+  }
+
+  /// Machine-translation jobs the provider could not finish, with their reason.
+  Future<List<FailedTranslationJob>> contentFailedJobs({
+    required String lang,
+    String? entityType,
+  }) async {
+    final data = await _api.getDynamic(
+      _endpoints.contentFailedJobs,
+      query: <String, dynamic>{
+        'lang': lang,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+      },
+    );
+    return _list(data)
+        .whereType<Map>()
+        .map(
+          (item) => FailedTranslationJob.fromJson(
+            item.map((key, value) => MapEntry(key.toString(), value)),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Puts failed jobs back in the queue; returns how many were requeued.
+  Future<int> retryFailedJobs({
+    required String lang,
+    String? entityType,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.contentRetryFailed,
+      body: <String, dynamic>{
+        'lang': lang,
+        if (entityType != null && entityType.isNotEmpty)
+          'entityType': entityType,
+      },
+    );
+    final map = _map(data);
+    final value = map['retried'];
+    return value is num ? value.toInt() : 0;
+  }
+
+  /// Approves pending non-safety translations. With [dryRun] it only counts.
+  Future<BulkApproveResult> bulkApproveContent({
+    required String lang,
+    bool dryRun = false,
+    List<String>? entityTypes,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.contentReviewBulkApprove,
+      body: <String, dynamic>{
+        'lang': lang,
+        'dryRun': dryRun,
+        if (entityTypes != null && entityTypes.isNotEmpty)
+          'entityTypes': entityTypes,
+      },
+    );
+    return BulkApproveResult.fromJson(_map(data));
+  }
+
+  /// Approves exactly the rows the reviewer checked, safety-critical included.
+  Future<BulkApproveResult> approveSelectedContent({
+    required String lang,
+    required List<TranslationReviewItem> items,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.contentReviewApproveSelected,
+      body: <String, dynamic>{
+        'lang': lang,
+        'items': <Map<String, String>>[
+          for (final item in items)
+            <String, String>{
+              'entityType': item.entityType,
+              'entityId': item.entityId,
+              'field': item.field,
+            },
+        ],
+      },
+    );
+    return BulkApproveResult.fromJson(_map(data));
+  }
+
+  /// Queues machine translations for a language that has no content rows yet.
+  Future<ContentBackfillResult> backfillContent({
+    required String lang,
+    bool dryRun = false,
+    List<String>? entityTypes,
+  }) async {
+    final data = await _api.postDynamic(
+      _endpoints.contentBackfill,
+      body: <String, dynamic>{
+        'languages': <String>[lang],
+        'dryRun': dryRun,
+        if (entityTypes != null && entityTypes.isNotEmpty)
+          'entityTypes': entityTypes,
+      },
+    );
+    return ContentBackfillResult.fromJson(_map(data));
   }
 
   Future<TranslationReviewItem> reviewContent({
@@ -145,6 +272,7 @@ class PlatformConfigApi {
   }) async {
     final data = await _api.postDynamic(
       _endpoints.contentReviewAction(entityType, entityId, field),
+      query: <String, dynamic>{'lang': lang},
       body: <String, dynamic>{'action': action, 'body': ?body, 'note': ?note},
     );
     final payload = _map(data);

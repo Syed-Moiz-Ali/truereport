@@ -32,6 +32,10 @@ class TechnicianCompletedPage extends ConsumerWidget {
             if (job.vehicleYear != null) '${job.vehicleYear}',
           ].where((value) => value.isNotEmpty).join(' ');
     final plate = (job?.vehiclePlate ?? '').trim();
+    // The chip reports the job's real status, not a constant. The fallback only
+    // covers the frame before the summary lands, so the chip keeps its shape.
+    final status = (job?.status ?? '').trim();
+    final statusCode = status.isEmpty ? 'PENDING_REVIEW' : status;
     final rows = <(String, String)>[
       if (reference.isNotEmpty)
         (t(TechnicianKeys.jobReferenceLabel), reference),
@@ -86,8 +90,8 @@ class TechnicianCompletedPage extends ConsumerWidget {
                   const SizedBox(height: 14),
                   Center(
                     child: StatusChip(
-                      label: jobStatusLabel(ref, 'PENDING_REVIEW'),
-                      tone: jobStatusTone(ref, 'PENDING_REVIEW'),
+                      label: jobStatusLabel(ref, statusCode),
+                      tone: jobStatusTone(ref, statusCode),
                     ),
                   ),
                   if (rows.isNotEmpty) ...[

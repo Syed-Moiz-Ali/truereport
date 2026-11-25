@@ -8,7 +8,7 @@ import java.util.Map;
  * Single source of truth for translatable dynamic-content fields.
  *
  * <p>English is stored in the neutral source column. Every other language is
- * stored in {@code platform_translations}. Backlog, readiness, generation and
+ * stored in {@code content_translation}. Backlog, readiness, generation and
  * publish gates all read this registry so the field lists cannot drift.</p>
  */
 public final class TranslationFieldRegistry {

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manual authoring surface for dynamic content translations (no machine
@@ -39,6 +40,22 @@ public class PlatformContentTranslationController {
     }
 
     public record ReviewRequest(String action, String body, String note) {
+    }
+
+    public record BulkApproveRequest(String lang, List<String> entityTypes, Boolean dryRun) {
+    }
+
+    public record BulkApproveResult(int approved, String lang, List<String> entityTypes,
+                                    boolean dryRun) {
+    }
+
+    public record SelectedItemRequest(String entityType, String entityId, String field) {
+    }
+
+    public record ApproveSelectedRequest(String lang, List<SelectedItemRequest> items) {
+    }
+
+    public record ApproveSelectedResult(int approved, String lang) {
     }
 
     public record BackfillRequest(List<String> languages, List<String> entityTypes, Boolean dryRun) {
@@ -105,8 +122,26 @@ public class PlatformContentTranslationController {
 
     @GetMapping("/review/summary")
     public com.truereport.shared.i18n.ContentReviewService.Summary reviewSummary(
-            @RequestParam String lang) {
-        return reviewService.summary(lang);
+            @RequestParam String lang,
+            @RequestParam(required = false) String entityType) {
+        return reviewService.summary(lang, entityType);
+    }
+
+    @GetMapping("/jobs/failed")
+    public List<com.truereport.shared.i18n.ContentReviewService.FailedJobView> failedJobs(
+            @RequestParam String lang,
+            @RequestParam(required = false) String entityType,
+            @RequestParam(defaultValue = "200") int limit) {
+        return reviewService.failedJobs(lang, entityType, limit);
+    }
+
+    @PostMapping("/jobs/retry")
+    public Map<String, Object> retryFailed(@RequestBody Map<String, Object> body) {
+        String lang = body == null ? null : String.valueOf(body.get("lang"));
+        String entityType = body == null || body.get("entityType") == null
+                ? null : String.valueOf(body.get("entityType"));
+        int retried = reviewService.retryFailed(lang, entityType);
+        return Map.of("retried", retried, "lang", lang == null ? "" : lang);
     }
 
     @PostMapping("/{entityType}/{entityId}/{field}/review")
@@ -121,6 +156,48 @@ public class PlatformContentTranslationController {
                 request == null ? null : request.body(),
                 request == null ? null : request.note(),
                 currentUserService.require(authentication).userId().toString()));
+    }
+
+    /**
+     * Approves pending machine translations for non-safety fields only.
+     * Safety-critical instructions/specifications stay in the manual queue.
+     */
+    @PostMapping("/review/bulk-approve")
+    public BulkApproveResult bulkApprove(JwtAuthenticationToken authentication,
+                                         @RequestBody(required = false) BulkApproveRequest request) {
+        com.truereport.shared.i18n.ContentReviewService.BulkResult result =
+                reviewService.bulkApprove(
+                        request == null ? null : request.lang(),
+                        request == null ? null : request.entityTypes(),
+                        request != null && Boolean.TRUE.equals(request.dryRun()),
+                        currentUserService.require(authentication).userId().toString());
+        return new BulkApproveResult(result.approved(), result.lang(), result.entityTypes(),
+                result.dryRun());
+    }
+
+    /**
+     * Approves exactly the rows the reviewer selected, safety-critical included.
+     * Used by the checkbox selection on the Content review desk.
+     */
+    @PostMapping("/review/approve-selected")
+    public ApproveSelectedResult approveSelected(
+            JwtAuthenticationToken authentication,
+            @RequestBody(required = false) ApproveSelectedRequest request) {
+        java.util.List<com.truereport.shared.i18n.ContentReviewService.BulkSelectionItem> items =
+                new java.util.ArrayList<>();
+        if (request != null && request.items() != null) {
+            for (SelectedItemRequest item : request.items()) {
+                if (item == null) {
+                    continue;
+                }
+                items.add(new com.truereport.shared.i18n.ContentReviewService.BulkSelectionItem(
+                        item.entityType(), item.entityId(), item.field()));
+            }
+        }
+        com.truereport.shared.i18n.ContentReviewService.BulkSelectionResult result =
+                reviewService.approveSelected(request == null ? null : request.lang(), items,
+                        currentUserService.require(authentication).userId().toString());
+        return new ApproveSelectedResult(result.approved(), result.lang());
     }
 
     private ReviewItemDto toDto(com.truereport.shared.i18n.ContentReviewService.ReviewItem item) {

@@ -15,6 +15,10 @@ abstract final class Catalog {
   static const dialogRadius = 20.0;
   static const fast = Duration(milliseconds: 140);
 
+  /// The library is a working list, not a dashboard: past this width the rows
+  /// turn into a long empty band, so the content stays centred instead.
+  static const maxWidth = 1360.0;
+
   static const tint = Color(0xFFE9F3EF);
   static const neutralTint = Color(0xFFF3F1F7);
   static const amberTint = Color(0xFFFBF1E2);
@@ -134,7 +138,7 @@ class _CatalogButtonState extends State<CatalogButton> {
             onTap: enabled ? widget.onPressed : null,
             child: AnimatedContainer(
               duration: Catalog.fast,
-              height: Catalog.buttonHeight,
+              height: widget.compact ? 34 : Catalog.buttonHeight,
               padding: EdgeInsets.symmetric(
                 horizontal: widget.compact ? 12 : 16,
               ),
@@ -351,6 +355,8 @@ class CatalogField extends StatelessWidget {
     this.keyboardType,
     this.helper,
     this.enabled = true,
+    this.autofocus = false,
+    this.onChanged,
   });
 
   final TextEditingController controller;
@@ -360,33 +366,37 @@ class CatalogField extends StatelessWidget {
   final TextInputType? keyboardType;
   final String? helper;
   final bool enabled;
+  final bool autofocus;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(label, style: Catalog.text(11.5, weight: FontWeight.w700)),
+      Text(label, style: Catalog.text(12, weight: FontWeight.w700)),
       const SizedBox(height: 6),
       TextFormField(
         controller: controller,
         validator: validator,
         keyboardType: keyboardType,
         enabled: enabled,
+        autofocus: autofocus,
+        onChanged: onChanged,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         textAlignVertical: TextAlignVertical.center,
-        style: Catalog.text(12.5),
+        style: Catalog.text(14),
         decoration: InputDecoration(
-          isDense: true,
           hintText: hint,
-          hintStyle: Catalog.text(12, color: PtTheme.muted),
+          hintStyle: Catalog.text(13.5, color: PtTheme.muted),
           helperText: helper,
-          helperStyle: Catalog.text(10.5, color: PtTheme.muted),
+          helperStyle: Catalog.text(11.5, color: PtTheme.muted),
+          helperMaxLines: 2,
           filled: true,
           fillColor: enabled ? PtTheme.white : PtTheme.canvas,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 13,
+            horizontal: 14,
+            vertical: 16,
           ),
           constraints: const BoxConstraints(minHeight: Catalog.fieldHeight),
           enabledBorder: OutlineInputBorder(
@@ -432,7 +442,7 @@ class CatalogDialog extends StatelessWidget {
     child: ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: Container(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.fromLTRB(22, 16, 22, 22),
         decoration: BoxDecoration(
           color: PtTheme.white,
           borderRadius: BorderRadius.circular(Catalog.dialogRadius),
@@ -443,8 +453,28 @@ class CatalogDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, style: Catalog.text(18, weight: FontWeight.w800)),
-              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Catalog.text(18, weight: FontWeight.w800),
+                    ),
+                  ),
+                  IconButton(
+                    key: const Key('catalog-dialog-close'),
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: PtTheme.muted,
+                    ),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
               body,
               const SizedBox(height: 20),
               Wrap(

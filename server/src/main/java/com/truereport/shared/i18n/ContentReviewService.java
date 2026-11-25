@@ -23,7 +23,20 @@ public class ContentReviewService {
     }
 
     public record Summary(String lang, Map<String, Integer> states,
-                          int safetyCriticalPendingReview, int safetyCriticalBlocked) {
+                          int safetyCriticalPendingReview, int safetyCriticalBlocked,
+                          ContentTranslationStore.JobProgress jobs, int targets) {
+    }
+
+    public record BulkResult(int approved, String lang, List<String> entityTypes,
+                             boolean dryRun) {
+    }
+
+    public record BulkSelectionResult(int approved, String lang) {
+    }
+
+    /** A failed job with the English source, for the admin's failed list. */
+    public record FailedJobView(String entityType, String entityId, String field,
+                                String source, String error) {
     }
 
     private static final List<String> STATES =
@@ -34,15 +47,18 @@ public class ContentReviewService {
     private final ContentSourceCatalog sources;
     private final LanguageCatalog languages;
     private final ContentTranslationService resolver;
+    private final List<ContentReviewListener> listeners;
 
     public ContentReviewService(ContentTranslationStore translations,
                                 ContentSourceCatalog sources,
                                 LanguageCatalog languages,
-                                ContentTranslationService resolver) {
+                                ContentTranslationService resolver,
+                                List<ContentReviewListener> listeners) {
         this.translations = translations;
         this.sources = sources;
         this.languages = languages;
         this.resolver = resolver;
+        this.listeners = listeners;
     }
 
     @Transactional(readOnly = true)
@@ -59,25 +75,59 @@ public class ContentReviewService {
 
     @Transactional(readOnly = true)
     public Summary summary(String lang) {
+        return summary(lang, null);
+    }
+
+    /** Failed machine translations for a language + scope, with their source. */
+    @Transactional(readOnly = true)
+    public List<FailedJobView> failedJobs(String lang, String entityType, int limit) {
         String target = requireLanguage(lang);
+        String type = entityType == null || entityType.isBlank()
+                ? null : ContentSourceCatalog.canonicalEntityType(entityType);
+        String sourceLang = languages.defaultLanguage();
+        List<FailedJobView> views = new ArrayList<>();
+        for (ContentTranslationStore.FailedJob job : translations.failedJobs(target, type, limit)) {
+            String source = sources.source(job.entityType(), job.entityId(), job.field(), sourceLang);
+            views.add(new FailedJobView(job.entityType(), job.entityId(), job.field(),
+                    source == null ? "" : source, job.error()));
+        }
+        return views;
+    }
+
+    /** Requeues the failed jobs of a language + scope; returns how many moved. */
+    @Transactional
+    public int retryFailed(String lang, String entityType) {
+        String target = requireLanguage(lang);
+        String type = entityType == null || entityType.isBlank()
+                ? null : ContentSourceCatalog.canonicalEntityType(entityType);
+        return translations.retryFailed(target, type);
+    }
+
+    @Transactional(readOnly = true)
+    public Summary summary(String lang, String entityType) {
+        String target = requireLanguage(lang);
+        String type = entityType == null || entityType.isBlank()
+                ? null : ContentSourceCatalog.canonicalEntityType(entityType);
         Map<String, Integer> states = new LinkedHashMap<>();
         for (String state : STATES) {
             states.put(state, 0);
         }
-        for (StateCount count : translations.summary(target)) {
+        for (StateCount count : translations.summary(target, type)) {
             states.put(count.state(), count.count());
         }
         return new Summary(target, states,
-                translations.countByStatusSafety(target, "PENDING_REVIEW", true),
-                translations.countByStatusSafety(target, "PENDING_REVIEW", true)
-                        + translations.countByStatusSafety(target, "STALE", true));
+                translations.countByStatusSafety(target, "PENDING_REVIEW", true, type),
+                translations.countByStatusSafety(target, "PENDING_REVIEW", true, type)
+                        + translations.countByStatusSafety(target, "STALE", true, type),
+                translations.jobProgress(target, type),
+                sources.targetCount(type));
     }
 
     @Transactional
     public ReviewItem review(String entityType, String entityId, String field, String lang,
                              String action, String body, String note, String actorId) {
         String type = ContentSourceCatalog.canonicalEntityType(entityType);
-        String id = ContentSourceCatalog.canonicalEntityId(entityId)
+        String id = ContentSourceCatalog.canonicalEntityId(type, entityId)
                 .orElseThrow(ApiException::notFound);
         String target = requireLanguage(lang);
         String normalizedAction = action == null ? "" : action.trim().toUpperCase();
@@ -126,11 +176,94 @@ public class ContentReviewService {
         resolver.invalidate(type, id);
         TranslationRow updated = translations.find(type, id, field, target)
                 .orElseThrow(ApiException::notFound);
+        for (ContentReviewListener listener : listeners) {
+            listener.reviewed(type, id, target, updated.status(), updated.body());
+        }
         String source = sources.source(type, id, field, languages.defaultLanguage());
         boolean safety = translations.field(type, field)
                 .map(RegistryField::safetyCritical).orElse(false);
         return new ReviewItem(type, id, field, target, updated.body(), updated.origin(),
                 updated.status(), updated.provider(), source, safety, note);
+    }
+
+    /**
+     * Approves exactly the rows the reviewer selected, safety-critical included.
+     * This is the explicit multi-select path; the non-safety bulk action stays
+     * the safe default.
+     */
+    @Transactional
+    public BulkSelectionResult approveSelected(String lang, List<BulkSelectionItem> items,
+                                               String actorId) {
+        String target = requireLanguage(lang);
+        if (items == null || items.isEmpty()) {
+            return new BulkSelectionResult(0, target);
+        }
+        int approved = 0;
+        for (BulkSelectionItem item : items) {
+            if (item == null || item.entityType() == null || item.entityId() == null
+                    || item.field() == null || item.field().isBlank()) {
+                continue;
+            }
+            String type = ContentSourceCatalog.canonicalEntityType(item.entityType());
+            String id = ContentSourceCatalog.canonicalEntityId(type, item.entityId()).orElse(null);
+            if (id == null || translations.field(type, item.field()).isEmpty()) {
+                continue;
+            }
+            approved += translations.markReview(type, id, item.field(), target, "REVIEWED",
+                    actorId, "Approved from selection");
+        }
+        if (approved > 0) {
+            resolver.invalidateAll();
+            List<String> types = new ArrayList<>();
+            for (BulkSelectionItem item : items) {
+                if (item == null || item.entityType() == null) {
+                    continue;
+                }
+                String type = ContentSourceCatalog.canonicalEntityType(item.entityType());
+                if (!types.contains(type)) {
+                    types.add(type);
+                }
+            }
+            for (ContentReviewListener listener : listeners) {
+                listener.bulkApproved(target, List.copyOf(types));
+            }
+        }
+        return new BulkSelectionResult(approved, target);
+    }
+
+    public record BulkSelectionItem(String entityType, String entityId, String field) {
+    }
+
+    @Transactional
+    public BulkResult bulkApprove(String lang, List<String> entityTypes, boolean dryRun,
+                                  String actorId) {
+        String target = requireLanguage(lang);
+        List<String> types = new ArrayList<>();
+        if (entityTypes != null) {
+            for (String raw : entityTypes) {
+                if (raw == null || raw.isBlank()) {
+                    continue;
+                }
+                String type = ContentSourceCatalog.canonicalEntityType(raw);
+                if (!sources.isKnownEntityType(type)) {
+                    throw ApiException.validation("ENTITY_TYPE_UNKNOWN", "Unknown entity type",
+                            List.of(FieldIssue.of("entityTypes", "ENTITY_TYPE_UNKNOWN",
+                                    "error.field.invalid")));
+                }
+                if (!types.contains(type)) {
+                    types.add(type);
+                }
+            }
+        }
+        int approved = translations.bulkApproveNonSafety(target, types, actorId,
+                "Bulk approved (non-safety)", dryRun);
+        if (!dryRun && approved > 0) {
+            resolver.invalidateAll();
+            for (ContentReviewListener listener : listeners) {
+                listener.bulkApproved(target, List.copyOf(types));
+            }
+        }
+        return new BulkResult(approved, target, List.copyOf(types), dryRun);
     }
 
     private ReviewItem toItem(ReviewRow row) {

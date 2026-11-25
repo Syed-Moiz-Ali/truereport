@@ -24,6 +24,7 @@ abstract final class CommonKeys {
   static const buttonRetry = UiMessageKey.common('button.retry');
   static const buttonSave = UiMessageKey.common('button.save');
   static const buttonSaveDraft = UiMessageKey.common('button.saveDraft');
+  static const buttonShowPassword = UiMessageKey.common('button.showPassword');
   static const buttonSignOut = UiMessageKey.common('button.signOut');
   static const emptySearch = UiMessageKey.common('empty.search');
   static const emptyTitle = UiMessageKey.common('empty.title');
@@ -35,11 +36,23 @@ abstract final class CommonKeys {
     'error.invalidCredentials',
   );
   static const errorNetwork = UiMessageKey.common('error.network');
+  static const errorPasswordCurrentInvalid = UiMessageKey.common(
+    'error.password.currentInvalid',
+  );
+  static const errorPasswordPolicy = UiMessageKey.common(
+    'error.password.policy',
+  );
+  static const errorPasswordUnchanged = UiMessageKey.common(
+    'error.password.unchanged',
+  );
   static const errorTechnicianVehiclePhotoCorrupt = UiMessageKey.common(
     'error.technician.vehiclePhotoCorrupt',
   );
   static const errorTechnicianVehiclePhotoInvalid = UiMessageKey.common(
     'error.technician.vehiclePhotoInvalid',
+  );
+  static const fieldConfirmPassword = UiMessageKey.common(
+    'field.confirmPassword',
   );
   static const fieldDisplayName = UiMessageKey.common('field.displayName');
   static const fieldEmail = UiMessageKey.common('field.email');

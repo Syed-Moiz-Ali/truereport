@@ -12,6 +12,7 @@ class ApiEndpoints {
   String get authVerifyTwoFactor => '$_root/auth/2fa/verify';
   String get authRefresh => '$_root/auth/refresh';
   String get authLogout => '$_root/auth/logout';
+  String get authChangePassword => '$_root/auth/change-password';
 
   String get hierarchy => '$_root/platform/hierarchy';
   String get platformWorkshops => '$_root/platform/workshops';
@@ -190,6 +191,10 @@ class ApiEndpoints {
   String get i18nLanguages => '$_root/i18n/languages';
   String get i18nMe => '$_root/i18n/me';
   String get platformLanguages => '$_root/platform/i18n/languages';
+  String get platformLanguageCatalog =>
+      '$_root/platform/i18n/languages/catalog';
+  String platformLanguageApps(String code) =>
+      '$_root/platform/i18n/languages/$code/apps';
   String platformLanguage(String code) =>
       '$_root/platform/i18n/languages/$code';
   String get platformLanguageCoverage => '$_root/platform/i18n/coverage';
@@ -211,6 +216,13 @@ class ApiEndpoints {
   String get contentReview => '$_root/platform/i18n/content/review';
   String get contentReviewSummary =>
       '$_root/platform/i18n/content/review/summary';
+  String get contentReviewBulkApprove =>
+      '$_root/platform/i18n/content/review/bulk-approve';
+  String get contentReviewApproveSelected =>
+      '$_root/platform/i18n/content/review/approve-selected';
+  String get contentFailedJobs => '$_root/platform/i18n/content/jobs/failed';
+  String get contentRetryFailed => '$_root/platform/i18n/content/jobs/retry';
+  String get contentBackfill => '$_root/platform/i18n/content/backfill';
   String contentReviewAction(
     String entityType,
     String entityId,

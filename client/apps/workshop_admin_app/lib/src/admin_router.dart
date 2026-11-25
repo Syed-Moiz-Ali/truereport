@@ -27,10 +27,13 @@ final adminRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     redirect: (context, state) {
       final auth = ref.read(authControllerProvider);
-      if (auth.isLoading) {
+      if (auth.isLoading && !auth.hasError) {
         return null;
       }
-      final session = auth.value;
+      // A failed restore is signed out. Riverpod keeps the previous value on
+      // an error state; trusting it left the app on a protected screen while
+      // every request 401'd instead of returning to sign-in.
+      final session = auth.hasError ? null : auth.value;
       final location = state.matchedLocation;
       if (session == null) {
         return location == '/signin' ? null : '/signin';

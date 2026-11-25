@@ -1,6 +1,13 @@
 truereport:
   dev:
     seed-enabled: true
+  jwt:
+    # Local development convenience: an access token that survives a working
+    # day/week without waiting on the 15-minute refresh cycle.
+    # Production (application.yml / prod profile) stays at PT15M, and the
+    # refresh token below still allows a 30-day session.
+    access-ttl: ${JWT_ACCESS_TTL:PT168H}
+    refresh-ttl: ${JWT_REFRESH_TTL:P30D}
 logging:
   level:
     com.truereport: INFO

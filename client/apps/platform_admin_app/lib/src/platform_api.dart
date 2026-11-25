@@ -17,11 +17,11 @@ abstract class PlatformAdminApi {
   });
   Future<HierarchyWorkshop> registerWorkshop({
     required String name,
-    required String location,
     required String contactEmail,
   });
   Future<PlatformAccount> disableUser(String userId, String reason);
   Future<PlatformAccount> reactivateUser(String userId, String reason);
+  Future<PlatformAccount> resetUserPassword(String userId, String newPassword);
   Future<HierarchyWorkshop> updateWorkshop(
     String id, {
     String? name,
@@ -90,13 +90,14 @@ class HttpPlatformAdminApi implements PlatformAdminApi {
   @override
   Future<HierarchyWorkshop> registerWorkshop({
     required String name,
-    required String location,
     required String contactEmail,
   }) async {
+    // Branch/location is no longer collected: a workshop is identified by its
+    // name and contact email, and the branch column stays null.
     final data = await _api.postDynamic(
       _endpoints.platformWorkshops,
       headers: {'Idempotency-Key': const Uuid().v7()},
-      body: {'name': name, 'location': location, 'contactEmail': contactEmail},
+      body: {'name': name, 'contactEmail': contactEmail},
     );
     return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
   }
@@ -135,6 +136,19 @@ class HttpPlatformAdminApi implements PlatformAdminApi {
       },
     );
     return HierarchyWorkshop.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PlatformAccount> resetUserPassword(
+    String userId,
+    String newPassword,
+  ) async {
+    final data = await _api.postDynamic(
+      _endpoints.platformPasswordReset(userId),
+      headers: {'Idempotency-Key': const Uuid().v7()},
+      body: {'newPassword': newPassword},
+    );
+    return PlatformAccount.fromJson(data as Map<String, dynamic>);
   }
 
   @override

@@ -30,6 +30,9 @@ public class Workshop extends BaseEntity {
     @Column(name = "timezone", nullable = false, length = 64)
     private String timezone = "Asia/Dubai";
 
+    @Column(name = "contact_email", length = 320)
+    private String contactEmail;
+
     protected Workshop() {
     }
 
@@ -64,6 +67,10 @@ public class Workshop extends BaseEntity {
         return timezone;
     }
 
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -74,5 +81,9 @@ public class Workshop extends BaseEntity {
 
     public void setBranchName(String branchName) {
         this.branchName = branchName;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
     }
 }

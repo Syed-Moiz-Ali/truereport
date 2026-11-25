@@ -8,6 +8,8 @@ import '../../../platform_theme.dart';
 import '../workshop_form.dart';
 import '../workshop_status.dart';
 import 'atlas_ui.dart';
+import 'password_policy.dart';
+import 'staff_error_messages.dart';
 import 'workshop_record_parts.dart';
 
 String _roleLabel(UiMessageStrings strings, String role) {
@@ -96,6 +98,8 @@ class WorkshopStaffSection extends ConsumerWidget {
                 ),
                 onToggle: (account) =>
                     _toggleStaffStatus(context, ref, strings, account),
+                onResetPassword: (account) =>
+                    _resetStaffPassword(context, ref, strings, account),
               ),
               const Divider(height: 1, color: PtTheme.border),
               _StaffGroup(
@@ -135,6 +139,50 @@ class WorkshopStaffSection extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _resetStaffPassword(
+    BuildContext context,
+    WidgetRef ref,
+    UiMessageStrings strings,
+    PlatformAccount account,
+  ) async {
+    final password = await showResetPasswordDialog(
+      context: context,
+      strings: strings,
+      account: account,
+    );
+    if (password == null || !context.mounted) return;
+    try {
+      await ref
+          .read(platformApiProvider)
+          .resetUserPassword(account.userId, password);
+      ref.invalidate(hierarchyStateProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(strings.tKey(PlatformAdminKeys.resetPasswordSuccess)),
+          ),
+        );
+    } catch (error) {
+      if (!context.mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AtlasDialogShell(
+          title: strings.tKey(CommonKeys.stateError),
+          body: Text(staffErrorMessage(strings, error), style: Atlas.body),
+          actions: [
+            AtlasButton(
+              label: strings.tKey(CommonKeys.buttonClose),
+              variant: AtlasButtonVariant.secondary,
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<void> _toggleStaffStatus(
@@ -194,6 +242,7 @@ class _StaffGroup extends StatelessWidget {
     required this.emptyTitle,
     required this.emptyBody,
     required this.onToggle,
+    this.onResetPassword,
     this.pending = false,
   });
 
@@ -203,6 +252,7 @@ class _StaffGroup extends StatelessWidget {
   final String emptyTitle;
   final String emptyBody;
   final ValueChanged<PlatformAccount> onToggle;
+  final ValueChanged<PlatformAccount>? onResetPassword;
   final bool pending;
 
   @override
@@ -252,6 +302,9 @@ class _StaffGroup extends StatelessWidget {
                 account: account,
                 pending: pending,
                 onToggle: () => onToggle(account),
+                onResetPassword: onResetPassword == null
+                    ? null
+                    : () => onResetPassword!(account),
               ),
         ],
       ),
@@ -265,12 +318,14 @@ class _StaffRow extends ConsumerWidget {
     required this.account,
     required this.pending,
     required this.onToggle,
+    this.onResetPassword,
   });
 
   final UiMessageStrings strings;
   final PlatformAccount account;
   final bool pending;
   final VoidCallback onToggle;
+  final VoidCallback? onResetPassword;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -337,6 +392,16 @@ class _StaffRow extends ConsumerWidget {
               label: workshopMemberStatusLabel(ref, account.status),
               tone: workshopTone(account.status),
             ),
+            if (onResetPassword != null) ...[
+              const SizedBox(width: 6),
+              AtlasIconButton(
+                icon: Icons.key_outlined,
+                tooltip: strings.tKey(
+                  PlatformAdminKeys.buttonWorkshopResetPassword,
+                ),
+                onPressed: onResetPassword,
+              ),
+            ],
             const SizedBox(width: 6),
             AtlasIconButton(
               icon: isActive
@@ -403,11 +468,13 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirm = TextEditingController();
   final _nameFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
-  String _role = 'WORKSHOP_ADMIN';
+  final _confirmFocus = FocusNode();
   bool _submitting = false;
+  bool _obscure = true;
   String? _error;
 
   @override
@@ -415,9 +482,11 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
     _name.dispose();
     _email.dispose();
     _password.dispose();
+    _confirm.dispose();
     _nameFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -432,14 +501,22 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
     return null;
   }
 
+  String? _passwordError(String value) =>
+      accountPasswordError(widget.strings, value);
+
+  String? _confirmError(String value) =>
+      accountPasswordConfirmError(widget.strings, _password.text, value);
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       if ((_name.text.trim()).isEmpty) {
         _nameFocus.requestFocus();
       } else if (_emailError(_email.text) != null) {
         _emailFocus.requestFocus();
-      } else {
+      } else if (_passwordError(_password.text) != null) {
         _passwordFocus.requestFocus();
+      } else {
+        _confirmFocus.requestFocus();
       }
       return;
     }
@@ -454,15 +531,15 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
           .createUser(
             email: _email.text.trim(),
             displayName: _name.text.trim(),
-            temporaryPassword: _password.text.trim(),
-            role: _role,
+            temporaryPassword: _password.text,
+            role: 'WORKSHOP_ADMIN',
             workshopId: widget.workshopId,
           );
       if (!mounted) return;
       widget.onSaved();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _error = widget.strings.tKey(CommonKeys.stateError));
+      setState(() => _error = staffErrorMessage(widget.strings, error));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -523,56 +600,45 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
               focusNode: _passwordFocus,
               label: strings.tKey(CommonKeys.fieldTemporaryPassword),
               hint: strings.tKey(CommonKeys.fieldTemporaryPassword),
-              helperText: strings.tKey(
-                PlatformAdminKeys.addStaffHelperTemporaryPassword,
+              obscureText: _obscure,
+              keyboardType: TextInputType.visiblePassword,
+              autofillHints: const [AutofillHints.newPassword],
+              textInputAction: TextInputAction.next,
+              onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 18,
+                ),
+                tooltip: strings.tKey(CommonKeys.buttonShowPassword),
+                onPressed: () => setState(() => _obscure = !_obscure),
               ),
+              validator: (value) => _passwordError(value ?? ''),
+            ),
+            const SizedBox(height: 14),
+            AtlasTextField(
+              key: const Key('input-staff-password-confirm'),
+              controller: _confirm,
+              focusNode: _confirmFocus,
+              label: strings.tKey(CommonKeys.fieldConfirmPassword),
+              hint: strings.tKey(CommonKeys.fieldConfirmPassword),
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+              autofillHints: const [AutofillHints.newPassword],
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
-              validator: (value) {
-                final text = (value ?? '').trim();
-                if (text.isEmpty) {
-                  return strings.tKey(CommonKeys.validationRequiredField);
-                }
-                if (text.length < 6) {
-                  return strings.tKey(
-                    PlatformAdminKeys.validationPasswordMinLength,
-                  );
-                }
-                return null;
-              },
+              validator: (value) => _confirmError(value ?? ''),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Text(
-              strings.tKey(CommonKeys.tableRole),
-              style: Atlas.text(12, weight: FontWeight.w700),
+              strings.tKey(PlatformAdminKeys.addStaffHelperTemporaryPassword),
+              style: Atlas.text(11.5, height: 1.45, color: PtTheme.muted),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _RoleOption(
-                    label: strings.tKey(CommonKeys.roleWorkshopAdmin),
-                    selected: _role == 'WORKSHOP_ADMIN',
-                    onTap: () => setState(() => _role = 'WORKSHOP_ADMIN'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _RoleOption(
-                    label: strings.tKey(CommonKeys.roleTechnician),
-                    selected: _role == 'TECHNICIAN',
-                    onTap: () => setState(() => _role = 'TECHNICIAN'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
-              strings.tKey(
-                _role == 'WORKSHOP_ADMIN'
-                    ? PlatformAdminKeys.addStaffRoleAdminDescription
-                    : PlatformAdminKeys.addStaffRoleTechnicianDescription,
-              ),
+              strings.tKey(PlatformAdminKeys.addStaffRoleAdminDescription),
               style: Atlas.text(11.5, height: 1.45, color: PtTheme.muted),
             ),
           ],
@@ -594,52 +660,149 @@ class _AddStaffDialogState extends ConsumerState<_AddStaffDialog> {
   }
 }
 
-class _RoleOption extends StatelessWidget {
-  const _RoleOption({
-    required this.label,
-    required this.selected,
-    required this.onTap,
+Future<String?> showResetPasswordDialog({
+  required BuildContext context,
+  required UiMessageStrings strings,
+  required PlatformAccount account,
+}) {
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) => _ResetPasswordDialog(
+      strings: strings,
+      account: account,
+      onSaved: (password) => Navigator.of(dialogContext).pop(password),
+    ),
+  );
+}
+
+class _ResetPasswordDialog extends StatefulWidget {
+  const _ResetPasswordDialog({
+    required this.strings,
+    required this.account,
+    required this.onSaved,
   });
 
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
+  final UiMessageStrings strings;
+  final PlatformAccount account;
+  final ValueChanged<String> onSaved;
+
+  @override
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
+  final _passwordFocus = FocusNode();
+  final _confirmFocus = FocusNode();
+  bool _obscure = true;
+
+  @override
+  void dispose() {
+    _password.dispose();
+    _confirm.dispose();
+    _passwordFocus.dispose();
+    _confirmFocus.dispose();
+    super.dispose();
+  }
+
+  String? _passwordError(String value) =>
+      accountPasswordError(widget.strings, value);
+
+  String? _confirmError(String value) =>
+      accountPasswordConfirmError(widget.strings, _password.text, value);
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      if (_passwordError(_password.text) != null) {
+        _passwordFocus.requestFocus();
+      } else {
+        _confirmFocus.requestFocus();
+      }
+      return;
+    }
+    widget.onSaved(_password.text);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: Material(
-        color: selected ? Atlas.accentTint : PtTheme.white,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Container(
-            height: 44,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? PtTheme.deepGreen : PtTheme.border,
-              ),
+    final strings = widget.strings;
+    return AtlasDialogShell(
+      title: strings.tKey(PlatformAdminKeys.resetPasswordTitle),
+      maxWidth: 480,
+      body: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.account.displayName,
+              style: Atlas.text(13, weight: FontWeight.w700),
             ),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Atlas.text(
-                12,
-                weight: FontWeight.w700,
-                color: selected ? PtTheme.deepGreen : PtTheme.muted,
-              ),
+            const SizedBox(height: 4),
+            Text(
+              widget.account.email,
+              style: Atlas.text(11.5, color: PtTheme.muted),
             ),
-          ),
+            const SizedBox(height: 14),
+            Text(
+              strings.tKey(PlatformAdminKeys.resetPasswordHelper),
+              style: Atlas.text(11.5, height: 1.45, color: PtTheme.muted),
+            ),
+            const SizedBox(height: 14),
+            AtlasTextField(
+              key: const Key('input-reset-password'),
+              controller: _password,
+              focusNode: _passwordFocus,
+              label: strings.tKey(CommonKeys.fieldTemporaryPassword),
+              hint: strings.tKey(CommonKeys.fieldTemporaryPassword),
+              obscureText: _obscure,
+              keyboardType: TextInputType.visiblePassword,
+              autofillHints: const [AutofillHints.newPassword],
+              textInputAction: TextInputAction.next,
+              onFieldSubmitted: (_) => _confirmFocus.requestFocus(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 18,
+                ),
+                tooltip: strings.tKey(CommonKeys.buttonShowPassword),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+              validator: (value) => _passwordError(value ?? ''),
+            ),
+            const SizedBox(height: 14),
+            AtlasTextField(
+              key: const Key('input-reset-password-confirm'),
+              controller: _confirm,
+              focusNode: _confirmFocus,
+              label: strings.tKey(CommonKeys.fieldConfirmPassword),
+              hint: strings.tKey(CommonKeys.fieldConfirmPassword),
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+              autofillHints: const [AutofillHints.newPassword],
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _submit(),
+              validator: (value) => _confirmError(value ?? ''),
+            ),
+          ],
         ),
       ),
+      actions: [
+        AtlasButton(
+          label: strings.tKey(CommonKeys.buttonCancel),
+          variant: AtlasButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        AtlasButton(
+          label: strings.tKey(PlatformAdminKeys.resetPasswordSubmit),
+          onPressed: _submit,
+        ),
+      ],
     );
   }
 }

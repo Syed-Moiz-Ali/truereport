@@ -17,6 +17,9 @@ import java.util.UUID;
 @Component
 public class ContentSourceCatalog {
 
+    /** Pseudo scope for "every business content entity, excluding UI text". */
+    public static final String CONTENT_SCOPE = "CONTENT";
+
     public record Source(String entityId, String text) {
     }
 
@@ -42,6 +45,13 @@ public class ContentSourceCatalog {
     private final JdbcTemplate jdbc;
     private final List<LegacyContentSource> legacySources;
     private final LanguageCatalog languages;
+    private final Map<String, CachedCount> countCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Source counts change rarely; the desk polls the summary every few seconds. */
+    private static final long COUNT_TTL_MS = 60_000;
+
+    private record CachedCount(int value, long at) {
+    }
 
     public ContentSourceCatalog(JdbcTemplate jdbc, List<LegacyContentSource> legacySources,
                                 LanguageCatalog languages) {
@@ -161,8 +171,103 @@ public class ContentSourceCatalog {
                 .findFirst();
     }
 
+    /** See {@link LegacyContentSource#lenientMachineGuards(String)}. */
+    public boolean lenientMachineGuards(String entityType) {
+        return legacy(entityType)
+                .map(source -> source.lenientMachineGuards(entityType))
+                .orElse(false);
+    }
+
+    /**
+     * Source values in scope, when the owning module can count them cheaply.
+     * Zero means "unknown", not "nothing" — callers must not render it as zero.
+     */
+    public int targetCount(String entityType) {
+        if (entityType == null || entityType.isBlank()) {
+            return 0;
+        }
+        CachedCount cached = countCache.get(entityType);
+        long now = System.currentTimeMillis();
+        if (cached != null && now - cached.at() < COUNT_TTL_MS) {
+            return cached.value();
+        }
+        int value = computeTargetCount(entityType);
+        countCache.put(entityType, new CachedCount(value, now));
+        return value;
+    }
+
+    private int computeTargetCount(String entityType) {
+        if (CONTENT_SCOPE.equals(entityType)) {
+            int total = 0;
+            for (Map.Entry<String, Map<String, String>> entry : PLATFORM_COLUMNS.entrySet()) {
+                for (String field : entry.getValue().keySet()) {
+                    total += platformCount(entry.getKey(), field);
+                }
+            }
+            for (LegacyContentSource source : legacySources) {
+                if (!source.partOfContentScope()) {
+                    continue;
+                }
+                for (String type : source.entityTypes()) {
+                    total += source.targetCount(type);
+                }
+            }
+            return total;
+        }
+        int platform = 0;
+        Map<String, String> fields = PLATFORM_COLUMNS.getOrDefault(entityType, Map.of());
+        for (String field : fields.keySet()) {
+            platform += platformCount(entityType, field);
+        }
+        if (platform > 0) {
+            return platform;
+        }
+        return legacy(entityType)
+                .map(source -> source.targetCount(entityType))
+                .orElse(0);
+    }
+
+    /** Mirrors {@link #sources} so a count and the backfill agree. */
+    private int platformCount(String entityType, String field) {
+        String table = PLATFORM_TABLES.get(entityType);
+        String column = PLATFORM_COLUMNS.getOrDefault(entityType, Map.of()).get(field);
+        if (table == null || column == null) {
+            return 0;
+        }
+        if ("OPTION_SET".equals(entityType)) {
+            return count("""
+                    SELECT COUNT(*) FROM platform_option_sets
+                    WHERE code_locked = FALSE AND %s IS NOT NULL AND %s <> ''
+                    """.formatted(column, column));
+        }
+        if ("OPTION_VALUE".equals(entityType)) {
+            return count("""
+                    SELECT COUNT(*) FROM platform_option_values v
+                    JOIN platform_option_sets s ON s.id = v.option_set_id
+                    WHERE s.code_locked = FALSE
+                      AND v.%s IS NOT NULL AND v.%s <> ''
+                    """.formatted(column, column));
+        }
+        return count("""
+                SELECT COUNT(*) FROM %s WHERE %s IS NOT NULL AND %s <> ''
+                """.formatted(table, column, column));
+    }
+
+    private int count(String sql) {
+        Integer value = jdbc.queryForObject(sql, Integer.class);
+        return value == null ? 0 : value;
+    }
+
     public static String canonicalEntityType(String value) {
         return value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+    }
+
+    public static Optional<String> canonicalEntityId(String entityType, String value) {
+        if (entityType != null && "UI_MESSAGE".equals(canonicalEntityType(entityType))) {
+            return value == null || value.isBlank()
+                    ? Optional.empty() : Optional.of(value.trim());
+        }
+        return canonicalEntityId(value);
     }
 
     static Optional<String> canonicalEntityId(String value) {
