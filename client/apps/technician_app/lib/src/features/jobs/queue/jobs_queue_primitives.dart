@@ -216,10 +216,10 @@ class _QueueChipState extends State<QueueChip> {
               duration: context.motionDuration(
                 const Duration(milliseconds: 140),
               ),
-              height: 32,
+              height: 28,
               padding: const EdgeInsetsDirectional.symmetric(
                 horizontal: 12,
-                vertical: 6,
+                vertical: 4,
               ),
               decoration: BoxDecoration(
                 color: widget.selected ? brand.container : colors.surface,
@@ -277,21 +277,22 @@ class QueueStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final pair = context.statusColors.forTone(tone);
+    // No fixed height: padding sets the 28 px resting size and the chip grows
+    // with the text scale instead of clipping its word.
     return Container(
-      height: 32,
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: 12,
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: pair.background,
         borderRadius: BorderRadius.circular(QueueMetrics.radiusChip),
-        border: Border.all(color: colors.outlineVariant),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 6,
@@ -309,7 +310,7 @@ class QueueStatusChip extends StatelessWidget {
               12.5,
               weight: FontWeight.w600,
               height: 16,
-              color: colors.onSurface,
+              color: context.colors.onSurface,
             ),
           ),
         ],
@@ -342,6 +343,24 @@ class QueuePlate extends StatelessWidget {
     final accent = onDark
         ? Colors.white.withValues(alpha: 0.55)
         : context.brand.ink;
+    // The plate is an identity run: Latin digits, tabular, never translated.
+    // FittedBox shrinks instead of clipping when the text scale grows, so the
+    // full plate stays visible instead of truncating.
+    final label = Text(
+      value,
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      softWrap: false,
+      style: queueText(
+        context,
+        large ? 20 : 12.5,
+        weight: FontWeight.w700,
+        height: large ? 24 : 16,
+        tracking: large ? 1.4 : 0.7,
+        tabular: true,
+        color: foreground,
+      ),
+    );
     return Container(
       padding: EdgeInsetsDirectional.symmetric(
         horizontal: large ? 14 : 8,
@@ -353,6 +372,7 @@ class QueuePlate extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        textDirection: TextDirection.ltr,
         children: [
           Container(
             width: large ? 6 : 3,
@@ -363,16 +383,11 @@ class QueuePlate extends StatelessWidget {
             ),
           ),
           SizedBox(width: large ? 8 : 5),
-          Text(
-            value,
-            style: queueText(
-              context,
-              large ? 20 : 12.5,
-              weight: FontWeight.w700,
-              height: large ? 24 : 16,
-              tracking: large ? 1.4 : 0.7,
-              tabular: true,
-              color: foreground,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: label,
             ),
           ),
         ],
@@ -398,6 +413,11 @@ class QueueProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fraction = total <= 0 ? 0.0 : (value / total).clamp(0.0, 1.0);
+    // Absent before work starts: the row shows the count alone until the
+    // first item is assessed, so an untouched job never paints a stub bar.
+    if (fraction <= 0) {
+      return const SizedBox.shrink();
+    }
     final track = onDark
         ? Colors.white.withValues(alpha: 0.24)
         : context.colors.surfaceContainerHighest;
@@ -519,7 +539,7 @@ class _QueueSearchFieldState extends State<QueueSearchField> {
                       },
                       child: const SizedBox(
                         width: 44,
-                        height: 48,
+                        height: 44,
                         child: Icon(Icons.close_rounded, size: 18),
                       ),
                     ),
@@ -527,7 +547,7 @@ class _QueueSearchFieldState extends State<QueueSearchField> {
                 : null,
             suffixIconConstraints: const BoxConstraints(
               minWidth: 44,
-              minHeight: 48,
+              minHeight: 44,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(QueueMetrics.radiusField),
@@ -656,6 +676,8 @@ class QueueEmptyPanel extends StatelessWidget {
     required this.title,
     required this.body,
     this.action,
+    // Kept so existing call sites compile; the deck empty state is
+    // illustration-free by design (one sentence + one action).
     this.showRoute = true,
     super.key,
   });
@@ -679,20 +701,6 @@ class QueueEmptyPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showRoute) ...[
-            SizedBox(
-              width: 148,
-              height: 96,
-              child: CustomPaint(
-                painter: _RoutePainter(
-                  line: colors.outlineVariant,
-                  accent: context.brand.ink,
-                  soft: context.brand.container,
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-          ],
           Text(
             title,
             textAlign: TextAlign.center,
@@ -704,7 +712,12 @@ class QueueEmptyPanel extends StatelessWidget {
             child: Text(
               body,
               textAlign: TextAlign.center,
-              style: queueBody(context, color: colors.onSurfaceVariant),
+              style: queueText(
+                context,
+                13,
+                height: 18,
+                color: colors.onSurfaceVariant,
+              ),
             ),
           ),
           if (action != null) ...[const SizedBox(height: 18), action!],
@@ -712,119 +725,6 @@ class QueueEmptyPanel extends StatelessWidget {
       ),
     );
   }
-}
-
-class _RoutePainter extends CustomPainter {
-  const _RoutePainter({
-    required this.line,
-    required this.accent,
-    required this.soft,
-  });
-
-  final Color line;
-  final Color accent;
-  final Color soft;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round
-      ..color = line;
-    final accentPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..color = accent;
-    final softPaint = Paint()..color = soft;
-
-    final start = Offset(10, size.height - 16);
-    final end = Offset(size.width - 14, 18);
-    final path = Path()
-      ..moveTo(start.dx, start.dy)
-      ..cubicTo(
-        size.width * 0.45,
-        size.height - 12,
-        size.width * 0.35,
-        24,
-        end.dx,
-        end.dy,
-      );
-    canvas.drawPath(path, linePaint);
-
-    const visible = 0.62;
-    final metric = path.computeMetrics().first;
-    canvas.drawPath(
-      metric.extractPath(0, metric.length * visible),
-      accentPaint,
-    );
-
-    canvas.drawCircle(start, 4.5, Paint()..color = accent);
-    canvas.drawCircle(
-      start,
-      8,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1
-        ..color = accent.withValues(alpha: 0.25),
-    );
-    canvas.drawCircle(end, 4.5, Paint()..color = line);
-
-    final plate = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.46, size.height * 0.42, 58, 26),
-      const Radius.circular(7),
-    );
-    canvas.drawRRect(plate, softPaint);
-    canvas.drawRRect(
-      plate,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = accent.withValues(alpha: 0.35),
-    );
-    final mark = Paint()..color = accent;
-    canvas.drawRect(
-      Rect.fromLTWH(size.width * 0.46 + 9, size.height * 0.42 + 7, 3, 12),
-      mark,
-    );
-    final bars = Paint()..color = accent.withValues(alpha: 0.35);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.46 + 18, size.height * 0.42 + 8, 28, 4),
-        const Radius.circular(2),
-      ),
-      bars,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.46 + 18, size.height * 0.42 + 15, 18, 3),
-        const Radius.circular(2),
-      ),
-      bars,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.2, size.height * 0.7),
-      2,
-      Paint()..color = line,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.32, size.height * 0.52),
-      2,
-      Paint()..color = line,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.68, size.height * 0.82),
-      2,
-      Paint()..color = line,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_RoutePainter oldDelegate) =>
-      oldDelegate.line != line ||
-      oldDelegate.accent != accent ||
-      oldDelegate.soft != soft;
 }
 
 class QueueErrorPanel extends StatelessWidget {
@@ -876,7 +776,12 @@ class QueueErrorPanel extends StatelessWidget {
             child: Text(
               body,
               textAlign: TextAlign.center,
-              style: queueBody(context, color: colors.onSurfaceVariant),
+              style: queueText(
+                context,
+                13,
+                height: 18,
+                color: colors.onSurfaceVariant,
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -908,30 +813,35 @@ class QueueNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pair = context.statusColors.forTone(tone);
-    return Container(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: 12,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: pair.background,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: pair.foreground),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              label,
-              style: queueMeta(
-                context,
-                color: pair.foreground,
-              ).copyWith(fontWeight: FontWeight.w600),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 44),
+      child: Container(
+        padding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: pair.background,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: pair.foreground),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                style: queueText(
+                  context,
+                  13,
+                  height: 18,
+                  color: pair.foreground,
+                ).copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

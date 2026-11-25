@@ -1,17 +1,16 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
-/// Local geometry for the jobs queue: pill buttons, chips and fields, 56 px
-/// controls, 16 px cards and 24 px sheets.
+/// Local geometry for the jobs list: the DECK visual language.
 ///
-/// Divergence: `design_system` ships 24px cards. The queue uses this tighter
-/// card family deliberately; see the handover notes.
+/// Soft white cards at radius 24 with the shadow only on the front card;
+/// primary actions are 56 px brand-ink buttons at radius 14; chips stay pills.
 abstract final class QueueMetrics {
   static const double buttonHeight = 56;
   static const double fieldHeight = 56;
-  static const double radiusButton = 999;
-  static const double radiusField = 999;
-  static const double radiusCard = 16;
+  static const double radiusButton = 14;
+  static const double radiusField = 14;
+  static const double radiusCard = 24;
   static const double radiusSheet = 24;
   static const double radiusChip = 999;
   static const double contentMaxWidth = 560;
@@ -58,6 +57,19 @@ TextStyle queueTitle(BuildContext context) =>
 
 TextStyle queueSection(BuildContext context) =>
     queueText(context, 18, weight: FontWeight.w700, height: 24, tracking: -0.2);
+
+/// DECK display type: the page title, 34 px extra-bold and tight.
+TextStyle queueDeckTitle(BuildContext context) =>
+    queueText(context, 34, weight: FontWeight.w800, height: 40, tracking: -0.7);
+
+/// DECK display type: the front-card vehicle, 30 px extra-bold and tight.
+/// Callers must let this wrap; identity text is never truncated.
+TextStyle queueDeckVehicle(BuildContext context) =>
+    queueText(context, 30, weight: FontWeight.w800, height: 36, tracking: -0.6);
+
+/// DECK body: 15 px with a relaxed 1.55 line height.
+TextStyle queueDeckBody(BuildContext context) =>
+    queueText(context, 15, height: 23.25);
 
 /// Reveal motion that honours the platform "reduce motion" setting.
 Widget queueReveal({

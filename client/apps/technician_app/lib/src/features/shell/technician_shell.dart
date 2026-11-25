@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:l10n/ui_strings.dart';
 
-import '../jobs/queue/jobs_queue_page.dart';
+import '../jobs/technician_jobs_clean_page.dart';
 import '../profile/profile_page.dart';
 
 /// The app's two surfaces — today's jobs and the technician's own screen —
@@ -52,7 +52,7 @@ class TechnicianShell extends ConsumerWidget {
       ),
       body: IndexedStack(
         index: index,
-        children: const [JobsQueuePage(), TechnicianProfilePage()],
+        children: const [TechnicianJobsCleanPage(), TechnicianProfilePage()],
       ),
     );
   }

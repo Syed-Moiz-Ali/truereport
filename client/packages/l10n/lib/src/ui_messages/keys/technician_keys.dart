@@ -1571,11 +1571,20 @@ abstract final class TechnicianKeys {
   static const technicianDeckCheckItem = UiMessageKey.technician(
     'technicianDeckCheckItem',
   );
+  static const technicianDeckContinueAction = UiMessageKey.technician(
+    'technicianDeckContinueAction',
+  );
   static const technicianDeckContinueItem = UiMessageKey.technician(
     'technicianDeckContinueItem',
   );
+  static const technicianDeckEyebrow = UiMessageKey.technician(
+    'technicianDeckEyebrow',
+  );
   static const technicianDeckFinishJob = UiMessageKey.technician(
     'technicianDeckFinishJob',
+  );
+  static const technicianDeckNext = UiMessageKey.technician(
+    'technicianDeckNext',
   );
   static const technicianDeckOfflinePending = UiMessageKey.technician(
     'technicianDeckOfflinePending',
@@ -1583,11 +1592,20 @@ abstract final class TechnicianKeys {
   static const technicianDeckSections = UiMessageKey.technician(
     'technicianDeckSections',
   );
+  static const technicianDeckSeeAll = UiMessageKey.technician(
+    'technicianDeckSeeAll',
+  );
   static const technicianDeckStatusLine = UiMessageKey.technician(
     'technicianDeckStatusLine',
   );
   static const technicianDeckSummaryAction = UiMessageKey.technician(
     'technicianDeckSummaryAction',
+  );
+  static const technicianDeckThen = UiMessageKey.technician(
+    'technicianDeckThen',
+  );
+  static const technicianDeckTitle = UiMessageKey.technician(
+    'technicianDeckTitle',
   );
   static const technicianDefectsCount = UiMessageKey.technician(
     'technicianDefectsCount',
