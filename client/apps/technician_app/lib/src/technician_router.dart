@@ -10,7 +10,7 @@ import 'features/auth/signin/technician_sign_in_page.dart';
 import 'features/inspection/assessment_screen.dart';
 
 import 'package:technician_app/src/features/inspection/technician_workspace_page.dart';
-import 'package:technician_app/src/features/jobs/queue/jobs_queue_page.dart';
+import 'package:technician_app/src/features/jobs/technician_jobs_clean_page.dart';
 import 'package:technician_app/src/features/profile/profile_page.dart';
 import 'package:technician_app/src/features/shell/technician_shell.dart';
 import 'package:technician_app/src/features/review/technician_completed_page.dart';
@@ -81,7 +81,7 @@ final technicianRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/jobs',
-            builder: (context, state) => const JobsQueuePage(),
+            builder: (context, state) => const TechnicianJobsCleanPage(),
           ),
           GoRoute(
             path: '/profile',

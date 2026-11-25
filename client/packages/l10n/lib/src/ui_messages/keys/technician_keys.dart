@@ -2097,6 +2097,33 @@ abstract final class TechnicianKeys {
     'technicianQueueSummary',
   );
   static const technicianQueued = UiMessageKey.technician('technicianQueued');
+  static const technicianRampAllJobs = UiMessageKey.technician(
+    'technicianRampAllJobs',
+  );
+  static const technicianRampLater = UiMessageKey.technician(
+    'technicianRampLater',
+  );
+  static const technicianRampNothingToday = UiMessageKey.technician(
+    'technicianRampNothingToday',
+  );
+  static const technicianRampNothingTodayBody = UiMessageKey.technician(
+    'technicianRampNothingTodayBody',
+  );
+  static const technicianRampOnTheRamp = UiMessageKey.technician(
+    'technicianRampOnTheRamp',
+  );
+  static const technicianRampOverdue = UiMessageKey.technician(
+    'technicianRampOverdue',
+  );
+  static const technicianRampResume = UiMessageKey.technician(
+    'technicianRampResume',
+  );
+  static const technicianRampUnfinished = UiMessageKey.technician(
+    'technicianRampUnfinished',
+  );
+  static const technicianRampUpNext = UiMessageKey.technician(
+    'technicianRampUpNext',
+  );
   static const technicianReadyToComplete = UiMessageKey.technician(
     'technicianReadyToComplete',
   );
@@ -2194,6 +2221,75 @@ abstract final class TechnicianKeys {
   );
   static const technicianServicePackage = UiMessageKey.technician(
     'technicianServicePackage',
+  );
+  static const technicianSessionAddPhoto = UiMessageKey.technician(
+    'technicianSessionAddPhoto',
+  );
+  static const technicianSessionAddVideo = UiMessageKey.technician(
+    'technicianSessionAddVideo',
+  );
+  static const technicianSessionAllAnswered = UiMessageKey.technician(
+    'technicianSessionAllAnswered',
+  );
+  static const technicianSessionAnswerLocked = UiMessageKey.technician(
+    'technicianSessionAnswerLocked',
+  );
+  static const technicianSessionEvidenceRequired = UiMessageKey.technician(
+    'technicianSessionEvidenceRequired',
+  );
+  static const technicianSessionEvidenceStep = UiMessageKey.technician(
+    'technicianSessionEvidenceStep',
+  );
+  static const technicianSessionFinish = UiMessageKey.technician(
+    'technicianSessionFinish',
+  );
+  static const technicianSessionItemOf = UiMessageKey.technician(
+    'technicianSessionItemOf',
+  );
+  static const technicianSessionMarkPrompt = UiMessageKey.technician(
+    'technicianSessionMarkPrompt',
+  );
+  static const technicianSessionNeedsDetail = UiMessageKey.technician(
+    'technicianSessionNeedsDetail',
+  );
+  static const technicianSessionNeedsDetailBody = UiMessageKey.technician(
+    'technicianSessionNeedsDetailBody',
+  );
+  static const technicianSessionNext = UiMessageKey.technician(
+    'technicianSessionNext',
+  );
+  static const technicianSessionNoPhoto = UiMessageKey.technician(
+    'technicianSessionNoPhoto',
+  );
+  static const technicianSessionNotesRequired = UiMessageKey.technician(
+    'technicianSessionNotesRequired',
+  );
+  static const technicianSessionOffline = UiMessageKey.technician(
+    'technicianSessionOffline',
+  );
+  static const technicianSessionOpenItem = UiMessageKey.technician(
+    'technicianSessionOpenItem',
+  );
+  static const technicianSessionPhotoCount = UiMessageKey.technician(
+    'technicianSessionPhotoCount',
+  );
+  static const technicianSessionPhotoRequired = UiMessageKey.technician(
+    'technicianSessionPhotoRequired',
+  );
+  static const technicianSessionSectionOf = UiMessageKey.technician(
+    'technicianSessionSectionOf',
+  );
+  static const technicianSessionSyncPending = UiMessageKey.technician(
+    'technicianSessionSyncPending',
+  );
+  static const technicianSessionUseAsIs = UiMessageKey.technician(
+    'technicianSessionUseAsIs',
+  );
+  static const technicianSessionVideoCount = UiMessageKey.technician(
+    'technicianSessionVideoCount',
+  );
+  static const technicianSessionVideoRequired = UiMessageKey.technician(
+    'technicianSessionVideoRequired',
   );
   static const technicianSeverity = UiMessageKey.technician(
     'technicianSeverity',

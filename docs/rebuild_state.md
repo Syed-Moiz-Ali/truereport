@@ -6,19 +6,15 @@ Module:          technician_app jobs — /jobs, /jobs/:id, items, summary, signa
 Direction:       RE-OPENED. The first W2 build (queue + deck) was rejected by the user as
                  "not a mobile app". Three structurally different directions were designed and
                  rendered as proofs; none is in production yet.
-Current phase:   3 (design directions) — proofs complete, awaiting the user's pick
-Gates:           0 PASS · 1 PASS · 2 PASS · 2b PASS (15 files / 15,021 lines deleted; 42 tests; analyze 0)
-                 3 IN REVIEW (three rendered directions, 390 + 768, real fonts/icons)
-                 5 PASS-by-inheritance (visual language unchanged)
-                 6 PENDING
-Artifacts:       docs/design/directions-brief.md
-                 docs/design/proofs/{a,b,c}_{queue,job}_{390,768}.png (+ c_job_390_sections.png)
-                 client/apps/technician_app/lib/preview/ (throwaway; delete after the pick)
-Tests:           88 pass (42 characterization + 46 preview/layout/interaction), analyze 0, gate_all unchanged at 9
-Data fix:        preview fixture corrected 12 → 9 answered items so no direction renders a false count
-Open waivers:    none
-Next allowed action: user picks A / B / C (or A+B hybrid) → rebuild queue + job session against it,
-                 delete lib/preview and the old W2 screens, capture the full matrix, flow proof.
+Directory:       A — FOCUS (user pick, 2026-11-25)
+Current phase:   6 (W3 production build)
+Gates:           0 PASS · 1 PASS · 2 PASS · 2b PASS
+                 3 PASS (A chosen from three rendered directions)
+                 5 PASS-by-inheritance
+                 6 PENDING (ramp queue + job session building; wiring after)
+Artifacts:       docs/briefs/brief-3.md · docs/design/proofs/*.png · lib/preview/** (delete after build)
+Next allowed action: integrate ramp page + job session into the router/workspace, delete the W2 queue/deck,
+                 capture 390/768/1024 + AR, run the resume→answer→evidence→offline→finish flow proof.
 ```
 
 ## Decisions on record
