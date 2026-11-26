@@ -16,6 +16,12 @@ import '../support/fixtures.dart' as fixtures;
 
 const Map<String, String> _bundle = <String, String>{
   'technicianQueueItems': '{done} of {total} items',
+  'technicianItems': 'Items',
+  'technicianItemsAssessed': '{done} of {total} assessed',
+  'technicianSignatureTitle': 'Customer signature',
+  'technicianSignatureCaptured': 'Signature captured',
+  'technicianSyncConflictTitle': 'Sync conflict',
+  'technicianNoConflicts': 'No sync conflicts.',
   'technicianDraftScore': 'Draft score',
   'technicianGradeLabel': 'Grade',
   'technicianSafetyCap': 'Safety cap',

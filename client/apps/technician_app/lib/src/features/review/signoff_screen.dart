@@ -9,13 +9,10 @@ import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:uuid/uuid.dart';
 
-import '../inspection/assessment/item_footer.dart';
-import '../jobs/queue/jobs_queue_primitives.dart';
-import '../jobs/queue/jobs_queue_style.dart';
+import '../../reference_ui.dart';
+import '../jobs/queue/jobs_queue_format.dart';
 import '../jobs/queue/queue_model.dart';
-import 'summary/blocker_list.dart';
-import 'summary/score_block.dart';
-import 'summary/summary_header.dart';
+import 'fieldwork/review_ui.dart';
 
 final technicianConflictsProvider = FutureProvider.autoDispose
     .family<List<SyncConflictRecord>, String>((ref, jobId) {
@@ -87,10 +84,10 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: summaryAsync.when(
-        loading: () => const Column(
+        loading: () => Column(
           children: [
-            _BackBar(),
-            Expanded(
+            ReviewBackBar(onBack: () => Navigator.of(context).maybePop()),
+            const Expanded(
               child: Padding(
                 padding: EdgeInsetsDirectional.all(20),
                 child: LoadingSkeleton(lines: 7),
@@ -100,7 +97,7 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
         ),
         error: (error, _) => Column(
           children: [
-            const _BackBar(),
+            ReviewBackBar(onBack: () => Navigator.of(context).maybePop()),
             Expanded(
               child: Padding(
                 padding: const EdgeInsetsDirectional.all(20),
@@ -192,122 +189,109 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
               ? t(TechnicianKeys.technicianSignature)
               : null;
 
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 28),
-                  child: _Capped(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (!online) ...[
-                          QueueNote(
-                            icon: Icons.cloud_off_rounded,
-                            label: t(TechnicianKeys.offlineBanner),
-                            tone: StatusTone.warning,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        SummaryHeader(
-                          job: job,
-                          done: summary.itemsAssessed,
-                          total: summary.itemsTotal,
-                          onBack: () => Navigator.of(context).maybePop(),
-                        ),
-                        const SizedBox(height: 12),
-                        if (showScore)
-                          ScoreBlock(
-                            score: summary.score,
-                            grade: summary.gradeCode,
-                            capApplied: summary.safetyCapApplied,
-                            capReason: summary.safetyCapReason ?? '',
-                          ),
-                        if (showScore) const SizedBox(height: 12),
-                        if (_error != null) ...[
-                          Semantics(
-                            liveRegion: true,
-                            child: QueueNote(
-                              icon: Icons.error_outline_rounded,
-                              label: _error!,
-                              tone: StatusTone.danger,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        if (ordered.isEmpty && conflicts.isEmpty)
-                          const _ReadyCard()
-                        else ...[
-                          if (ordered.isNotEmpty)
-                            BlockerCard(
-                              title: t(
-                                TechnicianKeys.technicianBlockersToResolve,
-                                {'count': ordered.length},
-                              ),
-                              count: ordered.length,
-                              tone: StatusTone.danger,
-                              rows: [
-                                for (final blocker in ordered)
-                                  BlockerRow(
-                                    icon: _rowIcon(blocker, signature),
-                                    title: blocker.messageFor(language),
-                                    body: blocker.itemCode,
-                                    tone: StatusTone.danger,
-                                    onTap: readOnly ? null : _openFor(blocker),
-                                  ),
-                              ],
-                            ),
-                          if (ordered.isNotEmpty &&
-                              (warnings.isNotEmpty || conflicts.isNotEmpty))
-                            const SizedBox(height: 12),
-                        ],
-                        if (warnings.isNotEmpty) ...[
-                          BlockerCard(
-                            title: t(TechnicianKeys.technicianWarningsTitle),
-                            count: warnings.length,
-                            tone: StatusTone.warning,
-                            quiet: true,
-                            rows: [
-                              for (final warning in warnings)
-                                BlockerRow(
-                                  icon: Icons.info_outline_rounded,
-                                  title: warning.messageFor(language),
-                                  body: warning.itemCode,
-                                  tone: StatusTone.warning,
-                                  onTap: null,
-                                ),
-                            ],
-                          ),
-                          if (conflicts.isNotEmpty && !readOnly)
-                            const SizedBox(height: 12),
-                        ],
-                        if (conflicts.isNotEmpty && !readOnly)
-                          ConflictPanel(
-                            conflicts: [
-                              for (final conflict in conflicts)
-                                ConflictViewData(
-                                  id: conflict.id,
-                                  itemCode: conflict.itemCode,
-                                  clientPayload: conflict.clientPayloadJson,
-                                  serverPayload: conflict.serverPayloadJson,
-                                ),
-                            ],
-                            reloaded: _reloadedConflict,
-                            onReload: _reloadConflict,
-                          ),
-                      ],
-                    ),
+          final status = (job?.status ?? summary.status).trim();
+          final scoreData = showScore
+              ? ReviewScoreData(
+                  score: summary.score,
+                  grade: summary.gradeCode,
+                  capApplied: summary.safetyCapApplied,
+                  capReason: summary.safetyCapReason ?? '',
+                  scoreLabel: t(TechnicianKeys.technicianDraftScore),
+                  gradeLabel: t(TechnicianKeys.technicianGradeLabel),
+                  capLabel: t(TechnicianKeys.technicianSafetyCap),
+                  capAppliedLabel: t(
+                    TechnicianKeys.technicianSummaryCapApplied,
                   ),
+                )
+              : null;
+          final ready = ordered.isEmpty && conflicts.isEmpty
+              ? ReviewReadyData(
+                  title: t(TechnicianKeys.technicianReadyToComplete),
+                  body: t(TechnicianKeys.technicianSummaryReadyBody),
+                )
+              : null;
+          return SummaryGateView(
+            header: ReviewJobHeader(
+              vehicle: job == null ? '' : queueVehicleLabel(job),
+              plate: (job?.vehiclePlate ?? '').trim(),
+              reference: (job?.reference ?? '').trim(),
+              statusLabel: status.isEmpty ? null : jobStatusLabel(ref, status),
+              statusTone: status.isEmpty
+                  ? StatusTone.neutral
+                  : jobStatusTone(ref, status),
+              progressLabel: t(TechnicianKeys.technicianQueueItems, {
+                'done': summary.itemsAssessed,
+                'total': summary.itemsTotal,
+              }),
+              progress: summary.itemsTotal > 0
+                  ? summary.itemsAssessed / summary.itemsTotal
+                  : null,
+            ),
+            onBack: () => Navigator.of(context).maybePop(),
+            primaryLabel: primaryLabel,
+            onPrimary: primaryAction,
+            saving: _completing && !readOnly,
+            secondaryLabel: secondaryLabel,
+            onSecondary: secondaryLabel == null ? null : _openSignature,
+            score: scoreData,
+            offlineLabel: online ? null : t(TechnicianKeys.offlineBanner),
+            error: _error,
+            blockersTitle: t(TechnicianKeys.technicianBlockersToResolve, {
+              'count': ordered.length,
+            }),
+            blockers: [
+              for (final blocker in ordered)
+                ReviewGateRowData(
+                  icon: _rowIcon(blocker, signature),
+                  title: blocker.messageFor(language),
+                  code: blocker.itemCode,
+                  onTap: readOnly ? null : _openFor(blocker),
                 ),
-              ),
-              ItemFooter(
-                primaryLabel: primaryLabel,
-                onPrimary: primaryAction,
-                saving: _completing && !readOnly,
-                secondaryLabel: secondaryLabel,
-                onSecondary: secondaryLabel == null ? null : _openSignature,
-              ),
             ],
+            warningsTitle: t(TechnicianKeys.technicianWarningsTitle),
+            warnings: [
+              for (final warning in warnings)
+                ReviewGateRowData(
+                  icon: Icons.info_outline_rounded,
+                  title: warning.messageFor(language),
+                  code: warning.itemCode,
+                ),
+            ],
+            ready: ready,
+            readyChecks: ready == null
+                ? const <ReviewReceiptRow>[]
+                : [
+                    ReviewReceiptRow(
+                      label: t(TechnicianKeys.technicianItems),
+                      value: t(TechnicianKeys.technicianItemsAssessed, {
+                        'done': summary.itemsAssessed,
+                        'total': summary.itemsTotal,
+                      }),
+                    ),
+                    ReviewReceiptRow(
+                      label: t(TechnicianKeys.technicianSignatureTitle),
+                      value: t(TechnicianKeys.technicianSignatureCaptured),
+                    ),
+                    ReviewReceiptRow(
+                      label: t(TechnicianKeys.technicianSyncConflictTitle),
+                      value: t(TechnicianKeys.technicianNoConflicts),
+                    ),
+                  ],
+            conflictsPanel: conflicts.isNotEmpty && !readOnly
+                ? ConflictPanel(
+                    conflicts: [
+                      for (final conflict in conflicts)
+                        ConflictViewData(
+                          id: conflict.id,
+                          itemCode: conflict.itemCode,
+                          clientPayload: conflict.clientPayloadJson,
+                          serverPayload: conflict.serverPayloadJson,
+                        ),
+                    ],
+                    reloaded: _reloadedConflict,
+                    onReload: _reloadConflict,
+                  )
+                : null,
           );
         },
       ),
@@ -474,113 +458,5 @@ class _TechnicianSummaryPageState extends ConsumerState<TechnicianSummaryPage> {
         _error = t(TechnicianKeys.commonActionFailed);
       });
     }
-  }
-}
-
-class _Capped extends StatelessWidget {
-  const _Capped({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      heightFactor: 1,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: child,
-      ),
-    );
-  }
-}
-
-/// Back affordance for the loading and error shells.
-class _BackBar extends StatelessWidget {
-  const _BackBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 16, 0),
-      child: Row(
-        children: [
-          Semantics(
-            button: true,
-            label: MaterialLocalizations.of(context).backButtonTooltip,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).maybePop(),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(
-                  rtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
-                  size: 21,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The calm ready state: what happens next, with the action in the footer.
-class _ReadyCard extends StatelessWidget {
-  const _ReadyCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    final pair = context.statusColors.success;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsetsDirectional.all(20),
-      decoration: BoxDecoration(
-        color: colors.surfaceLowest,
-        borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: pair.background,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.check_rounded, size: 22, color: pair.foreground),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  t(TechnicianKeys.technicianReadyToComplete),
-                  style: queueText(
-                    context,
-                    16,
-                    weight: FontWeight.w700,
-                    height: 22,
-                    tracking: -0.1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  t(TechnicianKeys.technicianSummaryReadyBody),
-                  style: queueBody(context, color: colors.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

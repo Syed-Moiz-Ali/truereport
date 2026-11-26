@@ -11,11 +11,11 @@ import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:uuid/uuid.dart';
 
-import '../inspection/assessment/item_footer.dart';
-import '../jobs/queue/jobs_queue_primitives.dart';
-import '../jobs/queue/jobs_queue_style.dart';
+import '../../reference_ui.dart';
+import '../jobs/queue/jobs_queue_format.dart';
 import '../jobs/queue/queue_model.dart';
-import 'signature/signature_header.dart';
+import 'fieldwork/review_ui.dart';
+import 'fieldwork/signature_ui.dart';
 import 'signature/signature_pad.dart';
 
 /// The customer's signature, captured on the device.
@@ -179,6 +179,11 @@ class _TechnicianSignaturePageState
   Future<void> _submit() async {
     final t = UiStrings.of(context);
     if (!_ready) {
+      // The name is the field the technician can fix with the keyboard; put
+      // the caret there instead of only showing the message.
+      if (!_nameValid) {
+        _nameFocus.requestFocus();
+      }
       setState(() {
         _submitAttempted = true;
         _error = t(TechnicianKeys.technicianSignatureRequired);
@@ -238,301 +243,69 @@ class _TechnicianSignaturePageState
         .asData
         ?.value;
     final readOnly = job == null || verbFor(job) == QueueVerb.view;
+    final status = (job?.status ?? '').trim();
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 28),
-              child: _Capped(
-                child: readOnly
-                    ? _ReadOnlyBody(job: job, onBack: _pop)
-                    : _SigningBody(
-                        job: job,
-                        name: _name,
-                        nameFocus: _nameFocus,
-                        nameError: _nameError(t),
-                        padKey: _padKey,
-                        strokes: _strokes,
-                        version: _paintVersion,
-                        ready: _ready,
-                        error: _error,
-                        onNameChanged: (_) => setState(() => _error = null),
-                        onNameSubmitted: (_) =>
-                            FocusScope.of(context).unfocus(),
-                        onStartStroke: _startStroke,
-                        onExtendStroke: _extendStroke,
-                        onEndStroke: _endStroke,
-                        onUndo: _submitting || _strokes.isEmpty ? null : _undo,
-                        onClear: _submitting || _strokes.isEmpty
-                            ? null
-                            : _clear,
-                        onRetry: _submitting ? null : _submit,
-                        onBack: _pop,
-                      ),
+      body: SignatureView(
+        header: ReviewJobHeader(
+          vehicle: job == null ? '' : queueVehicleLabel(job),
+          plate: (job?.vehiclePlate ?? '').trim(),
+          reference: (job?.reference ?? '').trim(),
+          statusLabel: status.isEmpty ? null : jobStatusLabel(ref, status),
+          statusTone: status.isEmpty
+              ? StatusTone.neutral
+              : jobStatusTone(ref, status),
+        ),
+        onBack: _pop,
+        readOnly: readOnly,
+        primaryLabel: readOnly
+            ? t(TechnicianKeys.commonBack)
+            : t(TechnicianKeys.technicianSaveSignature),
+        onPrimary: readOnly
+            ? _pop
+            : _ready && !_submitting
+            ? _submit
+            : null,
+        saving: _submitting && !readOnly,
+        secondaryLabel: readOnly
+            ? null
+            : t(TechnicianKeys.technicianBackToSummary),
+        onSecondary: readOnly ? null : _pop,
+        body: readOnly
+            ? SignatureReadOnlyCard(
+                reason: t(TechnicianKeys.technicianSignatureReadOnly),
+              )
+            : SignatureSigningCard(
+                title: t(TechnicianKeys.technicianSignatureTitle),
+                hint: t(TechnicianKeys.technicianSignatureHint),
+                nameController: _name,
+                nameFocus: _nameFocus,
+                nameLabel: t(TechnicianKeys.technicianSignerName),
+                nameHint: t(TechnicianKeys.fullNameHint),
+                nameHelper: t(TechnicianKeys.technicianSignerNameRequired),
+                nameError: _nameError(t),
+                onNameChanged: (_) => setState(() => _error = null),
+                onNameSubmitted: (_) => FocusScope.of(context).unfocus(),
+                pad: SignaturePad(
+                  padKey: _padKey,
+                  strokes: _strokes,
+                  version: _paintVersion,
+                  showPrompt: _strokes.isEmpty,
+                  onStart: _startStroke,
+                  onUpdate: _extendStroke,
+                  onEnd: _endStroke,
+                  onUndo: _submitting || _strokes.isEmpty ? null : _undo,
+                  onClear: _submitting || _strokes.isEmpty ? null : _clear,
+                ),
+                signedName: _ready ? _name.text.trim() : null,
+                signedLabel: t(TechnicianKeys.technicianSignatureCaptured),
+                error: _error,
+                retryLabel: t(TechnicianKeys.retryAction),
+                onRetry: _submitting ? null : _submit,
               ),
-            ),
-          ),
-          ItemFooter(
-            primaryLabel: readOnly
-                ? t(TechnicianKeys.commonBack)
-                : t(TechnicianKeys.technicianSaveSignature),
-            onPrimary: readOnly
-                ? _pop
-                : _ready && !_submitting
-                ? _submit
-                : null,
-            saving: _submitting && !readOnly,
-            secondaryLabel: readOnly
-                ? null
-                : t(TechnicianKeys.technicianBackToSummary),
-            onSecondary: readOnly ? null : _pop,
-          ),
-        ],
       ),
     );
   }
 
   void _pop() => Navigator.of(context).maybePop();
-}
-
-/// The editable sheet: header, one white signing card, states below the pad.
-class _SigningBody extends StatelessWidget {
-  const _SigningBody({
-    required this.job,
-    required this.name,
-    required this.nameFocus,
-    required this.nameError,
-    required this.padKey,
-    required this.strokes,
-    required this.version,
-    required this.ready,
-    required this.error,
-    required this.onNameChanged,
-    required this.onNameSubmitted,
-    required this.onStartStroke,
-    required this.onExtendStroke,
-    required this.onEndStroke,
-    required this.onUndo,
-    required this.onClear,
-    required this.onRetry,
-    required this.onBack,
-  });
-
-  final JobSummary? job;
-  final TextEditingController name;
-  final FocusNode nameFocus;
-  final String? nameError;
-  final GlobalKey padKey;
-  final List<List<Offset>> strokes;
-  final int version;
-  final bool ready;
-  final String? error;
-  final ValueChanged<String> onNameChanged;
-  final ValueChanged<String> onNameSubmitted;
-  final ValueChanged<Offset> onStartStroke;
-  final ValueChanged<Offset> onExtendStroke;
-  final VoidCallback onEndStroke;
-  final VoidCallback? onUndo;
-  final VoidCallback? onClear;
-  final VoidCallback? onRetry;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SignatureHeader(job: job, onBack: onBack),
-        const SizedBox(height: 12),
-        queueReveal(
-          context: context,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsetsDirectional.all(20),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceLowest,
-              borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
-              border: Border.all(color: context.colors.outlineVariant),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SignatureCardTitle(),
-                const SizedBox(height: 12),
-                AppTextField(
-                  key: const Key('signature-name'),
-                  controller: name,
-                  focusNode: nameFocus,
-                  label: t(TechnicianKeys.technicianSignerName),
-                  labelAbove: true,
-                  errorText: nameError,
-                  keyboardType: TextInputType.name,
-                  textInputAction: TextInputAction.done,
-                  maxLength: 80,
-                  // The name is spoken, not autocompleted: no autofill hints.
-                  onChanged: onNameChanged,
-                  onFieldSubmitted: onNameSubmitted,
-                ),
-                const SizedBox(height: 16),
-                SignaturePad(
-                  padKey: padKey,
-                  strokes: strokes,
-                  version: version,
-                  showPrompt: strokes.isEmpty,
-                  onStart: onStartStroke,
-                  onUpdate: onExtendStroke,
-                  onEnd: onEndStroke,
-                  onUndo: onUndo,
-                  onClear: onClear,
-                ),
-                if (ready) ...[
-                  const SizedBox(height: 12),
-                  _SignedRow(name: name.text.trim()),
-                ],
-                if (error != null) ...[
-                  const SizedBox(height: 12),
-                  Semantics(
-                    liveRegion: true,
-                    child: QueueNote(
-                      icon: Icons.error_outline_rounded,
-                      label: error!,
-                      tone: StatusTone.danger,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  QueueButton(
-                    label: t(TechnicianKeys.retryAction),
-                    variant: QueueButtonVariant.soft,
-                    icon: Icons.refresh_rounded,
-                    expand: true,
-                    onPressed: onRetry,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// View-only jobs: the reason, nothing to sign, one way back.
-class _ReadOnlyBody extends StatelessWidget {
-  const _ReadOnlyBody({required this.job, required this.onBack});
-
-  final JobSummary? job;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (job != null) ...[
-          SignatureHeader(job: job, onBack: onBack),
-          const SizedBox(height: 12),
-        ],
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsetsDirectional.all(20),
-          decoration: BoxDecoration(
-            color: colors.surfaceLowest,
-            borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: context.statusColors.warning.background,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.visibility_outlined,
-                  size: 22,
-                  color: context.statusColors.warning.foreground,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  t(TechnicianKeys.technicianSignatureReadOnly),
-                  style: queueBody(context, color: colors.onSurfaceVariant),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// The signed state: who signed, with the check.
-class _SignedRow extends StatelessWidget {
-  const _SignedRow({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final pair = context.statusColors.success;
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: pair.background,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.check_rounded, size: 16, color: pair.foreground),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            '$name · ${t(TechnicianKeys.technicianSignatureCaptured)}',
-            maxLines: 2,
-            style: queueText(
-              context,
-              13,
-              weight: FontWeight.w600,
-              height: 18,
-              color: pair.foreground,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Capped extends StatelessWidget {
-  const _Capped({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      heightFactor: 1,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: child,
-      ),
-    );
-  }
 }

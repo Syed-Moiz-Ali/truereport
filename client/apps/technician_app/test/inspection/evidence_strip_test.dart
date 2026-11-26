@@ -8,7 +8,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
-import 'package:technician_app/src/features/inspection/assessment/evidence_strip.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_evidence.dart';
 import 'package:technician_app/src/features/inspection/evidence_upload_queue.dart';
 import 'package:technician_app/src/inspection_models.dart';
 

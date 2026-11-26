@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
-import 'package:technician_app/src/features/inspection/assessment/item_footer.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_item.dart';
 import 'package:technician_app/src/features/review/signature/signature_pad.dart';
 import 'package:technician_app/src/features/review/signature_screen.dart';
 import 'package:technician_app/src/inspection_models.dart';
@@ -19,6 +19,8 @@ import '../support/fixtures.dart' as fixtures;
 
 const Map<String, String> _bundle = <String, String>{
   'technicianSignatureTitle': 'Customer signature',
+  'technicianSignatureHint': 'Sign inside the box.',
+  'fullNameHint': 'Enter your full name',
   'technicianSignerName': 'Signer name',
   'technicianSignerNameRequired': "Enter the signer's full name.",
   'technicianSignHere': 'Sign here',

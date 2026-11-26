@@ -11,6 +11,13 @@ import 'package:technician_app/src/features/inspection/clean_shared.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
 import 'package:technician_app/src/features/inspection/evidence_upload_queue.dart';
 import 'package:technician_app/src/features/inspection/evidence_validation.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_evidence.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_evidence_viewer.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_item.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_issue_fields.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_mark_prompt.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_results.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_ui.dart';
 import 'package:technician_app/src/features/inspection/option_labels.dart';
 import 'package:technician_app/src/features/inspection/photo_markup_page.dart';
 import 'package:technician_app/src/inspection_models.dart';
@@ -18,16 +25,8 @@ import 'package:technician_app/src/technician_providers.dart';
 import 'package:technician_app/src/ui_helpers.dart';
 import 'package:uuid/uuid.dart';
 
-import '../jobs/queue/jobs_queue_primitives.dart';
-import '../jobs/queue/jobs_queue_style.dart';
+import '../jobs/queue/jobs_queue_format.dart';
 import '../jobs/queue/queue_model.dart';
-import 'assessment/evidence_section.dart';
-import 'assessment/evidence_strip.dart';
-import 'assessment/evidence_viewer.dart';
-import 'assessment/item_footer.dart';
-import 'assessment/item_header.dart';
-import 'assessment/mark_prompt.dart';
-import 'assessment/result_options.dart';
 
 /// One checklist item, built as "Verdict first": the item, its result, the
 /// evidence a result needs, and one pinned action that moves to the next item.
@@ -72,26 +71,24 @@ class TechnicianItemPage extends ConsumerWidget {
               ),
             );
           }
-          return Column(
-            children: [
-              Expanded(
-                child: _AssessmentForm(
-                  key: ValueKey(
-                    '$jobId-${item.itemCode}-${item.assessment?.version ?? 0}',
-                  ),
-                  jobId: jobId,
-                  item: item,
-                  readOnly: verbFor(checklist.job) == QueueVerb.view,
-                  eyebrow: _eyebrow(
-                    checklist,
-                    item,
-                    Localizations.localeOf(context).languageCode,
-                    t,
-                  ),
-                  nextItemCode: _nextItem(checklist, item)?.itemCode,
-                ),
-              ),
-            ],
+          return _AssessmentForm(
+            key: ValueKey(
+              '$jobId-${item.itemCode}-${item.assessment?.version ?? 0}',
+            ),
+            jobId: jobId,
+            item: item,
+            readOnly: verbFor(checklist.job) == QueueVerb.view,
+            eyebrow: _eyebrow(
+              checklist,
+              item,
+              Localizations.localeOf(context).languageCode,
+              t,
+            ),
+            vehicleLabel: queueVehicleLabel(checklist.job),
+            reference: checklist.job.reference,
+            done: checklist.completed,
+            total: checklist.total,
+            nextItemCode: _nextItem(checklist, item)?.itemCode,
           );
         },
       ),
@@ -175,6 +172,10 @@ class _AssessmentForm extends ConsumerStatefulWidget {
     required this.item,
     required this.eyebrow,
     required this.readOnly,
+    required this.vehicleLabel,
+    required this.reference,
+    required this.done,
+    required this.total,
     this.nextItemCode,
     super.key,
   });
@@ -183,6 +184,10 @@ class _AssessmentForm extends ConsumerStatefulWidget {
   final ChecklistItem item;
   final String eyebrow;
   final bool readOnly;
+  final String vehicleLabel;
+  final String reference;
+  final int done;
+  final int total;
   final String? nextItemCode;
 
   @override
@@ -228,7 +233,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
 
   /// Null until the technician opens or closes the folded details; the first
   /// build decides from how many folded fields the item actually requires.
-  bool? _detailsOpen;
   String? _evidenceError;
   bool _resultManuallyChosen = false;
   bool _scoreManuallyEdited = false;
@@ -373,11 +377,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       final band = scoreBandForResult(item, code);
       if (band != null) {
         _score.text = '${band.defaultScore}';
-      }
-      // A result can make folded fields required (for example severity on an
-      // attention finding). Never hide a field the technician now owes.
-      if (_requiredDetailCount() > 0) {
-        _detailsOpen = true;
       }
     });
   }
@@ -1004,7 +1003,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
-    final colors = context.colors;
     final language = Localizations.localeOf(context).languageCode;
     ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
       if (next.value == true && previous?.value != true) {
@@ -1022,8 +1020,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     final videos = evidence.where((value) => value.isVideo).length;
     final documents = evidence.where((value) => value.isDocument).length;
     final upload = _queue.state.value;
-    final requiredDetails = _requiredDetailCount();
-    final detailsOpen = _detailsOpen ?? requiredDetails > 0;
     final readOnly = widget.readOnly;
     final minNotes = requirement.minNotesChars;
     final showNotes = !readOnly && item.allowFreeTextNote && minNotes > 0;
@@ -1055,28 +1051,6 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       });
     }
 
-    final needPhotos = photos < requirement.minPhotos;
-    final needVideos = videos < requirement.minVideos;
-    final needDocs = requirement.requiresDocument && documents == 0;
-    final String? secondaryLabel = readOnly
-        ? null
-        : needPhotos
-        ? t(TechnicianKeys.addPhoto)
-        : needVideos
-        ? t(TechnicianKeys.addVideo)
-        : needDocs
-        ? t(TechnicianKeys.technicianCaptureDocument)
-        : null;
-    void secondaryAction() {
-      if (needPhotos) {
-        _captureDirect('PHOTO');
-      } else if (needVideos) {
-        _captureDirect('VIDEO');
-      } else if (needDocs) {
-        _captureDirect('DOCUMENT');
-      }
-    }
-
     // Presentation grouping only; labels and membership come from the API.
     // gate-allow: codes
     const primaryCodes = [
@@ -1099,370 +1073,369 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       icon: resultIcon(code),
     );
 
-    return Align(
-      alignment: AlignmentDirectional.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 16, 4),
-              child: ItemHeader(
-                eyebrow: widget.eyebrow,
-                label: item.labelFor(language),
-                instruction: item.instructionFor(language),
-                spec: item.standardSpecFor(language),
-                safety: item.safetyCritical,
-                onBack: () => Navigator.of(context).maybePop(),
-              ),
+    final evidenceZone = EvidenceSection(
+      photos: photos,
+      minPhotos: requirement.minPhotos,
+      videos: videos,
+      minVideos: requirement.minVideos,
+      documents: documents,
+      minDocuments: requirement.requiresDocument ? 1 : 0,
+      strip: evidence.isEmpty
+          ? null
+          : EvidenceStrip(
+              items: evidence,
+              upload: upload,
+              uploadingSha: _uploadingSha,
+              failedSha: _failedSha,
+              interactive: !readOnly,
+              onOpen: _openEvidence,
+              onDelete: _confirmDeleteEvidence,
+              loadBytes: _evidenceBytes,
             ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 24),
-                children: [
-                  if (readOnly)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsetsDirectional.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceLowest,
-                        borderRadius: BorderRadius.circular(
-                          QueueMetrics.radiusCard,
-                        ),
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            t(TechnicianKeys.technicianResult).toUpperCase(),
-                            style: queueEyebrow(context),
-                          ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: QueueStatusChip(
-                              label: _result == null
-                                  ? t(TechnicianKeys.notChecked)
-                                  : resultLabel(resultRecords, _result!),
-                              tone: resultTone(resultRecords, _result),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    ResultOptions(
-                      options: [for (final code in primary) viewFor(code)],
-                      rest: [for (final code in rest) viewFor(code)],
-                      selected: _result,
-                      onSelect: _selectResult,
-                      suggestion: _suggestedResult == null
-                          ? null
-                          : '${t(TechnicianKeys.technicianSuggestedResult)}: '
-                                '${resultLabel(resultRecords, _suggestedResult!)}'
-                                '${_suggestedScore == null ? '' : ' · ${t(TechnicianKeys.technicianScore)} $_suggestedScore'}',
-                      error: _fieldErrors['resultCode']?.messageFor(language),
-                    ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 10),
-                    _Note(message: _error!, tone: StatusTone.danger),
-                  ],
-                  if (_saved) ...[
-                    const SizedBox(height: 10),
-                    _Note(
-                      message: t(TechnicianKeys.technicianItemSaved),
-                      tone: StatusTone.success,
-                      icon: Icons.check_circle_outline,
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  EvidenceSection(
-                    photos: photos,
-                    minPhotos: requirement.minPhotos,
-                    videos: videos,
-                    minVideos: requirement.minVideos,
-                    documents: documents,
-                    minDocuments: requirement.requiresDocument ? 1 : 0,
-                    strip: evidence.isEmpty
-                        ? null
-                        : EvidenceStrip(
-                            items: evidence,
-                            upload: upload,
-                            uploadingSha: _uploadingSha,
-                            failedSha: _failedSha,
-                            interactive: !readOnly,
-                            onOpen: _openEvidence,
-                            onDelete: _confirmDeleteEvidence,
-                            loadBytes: _evidenceBytes,
-                          ),
-                    onCapturePhoto: () => _captureDirect('PHOTO'),
-                    onCaptureVideo: () => _captureDirect('VIDEO'),
-                    onCaptureDocument: requirement.requiresDocument
-                        ? () => _captureDirect('DOCUMENT')
-                        : null,
-                    interactive: !readOnly,
-                    busy: _queue.isBusy,
-                    progress: upload.progress,
-                    progressLabel: upload.stage == EvidenceUploadStage.capturing
-                        ? t(TechnicianKeys.technicianEvidenceStateCapturing)
-                        : t(TechnicianKeys.technicianEvidenceUploading, {
-                            'type': evidenceTypeLabel(
-                              evidenceTypes,
-                              upload.type ?? 'PHOTO',
-                            ),
-                          }),
-                    onCancel: _cancelEvidence,
-                    failed:
-                        upload.stage == EvidenceUploadStage.failed &&
-                        upload.failure == null,
-                    onRetry: _retryEvidence,
-                    error: _evidenceError,
-                    queued: upload.stage == EvidenceUploadStage.queued,
-                  ),
-                  if (_markCandidate != null && !readOnly) ...[
-                    const SizedBox(height: 12),
-                    MarkPrompt(
-                      photoBytes: _markCandidate!.bytes,
-                      // A defect emphasises marking over keeping the photo.
-                      // gate-allow: behaviour — emphasis follows the verdict.
-                      defect: _result == 'DEFECT_FOUND',
-                      onMark: _markCandidateDamage,
-                      onDismiss: () => setState(() => _markCandidate = null),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  if (showNotes) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsetsDirectional.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceLowest,
-                        borderRadius: BorderRadius.circular(
-                          QueueMetrics.radiusCard,
-                        ),
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  t(TechnicianKeys.technicianNotes),
-                                  style: queueText(
-                                    context,
-                                    16,
-                                    weight: FontWeight.w700,
-                                    height: 22,
-                                    tracking: -0.1,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                t(TechnicianKeys.technicianNotesCount, {
-                                  'done': _notesEn.text.trim().length,
-                                  'required': minNotes,
-                                }),
-                                textDirection: TextDirection.ltr,
-                                style: queueText(
-                                  context,
-                                  13,
-                                  weight: FontWeight.w700,
-                                  height: 18,
-                                  tabular: true,
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          AppTextField(
-                            controller: _notesEn,
-                            label: t(TechnicianKeys.technicianCaptionsEn),
-                            labelAbove: true,
-                            maxLines: 3,
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          const SizedBox(height: 10),
-                          AppTextField(
-                            controller: _notesAr,
-                            label: t(TechnicianKeys.technicianCaptionsAr),
-                            labelAbove: true,
-                            maxLines: 3,
-                            textDirection: TextDirection.rtl,
-                            onChanged: (_) => setState(() {}),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  _DetailsCard(
-                    open: detailsOpen,
-                    requiredCount: requiredDetails,
-                    onToggle: () => setState(() => _detailsOpen = !detailsOpen),
-                    measurement:
-                        (item.measurementUnit != null ||
-                            item.measurementBands.isNotEmpty)
-                        ? Column(
-                            children: [
-                              for (final index in _measurementIndexes) ...[
-                                AppTextField(
-                                  controller: _measurements[index]!,
-                                  label: index == null
-                                      ? t(TechnicianKeys.technicianMeasurement)
-                                      : '${t(TechnicianKeys.technicianMeasurement)} · $index',
-                                  labelAbove: true,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  suffixText: _measurementUnit,
-                                  errorText:
-                                      _showValidation &&
-                                          _measurementRequired &&
-                                          _measurementFor(index) == null
-                                      ? t(
-                                          TechnicianKeys
-                                              .technicianMeasurementRequired,
-                                        )
-                                      : _measurementError(index, language),
-                                ),
-                                const SizedBox(height: 10),
-                              ],
-                            ],
-                          )
-                        : null,
-                    score: _selectedScoreBand == null
-                        ? null
-                        : AppTextField(
-                            controller: _score,
-                            label: t(TechnicianKeys.technicianScore),
-                            labelAbove: true,
-                            keyboardType: TextInputType.number,
-                            helperText: t(TechnicianKeys.technicianScoreHint, {
-                              'min': _selectedScoreBand!.minScore,
-                              'max': _selectedScoreBand!.maxScore,
-                            }),
-                            errorText: !_scoreValid
-                                ? t(TechnicianKeys.technicianScoreOutOfRange, {
-                                    'min': _selectedScoreBand!.minScore,
-                                    'max': _selectedScoreBand!.maxScore,
-                                  })
-                                : _fieldErrors['score']?.messageFor(language),
-                            onChanged: (_) {
-                              _scoreManuallyEdited = true;
-                              _autoSaveArmed = true;
-                              setState(() {});
-                            },
-                          ),
-                    issueFields: item.issueFields.isEmpty
-                        ? null
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                t(TechnicianKeys.technicianIssueDetailsHint),
-                                style: context.texts.bodySmall?.copyWith(
-                                  color: context.colors.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _IssueFields(
-                                item: item,
-                                result: _result,
-                                language: language,
-                                fieldErrors: _fieldErrors,
-                                showValidation: _showValidation,
-                                optionValues: _optionValues,
-                                multiValues: _multiValues,
-                                controllers: _fieldControllers,
-                                dependencySatisfied: _dependencySatisfied,
-                                indexesFor: _indexesFor,
-                                isMulti: _isMulti,
-                                optionsFor: _optionsFor,
-                                requiredFor: _requiredFor,
-                                missing: _isMissing,
-                                onOptionChanged: (field, index, code) {
-                                  _autoSaveArmed = true;
-                                  setState(() {
-                                    _optionValues.putIfAbsent(
-                                      field.fieldCode,
-                                      () => {},
-                                    )[index] = code;
-                                  });
-                                },
-                                onMultiChanged: (field, index, code, selected) {
-                                  _autoSaveArmed = true;
-                                  setState(() {
-                                    final map = _multiValues.putIfAbsent(
-                                      field.fieldCode,
-                                      () => {},
-                                    );
-                                    final values = map.putIfAbsent(
-                                      index,
-                                      () => <String>{},
-                                    );
-                                    if (selected) {
-                                      values.add(code);
-                                    } else {
-                                      values.remove(code);
-                                    }
-                                  });
-                                },
-                                controllerFor: _controller,
-                                booleanLabel: _booleanLabel,
-                              ),
-                            ],
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            ItemFooter(
-              primaryLabel: readOnly
-                  ? t(TechnicianKeys.commonBack)
-                  : widget.nextItemCode == null
-                  ? t(TechnicianKeys.technicianSaveAndFinish)
-                  : t(TechnicianKeys.technicianSaveAndNext),
-              onPrimary: readOnly
-                  ? () => Navigator.of(context).maybePop()
-                  : () => _save(evidence, advance: true),
-              saving: _saving && !readOnly,
-              secondaryLabel: secondaryLabel,
-              onSecondary: secondaryLabel == null ? null : secondaryAction,
-            ),
-          ],
+      onCapturePhoto: () => _captureDirect('PHOTO'),
+      onCaptureVideo: () => _captureDirect('VIDEO'),
+      onCaptureDocument: requirement.requiresDocument
+          ? () => _captureDirect('DOCUMENT')
+          : null,
+      interactive: !readOnly,
+      busy: _queue.isBusy,
+      progress: upload.progress,
+      progressLabel: upload.stage == EvidenceUploadStage.capturing
+          ? t(TechnicianKeys.technicianEvidenceStateCapturing)
+          : t(TechnicianKeys.technicianEvidenceUploading, {
+              'type': evidenceTypeLabel(evidenceTypes, upload.type ?? 'PHOTO'),
+            }),
+      onCancel: _cancelEvidence,
+      failed:
+          upload.stage == EvidenceUploadStage.failed && upload.failure == null,
+      onRetry: _retryEvidence,
+      error: _evidenceError,
+      queued: upload.stage == EvidenceUploadStage.queued,
+    );
+
+    final zones = <Widget>[
+      if (readOnly) ...[
+        FieldworkValues(
+          resultLabel: _result == null
+              ? t(TechnicianKeys.notChecked)
+              : resultLabel(resultRecords, _result!),
+          resultTone: resultTone(resultRecords, _result),
+          resultCaption: t(TechnicianKeys.technicianResult),
+          values: _readOnlyValues(t, language),
         ),
+        evidenceZone,
+      ] else ...[
+        ResultOptions(
+          options: [for (final code in primary) viewFor(code)],
+          rest: [for (final code in rest) viewFor(code)],
+          selected: _result,
+          onSelect: _selectResult,
+          suggestion: _suggestedResult == null
+              ? null
+              : '${t(TechnicianKeys.technicianSuggestedResult)}: '
+                    '${resultLabel(resultRecords, _suggestedResult!)}'
+                    '${_suggestedScore == null ? '' : ' · ${t(TechnicianKeys.technicianScore)} $_suggestedScore'}',
+          error: _fieldErrors['resultCode']?.messageFor(language),
+        ),
+        if (_error != null)
+          FieldworkNote(
+            message: _error!,
+            tone: StatusTone.danger,
+            icon: Icons.error_outline_rounded,
+          ),
+        if (_saved)
+          FieldworkNote(
+            message: t(TechnicianKeys.technicianItemSaved),
+            tone: StatusTone.success,
+            icon: Icons.check_circle_outline,
+          ),
+        ?_measurementZone(t),
+        if (item.issueFields.isNotEmpty)
+          IssueChipsSection(
+            item: item,
+            result: _result,
+            language: language,
+            fieldErrors: _fieldErrors,
+            showValidation: _showValidation,
+            optionValues: _optionValues,
+            multiValues: _multiValues,
+            controllers: _fieldControllers,
+            dependencySatisfied: _dependencySatisfied,
+            indexesFor: _indexesFor,
+            isMulti: _isMulti,
+            optionsFor: _optionsFor,
+            requiredFor: _requiredFor,
+            missing: _isMissing,
+            onOptionChanged: (field, index, code) {
+              _autoSaveArmed = true;
+              setState(() {
+                _optionValues.putIfAbsent(field.fieldCode, () => {})[index] =
+                    code;
+              });
+            },
+            onMultiChanged: (field, index, code, selected) {
+              _autoSaveArmed = true;
+              setState(() {
+                final map = _multiValues.putIfAbsent(field.fieldCode, () => {});
+                final values = map.putIfAbsent(index, () => <String>{});
+                if (selected) {
+                  values.add(code);
+                } else {
+                  values.remove(code);
+                }
+              });
+            },
+            controllerFor: _controller,
+            booleanLabel: _booleanLabel,
+          ),
+        evidenceZone,
+        if (_markCandidate != null)
+          MarkPrompt(
+            photoBytes: _markCandidate!.bytes,
+            // A defect emphasises marking over keeping the photo.
+            // gate-allow: behaviour — emphasis follows the verdict.
+            defect: _result == 'DEFECT_FOUND',
+            onMark: _markCandidateDamage,
+            onDismiss: () => setState(() => _markCandidate = null),
+          ),
+        if (showNotes)
+          FieldworkNotes(
+            title: t(TechnicianKeys.technicianNotes),
+            counter: t(TechnicianKeys.technicianNotesCount, {
+              'done': _notesEn.text.trim().length,
+              'required': minNotes,
+            }),
+            englishLabel: t(TechnicianKeys.technicianCaptionsEn),
+            arabicLabel: t(TechnicianKeys.technicianCaptionsAr),
+            englishController: _notesEn,
+            arabicController: _notesAr,
+            onChanged: (_) => setState(() {}),
+            enabled: !_saving,
+          ),
+      ],
+    ];
+
+    final nextItemCode = widget.nextItemCode;
+    return FieldworkItemScreen(
+      header: FieldworkItemHeader(
+        backLabel: MaterialLocalizations.of(context).backButtonTooltip,
+        title: widget.vehicleLabel,
+        reference: widget.reference,
+        done: widget.done,
+        total: widget.total,
+        progressLabel: t(TechnicianKeys.technicianQueueItems, {
+          'done': widget.done,
+          'total': widget.total,
+        }),
+      ),
+      hero: FieldworkHero(
+        eyebrow: widget.eyebrow,
+        label: item.labelFor(language),
+        instruction: item.instructionFor(language),
+        spec: item.standardSpecFor(language),
+        safety: item.safetyCritical,
+        safetyLabel: t(TechnicianKeys.technicianSafetyCritical),
+        numberLabel: '${item.sortOrder}'.padLeft(2, '0'),
+      ),
+      zones: zones,
+      footer: ItemFooter(
+        primaryLabel: readOnly
+            ? t(TechnicianKeys.commonBack)
+            : nextItemCode == null
+            ? t(TechnicianKeys.technicianSaveAndFinish)
+            : t(TechnicianKeys.technicianSaveAndNext),
+        onPrimary: readOnly
+            ? () => Navigator.of(context).maybePop()
+            : () => _save(evidence, advance: true),
+        saving: _saving && !readOnly,
+        secondaryLabel: readOnly || nextItemCode == null
+            ? null
+            : t(TechnicianKeys.technicianSessionNext),
+        onSecondary: readOnly || nextItemCode == null ? null : _advanceToNext,
       ),
     );
   }
 
-  /// How many folded fields this item actually requires, so the
-  /// disclosure can say so and start open when it matters.
-  int _requiredDetailCount() {
-    var count = 0;
-    if (_measurementRequired) {
-      count++;
+  /// Measurement and score, when the served bands give this item one. Both
+  /// stay live: clearing a measurement nulls the value, and the score is only
+  /// in range when a band exists.
+  Widget? _measurementZone(UiStrings t) {
+    final language = Localizations.localeOf(context).languageCode;
+    final fields = <Widget>[];
+    if (item.measurementUnit != null || item.measurementBands.isNotEmpty) {
+      for (final index in _measurementIndexes) {
+        fields.add(
+          AppTextField(
+            controller: _measurements[index]!,
+            label: index == null
+                ? t(TechnicianKeys.technicianMeasurement)
+                : '${t(TechnicianKeys.technicianMeasurement)} · $index',
+            labelAbove: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            suffixText: _measurementUnit,
+            errorText:
+                _showValidation &&
+                    _measurementRequired &&
+                    _measurementFor(index) == null
+                ? t(TechnicianKeys.technicianMeasurementRequired)
+                : _measurementError(index, language),
+          ),
+        );
+        fields.add(const SizedBox(height: 10));
+      }
     }
-    if (item.allowFreeTextNote && _evidenceRequirement.minNotesChars > 0) {
-      count++;
+    final band = _selectedScoreBand;
+    if (band != null) {
+      fields.add(
+        AppTextField(
+          controller: _score,
+          label: t(TechnicianKeys.technicianScore),
+          labelAbove: true,
+          keyboardType: TextInputType.number,
+          helperText: t(TechnicianKeys.technicianScoreHint, {
+            'min': band.minScore,
+            'max': band.maxScore,
+          }),
+          errorText: !_scoreValid
+              ? t(TechnicianKeys.technicianScoreOutOfRange, {
+                  'min': band.minScore,
+                  'max': band.maxScore,
+                })
+              : _fieldErrors['score']?.messageFor(language),
+          onChanged: (_) {
+            _scoreManuallyEdited = true;
+            _autoSaveArmed = true;
+            setState(() {});
+          },
+        ),
+      );
+    }
+    if (fields.isEmpty) {
+      return null;
+    }
+    // The trailing gap belongs to the zone separator, not to the last field.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [...fields]..removeLast(),
+    );
+  }
+
+  /// Every value the technician saved, for the read-only view. No field, no
+  /// capture affordance, nothing to type into.
+  List<FieldworkValue> _readOnlyValues(UiStrings t, String language) {
+    final values = <FieldworkValue>[];
+    if (item.measurementUnit != null || item.measurementBands.isNotEmpty) {
+      for (final index in _measurementIndexes) {
+        final measurement = _measurementFor(index);
+        if (measurement == null) {
+          continue;
+        }
+        final unit = _measurementUnit;
+        values.add(
+          FieldworkValue(
+            label: index == null
+                ? t(TechnicianKeys.technicianMeasurement)
+                : '${t(TechnicianKeys.technicianMeasurement)} · $index',
+            value:
+                '${_formatNumber(measurement)}${unit == null ? '' : ' $unit'}',
+          ),
+        );
+      }
+    }
+    final score = _score.text.trim();
+    if (score.isNotEmpty) {
+      values.add(
+        FieldworkValue(label: t(TechnicianKeys.technicianScore), value: score),
+      );
     }
     for (final field in item.issueFields) {
-      if (!_requiredFor(field)) {
+      if (field.fieldCode == 'MEASUREMENT' ||
+          (field.inputType == 'TEXT' && !field.allowFreeText)) {
         continue;
       }
-      if (_indexesFor(field)
-          .any((index) => _dependencySatisfied(field, index))) {
-        count++;
+      final options = _optionsFor(field);
+      for (final index in _indexesFor(field)) {
+        if (!_dependencySatisfied(field, index)) {
+          continue;
+        }
+        if (_isMulti(field)) {
+          final selected =
+              _multiValues[field.fieldCode]?[index] ?? const <String>{};
+          if (selected.isEmpty) {
+            continue;
+          }
+          final labels = <String>[
+            for (final option in options)
+              if (selected.contains(option.code))
+                issueOptionLabel(t, option, language),
+          ];
+          values.add(
+            _issueFieldValue(field, index, labels.join(', '), language),
+          );
+          continue;
+        }
+        switch (field.inputType) {
+          case 'NUMBER':
+            final text =
+                _fieldControllers[field.fieldCode]?[index]?.text.trim() ?? '';
+            if (text.isEmpty) {
+              continue;
+            }
+            final unit = field.unitSetCode;
+            values.add(
+              _issueFieldValue(
+                field,
+                index,
+                '$text${unit == null ? '' : ' $unit'}',
+                language,
+              ),
+            );
+          case 'TEXT':
+            final text =
+                _fieldControllers[field.fieldCode]?[index]?.text.trim() ?? '';
+            if (text.isEmpty) {
+              continue;
+            }
+            values.add(_issueFieldValue(field, index, text, language));
+          default:
+            final code = _optionValues[field.fieldCode]?[index] ?? '';
+            if (code.isEmpty) {
+              continue;
+            }
+            IssueOption? match;
+            for (final option in options) {
+              if (option.code == code) {
+                match = option;
+                break;
+              }
+            }
+            values.add(
+              _issueFieldValue(
+                field,
+                index,
+                match == null ? code : issueOptionLabel(t, match, language),
+                language,
+              ),
+            );
+        }
       }
     }
-    return count;
+    return values;
+  }
+
+  FieldworkValue _issueFieldValue(
+    IssueField field,
+    String? index,
+    String value,
+    String language,
+  ) {
+    return FieldworkValue(
+      label: index == null
+          ? field.labelFor(language)
+          : '${field.labelFor(language)} · $index',
+      value: value,
+    );
   }
 
   /// Opens the markup editor for the just-captured photo, then uploads the
@@ -1699,414 +1672,3 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   String? _suggestedResult;
   int? _suggestedScore;
 }
-
-// ============================================================ presentation
-
-/// The field-level error the ported issue-field widget expects.\nclass _InlineError extends StatelessWidget {\n  const _InlineError({required this.message});\n\n  final String message;\n\n  @override\n  Widget build(BuildContext context) =>\n      _Note(message: message, tone: StatusTone.danger);\n}\n\n/// The field-level error the ported issue-field widget expects.
-class _InlineError extends StatelessWidget {
-  const _InlineError({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Note(message: message, tone: StatusTone.danger);
-  }
-}
-
-/// The item, the standard it is judged against, and the verdict.
-class _DetailsCard extends StatelessWidget {
-  const _DetailsCard({
-    required this.open,
-    required this.requiredCount,
-    required this.onToggle,
-    required this.measurement,
-    required this.score,
-    required this.issueFields,
-  });
-
-  final bool open;
-  final int requiredCount;
-  final VoidCallback onToggle;
-  final Widget? measurement;
-  final Widget? score;
-  final Widget? issueFields;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    final groups = <Widget>[?measurement, ?score, ?issueFields];
-    return _Panel(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            button: true,
-            expanded: open,
-            label: t(TechnicianKeys.details),
-            child: GestureDetector(
-              onTap: onToggle,
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 12, 14),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.tune_rounded,
-                      size: 16,
-                      color: colors.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      t(TechnicianKeys.details),
-                      style: context.texts.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (requiredCount > 0)
-                      Container(
-                        padding: const EdgeInsetsDirectional.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.statusColors.warning.background,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          t(TechnicianKeys.technicianRequiredCount, {
-                            'count': requiredCount,
-                          }),
-                          style: context.texts.labelSmall?.copyWith(
-                            color: context.statusColors.warning.foreground,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    const Spacer(),
-                    Icon(
-                      open
-                          ? Icons.expand_less_rounded
-                          : Icons.expand_more_rounded,
-                      size: 20,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (open && groups.isNotEmpty) ...[
-            Divider(height: 1, color: colors.outlineVariant),
-            Padding(
-              padding: const EdgeInsetsDirectional.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var index = 0; index < groups.length; index++) ...[
-                    if (index > 0) ...[
-                      const SizedBox(height: 14),
-                      Divider(height: 1, color: colors.outlineVariant),
-                      const SizedBox(height: 14),
-                    ],
-                    groups[index],
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// The pinned action: what is missing, then the next stop.
-class _Panel extends StatelessWidget {
-  const _Panel({required this.child, this.padding});
-
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? const EdgeInsetsDirectional.all(16),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.outlineVariant),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _Note extends StatelessWidget {
-  const _Note({required this.message, required this.tone, this.icon});
-
-  final String message;
-  final StatusTone tone;
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final pair = context.statusColors.forTone(tone);
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 10, 8),
-        decoration: BoxDecoration(
-          color: pair.background,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon ?? Icons.info_outline_rounded,
-              size: 14,
-              color: pair.foreground,
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: Text(
-                message,
-                style: context.texts.labelSmall?.copyWith(
-                  color: pair.foreground,
-                  fontWeight: FontWeight.w600,
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-IconData resultIcon(String code) => switch (code) {
-  'NO_ISSUE_OBSERVED' => Icons.check_rounded,
-  'ATTENTION_RECOMMENDED' => Icons.priority_high_rounded,
-  'DEFECT_FOUND' => Icons.close_rounded,
-  _ => Icons.circle_outlined,
-};
-
-class _IssueFields extends StatelessWidget {
-  const _IssueFields({
-    required this.item,
-    required this.result,
-    required this.language,
-    required this.fieldErrors,
-    required this.showValidation,
-    required this.optionValues,
-    required this.multiValues,
-    required this.controllers,
-    required this.dependencySatisfied,
-    required this.indexesFor,
-    required this.isMulti,
-    required this.optionsFor,
-    required this.requiredFor,
-    required this.missing,
-    required this.onOptionChanged,
-    required this.onMultiChanged,
-    required this.controllerFor,
-    required this.booleanLabel,
-  });
-  final ChecklistItem item;
-  final String? result;
-  final String language;
-  final Map<String, ApiFieldError> fieldErrors;
-  final bool showValidation;
-  final Map<String, Map<String?, String>> optionValues;
-  final Map<String, Map<String?, Set<String>>> multiValues;
-  final Map<String, Map<String?, TextEditingController>> controllers;
-  final bool Function(IssueField field, String? index) dependencySatisfied;
-  final List<String?> Function(IssueField field) indexesFor;
-  final bool Function(IssueField field) isMulti;
-  final List<IssueOption> Function(IssueField field) optionsFor;
-  final bool Function(IssueField field) requiredFor;
-  final bool Function(IssueField field, String? index) missing;
-  final void Function(IssueField field, String? index, String code)
-  onOptionChanged;
-  final void Function(
-    IssueField field,
-    String? index,
-    String code,
-    bool selected,
-  )
-  onMultiChanged;
-  final TextEditingController Function(IssueField field, String? index)
-  controllerFor;
-  final String Function(UiStrings t, String code) booleanLabel;
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final fields = [...item.issueFields]
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final field in fields) ...[
-          if (field.fieldCode != 'MEASUREMENT' &&
-              !(field.inputType == 'TEXT' && !field.allowFreeText))
-            for (final index in indexesFor(field)) ...[
-              if (dependencySatisfied(field, index))
-                _IssueFieldInput(
-                  field: field,
-                  index: index,
-                  language: language,
-                  required: requiredFor(field),
-                  selectedOptions: optionValues[field.fieldCode]?[index],
-                  selectedMulti:
-                      multiValues[field.fieldCode]?[index] ?? const {},
-                  controller: controllerFor(field, index),
-                  options: optionsFor(field),
-                  isMulti: isMulti(field),
-                  booleanLabel: booleanLabel,
-                  errorText:
-                      fieldErrors[field.fieldCode]?.messageFor(language) ??
-                      (showValidation && missing(field, index)
-                          ? t(TechnicianKeys.technicianIssueFieldRequired)
-                          : null),
-                  onOptionChanged: (code) =>
-                      onOptionChanged(field, index, code),
-                  onMultiChanged: (code, selected) =>
-                      onMultiChanged(field, index, code, selected),
-                ),
-              SizedBox(height: context.spacing.sm),
-            ],
-        ],
-      ],
-    );
-  }
-}
-
-class _IssueFieldInput extends StatelessWidget {
-  const _IssueFieldInput({
-    required this.field,
-    required this.index,
-    required this.language,
-    required this.required,
-    required this.selectedOptions,
-    required this.selectedMulti,
-    required this.controller,
-    required this.options,
-    required this.isMulti,
-    required this.booleanLabel,
-    required this.errorText,
-    required this.onOptionChanged,
-    required this.onMultiChanged,
-  });
-  final IssueField field;
-  final String? index;
-  final String language;
-  final bool required;
-  final String? selectedOptions;
-  final Set<String> selectedMulti;
-  final TextEditingController controller;
-  final List<IssueOption> options;
-  final bool isMulti;
-  final String Function(UiStrings t, String code) booleanLabel;
-  final String? errorText;
-  final ValueChanged<String> onOptionChanged;
-  final void Function(String code, bool selected) onMultiChanged;
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final label = index == null
-        ? field.labelFor(language)
-        : '${field.labelFor(language)} · $index';
-    final title = required ? '$label *' : label;
-    switch (field.inputType) {
-      case 'NUMBER':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppTextField(
-              controller: controller,
-              label: title,
-              labelAbove: true,
-              keyboardType: TextInputType.numberWithOptions(
-                decimal: (field.decimalPlaces ?? 0) > 0,
-              ),
-              suffixText: field.unitSetCode,
-              errorText: errorText,
-            ),
-            if (field.minValue != null || field.maxValue != null) ...[
-              SizedBox(height: context.spacing.xxs),
-              Text(
-                '${field.minValue ?? ''} – ${field.maxValue ?? ''}'
-                '${field.unitSetCode == null ? '' : ' ${field.unitSetCode}'}',
-                style: context.texts.bodySmall?.copyWith(
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        );
-      case 'TEXT':
-        return AppTextField(
-          controller: controller,
-          label: title,
-          labelAbove: true,
-          maxLines: 2,
-          errorText: errorText,
-        );
-      case 'BOOLEAN':
-      case 'SELECT':
-      case 'MULTI_SELECT':
-        final list = options;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: context.texts.labelLarge?.copyWith(
-                color: context.colors.onSurfaceVariant,
-              ),
-            ),
-            SizedBox(height: context.spacing.xxs),
-            Wrap(
-              spacing: context.spacing.xs,
-              runSpacing: context.spacing.xs,
-              children: [
-                for (final option in list)
-                  AppFilterChip(
-                    label:
-                        field.inputType == 'BOOLEAN' &&
-                            (option.labelEn.isEmpty && option.labelAr.isEmpty)
-                        ? booleanLabel(t, option.code)
-                        : issueOptionLabel(t, option, language),
-                    selected: isMulti
-                        ? selectedMulti.contains(option.code)
-                        : selectedOptions == option.code,
-                    onSelected: (selected) {
-                      if (isMulti) {
-                        onMultiChanged(option.code, selected);
-                      } else {
-                        onOptionChanged(selected ? option.code : '');
-                      }
-                    },
-                  ),
-              ],
-            ),
-            if (errorText != null) _InlineError(message: errorText!),
-          ],
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-}
-
-/// The app's primary action: brand ink, 14 px radius, 48 px tall. AppButton's
-/// `large` variant paints the lighter emerald, which does not match the
-/// primary actions on the rest of the technician surface.

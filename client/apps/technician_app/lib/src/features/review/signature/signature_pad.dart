@@ -2,11 +2,11 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:l10n/ui_strings.dart';
 
-import '../../jobs/queue/jobs_queue_style.dart';
+import '../../inspection/fieldwork/fieldwork_ui.dart';
 
-/// The signing sheet: a full-width rounded surface with a mint baseline
-/// guide, a "Sign here" placeholder that leaves on the first stroke, and
-/// Clear/Undo riding inside the pad at 44 px targets.
+/// The signing sheet: a white sheet inside the signing card, a tonal baseline
+/// guide, a "Sign here" prompt that leaves on the first stroke, and Undo/Clear
+/// riding inside the pad at 44 px targets.
 ///
 /// Strokes are raw pad offsets, so RTL mirroring moves only the tools — the
 /// ink itself is never transformed.
@@ -43,8 +43,8 @@ class SignaturePad extends StatelessWidget {
     final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
+        color: colors.surfaceLowest,
+        borderRadius: BorderRadius.circular(FieldworkMetrics.cardRadius),
         border: Border.all(color: colors.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
@@ -66,7 +66,7 @@ class SignaturePad extends StatelessWidget {
                 width: double.infinity,
                 // A signing sheet, not a letterbox: the rule and the ink stay
                 // together from a phone to a wide window.
-                height: (constraints.maxWidth / 1.7).clamp(200.0, 320.0),
+                height: (constraints.maxWidth / 1.8).clamp(200.0, 300.0),
                 child: Stack(
                   children: [
                     PositionedDirectional(
@@ -94,11 +94,11 @@ class SignaturePad extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               t(TechnicianKeys.technicianSignHere),
-                              style: queueText(
+                              style: fieldworkText(
                                 context,
-                                14.5,
+                                13.5,
                                 weight: FontWeight.w600,
-                                height: 20,
+                                height: 18,
                                 color: colors.onSurfaceVariant,
                               ),
                             ),
@@ -122,8 +122,8 @@ class SignaturePad extends StatelessWidget {
             ),
           ),
           PositionedDirectional(
-            top: 12,
-            end: 12,
+            top: 10,
+            end: 10,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -133,7 +133,7 @@ class SignaturePad extends StatelessWidget {
                   label: t(TechnicianKeys.technicianUndo),
                   onTap: onUndo,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _PadTool(
                   buttonKey: const Key('signature-clear'),
                   icon: Icons.layers_clear_outlined,
@@ -177,12 +177,10 @@ class _PadTool extends StatelessWidget {
         onTap: onTap,
         child: Container(
           constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-          padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 11),
           decoration: BoxDecoration(
-            color: colors.surfaceContainerLowest.withValues(
-              alpha: enabled ? 0.92 : 0.6,
-            ),
-            borderRadius: BorderRadius.circular(QueueMetrics.radiusChip),
+            color: colors.surfaceLowest.withValues(alpha: enabled ? 0.94 : 0.6),
+            borderRadius: BorderRadius.circular(FieldworkMetrics.chipRadius),
             border: Border.all(color: colors.outlineVariant),
           ),
           child: Row(
@@ -197,9 +195,9 @@ class _PadTool extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: queueText(
+                style: fieldworkText(
                   context,
-                  12.5,
+                  12,
                   weight: FontWeight.w700,
                   height: 16,
                   color: enabled ? colors.onSurface : colors.onSurfaceVariant,

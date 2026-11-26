@@ -13,11 +13,11 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
-import 'package:technician_app/src/features/inspection/assessment/evidence_section.dart';
-import 'package:technician_app/src/features/inspection/assessment/item_footer.dart';
-import 'package:technician_app/src/features/inspection/assessment/mark_prompt.dart';
-import 'package:technician_app/src/features/inspection/assessment/result_options.dart';
-import 'package:technician_app/src/features/inspection/assessment/evidence_strip.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_evidence.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_item.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_mark_prompt.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_results.dart';
+import 'package:technician_app/src/features/inspection/fieldwork/fieldwork_evidence.dart';
 import 'package:technician_app/src/features/inspection/assessment_screen.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
 import 'package:technician_app/src/features/inspection/evidence_validation.dart';
@@ -540,7 +540,11 @@ void main() {
         _scope(child: _host(_page(checklist)), checklist: checklist),
       );
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Photo'), 200);
+      await tester.scrollUntilVisible(
+        find.text('Photo'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Photo'));
@@ -553,7 +557,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('footer offers Add photo while photos are owed', (
+    testWidgets('the evidence zone offers capture while photos are owed', (
       tester,
     ) async {
       final checklist = _checklist();
@@ -562,7 +566,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Add photo'), findsOneWidget);
+      // Capture lives in the evidence zone, not in the footer: the photo tile
+      // reports its owed count and is a tap target.
+      expect(find.bySemanticsLabel('Photo 0/1'), findsOneWidget);
+      expect(find.bySemanticsLabel('Video 0/1'), findsOneWidget);
     });
   });
 
@@ -639,7 +646,11 @@ void main() {
 
       await tester.tap(find.text('Defect Found'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Notes'), 200);
+      await tester.scrollUntilVisible(
+        find.text('Notes'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       expect(find.text('Notes'), findsOneWidget);
       expect(find.text('0 of 20 characters'), findsOneWidget);

@@ -1,10 +1,11 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as codec;
 import 'package:l10n/ui_strings.dart';
+
+import 'fieldwork/fieldwork_ui.dart';
 
 /// Which mark the technician is drawing.
 enum MarkupTool { circle, pen }
@@ -220,22 +221,29 @@ class _PhotoMarkupPageState extends State<PhotoMarkupPage> {
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E13),
+      backgroundColor: FieldworkDark.canvas,
       body: SafeArea(
         child: Column(
           children: [
-            _Bar(
+            _MarkupBar(
               title: widget.title,
+              canUndo: _hasMark,
               onClose: () => Navigator.of(context).pop(),
+              onUndo: _undo,
+              onClear: _clear,
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 8),
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 12, 10),
                 child: _decodeError != null
                     ? Center(
                         child: Text(
                           t(TechnicianKeys.technicianEvidenceFailed),
-                          style: const TextStyle(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: FieldworkDark.textMuted,
+                            fontSize: 13.5,
+                          ),
                         ),
                       )
                     : _Canvas(
@@ -248,17 +256,16 @@ class _PhotoMarkupPageState extends State<PhotoMarkupPage> {
                       ),
               ),
             ),
-            _Toolbar(
+            _MarkupDock(
               tool: _tool,
               colour: _colour,
               colours: _colours,
               canUndo: _hasMark,
+              saving: _saving,
               onTool: (tool) => setState(() => _tool = tool),
               onColour: (index) => setState(() => _colour = index),
-              onUndo: _undo,
-              onClear: _clear,
-              onCreate: _save,
-              busy: _saving,
+              onCancel: () => Navigator.of(context).pop(),
+              onSave: _save,
             ),
           ],
         ),
@@ -355,32 +362,37 @@ Future<MarkedPhoto> renderMarkedPhoto(
   );
 }
 
-class _Bar extends StatelessWidget {
-  const _Bar({required this.title, required this.onClose});
+/// Top bar: back, the job of this screen, undo and clear.
+class _MarkupBar extends StatelessWidget {
+  const _MarkupBar({
+    required this.title,
+    required this.canUndo,
+    required this.onClose,
+    required this.onUndo,
+    required this.onClear,
+  });
 
   final String title;
+  final bool canUndo;
   final VoidCallback onClose;
+  final VoidCallback onUndo;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
+    final rtl = Directionality.of(context) == TextDirection.rtl;
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 6, 16, 2),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 10, 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Semantics(
-            button: true,
-            label: MaterialLocalizations.of(context).closeButtonLabel,
-            child: GestureDetector(
-              onTap: onClose,
-              child: const SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(Icons.close_rounded, color: Colors.white),
-              ),
-            ),
+          _DarkIconButton(
+            icon: rtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+            label: MaterialLocalizations.of(context).backButtonTooltip,
+            onTap: onClose,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,24 +401,38 @@ class _Bar extends StatelessWidget {
                 Text(
                   t(TechnicianKeys.technicianMarkDamage),
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: FieldworkDark.text,
                     fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    height: 20 / 16,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 12,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    color: FieldworkDark.textMuted,
+                    fontSize: 11.5,
+                    height: 15 / 11.5,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 8),
+          _DarkIconButton(
+            icon: Icons.undo_rounded,
+            label: t(TechnicianKeys.technicianUndo),
+            onTap: canUndo ? onUndo : null,
+          ),
+          const SizedBox(width: 6),
+          _DarkIconButton(
+            icon: Icons.layers_clear_outlined,
+            label: t(TechnicianKeys.technicianClear),
+            onTap: canUndo ? onClear : null,
           ),
         ],
       ),
@@ -437,11 +463,11 @@ class _Canvas extends StatelessWidget {
     if (image == null) {
       return const Center(
         child: SizedBox(
-          width: 26,
-          height: 26,
+          width: 24,
+          height: 24,
           child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            color: Colors.white70,
+            strokeWidth: 2,
+            color: FieldworkDark.textMuted,
           ),
         ),
       );
@@ -470,7 +496,9 @@ class _Canvas extends StatelessWidget {
                 onPanEnd: (_) => onEnd(),
                 onPanCancel: onEnd,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(
+                    FieldworkMetrics.controlRadius,
+                  ),
                   child: CustomPaint(
                     painter: _MarkupPainter(
                       image: image,
@@ -515,136 +543,111 @@ class _MarkupPainter extends CustomPainter {
       oldDelegate.strokes != strokes || oldDelegate.image != image;
 }
 
-class _Toolbar extends StatelessWidget {
-  const _Toolbar({
+/// Bottom dock: tools, colours, Cancel / Save mark.
+class _MarkupDock extends StatelessWidget {
+  const _MarkupDock({
     required this.tool,
     required this.colour,
     required this.colours,
     required this.canUndo,
+    required this.saving,
     required this.onTool,
     required this.onColour,
-    required this.onUndo,
-    required this.onClear,
-    required this.onCreate,
-    required this.busy,
+    required this.onCancel,
+    required this.onSave,
   });
 
   final MarkupTool tool;
   final int colour;
   final List<Color> colours;
   final bool canUndo;
+  final bool saving;
   final ValueChanged<MarkupTool> onTool;
   final ValueChanged<int> onColour;
-  final VoidCallback onUndo;
-  final VoidCallback onClear;
-  final VoidCallback onCreate;
-  final bool busy;
+  final VoidCallback onCancel;
+  final VoidCallback onSave;
 
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF11161D),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+      decoration: const BoxDecoration(
+        color: FieldworkDark.bar,
+        border: Border(top: BorderSide(color: FieldworkDark.stroke)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              _Tool(
-                label: t(TechnicianKeys.technicianMarkupCircle),
-                icon: Icons.circle_outlined,
-                selected: tool == MarkupTool.circle,
-                onTap: () => onTool(MarkupTool.circle),
-              ),
-              const SizedBox(width: 8),
-              _Tool(
-                label: t(TechnicianKeys.technicianMarkupPen),
-                icon: Icons.gesture_rounded,
-                selected: tool == MarkupTool.pen,
-                onTap: () => onTool(MarkupTool.pen),
-              ),
-              const Spacer(),
-              for (var index = 0; index < colours.length; index++) ...[
-                _Swatch(
-                  colour: colours[index],
-                  selected: colour == index,
-                  onTap: () => onColour(index),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _IconAction(
-                icon: Icons.undo_rounded,
-                label: t(TechnicianKeys.technicianUndo),
-                onTap: canUndo ? onUndo : null,
-              ),
-              const SizedBox(width: 8),
-              _IconAction(
-                icon: Icons.layers_clear_outlined,
-                label: t(TechnicianKeys.technicianClear),
-                onTap: canUndo ? onClear : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: canUndo && !busy ? onCreate : null,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: context.brand.ink,
-                      disabledBackgroundColor: Colors.white.withValues(
-                        alpha: 0.12,
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      _ToolChip(
+                        label: t(TechnicianKeys.technicianMarkupCircle),
+                        icon: Icons.circle_outlined,
+                        selected: tool == MarkupTool.circle,
+                        onTap: () => onTool(MarkupTool.circle),
                       ),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                      const SizedBox(width: 8),
+                      _ToolChip(
+                        label: t(TechnicianKeys.technicianMarkupPen),
+                        icon: Icons.gesture_rounded,
+                        selected: tool == MarkupTool.pen,
+                        onTap: () => onTool(MarkupTool.pen),
                       ),
-                    ),
-                    icon: busy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.check_rounded, size: 18),
-                    label: Text(
-                      canUndo
-                          ? t(TechnicianKeys.technicianMarkupSave)
-                          : t(TechnicianKeys.technicianMarkupEmpty),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                for (var index = 0; index < colours.length; index++)
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      start: index == 0 ? 0 : 8,
+                    ),
+                    child: _Swatch(
+                      colour: colours[index],
+                      selected: colour == index,
+                      onTap: () => onColour(index),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _DarkTextButton(
+                    label: t(CommonKeys.buttonCancel),
+                    onPressed: saving ? null : onCancel,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: FieldworkButton(
+                    label: canUndo
+                        ? t(TechnicianKeys.technicianMarkupSave)
+                        : t(TechnicianKeys.technicianMarkupEmpty),
+                    icon: canUndo ? Icons.check_rounded : null,
+                    isLoading: saving,
+                    expand: true,
+                    onPressed: canUndo ? onSave : null,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _Tool extends StatelessWidget {
-  const _Tool({
+class _ToolChip extends StatelessWidget {
+  const _ToolChip({
     required this.label,
     required this.icon,
     required this.selected,
@@ -663,19 +666,16 @@ class _Tool extends StatelessWidget {
       selected: selected,
       label: label,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          height: 40,
-          padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
+          height: 44,
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: selected
-                ? Colors.white.withValues(alpha: 0.16)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(999),
+            color: selected ? FieldworkDark.fillStrong : Colors.transparent,
+            borderRadius: BorderRadius.circular(FieldworkMetrics.chipRadius),
             border: Border.all(
-              color: selected
-                  ? Colors.white.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.14),
+              color: selected ? FieldworkDark.text : FieldworkDark.stroke,
             ),
           ),
           child: Row(
@@ -684,7 +684,7 @@ class _Tool extends StatelessWidget {
               Icon(
                 icon,
                 size: 15,
-                color: selected ? Colors.white : Colors.white70,
+                color: selected ? FieldworkDark.text : FieldworkDark.textMuted,
               ),
               const SizedBox(width: 6),
               Text(
@@ -692,7 +692,9 @@ class _Tool extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : Colors.white70,
+                  color: selected
+                      ? FieldworkDark.text
+                      : FieldworkDark.textMuted,
                 ),
               ),
             ],
@@ -720,37 +722,42 @@ class _Swatch extends StatelessWidget {
       button: true,
       selected: selected,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: colour,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: selected
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.25),
-              width: selected ? 2.5 : 1,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: colour,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? FieldworkDark.text : FieldworkDark.stroke,
+                  width: selected ? 2.5 : 1,
+                ),
+              ),
+              child: selected
+                  ? Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: colour.computeLuminance() > 0.6
+                          ? const Color(0xFF14171C)
+                          : FieldworkDark.text,
+                    )
+                  : null,
             ),
           ),
-          child: selected
-              ? Icon(
-                  Icons.check_rounded,
-                  size: 15,
-                  color: colour.computeLuminance() > 0.6
-                      ? const Color(0xFF14171C)
-                      : Colors.white,
-                )
-              : null,
         ),
       ),
     );
   }
 }
 
-class _IconAction extends StatelessWidget {
-  const _IconAction({
+class _DarkIconButton extends StatelessWidget {
+  const _DarkIconButton({
     required this.icon,
     required this.label,
     required this.onTap,
@@ -769,19 +776,60 @@ class _IconAction extends StatelessWidget {
       label: label,
       child: Tooltip(
         message: label,
+        excludeFromSemantics: true,
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: Container(
-            width: 44,
-            height: 44,
+            width: FieldworkMetrics.iconTarget,
+            height: FieldworkMetrics.iconTarget,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+              borderRadius: BorderRadius.circular(
+                FieldworkMetrics.controlRadius,
+              ),
+              border: Border.all(color: FieldworkDark.stroke),
             ),
             child: Icon(
               icon,
-              size: 19,
-              color: enabled ? Colors.white : Colors.white24,
+              size: 20,
+              color: enabled ? FieldworkDark.text : FieldworkDark.textDisabled,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DarkTextButton extends StatelessWidget {
+  const _DarkTextButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: Container(
+          height: FieldworkMetrics.primaryHeight,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(FieldworkMetrics.controlRadius),
+            border: Border.all(color: FieldworkDark.stroke),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: enabled ? FieldworkDark.text : FieldworkDark.textDisabled,
             ),
           ),
         ),

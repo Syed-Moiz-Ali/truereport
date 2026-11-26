@@ -19,6 +19,8 @@ import '../support/fixtures.dart' as fixtures;
 
 const Map<String, String> _bundle = <String, String>{
   'technicianSignatureTitle': 'Customer signature',
+  'technicianSignatureHint': 'Sign inside the box.',
+  'fullNameHint': 'Enter your full name',
   'technicianSignerName': 'Signer name',
   'technicianSignerNameRequired': "Enter the signer's full name.",
   'technicianSignHere': 'Sign here',
