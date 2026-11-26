@@ -4,6 +4,7 @@ import 'platform_catalogue_models.dart';
 import 'features/languages/manual_translation_models.dart';
 import 'features/localization/translation_review_models.dart';
 import 'platform_config_models.dart';
+import 'platform_dashboard_models.dart';
 
 /// Typed Platform Admin configuration API backed by `/api/v1/platform`.
 class PlatformConfigApi {
@@ -749,5 +750,10 @@ class PlatformConfigApi {
   Future<OverviewSummary> overview() async {
     final data = await _api.getDynamic(_endpoints.platformOverview);
     return OverviewSummary.fromJson(_map(data));
+  }
+
+  Future<PlatformDashboard> dashboard({int days = 14}) async {
+    final data = await _api.getDynamic(_endpoints.platformDashboard(days));
+    return PlatformDashboard.fromJson(_map(data));
   }
 }

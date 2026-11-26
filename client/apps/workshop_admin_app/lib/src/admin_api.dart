@@ -276,6 +276,8 @@ abstract class AdminApi {
   Future<WorkshopNotification> readNotification(String id);
 
   Future<CleanJobCounts> cleanJobCounts();
+
+  Future<WorkshopDashboard> workshopDashboard({int days = 14});
 }
 
 class TemplateItemDraft {
@@ -1312,5 +1314,11 @@ class HttpAdminApi implements AdminApi {
   Future<CleanJobCounts> cleanJobCounts() async {
     final data = await _api.getDynamic(_endpoints.workshopCleanJobCounts);
     return CleanJobCounts.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<WorkshopDashboard> workshopDashboard({int days = 14}) async {
+    final data = await _api.getDynamic(_endpoints.workshopDashboard(days));
+    return WorkshopDashboard.fromJson(data as Map<String, dynamic>);
   }
 }

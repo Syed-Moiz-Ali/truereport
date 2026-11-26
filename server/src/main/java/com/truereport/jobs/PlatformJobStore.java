@@ -120,6 +120,31 @@ public class PlatformJobStore {
     public record DocumentTypeRow(String code, String nameEn, String nameAr, int sortOrder) {
     }
 
+    public record DailyCountRow(java.time.LocalDate date, long count) {
+    }
+
+    public record TurnaroundRow(LocalDateTime startedAt, LocalDateTime completedAt) {
+    }
+
+    public record QualityRow(Double averageScore, int scoredJobs) {
+    }
+
+    public record AssignedCountRow(String technicianId, long count) {
+    }
+
+    public record CustomerJobRow(String customerName, LocalDateTime createdAt) {
+    }
+
+    public record ReportCountsRow(
+            long versions, long published, long documents, long readyDocuments,
+            long failedDocuments, long exportBytes, long activeLinks, long revokedLinks) {
+    }
+
+    public record ActivityRow(
+            String jobId, String reference, String fromStatus, String toStatus, String actorId,
+            LocalDateTime occurredAt) {
+    }
+
     // --------------------------------------------------------------- jobs
 
     public Optional<JobRow> findJob(String workshopId, String jobId) {
@@ -202,6 +227,138 @@ public class PlatformJobStore {
     public List<String> statuses(String workshopId) {
         return jdbc.queryForList(
                 "SELECT status FROM platform_jobs WHERE workshop_id = ?", String.class, workshopId);
+    }
+
+    // ------------------------------------------------------------ dashboard
+
+    public List<DailyCountRow> createdPerDay(String workshopId, LocalDateTime from) {
+        return jdbc.query("""
+                SELECT CAST(created_at AS DATE) AS day, COUNT(*) AS c
+                FROM platform_jobs WHERE workshop_id = ? AND created_at >= ?
+                GROUP BY CAST(created_at AS DATE)
+                """, (rs, i) -> new DailyCountRow(rs.getDate("day").toLocalDate(), rs.getLong("c")),
+                workshopId, from);
+    }
+
+    public List<DailyCountRow> publishedPerDay(String workshopId, LocalDateTime from) {
+        return jdbc.query("""
+                SELECT CAST(published_at AS DATE) AS day, COUNT(*) AS c
+                FROM platform_jobs
+                WHERE workshop_id = ? AND published_at IS NOT NULL AND published_at >= ?
+                GROUP BY CAST(published_at AS DATE)
+                """, (rs, i) -> new DailyCountRow(rs.getDate("day").toLocalDate(), rs.getLong("c")),
+                workshopId, from);
+    }
+
+    public List<TurnaroundRow> completedJobs(String workshopId, LocalDateTime from) {
+        return jdbc.query("""
+                SELECT started_at, completed_at FROM platform_jobs
+                WHERE workshop_id = ? AND started_at IS NOT NULL AND completed_at IS NOT NULL
+                  AND completed_at >= ?
+                """, (rs, i) -> new TurnaroundRow(
+                dateTime(rs, "started_at"), dateTime(rs, "completed_at")), workshopId, from);
+    }
+
+    public QualityRow quality(String workshopId, LocalDateTime from) {
+        QualityRow row = jdbc.queryForObject("""
+                SELECT AVG(score) AS avg_score, COUNT(score) AS scored
+                FROM platform_jobs
+                WHERE workshop_id = ? AND score IS NOT NULL AND published_at >= ?
+                """, (rs, i) -> {
+            Object average = rs.getObject("avg_score");
+            return new QualityRow(average == null ? null : rs.getDouble("avg_score"),
+                    rs.getInt("scored"));
+        }, workshopId, from);
+        return row == null ? new QualityRow(null, 0) : row;
+    }
+
+    public List<AssignedCountRow> openJobsByTechnician(String workshopId) {
+        return jdbc.query("""
+                SELECT assigned_technician_id AS tech, COUNT(*) AS c
+                FROM platform_jobs
+                WHERE workshop_id = ? AND assigned_technician_id IS NOT NULL
+                  AND status IN ('ASSIGNED', 'IN_PROGRESS', 'PENDING_REVIEW', 'APPROVED')
+                GROUP BY assigned_technician_id
+                """, (rs, i) -> new AssignedCountRow(rs.getString("tech"), rs.getLong("c")),
+                workshopId);
+    }
+
+    public List<AssignedCountRow> completedByTechnician(String workshopId, LocalDateTime from) {
+        return jdbc.query("""
+                SELECT assigned_technician_id AS tech, COUNT(*) AS c
+                FROM platform_jobs
+                WHERE workshop_id = ? AND assigned_technician_id IS NOT NULL
+                  AND published_at IS NOT NULL AND published_at >= ?
+                GROUP BY assigned_technician_id
+                """, (rs, i) -> new AssignedCountRow(rs.getString("tech"), rs.getLong("c")),
+                workshopId, from);
+    }
+
+    public List<CustomerJobRow> customerJobs(String workshopId, LocalDateTime from) {
+        return jdbc.query("""
+                SELECT customer_name, created_at FROM platform_jobs
+                WHERE workshop_id = ? AND created_at >= ?
+                """, (rs, i) -> new CustomerJobRow(
+                decrypt(rs.getString("customer_name")), dateTime(rs, "created_at")),
+                workshopId, from);
+    }
+
+    public ReportCountsRow reportCounts(String workshopId, LocalDateTime from) {
+        long versions = nz(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_report_versions v
+                JOIN platform_jobs j ON j.id = v.job_id
+                WHERE j.workshop_id = ? AND v.created_at >= ?
+                """, Long.class, workshopId, from));
+        long published = nz(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM platform_jobs
+                WHERE workshop_id = ? AND published_at IS NOT NULL AND published_at >= ?
+                """, Long.class, workshopId, from));
+        ReportCountsRow documents = jdbc.queryForObject("""
+                SELECT COUNT(*) AS total,
+                       COALESCE(SUM(CASE WHEN d.status = 'READY' THEN 1 ELSE 0 END), 0) AS ready,
+                       COALESCE(SUM(CASE WHEN d.status = 'FAILED' THEN 1 ELSE 0 END), 0) AS failed,
+                       COALESCE(SUM(CASE WHEN d.status = 'READY' THEN d.bytes ELSE 0 END), 0) AS bytes
+                FROM platform_report_documents d
+                JOIN platform_report_versions v ON v.id = d.report_version_id
+                JOIN platform_jobs j ON j.id = v.job_id
+                WHERE j.workshop_id = ? AND d.created_at >= ?
+                """, (rs, i) -> new ReportCountsRow(0, 0, rs.getLong("total"),
+                rs.getLong("ready"), rs.getLong("failed"), rs.getLong("bytes"), 0, 0),
+                workshopId, from);
+        ReportCountsRow links = jdbc.queryForObject("""
+                SELECT COALESCE(SUM(CASE WHEN l.status = 'ACTIVE' THEN 1 ELSE 0 END), 0) AS active,
+                       COALESCE(SUM(CASE WHEN l.status = 'REVOKED' THEN 1 ELSE 0 END), 0) AS revoked
+                FROM platform_public_links l
+                JOIN platform_jobs j ON j.id = l.job_id
+                WHERE j.workshop_id = ?
+                """, (rs, i) -> new ReportCountsRow(0, 0, 0, 0, 0, 0,
+                rs.getLong("active"), rs.getLong("revoked")), workshopId);
+        long docs = documents == null ? 0 : documents.documents();
+        long ready = documents == null ? 0 : documents.readyDocuments();
+        long failed = documents == null ? 0 : documents.failedDocuments();
+        long bytes = documents == null ? 0 : documents.exportBytes();
+        long active = links == null ? 0 : links.activeLinks();
+        long revoked = links == null ? 0 : links.revokedLinks();
+        return new ReportCountsRow(versions, published, docs, ready, failed, bytes, active, revoked);
+    }
+
+    public List<ActivityRow> recentActivity(String workshopId, int limit) {
+        int safeLimit = Math.min(20, Math.max(1, limit));
+        return jdbc.query("""
+                SELECT h.from_status, h.to_status, h.actor_id, h.occurred_at, j.id, j.reference
+                FROM platform_job_status_history h
+                JOIN platform_jobs j ON j.id = h.job_id
+                WHERE j.workshop_id = ?
+                ORDER BY h.occurred_at DESC, h.id DESC
+                LIMIT %d
+                """.formatted(safeLimit), (rs, i) -> new ActivityRow(
+                rs.getString("id"), rs.getString("reference"), rs.getString("from_status"),
+                rs.getString("to_status"), rs.getString("actor_id"),
+                dateTime(rs, "occurred_at")), workshopId);
+    }
+
+    private long nz(Long value) {
+        return value == null ? 0 : value;
     }
 
     public boolean referenceExists(String workshopId, String reference) {

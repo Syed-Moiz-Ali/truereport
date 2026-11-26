@@ -128,12 +128,15 @@ class _WorkshopAdminHomePageState extends ConsumerState<WorkshopAdminHomePage> {
         ),
         child: _SectionHost(
           index: _selectedIndex,
-          children: const [
-            DashboardTab(),
-            JobsTab(),
-            StaffTab(),
-            TemplatesTab(),
-            WorkshopSettingsPage(),
+          children: [
+            DashboardTab(
+              onOpenQueue: () => _select(1),
+              onOpenStaff: () => _select(2),
+            ),
+            const JobsTab(),
+            const StaffTab(),
+            const TemplatesTab(),
+            const WorkshopSettingsPage(),
           ],
         ),
       ),

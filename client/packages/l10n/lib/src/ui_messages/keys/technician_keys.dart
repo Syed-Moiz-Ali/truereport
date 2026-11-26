@@ -1393,6 +1393,9 @@ abstract final class TechnicianKeys {
   static const technicianBackToJobs = UiMessageKey.technician(
     'technicianBackToJobs',
   );
+  static const technicianBackToSummary = UiMessageKey.technician(
+    'technicianBackToSummary',
+  );
   static const technicianBlockers = UiMessageKey.technician(
     'technicianBlockers',
   );
@@ -1614,6 +1617,9 @@ abstract final class TechnicianKeys {
   static const technicianDeleteEvidence = UiMessageKey.technician(
     'technicianDeleteEvidence',
   );
+  static const technicianDeleteEvidenceBody = UiMessageKey.technician(
+    'technicianDeleteEvidenceBody',
+  );
   static const technicianDetectedCount = UiMessageKey.technician(
     'technicianDetectedCount',
   );
@@ -1672,6 +1678,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianEvidenceCounts = UiMessageKey.technician(
     'technicianEvidenceCounts',
+  );
+  static const technicianEvidenceDeleted = UiMessageKey.technician(
+    'technicianEvidenceDeleted',
   );
   static const technicianEvidenceDocumentCount = UiMessageKey.technician(
     'technicianEvidenceDocumentCount',
@@ -2322,6 +2331,9 @@ abstract final class TechnicianKeys {
   static const technicianShiftToday = UiMessageKey.technician(
     'technicianShiftToday',
   );
+  static const technicianSignHere = UiMessageKey.technician(
+    'technicianSignHere',
+  );
   static const technicianSignInHeadline = UiMessageKey.technician(
     'technicianSignInHeadline',
   );
@@ -2350,6 +2362,9 @@ abstract final class TechnicianKeys {
   static const technicianSignatureHint = UiMessageKey.technician(
     'technicianSignatureHint',
   );
+  static const technicianSignatureReadOnly = UiMessageKey.technician(
+    'technicianSignatureReadOnly',
+  );
   static const technicianSignatureRequired = UiMessageKey.technician(
     'technicianSignatureRequired',
   );
@@ -2364,6 +2379,9 @@ abstract final class TechnicianKeys {
   );
   static const technicianSignerName = UiMessageKey.technician(
     'technicianSignerName',
+  );
+  static const technicianSignerNameRequired = UiMessageKey.technician(
+    'technicianSignerNameRequired',
   );
   static const technicianSourceFiles = UiMessageKey.technician(
     'technicianSourceFiles',

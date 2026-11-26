@@ -5,9 +5,11 @@ library;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:api_client/api_client.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
@@ -15,14 +17,17 @@ import 'package:technician_app/src/features/inspection/assessment/evidence_secti
 import 'package:technician_app/src/features/inspection/assessment/item_footer.dart';
 import 'package:technician_app/src/features/inspection/assessment/mark_prompt.dart';
 import 'package:technician_app/src/features/inspection/assessment/result_options.dart';
+import 'package:technician_app/src/features/inspection/assessment/evidence_strip.dart';
 import 'package:technician_app/src/features/inspection/assessment_screen.dart';
 import 'package:technician_app/src/features/inspection/evidence_capture_service.dart';
 import 'package:technician_app/src/features/inspection/evidence_validation.dart';
+import 'package:technician_app/src/features/inspection/photo_markup_page.dart';
 import 'package:drift/native.dart';
 import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/offline/offline_database.dart';
 import 'package:technician_app/src/offline/offline_models.dart';
 import 'package:technician_app/src/offline/offline_store.dart';
+import 'package:technician_app/src/technician_api.dart';
 import 'package:technician_app/src/technician_providers.dart';
 
 import '../support/fixtures.dart' as fixtures;
@@ -64,6 +69,11 @@ const Map<String, String> _bundle = <String, String>{
   'technicianSafetyCritical': 'Safety critical',
   'technicianEvidencePhotoCount': '{count} / {required} photos',
   'technicianEvidenceVideoCount': '{count} / {required} videos',
+  'technicianDeleteEvidence': 'Delete evidence',
+  'technicianDeleteEvidenceBody': 'This removes the file from this item.',
+  'technicianEvidenceDeleted': 'Evidence deleted.',
+  'delete': 'Delete',
+  'commonLoadFailed': 'Could not load. Try again.',
 };
 
 Assessment _answer(String itemCode, String itemVersionId) => Assessment(
@@ -168,8 +178,9 @@ ProviderScope _scope({
   required Widget child,
   required Checklist checklist,
   List<Evidence> evidence = const [],
+  List<Override> extra = const [],
+  OfflineStore? store,
 }) {
-  final offline = _FakeOfflineStore();
   return ProviderScope(
     overrides: [
       technicianChecklistProvider('job-1001')
@@ -182,10 +193,11 @@ ProviderScope _scope({
       enumsProvider('evidence-type')
           .overrideWith((ref) async => <ReferenceRecord>[]),
       connectivityProvider.overrideWith((ref) => const Stream<bool>.empty()),
-      offlineStoreProvider.overrideWith((ref) => offline),
+      offlineStoreProvider.overrideWith((ref) => store ?? _FakeOfflineStore()),
       evidenceCaptureServiceProvider.overrideWith(
         (ref) => _FailingCaptureService(),
       ),
+      ...extra,
     ],
     child: child,
   );
@@ -241,6 +253,157 @@ class _FakeOfflineStore extends OfflineStore {
     String jobId,
     String itemId,
   ) async => [];
+}
+
+/// Offline store with scripted queued rows and recorded local deletes.
+class _FakeLocalStore extends _FakeOfflineStore {
+  _FakeLocalStore({this.rows = const [], this.onDelete});
+
+  final List<LocalEvidence> rows;
+  final void Function(String evidenceId)? onDelete;
+
+  @override
+  Future<List<LocalEvidence>> evidenceForItem(
+    String jobId,
+    String itemId,
+  ) async => rows;
+
+  @override
+  Future<void> deleteLocalEvidence(String evidenceId) async {
+    onDelete?.call(evidenceId);
+  }
+}
+
+/// API double that records deletes and serves fixed content bytes.
+class _FakeApi implements TechnicianApi {
+  _FakeApi({this.content = const <int>[]});
+
+  final List<int> content;
+  final List<String> deletedIds = [];
+
+  @override
+  Future<void> deleteEvidence(
+    String jobId,
+    String itemCode,
+    String evidenceId,
+  ) async {
+    deletedIds.add(evidenceId);
+  }
+
+  @override
+  Future<List<int>> evidenceContent(
+    String jobId,
+    String itemCode,
+    String evidenceId,
+  ) async => content;
+
+  @override
+  Future<JobSummaryPage> technicianJobs({
+    int page = 0,
+    int size = 20,
+    String? status,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<JobSummary> technicianJob(String id) => throw UnimplementedError();
+
+  @override
+  Future<Checklist> cleanChecklist(String jobId) => throw UnimplementedError();
+
+  @override
+  Future<Assessment> saveAssessment(
+    String jobId,
+    String itemCode,
+    AssessmentRequest request, {
+    String? idempotencyKey,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Summary> summary(String jobId) => throw UnimplementedError();
+
+  @override
+  Future<Review> cleanReview(String jobId) => throw UnimplementedError();
+
+  @override
+  Future<Signature> submitSignature(
+    String jobId,
+    SignatureRequest request, {
+    String? idempotencyKey,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<CompleteResult> completeJob(
+    String jobId,
+    CompleteRequest request, {
+    String? idempotencyKey,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<SyncResult> sync(String jobId, SyncRequest request) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Evidence> cleanInitEvidence(
+    String jobId,
+    String itemCode,
+    EvidenceInitRequest request, {
+    String? idempotencyKey,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Evidence> uploadEvidenceContent(
+    String jobId,
+    String itemCode,
+    String evidenceId,
+    List<int> bytes, {
+    required String contentType,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<Evidence> cleanCompleteEvidence(
+    String jobId,
+    String itemCode,
+    String evidenceId,
+    EvidenceCompleteRequest request,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<List<Evidence>> evidenceList(String jobId, String itemCode) =>
+      throw UnimplementedError();
+
+  @override
+  Future<VehiclePhoto?> getVehiclePhoto(String jobId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<VehiclePhoto> initVehiclePhoto(
+    String jobId,
+    VehiclePhotoInitRequest request, {
+    String? idempotencyKey,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<VehiclePhoto> uploadVehiclePhotoContent(
+    String jobId,
+    String photoId,
+    List<int> bytes, {
+    required String contentType,
+    void Function(int sent, int total)? onSendProgress,
+    RequestCancellation? cancellation,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<VehiclePhoto> completeVehiclePhoto(String jobId, String photoId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<int>> vehiclePhotoContent(String jobId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> deleteVehiclePhoto(String jobId) => throw UnimplementedError();
 }
 
 void main() {
@@ -808,6 +971,277 @@ void main() {
         ),
       );
       expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('evidence strip', () {
+    // A 1x1 transparent PNG: decodes in the test engine, no assets needed.
+    final png = Uint8List.fromList(const <int>[
+      0x89,
+      0x50,
+      0x4E,
+      0x47,
+      0x0D,
+      0x0A,
+      0x1A,
+      0x0A,
+      0x00,
+      0x00,
+      0x00,
+      0x0D,
+      0x49,
+      0x48,
+      0x44,
+      0x52,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x08,
+      0x06,
+      0x00,
+      0x00,
+      0x00,
+      0x1F,
+      0x15,
+      0xC4,
+      0x89,
+      0x00,
+      0x00,
+      0x00,
+      0x0A,
+      0x49,
+      0x44,
+      0x41,
+      0x54,
+      0x78,
+      0x9C,
+      0x63,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x05,
+      0x00,
+      0x01,
+      0x0D,
+      0x0A,
+      0x2D,
+      0xB4,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x49,
+      0x45,
+      0x4E,
+      0x44,
+      0xAE,
+      0x42,
+      0x60,
+      0x82,
+    ]);
+
+    Future<void> pumpStripPage(
+      WidgetTester tester, {
+      required List<Evidence> evidence,
+      String status = 'SCHEDULED',
+      _FakeApi? api,
+      OfflineStore? store,
+    }) async {
+      final checklist = _checklist(status: status);
+      await tester.pumpWidget(
+        _scope(
+          child: _host(_page(checklist)),
+          checklist: checklist,
+          evidence: evidence,
+          store: store,
+          extra: [
+            technicianApiProvider.overrideWith((ref) => api ?? _FakeApi()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('strip appears under the rows when captures exist', (
+      tester,
+    ) async {
+      await pumpStripPage(
+        tester,
+        evidence: [
+          _evidence(type: 'PHOTO'),
+          _evidence(type: 'VIDEO', id: 'ev-2'),
+        ],
+      );
+
+      expect(find.byType(EvidenceStrip), findsOneWidget);
+      expect(find.bySemanticsLabel('Photo'), findsOneWidget);
+      expect(find.bySemanticsLabel('Video'), findsOneWidget);
+      expect(find.bySemanticsLabel('Delete evidence'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('confirming delete calls the endpoint and confirms', (
+      tester,
+    ) async {
+      final api = _FakeApi();
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'PHOTO')],
+        api: api,
+      );
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Delete evidence'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This removes the file from this item.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(api.deletedIds, ['ev-1']);
+      expect(find.text('Evidence deleted.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('dismissing the confirm keeps the capture', (tester) async {
+      final api = _FakeApi();
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'PHOTO')],
+        api: api,
+      );
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Delete evidence'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(api.deletedIds, isEmpty);
+      expect(find.byType(EvidenceStrip), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('video tile opens the viewer sheet', (tester) async {
+      await pumpStripPage(tester, evidence: [_evidence(type: 'VIDEO')]);
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Video'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('42 B'), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('42 B'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('photo tile opens the markup route', (tester) async {
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'PHOTO')],
+        api: _FakeApi(content: png),
+      );
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Photo'));
+      // The editor runs an endless guide animation, so settle manually.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(PhotoMarkupPage), findsOneWidget);
+      tester.state<NavigatorState>(find.byType(Navigator).last).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoMarkupPage), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('read-only views photos in the sheet, never the editor', (
+      tester,
+    ) async {
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'PHOTO')],
+        status: 'PENDING_REVIEW',
+      );
+
+      expect(find.bySemanticsLabel('Delete evidence'), findsNothing);
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Photo'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PhotoMarkupPage), findsNothing);
+      expect(find.text('42 B'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('queued rows delete through the offline store', (tester) async {
+      final deletedLocal = <String>[];
+      final store = _FakeLocalStore(onDelete: deletedLocal.add);
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'VIDEO', id: 'local-q1')],
+        store: store,
+      );
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Delete evidence'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(deletedLocal, ['q1']);
+      expect(find.text('Evidence deleted.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('queued photo marks up from the queued blob', (tester) async {
+      final store = _FakeLocalStore(
+        rows: [
+          LocalEvidence(
+            id: 'q1',
+            jobId: 'job-1001',
+            itemId: 'brake_pads_front',
+            mimeType: 'image/jpeg',
+            sha256: 'sha-q1',
+            bytes: png,
+            state: 'PENDING',
+            createdAt: DateTime.utc(2026, 3, 12, 9, 31),
+          ),
+        ],
+      );
+      await pumpStripPage(
+        tester,
+        evidence: [_evidence(type: 'PHOTO', id: 'local-q1')],
+        store: store,
+      );
+      await tester.ensureVisible(find.byType(EvidenceStrip));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Photo'));
+      // The editor runs an endless guide animation, so settle manually.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(PhotoMarkupPage), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

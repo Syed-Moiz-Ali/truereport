@@ -8,6 +8,7 @@ import 'platform_api.dart';
 import 'platform_catalogue_models.dart';
 import 'platform_config_api.dart';
 import 'platform_config_models.dart';
+import 'platform_dashboard_models.dart';
 import 'platform_models.dart';
 
 final platformApiProvider = Provider<PlatformAdminApi>((ref) {
@@ -674,3 +675,8 @@ final auditEventsPageProvider = FutureProvider.autoDispose
 final overviewProvider = FutureProvider.autoDispose<OverviewSummary>(
   (ref) => ref.watch(platformConfigApiProvider).overview(),
 );
+
+final platformDashboardProvider = FutureProvider.autoDispose
+    .family<PlatformDashboard, int>((ref, days) {
+      return ref.watch(platformConfigApiProvider).dashboard(days: days);
+    });

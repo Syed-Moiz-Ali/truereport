@@ -11,11 +11,20 @@ import 'package:technician_app/src/inspection_models.dart';
 import 'package:technician_app/src/technician_providers.dart';
 import 'package:uuid/uuid.dart';
 
+import '../inspection/assessment/item_footer.dart';
+import '../jobs/queue/jobs_queue_primitives.dart';
+import '../jobs/queue/jobs_queue_style.dart';
+import '../jobs/queue/queue_model.dart';
+import 'signature/signature_header.dart';
+import 'signature/signature_pad.dart';
+
 /// The customer's signature, captured on the device.
 ///
-/// The pad takes the screen: it is the only thing that needs care here. The
-/// signer name sits above it, undo/clear sit on the pad itself, and one pinned
-/// action saves the signature onto the report.
+/// One white sheet in the deck language: the signer name sits above it, the
+/// pad is the hero, undo/clear ride inside the pad, and one pinned primary
+/// saves the signature onto the report. The submit call, payload, validation
+/// and navigation are unchanged from the previous screen — only the
+/// presentation is this file's own.
 class TechnicianSignaturePage extends ConsumerStatefulWidget {
   const TechnicianSignaturePage({required this.jobId, super.key});
 
@@ -30,23 +39,62 @@ class _TechnicianSignaturePageState
     extends ConsumerState<TechnicianSignaturePage> {
   final _padKey = GlobalKey();
   final _name = TextEditingController();
+  final _nameFocus = FocusNode();
   final List<List<Offset>> _strokes = [];
   List<Offset>? _current;
+  int _paintVersion = 0;
   String? _error;
   bool _submitting = false;
 
-  bool get _ready => _strokes.isNotEmpty && _name.text.trim().isNotEmpty;
+  /// Shows the name message after the first blur or submit attempt, then
+  /// stays live while the technician types.
+  bool _nameBlurred = false;
+  bool _submitAttempted = false;
+
+  bool get _nameValid => _name.text.trim().isNotEmpty;
+
+  bool get _ready => _strokes.isNotEmpty && _nameValid;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameFocus.addListener(_handleNameFocus);
+  }
 
   @override
   void dispose() {
+    _nameFocus
+      ..removeListener(_handleNameFocus)
+      ..dispose();
     _name.dispose();
     super.dispose();
   }
 
+  void _handleNameFocus() {
+    if (!_nameFocus.hasFocus && mounted) {
+      setState(() => _nameBlurred = true);
+    }
+  }
+
+  String? _nameError(UiStrings t) {
+    if (_nameValid || (!_nameBlurred && !_submitAttempted)) {
+      return null;
+    }
+    return t(TechnicianKeys.technicianSignerNameRequired);
+  }
+
   void _startStroke(Offset point) {
+    // Pan start follows tap down on a real drag: one stroke per touch.
+    if (_current != null) {
+      return;
+    }
+    // First touch on the sheet puts the keyboard away: the hand is signing.
+    _nameFocus.unfocus();
     setState(() {
+      _nameBlurred = true;
       _current = [point];
       _strokes.add(_current!);
+      _paintVersion++;
       _error = null;
     });
   }
@@ -56,7 +104,10 @@ class _TechnicianSignaturePageState
     if (stroke == null) {
       return;
     }
-    setState(() => stroke.add(point));
+    setState(() {
+      stroke.add(point);
+      _paintVersion++;
+    });
   }
 
   void _endStroke() {
@@ -67,13 +118,17 @@ class _TechnicianSignaturePageState
     if (_strokes.isEmpty) {
       return;
     }
-    setState(_strokes.removeLast);
+    setState(() {
+      _strokes.removeLast();
+      _paintVersion++;
+    });
   }
 
   void _clear() {
     setState(() {
       _strokes.clear();
       _current = null;
+      _paintVersion++;
       _error = null;
     });
   }
@@ -93,14 +148,14 @@ class _TechnicianSignaturePageState
     );
     final paint = Paint()
       ..color = const Color(0xFF1A1B1F)
-      ..strokeWidth = 3
+      ..strokeWidth = 4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     for (final stroke in _strokes) {
       if (stroke.length < 2) {
         if (stroke.length == 1) {
-          canvas.drawCircle(stroke.first, 1.6, paint);
+          canvas.drawCircle(stroke.first, 2, paint);
         }
         continue;
       }
@@ -124,7 +179,10 @@ class _TechnicianSignaturePageState
   Future<void> _submit() async {
     final t = UiStrings.of(context);
     if (!_ready) {
-      setState(() => _error = t(TechnicianKeys.technicianSignatureRequired));
+      setState(() {
+        _submitAttempted = true;
+        _error = t(TechnicianKeys.technicianSignatureRequired);
+      });
       return;
     }
     final bytes = await _exportPng();
@@ -175,526 +233,306 @@ class _TechnicianSignaturePageState
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
-    final reference =
-        ref
-            .watch(technicianJobSummaryProvider(widget.jobId))
-            .asData
-            ?.value
-            .reference ??
-        '';
-    final language = Localizations.localeOf(context).languageCode;
+    final job = ref
+        .watch(technicianJobSummaryProvider(widget.jobId))
+        .asData
+        ?.value;
+    final readOnly = job == null || verbFor(job) == QueueVerb.view;
     return AppScaffold(
       backgroundColor: context.colors.surfaceContainerLow,
       body: Column(
         children: [
-          _ScreenBar(reference: reference.trim()),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 20),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AppTextField(
-                        key: const Key('signature-name'),
-                        controller: _name,
-                        label: t(TechnicianKeys.technicianSignerName),
-                        labelAbove: true,
-                        onChanged: (_) => setState(() => _error = null),
-                      ),
-                      const SizedBox(height: 14),
-                      _Pad(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 28),
+              child: _Capped(
+                child: readOnly
+                    ? _ReadOnlyBody(job: job, onBack: _pop)
+                    : _SigningBody(
+                        job: job,
+                        name: _name,
+                        nameFocus: _nameFocus,
+                        nameError: _nameError(t),
                         padKey: _padKey,
                         strokes: _strokes,
-                        prompt: t(TechnicianKeys.technicianSignatureHint),
-                        showPrompt: _strokes.isEmpty,
-                        invalid: _error != null,
-                        onStart: _startStroke,
-                        onUpdate: _extendStroke,
-                        onEnd: _endStroke,
+                        version: _paintVersion,
+                        ready: _ready,
+                        error: _error,
+                        onNameChanged: (_) => setState(() => _error = null),
+                        onNameSubmitted: (_) =>
+                            FocusScope.of(context).unfocus(),
+                        onStartStroke: _startStroke,
+                        onExtendStroke: _extendStroke,
+                        onEndStroke: _endStroke,
                         onUndo: _submitting || _strokes.isEmpty ? null : _undo,
                         onClear: _submitting || _strokes.isEmpty
                             ? null
                             : _clear,
+                        onRetry: _submitting ? null : _submit,
+                        onBack: _pop,
                       ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 8),
-                        Semantics(
-                          liveRegion: true,
-                          child: Text(
-                            _error!,
-                            style: context.texts.bodySmall?.copyWith(
-                              color: context.colors.error,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (_ready) ...[
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle_outline,
-                              size: 14,
-                              color: context.statusColors.success.foreground,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${t(TechnicianKeys.technicianSignatureCaptured)} · '
-                                '${_name.text.trim()}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.texts.labelSmall?.copyWith(
-                                  color:
-                                      context.statusColors.success.foreground,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (language.isEmpty) const SizedBox.shrink(),
-                    ],
-                  ),
-                ),
               ),
             ),
           ),
-          _Footer(
-            hint: _ready
-                ? _name.text.trim()
-                : t(TechnicianKeys.technicianSignatureRequired),
-            ready: _ready,
-            submitting: _submitting,
-            onPressed: _submit,
+          ItemFooter(
+            primaryLabel: readOnly
+                ? t(TechnicianKeys.commonBack)
+                : t(TechnicianKeys.technicianSaveSignature),
+            onPrimary: readOnly
+                ? _pop
+                : _ready && !_submitting
+                ? _submit
+                : null,
+            saving: _submitting && !readOnly,
+            secondaryLabel: readOnly
+                ? null
+                : t(TechnicianKeys.technicianBackToSummary),
+            onSecondary: readOnly ? null : _pop,
           ),
         ],
       ),
     );
   }
+
+  void _pop() => Navigator.of(context).maybePop();
 }
 
-class _ScreenBar extends StatelessWidget {
-  const _ScreenBar({required this.reference});
-
-  final String reference;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = UiStrings.of(context);
-    final colors = context.colors;
-    return Center(
-      heightFactor: 1,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(4, 6, 16, 8),
-          child: Row(
-            children: [
-              Semantics(
-                button: true,
-                label: MaterialLocalizations.of(context).backButtonTooltip,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).maybePop(),
-                  child: const SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Icon(Icons.arrow_back_rounded, size: 21),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  t(TechnicianKeys.technicianSignatureTitle),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.texts.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-              ),
-              if (reference.isNotEmpty)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 120),
-                  child: Text(
-                    reference,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: context.texts.labelMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The signing sheet: a rule to sign above, undo/clear on its own corner.
-class _Pad extends StatelessWidget {
-  const _Pad({
+/// The editable sheet: header, one white signing card, states below the pad.
+class _SigningBody extends StatelessWidget {
+  const _SigningBody({
+    required this.job,
+    required this.name,
+    required this.nameFocus,
+    required this.nameError,
     required this.padKey,
     required this.strokes,
-    required this.prompt,
-    required this.showPrompt,
-    required this.invalid,
-    required this.onStart,
-    required this.onUpdate,
-    required this.onEnd,
+    required this.version,
+    required this.ready,
+    required this.error,
+    required this.onNameChanged,
+    required this.onNameSubmitted,
+    required this.onStartStroke,
+    required this.onExtendStroke,
+    required this.onEndStroke,
     required this.onUndo,
     required this.onClear,
+    required this.onRetry,
+    required this.onBack,
   });
 
+  final JobSummary? job;
+  final TextEditingController name;
+  final FocusNode nameFocus;
+  final String? nameError;
   final GlobalKey padKey;
   final List<List<Offset>> strokes;
-  final String prompt;
-  final bool showPrompt;
-  final bool invalid;
-  final ValueChanged<Offset> onStart;
-  final ValueChanged<Offset> onUpdate;
-  final VoidCallback onEnd;
+  final int version;
+  final bool ready;
+  final String? error;
+  final ValueChanged<String> onNameChanged;
+  final ValueChanged<String> onNameSubmitted;
+  final ValueChanged<Offset> onStartStroke;
+  final ValueChanged<Offset> onExtendStroke;
+  final VoidCallback onEndStroke;
   final VoidCallback? onUndo;
   final VoidCallback? onClear;
+  final VoidCallback? onRetry;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
-    final colors = context.colors;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: invalid ? colors.error : colors.outlineVariant,
-          width: invalid ? 1.5 : 1,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 46),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SizedBox(
-                // A signing sheet, not a letterbox: cap the height so the rule
-                // and the strokes stay together on a wide window.
-                height: (constraints.maxWidth / 2.1).clamp(160.0, 230.0),
-                child: GestureDetector(
-                  key: padKey,
-                  behavior: HitTestBehavior.opaque,
-                  onPanStart: (details) => onStart(details.localPosition),
-                  onPanUpdate: (details) => onUpdate(details.localPosition),
-                  onPanEnd: (_) => onEnd(),
-                  onPanCancel: onEnd,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 24,
-                        right: 24,
-                        bottom: 26,
-                        child: Container(
-                          height: 1.2,
-                          color: colors.outlineVariant,
-                        ),
-                      ),
-                      if (showPrompt)
-                        Positioned(
-                          left: 24,
-                          bottom: 34,
-                          child: Text(
-                            prompt,
-                            style: context.texts.labelSmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _SignaturePainter(
-                            strokes: strokes,
-                            color: colors.onSurface,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SignatureHeader(job: job, onBack: onBack),
+        const SizedBox(height: 12),
+        queueReveal(
+          context: context,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.all(20),
+            decoration: BoxDecoration(
+              color: context.colors.surfaceLowest,
+              borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
+              border: Border.all(color: context.colors.outlineVariant),
             ),
-          ),
-          PositionedDirectional(
-            top: 10,
-            end: 10,
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _Tool(
-                  buttonKey: const Key('signature-undo'),
-                  icon: Icons.undo_rounded,
-                  label: t(TechnicianKeys.technicianUndo),
-                  onTap: onUndo,
+                const SignatureCardTitle(),
+                const SizedBox(height: 12),
+                AppTextField(
+                  key: const Key('signature-name'),
+                  controller: name,
+                  focusNode: nameFocus,
+                  label: t(TechnicianKeys.technicianSignerName),
+                  labelAbove: true,
+                  errorText: nameError,
+                  keyboardType: TextInputType.name,
+                  textInputAction: TextInputAction.done,
+                  maxLength: 80,
+                  // The name is spoken, not autocompleted: no autofill hints.
+                  onChanged: onNameChanged,
+                  onFieldSubmitted: onNameSubmitted,
                 ),
-                const SizedBox(width: 8),
-                _Tool(
-                  buttonKey: const Key('signature-clear'),
-                  icon: Icons.layers_clear_outlined,
-                  label: t(TechnicianKeys.technicianClearSignature),
-                  onTap: onClear,
+                const SizedBox(height: 16),
+                SignaturePad(
+                  padKey: padKey,
+                  strokes: strokes,
+                  version: version,
+                  showPrompt: strokes.isEmpty,
+                  onStart: onStartStroke,
+                  onUpdate: onExtendStroke,
+                  onEnd: onEndStroke,
+                  onUndo: onUndo,
+                  onClear: onClear,
                 ),
+                if (ready) ...[
+                  const SizedBox(height: 12),
+                  _SignedRow(name: name.text.trim()),
+                ],
+                if (error != null) ...[
+                  const SizedBox(height: 12),
+                  Semantics(
+                    liveRegion: true,
+                    child: QueueNote(
+                      icon: Icons.error_outline_rounded,
+                      label: error!,
+                      tone: StatusTone.danger,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  QueueButton(
+                    label: t(TechnicianKeys.retryAction),
+                    variant: QueueButtonVariant.soft,
+                    icon: Icons.refresh_rounded,
+                    expand: true,
+                    onPressed: onRetry,
+                  ),
+                ],
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Tool extends StatelessWidget {
-  const _Tool({
-    required this.buttonKey,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final Key buttonKey;
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final enabled = onTap != null;
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: GestureDetector(
-        key: buttonKey,
-        onTap: onTap,
-        child: Container(
-          height: 30,
-          padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 13,
-                color: enabled ? colors.onSurface : colors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: context.texts.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: enabled ? colors.onSurface : colors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _Footer extends StatelessWidget {
-  const _Footer({
-    required this.hint,
-    required this.ready,
-    required this.submitting,
-    required this.onPressed,
-  });
+/// View-only jobs: the reason, nothing to sign, one way back.
+class _ReadOnlyBody extends StatelessWidget {
+  const _ReadOnlyBody({required this.job, required this.onBack});
 
-  final String hint;
-  final bool ready;
-  final bool submitting;
-  final VoidCallback onPressed;
+  final JobSummary? job;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     final t = UiStrings.of(context);
     final colors = context.colors;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.outlineVariant)),
-      ),
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 12),
-      child: Center(
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 620),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (job != null) ...[
+          SignatureHeader(job: job, onBack: onBack),
+          const SizedBox(height: 12),
+        ],
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsetsDirectional.all(20),
+          decoration: BoxDecoration(
+            color: colors.surfaceLowest,
+            borderRadius: BorderRadius.circular(QueueMetrics.radiusCard),
+            border: Border.all(color: colors.outlineVariant),
+          ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      t(TechnicianKeys.technicianSignature).toUpperCase(),
-                      style: context.texts.labelSmall?.copyWith(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.9,
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      hint,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.texts.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: context.statusColors.warning.background,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.visibility_outlined,
+                  size: 22,
+                  color: context.statusColors.warning.foreground,
                 ),
               ),
               const SizedBox(width: 12),
-              _PrimaryAction(
-                label: t(TechnicianKeys.technicianSaveSignature),
-                saving: submitting,
-                enabled: ready && !submitting,
-                onPressed: onPressed,
+              Expanded(
+                child: Text(
+                  t(TechnicianKeys.technicianSignatureReadOnly),
+                  style: queueBody(context, color: colors.onSurfaceVariant),
+                ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _PrimaryAction extends StatelessWidget {
-  const _PrimaryAction({
-    required this.label,
-    required this.saving,
-    required this.enabled,
-    required this.onPressed,
-  });
+/// The signed state: who signed, with the check.
+class _SignedRow extends StatelessWidget {
+  const _SignedRow({required this.name});
 
-  final String label;
-  final bool saving;
-  final bool enabled;
-  final VoidCallback onPressed;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: GestureDetector(
-        key: const Key('signature-submit'),
-        onTap: enabled ? onPressed : null,
-        child: SizedBox(
-          height: 48,
-          child: Material(
-            color: enabled
-                ? context.brand.ink
-                : context.brand.ink.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(14),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: enabled ? onPressed : null,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (saving)
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    else
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.texts.labelLarge?.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    if (!saving) ...[
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.check_rounded,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+    final t = UiStrings.of(context);
+    final pair = context.statusColors.success;
+    return Row(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: pair.background,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.check_rounded, size: 16, color: pair.foreground),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '$name · ${t(TechnicianKeys.technicianSignatureCaptured)}',
+            maxLines: 2,
+            style: queueText(
+              context,
+              13,
+              weight: FontWeight.w600,
+              height: 18,
+              color: pair.foreground,
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
-class _SignaturePainter extends CustomPainter {
-  const _SignaturePainter({required this.strokes, required this.color});
+class _Capped extends StatelessWidget {
+  const _Capped({required this.child});
 
-  final List<List<Offset>> strokes;
-  final Color color;
+  final Widget child;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    for (final stroke in strokes) {
-      if (stroke.length < 2) {
-        if (stroke.length == 1) {
-          canvas.drawCircle(stroke.first, 1.6, paint);
-        }
-        continue;
-      }
-      final path = Path()..moveTo(stroke.first.dx, stroke.first.dy);
-      for (final point in stroke.skip(1)) {
-        path.lineTo(point.dx, point.dy);
-      }
-      canvas.drawPath(path, paint);
-    }
+  Widget build(BuildContext context) {
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: child,
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant _SignaturePainter oldDelegate) =>
-      oldDelegate.strokes != strokes || oldDelegate.color != color;
 }

@@ -5,17 +5,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.truereport.identity.User;
 import com.truereport.identity.UserRepository;
 import com.truereport.jobs.PlatformJobStore.AssignmentRow;
+import com.truereport.jobs.PlatformJobStore.ActivityRow;
+import com.truereport.jobs.PlatformJobStore.AssignedCountRow;
+import com.truereport.jobs.PlatformJobStore.CustomerJobRow;
+import com.truereport.jobs.PlatformJobStore.DailyCountRow;
 import com.truereport.jobs.PlatformJobStore.DocumentRow;
 import com.truereport.jobs.PlatformJobStore.GradeBoundaryRow;
 import com.truereport.jobs.PlatformJobStore.JobRow;
 import com.truereport.jobs.PlatformJobStore.LinkRow;
 import com.truereport.jobs.PlatformJobStore.NotificationRow;
+import com.truereport.jobs.PlatformJobStore.QualityRow;
+import com.truereport.jobs.PlatformJobStore.ReportCountsRow;
 import com.truereport.jobs.PlatformJobStore.ReportItemRow;
 import com.truereport.jobs.PlatformJobStore.ReportVersionRow;
 import com.truereport.jobs.PlatformJobStore.ResultRow;
 import com.truereport.jobs.PlatformJobStore.ScoringRuleRow;
 import com.truereport.jobs.PlatformJobStore.TemplateItemRow;
 import com.truereport.jobs.PlatformJobStore.TemplateVersionRow;
+import com.truereport.jobs.PlatformJobStore.TurnaroundRow;
+import com.truereport.jobs.api.WorkshopDashboardDtos.ActivityDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.CustomerLoadDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.CustomerSummaryDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.DailyFlowDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.QualityDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.ReportSummaryDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.StaffLoadDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.StaffSummaryDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.TurnaroundDto;
+import com.truereport.jobs.api.WorkshopDashboardDtos.WorkshopDashboardDto;
 import com.truereport.jobs.api.WorkshopJobDtos.AllowedActionDto;
 import com.truereport.jobs.api.WorkshopJobDtos.ApproveJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.AssignTechnicianRequest;
@@ -63,6 +80,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -236,6 +254,117 @@ public class WorkshopJobAdminService {
                 counts.getOrDefault("REJECTED", 0L),
                 counts.getOrDefault("CANCELLED", 0L),
                 total);
+    }
+
+    @Transactional(readOnly = true)
+    public WorkshopDashboardDto dashboard(CurrentUser caller, int days) {
+        String workshopId = requireWorkshop(caller);
+        int window = Math.min(90, Math.max(1, days));
+        LocalDate today = LocalDate.now(WallClockTimes.DUBAI);
+        LocalDate fromDay = today.minusDays(window - 1L);
+        LocalDateTime from = fromDay.atStartOfDay();
+
+        Map<LocalDate, long[]> byDay = new LinkedHashMap<>();
+        for (int index = 0; index < window; index++) {
+            byDay.put(fromDay.plusDays(index), new long[2]);
+        }
+        for (DailyCountRow row : store.createdPerDay(workshopId, from)) {
+            long[] cell = byDay.get(row.date());
+            if (cell != null) {
+                cell[0] = row.count();
+            }
+        }
+        for (DailyCountRow row : store.publishedPerDay(workshopId, from)) {
+            long[] cell = byDay.get(row.date());
+            if (cell != null) {
+                cell[1] = row.count();
+            }
+        }
+        List<DailyFlowDto> trend = new ArrayList<>(window);
+        for (Map.Entry<LocalDate, long[]> entry : byDay.entrySet()) {
+            trend.add(new DailyFlowDto(entry.getKey().toString(),
+                    entry.getValue()[0], entry.getValue()[1]));
+        }
+        DailyFlowDto todayFlow = trend.isEmpty()
+                ? new DailyFlowDto(today.toString(), 0, 0)
+                : trend.get(trend.size() - 1);
+
+        long totalMinutes = 0;
+        int turnarounds = 0;
+        for (TurnaroundRow row : store.completedJobs(workshopId, from)) {
+            if (row.startedAt() == null || row.completedAt() == null
+                    || row.completedAt().isBefore(row.startedAt())) {
+                continue;
+            }
+            totalMinutes += Math.max(0,
+                    Duration.between(row.startedAt(), row.completedAt()).toMinutes());
+            turnarounds++;
+        }
+        Long averageMinutes = turnarounds == 0
+                ? null
+                : Math.round((double) totalMinutes / turnarounds);
+
+        QualityRow qualityRow = store.quality(workshopId, from);
+        QualityDto quality = new QualityDto(
+                qualityRow.averageScore() == null
+                        ? null
+                        : (int) Math.round(qualityRow.averageScore()),
+                qualityRow.scoredJobs());
+
+        List<WorkshopMembership> activeStaff =
+                memberships.findByWorkshopIdAndStatusOrderByRoleAsc(
+                        UUID.fromString(workshopId), "ACTIVE");
+        int technicians = (int) activeStaff.stream()
+                .filter(member -> member.getRole() == WorkshopRole.TECHNICIAN)
+                .count();
+        List<AssignedCountRow> openRows = new ArrayList<>(store.openJobsByTechnician(workshopId));
+        openRows.sort(Comparator.comparingLong(AssignedCountRow::count).reversed());
+        Map<String, Long> completedByTechnician = new LinkedHashMap<>();
+        for (AssignedCountRow row : store.completedByTechnician(workshopId, from)) {
+            completedByTechnician.put(row.technicianId(), row.count());
+        }
+        List<StaffLoadDto> topStaff = new ArrayList<>();
+        for (AssignedCountRow row : openRows) {
+            if (topStaff.size() >= 5) {
+                break;
+            }
+            topStaff.add(new StaffLoadDto(row.technicianId(), displayName(row.technicianId()),
+                    row.count(), completedByTechnician.getOrDefault(row.technicianId(), 0L)));
+        }
+        StaffSummaryDto staff = new StaffSummaryDto(technicians, openRows.size(), topStaff);
+
+        Map<String, Long> byCustomer = new LinkedHashMap<>();
+        for (CustomerJobRow row : store.customerJobs(workshopId, from)) {
+            String name = row.customerName() == null ? "" : row.customerName().trim();
+            if (!name.isEmpty()) {
+                byCustomer.merge(name, 1L, Long::sum);
+            }
+        }
+        int served = byCustomer.size();
+        int repeat = (int) byCustomer.values().stream().filter(count -> count > 1).count();
+        List<CustomerLoadDto> topCustomers = byCustomer.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(entry -> new CustomerLoadDto(entry.getKey(), entry.getValue()))
+                .toList();
+        CustomerSummaryDto customers = new CustomerSummaryDto(served, repeat, topCustomers);
+
+        ReportCountsRow reportCounts = store.reportCounts(workshopId, from);
+        ReportSummaryDto reports = new ReportSummaryDto(
+                reportCounts.versions(), reportCounts.published(),
+                reportCounts.documents(), reportCounts.readyDocuments(),
+                reportCounts.failedDocuments(), reportCounts.exportBytes(),
+                reportCounts.activeLinks(), reportCounts.revokedLinks());
+
+        List<ActivityDto> activity = store.recentActivity(workshopId, 8).stream()
+                .map(row -> new ActivityDto(row.jobId(), str(row.occurredAt()),
+                        displayName(row.actorId()), row.fromStatus(), row.toStatus(),
+                        row.reference()))
+                .toList();
+
+        return new WorkshopDashboardDto(window, WallClockTimes.dubaiNow().toString(),
+                todayFlow, trend, new TurnaroundDto(averageMinutes, turnarounds),
+                quality, staff, customers, reports, activity);
     }
 
     @Transactional(readOnly = true)

@@ -2,6 +2,7 @@ package com.truereport.jobs.api;
 
 import com.truereport.jobs.WorkshopJobAdminService;
 import com.truereport.jobs.WorkshopJobAdminService.DocumentContent;
+import com.truereport.jobs.api.WorkshopDashboardDtos.WorkshopDashboardDto;
 import com.truereport.jobs.api.WorkshopJobDtos.ApproveJobRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.AssignTechnicianRequest;
 import com.truereport.jobs.api.WorkshopJobDtos.AssignmentDto;
@@ -87,6 +88,12 @@ public class WorkshopJobAdminController {
     @GetMapping("/jobs/counts")
     public JobStatusCountsDto counts(JwtAuthenticationToken authentication) {
         return service.counts(currentUserService.require(authentication));
+    }
+
+    @GetMapping("/dashboard")
+    public WorkshopDashboardDto dashboard(JwtAuthenticationToken authentication,
+                                          @RequestParam(defaultValue = "14") int days) {
+        return service.dashboard(currentUserService.require(authentication), days);
     }
 
     @GetMapping("/jobs/{id}")

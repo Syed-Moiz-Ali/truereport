@@ -27,6 +27,7 @@ class EvidenceSection extends StatelessWidget {
     this.onRetry,
     this.error,
     this.queued = false,
+    this.strip,
     super.key,
   });
 
@@ -50,6 +51,11 @@ class EvidenceSection extends StatelessWidget {
   final VoidCallback? onRetry;
   final String? error;
   final bool queued;
+
+  /// Thumbnail strip under the Photo/Video rows; null when there is nothing
+  /// captured yet. The screen owns open/delete/bytes — this card only lays
+  /// the rows and the strip out.
+  final Widget? strip;
 
   bool get _empty => photos == 0 && videos == 0 && documents == 0 && !busy;
 
@@ -146,6 +152,7 @@ class EvidenceSection extends StatelessWidget {
               onTap: onCaptureDocument ?? onCapturePhoto,
             ),
           ],
+          if (strip != null) ...[const SizedBox(height: 12), strip!],
           if (busy) ...[
             const SizedBox(height: 12),
             if (progress != null)

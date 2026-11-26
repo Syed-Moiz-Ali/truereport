@@ -56,6 +56,11 @@ final cleanJobCountsProvider = FutureProvider.autoDispose<CleanJobCounts>((
   return ref.watch(adminApiProvider).cleanJobCounts();
 });
 
+final workshopDashboardProvider = FutureProvider.autoDispose
+    .family<WorkshopDashboard, int>((ref, days) {
+      return ref.watch(adminApiProvider).workshopDashboard(days: days);
+    });
+
 final jobAssignmentsProvider = FutureProvider.autoDispose
     .family<List<JobAssignment>, String>((ref, jobId) {
       return ref.watch(adminApiProvider).jobAssignments(jobId);

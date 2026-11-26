@@ -22,6 +22,8 @@ import '../jobs/queue/jobs_queue_primitives.dart';
 import '../jobs/queue/jobs_queue_style.dart';
 import '../jobs/queue/queue_model.dart';
 import 'assessment/evidence_section.dart';
+import 'assessment/evidence_strip.dart';
+import 'assessment/evidence_viewer.dart';
 import 'assessment/item_footer.dart';
 import 'assessment/item_header.dart';
 import 'assessment/mark_prompt.dart';
@@ -216,6 +218,13 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   /// The fresh photo awaiting the mark question, with its in-memory bytes so
   /// marking never needs to reload it.
   ({Uint8List bytes, String caption})? _markCandidate;
+
+  /// Sha of the in-flight upload attempt, so the strip can badge the matching
+  /// tile as uploading; the last failed attempt's sha for the failed badge.
+  /// Both clear when the next capture starts.
+  String? _activeSha;
+  String? _uploadingSha;
+  String? _failedSha;
 
   /// Null until the technician opens or closes the folded details; the first
   /// build decides from how many folded fields the item actually requires.
@@ -791,7 +800,10 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     if (_queue.isBusy) {
       return;
     }
-    setState(() => _evidenceError = null);
+    setState(() {
+      _evidenceError = null;
+      _failedSha = null;
+    });
     _queue.markCapturing(type);
     try {
       final existing = await _existingSha256();
@@ -805,6 +817,8 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
         _queue.clearCapturing();
         return;
       }
+      _activeSha = sha256Hex(captured.bytes);
+      _uploadingSha = _activeSha;
       final result = await _queue.enqueue(
         captured,
         captionEn: null,
@@ -866,6 +880,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     final t = UiStrings.of(context);
     switch (result.outcome) {
       case EvidenceUploadOutcome.uploaded:
+        _uploadingSha = null;
         _autoSaveArmed = true;
         _invalidateEvidence();
         showAppSnackBar(
@@ -873,6 +888,7 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
           message: t(TechnicianKeys.technicianEvidenceUploaded),
         );
       case EvidenceUploadOutcome.queued:
+        _uploadingSha = null;
         _autoSaveArmed = true;
         _invalidateEvidence();
         ref.invalidate(syncQueueStatusProvider);
@@ -881,12 +897,17 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
           message: t(TechnicianKeys.technicianOfflineQueued),
         );
       case EvidenceUploadOutcome.invalid:
+        _uploadingSha = null;
+        _failedSha = _activeSha;
         setState(
           () => _evidenceError = _evidenceFailureLabel(t, result.failure!),
         );
       case EvidenceUploadOutcome.failed:
+        _uploadingSha = null;
+        _failedSha = _activeSha;
         setState(() => _evidenceError = _serverEvidenceError(t, result.error!));
       case EvidenceUploadOutcome.cancelled:
+        _uploadingSha = null;
         showAppSnackBar(
           context,
           message: t(TechnicianKeys.technicianEvidenceCancelled),
@@ -904,6 +925,8 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   }
 
   Future<void> _retryEvidence() async {
+    _failedSha = null;
+    _uploadingSha = _activeSha;
     final result = await _queue.retryLast();
     if (!mounted) {
       return;
@@ -1162,6 +1185,18 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
                     minVideos: requirement.minVideos,
                     documents: documents,
                     minDocuments: requirement.requiresDocument ? 1 : 0,
+                    strip: evidence.isEmpty
+                        ? null
+                        : EvidenceStrip(
+                            items: evidence,
+                            upload: upload,
+                            uploadingSha: _uploadingSha,
+                            failedSha: _failedSha,
+                            interactive: !readOnly,
+                            onOpen: _openEvidence,
+                            onDelete: _confirmDeleteEvidence,
+                            loadBytes: _evidenceBytes,
+                          ),
                     onCapturePhoto: () => _captureDirect('PHOTO'),
                     onCaptureVideo: () => _captureDirect('VIDEO'),
                     onCaptureDocument: requirement.requiresDocument
@@ -1472,6 +1507,111 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
     }
   }
 
+  /// Deletes a tile after the confirm sheet: offline-queued rows through the
+  /// offline store, served rows through the existing delete endpoint.
+  Future<void> _confirmDeleteEvidence(Evidence evidence) async {
+    final t = UiStrings.of(context);
+    final confirmed = await showAppConfirmDialog(
+      context,
+      title: t(TechnicianKeys.technicianDeleteEvidence),
+      message: t(TechnicianKeys.technicianDeleteEvidenceBody),
+      confirmLabel: t(TechnicianKeys.delete),
+      cancelLabel: MaterialLocalizations.of(context).cancelButtonLabel,
+      destructive: true,
+    );
+    if (!confirmed || !mounted) {
+      return;
+    }
+    try {
+      if (evidence.id.startsWith('local-')) {
+        await ref
+            .read(offlineStoreProvider)
+            .deleteLocalEvidence(evidence.id.substring('local-'.length));
+      } else {
+        await ref
+            .read(technicianApiProvider)
+            .deleteEvidence(jobId, evidence.itemCode, evidence.id);
+      }
+    } on Object catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _evidenceError = _serverEvidenceError(t, error));
+      return;
+    }
+    _invalidateEvidence();
+    if (!mounted) {
+      return;
+    }
+    showAppSnackBar(
+      context,
+      message: t(TechnicianKeys.technicianEvidenceDeleted),
+    );
+  }
+
+  /// Thumbnail bytes for the strip: offline-queued rows read the queued blob,
+  /// served rows download through the existing content endpoint.
+  Future<Uint8List?> _evidenceBytes(Evidence evidence) async {
+    try {
+      if (evidence.id.startsWith('local-')) {
+        final local = await ref
+            .read(offlineStoreProvider)
+            .evidenceForItem(jobId, evidence.itemCode);
+        final id = evidence.id.substring('local-'.length);
+        for (final row in local) {
+          if (row.id == id) {
+            return row.bytes;
+          }
+        }
+        return null;
+      }
+      final bytes = await ref
+          .read(technicianApiProvider)
+          .evidenceContent(jobId, evidence.itemCode, evidence.id);
+      return Uint8List.fromList(bytes);
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Opens a tile: photos go through the existing markup route and upload as
+  /// an additional marked photo; video and documents open the viewer sheet.
+  /// Read-only items view everything in the sheet — never the editor.
+  Future<void> _openEvidence(Evidence evidence) async {
+    if (!evidence.isPhoto || widget.readOnly) {
+      await showEvidenceViewer(context, evidence);
+      return;
+    }
+    final bytes = await _evidenceBytes(evidence);
+    if (!mounted) {
+      return;
+    }
+    if (bytes == null) {
+      setState(
+        () => _evidenceError = UiStrings.of(context)(
+          TechnicianKeys.commonLoadFailed,
+        ),
+      );
+      return;
+    }
+    final language = Localizations.localeOf(context).languageCode;
+    final marked = await Navigator.of(context).push<MarkedPhoto>(
+      MaterialPageRoute(
+        builder: (_) =>
+            PhotoMarkupPage(photoBytes: bytes, title: item.labelFor(language)),
+      ),
+    );
+    if (marked == null || !mounted) {
+      return;
+    }
+    await _enqueueMarked(
+      marked.bytes,
+      marked.width,
+      marked.height,
+      evidence.captionFor(language) ?? '',
+    );
+  }
+
   /// Uploads marked bytes as ordinary photo evidence so the report shows the
   /// damage circled.
   Future<void> _enqueueMarked(
@@ -1482,6 +1622,9 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
   ) async {
     final t = UiStrings.of(context);
     _queue.markCapturing('PHOTO');
+    _activeSha = sha256Hex(bytes);
+    _uploadingSha = _activeSha;
+    _failedSha = null;
     try {
       final existing = await _existingSha256();
       final caption = baseCaption.isEmpty
@@ -1521,7 +1664,11 @@ class _AssessmentFormState extends ConsumerState<_AssessmentForm> {
       if (!mounted) {
         return;
       }
-      setState(() => _evidenceError = _serverEvidenceError(t, error));
+      setState(() {
+        _uploadingSha = null;
+        _failedSha = _activeSha;
+        _evidenceError = _serverEvidenceError(t, error);
+      });
     }
   }
 

@@ -927,3 +927,251 @@ class UpdateCleanJob {
     'version': version,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Dashboard insights
+// ---------------------------------------------------------------------------
+
+class DashboardFlow {
+  const DashboardFlow({
+    required this.date,
+    required this.created,
+    required this.published,
+  });
+
+  final String date;
+  final int created;
+  final int published;
+
+  DateTime? get day => DateTime.tryParse(date);
+
+  factory DashboardFlow.fromJson(Map<String, dynamic> json) => DashboardFlow(
+    date: _string(json['date']),
+    created: _int(json['created']),
+    published: _int(json['published']),
+  );
+}
+
+class DashboardTurnaround {
+  const DashboardTurnaround({
+    required this.averageMinutes,
+    required this.sampleSize,
+  });
+
+  final int? averageMinutes;
+  final int sampleSize;
+
+  factory DashboardTurnaround.fromJson(Map<String, dynamic> json) =>
+      DashboardTurnaround(
+        averageMinutes: json['averageMinutes'] == null
+            ? null
+            : _int(json['averageMinutes']),
+        sampleSize: _int(json['sampleSize']),
+      );
+}
+
+class DashboardQuality {
+  const DashboardQuality({
+    required this.averageScore,
+    required this.scoredJobs,
+  });
+
+  final int? averageScore;
+  final int scoredJobs;
+
+  factory DashboardQuality.fromJson(Map<String, dynamic> json) =>
+      DashboardQuality(
+        averageScore: json['averageScore'] == null
+            ? null
+            : _int(json['averageScore']),
+        scoredJobs: _int(json['scoredJobs']),
+      );
+}
+
+class DashboardStaffLoad {
+  const DashboardStaffLoad({
+    required this.id,
+    required this.name,
+    required this.openJobs,
+    required this.completed,
+  });
+
+  final String id;
+  final String name;
+  final int openJobs;
+  final int completed;
+
+  factory DashboardStaffLoad.fromJson(Map<String, dynamic> json) =>
+      DashboardStaffLoad(
+        id: _string(json['id']),
+        name: _string(json['name']),
+        openJobs: _int(json['openJobs']),
+        completed: _int(json['completed']),
+      );
+}
+
+class DashboardStaff {
+  const DashboardStaff({
+    required this.technicians,
+    required this.withOpenJobs,
+    required this.top,
+  });
+
+  final int technicians;
+  final int withOpenJobs;
+  final List<DashboardStaffLoad> top;
+
+  factory DashboardStaff.fromJson(Map<String, dynamic> json) => DashboardStaff(
+    technicians: _int(json['technicians']),
+    withOpenJobs: _int(json['withOpenJobs']),
+    top: _list(json['top'])
+        .whereType<Map<String, dynamic>>()
+        .map(DashboardStaffLoad.fromJson)
+        .toList(growable: false),
+  );
+}
+
+class DashboardCustomerLoad {
+  const DashboardCustomerLoad({required this.name, required this.jobs});
+
+  final String name;
+  final int jobs;
+
+  factory DashboardCustomerLoad.fromJson(Map<String, dynamic> json) =>
+      DashboardCustomerLoad(
+        name: _string(json['name']),
+        jobs: _int(json['jobs']),
+      );
+}
+
+class DashboardCustomers {
+  const DashboardCustomers({
+    required this.served,
+    required this.repeat,
+    required this.top,
+  });
+
+  final int served;
+  final int repeat;
+  final List<DashboardCustomerLoad> top;
+
+  factory DashboardCustomers.fromJson(Map<String, dynamic> json) =>
+      DashboardCustomers(
+        served: _int(json['served']),
+        repeat: _int(json['repeat']),
+        top: _list(json['top'])
+            .whereType<Map<String, dynamic>>()
+            .map(DashboardCustomerLoad.fromJson)
+            .toList(growable: false),
+      );
+}
+
+class DashboardReports {
+  const DashboardReports({
+    required this.versions,
+    required this.published,
+    required this.documents,
+    required this.readyDocuments,
+    required this.failedDocuments,
+    required this.exportBytes,
+    required this.activeLinks,
+    required this.revokedLinks,
+  });
+
+  final int versions;
+  final int published;
+  final int documents;
+  final int readyDocuments;
+  final int failedDocuments;
+  final int exportBytes;
+  final int activeLinks;
+  final int revokedLinks;
+
+  factory DashboardReports.fromJson(Map<String, dynamic> json) =>
+      DashboardReports(
+        versions: _int(json['versions']),
+        published: _int(json['published']),
+        documents: _int(json['documents']),
+        readyDocuments: _int(json['readyDocuments']),
+        failedDocuments: _int(json['failedDocuments']),
+        exportBytes: _int(json['exportBytes']),
+        activeLinks: _int(json['activeLinks']),
+        revokedLinks: _int(json['revokedLinks']),
+      );
+}
+
+class DashboardActivity {
+  const DashboardActivity({
+    required this.jobId,
+    required this.at,
+    required this.actor,
+    required this.fromStatus,
+    required this.toStatus,
+    required this.reference,
+  });
+
+  final String jobId;
+  final String? at;
+  final String? actor;
+  final String fromStatus;
+  final String toStatus;
+  final String reference;
+
+  DateTime? get occurredAt => at == null ? null : DateTime.tryParse(at!);
+
+  factory DashboardActivity.fromJson(Map<String, dynamic> json) =>
+      DashboardActivity(
+        jobId: _string(json['jobId']),
+        at: _stringOrNull(json['at']),
+        actor: _stringOrNull(json['actor']),
+        fromStatus: _string(json['fromStatus']),
+        toStatus: _string(json['toStatus']),
+        reference: _string(json['reference']),
+      );
+}
+
+class WorkshopDashboard {
+  const WorkshopDashboard({
+    required this.days,
+    required this.generatedAt,
+    required this.today,
+    required this.trend,
+    required this.turnaround,
+    required this.quality,
+    required this.staff,
+    required this.customers,
+    required this.reports,
+    required this.activity,
+  });
+
+  final int days;
+  final String generatedAt;
+  final DashboardFlow today;
+  final List<DashboardFlow> trend;
+  final DashboardTurnaround turnaround;
+  final DashboardQuality quality;
+  final DashboardStaff staff;
+  final DashboardCustomers customers;
+  final DashboardReports reports;
+  final List<DashboardActivity> activity;
+
+  factory WorkshopDashboard.fromJson(Map<String, dynamic> json) =>
+      WorkshopDashboard(
+        days: _int(json['days']),
+        generatedAt: _string(json['generatedAt']),
+        today: DashboardFlow.fromJson(_map(json['today'])),
+        trend: _list(json['trend'])
+            .whereType<Map<String, dynamic>>()
+            .map(DashboardFlow.fromJson)
+            .toList(growable: false),
+        turnaround: DashboardTurnaround.fromJson(_map(json['turnaround'])),
+        quality: DashboardQuality.fromJson(_map(json['quality'])),
+        staff: DashboardStaff.fromJson(_map(json['staff'])),
+        customers: DashboardCustomers.fromJson(_map(json['customers'])),
+        reports: DashboardReports.fromJson(_map(json['reports'])),
+        activity: _list(json['activity'])
+            .whereType<Map<String, dynamic>>()
+            .map(DashboardActivity.fromJson)
+            .toList(growable: false),
+      );
+}

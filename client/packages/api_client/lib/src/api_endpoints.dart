@@ -16,6 +16,7 @@ class ApiEndpoints {
 
   String get hierarchy => '$_root/platform/hierarchy';
   String get platformWorkshops => '$_root/platform/workshops';
+  String platformDashboard(int days) => '$_root/platform/dashboard?days=$days';
   String workshopHierarchy(String workshopId) =>
       '$_root/platform/workshops/$workshopId/hierarchy';
   String get platformUsers => '$_root/platform/users';
@@ -78,6 +79,7 @@ class ApiEndpoints {
   String workshopTemplateDetail(String versionId) =>
       '$_root/workshop/template-versions/$versionId';
   String get workshopCleanJobs => '$_root/workshop/jobs';
+  String workshopDashboard(int days) => '$_root/workshop/dashboard?days=$days';
   String get workshopCleanJobCounts => '$_root/workshop/jobs/counts';
   String workshopCleanJob(String id) => '$_root/workshop/jobs/$id';
   String workshopJobConsent(String id) => '$_root/workshop/jobs/$id/consent';
