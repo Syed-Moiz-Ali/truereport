@@ -25,6 +25,10 @@ enum QueueVerb {
   view,
 }
 
+/// The three agenda views of the shift board. Pure presentation state, kept
+/// here so the page and its widgets share one enum.
+enum ShiftTab { today, upcoming, unfinished }
+
 /// The queue split into the five sections the screen renders.
 ///
 /// Cancelled jobs are deliberately absent from every section: they are still

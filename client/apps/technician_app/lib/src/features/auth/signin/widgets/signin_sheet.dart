@@ -30,6 +30,7 @@ class SignInSheet extends StatelessWidget {
     this.emailHint,
     this.passwordHint,
     required this.primaryLabel,
+    this.busyLabel,
     required this.accessPrompt,
     required this.helpLabel,
     required this.securityLine,
@@ -37,6 +38,7 @@ class SignInSheet extends StatelessWidget {
     required this.passwordValidator,
     required this.codeValidator,
     required this.obscure,
+    required this.revealLabel,
     required this.onToggleObscure,
     required this.onSubmit,
     required this.heading,
@@ -67,6 +69,9 @@ class SignInSheet extends StatelessWidget {
   final String? emailHint;
   final String? passwordHint;
   final String primaryLabel;
+
+  /// Announced while the sign-in request is in flight.
+  final String? busyLabel;
   final String accessPrompt;
   final String helpLabel;
   final String securityLine;
@@ -74,6 +79,10 @@ class SignInSheet extends StatelessWidget {
   final FormFieldValidator<String> passwordValidator;
   final FormFieldValidator<String> codeValidator;
   final bool obscure;
+
+  /// Action label for the password reveal control: "Show password" while the
+  /// value is obscured, "Hide password" while it is visible.
+  final String revealLabel;
   final VoidCallback onToggleObscure;
   final VoidCallback onSubmit;
   final String heading;
@@ -148,6 +157,7 @@ class SignInSheet extends StatelessWidget {
             const SizedBox(height: 6),
             SignInPrimary(
               label: primaryLabel,
+              busyLabel: busyLabel,
               onPressed: busy ? null : onSubmit,
               busy: busy,
               blockKey: submitKey,
@@ -176,6 +186,7 @@ class SignInSheet extends StatelessWidget {
       controller: emailController,
       label: emailLabel,
       hint: emailHint,
+      hintTextDirection: TextDirection.ltr,
       validator: emailValidator,
       focusNode: emailFocus,
       enabled: !challenge,
@@ -200,7 +211,7 @@ class SignInSheet extends StatelessWidget {
       onDark: true,
       suffix: _RevealButton(
         obscured: obscure,
-        label: passwordLabel,
+        label: revealLabel,
         onPressed: onToggleObscure,
       ),
     );

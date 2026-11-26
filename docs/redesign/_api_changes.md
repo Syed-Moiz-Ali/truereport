@@ -23,4 +23,15 @@ OpenAPI change. No migration or rollback note is required.
 `technicianConflictsProvider`, `submitSignature` and `completeJob` calls
 unchanged. No new field, endpoint or shape.
 
+## Jobs · Sync · Profile · Shell · Sign-in
+
+**None.** These surfaces read the existing `technicianJobPageProvider`,
+`syncQueueStatusProvider`, `pendingOperationsProvider`,
+`allTechnicianConflictsProvider`, `authControllerProvider`,
+`supportedLocalesProvider` and the existing sign-in `AuthController` calls.
+The only new reads are presentation-adjacent state that already exists
+(`connectivityProvider` for offline chrome, `languageSelectionProvider` for the
+current language name, `authControllerProvider` for the sync top-bar name).
+No request/response shape, DTO, mapper, repository, OpenAPI or route changed.
+
 **done 0 · blocked 0**

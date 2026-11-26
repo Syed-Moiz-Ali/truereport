@@ -45,6 +45,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
   await loadPlusJakartaSans();
+  await loadArabicFonts();
   await loadMaterialIcons();
   await testMain();
 }
@@ -91,7 +92,36 @@ Future<void> loadPlusJakartaSans() async {
 }
 
 Future<ByteData> _loadFace(String weight) async {
-  final fileName = 'PlusJakartaSans-$weight.ttf';
+  return _loadPackageFont(
+    'PlusJakartaSans-$weight.ttf',
+    'Plus Jakarta Sans $weight',
+  );
+}
+
+/// Registers Noto Sans Arabic so RTL screenshots show real Arabic instead of
+/// the test font's missing-glyph boxes.
+Future<void> loadArabicFonts() async {
+  const weights = <String>['Regular', 'Medium', 'SemiBold', 'Bold'];
+  final faces = <String, ByteData>{};
+  for (final weight in weights) {
+    faces[weight] = await _loadPackageFont(
+      'NotoSansArabic-$weight.ttf',
+      'Noto Sans Arabic $weight',
+    );
+  }
+  for (final family in const <String>[
+    'Noto Sans Arabic',
+    'packages/design_system/Noto Sans Arabic',
+  ]) {
+    final loader = FontLoader(family);
+    for (final weight in weights) {
+      loader.addFont(Future<ByteData>.value(faces[weight]));
+    }
+    await loader.load();
+  }
+}
+
+Future<ByteData> _loadPackageFont(String fileName, String description) async {
   final assetKey = '$_assetDirectory/$fileName';
   try {
     return await rootBundle.load(assetKey);
@@ -102,8 +132,8 @@ Future<ByteData> _loadFace(String weight) async {
   final file = _findSourceFont(fileName);
   if (file == null) {
     throw StateError(
-      'Could not load Plus Jakarta Sans ($fileName) from "$assetKey" or from '
-      'the design_system source tree. Refusing to fall back to Ahem glyphs.',
+      'Could not load $description from "$assetKey" or from the '
+      'design_system source tree. Refusing to fall back to Ahem glyphs.',
     );
   }
   return ByteData.sublistView(await file.readAsBytes());

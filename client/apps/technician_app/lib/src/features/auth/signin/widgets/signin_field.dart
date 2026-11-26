@@ -29,6 +29,7 @@ class SignInField extends StatefulWidget {
     this.autocorrect = false,
     this.enableSuggestions = false,
     this.hint,
+    this.hintTextDirection,
     this.suffix,
     this.fieldKey,
     this.onDark = false,
@@ -52,6 +53,10 @@ class SignInField extends StatefulWidget {
   final bool autocorrect;
   final bool enableSuggestions;
   final String? hint;
+
+  /// Direction for the raised hint. LTR credentials (email) keep their hint
+  /// aligned with the LTR input instead of the RTL interface.
+  final TextDirection? hintTextDirection;
   final Widget? suffix;
   final Key? fieldKey;
 
@@ -119,94 +124,105 @@ class _SignInFieldState extends State<SignInField> {
                 return Semantics(
                   label: widget.label,
                   textField: true,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minHeight: SignInDims.cellHeight,
-                    ),
-                    padding: const EdgeInsetsDirectional.only(
-                      start: 14,
-                      end: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: onDark
-                          ? Colors.white.withValues(
-                              alpha: widget.enabled ? 0.14 : 0.07,
-                            )
-                          : widget.enabled
-                          ? scheme.surfaceContainerLowest
-                          : scheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(
-                        SignInDims.cellRadius,
+                  child: GestureDetector(
+                    // The visible cell is 56 high; the TextField itself is
+                    // only one line. Tapping the cell's padding must focus the
+                    // field (the 44 px target is the cell, not the glyph).
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTap: widget.enabled ? () => _focus.requestFocus() : null,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: SignInDims.cellHeight,
                       ),
-                      border: Border.all(
-                        color: borderColor,
-                        width: focused || invalid ? 1.5 : 1,
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 14,
+                        end: 2,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            key: widget.fieldKey,
-                            controller: widget.controller,
-                            focusNode: _focus,
-                            enabled: widget.enabled,
-                            obscureText: widget.obscure,
-                            keyboardType: widget.keyboardType,
-                            textInputAction: widget.textInputAction,
-                            textCapitalization: widget.textCapitalization,
-                            autofillHints: widget.autofillHints,
-                            inputFormatters: widget.inputFormatters,
-                            autofocus: widget.autofocus,
-                            autocorrect: widget.autocorrect,
-                            enableSuggestions: widget.enableSuggestions,
-                            onSubmitted: widget.onSubmitted,
-                            onChanged: (value) {
-                              widget.onChanged?.call(value);
-                              state.didChange(value);
-                            },
-                            // Identifiers and codes stay LTR in both locales.
-                            textDirection: TextDirection.ltr,
-                            style: Fx.text(
-                              16,
-                              24,
-                              FontWeight.w500,
-                              -0.16,
-                              color: onDark ? Colors.white : scheme.onSurface,
-                            ),
-                            cursorColor: onDark ? Colors.white : scheme.primary,
-                            decoration: InputDecoration(
-                              isDense: true,
-                              // The app theme fills inputs by default; on the
-                              // dark glass sheet that fill would paint an
-                              // opaque bar over the photograph (and hide the
-                              // white input text).
-                              filled: false,
-                              fillColor: Colors.transparent,
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                              hintText: widget.hint,
-                              hintStyle: Fx.text(
+                      decoration: BoxDecoration(
+                        color: onDark
+                            ? Colors.white.withValues(
+                                alpha: widget.enabled ? 0.14 : 0.07,
+                              )
+                            : widget.enabled
+                            ? scheme.surfaceContainerLowest
+                            : scheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(
+                          SignInDims.cellRadius,
+                        ),
+                        border: Border.all(
+                          color: borderColor,
+                          width: focused || invalid ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              key: widget.fieldKey,
+                              controller: widget.controller,
+                              focusNode: _focus,
+                              enabled: widget.enabled,
+                              obscureText: widget.obscure,
+                              keyboardType: widget.keyboardType,
+                              textInputAction: widget.textInputAction,
+                              textCapitalization: widget.textCapitalization,
+                              autofillHints: widget.autofillHints,
+                              inputFormatters: widget.inputFormatters,
+                              autofocus: widget.autofocus,
+                              autocorrect: widget.autocorrect,
+                              enableSuggestions: widget.enableSuggestions,
+                              onSubmitted: widget.onSubmitted,
+                              onChanged: (value) {
+                                widget.onChanged?.call(value);
+                                state.didChange(value);
+                              },
+                              // Identifiers and codes stay LTR in both locales.
+                              textDirection: TextDirection.ltr,
+                              style: Fx.text(
                                 16,
                                 24,
-                                FontWeight.w400,
-                                0,
-                                color: onDark
-                                    ? Colors.white.withValues(alpha: 0.55)
-                                    : scheme.onSurfaceVariant.withValues(
-                                        alpha: 0.55,
-                                      ),
+                                FontWeight.w500,
+                                -0.16,
+                                color: onDark ? Colors.white : scheme.onSurface,
+                              ),
+                              cursorColor: onDark
+                                  ? Colors.white
+                                  : scheme.primary,
+                              decoration: InputDecoration(
+                                isDense: true,
+                                // The app theme fills inputs by default; on the
+                                // dark glass sheet that fill would paint an
+                                // opaque bar over the photograph (and hide the
+                                // white input text).
+                                filled: false,
+                                fillColor: Colors.transparent,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                focusedErrorBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: widget.hint,
+                                hintTextDirection: widget.hintTextDirection,
+                                hintStyle: Fx.text(
+                                  16,
+                                  24,
+                                  FontWeight.w400,
+                                  0,
+                                  color: onDark
+                                      ? Colors.white.withValues(alpha: 0.55)
+                                      : scheme.onSurfaceVariant.withValues(
+                                          alpha: 0.55,
+                                        ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        ?widget.suffix,
-                      ],
+                          ?widget.suffix,
+                        ],
+                      ),
                     ),
                   ),
                 );

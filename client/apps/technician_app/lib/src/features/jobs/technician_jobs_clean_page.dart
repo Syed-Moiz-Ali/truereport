@@ -6,20 +6,17 @@ import 'package:go_router/go_router.dart';
 import 'package:l10n/ui_strings.dart';
 import 'package:reference_data/reference_data.dart';
 
+import '../inspection/fieldwork/fieldwork_ui.dart';
 import '../../inspection_models.dart';
 import '../../reference_ui.dart';
 import '../../technician_providers.dart';
+import 'queue/fieldwork/jobs_board.dart';
 import 'queue/jobs_queue_format.dart';
-import 'queue/jobs_queue_primitives.dart';
-import 'queue/jobs_queue_style.dart';
 import 'queue/queue_model.dart';
-import 'queue/shift/shift_widgets.dart';
 
-/// The technician's shift — mobile and tablet first.
-///
-/// One NOW card (always visible, pinned in the tablet's right pane), one
-/// time-anchored agenda, one action per job. This replaces the deck of stacked
-/// cards: the page is a shift timeline, not a swipeable stack.
+/// The technician's shift as a Fieldwork board: one top bar, a NOW card in a
+/// pinned rail (or above the agenda on phones), a segmented shift switch,
+/// status chips and one time-anchored agenda surface.
 ///
 /// Behaviour is unchanged: the same providers, offline queue, sync service,
 /// search, status filter, job routes and pull-to-refresh.
@@ -36,6 +33,7 @@ class _TechnicianJobsCleanPageState
   static const _pageSize = 50;
 
   final _search = TextEditingController();
+  final _searchFocus = FocusNode();
   final _scroll = ScrollController();
   int _page = 0;
   String _status = '';
@@ -53,6 +51,7 @@ class _TechnicianJobsCleanPageState
     _search
       ..removeListener(_handleSearch)
       ..dispose();
+    _searchFocus.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -85,10 +84,17 @@ class _TechnicianJobsCleanPageState
 
   void _toggleSearch() {
     setState(() => _searchOpen = !_searchOpen);
-    if (!_searchOpen) {
+    if (_searchOpen) {
+      _searchFocus.requestFocus();
+    } else {
       FocusScope.of(context).unfocus();
       _search.clear();
     }
+  }
+
+  void _clearFilters() {
+    _search.clear();
+    _setStatus('');
   }
 
   TechnicianJobsQuery get _query =>
@@ -115,17 +121,23 @@ class _TechnicianJobsCleanPageState
           children: [
             Text(
               t(TechnicianKeys.technicianFilter),
-              style: queueSection(context),
+              style: fieldworkText(
+                context,
+                16,
+                weight: FontWeight.w800,
+                height: 21,
+                tracking: -0.2,
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                QueueChip(
+                AppFilterChip(
                   label: t(TechnicianKeys.filterAll),
                   selected: _status.isEmpty,
-                  onPressed: () {
+                  onSelected: (_) {
                     Navigator.of(context).pop();
                     _setStatus('');
                   },
@@ -133,10 +145,12 @@ class _TechnicianJobsCleanPageState
                 for (final record in statuses.where(
                   (value) => value.selectable,
                 ))
-                  QueueChip(
+                  AppFilterChip(
                     label: referenceStatusCodeLabel(statuses, record.code),
-                    selected: _status == record.code,
-                    onPressed: () {
+                    selected:
+                        normalizeStatusCode(_status) ==
+                        normalizeStatusCode(record.code),
+                    onSelected: (_) {
                       Navigator.of(context).pop();
                       _setStatus(record.code);
                     },
@@ -154,7 +168,6 @@ class _TechnicianJobsCleanPageState
     final t = UiStrings.of(context);
     final locale = Localizations.localeOf(context).toString();
     final now = DateTime.now();
-    final colors = context.colors;
 
     ref.listen<AsyncValue<bool>>(connectivityProvider, (previous, next) {
       if (next.value == true && previous?.value != true) {
@@ -169,7 +182,8 @@ class _TechnicianJobsCleanPageState
 
     final pageAsync = ref.watch(technicianJobPageProvider(_query));
     final sync = ref.watch(syncQueueStatusProvider).asData?.value;
-    ref.watch(statusesProvider('job'));
+    final statuses =
+        ref.watch(statusesProvider('job')).value ?? const <ReferenceRecord>[];
     final online = ref.watch(connectivityProvider).value ?? true;
     final session = ref.watch(authControllerProvider).value;
     final name = session?.user.displayName ?? t(TechnicianKeys.roleTechnician);
@@ -184,419 +198,350 @@ class _TechnicianJobsCleanPageState
     final filtered = _filterStatus(searched);
     final buckets = groupJobs(filtered, now: now);
     final focus = nowJob(buckets.visible, now: now);
-    final summary = _summarize(data?.items ?? const <JobSummary>[]);
-
     final todayRows = <JobSummary>[
       ...buckets.now,
       ...buckets.today,
     ].where((job) => job.id != focus?.id).toList(growable: false);
 
+    final emptyQueue = data?.items.isEmpty ?? false;
+    // A search/status filter that matches nothing is also a bare screen:
+    // showing the NOW card would claim "all caught up" when there is simply no
+    // match.
+    final noMatches =
+        !emptyQueue && (data?.items.isNotEmpty ?? false) && filtered.isEmpty;
+
+    final nextTime = queueNextTimeLabel(buckets.visible, now: now);
+    final nextTimeLabel = nextTime == null
+        ? null
+        : t(TechnicianKeys.technicianQueueNextAt, {'time': nextTime});
+
+    final (
+      String syncLabel,
+      StatusTone syncTone,
+      IconData syncIcon,
+    ) = conflicts > 0
+        ? (
+            '${t(TechnicianKeys.technicianSyncStateConflict)} · $conflicts',
+            StatusTone.danger,
+            Icons.sync_problem_rounded,
+          )
+        : waiting > 0
+        ? (
+            '${t(TechnicianKeys.technicianSessionSyncPending)} · $waiting',
+            StatusTone.warning,
+            Icons.cloud_upload_outlined,
+          )
+        : !online
+        ? (
+            t(TechnicianKeys.technicianSyncOffline),
+            StatusTone.warning,
+            Icons.cloud_off_rounded,
+          )
+        : (
+            t(TechnicianKeys.technicianSyncOnline),
+            StatusTone.success,
+            Icons.cloud_done_outlined,
+          );
+
     return AppScaffold(
-      backgroundColor: colors.surfaceContainerLow,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 768;
-          final maxWidth = wide ? 1180.0 : 600.0;
-          final emptyQueue = pageAsync.asData?.value.items.isEmpty ?? false;
-          // A search/status filter that matches nothing is also a bare screen:
-          // showing the NOW card would claim "all caught up" when there is
-          // simply no match.
-          final noMatches =
-              !emptyQueue &&
-              (pageAsync.asData?.value.items.isNotEmpty ?? false) &&
-              filtered.isEmpty;
-          final bare = emptyQueue || noMatches;
-
-          final header = ShiftHeader(
-            name: name,
-            toStart: summary.toStart,
-            inProgress: summary.inProgress,
-            showSummary: !emptyQueue,
-            waiting: waiting,
-            conflicts: conflicts,
-            searchOpen: _searchOpen,
-            filterActive: _status.isNotEmpty,
-            filterLabel: _status.isEmpty ? null : jobStatusLabel(ref, _status),
-            onProfile: () => context.push('/profile'),
-            onSearch: _toggleSearch,
-            onFilter: _openFilters,
-            onClearFilter: () => _setStatus(''),
-            onSync: () => context.push('/sync'),
-          );
-
-          final search = _searchOpen
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(top: 10),
-                  child: QueueSearchField(
-                    controller: _search,
-                    autofocus: true,
-                    hint: t(TechnicianKeys.technicianJobSearchHint),
-                    onChanged: (_) => setState(() {}),
-                    onClear: () {
-                      _search.clear();
-                      setState(() {});
-                    },
-                  ),
-                )
-              : const SizedBox.shrink();
-
-          final notices = <Widget>[
-            if (!online) ...[
-              QueueNote(
-                icon: Icons.cloud_off_rounded,
-                label: t(TechnicianKeys.offlineBanner),
-                tone: StatusTone.warning,
+      backgroundColor: context.colors.surfaceContainerLow,
+      body: JobsBoard(
+        header: JobsHeaderData(
+          eyebrow: t(TechnicianKeys.technicianDeckEyebrow),
+          name: name,
+          dateLabel: queueDateFormat(now, locale),
+          profileLabel: t(TechnicianKeys.technicianProfileTitle),
+          searchLabel: t(TechnicianKeys.technicianJobSearch),
+          filterLabel: t(TechnicianKeys.technicianFilter),
+          searchOpen: _searchOpen,
+          filterActive: _status.isNotEmpty,
+          syncLabel: syncLabel.trim().isEmpty ? null : syncLabel,
+          syncTone: syncTone,
+          syncIcon: syncIcon,
+        ),
+        now: focus == null ? null : _nowData(focus, t),
+        nowEmptyTitle: t(TechnicianKeys.technicianAllCaughtUp),
+        nowEmptyBody: t(TechnicianKeys.technicianNoJobsBody),
+        nowEmptyActionLabel: t(TechnicianKeys.technicianDeckSeeAll),
+        nextTimeLabel: nextTimeLabel,
+        summary: JobsSummaryData(
+          title: t(TechnicianKeys.technicianQueueSectionToday),
+          startLabel: t(TechnicianKeys.start),
+          nowLabel: t(TechnicianKeys.technicianQueueSectionNow),
+          doneLabel: t(TechnicianKeys.technicianQueueSectionDoneToday),
+          toStart: buckets.toStartCount,
+          inProgress: buckets.inProgressCount,
+          doneToday: buckets.doneToday.length,
+          nextTimeLabel: nextTimeLabel,
+        ),
+        tabs: JobsTabsData(
+          selected: _tab,
+          todayLabel: t(TechnicianKeys.technicianQueueSectionToday),
+          upcomingLabel: t(TechnicianKeys.technicianQueueSectionUpcoming),
+          unfinishedLabel: t(TechnicianKeys.technicianQueueSectionUnfinished),
+          today:
+              buckets.now.length +
+              buckets.today.length +
+              buckets.doneToday.length,
+          upcoming: buckets.upcoming.length,
+          unfinished: buckets.unfinished.length,
+        ),
+        statusFilters: data == null
+            ? const <JobsStatusFilter>[]
+            : _statusFilters(data.items, statuses, t),
+        sections: data == null
+            ? const <JobsAgendaSection>[]
+            : _sections(
+                buckets: buckets,
+                focus: focus,
+                todayRows: todayRows,
+                t: t,
+                locale: locale,
+                now: now,
               ),
-              const SizedBox(height: 10),
-            ],
-          ];
-
-          final tabs = ShiftTabs(
-            today:
-                buckets.now.length +
-                buckets.today.length +
-                buckets.doneToday.length,
-            upcoming: buckets.upcoming.length,
-            unfinished: buckets.unfinished.length,
-            selected: _tab,
-            onSelect: _setTab,
-          );
-
-          final list = _buildList(
-            context: context,
-            t: t,
-            locale: locale,
-            now: now,
-            pageAsync: pageAsync,
-            filtered: filtered,
-            buckets: buckets,
-            focus: focus,
-            todayRows: todayRows,
-          );
-
-          final nowCard = ShiftNowCard(
-            job: focus,
-            verb: focus == null ? null : verbFor(focus),
-            statusLabel: focus == null
-                ? null
-                : jobStatusLabel(ref, focus.status),
-            statusTone: focus == null ? null : jobStatusTone(ref, focus.status),
-            onOpen: focus == null
-                ? () => _setTab(ShiftTab.upcoming)
-                : () => context.push('/jobs/${focus.id}'),
-            onSeeUpcoming: () => _setTab(ShiftTab.upcoming),
-          );
-
-          final stats = ShiftDayStats(
-            toStart: buckets.toStartCount,
-            inProgress: buckets.inProgressCount,
-            doneToday: buckets.doneToday.length,
-            nextTime: queueNextTimeLabel(buckets.visible, now: now),
-          );
-
-          final padding = EdgeInsetsDirectional.fromSTEB(
-            wide ? 24 : 16,
-            14,
-            wide ? 24 : 16,
-            24,
-          );
-          final headerBlock = Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              header,
-              search,
-              if (notices.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                ...notices,
-              ],
-            ],
-          );
-
-          if (bare) {
-            // No queue rows to show (nothing assigned, or no match): one
-            // centred message instead of a header strip with a card stuck
-            // under it. Still scrollable so pull-to-refresh keeps working.
-            return RefreshIndicator(
-              color: context.brand.ink,
-              backgroundColor: colors.surface,
-              onRefresh: _refresh,
-              child: LayoutBuilder(
-                builder: (context, inner) => SingleChildScrollView(
-                  controller: _scroll,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height: inner.maxHeight,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxWidth),
-                        child: Padding(
-                          padding: padding,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              headerBlock,
-                              Expanded(child: Center(child: list)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          if (wide && !bare) {
-            return SizedBox(
-              height: constraints.maxHeight,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: Padding(
-                    padding: padding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        headerBlock,
-                        const SizedBox(height: 14),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                flex: 7,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    tabs,
-                                    const SizedBox(height: 4),
-                                    Expanded(
-                                      child: RefreshIndicator(
-                                        color: context.brand.ink,
-                                        backgroundColor: colors.surface,
-                                        onRefresh: _refresh,
-                                        child: SingleChildScrollView(
-                                          controller: _scroll,
-                                          physics:
-                                              const AlwaysScrollableScrollPhysics(),
-                                          child: list,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                flex: 5,
-                                child: SingleChildScrollView(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    bottom: 8,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      nowCard,
-                                      const SizedBox(height: 12),
-                                      stats,
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            color: context.brand.ink,
-            backgroundColor: colors.surface,
-            onRefresh: _refresh,
-            child: SingleChildScrollView(
-              controller: _scroll,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: Padding(
-                    padding: padding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        headerBlock,
-                        const SizedBox(height: 14),
-                        nowCard,
-                        const SizedBox(height: 14),
-                        tabs,
-                        const SizedBox(height: 4),
-                        list,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
+        searchOpen: _searchOpen,
+        searchController: _search,
+        searchFocusNode: _searchFocus,
+        searchLabel: t(TechnicianKeys.technicianJobSearch),
+        searchHint: t(TechnicianKeys.technicianJobSearchHint),
+        clearSearchLabel: t(TechnicianKeys.technicianQueueClearFilters),
+        loading: pageAsync.isLoading && data == null,
+        empty: emptyQueue
+            ? JobsEmptyData(
+                title: t(TechnicianKeys.technicianAllCaughtUp),
+                body: t(TechnicianKeys.technicianNoJobsBody),
+              )
+            : null,
+        noResults: noMatches
+            ? JobsEmptyData(
+                title: t(TechnicianKeys.technicianNoSearchResults),
+                body: t(TechnicianKeys.technicianNoJobsBody),
+                actionLabel: t(TechnicianKeys.technicianQueueClearFilters),
+              )
+            : null,
+        error: pageAsync.hasError
+            ? JobsErrorData(
+                title: t(TechnicianKeys.error),
+                body: t(TechnicianKeys.genericError),
+                retryLabel: t(TechnicianKeys.retryAction),
+              )
+            : null,
+        offlineLabel: online ? null : t(TechnicianKeys.offlineBanner),
+        onRefresh: _refresh,
+        onRetry: _refresh,
+        onSearchToggle: _toggleSearch,
+        onSearchChanged: (_) => setState(() {}),
+        onSearchClear: () {
+          _search.clear();
+          setState(() {});
         },
+        onFilter: _openFilters,
+        onProfile: () => context.push('/profile'),
+        onSync: () => context.push('/sync'),
+        onTab: _setTab,
+        onStatus: _setStatus,
+        onOpenNow: focus == null
+            ? () => _setTab(ShiftTab.upcoming)
+            : () => context.push('/jobs/${focus.id}'),
+        onSeeUpcoming: () => _setTab(ShiftTab.upcoming),
+        onOpenJob: (id) => context.push('/jobs/$id'),
+        onClearFilters: _clearFilters,
+        scrollController: _scroll,
       ),
     );
   }
 
-  Widget _buildList({
-    required BuildContext context,
-    required UiStrings t,
-    required String locale,
-    required DateTime now,
-    required AsyncValue<JobSummaryPage> pageAsync,
-    required List<JobSummary> filtered,
+  JobsNowData _nowData(JobSummary job, UiStrings t) {
+    final verb = verbFor(job);
+    final time = queueTimeLabel(job);
+    final started = job.startedAt;
+    final nextTimeCopy = time.isEmpty
+        ? ''
+        : t(TechnicianKeys.technicianQueueNextAt, {'time': time});
+    return JobsNowData(
+      eyebrow: t(TechnicianKeys.technicianQueueSectionNow),
+      vehicle: queueVehicleLabel(job),
+      plate: (job.vehiclePlate ?? '').trim(),
+      reference: job.reference,
+      customer: job.customerName,
+      timeLabel:
+          (verb == QueueVerb.continueJob || verb == QueueVerb.finish) &&
+              started != null
+          ? time
+          : nextTimeCopy,
+      itemsLabel: t(TechnicianKeys.technicianQueueItems, {
+        'done': job.completedItems,
+        'total': job.totalItems,
+      }),
+      statusLabel: jobStatusLabel(ref, job.status),
+      statusTone: jobStatusTone(ref, job.status),
+      primaryLabel: _primaryLabel(t, verb),
+      done: job.completedItems,
+      total: job.totalItems,
+    );
+  }
+
+  List<JobsStatusFilter> _statusFilters(
+    List<JobSummary> items,
+    List<ReferenceRecord> statuses,
+    UiStrings t,
+  ) {
+    final counts = <String, int>{};
+    for (final job in items) {
+      final key = normalizeStatusCode(job.status);
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return <JobsStatusFilter>[
+      JobsStatusFilter(
+        code: '',
+        label: t(TechnicianKeys.filterAll),
+        count: items.length,
+        selected: _status.isEmpty,
+      ),
+      for (final record in statuses.where((value) => value.selectable))
+        if ((counts[normalizeStatusCode(record.code)] ?? 0) > 0 ||
+            normalizeStatusCode(_status) == normalizeStatusCode(record.code))
+          JobsStatusFilter(
+            code: record.code,
+            label: referenceStatusCodeLabel(statuses, record.code),
+            count: counts[normalizeStatusCode(record.code)] ?? 0,
+            selected:
+                normalizeStatusCode(_status) ==
+                normalizeStatusCode(record.code),
+          ),
+    ];
+  }
+
+  List<JobsAgendaSection> _sections({
     required QueueBuckets buckets,
     required JobSummary? focus,
     required List<JobSummary> todayRows,
+    required UiStrings t,
+    required String locale,
+    required DateTime now,
   }) {
-    return pageAsync.when(
-      loading: () => const ShiftSkeleton(),
-      error: (error, _) => QueueErrorPanel(
-        title: t(TechnicianKeys.error),
-        body: t(TechnicianKeys.genericError),
-        retryLabel: t(TechnicianKeys.retryAction),
-        onRetry: _refresh,
-      ),
-      data: (page) {
-        if (page.items.isEmpty) {
-          return QueueEmptyPanel(
-            title: t(TechnicianKeys.technicianAllCaughtUp),
-            body: t(TechnicianKeys.technicianNoJobsBody),
-          );
-        }
-        if (filtered.isEmpty) {
-          return QueueEmptyPanel(
-            title: t(TechnicianKeys.technicianNoSearchResults),
-            body: t(TechnicianKeys.technicianNoJobsBody),
-            action: QueueButton(
-              label: t(TechnicianKeys.technicianQueueClearFilters),
-              onPressed: () {
-                _search.clear();
-                _setStatus('');
-              },
-              variant: QueueButtonVariant.ghost,
+    switch (_tab) {
+      case ShiftTab.today:
+        final rows = [for (final job in todayRows) _agendaRow(job, t)];
+        final done = [for (final job in buckets.doneToday) _agendaRow(job, t)];
+        return [
+          if (rows.isNotEmpty)
+            JobsAgendaSection(
+              label: t(TechnicianKeys.technicianQueueSectionToday),
+              rows: rows,
+            )
+          else if (done.isEmpty)
+            JobsAgendaSection(
+              label: t(TechnicianKeys.technicianQueueSectionToday),
+              rows: const [],
+              emptyMessage: t(TechnicianKeys.technicianNoJobsThisDay),
             ),
-          );
-        }
-
-        // The NOW card already carries one job. Never repeat it in the agenda,
-        // whichever tab is open, so a row and the card can't disagree.
-        final upcoming = focus == null
+          if (done.isNotEmpty)
+            JobsAgendaSection(
+              label: t(TechnicianKeys.technicianQueueSectionDoneToday),
+              rows: done,
+            ),
+        ];
+      case ShiftTab.upcoming:
+        final list = focus == null
             ? buckets.upcoming
             : buckets.upcoming
                   .where((job) => job.id != focus.id)
                   .toList(growable: false);
-        final unfinished = focus == null
+        if (list.isEmpty) {
+          return [
+            JobsAgendaSection(
+              label: t(TechnicianKeys.technicianQueueSectionUpcoming),
+              rows: const [],
+              emptyMessage: t(TechnicianKeys.technicianNoJobsThisDay),
+            ),
+          ];
+        }
+        return [
+          for (final section in groupQueueJobs(list, now: now))
+            JobsAgendaSection(
+              label: queueDayLabel(section.day, t, locale, now: now),
+              rows: [for (final job in section.jobs) _agendaRow(job, t)],
+            ),
+        ];
+      case ShiftTab.unfinished:
+        final list = focus == null
             ? buckets.unfinished
             : buckets.unfinished
                   .where((job) => job.id != focus.id)
                   .toList(growable: false);
-
-        final children = <Widget>[];
-        switch (_tab) {
-          case ShiftTab.today:
-            if (todayRows.isEmpty && buckets.doneToday.isEmpty) {
-              children.add(
-                _emptyLine(context, t(TechnicianKeys.technicianNoJobsThisDay)),
-              );
-            } else {
-              if (todayRows.isNotEmpty) {
-                for (final job in todayRows) {
-                  children.add(_row(context, job));
-                }
-              }
-              if (buckets.doneToday.isNotEmpty) {
-                children.add(
-                  ShiftSectionHeader(
-                    label: t(TechnicianKeys.technicianQueueSectionDoneToday),
-                    count: buckets.doneToday.length,
-                  ),
-                );
-                for (final job in buckets.doneToday) {
-                  children.add(_row(context, job));
-                }
-              }
-            }
-          case ShiftTab.upcoming:
-            if (upcoming.isEmpty) {
-              children.add(
-                _emptyLine(context, t(TechnicianKeys.technicianNoJobsThisDay)),
-              );
-            } else {
-              for (final section in groupQueueJobs(upcoming, now: now)) {
-                children.add(
-                  ShiftSectionHeader(
-                    label: queueDayLabel(section.day, t, locale, now: now),
-                    count: section.jobs.length,
-                  ),
-                );
-                for (final job in section.jobs) {
-                  children.add(_row(context, job));
-                }
-              }
-            }
-          case ShiftTab.unfinished:
-            if (unfinished.isEmpty) {
-              children.add(
-                _emptyLine(context, t(TechnicianKeys.technicianNoJobsThisDay)),
-              );
-            } else {
-              for (final section in groupQueueJobs(unfinished, now: now)) {
-                children.add(
-                  ShiftSectionHeader(
-                    label: queueDayLabel(section.day, t, locale, now: now),
-                    count: section.jobs.length,
-                  ),
-                );
-                for (final job in section.jobs) {
-                  children.add(_row(context, job));
-                }
-              }
-            }
+        if (list.isEmpty) {
+          return [
+            JobsAgendaSection(
+              label: t(TechnicianKeys.technicianQueueSectionUnfinished),
+              rows: const [],
+              emptyMessage: t(TechnicianKeys.technicianNoJobsThisDay),
+            ),
+          ];
         }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        );
-      },
+        return [
+          for (final section in groupQueueJobs(list, now: now))
+            JobsAgendaSection(
+              label: queueDayLabel(section.day, t, locale, now: now),
+              rows: [for (final job in section.jobs) _agendaRow(job, t)],
+            ),
+        ];
+    }
+  }
+
+  JobsAgendaRowData _agendaRow(JobSummary job, UiStrings t) {
+    final verb = verbFor(job);
+    final time = queueTimeLabel(job);
+    final items = t(TechnicianKeys.technicianQueueItems, {
+      'done': job.completedItems,
+      'total': job.totalItems,
+    });
+    return JobsAgendaRowData(
+      id: job.id,
+      timeLabel: time,
+      vehicle: queueVehicleLabel(job),
+      plate: (job.vehiclePlate ?? '').trim(),
+      reference: job.reference,
+      customer: job.customerName,
+      itemsLabel: items,
+      statusLabel: jobStatusLabel(ref, job.status),
+      statusTone: jobStatusTone(ref, job.status),
+      done: job.completedItems,
+      total: job.totalItems,
+      semanticLabel: [
+        time,
+        queueVehicleLabel(job),
+        job.customerName,
+        items,
+        _verbLabel(t, verb),
+      ].join('. '),
     );
   }
 
-  Widget _row(BuildContext context, JobSummary job) {
-    return ShiftAgendaRow(
-      key: ValueKey<String>('shift-${job.id}'),
-      job: job,
-      verb: verbFor(job),
-      tone: jobStatusTone(ref, job.status),
-      selected: false,
-      onTap: () => context.push('/jobs/${job.id}'),
-    );
+  String _primaryLabel(UiStrings t, QueueVerb verb) {
+    switch (verb) {
+      case QueueVerb.start:
+        return t(TechnicianKeys.startInspection);
+      case QueueVerb.continueJob:
+        return t(TechnicianKeys.technicianDeckContinueAction);
+      case QueueVerb.finish:
+        return t(TechnicianKeys.technicianDeckFinishJob);
+      case QueueVerb.view:
+        return t(TechnicianKeys.technicianQueueActionView);
+    }
   }
 
-  Widget _emptyLine(BuildContext context, String label) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(top: 24, bottom: 24),
-      child: Center(
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: queueBody(context, color: context.colors.onSurfaceVariant),
-        ),
-      ),
-    );
+  String _verbLabel(UiStrings t, QueueVerb verb) {
+    switch (verb) {
+      case QueueVerb.start:
+        return t(TechnicianKeys.start);
+      case QueueVerb.continueJob:
+        return t(TechnicianKeys.technicianQueueActionContinue);
+      case QueueVerb.finish:
+        return t(TechnicianKeys.technicianQueueActionFinish);
+      case QueueVerb.view:
+        return t(TechnicianKeys.technicianQueueActionView);
+    }
   }
 
   List<JobSummary> _filterStatus(List<JobSummary> jobs) {
@@ -622,28 +567,4 @@ class _TechnicianJobsCleanPageState
     ].join(' ').toLowerCase();
     return haystack.contains(term);
   }
-
-  _Summary _summarize(List<JobSummary> jobs) {
-    var toStart = 0;
-    var inProgress = 0;
-    for (final job in jobs) {
-      switch (verbFor(job)) {
-        case QueueVerb.start:
-          toStart++;
-        case QueueVerb.continueJob:
-        case QueueVerb.finish:
-          inProgress++;
-        case QueueVerb.view:
-          break;
-      }
-    }
-    return _Summary(toStart: toStart, inProgress: inProgress);
-  }
-}
-
-class _Summary {
-  const _Summary({required this.toStart, required this.inProgress});
-
-  final int toStart;
-  final int inProgress;
 }
